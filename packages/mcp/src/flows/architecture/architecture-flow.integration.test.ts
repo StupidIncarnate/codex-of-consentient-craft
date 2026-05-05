@@ -40,7 +40,7 @@ describe('ArchitectureFlow', () => {
       const descriptions = registrations.map(({ description }) => description);
 
       expect(descriptions).toStrictEqual([
-        'Discover utilities, brokers, and files across the codebase',
+        'Discover utilities, brokers, and files across the codebase. Identifier-shaped grep patterns (2+ word tokens, no regex metacharacters) match across naming conventions by default — pass strict:true for literal-regex matching.',
         'Returns complete architecture overview',
         'Returns detailed information about a specific folder type',
         'Returns universal syntax rules',

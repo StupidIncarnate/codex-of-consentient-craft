@@ -251,7 +251,10 @@ describe('rule', () => {
 });`,
       });
 
-      const { grep } = DiscoverInputStub({ grep: 'explicit-return-types' });
+      const { grep, strict } = DiscoverInputStub({
+        grep: 'explicit-return-types',
+        strict: true,
+      });
 
       proxy.setupFiles({
         files: [
@@ -262,7 +265,7 @@ describe('rule', () => {
         pattern,
       });
 
-      const results = await fileScannerBroker({ grep: grep! });
+      const results = await fileScannerBroker({ grep: grep!, strict: strict! });
 
       expect(results).toStrictEqual([
         {
@@ -776,6 +779,64 @@ export const orphanGuard = (): boolean => true;`,
           usage: undefined,
         },
       ]);
+    });
+  });
+
+  describe('strict propagation', () => {
+    it('VALID: {grep PascalCase, no strict} => cross-convention matches kebab content', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = PathSegmentStub({
+        value: '/project/src/contracts/orchestration-event-type-contract.ts',
+      });
+      const pattern = GlobPatternStub({ value: '**/*' });
+      const contents = FileContentsStub({
+        value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
+      });
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
+
+      const results = await fileScannerBroker({ grep: grep! });
+
+      expect(results).toStrictEqual([
+        {
+          fileType: 'contract',
+          hits: [
+            {
+              line: 1,
+              text: "export const orchestrationEventTypeContract = z.enum(['x', 'y']);",
+            },
+          ],
+          metadata: undefined,
+          name: 'orchestration-event-type-contract',
+          path: '/project/src/contracts/orchestration-event-type-contract.ts',
+          purpose: undefined,
+          relatedFiles: [],
+          signature: undefined,
+          usage: undefined,
+        },
+      ]);
+    });
+
+    it('VALID: {grep PascalCase, strict: true} => no match against kebab content', async () => {
+      const proxy = fileScannerBrokerProxy();
+      const filepath = PathSegmentStub({
+        value: '/project/src/contracts/orchestration-event-type-contract.ts',
+      });
+      const pattern = GlobPatternStub({ value: '**/*' });
+      const contents = FileContentsStub({
+        value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
+      });
+      const { grep, strict } = DiscoverInputStub({
+        grep: 'OrchestrationEventType',
+        strict: true,
+      });
+
+      proxy.setupFiles({ files: [{ filepath, contents }], pattern });
+
+      const results = await fileScannerBroker({ grep: grep!, strict: strict! });
+
+      expect(results).toStrictEqual([]);
     });
   });
 });

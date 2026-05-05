@@ -15,17 +15,20 @@ import { compileGrepRegexTransformer } from '../compile-grep-regex/compile-grep-
 
 type GrepPattern = NonNullable<DiscoverInput['grep']>;
 type ContextLines = NonNullable<DiscoverInput['context']>;
+type StrictGrep = NonNullable<DiscoverInput['strict']>;
 
 export const contentGrepTransformer = ({
   contents,
   pattern,
   context,
+  strict,
 }: {
   contents: FileContents;
   pattern: GrepPattern;
   context?: ContextLines;
+  strict?: StrictGrep;
 }): GrepHit[] => {
-  const regex = compileGrepRegexTransformer({ pattern });
+  const regex = compileGrepRegexTransformer({ pattern, ...(strict !== undefined && { strict }) });
   const contentsStr = String(contents);
   const lines = contentsStr.split('\n');
 

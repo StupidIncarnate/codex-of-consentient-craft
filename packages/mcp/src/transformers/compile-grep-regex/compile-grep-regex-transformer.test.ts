@@ -3,22 +3,6 @@ import { DiscoverInputStub } from '../../contracts/discover-input/discover-input
 
 describe('compileGrepRegexTransformer', () => {
   describe('regex mode (default)', () => {
-    it('VALID: {plain kebab identifier} => compiles as regex with same text (no metacharacters)', () => {
-      const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter' });
-
-      const result = compileGrepRegexTransformer({ pattern: grep! });
-
-      expect(result.toString()).toBe('/fs-mkdir-adapter/gmu');
-    });
-
-    it('VALID: {plain kebab identifier tested against matching string} => matches', () => {
-      const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter' });
-
-      const result = compileGrepRegexTransformer({ pattern: grep! });
-
-      expect(result.test('fs-mkdir-adapter')).toBe(true);
-    });
-
     it('VALID: {pattern with dot} => dot acts as regex wildcard', () => {
       const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter.ts' });
 
@@ -141,6 +125,131 @@ describe('compileGrepRegexTransformer', () => {
       const result = compileGrepRegexTransformer({ pattern: grep! });
 
       expect(result.test('ERROR')).toBe(true);
+    });
+  });
+
+  describe('cross-naming-convention mode (default for identifier-shaped patterns)', () => {
+    it('VALID: {PascalCase 3-token identifier} => compiles to flexible-separator case-insensitive regex', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.toString()).toBe('/Orchestration[-_\\s]?Event[-_\\s]?Type/gimu');
+    });
+
+    it('VALID: {PascalCase pattern} => matches PascalCase (same convention)', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('OrchestrationEventType')).toBe(true);
+    });
+
+    it('VALID: {PascalCase pattern} => matches kebab-case form', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('orchestration-event-type')).toBe(true);
+    });
+
+    it('VALID: {PascalCase pattern} => matches snake_case form', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('orchestration_event_type')).toBe(true);
+    });
+
+    it('VALID: {PascalCase pattern} => matches camelCase form', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('orchestrationEventType')).toBe(true);
+    });
+
+    it('VALID: {PascalCase pattern} => matches SCREAMING_SNAKE_CASE form', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('ORCHESTRATION_EVENT_TYPE')).toBe(true);
+    });
+
+    it('VALID: {PascalCase pattern} => does not match different word stems', () => {
+      const { grep } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('SomeOtherType')).toBe(false);
+    });
+
+    it('VALID: {kebab-case input} => also produces cross-convention matcher', () => {
+      const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.toString()).toBe('/fs[-_\\s]?mkdir[-_\\s]?adapter/gimu');
+    });
+
+    it('VALID: {kebab-case input} => matches PascalCase form', () => {
+      const { grep } = DiscoverInputStub({ grep: 'fs-mkdir-adapter' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('FsMkdirAdapter')).toBe(true);
+    });
+
+    it('VALID: {single token identifier} => stays literal (not widened)', () => {
+      const { grep } = DiscoverInputStub({ grep: 'error' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.toString()).toBe('/error/gmu');
+    });
+
+    it('VALID: {single token identifier} => does NOT match other casings', () => {
+      const { grep } = DiscoverInputStub({ grep: 'error' });
+
+      const result = compileGrepRegexTransformer({ pattern: grep! });
+
+      expect(result.test('ERROR')).toBe(false);
+    });
+  });
+
+  describe('strict mode (cross-convention disabled)', () => {
+    it('VALID: {strict: true with PascalCase identifier} => compiles as literal regex (case-sensitive, no separator flexibility)', () => {
+      const { grep, strict } = DiscoverInputStub({
+        grep: 'OrchestrationEventType',
+        strict: true,
+      });
+
+      const result = compileGrepRegexTransformer({ pattern: grep!, strict: strict! });
+
+      expect(result.toString()).toBe('/OrchestrationEventType/gmu');
+    });
+
+    it('VALID: {strict: true} => does NOT match kebab-case form', () => {
+      const { grep, strict } = DiscoverInputStub({
+        grep: 'OrchestrationEventType',
+        strict: true,
+      });
+
+      const result = compileGrepRegexTransformer({ pattern: grep!, strict: strict! });
+
+      expect(result.test('orchestration-event-type')).toBe(false);
+    });
+
+    it('VALID: {strict: true} => matches exact PascalCase form', () => {
+      const { grep, strict } = DiscoverInputStub({
+        grep: 'OrchestrationEventType',
+        strict: true,
+      });
+
+      const result = compileGrepRegexTransformer({ pattern: grep!, strict: strict! });
+
+      expect(result.test('OrchestrationEventType')).toBe(true);
     });
   });
 

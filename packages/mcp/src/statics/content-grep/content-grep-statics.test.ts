@@ -7,6 +7,9 @@ describe('contentGrepStatics', () => {
       inlineFlagsPattern: '^\\(\\?([gimsuy]+)\\)',
       metacharPattern: '[.*+?^${}()|[\\]\\\\]',
       requiredFlags: 'gmu',
+      crossConventionFlags: 'gimu',
+      crossConventionSeparatorPattern: '[-_\\s]?',
+      minCrossConventionTokens: 2,
     });
   });
 

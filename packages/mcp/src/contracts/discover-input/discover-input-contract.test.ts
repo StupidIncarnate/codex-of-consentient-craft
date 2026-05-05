@@ -32,10 +32,28 @@ describe('discoverInputContract', () => {
     expect(result).toStrictEqual({ context: 3 });
   });
 
-  it('VALID: {glob, grep, verbose, context} => parses all params', () => {
-    const result = DiscoverInputStub({ glob: 'src/**', grep: 'error', verbose: true, context: 5 });
+  it('VALID: {strict: true} => parses strict', () => {
+    const result = DiscoverInputStub({ strict: true });
 
-    expect(result).toStrictEqual({ glob: 'src/**', grep: 'error', verbose: true, context: 5 });
+    expect(result).toStrictEqual({ strict: true });
+  });
+
+  it('VALID: {glob, grep, verbose, context, strict} => parses all params', () => {
+    const result = DiscoverInputStub({
+      glob: 'src/**',
+      grep: 'error',
+      verbose: true,
+      context: 5,
+      strict: true,
+    });
+
+    expect(result).toStrictEqual({
+      glob: 'src/**',
+      grep: 'error',
+      verbose: true,
+      context: 5,
+      strict: true,
+    });
   });
 
   it('INVALID: {path: "..."} => rejects unknown key with Unrecognized key message', () => {

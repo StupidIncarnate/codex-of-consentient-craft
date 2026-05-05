@@ -16,36 +16,24 @@ export const sessionSnippetStatics = {
 | Param | Type | Description |
 |-------|------|-------------|
 | \`glob\` | string? | File path pattern. Example: \`"packages/hooks/src/guards/**"\` |
-| \`grep\` | string? | Content regex. Example: \`"ENOENT"\`, \`"(?i)error"\` |
+| \`grep\` | string? | Content regex. Identifier patterns (2+ tokens, no metachars) match across kebab/snake/camel/Pascal by default. Single tokens stay literal. |
 | \`verbose\` | boolean? | Show signatures, companions. Default: false |
 | \`context\` | number? | Lines around grep hits. Default: 0 |
+| \`strict\` | boolean? | Disable cross-convention matching. Default: false |
 
 ### Output: glob (default)
 
-\`discover({ glob: "packages/web/src/widgets/quest-chat/**" })\` returns a folder tree with file purposes:
+\`discover({ glob: "packages/web/src/widgets/quest-chat/**" })\` returns a folder tree:
 
 \`\`\`
 widgets/
   quest-chat/
-    quest-chat-widget (widget) - Quest chat with split panels for chat and activity
-    quest-chat-widget.proxy (widget) - Test proxy, sets up mocks for all bindings
+    quest-chat-widget (widget) - Quest chat with split panels
+    quest-chat-widget.proxy (widget) - Test proxy
     quest-chat-widget.test (widget)
 \`\`\`
 
-### Output: glob + verbose
-
-\`discover({ glob: "...", verbose: true })\` returns JSON with signatures, companions, and usage:
-
-\`\`\`json
-[{
-  "name": "quest-chat-widget",
-  "path": "packages/web/src/widgets/quest-chat/quest-chat-widget.tsx",
-  "type": "widget",
-  "purpose": "Quest chat with split panels for chat and activity",
-  "usage": "<QuestChatWidget />",
-  "relatedFiles": ["quest-chat-widget.proxy.tsx", "quest-chat-widget.test.tsx"]
-}]
-\`\`\`
+\`verbose: true\` returns JSON with signatures, companions, and usage instead.
 
 ### All call forms
 
@@ -58,7 +46,8 @@ discover({ grep: "(?i)error" })
 discover({ grep: "import.*shared" })
 discover({ grep: "fileSize|timeout", context: 2 })
 discover({ glob: "packages/hooks/**", grep: "isNew" })
-discover({ grep: "isNewSession", verbose: true })
+discover({ grep: "OrchestrationEventType" })  // cross-convention default
+discover({ grep: "OrchestrationEventType", strict: true })  // exact-match
 \`\`\`
 
 Use \`discover\` to locate files. Use \`Read\` only once you need full file contents.

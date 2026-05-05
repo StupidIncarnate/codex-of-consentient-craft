@@ -378,4 +378,61 @@ describe('mcpDiscoverBroker', () => {
       });
     });
   });
+
+  describe('strict propagation', () => {
+    it('VALID: {grep PascalCase, no strict} => cross-convention matches kebab content via tree output', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({
+        value: `${process.cwd()}/src/contracts/orchestration-event-type-contract.ts`,
+      });
+      const contents = FileContentsStub({
+        value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
+      });
+      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*.ts` });
+
+      brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
+
+      const input = DiscoverInputStub({
+        glob: '**/*.ts' as never,
+        grep: 'OrchestrationEventType',
+      });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [
+          'mcp/',
+          '  contracts/',
+          '    orchestration-event-type-contract (contract)',
+          "      :1  export const orchestrationEventTypeContract = z.enum(['x', 'y']);",
+        ].join('\n'),
+        count: 1,
+      });
+    });
+
+    it('VALID: {grep PascalCase, strict: true} => no match against kebab content, returns grep-empty hint', async () => {
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      const filepath = FilePathStub({
+        value: `${process.cwd()}/src/contracts/orchestration-event-type-contract.ts`,
+      });
+      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*.ts` });
+
+      brokerProxy.setupGrepFilteredEmpty({ filePaths: [filepath], pattern });
+
+      const input = DiscoverInputStub({
+        glob: '**/*.ts' as never,
+        grep: 'OrchestrationEventType',
+        strict: true,
+      });
+      const result = await mcpDiscoverBroker({ input });
+
+      expect(result).toStrictEqual({
+        results: [
+          '(no content matches)',
+          '',
+          'Your glob matched files, but your grep pattern did not match any content. Glob matched 1 file(s).',
+        ].join('\n'),
+        count: 0,
+      });
+    });
+  });
 });

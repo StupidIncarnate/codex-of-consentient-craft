@@ -255,4 +255,40 @@ describe('contentGrepTransformer', () => {
       expect(result).toStrictEqual([GrepHitStub({ line: 2, text: 'MATCH' })]);
     });
   });
+
+  describe('cross-naming-convention default', () => {
+    it('VALID: PascalCase pattern => matches kebab-case in content', () => {
+      const contents = FileContentsStub({
+        value: 'export const orchestration-event-type-contract = "x";',
+      });
+      const { grep: pattern } = DiscoverInputStub({ grep: 'OrchestrationEventType' });
+
+      const result = contentGrepTransformer({ contents, pattern: pattern! });
+
+      expect(result).toStrictEqual([
+        GrepHitStub({
+          line: 1,
+          text: 'export const orchestration-event-type-contract = "x";',
+        }),
+      ]);
+    });
+
+    it('VALID: strict: true on PascalCase pattern => does NOT match kebab-case in content', () => {
+      const contents = FileContentsStub({
+        value: 'export const orchestration-event-type-contract = "x";',
+      });
+      const { grep: pattern, strict } = DiscoverInputStub({
+        grep: 'OrchestrationEventType',
+        strict: true,
+      });
+
+      const result = contentGrepTransformer({
+        contents,
+        pattern: pattern!,
+        strict: strict!,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
 });

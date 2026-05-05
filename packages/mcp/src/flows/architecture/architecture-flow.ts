@@ -28,7 +28,8 @@ const getProjectMapSchema = zodToJsonSchema(getProjectMapInputContract as never,
 export const ArchitectureFlow = (): ToolRegistration[] => [
   {
     name: 'discover' as never,
-    description: 'Discover utilities, brokers, and files across the codebase' as never,
+    description:
+      'Discover utilities, brokers, and files across the codebase. Identifier-shaped grep patterns (2+ word tokens, no regex metacharacters) match across naming conventions by default — pass strict:true for literal-regex matching.' as never,
     inputSchema: discoverSchema as never,
     handler: async ({ args }) => ArchitectureHandleResponder({ tool: 'discover' as never, args }),
   },

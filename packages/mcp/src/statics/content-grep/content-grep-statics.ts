@@ -16,4 +16,10 @@ export const contentGrepStatics = {
   metacharPattern: '[.*+?^${}()|[\\]\\\\]',
   /** Required regex flags: global (g), multiline (m), unicode (u). */
   requiredFlags: 'gmu',
+  /** Flags for the cross-naming-convention identifier matcher: required + case-insensitive (i). JS normalizes to alphabetical order in toString(). */
+  crossConventionFlags: 'gimu',
+  /** Regex source inserted between tokens in the cross-naming-convention matcher (zero or one separator). */
+  crossConventionSeparatorPattern: '[-_\\s]?',
+  /** Minimum token count for the cross-naming-convention matcher. Single-token identifiers stay literal. */
+  minCrossConventionTokens: 2,
 } as const;

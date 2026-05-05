@@ -34,11 +34,12 @@ export const mcpDiscoverBroker = async ({
   // Validate input
   const validated = discoverInputContract.parse(input);
 
-  // Scan files with glob/grep/context
+  // Scan files with glob/grep/context/strict
   const fileResults = await fileScannerBroker({
     ...(validated.glob && { glob: validated.glob }),
     ...(validated.grep && { grep: validated.grep }),
     ...(validated.context !== undefined && { context: validated.context }),
+    ...(validated.strict !== undefined && { strict: validated.strict }),
   });
 
   // Map FileMetadata to DiscoverResultItem format (fileType -> type, signature.raw -> signature)

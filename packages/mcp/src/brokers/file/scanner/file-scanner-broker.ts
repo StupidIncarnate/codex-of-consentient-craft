@@ -29,15 +29,18 @@ import type { DiscoverInput } from '../../../contracts/discover-input/discover-i
 type GlobPattern = NonNullable<DiscoverInput['glob']>;
 type GrepPattern = NonNullable<DiscoverInput['grep']>;
 type ContextLines = NonNullable<DiscoverInput['context']>;
+type StrictGrep = NonNullable<DiscoverInput['strict']>;
 
 export const fileScannerBroker = async ({
   glob,
   grep,
   context,
+  strict,
 }: {
   glob?: GlobPattern;
   grep?: GrepPattern;
   context?: ContextLines;
+  strict?: StrictGrep;
 }): Promise<readonly FileMetadata[]> => {
   // 1. Resolve glob pattern and scan from cwd + shared package
   const cwdPath = pathSegmentContract.parse(processCwdAdapter());
@@ -85,6 +88,7 @@ export const fileScannerBroker = async ({
           contents,
           pattern: grep,
           ...(context !== undefined && { context }),
+          ...(strict !== undefined && { strict }),
         })
       : undefined;
 

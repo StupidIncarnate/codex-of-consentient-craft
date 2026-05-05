@@ -14,7 +14,7 @@ export const discoverInputContract = z
       .string()
       .brand<'GrepPattern'>()
       .describe(
-        'Content regex (JS engine). Supports alternation (a|b), lookaheads ((?!x)), char classes (\\w,\\d,\\s), anchors (^$). Inline flags: (?i) case-insensitive, (?s) dotall. Default is multiline. Invalid regex falls back to escaped literal match.',
+        'Content regex (JS engine). By default, identifier-like patterns (2+ word tokens, no regex metacharacters) match across naming conventions: `OrchestrationEventType` also hits `orchestration-event-type`, `orchestration_event_type`, `orchestrationEventType`, `ORCHESTRATION_EVENT_TYPE`. Pass `strict: true` to disable this and treat the pattern as a literal regex. Supports alternation (a|b), lookaheads ((?!x)), char classes (\\w,\\d,\\s), anchors (^$). Inline flags: (?i) case-insensitive, (?s) dotall. Default is multiline. Invalid regex falls back to escaped literal match.',
       )
       .optional(),
     verbose: z
@@ -28,6 +28,13 @@ export const discoverInputContract = z
       .nonnegative()
       .brand<'ContextLines'>()
       .describe('Lines of context around grep hits')
+      .optional(),
+    strict: z
+      .boolean()
+      .brand<'StrictGrep'>()
+      .describe(
+        'Match grep pattern exactly as a regex/literal. Disables the default cross-naming-convention matching for identifier-like patterns.',
+      )
       .optional(),
   })
   .strict();
