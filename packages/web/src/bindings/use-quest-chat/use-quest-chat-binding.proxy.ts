@@ -1,3 +1,5 @@
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
@@ -14,6 +16,10 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
   setupClarifyError: () => void;
   setupPause: () => void;
   setupResume: (params: { restoredStatus: QuestStatus }) => void;
+  setupUuids: (params: {
+    uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
+  }) => void;
+  setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   getChatRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
   getResumeRequestCount: () => RequestCount;
@@ -27,6 +33,16 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
   const pauseProxy = questPauseBrokerProxy();
   const resumeProxy = questResumeBrokerProxy();
   const wsProxy = websocketConnectAdapterProxy({ deferOpen });
+  const uuidMock: SpyOnHandle = registerSpyOn({
+    object: crypto,
+    method: 'randomUUID',
+    passthrough: true,
+  });
+  const dateProtoMock: SpyOnHandle = registerSpyOn({
+    object: Date.prototype,
+    method: 'toISOString',
+    passthrough: true,
+  });
 
   return {
     setupChat: ({ chatProcessId }) => {
@@ -46,6 +62,16 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
     },
     setupResume: ({ restoredStatus }) => {
       resumeProxy.setupResume({ restoredStatus });
+    },
+    setupUuids: ({ uuids }) => {
+      for (const uuid of uuids) {
+        uuidMock.mockReturnValueOnce(uuid);
+      }
+    },
+    setupTimestamps: ({ timestamps }) => {
+      for (const ts of timestamps) {
+        dateProtoMock.mockReturnValueOnce(ts);
+      }
     },
     getChatRequestCount: () => chatProxy.getRequestCount(),
     getPauseRequestCount: () => pauseProxy.getRequestCount(),

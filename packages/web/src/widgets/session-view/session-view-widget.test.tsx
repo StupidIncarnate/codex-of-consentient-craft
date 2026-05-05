@@ -81,7 +81,15 @@ describe('SessionViewWidget', () => {
               chatProcessId: replayProcessId,
               questId: QuestIdStub(),
               workItemId: QuestWorkItemIdStub(),
-              entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'replayed',
+                  uuid: '00000000-0000-4000-8000-000000000001',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
@@ -179,7 +187,15 @@ describe('SessionViewWidget', () => {
               chatProcessId: replayProcessId,
               questId: QuestIdStub(),
               workItemId: QuestWorkItemIdStub(),
-              entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'replayed',
+                  uuid: '00000000-0000-4000-8000-000000000001',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),

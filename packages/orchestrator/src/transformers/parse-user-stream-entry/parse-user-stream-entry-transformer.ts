@@ -3,15 +3,27 @@
  *
  * USAGE:
  * parseUserStreamEntryTransformer({parsed: {type: 'user', message: {content: [{type: 'tool_result', tool_use_id: 'id', content: 'data'}]}}});
- * // Returns ChatEntry[] containing tool_result entries and/or user text entries from user messages
+ * // Returns ChatEntry[] containing tool_result entries and/or user text entries from user messages.
+ * // Every entry carries uuid (`<line-uuid>:<item-index>` for content-array items, `<line-uuid>:user`
+ * // for the user-text shorthand, `<line-uuid>:task-notification` for the lifted task_notification)
+ * // and timestamp from the source line, so the web binding dedups duplicate dual-source emissions.
  */
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
+import { extractTimestampFromJsonlLineTransformer } from '../extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
 import { mapContentItemToChatEntryTransformer } from '../map-content-item-to-chat-entry/map-content-item-to-chat-entry-transformer';
 
-export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown }): ChatEntry[] => {
+export const parseUserStreamEntryTransformer = ({
+  parsed,
+  lineUuid,
+  timestamp,
+}: {
+  parsed: unknown;
+  lineUuid?: string;
+  timestamp?: string;
+}): ChatEntry[] => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
     return [];
@@ -21,6 +33,18 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown })
   if (message === undefined) {
     return [];
   }
+
+  const rawLineUuid = line.uuid;
+  const resolvedLineUuid =
+    typeof lineUuid === 'string' && lineUuid.length > 0
+      ? lineUuid
+      : typeof rawLineUuid === 'string' && String(rawLineUuid).length > 0
+        ? String(rawLineUuid)
+        : crypto.randomUUID();
+  const resolvedTimestamp =
+    typeof timestamp === 'string' && timestamp.length > 0
+      ? timestamp
+      : String(extractTimestampFromJsonlLineTransformer({ parsed }));
 
   const rawSource = line.source === undefined ? undefined : String(line.source);
   const validSource: 'session' | 'subagent' | undefined =
@@ -67,6 +91,8 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown })
         ...(typeof durationMs === 'number' ? { durationMs } : {}),
         ...(validSource ? { source: validSource } : {}),
         ...(notificationAgentId === undefined ? {} : { agentId: notificationAgentId }),
+        uuid: `${resolvedLineUuid}:task-notification`,
+        timestamp: resolvedTimestamp,
       });
       if (taskEntry.success) {
         return [taskEntry.data];
@@ -82,6 +108,8 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown })
       content: contentArray,
       ...(validSource ? { source: validSource } : {}),
       ...(validAgentId ? { agentId: validAgentId } : {}),
+      uuid: `${resolvedLineUuid}:user`,
+      timestamp: resolvedTimestamp,
     });
 
     return userEntry.success ? [userEntry.data] : [];
@@ -93,7 +121,8 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown })
 
   const entries: ChatEntry[] = [];
 
-  for (const rawItem of contentArray) {
+  for (let index = 0; index < contentArray.length; index += 1) {
+    const rawItem: unknown = contentArray[index];
     const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
     if (!itemParse.success) continue;
     const item = itemParse.data;
@@ -104,6 +133,8 @@ export const parseUserStreamEntryTransformer = ({ parsed }: { parsed: unknown })
       usage: undefined,
       ...(validSource ? { source: validSource } : {}),
       ...(validAgentId ? { agentId: validAgentId } : {}),
+      uuid: `${resolvedLineUuid}:${String(index)}`,
+      timestamp: resolvedTimestamp,
     });
 
     if (entry) {

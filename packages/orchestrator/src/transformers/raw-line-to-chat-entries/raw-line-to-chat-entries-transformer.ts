@@ -24,7 +24,15 @@ export const rawLineToChatEntriesTransformer = ({
     if (rawLine.length === 0) {
       return [];
     }
-    return [chatEntryContract.parse({ role: 'assistant', type: 'text', content: rawLine })];
+    return [
+      chatEntryContract.parse({
+        role: 'assistant',
+        type: 'text',
+        content: rawLine,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+      }),
+    ];
   }
   return streamJsonToChatEntryTransformer({ parsed }).entries;
 };

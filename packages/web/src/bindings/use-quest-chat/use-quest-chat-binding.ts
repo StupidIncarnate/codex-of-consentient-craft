@@ -1,15 +1,23 @@
 /**
- * PURPOSE: React hook that owns the live quest workspace WebSocket lifecycle, accumulates per-workitem chat entries, and exposes message/clarify/stop actions keyed by questId
+ * PURPOSE: React hook that owns the live quest workspace WebSocket lifecycle, accumulates per-workitem chat entries (uuid-keyed for dedup, timestamp-sorted on read), and exposes message/clarify/stop actions keyed by questId
  *
  * USAGE:
  * const { entriesBySession, quest, pendingClarification, isStreaming, sendMessage, submitClarifyAnswers, stopChat } = useQuestChatBinding({ questId });
- * // Subscribes to ws://host/ws on mount, sends subscribe-quest, accumulates entries by sessionId, returns reactive state
+ * // Subscribes to ws://host/ws on mount, sends subscribe-quest, accumulates entries by sessionId
+ * // (uuid-keyed Map internally, sorted ChatEntry[] in the public surface), returns reactive state
+ *
+ * The internal Map<EntryUuid, ChatEntry> per session collapses duplicate emissions from the
+ * dual-source convergence (parent stdout + sub-agent JSONL tail) — both sources stamp the same
+ * uuid for the same content, so last-write-wins yields one entry per uuid. The exposed
+ * Map<SessionId, ChatEntry[]> is derived by sorting on (timestamp, uuid) so streaming and replay
+ * paths render identical DOM regardless of arrival order.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   AskUserQuestionItem,
   ChatEntry,
+  ChatEntryUuid,
   Quest,
   QuestId,
   SessionId,
@@ -35,6 +43,8 @@ import { clarificationRequestPayloadContract } from '../../contracts/clarificati
 import { questModifiedPayloadContract } from '../../contracts/quest-modified-payload/quest-modified-payload-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
+import { upsertChatEntriesByUuidTransformer } from '../../transformers/upsert-chat-entries-by-uuid/upsert-chat-entries-by-uuid-transformer';
 
 const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
 
@@ -57,13 +67,26 @@ export const useQuestChatBinding = ({
   }) => void;
   stopChat: () => void;
 } => {
-  const [entriesBySession, setEntriesBySession] = useState<Map<SessionId, ChatEntry[]>>(new Map());
-  const [slotEntries, setSlotEntries] = useState<Map<SlotIndex, ChatEntry[]>>(new Map());
+  const [entriesBySessionInternal, setEntriesBySessionInternal] = useState<
+    Map<SessionId, Map<ChatEntryUuid, ChatEntry>>
+  >(new Map());
+  const [slotEntriesInternal, setSlotEntriesInternal] = useState<
+    Map<SlotIndex, Map<ChatEntryUuid, ChatEntry>>
+  >(new Map());
   const [quest, setQuest] = useState<Quest | null>(null);
   const [pendingClarification, setPendingClarification] = useState<{
     questions: AskUserQuestionItem[];
   } | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+
+  const entriesBySession = useMemo(
+    () => deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal }),
+    [entriesBySessionInternal],
+  );
+  const slotEntries = useMemo(
+    () => deriveSortedChatEntriesMapTransformer({ source: slotEntriesInternal }),
+    [slotEntriesInternal],
+  );
 
   const questIdRef = useRef<QuestId | null>(questId);
   const wsRef = useRef<WsConnection | null>(null);
@@ -117,6 +140,8 @@ export const useQuestChatBinding = ({
           agentId: 'agentId' in e && e.agentId ? String(e.agentId) : null,
           source: 'source' in e ? (e.source ?? null) : null,
           content: 'content' in e && typeof e.content === 'string' ? e.content : null,
+          uuid: String(e.uuid),
+          timestamp: String(e.timestamp),
         })),
       });
       if (rejected.length > 0) {
@@ -126,25 +151,16 @@ export const useQuestChatBinding = ({
       if (validEntries.length === 0) return;
 
       const sessionKey = payloadResult.data.sessionId ?? SYNTHETIC_SESSION_KEY;
-      setEntriesBySession((prev) => {
-        const next = new Map(prev);
-        const existing = next.get(sessionKey) ?? [];
-        next.set(sessionKey, [...existing, ...validEntries]);
-        return next;
-      });
+      setEntriesBySessionInternal((prev) =>
+        upsertChatEntriesByUuidTransformer({ prev, key: sessionKey, newEntries: validEntries }),
+      );
 
-      // Slot routing — when payload carries a slotIndex (live active-slot output
-      // from the orchestrator's slot manager), accumulate per-slot so the
-      // ExecutionPanelWidget's active row can render streaming text in place.
       const slotIndexParsed = slotIndexContract.safeParse(payloadResult.data.slotIndex);
       if (slotIndexParsed.success) {
         const slotKey = slotIndexParsed.data;
-        setSlotEntries((prev) => {
-          const next = new Map(prev);
-          const existing = next.get(slotKey) ?? [];
-          next.set(slotKey, [...existing, ...validEntries]);
-          return next;
-        });
+        setSlotEntriesInternal((prev) =>
+          upsertChatEntriesByUuidTransformer({ prev, key: slotKey, newEntries: validEntries }),
+        );
       }
 
       setIsStreaming(true);
@@ -246,13 +262,19 @@ export const useQuestChatBinding = ({
       const activeQuestId = questIdRef.current;
       if (!activeQuestId) return;
 
-      const userEntry = chatEntryContract.parse({ role: 'user', content: message });
-      setEntriesBySession((prev) => {
-        const next = new Map(prev);
-        const existing = next.get(SYNTHETIC_SESSION_KEY) ?? [];
-        next.set(SYNTHETIC_SESSION_KEY, [...existing, userEntry]);
-        return next;
+      const userEntry = chatEntryContract.parse({
+        role: 'user',
+        content: message,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
       });
+      setEntriesBySessionInternal((prev) =>
+        upsertChatEntriesByUuidTransformer({
+          prev,
+          key: SYNTHETIC_SESSION_KEY,
+          newEntries: [userEntry],
+        }),
+      );
       setIsStreaming(true);
       setPendingClarification(null);
 
@@ -273,13 +295,16 @@ export const useQuestChatBinding = ({
             role: 'system',
             type: 'error',
             content: errorMessage,
+            uuid: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
           });
-          setEntriesBySession((prev) => {
-            const next = new Map(prev);
-            const existing = next.get(SYNTHETIC_SESSION_KEY) ?? [];
-            next.set(SYNTHETIC_SESSION_KEY, [...existing, errorEntry]);
-            return next;
-          });
+          setEntriesBySessionInternal((prev) =>
+            upsertChatEntriesByUuidTransformer({
+              prev,
+              key: SYNTHETIC_SESSION_KEY,
+              newEntries: [errorEntry],
+            }),
+          );
         });
     },
     [quest],
@@ -297,13 +322,19 @@ export const useQuestChatBinding = ({
       if (!activeQuestId) return;
 
       const userMessage = answers.map((a) => `${a.header}: ${a.label}`).join('\n');
-      const userEntry = chatEntryContract.parse({ role: 'user', content: userMessage });
-      setEntriesBySession((prev) => {
-        const next = new Map(prev);
-        const existing = next.get(SYNTHETIC_SESSION_KEY) ?? [];
-        next.set(SYNTHETIC_SESSION_KEY, [...existing, userEntry]);
-        return next;
+      const userEntry = chatEntryContract.parse({
+        role: 'user',
+        content: userMessage,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
       });
+      setEntriesBySessionInternal((prev) =>
+        upsertChatEntriesByUuidTransformer({
+          prev,
+          key: SYNTHETIC_SESSION_KEY,
+          newEntries: [userEntry],
+        }),
+      );
       setIsStreaming(true);
       setPendingClarification(null);
 
@@ -318,13 +349,16 @@ export const useQuestChatBinding = ({
           role: 'system',
           type: 'error',
           content: errorMessage,
+          uuid: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
         });
-        setEntriesBySession((prev) => {
-          const next = new Map(prev);
-          const existing = next.get(SYNTHETIC_SESSION_KEY) ?? [];
-          next.set(SYNTHETIC_SESSION_KEY, [...existing, errorEntry]);
-          return next;
-        });
+        setEntriesBySessionInternal((prev) =>
+          upsertChatEntriesByUuidTransformer({
+            prev,
+            key: SYNTHETIC_SESSION_KEY,
+            newEntries: [errorEntry],
+          }),
+        );
       });
     },
     [],

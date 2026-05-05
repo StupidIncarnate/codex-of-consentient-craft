@@ -152,7 +152,12 @@ export const QuestChatContentLayerWidget = ({
       // resubscribes via its useEffect on questId; localEntries keeps the
       // user message visible during the gap until replay catches up.
       if (submitting) return;
-      const userEntry = chatEntryContract.parse({ role: 'user', content: message });
+      const userEntry = chatEntryContract.parse({
+        role: 'user',
+        content: message,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+      });
       setLocalEntries((prev) => [...prev, userEntry]);
       setSubmitting(true);
       questNewBroker({ guildId, message })
@@ -171,6 +176,8 @@ export const QuestChatContentLayerWidget = ({
             role: 'system',
             type: 'error',
             content: errorMessage,
+            uuid: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
           });
           setLocalEntries((prev) => [...prev, errorEntry]);
         });

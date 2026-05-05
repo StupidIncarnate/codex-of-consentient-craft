@@ -7,12 +7,18 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { parseAssistantStreamEntryTransformer } from './parse-assistant-stream-entry-transformer';
+import { parseAssistantStreamEntryTransformerProxy } from './parse-assistant-stream-entry-transformer.proxy';
 
 const normalize = (value: unknown): object => snakeKeysToCamelKeysTransformer({ value }) as object;
+
+const UUID1 = '00000000-0000-4000-8000-000000000001';
+const TS = '1970-01-01T00:00:00.000Z';
 
 describe('parseAssistantStreamEntryTransformer', () => {
   describe('text content', () => {
     it('VALID: {text content with usage} => returns text chat entry with usage', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantTextStreamLineStub({
@@ -36,11 +42,15 @@ describe('parseAssistantStreamEntryTransformer', () => {
             cacheCreationInputTokens: 0,
             cacheReadInputTokens: 0,
           },
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('VALID: {thinking content} => returns thinking entry', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantThinkingStreamLineStub({
@@ -57,6 +67,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
           role: 'assistant',
           type: 'thinking',
           content: 'Let me think about this.',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
@@ -64,6 +76,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
   describe('tool content', () => {
     it('VALID: {tool_use content} => returns tool use chat entry', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantToolUseStreamLineStub({
@@ -89,11 +103,15 @@ describe('parseAssistantStreamEntryTransformer', () => {
           toolUseId: 'toolu_01ParseTest001',
           toolName: 'read_file',
           toolInput: '{"path":"/test"}',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('VALID: {tool_result content} => returns tool result chat entry', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantToolResultStreamLineStub({
@@ -111,6 +129,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
           type: 'tool_result',
           toolName: 'toolu_123',
           content: 'file data',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
@@ -118,6 +138,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
   describe('mixed content', () => {
     it('VALID: {multiple content items} => returns multiple entries', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantMixedContentStreamLineStub({
@@ -149,6 +171,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
             cacheCreationInputTokens: 0,
             cacheReadInputTokens: 0,
           },
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
         {
           role: 'assistant',
@@ -162,6 +186,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
             cacheCreationInputTokens: 0,
             cacheReadInputTokens: 0,
           },
+          uuid: `${UUID1}:1`,
+          timestamp: TS,
         },
       ]);
     });
@@ -201,6 +227,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
     });
 
     it('EDGE: {content array has null item} => skips null items', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize({
           type: 'assistant',
@@ -215,6 +243,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
           role: 'assistant',
           type: 'text',
           content: 'valid',
+          uuid: `${UUID1}:1`,
+          timestamp: TS,
         },
       ]);
     });
@@ -234,6 +264,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
     });
 
     it('VALID: {model field on message} => passes model to entries', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize(
           AssistantTextStreamLineStub({
@@ -252,6 +284,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
           type: 'text',
           content: 'Hello world',
           model: 'claude-opus-4-20250514',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
@@ -259,6 +293,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
 
   describe('source and agentId resolution', () => {
     it('VALID: {top-level source and agentId, no item-level} => uses top-level values', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize({
           type: 'assistant',
@@ -277,11 +313,15 @@ describe('parseAssistantStreamEntryTransformer', () => {
           content: 'hello',
           source: 'subagent',
           agentId: 'top-agent',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('VALID: {item-level source and agentId override top-level} => uses item-level values', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize({
           type: 'assistant',
@@ -300,11 +340,15 @@ describe('parseAssistantStreamEntryTransformer', () => {
           content: 'hello',
           source: 'subagent',
           agentId: 'item-agent',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('EDGE: {invalid top-level source} => source is omitted', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize({
           type: 'assistant',
@@ -320,11 +364,15 @@ describe('parseAssistantStreamEntryTransformer', () => {
           role: 'assistant',
           type: 'text',
           content: 'hello',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('EDGE: {empty agentId string} => agentId is omitted', () => {
+      const proxy = parseAssistantStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseAssistantStreamEntryTransformer({
         parsed: normalize({
           type: 'assistant',
@@ -340,6 +388,8 @@ describe('parseAssistantStreamEntryTransformer', () => {
           role: 'assistant',
           type: 'text',
           content: 'hello',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });

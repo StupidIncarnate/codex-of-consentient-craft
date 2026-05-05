@@ -98,6 +98,7 @@ export const normalizedStreamLineContract = z
     agentId: z.string().brand<'NormalizedStreamLineAgentId'>().optional(),
     sessionId: z.string().brand<'NormalizedStreamLineSessionId'>().optional(),
     timestamp: z.string().brand<'NormalizedStreamLineTimestamp'>().optional(),
+    uuid: z.string().brand<'NormalizedStreamLineUuid'>().optional(),
   })
   .passthrough();
 

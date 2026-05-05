@@ -4,15 +4,27 @@
  * USAGE:
  * const { entries, isLoading, sessionNotFound } = useSessionReplayBinding({ sessionId, guildId });
  * // Subscribes to ws://host/ws on mount, sends replay-history { sessionId, guildId, chatProcessId: 'replay-<sessionId>' }, returns reactive state
+ *
+ * Entries arrive from the orchestrator's replay broker already timestamp-sorted, but we still
+ * dedup by uuid (defensive — same convergence machinery as the live binding) and re-sort on
+ * read. This guarantees streaming-vs-replay parity even if the wire ever delivers entries in a
+ * different order.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ChatEntry, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  ChatEntryUuid,
+  GuildId,
+  ProcessId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import { chatEntryContract, wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { chatHistoryCompletePayloadContract } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload-contract';
 import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
+import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 
 type WsConnection = ReturnType<typeof websocketConnectAdapter>;
 
@@ -27,9 +39,13 @@ export const useSessionReplayBinding = ({
   isLoading: boolean;
   sessionNotFound: boolean;
 } => {
-  const [entries, setEntries] = useState<ChatEntry[]>([]);
+  const [entriesByUuid, setEntriesByUuid] = useState<Map<ChatEntryUuid, ChatEntry>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [sessionNotFound, setSessionNotFound] = useState(false);
+  const entries = useMemo(
+    () => sortChatEntriesByTimestampTransformer({ entries: [...entriesByUuid.values()] }),
+    [entriesByUuid],
+  );
 
   const sessionIdRef = useRef<SessionId | null>(sessionId);
   const guildIdRef = useRef<GuildId | null>(guildId);
@@ -65,7 +81,13 @@ export const useSessionReplayBinding = ({
 
       if (validEntries.length === 0) return;
       receivedEntriesRef.current = true;
-      setEntries((prev) => [...prev, ...validEntries]);
+      setEntriesByUuid((prev) => {
+        const next = new Map(prev);
+        for (const entry of validEntries) {
+          next.set(entry.uuid, entry);
+        }
+        return next;
+      });
       return;
     }
 
