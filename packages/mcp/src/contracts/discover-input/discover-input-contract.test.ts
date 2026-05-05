@@ -56,6 +56,52 @@ describe('discoverInputContract', () => {
     });
   });
 
+  it('VALID: {verbose: "true"} => coerces stringified verbose to boolean true', () => {
+    const result = discoverInputContract.parse({ verbose: 'true' });
+
+    expect(result).toStrictEqual({ verbose: true });
+  });
+
+  it('VALID: {verbose: "false"} => coerces stringified verbose to boolean false', () => {
+    const result = discoverInputContract.parse({ verbose: 'false' });
+
+    expect(result).toStrictEqual({ verbose: false });
+  });
+
+  it('VALID: {strict: "true"} => coerces stringified strict to boolean true', () => {
+    const result = discoverInputContract.parse({ strict: 'true' });
+
+    expect(result).toStrictEqual({ strict: true });
+  });
+
+  it('VALID: {strict: "false"} => coerces stringified strict to boolean false', () => {
+    const result = discoverInputContract.parse({ strict: 'false' });
+
+    expect(result).toStrictEqual({ strict: false });
+  });
+
+  it('VALID: {grep, verbose: "true", strict: "true"} => coerces both stringified booleans together', () => {
+    const result = discoverInputContract.parse({
+      grep: 'OrchestrationEventType',
+      verbose: 'true',
+      strict: 'true',
+    });
+
+    expect(result).toStrictEqual({
+      grep: 'OrchestrationEventType',
+      verbose: true,
+      strict: true,
+    });
+  });
+
+  it('INVALID: {verbose: "yes"} => rejects non-boolean-shaped string', () => {
+    expect(() => discoverInputContract.parse({ verbose: 'yes' })).toThrow(/Expected boolean/u);
+  });
+
+  it('INVALID: {strict: "yes"} => rejects non-boolean-shaped string', () => {
+    expect(() => discoverInputContract.parse({ strict: 'yes' })).toThrow(/Expected boolean/u);
+  });
+
   it('INVALID: {path: "..."} => rejects unknown key with Unrecognized key message', () => {
     expect(() =>
       discoverInputContract.parse({ glob: 'src/**', path: '/some/path' } as never),

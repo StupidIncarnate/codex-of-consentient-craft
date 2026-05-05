@@ -7,6 +7,8 @@
  */
 import { z } from 'zod';
 
+import { coercedBooleanInputContract } from '../coerced-boolean-input/coerced-boolean-input-contract';
+
 export const askUserQuestionInputContract = z
   .object({
     questions: z
@@ -20,7 +22,7 @@ export const askUserQuestionInputContract = z
               description: z.string().brand<'AskOptionDescription'>(),
             }),
           ),
-          multiSelect: z.boolean(),
+          multiSelect: coercedBooleanInputContract,
         }),
       )
       .min(1),

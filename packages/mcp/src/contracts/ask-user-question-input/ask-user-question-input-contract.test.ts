@@ -99,6 +99,54 @@ describe('askUserQuestionInputContract', () => {
       });
     });
 
+    it('VALID: {multiSelect: "true"} => coerces stringified multiSelect to boolean true', () => {
+      const result = askUserQuestionInputContract.parse({
+        questions: [
+          {
+            question: 'Pick one',
+            header: 'Choice',
+            options: [{ label: 'A', description: 'Option A' }],
+            multiSelect: 'true',
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        questions: [
+          {
+            question: 'Pick one',
+            header: 'Choice',
+            options: [{ label: 'A', description: 'Option A' }],
+            multiSelect: true,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {multiSelect: "false"} => coerces stringified multiSelect to boolean false', () => {
+      const result = askUserQuestionInputContract.parse({
+        questions: [
+          {
+            question: 'Pick one',
+            header: 'Choice',
+            options: [{ label: 'A', description: 'Option A' }],
+            multiSelect: 'false',
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        questions: [
+          {
+            question: 'Pick one',
+            header: 'Choice',
+            options: [{ label: 'A', description: 'Option A' }],
+            multiSelect: false,
+          },
+        ],
+      });
+    });
+
     it('EDGE: {empty options array} => parses question with no options', () => {
       const input = AskUserQuestionInputStub({
         questions: [

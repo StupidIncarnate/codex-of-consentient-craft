@@ -29,6 +29,61 @@ describe('ArchitectureHandleResponder', () => {
         content: [{ type: 'text', text: result.content[0]!.text }],
       });
     });
+
+    it('VALID: {tool: discover, verbose: true, strict: true} => accepts JSON booleans without coercion', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupFileDiscovery({
+        filepath: FilePathStub({
+          value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
+        }),
+        contents: FileContentsStub({
+          value: 'export const ArchitectureHandleResponder = () => {};',
+        }),
+        pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'discover' }),
+        args: { grep: 'OrchestrationEventType', verbose: true, strict: true },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
+    });
+
+    it('VALID: {tool: discover, verbose: "true", strict: "true"} => coerces stringified booleans from MCP transport', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupFileDiscovery({
+        filepath: FilePathStub({
+          value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
+        }),
+        contents: FileContentsStub({
+          value: 'export const ArchitectureHandleResponder = () => {};',
+        }),
+        pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'discover' }),
+        args: { grep: 'OrchestrationEventType', verbose: 'true', strict: 'true' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: result.content[0]!.text }],
+      });
+    });
+
+    it('INVALID: {tool: discover, verbose: "yes"} => rejects non-boolean-shaped string', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'discover' }),
+          args: { grep: 'OrchestrationEventType', verbose: 'yes' },
+        }),
+      ).rejects.toThrow(/Expected boolean/u);
+    });
   });
 
   describe('get-architecture', () => {
