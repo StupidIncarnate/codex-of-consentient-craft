@@ -272,12 +272,23 @@ export const sessionHarness = ({
   }): void => {
     const jsonlDir = getJsonlDir();
 
+    // Stable per-line uuid + timestamp so the orchestrator's dedup-by-uuid stays correct
+    // when subscribe-quest triggers replay more than once. Real Claude CLI writes both
+    // fields on every JSONL line; the harness must too or the web binding sees two
+    // distinct entries per replay (different crypto.randomUUID() per pass) and renders
+    // duplicates.
+    const baseEpoch = new Date('2026-04-29T20:00:00.000Z').getTime();
+    const tsFor = (offsetSeconds: number) =>
+      new Date(baseEpoch + offsetSeconds * 1000).toISOString();
+
     const mainLines = [
-      JSON.stringify(
-        UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
-      ),
-      JSON.stringify(
-        AssistantTaskToolUseStreamLineStub({
+      JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+        uuid: `${sessionId}-user`,
+        timestamp: tsFor(0),
+      }),
+      JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
           message: {
             role: 'assistant',
             content: [
@@ -290,25 +301,31 @@ export const sessionHarness = ({
             ],
           },
         }),
-      ),
-      JSON.stringify(
-        TaskToolResultStreamLineStub({
+        uuid: `${sessionId}-task-toolUse`,
+        timestamp: tsFor(1),
+      }),
+      JSON.stringify({
+        ...TaskToolResultStreamLineStub({
           message: {
             role: 'user',
             content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
           },
           toolUseResult: { agentId },
         }),
-      ),
-      JSON.stringify(
-        AssistantTextStreamLineStub({
+        uuid: `${sessionId}-task-result`,
+        timestamp: tsFor(3),
+      }),
+      JSON.stringify({
+        ...AssistantTextStreamLineStub({
           message: {
             role: 'assistant',
             content: [{ type: 'text', text: mainAssistantText }],
             usage: { input_tokens: 200, output_tokens: 80 },
           },
         }),
-      ),
+        uuid: `${sessionId}-main-text`,
+        timestamp: tsFor(4),
+      }),
     ];
 
     fs.mkdirSync(jsonlDir, { recursive: true });
@@ -318,15 +335,17 @@ export const sessionHarness = ({
     fs.mkdirSync(subagentDir, { recursive: true });
 
     const subagentLines = [
-      JSON.stringify(
-        AssistantTextStreamLineStub({
+      JSON.stringify({
+        ...AssistantTextStreamLineStub({
           message: {
             role: 'assistant',
             content: [{ type: 'text', text: subagentText }],
             usage: { input_tokens: 50, output_tokens: 20 },
           },
         }),
-      ),
+        uuid: `${sessionId}-subagent-text`,
+        timestamp: tsFor(2),
+      }),
     ];
 
     // Real Claude CLI writes sub-agent JSONLs as `agent-<realAgentId>.jsonl`. The replay

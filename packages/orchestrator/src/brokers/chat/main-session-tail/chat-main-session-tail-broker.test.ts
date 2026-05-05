@@ -37,6 +37,8 @@ describe('chatMainSessionTailBroker', () => {
         lines: [
           JSON.stringify({
             type: 'user',
+            uuid: 'main-session-tail-line-uuid',
+            timestamp: '2025-01-01T00:00:00.000Z',
             message: {
               role: 'user',
               content:
@@ -73,6 +75,8 @@ describe('chatMainSessionTailBroker', () => {
               summary: 'Background agent done',
               result: 'All good',
               source: 'session',
+              uuid: 'main-session-tail-line-uuid:task-notification',
+              timestamp: '2025-01-01T00:00:00.000Z',
             },
           ],
         },

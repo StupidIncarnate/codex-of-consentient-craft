@@ -24,14 +24,18 @@ describe('sortChatEntriesByTimestampTransformer', () => {
     expect(result).toStrictEqual([early, mid, late]);
   });
 
-  it('VALID: {entries with identical timestamps} => ties broken by uuid lexicographic order', () => {
+  it('VALID: {entries with identical timestamps} => preserves arrival order via stable sort', () => {
     const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
     const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_EARLY } as never);
     const c = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_EARLY } as never);
 
+    // Sub-agent chain grouping is positional — Task tool_use, sub-agent text, and the
+    // completion tool_result must stay in arrival order so the chain can collect adjacent
+    // sub-agent entries. A uuid tiebreaker would scramble that order whenever the
+    // orchestrator emits multiple entries at the same timestamp (or with the EPOCH fallback).
     const result = sortChatEntriesByTimestampTransformer({ entries: [c, a, b] });
 
-    expect(result).toStrictEqual([a, b, c]);
+    expect(result).toStrictEqual([c, a, b]);
   });
 
   it('VALID: {empty entries array} => returns empty array', () => {

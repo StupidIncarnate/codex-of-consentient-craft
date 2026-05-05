@@ -25,7 +25,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupGuild({ config, homeDir: '/home/user' });
       proxy.setupMainSession({
         content:
-          '{"type":"user","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello"}]}}\n{"type":"assistant","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"hi"}]}}',
+          '{"type":"user","uuid":"user-line-uuid","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello"}]}}\n{"type":"assistant","uuid":"assistant-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"hi"}]}}',
       });
       proxy.setupSubagentDirMissing();
 
@@ -47,6 +47,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'hi',
             source: 'session',
+            uuid: 'assistant-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
           },
         ],
       ]);
@@ -131,6 +133,7 @@ describe('chatHistoryReplayBroker', () => {
           `{"type":"queue-operation","operation":"enqueue","timestamp":"2025-01-01T00:00:00.000Z","sessionId":"test-session-signal-back","content":"prompt"}`,
           JSON.stringify({
             type: 'assistant',
+            uuid: 'signal-back-line-uuid',
             timestamp: '2025-01-01T00:00:01.000Z',
             message: {
               role: 'assistant',
@@ -170,6 +173,8 @@ describe('chatHistoryReplayBroker', () => {
               summary: 'smoketest-failed-replan',
             }),
             source: 'session',
+            uuid: 'signal-back-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01.000Z',
           },
         ],
       ]);
@@ -189,9 +194,9 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupGuild({ config, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [
-          '{"type":"assistant","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"first"}]}}',
+          '{"type":"assistant","uuid":"first-line-uuid","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"first"}]}}',
           '{not valid json at all',
-          '{"type":"assistant","timestamp":"2025-01-01T00:00:02Z","message":{"content":[{"type":"text","text":"third"}]}}',
+          '{"type":"assistant","uuid":"third-line-uuid","timestamp":"2025-01-01T00:00:02Z","message":{"content":[{"type":"text","text":"third"}]}}',
         ].join('\n'),
       });
       proxy.setupSubagentDirMissing();
@@ -217,6 +222,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'first',
             source: 'session',
+            uuid: 'first-line-uuid:0',
+            timestamp: '2025-01-01T00:00:00Z',
           },
         ],
         [
@@ -225,6 +232,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'third',
             source: 'session',
+            uuid: 'third-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02Z',
           },
         ],
       ]);
@@ -250,7 +259,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupCwdResolveSuccess({ cwd: '/home/user/repo' });
       proxy.setupMainSession({
         content:
-          '{"type":"assistant","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"smoketest reply"}]}}',
+          '{"type":"assistant","uuid":"smoketest-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"smoketest reply"}]}}',
       });
       proxy.setupSubagentDirMissing();
 
@@ -277,6 +286,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'smoketest reply',
             source: 'session',
+            uuid: 'smoketest-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
           },
         ],
       ]);
@@ -296,7 +307,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupCwdResolveReject({ error: new Error('No .dungeonmaster.json found') });
       proxy.setupMainSession({
         content:
-          '{"type":"assistant","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"fallback reply"}]}}',
+          '{"type":"assistant","uuid":"fallback-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"fallback reply"}]}}',
       });
       proxy.setupSubagentDirMissing();
 
@@ -317,6 +328,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'fallback reply',
             source: 'session',
+            uuid: 'fallback-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01Z',
           },
         ],
       ]);
@@ -338,6 +351,7 @@ describe('chatHistoryReplayBroker', () => {
         ...UserTextStringStreamLineStub({
           message: { role: 'user', content: 'Do a sub-agent thing' },
         }),
+        uuid: 'user-line-uuid',
         timestamp: '2025-01-01T00:00:00.000Z',
       });
       const taskToolUseLine = JSON.stringify({
@@ -354,6 +368,7 @@ describe('chatHistoryReplayBroker', () => {
             ],
           },
         }),
+        uuid: 'task-tool-use-line-uuid',
         timestamp: '2025-01-01T00:00:01.000Z',
       });
       const taskResultLine = JSON.stringify({
@@ -364,6 +379,7 @@ describe('chatHistoryReplayBroker', () => {
           },
           toolUseResult: { agentId: realAgentId },
         }),
+        uuid: 'task-result-line-uuid',
         timestamp: '2025-01-01T00:00:05.000Z',
       });
 
@@ -374,6 +390,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'SUBAGENT_MARKER' }],
           },
         }),
+        uuid: 'subagent-line-uuid',
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
@@ -404,6 +421,8 @@ describe('chatHistoryReplayBroker', () => {
             role: 'user',
             content: 'Do a sub-agent thing',
             source: 'session',
+            uuid: 'user-line-uuid:user',
+            timestamp: '2025-01-01T00:00:00.000Z',
           },
         ],
         [
@@ -415,6 +434,8 @@ describe('chatHistoryReplayBroker', () => {
             toolInput: JSON.stringify({ description: 'Explore', prompt: 'Research the module' }),
             source: 'session',
             agentId: taskToolUseId,
+            uuid: 'task-tool-use-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01.000Z',
           },
         ],
         [
@@ -424,6 +445,8 @@ describe('chatHistoryReplayBroker', () => {
             content: 'SUBAGENT_MARKER',
             source: 'subagent',
             agentId: taskToolUseId,
+            uuid: 'subagent-line-uuid:0',
+            timestamp: '2025-01-01T00:00:03.000Z',
           },
         ],
         [
@@ -433,6 +456,8 @@ describe('chatHistoryReplayBroker', () => {
             toolName: taskToolUseId,
             content: 'done',
             source: 'session',
+            uuid: 'task-result-line-uuid:0',
+            timestamp: '2025-01-01T00:00:05.000Z',
           },
         ],
       ]);
@@ -456,6 +481,7 @@ describe('chatHistoryReplayBroker', () => {
       // Task toolUseId — the bug that produces "(0 entries)" in the web chain grouping.
       const userLine = JSON.stringify({
         ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'kickoff' } }),
+        uuid: 'early-user-line-uuid',
         timestamp: '2025-01-01T00:00:00.000Z',
       });
       const taskToolUseLine = JSON.stringify({
@@ -472,6 +498,7 @@ describe('chatHistoryReplayBroker', () => {
             ],
           },
         }),
+        uuid: 'early-task-line-uuid',
         timestamp: '2025-01-01T00:00:01.000Z',
       });
       const taskResultLine = JSON.stringify({
@@ -482,6 +509,7 @@ describe('chatHistoryReplayBroker', () => {
           },
           toolUseResult: { agentId: realAgentId },
         }),
+        uuid: 'early-result-line-uuid',
         timestamp: '2025-01-01T00:00:10.000Z',
       });
       const subagentLine = JSON.stringify({
@@ -491,6 +519,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'EARLY_SUBAGENT_TEXT' }],
           },
         }),
+        uuid: 'early-subagent-line-uuid',
         timestamp: '2025-01-01T00:00:02.000Z',
       });
 
@@ -522,6 +551,8 @@ describe('chatHistoryReplayBroker', () => {
             role: 'user',
             content: 'kickoff',
             source: 'session',
+            uuid: 'early-user-line-uuid:user',
+            timestamp: '2025-01-01T00:00:00.000Z',
           },
         ],
         [
@@ -533,6 +564,8 @@ describe('chatHistoryReplayBroker', () => {
             toolInput: JSON.stringify({ description: 'Explore', prompt: 'Research' }),
             source: 'session',
             agentId: taskToolUseId,
+            uuid: 'early-task-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01.000Z',
           },
         ],
         [
@@ -542,6 +575,8 @@ describe('chatHistoryReplayBroker', () => {
             content: 'EARLY_SUBAGENT_TEXT',
             source: 'subagent',
             agentId: taskToolUseId,
+            uuid: 'early-subagent-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02.000Z',
           },
         ],
         [
@@ -551,6 +586,8 @@ describe('chatHistoryReplayBroker', () => {
             toolName: taskToolUseId,
             content: 'done',
             source: 'session',
+            uuid: 'early-result-line-uuid:0',
+            timestamp: '2025-01-01T00:00:10.000Z',
           },
         ],
       ]);
@@ -567,6 +604,7 @@ describe('chatHistoryReplayBroker', () => {
 
       const userLine = JSON.stringify({
         ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'hello' } }),
+        uuid: 'orphan-user-line-uuid',
         timestamp: '2025-01-01T00:00:00.000Z',
       });
       const mainReplyLine = JSON.stringify({
@@ -576,6 +614,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'MAIN_REPLY' }],
           },
         }),
+        uuid: 'orphan-main-reply-line-uuid',
         timestamp: '2025-01-01T00:00:01.000Z',
       });
       const orphanSubagentLine = JSON.stringify({
@@ -585,6 +624,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'ORPHAN_TEXT' }],
           },
         }),
+        uuid: 'orphan-subagent-line-uuid',
         timestamp: '2025-01-01T00:00:02.000Z',
       });
 
@@ -618,6 +658,8 @@ describe('chatHistoryReplayBroker', () => {
             role: 'user',
             content: 'hello',
             source: 'session',
+            uuid: 'orphan-user-line-uuid:user',
+            timestamp: '2025-01-01T00:00:00.000Z',
           },
         ],
         [
@@ -626,6 +668,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'MAIN_REPLY',
             source: 'session',
+            uuid: 'orphan-main-reply-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01.000Z',
           },
         ],
         [
@@ -635,6 +679,8 @@ describe('chatHistoryReplayBroker', () => {
             content: 'ORPHAN_TEXT',
             source: 'subagent',
             agentId: orphanRealAgentId,
+            uuid: 'orphan-subagent-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02.000Z',
           },
         ],
       ]);
@@ -657,6 +703,7 @@ describe('chatHistoryReplayBroker', () => {
       // after all main lines.
       const userLine = JSON.stringify({
         ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'go' } }),
+        uuid: 'ordering-user-line-uuid',
         timestamp: '2025-01-01T00:00:00.000Z',
       });
       const taskToolUseLine = JSON.stringify({
@@ -673,6 +720,7 @@ describe('chatHistoryReplayBroker', () => {
             ],
           },
         }),
+        uuid: 'ordering-task-line-uuid',
         timestamp: '2025-01-01T00:00:01.000Z',
       });
       const mainTextEarly = JSON.stringify({
@@ -682,6 +730,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'MAIN_BEFORE' }],
           },
         }),
+        uuid: 'ordering-main-before-line-uuid',
         timestamp: '2025-01-01T00:00:02.000Z',
       });
       const mainTextLate = JSON.stringify({
@@ -691,6 +740,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'MAIN_AFTER' }],
           },
         }),
+        uuid: 'ordering-main-after-line-uuid',
         timestamp: '2025-01-01T00:00:04.000Z',
       });
       const taskResultLine = JSON.stringify({
@@ -701,6 +751,7 @@ describe('chatHistoryReplayBroker', () => {
           },
           toolUseResult: { agentId: realAgentId },
         }),
+        uuid: 'ordering-result-line-uuid',
         timestamp: '2025-01-01T00:00:05.000Z',
       });
       const subagentLine = JSON.stringify({
@@ -710,6 +761,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'SUBAGENT_MID' }],
           },
         }),
+        uuid: 'ordering-subagent-line-uuid',
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
@@ -745,6 +797,8 @@ describe('chatHistoryReplayBroker', () => {
             role: 'user',
             content: 'go',
             source: 'session',
+            uuid: 'ordering-user-line-uuid:user',
+            timestamp: '2025-01-01T00:00:00.000Z',
           },
         ],
         [
@@ -756,6 +810,8 @@ describe('chatHistoryReplayBroker', () => {
             toolInput: JSON.stringify({ description: 'Explore', prompt: 'R' }),
             source: 'session',
             agentId: taskToolUseId,
+            uuid: 'ordering-task-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01.000Z',
           },
         ],
         [
@@ -764,6 +820,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'MAIN_BEFORE',
             source: 'session',
+            uuid: 'ordering-main-before-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02.000Z',
           },
         ],
         [
@@ -773,6 +831,8 @@ describe('chatHistoryReplayBroker', () => {
             content: 'SUBAGENT_MID',
             source: 'subagent',
             agentId: taskToolUseId,
+            uuid: 'ordering-subagent-line-uuid:0',
+            timestamp: '2025-01-01T00:00:03.000Z',
           },
         ],
         [
@@ -781,6 +841,8 @@ describe('chatHistoryReplayBroker', () => {
             type: 'text',
             content: 'MAIN_AFTER',
             source: 'session',
+            uuid: 'ordering-main-after-line-uuid:0',
+            timestamp: '2025-01-01T00:00:04.000Z',
           },
         ],
         [
@@ -790,6 +852,8 @@ describe('chatHistoryReplayBroker', () => {
             toolName: taskToolUseId,
             content: 'done',
             source: 'session',
+            uuid: 'ordering-result-line-uuid:0',
+            timestamp: '2025-01-01T00:00:05.000Z',
           },
         ],
       ]);
@@ -827,6 +891,7 @@ describe('chatHistoryReplayBroker', () => {
         ...UserTextStringStreamLineStub({
           message: { role: 'user', content: 'kickoff prompt' },
         }),
+        uuid: 'inflight-user-line-uuid',
         timestamp: '2025-01-01T00:00:00.000Z',
       });
       const taskToolUseLine = JSON.stringify({
@@ -843,6 +908,7 @@ describe('chatHistoryReplayBroker', () => {
             ],
           },
         }),
+        uuid: 'inflight-task-line-uuid',
         timestamp: '2025-01-01T00:00:01.000Z',
       });
 
@@ -852,6 +918,7 @@ describe('chatHistoryReplayBroker', () => {
         ...UserTextStringStreamLineStub({
           message: { role: 'user', content: taskPrompt },
         }),
+        uuid: 'inflight-subagent-prompt-line-uuid',
         timestamp: '2025-01-01T00:00:02.000Z',
       });
       const subagentTextLine = JSON.stringify({
@@ -861,6 +928,7 @@ describe('chatHistoryReplayBroker', () => {
             content: [{ type: 'text', text: 'IN_FLIGHT_SUBAGENT_TEXT' }],
           },
         }),
+        uuid: 'inflight-subagent-text-line-uuid',
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
@@ -894,6 +962,8 @@ describe('chatHistoryReplayBroker', () => {
             role: 'user',
             content: 'kickoff prompt',
             source: 'session',
+            uuid: 'inflight-user-line-uuid:user',
+            timestamp: '2025-01-01T00:00:00.000Z',
           },
         ],
         [
@@ -905,6 +975,8 @@ describe('chatHistoryReplayBroker', () => {
             toolInput: JSON.stringify({ description: 'In-flight agent', prompt: taskPrompt }),
             source: 'session',
             agentId: taskToolUseId,
+            uuid: 'inflight-task-line-uuid:0',
+            timestamp: '2025-01-01T00:00:01.000Z',
           },
         ],
         [
@@ -913,6 +985,8 @@ describe('chatHistoryReplayBroker', () => {
             content: taskPrompt,
             source: 'subagent',
             agentId: taskToolUseId,
+            uuid: 'inflight-subagent-prompt-line-uuid:user',
+            timestamp: '2025-01-01T00:00:02.000Z',
           },
         ],
         [
@@ -922,6 +996,8 @@ describe('chatHistoryReplayBroker', () => {
             content: 'IN_FLIGHT_SUBAGENT_TEXT',
             source: 'subagent',
             agentId: taskToolUseId,
+            uuid: 'inflight-subagent-text-line-uuid:0',
+            timestamp: '2025-01-01T00:00:03.000Z',
           },
         ],
       ]);

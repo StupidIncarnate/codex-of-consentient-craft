@@ -36,7 +36,7 @@ describe('chatSubagentTailBroker', () => {
       proxy.setupGuild({ config, homeDir: '/home/user' });
       proxy.setupLines({
         lines: [
-          '{"type":"assistant","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello from subagent"}]}}',
+          '{"type":"assistant","uuid":"line-uuid-subagent-tail","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello from subagent"}]}}',
         ],
       });
 
@@ -66,6 +66,8 @@ describe('chatSubagentTailBroker', () => {
               content: 'hello from subagent',
               source: 'subagent',
               agentId: 'agent-alpha',
+              uuid: 'line-uuid-subagent-tail:0',
+              timestamp: '2025-01-01T00:00:00Z',
             },
           ],
         },

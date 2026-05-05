@@ -1,8 +1,16 @@
 import { rawLineToChatEntriesTransformer } from './raw-line-to-chat-entries-transformer';
+import { rawLineToChatEntriesTransformerProxy } from './raw-line-to-chat-entries-transformer.proxy';
+
+const UUID1 = '00000000-0000-4000-8000-000000000001';
+const TS = '2025-01-01T00:00:00.000Z';
 
 describe('rawLineToChatEntriesTransformer', () => {
   describe('plain-text fallback (parsed: null)', () => {
     it('VALID: {parsed: null, rawLine: ward output} => returns single assistant-text entry', () => {
+      const proxy = rawLineToChatEntriesTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      proxy.setupTimestamps({ timestamps: [TS] });
+
       expect(
         rawLineToChatEntriesTransformer({
           parsed: null,
@@ -13,6 +21,8 @@ describe('rawLineToChatEntriesTransformer', () => {
           role: 'assistant',
           type: 'text',
           content: 'lint @dungeonmaster/shared PASS  42 files',
+          uuid: UUID1,
+          timestamp: TS,
         },
       ]);
     });
@@ -24,6 +34,9 @@ describe('rawLineToChatEntriesTransformer', () => {
 
   describe('normalized Claude line (parsed object)', () => {
     it('VALID: {parsed: assistant text line} => returns ChatEntry[] from streamJsonToChatEntry', () => {
+      const proxy = rawLineToChatEntriesTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+
       expect(
         rawLineToChatEntriesTransformer({
           parsed: {
@@ -40,6 +53,8 @@ describe('rawLineToChatEntriesTransformer', () => {
           role: 'assistant',
           type: 'text',
           content: 'Hello',
+          uuid: `${UUID1}:0`,
+          timestamp: '1970-01-01T00:00:00.000Z',
         },
       ]);
     });

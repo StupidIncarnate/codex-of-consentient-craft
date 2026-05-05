@@ -318,6 +318,8 @@ describe('ChatStartResponder', () => {
         lines: [
           JSON.stringify({
             type: 'user',
+            uuid: 'post-exit-task-line-uuid',
+            timestamp: '2025-01-01T00:00:00.000Z',
             message: {
               role: 'user',
               content:
@@ -358,6 +360,8 @@ describe('ChatStartResponder', () => {
                 summary: 'BG done',
                 result: 'ok',
                 source: 'session',
+                uuid: 'post-exit-task-line-uuid:task-notification',
+                timestamp: '2025-01-01T00:00:00.000Z',
               },
             ],
           },
@@ -472,16 +476,20 @@ describe('ChatStartResponder', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
       const config = GuildConfigStub({ guilds: [guild] });
-      const firstAssistantLine = JSON.stringify(
-        AssistantTextStreamLineStub({
+      const firstAssistantLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
           message: { role: 'assistant', content: [{ type: 'text', text: 'first reply' }] },
         }),
-      );
-      const secondAssistantLine = JSON.stringify(
-        AssistantTextStreamLineStub({
+        uuid: 'first-assistant-line-uuid',
+        timestamp: '2025-01-01T00:00:01.000Z',
+      });
+      const secondAssistantLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
           message: { role: 'assistant', content: [{ type: 'text', text: 'second reply' }] },
         }),
-      );
+        uuid: 'second-assistant-line-uuid',
+        timestamp: '2025-01-01T00:00:02.000Z',
+      });
       const seededQuest = QuestStub({
         id: QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
@@ -533,6 +541,8 @@ describe('ChatStartResponder', () => {
                 type: 'text',
                 content: 'first reply',
                 source: 'session',
+                uuid: 'first-assistant-line-uuid:0',
+                timestamp: '2025-01-01T00:00:01.000Z',
               },
             ],
             questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -550,6 +560,8 @@ describe('ChatStartResponder', () => {
                 type: 'text',
                 content: 'second reply',
                 source: 'session',
+                uuid: 'second-assistant-line-uuid:0',
+                timestamp: '2025-01-01T00:00:02.000Z',
               },
             ],
             questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

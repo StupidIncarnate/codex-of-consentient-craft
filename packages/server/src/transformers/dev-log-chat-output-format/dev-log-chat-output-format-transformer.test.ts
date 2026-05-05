@@ -5,7 +5,15 @@ describe('devLogChatOutputFormatTransformer', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
         chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
-        entries: [{ role: 'assistant', type: 'text', content: 'Hello world' }],
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'Hello world',
+            uuid: 'entry-uuid-1',
+            timestamp: '2025-01-01T00:00:00.000Z',
+          },
+        ],
       },
     });
 
@@ -23,6 +31,8 @@ describe('devLogChatOutputFormatTransformer', () => {
             type: 'tool_use',
             toolName: 'Read',
             toolInput: '{}',
+            uuid: 'entry-uuid-1',
+            timestamp: '2025-01-01T00:00:00.000Z',
           },
         ],
       },
@@ -57,8 +67,20 @@ describe('devLogChatOutputFormatTransformer', () => {
       payload: {
         chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
         entries: [
-          { role: 'assistant', type: 'text', content: 'hello' },
-          { role: 'assistant', type: 'thinking', content: 'thinking' },
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'hello',
+            uuid: 'entry-uuid-1',
+            timestamp: '2025-01-01T00:00:00.000Z',
+          },
+          {
+            role: 'assistant',
+            type: 'thinking',
+            content: 'thinking',
+            uuid: 'entry-uuid-2',
+            timestamp: '2025-01-01T00:00:01.000Z',
+          },
         ],
       },
     });
