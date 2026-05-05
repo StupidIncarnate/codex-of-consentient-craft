@@ -1357,10 +1357,17 @@ test.describe('Chat stream vs replay parity', () => {
     // assertion fails. Restoring it requires the orchestrator to render non-`text` content
     // items (e.g. by stringifying their fields) instead of silently filtering them out.
     const toolRow = chatPanel.locator('[data-testid="TOOL_ROW"]').first();
-
-    await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
-
     const toolRowResult = toolRow.getByTestId('TOOL_ROW_RESULT');
+
+    // chat-entry-list-widget passes defaultExpanded={true} when the tool_use is briefly
+    // the last unpaired entry (isStreaming && toolResult === null && entry === lastEntryInList).
+    // tool-row-widget's useState(defaultExpanded === true) then locks `expanded=true` for the
+    // life of the component — even after the tool_result arrives and isLastUnpaired flips false.
+    // If we blindly click the header, an already-expanded row would COLLAPSE and the assertions
+    // below would race the toggle. Click only when the body is not already in the DOM.
+    if ((await toolRowResult.count()) === 0) {
+      await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+    }
 
     await expect(toolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(toolRowResult).toContainText(referencedToolA, { timeout: CHAT_TIMEOUT });
@@ -1385,10 +1392,14 @@ test.describe('Chat stream vs replay parity', () => {
     ).toHaveCount(ZERO_COUNT);
 
     const replayToolRow = replayPanel.locator('[data-testid="TOOL_ROW"]').first();
-
-    await replayToolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
-
     const replayToolRowResult = replayToolRow.getByTestId('TOOL_ROW_RESULT');
+
+    // Replay re-streams chat-output frames before chat-history-complete, so isStreaming
+    // can flip true mid-replay and the same defaultExpanded race applies — click only
+    // when the body is not already in the DOM (see streaming half above for full rationale).
+    if ((await replayToolRowResult.count()) === 0) {
+      await replayToolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+    }
 
     await expect(replayToolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(replayToolRowResult).toContainText(referencedToolA, { timeout: CHAT_TIMEOUT });

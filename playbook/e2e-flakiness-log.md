@@ -23,6 +23,84 @@ Each entry follows this shape:
 
 ---
 
+## 2026-05-04 — chat-stream-vs-replay-parity:1245 TOOL_ROW header click toggles instead of expands
+
+**Branch / worktree:** master (no worktree — fix landed directly).
+**Failing specs:**
+
+- `chat-stream-vs-replay-parity.spec.ts:1245` "VALID: {tool_result whose content is an array of non-text items …} =>
+  TOOL_ROW_RESULT renders the item payload (not empty), identical after streaming and after reload"
+
+**Symptom:** Test passes 14/15 in isolation; the lone failure (repeat 12) times
+out on `await expect(toolRowResult).toBeVisible()` after the test has clicked
+`TOOL_ROW_HEADER`. Page snapshot at failure shows the row's chevron rendered
+as `▸` (collapsed) — the click that was supposed to expand the row instead
+collapsed it.
+
+**Root cause:** Streaming-side ToolRow auto-expansion gets locked in by
+`useState`. `chat-entry-list-widget.tsx:130` sets
+`isLastUnpaired = isStreaming && mergedItem.toolResult === null && entry === lastEntryInList`
+and passes `defaultExpanded={true}` while it holds. `tool-row-widget.tsx:56`
+initializes `useState(defaultExpanded === true)` — which only runs on mount.
+When the tool_use arrives in one render before the tool_result, the widget
+mounts with `expanded=true`. The tool_result then arrives, `isLastUnpaired`
+flips false, but `expanded` stays sticky at `true`. The test then blindly
+calls `click({ force: true })` on `TOOL_ROW_HEADER`, which TOGGLES → false
+→ `TOOL_ROW_RESULT` unmounts → assertion times out.
+
+When the WS bursts deliver tool_use + tool_result inside a single React
+render batch (the normal case), `isLastUnpaired` never fires, the widget
+mounts with `expanded=false`, click expands → test passes. Whether the two
+arrive in the same batch is timing-dependent (~7% miss rate at workers:1
+under default load — 1/15 in this run).
+
+This is intra-spec, not cross-spec leakage — reproduces in isolation.
+
+**Fix location:**
+
+- `packages/testing/e2e/web/chat-stream-vs-replay-parity.spec.ts:1359-1370`
+  (streaming half) and `:1389-1400` (replay half) — replaced unconditional
+  `await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true })` with
+  a conditional click that fires only when `TOOL_ROW_RESULT` is not already in
+  the DOM (`(await toolRowResult.count()) === 0`). End state ("row is
+  expanded") is now deterministic regardless of which render batch boundary
+  the tool_use/tool_result fell across.
+
+The widget behaviour itself is correct UX (auto-expand a streaming tool
+call, let the user click to collapse) and was not modified. The latent
+product question — should an auto-expanded row collapse itself when streaming
+finishes? — is a separate UX decision; the equivalent for `execution-row-
+layer-widget` is tracked via `userClickedRef` (see "ward-execution-streaming
+racy click" entry below).
+
+**Negative results / dead ends:** None — diagnosis from the page snapshot
+(chevron `▸`) pointed straight at "click toggled an already-expanded row,"
+and the `chat-entry-list-widget` → `tool-row-widget` `defaultExpanded` →
+`useState` chain was the only path that produces an already-expanded row
+post-stream.
+
+**Reproducer:**
+
+```bash
+cd packages/testing
+# Pre-fix: 1/15 fail at repeat ~12.
+# Post-fix: 15/15 pass in 39s.
+npx playwright test --repeat-each=15 --retries=0 --reporter=line \
+  --grep "TOOL_ROW_RESULT renders the item payload" \
+  e2e/web/chat-stream-vs-replay-parity.spec.ts
+```
+
+**Cross-reference for future flake hunters:** other tests in the same spec
+that use the unconditional `TOOL_ROW_HEADER`.click()` → `TOOL_ROW_RESULT`
+visibility pattern (lines ~667, 710, 1514, 1541, 1738, 1778, 1974, 2011)
+are exposed to the same race. They have not been observed flaking yet —
+likely because their tool_use/tool_result pairing happens inside a sub-agent
+chain or with a different stream cadence — but if any of them surfaces with
+a `▸` chevron in the failure snapshot, apply the same conditional-click
+guard.
+
+---
+
 ## 2026-04-28 — Chat resume-flow flakes (chat-features:85, chat-history:62)
 
 **Branch / worktree:** `worktree-e2e-flake-stragglers`
@@ -400,13 +478,14 @@ whether `chat-start-responder.onComplete` is awaiting it.
 When an agent picks up an e2e flake, this list should be the first thing
 checked. Each entry below has a direct link to the entry above.
 
-| Symptom                                                                 | Likely candidates                                                                       |
-|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| `isStreaming` pinned true / chat input disabled after first response    | "Chat resume-flow flakes" — three independent bugs share this symptom                  |
-| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame  | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline |
-| `expect(text).toBeVisible()` times out, no WS frame for that text       | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe |
-| Strict-mode violation: text resolved to N elements                       | Buffer-replay dupe — frame delivered twice via different paths                         |
-| Fails at repeat 11+ in broad sweep, passes alone                         | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak" |
-| Sub-agent chain renders "(0 entries)"                                    | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder) |
+| Symptom                                                                                        | Likely candidates                                                                                                                                                                                                          |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `isStreaming` pinned true / chat input disabled after first response                           | "Chat resume-flow flakes" — three independent bugs share this symptom                                                                                                                                                      |
+| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame                         | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline                                                                  |
+| `expect(text).toBeVisible()` times out, no WS frame for that text                              | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe                                                                                                                                    |
+| Strict-mode violation: text resolved to N elements                                             | Buffer-replay dupe — frame delivered twice via different paths                                                                                                                                                             |
+| Fails at repeat 11+ in broad sweep, passes alone                                               | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak"                                                                                                                                  |
+| Sub-agent chain renders "(0 entries)"                                                          | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder)                                                                                                                                     |
+| `TOOL_ROW_RESULT` toBeVisible times out, page snapshot shows chevron `▸` collapsed AFTER click | "chat-stream-vs-replay-parity:1245 TOOL_ROW header click toggles instead of expands" — `defaultExpanded={true}` from streaming `isLastUnpaired` window locks `expanded=true` in `useState`, blind click toggles → collapse |
 
 When you fix a flake not yet in this catalog, add a new symptom row.
