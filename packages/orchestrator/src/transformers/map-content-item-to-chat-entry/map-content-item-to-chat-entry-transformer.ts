@@ -17,14 +17,21 @@ export const mapContentItemToChatEntryTransformer = ({
   source,
   agentId,
   model,
+  uuid,
+  timestamp,
 }: {
   item: Record<string, unknown>;
   usage: ChatUsage | undefined;
   source?: 'session' | 'subagent';
   agentId?: string;
   model?: string;
+  uuid?: string;
+  timestamp?: string;
 }): ChatEntry | null => {
   const itemType = item.type;
+  const resolvedUuid = typeof uuid === 'string' && uuid.length > 0 ? uuid : crypto.randomUUID();
+  const resolvedTimestamp =
+    typeof timestamp === 'string' && timestamp.length > 0 ? timestamp : '1970-01-01T00:00:00.000Z';
 
   if (itemType === 'text') {
     const text = typeof item.text === 'string' ? item.text.trimStart() : '';
@@ -37,6 +44,8 @@ export const mapContentItemToChatEntryTransformer = ({
       ...(usage ? { usage } : {}),
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
+      uuid: resolvedUuid,
+      timestamp: resolvedTimestamp,
     });
   }
 
@@ -55,6 +64,8 @@ export const mapContentItemToChatEntryTransformer = ({
       ...(usage ? { usage } : {}),
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
+      uuid: resolvedUuid,
+      timestamp: resolvedTimestamp,
     });
   }
 
@@ -98,6 +109,8 @@ export const mapContentItemToChatEntryTransformer = ({
       ...(isError ? { isError } : {}),
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
+      uuid: resolvedUuid,
+      timestamp: resolvedTimestamp,
     });
   }
 
@@ -110,6 +123,8 @@ export const mapContentItemToChatEntryTransformer = ({
       content: text,
       ...(source ? { source } : {}),
       ...(agentId ? { agentId } : {}),
+      uuid: resolvedUuid,
+      timestamp: resolvedTimestamp,
     });
   }
 

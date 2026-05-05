@@ -2025,4 +2025,237 @@ test.describe('Chat stream vs replay parity', () => {
 
     await expect(replayPanel.getByText(userText).first()).toBeVisible({ timeout: CHAT_TIMEOUT });
   });
+
+  test('VALID: {sub-agent inner body has user-prompt → text → tool_use → tool_result → text dual-source emission} => chain inner positional order is SUB-AGENT PROMPT first, identical entry count between streaming and replay', async ({
+    page,
+    request,
+  }) => {
+    // Regression for the screenshot bug where streaming surfaced sub-agent tools FIRST and
+    // SUB-AGENT PROMPT LAST (with inflated entry count from dual-source duplicate emission)
+    // while replay rendered them correctly. After the uuid+timestamp fix, both paths render
+    // an identical chain inner sequence: prompt → text → tool → text and the same entry count.
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Parity Subagent Order Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = guildHarness({ request }).extractGuildId({ guild });
+
+    const sessionId = 'e2e-parity-subagent-order-001';
+    const realAgentId = 'parityorderagent1';
+    const taskToolUseId = 'toolu_parity_task_orderaaaaaa';
+    const innerToolUseId = 'toolu_parity_subinner_orderaaa';
+    const userText = 'parity-subagent-order-user-msg-9988';
+    const taskDescription = 'Parity sub-agent order test';
+    const subagentPromptText = 'PARITY_ORDER_SUBAGENT_PROMPT_TEXT';
+    const innerStartText = 'PARITY_ORDER_SUBAGENT_START_TEXT';
+    const innerToolName = 'Read';
+    const innerFilePath = '/parity/order/file.ts';
+    const innerResultContent = 'parity-order-result-content-aaa';
+    const innerFinalText = 'PARITY_ORDER_SUBAGENT_DONE_TEXT';
+    const finalText = 'parity-order-final-text-7766';
+    const SUB_INNER_ENTRY_COUNT = 5;
+
+    sessions.cleanSessionDirectory();
+
+    sessions.createSubagentTailMultiEntry({
+      sessionId,
+      agentId: realAgentId,
+      lines: [
+        // Line 0: sub-agent's input user-prompt — only present in JSONL, never on parent
+        // stdout. After the fix, the orchestrator stamps `<lineUuid>:user` and the timestamp
+        // here so dedup collapses it (regardless of whether it also appears via the
+        // dual-source path) and the timestamp-sort places it first in the chain.
+        JSON.stringify({
+          parentUuid: null,
+          isSidechain: true,
+          agentId: realAgentId,
+          uuid: 'aaaaaaaa-aaaa-4000-8000-aaaaaaaaaaaa',
+          type: 'user',
+          message: { role: 'user', content: subagentPromptText },
+          timestamp: '2026-04-15T20:00:00.000Z',
+        }),
+        // Line 1: sub-agent's first assistant text reply.
+        JSON.stringify({
+          ...AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [{ type: 'text', text: innerStartText }],
+            },
+          }),
+          uuid: 'bbbbbbbb-bbbb-4000-8000-bbbbbbbbbbbb',
+          timestamp: '2026-04-15T20:00:01.000Z',
+        }),
+        // Line 2: sub-agent fires its tool_use.
+        JSON.stringify({
+          ...AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [
+                {
+                  type: 'tool_use',
+                  id: innerToolUseId,
+                  name: innerToolName,
+                  input: { file_path: innerFilePath },
+                },
+              ],
+            },
+          }),
+          uuid: 'cccccccc-cccc-4000-8000-cccccccccccc',
+          timestamp: '2026-04-15T20:00:02.000Z',
+        }),
+        // Line 3: tool_result for the previous tool_use.
+        JSON.stringify({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: innerToolUseId,
+                  content: innerResultContent,
+                },
+              ],
+            },
+          }),
+          uuid: 'dddddddd-dddd-4000-8000-dddddddddddd',
+          timestamp: '2026-04-15T20:00:03.000Z',
+        }),
+        // Line 4: sub-agent's closing assistant text.
+        JSON.stringify({
+          ...AssistantTextStreamLineStub({
+            message: {
+              role: 'assistant',
+              stop_reason: null,
+              content: [{ type: 'text', text: innerFinalText }],
+            },
+          }),
+          uuid: 'eeeeeeee-eeee-4000-8000-eeeeeeeeeeee',
+          timestamp: '2026-04-15T20:00:04.000Z',
+        }),
+      ],
+    });
+
+    claudeMock.queueResponse({
+      response: {
+        sessionId,
+        lines: [
+          JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
+          JSON.stringify(
+            AssistantTaskToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: taskToolUseId,
+                    name: 'Task',
+                    input: {
+                      description: taskDescription,
+                      subagent_type: 'general-purpose',
+                      prompt: subagentPromptText,
+                    },
+                  },
+                ],
+              },
+            }),
+          ),
+          JSON.stringify(
+            TaskToolResultStreamLineStub({
+              message: {
+                role: 'user',
+                content: [
+                  { type: 'tool_result', tool_use_id: taskToolUseId, content: 'sub-agent done' },
+                ],
+              },
+              toolUseResult: { agentId: realAgentId },
+            }),
+          ),
+          JSON.stringify(
+            AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                stop_reason: null,
+                content: [{ type: 'text', text: finalText }],
+              },
+            }),
+          ),
+          JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
+        ],
+      },
+    });
+
+    await page.goto(`/${guildId}/quest`);
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    await page.getByTestId('CHAT_INPUT').fill(userText);
+    await page.getByTestId('SEND_BUTTON').click();
+
+    const chatPanel = page.getByTestId('CHAT_PANEL');
+
+    await expect(chatPanel.getByText(finalText)).toBeVisible({ timeout: CHAT_TIMEOUT });
+
+    const chainHeader = chatPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(chainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    await expect(chainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    // The bug surface: positional order of inner chain rows. After the fix the inner sequence
+    // is SUB-AGENT PROMPT → start text → tool row → done text. Before the fix the streaming
+    // path showed tools first and SUB-AGENT PROMPT last (entry count inflated by dual-emit).
+    const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+    const chainMessages = chainScope.locator('[data-testid="CHAT_MESSAGE"]');
+
+    await expect(chainMessages.nth(0)).toContainText('SUB-AGENT PROMPT', { timeout: CHAT_TIMEOUT });
+    await expect(chainMessages.nth(0)).toContainText(subagentPromptText, { timeout: CHAT_TIMEOUT });
+    await expect(chainMessages.nth(1)).toContainText(innerStartText, { timeout: CHAT_TIMEOUT });
+    await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(chainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(
+      chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+
+    await page.reload();
+    await page.waitForResponse(
+      (resp) => resp.url().includes('/api/guilds') && resp.status() === HTTP_OK,
+    );
+
+    const replayPanel = page.getByTestId('CHAT_PANEL');
+    const replayChainHeader = replayPanel.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+    await expect(replayChainHeader).toContainText(taskDescription, { timeout: CHAT_TIMEOUT });
+    // After replay, the chain MUST report identical entry count — uuid dedup and timestamp
+    // sort guarantee the same final state regardless of which path filled it.
+    await expect(replayChainHeader).toContainText(`${String(SUB_INNER_ENTRY_COUNT)} entries`, {
+      timeout: CHAT_TIMEOUT,
+    });
+
+    const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+    const replayChainMessages = replayChainScope.locator('[data-testid="CHAT_MESSAGE"]');
+
+    await expect(replayChainMessages.nth(0)).toContainText('SUB-AGENT PROMPT', {
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(replayChainMessages.nth(0)).toContainText(subagentPromptText, {
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(replayChainMessages.nth(1)).toContainText(innerStartText, {
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
+    await expect(replayChainScope.getByText(innerFinalText).first()).toBeVisible({
+      timeout: CHAT_TIMEOUT,
+    });
+    await expect(
+      replayChainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
+    ).toHaveCount(ZERO_COUNT);
+  });
 });

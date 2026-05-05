@@ -14,12 +14,19 @@ import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
 import { ChatLineSourceStub } from '../../contracts/chat-line-source/chat-line-source.stub';
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from './chat-line-process-transformer';
+import { chatLineProcessTransformerProxy } from './chat-line-process-transformer.proxy';
 
 const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({ value });
+
+const UUID1 = '00000000-0000-4000-8000-000000000001';
+const UUID2 = '00000000-0000-4000-8000-000000000002';
+const TS = '1970-01-01T00:00:00.000Z';
 
 describe('chatLineProcessTransformer', () => {
   describe('regression: Claude CLI null stop_reason on streamed deltas', () => {
     it('VALID: {assistant tool_use with stop_reason: null} => emits the tool_use entry (does not silently drop)', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(AssistantNullStopReasonStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
@@ -37,6 +44,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'mcp__dungeonmaster__discover',
               toolInput: '{"glob":"packages/web/src/widgets/quest-chat/**"}',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -46,6 +55,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('basic line processing', () => {
     it('VALID: {assistant text line, source: session} => emits entries with source tag', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(AssistantTextStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
@@ -61,6 +72,8 @@ describe('chatLineProcessTransformer', () => {
               type: 'text',
               content: 'Hello, I can help with that.',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -68,6 +81,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {user tool_result line, source: subagent} => emits entries with source tag', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(SuccessfulToolResultStreamLineStub());
       const source = ChatLineSourceStub({ value: 'subagent' });
@@ -84,6 +99,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
               content: 'File contents retrieved successfully',
               source: 'subagent',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -95,6 +112,8 @@ describe('chatLineProcessTransformer', () => {
       // array of `{ type: 'tool_reference', tool_name: '…' }` blocks. Per the SDK's
       // ToolResultBlockParam.content union, every variant must surface in the rendered text;
       // tool_reference items project to their `toolName`, joined with newlines.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(ToolReferenceArrayToolResultStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
@@ -111,6 +130,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_01ToolSearch1234abcd',
               content: 'mcp__dungeonmaster__get-quest\nmcp__dungeonmaster__list-quests',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -118,6 +139,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {mixed text+tool_reference array content tool_result} => emits tool_result entry joining text + tool_reference variants', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(MixedArrayToolResultStreamLineStub());
       const source = ChatLineSourceStub({ value: 'session' });
@@ -134,6 +157,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_01MixedArray7890qrst',
               content: 'Found the following tools:\nmcp__dungeonmaster__discover',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -143,6 +168,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('agent ID correlation', () => {
     it('VALID: {user tool_result with agentId followed by assistant Task tool_use} => attaches agentId to assistant entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_01' });
       const agentId = AgentIdStub({ value: 'agent-abc' });
@@ -185,6 +212,8 @@ describe('chatLineProcessTransformer', () => {
               // internal agentId from tool_use_result is NOT used as the web-side chain key
               // any more — it surfaces via the `agent-detected` output for internal routing.
               agentId: 'toolu_task_01',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -192,6 +221,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {assistant Task tool_use emitted first, then user tool_result with agentId} => emits agent-detected then entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_02' });
       const agentId = AgentIdStub({ value: 'agent-xyz' });
@@ -234,6 +265,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_task_02',
               content: 'done',
               source: 'session',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -241,6 +274,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {user tool_result with agentId} => attaches agentId to entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_03' });
       const agentId = AgentIdStub({ value: 'agent-123' });
@@ -277,6 +312,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_task_03',
               content: 'done',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -286,6 +323,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('agent ID correlation with Agent tool name', () => {
     it('VALID: {assistant Agent tool_use emitted first, then user tool_result with agentId} => emits agent-detected then entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_04' });
       const agentId = AgentIdStub({ value: 'agent-new-cli' });
@@ -328,6 +367,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_agent_04',
               content: 'done',
               source: 'session',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -335,6 +376,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {user tool_result with agentId followed by assistant Agent tool_use} => attaches agentId to entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_05' });
       const agentId = AgentIdStub({ value: 'agent-forward' });
@@ -376,6 +419,8 @@ describe('chatLineProcessTransformer', () => {
               // Eager stamp: agentId = toolUseId. The real internal agentId from the prior
               // tool_use_result surfaces via the agent-detected output, not on the entry.
               agentId: 'toolu_agent_05',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -385,6 +430,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('explicit agentId parameter', () => {
     it('VALID: {assistant line with agentId param} => attaches agentId to assistant entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-explicit' });
       const source = ChatLineSourceStub({ value: 'subagent' });
@@ -402,6 +449,8 @@ describe('chatLineProcessTransformer', () => {
               content: 'Hello, I can help with that.',
               source: 'subagent',
               agentId: 'agent-explicit',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -409,6 +458,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {user tool_result line with agentId param, no toolUseResult} => attaches agentId to entries', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-subagent-internal' });
       const source = ChatLineSourceStub({ value: 'subagent' });
@@ -427,6 +478,8 @@ describe('chatLineProcessTransformer', () => {
               content: 'File contents retrieved successfully',
               source: 'subagent',
               agentId: 'agent-subagent-internal',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -478,6 +531,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('user tool_result with toolUseResult but non-string agentId', () => {
     it('VALID: {toolUseResult with numeric agentId} => emits entries without agentId', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
       const parsed = normalize({
@@ -497,6 +552,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
               content: 'File contents retrieved successfully',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -510,6 +567,8 @@ describe('chatLineProcessTransformer', () => {
       // internal agentId from its filename. The processor should translate that to the
       // Task's toolUseId so the emitted entry has the SAME agentId as streaming-sourced
       // entries — making chain grouping on the web identical regardless of source.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_map_wins' });
       const realAgentId = AgentIdStub({ value: 'agent-from-map' });
@@ -559,6 +618,8 @@ describe('chatLineProcessTransformer', () => {
               // The realAgentId was translated via the reverse map to toolUseId, so the
               // wire-level agentId is the same as the streaming-sourced variant.
               agentId: 'toolu_task_map_wins',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -571,6 +632,8 @@ describe('chatLineProcessTransformer', () => {
       // processed — orphan case), the processor must not stamp a bogus parent_tool_use_id.
       // Instead, the explicit agentId param falls through unchanged so the entry still
       // ships, just without being grouped under a parent Task.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const orphanAgentId = AgentIdStub({ value: 'agent-orphan-subagent' });
       const source = ChatLineSourceStub({ value: 'subagent' });
@@ -602,6 +665,8 @@ describe('chatLineProcessTransformer', () => {
               // Reverse-map lookup missed, so parent_tool_use_id was NOT synthesized.
               // The agentId param falls through as the raw real internal id.
               agentId: 'agent-orphan-subagent',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -616,6 +681,8 @@ describe('chatLineProcessTransformer', () => {
       // source='session', the processor MUST override to 'subagent' and stamp the Task's
       // toolUseId as agentId — that's the wire-level correlation key the web uses to
       // group the chain.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 
@@ -643,6 +710,8 @@ describe('chatLineProcessTransformer', () => {
               // Eager stamp: agentId is the parent Task's toolUseId, not the real
               // internal agentId.
               agentId: 'toolu_stream_parent_01',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -652,6 +721,8 @@ describe('chatLineProcessTransformer', () => {
     it('VALID: {streaming user tool_result line with parent_tool_use_id} => forces source=subagent and stamps agentId=parentToolUseId', () => {
       // Streaming sub-agent lines can also be user tool_result lines (the sub-agent
       // reports its own tool results on parent stdout with parent_tool_use_id).
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 
@@ -683,6 +754,8 @@ describe('chatLineProcessTransformer', () => {
               content: 'inner sub-agent result',
               source: 'subagent',
               agentId: 'toolu_stream_parent_02',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -696,6 +769,8 @@ describe('chatLineProcessTransformer', () => {
       // for every realAgentId↔toolUseId mapping BEFORE it iterates lines in timestamp
       // order. This is required because sub-agent file lines sort earlier than their own
       // completion tool_result; without the pre-seeding, they'd fail reverse-map lookup.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const preSeededToolUseId = ToolUseIdStub({ value: 'toolu_preseed_01' });
       const realAgentId = AgentIdStub({ value: 'agent-preseeded' });
@@ -729,6 +804,8 @@ describe('chatLineProcessTransformer', () => {
               // emitted entry's agentId is the parent Task's toolUseId.
               source: 'subagent',
               agentId: 'toolu_preseed_01',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -761,6 +838,8 @@ describe('chatLineProcessTransformer', () => {
     it('VALID: {user tool_result with toolUseResult.agentId populates the map, then resolveToolUseIdForAgent} => returns the live-populated toolUseId', () => {
       // Live population path: as tool_use_result lines flow through processLine, the
       // reverse map is populated. resolveToolUseIdForAgent must reflect that state.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_live_populated' });
       const realAgentId = AgentIdStub({ value: 'agent-live' });
@@ -790,6 +869,8 @@ describe('chatLineProcessTransformer', () => {
       // ChatEntry on the wire so collect-subagent-chains on the web can key on agentId
       // without caring which source the line came from. If this invariant ever breaks,
       // chain grouping silently shows (0 entries) for one of the two paths.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID1] });
       const toolUseId = ToolUseIdStub({ value: 'toolu_parity_01' });
       const realAgentId = AgentIdStub({ value: 'agent-parity' });
 
@@ -839,6 +920,8 @@ describe('chatLineProcessTransformer', () => {
               content: 'Hello, I can help with that.',
               source: 'subagent',
               agentId: 'toolu_parity_01',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -848,6 +931,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('user tool_result without agentId', () => {
     it('EMPTY: {user tool_result without toolUseResult} => emits entries without agentId', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
       const parsed = normalize(SuccessfulToolResultStreamLineStub());
@@ -864,6 +949,8 @@ describe('chatLineProcessTransformer', () => {
               toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
               content: 'File contents retrieved successfully',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -873,6 +960,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('task-notification XML lifting (post-inflate shape)', () => {
     it('VALID: {user with content.taskNotification object} => lifts to top-level and coerces numeric fields', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 
@@ -912,6 +1001,8 @@ describe('chatLineProcessTransformer', () => {
               toolUses: 3,
               durationMs: 9033,
               source: 'session',
+              uuid: `${UUID1}:task-notification`,
+              timestamp: TS,
             },
           ],
         },
@@ -919,6 +1010,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {user text without taskNotification} => emits user entry', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 
@@ -938,6 +1031,8 @@ describe('chatLineProcessTransformer', () => {
               role: 'user',
               content: 'regular user message',
               source: 'session',
+              uuid: `${UUID1}:user`,
+              timestamp: TS,
             },
           ],
         },
@@ -947,6 +1042,8 @@ describe('chatLineProcessTransformer', () => {
 
   describe('empty thinking sanitization', () => {
     it('VALID: {assistant with empty thinking item + text} => strips empty thinking, keeps text', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 
@@ -973,6 +1070,8 @@ describe('chatLineProcessTransformer', () => {
               type: 'text',
               content: 'Hello.',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -980,6 +1079,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {assistant with non-empty thinking} => preserves thinking content', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 
@@ -1003,6 +1104,8 @@ describe('chatLineProcessTransformer', () => {
               type: 'thinking',
               content: 'Let me consider this.',
               source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
             },
           ],
         },
@@ -1010,6 +1113,8 @@ describe('chatLineProcessTransformer', () => {
     });
 
     it('VALID: {assistant with ONLY empty thinking} => emits entries with empty array', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const source = ChatLineSourceStub({ value: 'session' });
 

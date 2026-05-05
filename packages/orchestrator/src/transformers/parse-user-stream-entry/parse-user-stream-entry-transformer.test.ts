@@ -9,12 +9,18 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { parseUserStreamEntryTransformer } from './parse-user-stream-entry-transformer';
+import { parseUserStreamEntryTransformerProxy } from './parse-user-stream-entry-transformer.proxy';
 
 const normalize = (value: unknown): object => snakeKeysToCamelKeysTransformer({ value }) as object;
+
+const UUID1 = '00000000-0000-4000-8000-000000000001';
+const TS = '1970-01-01T00:00:00.000Z';
 
 describe('parseUserStreamEntryTransformer', () => {
   describe('tool_result content', () => {
     it('VALID: {permission denied tool result} => returns tool result entry with isError', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseUserStreamEntryTransformer({
         parsed: normalize(PermissionDeniedStreamLineStub()),
       });
@@ -27,11 +33,15 @@ describe('parseUserStreamEntryTransformer', () => {
           content:
             "Claude requested permissions to use mcp__dungeonmaster__list-guilds, but you haven't granted it yet.",
           isError: true,
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('VALID: {successful tool result} => returns tool result entry without isError', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseUserStreamEntryTransformer({
         parsed: normalize(SuccessfulToolResultStreamLineStub()),
       });
@@ -42,11 +52,15 @@ describe('parseUserStreamEntryTransformer', () => {
           type: 'tool_result',
           toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
           content: 'File contents retrieved successfully',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
 
     it('VALID: {mixed text and tool result} => only returns tool_result entries', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseUserStreamEntryTransformer({
         parsed: normalize(MixedTextAndToolResultStreamLineStub()),
       });
@@ -57,6 +71,8 @@ describe('parseUserStreamEntryTransformer', () => {
           type: 'tool_result',
           toolName: 'toolu_015sb5Rz8yPMN4sbwdNaz8kk',
           content: 'Read 42 lines from file',
+          uuid: `${UUID1}:1`,
+          timestamp: TS,
         },
       ]);
     });
@@ -64,6 +80,8 @@ describe('parseUserStreamEntryTransformer', () => {
 
   describe('source and agentId propagation', () => {
     it('VALID: {entry with source and agentId} => propagates to tool_result entries', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseUserStreamEntryTransformer({
         parsed: normalize({
           type: 'user',
@@ -83,6 +101,8 @@ describe('parseUserStreamEntryTransformer', () => {
           content: 'done',
           source: 'session',
           agentId: 'agent-42',
+          uuid: `${UUID1}:0`,
+          timestamp: TS,
         },
       ]);
     });
@@ -107,6 +127,8 @@ describe('parseUserStreamEntryTransformer', () => {
     });
 
     it('VALID: {content is plain string} => returns user entry', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseUserStreamEntryTransformer({
         parsed: normalize(
           UserTextStringStreamLineStub({
@@ -119,6 +141,8 @@ describe('parseUserStreamEntryTransformer', () => {
         {
           role: 'user',
           content: 'plain string without tool results',
+          uuid: `${UUID1}:user`,
+          timestamp: TS,
         },
       ]);
     });
@@ -148,6 +172,8 @@ describe('parseUserStreamEntryTransformer', () => {
     });
 
     it('EDGE: {content array has null item} => skips null items', () => {
+      const proxy = parseUserStreamEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = parseUserStreamEntryTransformer({
         parsed: normalize({
           type: 'user',
@@ -163,6 +189,8 @@ describe('parseUserStreamEntryTransformer', () => {
           type: 'tool_result',
           toolName: 'toolu_abc',
           content: 'data',
+          uuid: `${UUID1}:1`,
+          timestamp: TS,
         },
       ]);
     });

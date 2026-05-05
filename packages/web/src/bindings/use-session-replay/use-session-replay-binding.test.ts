@@ -64,6 +64,8 @@ describe('useSessionReplayBinding', () => {
       const proxy = useSessionReplayBindingProxy();
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const guildId = GuildIdStub();
+      const entryUuid = '00000000-0000-4000-8000-000000000001';
+      const entryTs = '2025-01-01T00:00:00.000Z';
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
@@ -78,7 +80,15 @@ describe('useSessionReplayBinding', () => {
                 chatProcessId: `replay-${sessionId}`,
                 questId: QuestIdStub(),
                 workItemId: QuestWorkItemIdStub(),
-                entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'replayed',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -87,7 +97,15 @@ describe('useSessionReplayBinding', () => {
       });
 
       expect(result.current).toStrictEqual({
-        entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'replayed',
+            uuid: entryUuid,
+            timestamp: entryTs,
+          },
+        ],
         isLoading: true,
         sessionNotFound: false,
       });
@@ -132,6 +150,8 @@ describe('useSessionReplayBinding', () => {
       const proxy = useSessionReplayBindingProxy();
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const guildId = GuildIdStub();
+      const entryUuid = '00000000-0000-4000-8000-000000000002';
+      const entryTs = '2025-01-01T00:00:00.000Z';
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
@@ -146,7 +166,15 @@ describe('useSessionReplayBinding', () => {
                 chatProcessId: `replay-${sessionId}`,
                 questId: QuestIdStub(),
                 workItemId: QuestWorkItemIdStub(),
-                entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'replayed',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -162,7 +190,15 @@ describe('useSessionReplayBinding', () => {
       });
 
       expect(result.current).toStrictEqual({
-        entries: [{ role: 'assistant', type: 'text', content: 'replayed' }],
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'replayed',
+            uuid: entryUuid,
+            timestamp: entryTs,
+          },
+        ],
         isLoading: false,
         sessionNotFound: false,
       });

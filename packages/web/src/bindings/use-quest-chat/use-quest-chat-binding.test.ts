@@ -69,6 +69,8 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       const questId = QuestIdStub({ value: 'quest-out-1' });
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const entryUuid = '00000000-0000-4000-8000-000000000001';
+      const entryTs = '2025-01-01T00:00:00.000Z';
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestChatBinding({ questId }),
@@ -84,7 +86,15 @@ describe('useQuestChatBinding', () => {
                 workItemId: QuestWorkItemIdStub(),
                 sessionId,
                 chatProcessId: ProcessIdStub({ value: 'proc-1' }),
-                entries: [{ role: 'assistant', type: 'text', content: 'hello' }],
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'hello',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -93,7 +103,15 @@ describe('useQuestChatBinding', () => {
       });
 
       const expectedMap = new Map();
-      expectedMap.set(sessionId, [{ role: 'assistant', type: 'text', content: 'hello' }]);
+      expectedMap.set(sessionId, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hello',
+          uuid: entryUuid,
+          timestamp: entryTs,
+        },
+      ]);
 
       expect(result.current).toStrictEqual({
         entriesBySession: expectedMap,
@@ -301,7 +319,11 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       const questId = QuestIdStub({ value: 'quest-send-1' });
       const message = UserInputStub({ value: 'Hi' });
+      const synthUuid = '00000000-0000-4000-8000-00000000000a';
+      const synthTs = '2025-01-01T00:00:00.000Z';
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send' }) });
+      proxy.setupUuids({ uuids: [synthUuid] });
+      proxy.setupTimestamps({ timestamps: [synthTs] });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestChatBinding({ questId }),
@@ -318,7 +340,9 @@ describe('useQuestChatBinding', () => {
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
       const expectedMap = new Map();
-      expectedMap.set(synthKey, [{ role: 'user', content: 'Hi' }]);
+      expectedMap.set(synthKey, [
+        { role: 'user', content: 'Hi', uuid: synthUuid, timestamp: synthTs },
+      ]);
 
       expect(result.current).toStrictEqual({
         entriesBySession: expectedMap,
@@ -533,6 +557,8 @@ describe('useQuestChatBinding', () => {
     it('VALID: {chat-output sans sessionId} => buckets entries under synthetic __no_session__ key', () => {
       const proxy = useQuestChatBindingProxy();
       const questId = QuestIdStub({ value: 'quest-nosession-1' });
+      const entryUuid = '00000000-0000-4000-8000-000000000099';
+      const entryTs = '2025-01-01T00:00:00.000Z';
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestChatBinding({ questId }),
@@ -547,7 +573,15 @@ describe('useQuestChatBinding', () => {
                 questId: 'quest-nosession-1',
                 workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-ns' }),
-                entries: [{ role: 'assistant', type: 'text', content: 'no-sess' }],
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'no-sess',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
@@ -557,7 +591,15 @@ describe('useQuestChatBinding', () => {
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
       const expectedMap = new Map();
-      expectedMap.set(synthKey, [{ role: 'assistant', type: 'text', content: 'no-sess' }]);
+      expectedMap.set(synthKey, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'no-sess',
+          uuid: entryUuid,
+          timestamp: entryTs,
+        },
+      ]);
 
       expect(result.current.entriesBySession).toStrictEqual(expectedMap);
     });

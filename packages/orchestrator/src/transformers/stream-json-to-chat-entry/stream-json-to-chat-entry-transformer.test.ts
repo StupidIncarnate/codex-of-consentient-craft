@@ -16,8 +16,12 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { streamJsonToChatEntryTransformer } from './stream-json-to-chat-entry-transformer';
+import { streamJsonToChatEntryTransformerProxy } from './stream-json-to-chat-entry-transformer.proxy';
 
 const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({ value });
+
+const UUID1 = '00000000-0000-4000-8000-000000000001';
+const TS = '1970-01-01T00:00:00.000Z';
 
 describe('streamJsonToChatEntryTransformer', () => {
   describe('system init messages', () => {
@@ -57,6 +61,8 @@ describe('streamJsonToChatEntryTransformer', () => {
 
   describe('assistant messages', () => {
     it('VALID: {type: "assistant", text content} => returns text chat entry', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(
         AssistantTextStreamLineStub({
           message: {
@@ -84,6 +90,8 @@ describe('streamJsonToChatEntryTransformer', () => {
               cacheCreationInputTokens: 0,
               cacheReadInputTokens: 0,
             },
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -91,6 +99,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_use content} => returns tool use chat entry', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const toolUseId = 'toolu_01StreamEntry001';
       const parsed = normalize(
         AssistantToolUseStreamLineStub({
@@ -113,6 +123,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             toolUseId,
             toolName: 'read_file',
             toolInput: '{"path":"/test"}',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -120,6 +132,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", tool_result content} => returns tool result chat entry', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(
         AssistantToolResultStreamLineStub({
           message: {
@@ -138,6 +152,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             type: 'tool_result',
             toolName: 'toolu_123',
             content: 'file data',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -145,6 +161,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", multiple content items} => returns multiple entries', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const toolUseId = 'toolu_01StreamMixed001';
       const parsed = normalize(
         AssistantMixedContentStreamLineStub({
@@ -176,6 +194,8 @@ describe('streamJsonToChatEntryTransformer', () => {
               cacheCreationInputTokens: 0,
               cacheReadInputTokens: 0,
             },
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
           {
             role: 'assistant',
@@ -189,6 +209,8 @@ describe('streamJsonToChatEntryTransformer', () => {
               cacheCreationInputTokens: 0,
               cacheReadInputTokens: 0,
             },
+            uuid: `${UUID1}:1`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -219,6 +241,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", model field on message} => passes model to resulting entries', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(
         AssistantTextStreamLineStub({
           message: {
@@ -238,6 +262,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             type: 'text',
             content: 'Hello world',
             model: 'claude-opus-4-20250514',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -245,6 +271,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", no model field} => entries have no model', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(
         AssistantTextStreamLineStub({
           message: {
@@ -262,6 +290,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             role: 'assistant',
             type: 'text',
             content: 'Hello world',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -269,6 +299,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", thinking content} => returns thinking entry', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(
         AssistantThinkingStreamLineStub({
           message: {
@@ -286,6 +318,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             role: 'assistant',
             type: 'thinking',
             content: 'Let me think about this.',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -293,6 +327,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", enriched content items with source and agentId} => passes through item-level source and agentId', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = streamJsonToChatEntryTransformer({
         parsed: {
           type: 'assistant',
@@ -310,6 +346,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             content: 'hello',
             source: 'subagent',
             agentId: 'agent-42',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -317,6 +355,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", item-level source overrides top-level source} => item source wins', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = streamJsonToChatEntryTransformer({
         parsed: {
           type: 'assistant',
@@ -336,6 +376,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             content: 'hello',
             source: 'subagent',
             agentId: 'item-agent',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -343,6 +385,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "assistant", no item-level source} => falls back to top-level source', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const result = streamJsonToChatEntryTransformer({
         parsed: {
           type: 'assistant',
@@ -362,6 +406,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             content: 'hello',
             source: 'subagent',
             agentId: 'top-agent',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -387,6 +433,8 @@ describe('streamJsonToChatEntryTransformer', () => {
 
   describe('user messages with tool_result', () => {
     it('VALID: {permission denied tool result} => returns tool result entry with isError', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(PermissionDeniedStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
@@ -400,6 +448,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             content:
               "Claude requested permissions to use mcp__dungeonmaster__list-guilds, but you haven't granted it yet.",
             isError: true,
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -407,6 +457,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {successful tool result} => returns tool result entry without isError', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(SuccessfulToolResultStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
@@ -418,6 +470,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             type: 'tool_result',
             toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
             content: 'File contents retrieved successfully',
+            uuid: `${UUID1}:0`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -425,6 +479,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {mixed text and tool result} => only returns tool_result entries', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(MixedTextAndToolResultStreamLineStub());
 
       const result = streamJsonToChatEntryTransformer({ parsed });
@@ -436,6 +492,8 @@ describe('streamJsonToChatEntryTransformer', () => {
             type: 'tool_result',
             toolName: 'toolu_015sb5Rz8yPMN4sbwdNaz8kk',
             content: 'Read 42 lines from file',
+            uuid: `${UUID1}:1`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
@@ -452,6 +510,8 @@ describe('streamJsonToChatEntryTransformer', () => {
     });
 
     it('VALID: {type: "user", content is plain string} => returns user entry', () => {
+      const proxy = streamJsonToChatEntryTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
       const parsed = normalize(
         UserTextStringStreamLineStub({
           message: { role: 'user', content: 'plain string without tool results' },
@@ -465,6 +525,8 @@ describe('streamJsonToChatEntryTransformer', () => {
           {
             role: 'user',
             content: 'plain string without tool results',
+            uuid: `${UUID1}:user`,
+            timestamp: TS,
           },
         ],
         sessionId: null,
