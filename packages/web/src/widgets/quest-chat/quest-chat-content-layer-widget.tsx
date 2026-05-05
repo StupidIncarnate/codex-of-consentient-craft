@@ -3,7 +3,7 @@
  *
  * USAGE:
  * <QuestChatContentLayerWidget questId={questId} guildId={guildId} guildSlug={guildSlug} />
- * // questId === null → new-chat surface (ChatPanel + "Awaiting…"). Once first message creates the quest, the widget replace-navigates to the live URL; same instance keeps rendering with the new questId, binding subscribes, layout transitions to ChatPanel+SpecPanel (or ExecutionPanel+Activity in execution phase).
+ * // questId === null → new-chat surface (ChatPanel + "Awaiting…"). Once first message creates the quest, the widget replace-navigates to the live URL; same instance keeps rendering with the new questId, binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -38,8 +38,6 @@ import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broke
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
-import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
-import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
@@ -66,7 +64,6 @@ export const QuestChatContentLayerWidget = ({
   const {
     quest,
     entriesBySession,
-    slotEntries,
     isStreaming,
     pendingClarification,
     sendMessage,
@@ -352,7 +349,6 @@ export const QuestChatContentLayerWidget = ({
         <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <ExecutionPanelWidget
             quest={quest}
-            slotEntries={slotEntries}
             sessionEntries={entriesBySession}
             guildSlug={guildSlug}
             onStatusChange={({ status }): void => {
@@ -389,26 +385,12 @@ export const QuestChatContentLayerWidget = ({
           data-testid="QUEST_CHAT_ACTIVITY"
           style={{
             flex: 1,
-            overflow: 'auto',
+            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          {flattenedEntries.length === 0 ? (
-            <DumpsterRaccoonWidget />
-          ) : (
-            <AutoScrollContainerWidget
-              style={{ flex: 1, padding: 16 }}
-              contentStyle={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-            >
-              <ChatEntryListWidget
-                entries={flattenedEntries}
-                isStreaming={isStreaming}
-                showContextDividers
-                showEndStreamingIndicator
-              />
-            </AutoScrollContainerWidget>
-          )}
+          <DumpsterRaccoonWidget />
         </Box>
         {beginQuestModal}
       </Box>

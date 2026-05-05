@@ -96,8 +96,6 @@ test.describe('Quest Execution Streaming', () => {
     });
 
     // The actual streamed text content should appear in the execution row — not just "streaming...".
-    // Scope to the execution panel because the activity panel also flattens session entries and
-    // renders the same text, which would otherwise trip Playwright's strict-mode duplicate match.
     await expect(
       executionPanel.getByText('Analyzing quest requirements and planning steps'),
     ).toBeVisible({

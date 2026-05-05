@@ -28,7 +28,6 @@ import type { ExecutionRole } from '../../contracts/execution-role/execution-rol
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
 import { slotCountContract } from '../../contracts/slot-count/slot-count-contract';
-import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import type { StepName } from '../../contracts/step-name/step-name-contract';
 import type { StepOrder } from '../../contracts/step-order/step-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
@@ -54,7 +53,6 @@ import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
-  slotEntries?: Map<SlotIndex, ChatEntry[]>;
   sessionEntries?: Map<SessionId, ChatEntry[]>;
   guildSlug?: UrlSlug;
   onStatusChange?: (params: { status: QuestStatus }) => void;
@@ -80,7 +78,6 @@ const STEPS_PREFIX_LENGTH = STEPS_PREFIX.length;
 const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
 export const ExecutionPanelWidget = ({
   quest,
-  slotEntries = new Map(),
   sessionEntries = new Map(),
   guildSlug,
   onStatusChange,
@@ -141,6 +138,22 @@ export const ExecutionPanelWidget = ({
       }),
     [quest.workItems],
   );
+
+  // The synthetic "Planning steps..." pathseeker row in the planning branch
+  // surfaces the same entries whether they arrived via live streaming or
+  // subscribe-quest replay. We source from the most recent pathseeker
+  // workItem's sessionEntries — replay never stamps slotIndex, so a
+  // slotEntries-keyed lookup goes dark on reload while sessionEntries[wi.sessionId]
+  // is populated by both paths identically.
+  const planningPathseekerEntries = useMemo<ChatEntry[]>(() => {
+    const pathseekerWorkItems = quest.workItems.filter(
+      (wi) => wi.role === 'pathseeker' && wi.sessionId !== undefined,
+    );
+    if (pathseekerWorkItems.length === 0) return [];
+    const mostRecent = pathseekerWorkItems[pathseekerWorkItems.length - 1];
+    if (mostRecent?.sessionId === undefined) return [];
+    return sessionEntries.get(mostRecent.sessionId) ?? [];
+  }, [quest.workItems, sessionEntries]);
 
   const groupActiveCounts = new Map<(typeof floorGroups)[0], SlotCount>();
   const groupTotalCounts = new Map<(typeof floorGroups)[0], SlotCount>();
@@ -295,7 +308,7 @@ export const ExecutionPanelWidget = ({
                   files={[] as DisplayFilePath[]}
                   dependsOn={[] as DependencyLabel[]}
                   isAdhoc={false}
-                  entries={slotEntries.get(0 as SlotIndex) ?? []}
+                  entries={planningPathseekerEntries}
                   isStreaming={true}
                 />
                 <Text

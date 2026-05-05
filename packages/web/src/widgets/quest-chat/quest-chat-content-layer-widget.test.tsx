@@ -157,7 +157,7 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('CHAT_PANEL')?.getAttribute('data-testid')).toBe('CHAT_PANEL');
     });
 
-    it('VALID: {quest at in_progress} => renders execution panel + flat activity', async () => {
+    it('VALID: {quest at in_progress} => renders execution panel + dumpster raccoon column (no chat-entry feed)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-cccccccccccc' });
       const quest = QuestStub({
@@ -199,6 +199,8 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
         'QUEST_CHAT_ACTIVITY',
       );
+      // No chat-entry feed inside the right column — only the dumpster raccoon.
+      expect(queryByTestId('CHAT_MESSAGE')).toBe(null);
     });
   });
 });

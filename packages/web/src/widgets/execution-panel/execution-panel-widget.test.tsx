@@ -12,7 +12,6 @@ import {
 
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
-import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
@@ -420,15 +419,26 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('pathseeker planning row', () => {
-    it('VALID: {quest with no steps and slotEntries} => renders planning row with streaming bar', () => {
+    it('VALID: {quest with no steps and pathseeker sessionEntries} => synthetic planning row sources from pathseeker workItem session', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
-      const slotIndex = SlotIndexStub({ value: 0 });
+      const sessionId = SessionIdStub({ value: 'session-pathseeker-1' });
       const entry = AssistantTextChatEntryStub({ content: 'Analyzing quest requirements...' });
-      const slotEntries = new Map([[slotIndex, [entry]]]);
+      const sessionEntries = new Map([[sessionId, [entry]]]);
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000099',
+            role: 'pathseeker',
+            status: 'in_progress',
+            sessionId,
+          }),
+        ],
+      });
 
       mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} slotEntries={slotEntries} />,
+        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
       });
 
       expect(proxy.hasPlanningText()).toBe(true);
@@ -437,6 +447,15 @@ describe('ExecutionPanelWidget', () => {
       const stepRows = proxy.getStepRows();
 
       expect(stepRows.length).toBeGreaterThanOrEqual(1);
+
+      // The synthetic planning row's expanded body should surface the pathseeker
+      // workItem's session entries (live or replayed — both arrive on the same key).
+      const messages = proxy.getExecutionMessages();
+
+      expect(messages.length).toBeGreaterThanOrEqual(1);
+      expect(messages.some((m) => m.textContent?.includes('Analyzing quest requirements'))).toBe(
+        true,
+      );
     });
 
     it('VALID: {quest with no steps} => renders planning text', () => {
@@ -1568,11 +1587,11 @@ describe('ExecutionPanelWidget', () => {
       expect(messagesAfterFirst[0]?.textContent).toBe('CODEWEAVERBuilding contracts');
     });
 
-    it('VALID: {step with slotEntries but no sessionEntries} => does not show slot 0 entries', () => {
+    it('VALID: {step with pathseeker session present elsewhere} => step row stays empty unless its own sessionId is in sessionEntries', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const slotIndex = SlotIndexStub({ value: 0 });
-      const slotEntry = AssistantTextChatEntryStub({ content: 'Wrong session logs' });
-      const slotEntries = new Map([[slotIndex, [slotEntry]]]);
+      const otherSessionId = SessionIdStub({ value: 'session-elsewhere' });
+      const otherEntry = AssistantTextChatEntryStub({ content: 'Wrong session logs' });
+      const sessionEntries = new Map([[otherSessionId, [otherEntry]]]);
       const quest: Quest = QuestStub({
         status: 'in_progress',
         steps: [
@@ -1593,7 +1612,7 @@ describe('ExecutionPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} slotEntries={slotEntries} />,
+        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
       });
 
       expect(proxy.getExecutionMessages()).toStrictEqual([]);
