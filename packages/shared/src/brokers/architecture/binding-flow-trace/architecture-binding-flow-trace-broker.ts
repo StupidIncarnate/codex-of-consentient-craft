@@ -15,19 +15,17 @@
  * the boot-tree's widget subtree renderer and the standalone widget tree section
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
+import { bindingNameToFilePathTransformer } from '../../../transformers/binding-name-to-file-path/binding-name-to-file-path-transformer';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { architectureSourceReadBroker } from '../source-read/architecture-source-read-broker';
 import { architectureOrchestratorMethodExtractBroker } from '../orchestrator-method-extract/architecture-orchestrator-method-extract-broker';
 import { architectureBackRefBroker } from '../back-ref/architecture-back-ref-broker';
 
-const BINDING_SUFFIX = '-binding';
-const BINDINGS_PATH = '/src/bindings/';
 const BROKERS_MARKER = 'brokers/';
 
 export const architectureBindingFlowTraceBroker = ({
@@ -54,17 +52,7 @@ export const architectureBindingFlowTraceBroker = ({
     emitterRef: ContentText | null;
   }[];
 } => {
-  const bindingNameStr = String(bindingName);
-  const folderName = bindingNameStr.endsWith(BINDING_SUFFIX)
-    ? bindingNameStr.slice(0, -BINDING_SUFFIX.length)
-    : bindingNameStr;
-  const fileBaseName = bindingNameStr.endsWith(BINDING_SUFFIX)
-    ? bindingNameStr
-    : `${bindingNameStr}${BINDING_SUFFIX}`;
-
-  const bindingFilePath = absoluteFilePathContract.parse(
-    `${String(packageRoot)}${BINDINGS_PATH}${folderName}/${fileBaseName}.ts`,
-  );
+  const bindingFilePath = bindingNameToFilePathTransformer({ bindingName, packageRoot });
 
   const bindingSource = architectureSourceReadBroker({ filePath: bindingFilePath });
   if (bindingSource === undefined) {

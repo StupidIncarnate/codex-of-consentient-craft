@@ -1,6 +1,7 @@
 /**
- * PURPOSE: Recursively builds a WidgetNode from pre-fetched edge data, expanding children up to
- * maxChildDepth levels and replacing hub children with stub leaf nodes
+ * PURPOSE: Recursively builds a WidgetNode from pre-fetched edge data, walking the full widget
+ * composition tree. Hub children (in-degree ≥ hubInDegreeThreshold) appear as stub leaf nodes
+ * for noise control. Already-visited widgets also appear as stub leaves to prevent cycles.
  *
  * USAGE:
  * const node = buildWidgetNodeLayerBroker({
@@ -8,7 +9,7 @@
  *   widgetFileSet,
  *   edgesMap,
  *   hubPaths,
- *   depth: 0,
+ *   visited: new Set(),
  * });
  * // Returns a fully constructed WidgetNode tree
  *
@@ -20,7 +21,6 @@ import {
   widgetNodeContract,
   type WidgetNode,
 } from '../../../contracts/widget-node/widget-node-contract';
-import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
 import { widgetFileNameExtractTransformer } from '../../../transformers/widget-file-name-extract/widget-file-name-extract-transformer';
 import type { WidgetEdges } from '../../../contracts/widget-edges/widget-edges-contract';
 
@@ -29,41 +29,48 @@ export const buildWidgetNodeLayerBroker = ({
   widgetFileSet,
   edgesMap,
   hubPaths,
-  depth,
+  visited,
 }: {
   filePath: AbsoluteFilePath;
   widgetFileSet: Set<AbsoluteFilePath>;
   edgesMap: Map<AbsoluteFilePath, WidgetEdges>;
   hubPaths: Set<AbsoluteFilePath>;
-  depth: number;
+  visited: Set<AbsoluteFilePath>;
 }): WidgetNode => {
+  if (visited.has(filePath)) {
+    return widgetNodeContract.parse({
+      widgetName: widgetFileNameExtractTransformer({ filePath }),
+      filePath,
+      bindingsAttached: [],
+      children: [],
+    });
+  }
+  visited.add(filePath);
+
   const edges = edgesMap.get(filePath) ?? { childWidgetPaths: [], bindingNames: [] };
   const widgetName = widgetFileNameExtractTransformer({ filePath });
 
   const children: WidgetNode[] = [];
-  if (depth < widgetTreeStatics.maxChildDepth) {
-    for (const childPath of edges.childWidgetPaths) {
-      if (hubPaths.has(childPath)) {
-        // Hub children appear as stub leaf nodes (not expanded further)
-        children.push(
-          widgetNodeContract.parse({
-            widgetName: widgetFileNameExtractTransformer({ filePath: childPath }),
-            filePath: childPath,
-            bindingsAttached: [],
-            children: [],
-          }),
-        );
-      } else {
-        children.push(
-          buildWidgetNodeLayerBroker({
-            filePath: childPath,
-            widgetFileSet,
-            edgesMap,
-            hubPaths,
-            depth: depth + 1,
-          }),
-        );
-      }
+  for (const childPath of edges.childWidgetPaths) {
+    if (hubPaths.has(childPath)) {
+      children.push(
+        widgetNodeContract.parse({
+          widgetName: widgetFileNameExtractTransformer({ filePath: childPath }),
+          filePath: childPath,
+          bindingsAttached: [],
+          children: [],
+        }),
+      );
+    } else {
+      children.push(
+        buildWidgetNodeLayerBroker({
+          filePath: childPath,
+          widgetFileSet,
+          edgesMap,
+          hubPaths,
+          visited,
+        }),
+      );
     }
   }
 

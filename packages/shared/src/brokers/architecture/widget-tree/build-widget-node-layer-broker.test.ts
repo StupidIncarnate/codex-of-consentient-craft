@@ -23,7 +23,7 @@ describe('buildWidgetNodeLayerBroker', () => {
         widgetFileSet,
         edgesMap,
         hubPaths,
-        depth: 0,
+        visited: new Set<AbsoluteFilePath>(),
       });
 
       expect(result).toStrictEqual({
@@ -50,7 +50,7 @@ describe('buildWidgetNodeLayerBroker', () => {
         widgetFileSet,
         edgesMap,
         hubPaths,
-        depth: 0,
+        visited: new Set<AbsoluteFilePath>(),
       });
 
       expect(result).toStrictEqual({
@@ -92,7 +92,7 @@ describe('buildWidgetNodeLayerBroker', () => {
         widgetFileSet,
         edgesMap,
         hubPaths,
-        depth: 0,
+        visited: new Set<AbsoluteFilePath>(),
       });
 
       expect(result).toStrictEqual({
@@ -143,7 +143,7 @@ describe('buildWidgetNodeLayerBroker', () => {
         widgetFileSet,
         edgesMap,
         hubPaths,
-        depth: 0,
+        visited: new Set<AbsoluteFilePath>(),
       });
 
       expect(result).toStrictEqual({
@@ -161,7 +161,7 @@ describe('buildWidgetNodeLayerBroker', () => {
       });
     });
 
-    it('VALID: {depth exceeds maxChildDepth} => children not expanded beyond limit', () => {
+    it('VALID: {tree 4 levels deep} => fully expanded since the depth cap was removed', () => {
       buildWidgetNodeLayerBrokerProxy();
 
       const rootPath = AbsoluteFilePathStub({
@@ -195,10 +195,9 @@ describe('buildWidgetNodeLayerBroker', () => {
         widgetFileSet,
         edgesMap,
         hubPaths,
-        depth: 0,
+        visited: new Set<AbsoluteFilePath>(),
       });
 
-      // maxChildDepth=2: depth 0→1→2 (grandchild included), but depth 2 children NOT expanded
       expect(result).toStrictEqual({
         widgetName: 'app-widget',
         filePath: '/repo/packages/web/src/widgets/app/app-widget.tsx',
@@ -212,6 +211,61 @@ describe('buildWidgetNodeLayerBroker', () => {
               {
                 widgetName: 'card-widget',
                 filePath: '/repo/packages/web/src/widgets/card/card-widget.tsx',
+                bindingsAttached: [],
+                children: [
+                  {
+                    widgetName: 'deep-widget',
+                    filePath: '/repo/packages/web/src/widgets/deep/deep-widget.tsx',
+                    bindingsAttached: [],
+                    children: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('cycle protection', () => {
+    it('VALID: {widget A child includes widget A again via grandchild} => second visit renders as stub leaf without infinite loop', () => {
+      buildWidgetNodeLayerBrokerProxy();
+
+      const aPath = AbsoluteFilePathStub({
+        value: '/repo/packages/web/src/widgets/a/a-widget.tsx',
+      });
+      const bPath = AbsoluteFilePathStub({
+        value: '/repo/packages/web/src/widgets/b/b-widget.tsx',
+      });
+      const widgetFileSet = new Set<AbsoluteFilePath>([aPath, bPath]);
+      const edgesMap = new Map([
+        [aPath, WidgetEdgesStub({ childWidgetPaths: [bPath] })],
+        [bPath, WidgetEdgesStub({ childWidgetPaths: [aPath] })],
+      ]);
+      const hubPaths = new Set<AbsoluteFilePath>();
+
+      const result = buildWidgetNodeLayerBroker({
+        filePath: aPath,
+        widgetFileSet,
+        edgesMap,
+        hubPaths,
+        visited: new Set<AbsoluteFilePath>(),
+      });
+
+      expect(result).toStrictEqual({
+        widgetName: 'a-widget',
+        filePath: '/repo/packages/web/src/widgets/a/a-widget.tsx',
+        bindingsAttached: [],
+        children: [
+          {
+            widgetName: 'b-widget',
+            filePath: '/repo/packages/web/src/widgets/b/b-widget.tsx',
+            bindingsAttached: [],
+            children: [
+              {
+                widgetName: 'a-widget',
+                filePath: '/repo/packages/web/src/widgets/a/a-widget.tsx',
                 bindingsAttached: [],
                 children: [],
               },

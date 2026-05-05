@@ -18,15 +18,20 @@
  */
 
 import {
+  absoluteFilePathContract,
+  type AbsoluteFilePath,
+} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
 import type { WidgetNode } from '../../../contracts/widget-node/widget-node-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { bindingNameToFilePathTransformer } from '../../../transformers/binding-name-to-file-path/binding-name-to-file-path-transformer';
 import { projectMapHeadlineFrontendReactStatics } from '../../../statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';
 import { architectureBindingFlowTraceBroker } from '../binding-flow-trace/architecture-binding-flow-trace-broker';
+import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 
 export const architectureWidgetNodeRenderBroker = ({
   node,
@@ -36,6 +41,8 @@ export const architectureWidgetNodeRenderBroker = ({
   wsEdges,
   packageRoot,
   projectRoot,
+  packageSrcPath,
+  callChainFn,
 }: {
   node: WidgetNode;
   prefix: ContentText;
@@ -44,19 +51,46 @@ export const architectureWidgetNodeRenderBroker = ({
   wsEdges: WsEdge[];
   packageRoot: AbsoluteFilePath;
   projectRoot: AbsoluteFilePath;
+  packageSrcPath?: AbsoluteFilePath;
+  callChainFn?: (params: {
+    sourceFile: AbsoluteFilePath;
+    packageSrcPath: AbsoluteFilePath;
+    renderingFilePath: AbsoluteFilePath;
+    baseIndent?: ContentText;
+  }) => ContentText[];
 }): ContentText[] => {
   const { pipe, branch, last, indent } = projectMapHeadlineFrontendReactStatics.treeConnectors;
   const { bindingFlowLineSubIndent, httpMethodPadWidth } = projectMapHeadlineFrontendReactStatics;
   const connector = isLast ? last : branch;
   const lines: ContentText[] = [];
 
-  lines.push(contentTextContract.parse(`${String(prefix)}${connector} ${String(node.widgetName)}`));
+  const widgetDisplayName = architectureExportNameResolveBroker({ filePath: node.filePath });
+  lines.push(
+    contentTextContract.parse(`${String(prefix)}${connector} ${String(widgetDisplayName)}`),
+  );
 
   const childIndentStr = isLast ? `${String(prefix)}${indent}` : `${String(prefix)}${pipe}  `;
   const flowIndent = `${childIndentStr}${bindingFlowLineSubIndent}`;
+  const chainBaseIndent = contentTextContract.parse(flowIndent);
 
   for (const bindingName of node.bindingsAttached) {
-    lines.push(contentTextContract.parse(`${childIndentStr}bindings: ${String(bindingName)}`));
+    const bindingFile = bindingNameToFilePathTransformer({ bindingName, packageRoot });
+    const bindingDisplayName = architectureExportNameResolveBroker({ filePath: bindingFile });
+    lines.push(
+      contentTextContract.parse(`${childIndentStr}bindings: ${String(bindingDisplayName)}`),
+    );
+
+    if (callChainFn !== undefined && packageSrcPath !== undefined) {
+      const chainLines = callChainFn({
+        sourceFile: bindingFile,
+        packageSrcPath,
+        renderingFilePath: bindingFile,
+        baseIndent: chainBaseIndent,
+      });
+      for (const cl of chainLines) {
+        lines.push(cl);
+      }
+    }
 
     const { httpFlows, wsEvents } = architectureBindingFlowTraceBroker({
       bindingName,
@@ -87,20 +121,41 @@ export const architectureWidgetNodeRenderBroker = ({
     }
   }
 
+  if (callChainFn !== undefined && packageSrcPath !== undefined) {
+    const widgetFile = absoluteFilePathContract.parse(String(node.filePath));
+    const widgetChainLines = callChainFn({
+      sourceFile: widgetFile,
+      packageSrcPath,
+      renderingFilePath: widgetFile,
+      baseIndent: chainBaseIndent,
+    });
+    for (const cl of widgetChainLines) {
+      lines.push(cl);
+    }
+  }
+
   const grandChildPrefix = contentTextContract.parse(childIndentStr);
   for (let i = 0; i < node.children.length; i++) {
     const child = node.children[i];
     if (child === undefined) continue;
     const childIsLast = i === node.children.length - 1;
+    const baseChildArgs = {
+      node: child,
+      prefix: grandChildPrefix,
+      isLast: childIsLast,
+      httpEdges,
+      wsEdges,
+      packageRoot,
+      projectRoot,
+    };
+    const passthroughArgs =
+      callChainFn === undefined || packageSrcPath === undefined
+        ? {}
+        : { packageSrcPath, callChainFn };
     lines.push(
       ...architectureWidgetNodeRenderBroker({
-        node: child,
-        prefix: grandChildPrefix,
-        isLast: childIsLast,
-        httpEdges,
-        wsEdges,
-        packageRoot,
-        projectRoot,
+        ...baseChildArgs,
+        ...passthroughArgs,
       }),
     );
   }

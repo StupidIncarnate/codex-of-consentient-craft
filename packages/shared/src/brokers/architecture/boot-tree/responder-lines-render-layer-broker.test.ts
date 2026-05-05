@@ -20,7 +20,9 @@ describe('responderLinesRenderLayerBroker', () => {
           'quest-flow.ts': ContentTextStub({
             value: `import { questStartResponder } from '../../responders/quest/start/quest-start-responder';`,
           }),
-          'quest-start-responder.ts': ContentTextStub({ value: '' }),
+          'quest-start-responder.ts': ContentTextStub({
+            value: `export const questStartResponder = () => {};`,
+          }),
         },
       });
 
@@ -30,7 +32,7 @@ describe('responderLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '  ↳ quest-start-responder' })]);
+      expect(result).toStrictEqual([ContentTextStub({ value: '  ↳ questStartResponder' })]);
     });
   });
 
@@ -51,7 +53,13 @@ describe('responderLinesRenderLayerBroker', () => {
             value: `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
           }),
           'server-init-responder.ts': ContentTextStub({
-            value: `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
+            value: [
+              `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
+              `export const serverInitResponder = () => {};`,
+            ].join('\n'),
+          }),
+          'hono-serve-adapter.ts': ContentTextStub({
+            value: `export const honoServeAdapter = () => {};`,
           }),
         },
       });
@@ -63,8 +71,8 @@ describe('responderLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '  ↳ server-init-responder' }),
-        ContentTextStub({ value: '      → adapters/hono/serve' }),
+        ContentTextStub({ value: '  ↳ serverInitResponder' }),
+        ContentTextStub({ value: '      → honoServeAdapter' }),
       ]);
     });
   });
@@ -173,15 +181,21 @@ describe('responderLinesRenderLayerBroker', () => {
             value: `import { AppFlow } from '../app/app-flow';`,
           }),
           'app-flow.ts': ContentTextStub({
-            value: `import { HomeFlow } from '../home/home-flow';`,
+            value: [
+              `import { HomeFlow } from '../home/home-flow';`,
+              `export const appFlow = () => null;`,
+            ].join('\n'),
           }),
           'home-flow.ts': ContentTextStub({
             value: [
               `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
               `<Route path="/" element={<AppHomeResponder />} />`,
+              `export const homeFlow = () => null;`,
             ].join('\n'),
           }),
-          'app-home-responder.ts': ContentTextStub({ value: '' }),
+          'app-home-responder.ts': ContentTextStub({
+            value: `export const AppHomeResponder = () => null;`,
+          }),
         },
       });
 
@@ -192,8 +206,8 @@ describe('responderLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '  ↳ flows/app/app-flow' }),
-        ContentTextStub({ value: '      ↳ flows/home/home-flow' }),
+        ContentTextStub({ value: '  ↳ appFlow' }),
+        ContentTextStub({ value: '      ↳ homeFlow' }),
         ContentTextStub({ value: '          path="/" → AppHomeResponder' }),
       ]);
     });
@@ -213,14 +227,21 @@ describe('responderLinesRenderLayerBroker', () => {
           'a-flow.tsx': ContentTextStub({
             value: `import { BFlow } from '../b/b-flow';`,
           }),
-          'b-flow.tsx': ContentTextStub({
-            value: `import { AFlow } from '../a/a-flow';`,
+          'b-flow.ts': ContentTextStub({
+            value: [
+              `import { AFlow } from '../a/a-flow';`,
+              `export const bFlow = () => null;`,
+            ].join('\n'),
           }),
         },
       });
 
       const visited = new Set<ReturnType<typeof AbsoluteFilePathStub>>();
       visited.add(flowFile);
+      // The resolver appends `.ts` to relative imports regardless of the source file's
+      // extension. Seed visited with the .ts variant too so b-flow's `import { AFlow }`
+      // resolves to an already-visited node and recursion stops.
+      visited.add(AbsoluteFilePathStub({ value: '/repo/packages/web/src/flows/a/a-flow.ts' }));
 
       const result = responderLinesRenderLayerBroker({
         flowFile,
@@ -229,7 +250,7 @@ describe('responderLinesRenderLayerBroker', () => {
         visited,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '  ↳ flows/b/b-flow' })]);
+      expect(result).toStrictEqual([ContentTextStub({ value: '  ↳ bFlow' })]);
     });
   });
 });

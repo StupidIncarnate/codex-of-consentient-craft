@@ -79,7 +79,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     expect(lines.some((l) => l === '## Boot')).toBe(true);
   });
 
-  it('VALID: {real monorepo, packages: [all]} => renders cross-package adapters as slash-paths', async () => {
+  it('VALID: {real monorepo, packages: [all]} => renders adapter chain entries by their export name', async () => {
     const cwd = String(processCwdAdapter());
     const projectRoot = AbsoluteFilePathStub({
       value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
@@ -92,9 +92,9 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
     const lines = String(result).split('\n');
 
-    expect(lines.some((l) => l === '      → adapters/orchestrator/get-quest')).toBe(true);
-    expect(lines.some((l) => l === '      → adapters/orchestrator/start-quest')).toBe(true);
-    expect(lines.some((l) => l === '      → adapters/orchestrator/list-quests')).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ orchestratorGetQuestAdapter'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ orchestratorStartQuestAdapter'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ orchestratorListQuestsAdapter'))).toBe(true);
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits exactly one --- separator after URL pairing block before first package', async () => {
@@ -150,6 +150,68 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     expect(lines.some((l) => l === '# mcp [mcp-server]')).toBe(false);
     expect(lines.some((l) => l === '# web [frontend-react]')).toBe(false);
     expect(lines.some((l) => l === '# server [http-backend]')).toBe(false);
+  });
+
+  it('VALID: {real monorepo} => orchestrator section inlines runSiegemasterLayerBroker under orchestration-loop', async () => {
+    const cwd = String(processCwdAdapter());
+    const projectRoot = AbsoluteFilePathStub({
+      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
+    });
+
+    const result = await architectureProjectMapBroker({
+      projectRoot,
+      packages: [PackageNameStub({ value: 'orchestrator' })],
+    });
+    const lines = String(result).split('\n');
+
+    expect(lines.some((l) => l.endsWith('→ runSiegemasterLayerBroker'))).toBe(true);
+  });
+
+  it('VALID: {real monorepo} => mcp section does NOT include phantom from-string imports inside testing-patterns markdown', async () => {
+    const cwd = String(processCwdAdapter());
+    const projectRoot = AbsoluteFilePathStub({
+      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
+    });
+
+    const result = await architectureProjectMapBroker({
+      projectRoot,
+      packages: [PackageNameStub({ value: 'mcp' })],
+    });
+    const lines = String(result).split('\n');
+
+    expect(lines.some((l) => /→ contracts\/?user/u.test(l))).toBe(false);
+    expect(lines.some((l) => /→ statics\/?exit-code/u.test(l))).toBe(false);
+  });
+
+  it('VALID: {real monorepo, packages: [all]} => at least one package emits an Unreferenced section', async () => {
+    const cwd = String(processCwdAdapter());
+    const projectRoot = AbsoluteFilePathStub({
+      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
+    });
+    const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
+    const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => PackageNameStub({ value: entry.name }));
+
+    const result = await architectureProjectMapBroker({ projectRoot, packages: allPackages });
+    const lines = String(result).split('\n');
+
+    expect(lines.some((l) => l === '## Unreferenced')).toBe(true);
+  });
+
+  it('VALID: {real monorepo} => web section renders binding broker chain by export name (questQueueBroker)', async () => {
+    const cwd = String(processCwdAdapter());
+    const projectRoot = AbsoluteFilePathStub({
+      value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
+    });
+
+    const result = await architectureProjectMapBroker({
+      projectRoot,
+      packages: [PackageNameStub({ value: 'web' })],
+    });
+    const lines = String(result).split('\n');
+
+    expect(lines.some((l) => l.endsWith('→ questQueueBroker'))).toBe(true);
   });
 
   it('INVALID: {real monorepo, packages: [nonexistent]} => throws with valid-names list', async () => {

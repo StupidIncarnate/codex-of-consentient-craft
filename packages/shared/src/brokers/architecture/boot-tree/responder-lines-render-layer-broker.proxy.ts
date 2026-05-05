@@ -1,3 +1,4 @@
+import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
 import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-layer-broker.proxy';
 import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-layer-broker.proxy';
@@ -14,6 +15,10 @@ export const responderLinesRenderLayerBrokerProxy = (): {
   const flowImportsProxy = importsInFolderTypeFindLayerBrokerProxy();
   const callChainProxy = callChainLinesRenderLayerBrokerProxy();
   const routeMetadataProxy = routeMetadataExtractLayerBrokerProxy();
+  // architectureExportNameResolveBroker shares the underlying fs-read-file fake with
+  // the call-chain and imports proxies, so registering this proxy keeps the lint rule
+  // satisfied while the proxies all draw from one fs implementation.
+  architectureExportNameResolveBrokerProxy();
   widgetSubtreeRenderLayerBrokerProxy();
   busEventLinesRenderLayerBrokerProxy();
 

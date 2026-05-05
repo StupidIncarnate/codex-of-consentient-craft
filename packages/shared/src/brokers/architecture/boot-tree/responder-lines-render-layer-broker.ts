@@ -26,9 +26,9 @@ import type { WidgetContext } from '../../../contracts/widget-context/widget-con
 import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
 import type { ResponderAnnotationMap } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
 import { importPathToPackagePrefixTransformer } from '../../../transformers/import-path-to-package-prefix/import-path-to-package-prefix-transformer';
-import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
 import { pascalCaseToKebabCaseTransformer } from '../../../transformers/pascal-case-to-kebab-case/pascal-case-to-kebab-case-transformer';
+import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 import { callChainLinesRenderLayerBroker } from './call-chain-lines-render-layer-broker';
 import { routeMetadataExtractLayerBroker } from './route-metadata-extract-layer-broker';
@@ -59,7 +59,7 @@ export const responderLinesRenderLayerBroker = ({
   const indent = '    '.repeat(depth);
   const lines: ContentText[] = [];
 
-  const responders = importsInFolderTypeFindLayerBroker({
+  const { entries: responders } = importsInFolderTypeFindLayerBroker({
     sourceFile: flowFile,
     packageSrcPath,
     folderType: 'responders',
@@ -120,19 +120,16 @@ export const responderLinesRenderLayerBroker = ({
   for (const responderFile of responders) {
     if (consumedResponders.has(responderFile)) continue;
 
-    const symbolName = filePathToSymbolNameTransformer({ filePath: responderFile });
-    let renderName: ContentText = filePathToDisplayNameTransformer({
-      filePath: responderFile,
-      packageSrcPath,
-    });
+    const exportName = architectureExportNameResolveBroker({ filePath: responderFile });
+    let renderName: ContentText = exportName;
     try {
       renderName = importPathToPackagePrefixTransformer({
         renderingFilePath,
         referencedFilePath: responderFile,
-        symbolName: String(symbolName),
+        symbolName: String(exportName),
       });
     } catch {
-      // keep displayName as fallback
+      // Cross-package qualification unavailable — keep the bare export name.
     }
 
     const annotation = responderAnnotations?.get(responderFile);
@@ -186,7 +183,7 @@ export const responderLinesRenderLayerBroker = ({
     }
   }
 
-  const childFlows = importsInFolderTypeFindLayerBroker({
+  const { entries: childFlows } = importsInFolderTypeFindLayerBroker({
     sourceFile: flowFile,
     packageSrcPath,
     folderType: 'flows',
@@ -197,10 +194,7 @@ export const responderLinesRenderLayerBroker = ({
     if (visited.has(childAbsPath)) continue;
     visited.add(childAbsPath);
 
-    const childDisplay = filePathToDisplayNameTransformer({
-      filePath: childFlow,
-      packageSrcPath,
-    });
+    const childDisplay = architectureExportNameResolveBroker({ filePath: childFlow });
     lines.push(contentTextContract.parse(`${indent}  ↳ ${String(childDisplay)}`));
 
     // exactOptionalPropertyTypes forbids passing `eventBusContext: undefined` to an

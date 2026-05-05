@@ -27,9 +27,12 @@ import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import type { WidgetTreeResult } from '../../../contracts/widget-tree-result/widget-tree-result-contract';
 import type { WidgetNode } from '../../../contracts/widget-node/widget-node-contract';
+import { bindingNameToFilePathTransformer } from '../../../transformers/binding-name-to-file-path/binding-name-to-file-path-transformer';
 import { projectMapHeadlineFrontendReactStatics } from '../../../statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';
 import { architectureBindingFlowTraceBroker } from '../binding-flow-trace/architecture-binding-flow-trace-broker';
 import { architectureWidgetNodeRenderBroker } from '../widget-node-render/architecture-widget-node-render-broker';
+import { callChainLinesRenderLayerBroker } from './call-chain-lines-render-layer-broker';
+import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 
 export const widgetSubtreeRenderLayerBroker = ({
@@ -51,7 +54,7 @@ export const widgetSubtreeRenderLayerBroker = ({
   packageSrcPath: AbsoluteFilePath;
   indent: ContentText;
 }): ContentText[] => {
-  const widgetImports = importsInFolderTypeFindLayerBroker({
+  const { entries: widgetImports } = importsInFolderTypeFindLayerBroker({
     sourceFile: responderFile,
     packageSrcPath,
     folderType: 'widgets',
@@ -76,10 +79,26 @@ export const widgetSubtreeRenderLayerBroker = ({
     const root = rootByPath.get(contentTextContract.parse(String(widgetFile)));
     if (root === undefined) continue;
 
-    lines.push(contentTextContract.parse(`${indentStr}${String(root.widgetName)}`));
+    const rootDisplayName = architectureExportNameResolveBroker({ filePath: root.filePath });
+    lines.push(contentTextContract.parse(`${indentStr}${String(rootDisplayName)}`));
+
+    const chainBaseIndent = contentTextContract.parse(`${indentStr}${rootFlowIndent}`);
 
     for (const bindingName of root.bindingsAttached) {
-      lines.push(contentTextContract.parse(`${indentStr}${bindingsPrefix}${String(bindingName)}`));
+      const bindingFile = bindingNameToFilePathTransformer({ bindingName, packageRoot });
+      const bindingDisplayName = architectureExportNameResolveBroker({ filePath: bindingFile });
+      lines.push(
+        contentTextContract.parse(`${indentStr}${bindingsPrefix}${String(bindingDisplayName)}`),
+      );
+      const chainLines = callChainLinesRenderLayerBroker({
+        sourceFile: bindingFile,
+        packageSrcPath,
+        renderingFilePath: bindingFile,
+        baseIndent: chainBaseIndent,
+      });
+      for (const cl of chainLines) {
+        lines.push(cl);
+      }
 
       const { httpFlows, wsEvents } = architectureBindingFlowTraceBroker({
         bindingName,
@@ -115,6 +134,16 @@ export const widgetSubtreeRenderLayerBroker = ({
       }
     }
 
+    const widgetChainLines = callChainLinesRenderLayerBroker({
+      sourceFile: root.filePath,
+      packageSrcPath,
+      renderingFilePath: root.filePath,
+      baseIndent: chainBaseIndent,
+    });
+    for (const cl of widgetChainLines) {
+      lines.push(cl);
+    }
+
     const emptyChildPrefix = contentTextContract.parse(indentStr);
     for (let i = 0; i < root.children.length; i++) {
       const child = root.children[i];
@@ -128,6 +157,8 @@ export const widgetSubtreeRenderLayerBroker = ({
         wsEdges,
         packageRoot,
         projectRoot,
+        packageSrcPath,
+        callChainFn: callChainLinesRenderLayerBroker,
       });
       for (const cl of childLines) {
         lines.push(cl);

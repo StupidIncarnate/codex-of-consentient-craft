@@ -25,7 +25,7 @@ export const adapterImportsFindLayerBroker = ({
   sourceFile: AbsoluteFilePath;
   packageSrcPath: AbsoluteFilePath;
 }): { filePath: AbsoluteFilePath; isWsSubscriber: boolean }[] => {
-  const adapterFiles = importsInFolderTypeFindLayerBroker({
+  const { entries: adapterFiles } = importsInFolderTypeFindLayerBroker({
     sourceFile,
     packageSrcPath,
     folderType: 'adapters',

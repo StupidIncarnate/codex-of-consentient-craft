@@ -98,14 +98,17 @@ export const architectureWidgetTreeBroker = ({
     widgetFilePaths: entryWidgetFiles,
   });
 
-  // Step 7: Build the tree from roots (up to maxChildDepth levels)
+  // Step 7: Build the tree from roots. Shared visited set across roots prevents cycles and
+  // duplicates a widget reused under multiple roots — first appearance fully expanded,
+  // subsequent appearances render as stub leaves.
+  const visited = new Set<AbsoluteFilePath>();
   const roots = rootPaths.map((rootPath) =>
     buildWidgetNodeLayerBroker({
       filePath: rootPath,
       widgetFileSet,
       edgesMap,
       hubPaths,
-      depth: 0,
+      visited,
     }),
   );
 

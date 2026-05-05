@@ -22,12 +22,11 @@ import {
 } from '../../../contracts/content-text/content-text-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import type { ResponderAnnotationMap } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
-import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
-import { flowNameFromFilePathTransformer } from '../../../transformers/flow-name-from-file-path/flow-name-from-file-path-transformer';
 import { architectureWidgetTreeBroker } from '../widget-tree/architecture-widget-tree-broker';
 import { architectureEdgeGraphBroker } from '../edge-graph/architecture-edge-graph-broker';
 import { architectureWsEdgesBroker } from '../ws-edges/architecture-ws-edges-broker';
 import { architectureEventBusBroker } from '../event-bus/architecture-event-bus-broker';
+import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 import { startupFilesFindLayerBroker } from './startup-files-find-layer-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
@@ -73,21 +72,17 @@ export const architectureBootTreeBroker = ({
   const consumedWidgetResponders = new Set<AbsoluteFilePath>();
 
   for (const startupFile of startupFiles) {
-    const startupDisplay = filePathToDisplayNameTransformer({
-      filePath: startupFile,
-      packageSrcPath,
-    });
+    const startupDisplay = architectureExportNameResolveBroker({ filePath: startupFile });
 
-    const flowFiles = importsInFolderTypeFindLayerBroker({
+    const { entries: flowFiles } = importsInFolderTypeFindLayerBroker({
       sourceFile: startupFile,
       packageSrcPath,
       folderType: 'flows',
     });
 
-    const flowNames = flowFiles.map((ff) => {
-      const displayName = filePathToDisplayNameTransformer({ filePath: ff, packageSrcPath });
-      return String(flowNameFromFilePathTransformer({ displayName }));
-    });
+    const flowNames = flowFiles.map((ff) =>
+      String(architectureExportNameResolveBroker({ filePath: ff })),
+    );
 
     const startupAnnotation = startupAnnotations?.get(startupFile);
     const startupSuffixSource = startupAnnotation?.suffix ?? null;
@@ -111,7 +106,7 @@ export const architectureBootTreeBroker = ({
       if (visited.has(flowFile)) continue;
       visited.add(flowFile);
 
-      const flowDisplay = filePathToDisplayNameTransformer({ filePath: flowFile, packageSrcPath });
+      const flowDisplay = architectureExportNameResolveBroker({ filePath: flowFile });
       // exactOptionalPropertyTypes forbids passing `eventBusContext: undefined` to an
       // optional field — only include it when defined.
       const baseArgs = {

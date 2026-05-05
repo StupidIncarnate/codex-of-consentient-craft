@@ -11,10 +11,18 @@ const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
 
 describe('architectureWidgetNodeRenderBroker', () => {
   describe('leaf node (no children, no bindings)', () => {
-    it('VALID: {isLast: true} => single line with last connector', () => {
-      architectureWidgetNodeRenderBrokerProxy();
+    it('VALID: {isLast: true} => single line with last connector showing export name', () => {
+      const proxy = architectureWidgetNodeRenderBrokerProxy();
+      proxy.setupExportNamesMap({
+        map: {
+          'my-widget.tsx': ContentTextStub({ value: `export const MyWidget = () => null;` }),
+        },
+      });
+
       const node = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'my-widget' }),
+        filePath: AbsoluteFilePathStub({
+          value: '/repo/packages/web/src/widgets/my/my-widget.tsx',
+        }),
         bindingsAttached: [],
         children: [],
       });
@@ -30,14 +38,22 @@ describe('architectureWidgetNodeRenderBroker', () => {
       });
 
       expect(lines.map(String)).toStrictEqual([
-        `${projectMapHeadlineFrontendReactStatics.treeConnectors.last} my-widget`,
+        `${projectMapHeadlineFrontendReactStatics.treeConnectors.last} MyWidget`,
       ]);
     });
 
-    it('VALID: {isLast: false} => single line with branch connector', () => {
-      architectureWidgetNodeRenderBrokerProxy();
+    it('VALID: {isLast: false} => single line with branch connector showing export name', () => {
+      const proxy = architectureWidgetNodeRenderBrokerProxy();
+      proxy.setupExportNamesMap({
+        map: {
+          'my-widget.tsx': ContentTextStub({ value: `export const MyWidget = () => null;` }),
+        },
+      });
+
       const node = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'my-widget' }),
+        filePath: AbsoluteFilePathStub({
+          value: '/repo/packages/web/src/widgets/my/my-widget.tsx',
+        }),
         bindingsAttached: [],
         children: [],
       });
@@ -53,16 +69,27 @@ describe('architectureWidgetNodeRenderBroker', () => {
       });
 
       expect(lines.map(String)).toStrictEqual([
-        `${projectMapHeadlineFrontendReactStatics.treeConnectors.branch} my-widget`,
+        `${projectMapHeadlineFrontendReactStatics.treeConnectors.branch} MyWidget`,
       ]);
     });
   });
 
   describe('node with bindings', () => {
-    it('VALID: {one binding, isLast: true} => widget line and bindings line present', () => {
-      architectureWidgetNodeRenderBrokerProxy();
+    it('VALID: {one binding, isLast: true} => widget line and bindings line use export names', () => {
+      const proxy = architectureWidgetNodeRenderBrokerProxy();
+      proxy.setupExportNamesMap({
+        map: {
+          'chat-widget.tsx': ContentTextStub({ value: `export const ChatWidget = () => null;` }),
+          'use-quest-chat-binding.ts': ContentTextStub({
+            value: `export const useQuestChat = () => null;`,
+          }),
+          'use-quest-chat.ts': ContentTextStub({
+            value: `export const useQuestChat = () => null;`,
+          }),
+        },
+      });
+
       const node = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'chat-widget' }),
         bindingsAttached: [ContentTextStub({ value: 'use-quest-chat' })],
         children: [],
         filePath: AbsoluteFilePathStub({
@@ -81,17 +108,27 @@ describe('architectureWidgetNodeRenderBroker', () => {
       });
 
       expect(lines.map(String)).toStrictEqual([
-        `${projectMapHeadlineFrontendReactStatics.treeConnectors.last} chat-widget`,
-        `${projectMapHeadlineFrontendReactStatics.treeConnectors.indent}bindings: use-quest-chat`,
+        `${projectMapHeadlineFrontendReactStatics.treeConnectors.last} ChatWidget`,
+        `${projectMapHeadlineFrontendReactStatics.treeConnectors.indent}bindings: useQuestChat`,
       ]);
     });
   });
 
   describe('node with child', () => {
-    it('VALID: {one child, isLast: true} => child name appears in output lines', () => {
-      architectureWidgetNodeRenderBrokerProxy();
+    it('VALID: {one child, isLast: true} => child export name appears in output lines', () => {
+      const proxy = architectureWidgetNodeRenderBrokerProxy();
+      proxy.setupExportNamesMap({
+        map: {
+          'parent-widget.tsx': ContentTextStub({
+            value: `export const ParentWidget = () => null;`,
+          }),
+          'child-widget.tsx': ContentTextStub({
+            value: `export const ChildWidget = () => null;`,
+          }),
+        },
+      });
+
       const child = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'child-widget' }),
         bindingsAttached: [],
         children: [],
         filePath: AbsoluteFilePathStub({
@@ -99,7 +136,6 @@ describe('architectureWidgetNodeRenderBroker', () => {
         }),
       });
       const node = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'parent-widget' }),
         bindingsAttached: [],
         children: [child],
         filePath: AbsoluteFilePathStub({
@@ -118,8 +154,8 @@ describe('architectureWidgetNodeRenderBroker', () => {
       });
 
       expect(lines.map(String)).toStrictEqual([
-        `${projectMapHeadlineFrontendReactStatics.treeConnectors.last} parent-widget`,
-        `${projectMapHeadlineFrontendReactStatics.treeConnectors.indent}${projectMapHeadlineFrontendReactStatics.treeConnectors.last} child-widget`,
+        `${projectMapHeadlineFrontendReactStatics.treeConnectors.last} ParentWidget`,
+        `${projectMapHeadlineFrontendReactStatics.treeConnectors.indent}${projectMapHeadlineFrontendReactStatics.treeConnectors.last} ChildWidget`,
       ]);
     });
   });

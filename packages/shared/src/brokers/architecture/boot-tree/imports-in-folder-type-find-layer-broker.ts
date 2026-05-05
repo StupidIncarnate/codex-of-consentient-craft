@@ -1,17 +1,18 @@
 /**
- * PURPOSE: Reads a source file and returns all resolved import paths that fall under a given
- * folder type within the same package — filters out test files and layer files
+ * PURPOSE: Reads a source file and partitions its resolved imports into entry files and layer
+ * files within a given folder type — both buckets exclude test files; the call-chain renderer
+ * uses entries as siblings and recurses into layers at depth+1 to expose layer-helper internals
  *
  * USAGE:
- * const flows = importsInFolderTypeFindLayerBroker({
+ * const { entries, layers } = importsInFolderTypeFindLayerBroker({
  *   sourceFile: absoluteFilePathContract.parse('/repo/packages/server/src/startup/start-server.ts'),
  *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
  *   folderType: 'flows',
  * });
- * // Returns AbsoluteFilePath[] of all flow entry files imported by the source file
+ * // Returns { entries: AbsoluteFilePath[]; layers: AbsoluteFilePath[] }
  *
- * WHEN-TO-USE: Boot-tree broker walking startup → flows, flow → responders, responder → adapters
- * using the same extraction logic for each layer
+ * WHEN-TO-USE: Boot-tree broker walking startup → flows, flow → responders, responder → adapters,
+ * and call-chain renderer expanding broker → broker / broker → adapter
  */
 
 import {
@@ -35,14 +36,15 @@ export const importsInFolderTypeFindLayerBroker = ({
   sourceFile: AbsoluteFilePath;
   packageSrcPath: AbsoluteFilePath;
   folderType: string;
-}): AbsoluteFilePath[] => {
+}): { entries: AbsoluteFilePath[]; layers: AbsoluteFilePath[] } => {
   const source = readFileContentsLayerBroker({ filePath: sourceFile });
   if (source === undefined) {
-    return [];
+    return { entries: [], layers: [] };
   }
 
   const importPaths = importStatementsExtractTransformer({ source });
-  const result: AbsoluteFilePath[] = [];
+  const entries: AbsoluteFilePath[] = [];
+  const layers: AbsoluteFilePath[] = [];
 
   for (const importPath of importPaths) {
     const resolved = relativeImportResolveTransformer({ sourceFile, importPath });
@@ -67,14 +69,16 @@ export const importsInFolderTypeFindLayerBroker = ({
     if (!isFileInFolderTypeGuard({ filePath: onDisk, packageSrcPath, folderType })) continue;
     if (!isNonTestFileGuard({ filePath: onDisk })) continue;
 
-    // Skip layer files — they are inlined under their parent entry file
     const parentOrNull = layerFileParentResolveTransformer({
       layerFilePath: filePathContract.parse(onDisk),
     });
-    if (parentOrNull !== null) continue;
+    if (parentOrNull !== null) {
+      layers.push(onDisk);
+      continue;
+    }
 
-    result.push(onDisk);
+    entries.push(onDisk);
   }
 
-  return result;
+  return { entries, layers };
 };

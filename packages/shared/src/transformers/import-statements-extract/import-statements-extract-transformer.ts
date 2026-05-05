@@ -13,6 +13,7 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
+import { templateLiteralsStripTransformer } from '../template-literals-strip/template-literals-strip-transformer';
 
 const IMPORT_FROM_PATTERN =
   /import\s+(?:type\s+)?(?:\{[^}]+\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/gu;
@@ -23,16 +24,20 @@ export const importStatementsExtractTransformer = ({
 }: {
   source: ContentText;
 }): ContentText[] => {
-  const sourceWithoutComments = String(source).replace(BLOCK_COMMENT_PATTERN, '');
+  const blockCommentsRemoved = String(source).replace(BLOCK_COMMENT_PATTERN, '');
+  const stripped = templateLiteralsStripTransformer({
+    source: contentTextContract.parse(blockCommentsRemoved),
+  });
+  const cleanedSource = String(stripped);
   const paths: ContentText[] = [];
   IMPORT_FROM_PATTERN.lastIndex = 0;
-  let match = IMPORT_FROM_PATTERN.exec(sourceWithoutComments);
+  let match = IMPORT_FROM_PATTERN.exec(cleanedSource);
   while (match !== null) {
     const [, captured] = match;
     if (captured !== undefined) {
       paths.push(contentTextContract.parse(captured));
     }
-    match = IMPORT_FROM_PATTERN.exec(sourceWithoutComments);
+    match = IMPORT_FROM_PATTERN.exec(cleanedSource);
   }
   return paths;
 };

@@ -1,6 +1,7 @@
 import { startupFilesFindLayerBrokerProxy } from './startup-files-find-layer-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
 import { responderLinesRenderLayerBrokerProxy } from './responder-lines-render-layer-broker.proxy';
+import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { architectureWidgetTreeBrokerProxy } from '../widget-tree/architecture-widget-tree-broker.proxy';
 import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
 import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
@@ -15,6 +16,10 @@ export const architectureBootTreeBrokerProxy = (): {
   const startupProxy = startupFilesFindLayerBrokerProxy();
   const flowImportsProxy = importsInFolderTypeFindLayerBrokerProxy();
   const responderProxy = responderLinesRenderLayerBrokerProxy();
+  // Boot-tree calls architectureExportNameResolveBroker for startup, flow names, and the
+  // flow header line. Its fs-read-file fake is the same one the rest of the boot-tree
+  // proxies share, so the file-contents map covers all of them.
+  architectureExportNameResolveBrokerProxy();
   architectureWidgetTreeBrokerProxy();
   architectureEdgeGraphBrokerProxy();
   architectureWsEdgesBrokerProxy();
