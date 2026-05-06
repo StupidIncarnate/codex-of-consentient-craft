@@ -238,6 +238,58 @@ describe('orchestrationProcessesState', () => {
     });
   });
 
+  describe('findAllByQuestId', () => {
+    it('VALID: {two processes share questId, one differs} => returns the matching pair in insertion order', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const sharedQuestId = QuestIdStub({ value: 'shared-quest' });
+      const otherQuestId = QuestIdStub({ value: 'other-quest' });
+      const chatProcess = OrchestrationProcessStub({
+        processId: ProcessIdStub({ value: 'chat-aaaa' }),
+        questId: sharedQuestId,
+        kill: jest.fn(),
+      });
+      const placeholderProcess = OrchestrationProcessStub({
+        processId: ProcessIdStub({ value: 'proc-bbbb' }),
+        questId: sharedQuestId,
+        kill: jest.fn(),
+      });
+      const unrelatedProcess = OrchestrationProcessStub({
+        processId: ProcessIdStub({ value: 'proc-queue-cccc' }),
+        questId: otherQuestId,
+        kill: jest.fn(),
+      });
+      orchestrationProcessesState.register({ orchestrationProcess: chatProcess });
+      orchestrationProcessesState.register({ orchestrationProcess: unrelatedProcess });
+      orchestrationProcessesState.register({ orchestrationProcess: placeholderProcess });
+
+      const result = orchestrationProcessesState.findAllByQuestId({ questId: sharedQuestId });
+
+      expect(result).toStrictEqual([
+        {
+          processId: 'chat-aaaa',
+          questId: 'shared-quest',
+          kill: expect.any(Function),
+        },
+        {
+          processId: 'proc-bbbb',
+          questId: 'shared-quest',
+          kill: expect.any(Function),
+        },
+      ]);
+    });
+
+    it('EMPTY: {unknown questId} => returns empty array', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const questId = QuestIdStub({ value: 'nonexistent' });
+
+      const result = orchestrationProcessesState.findAllByQuestId({ questId });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
   describe('remove', () => {
     it('VALID: {existing process} => removes and returns true', () => {
       const proxy = orchestrationProcessesStateProxy();

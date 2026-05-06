@@ -268,7 +268,7 @@ export const folderConfigStatics = {
     exportCase: 'camelCase',
     folderDepth: 1,
     folderPattern: 'state/[name]/[name]-state.ts',
-    allowedImports: ['contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
+    allowedImports: ['adapters/', 'contracts/', 'statics/', 'errors/', 'guards/', 'transformers/'],
     disallowAdhocTypes: true,
     requireProxy: true,
     allowsLayerFiles: false,

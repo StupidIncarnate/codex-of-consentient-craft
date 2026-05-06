@@ -1,5 +1,5 @@
 /**
- * PURPOSE: React hook that exposes the cross-guild quest execution queue. Seeds from GET /api/quests/queue on mount, then re-fetches on execution-queue-updated and execution-queue-error WebSocket events.
+ * PURPOSE: React hook that exposes the cross-guild quest execution queue. Seeds from GET /api/quests/queue on mount, then re-fetches on every emission of the shared web socket channel's executionQueueChanged$ observable (covers both execution-queue-updated and execution-queue-error wire events).
  *
  * USAGE:
  * const { activeEntry, allEntries, errorEntry, isLoading } = useQuestQueueBinding();
@@ -9,11 +9,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 
-import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { questQueueBroker } from '../../brokers/quest/queue/quest-queue-broker';
+import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
 export const useQuestQueueBinding = (): {
   activeEntry: QuestQueueEntry | null;
@@ -40,25 +39,14 @@ export const useQuestQueueBinding = (): {
       globalThis.console.error('[use-quest-queue]', error);
     });
 
-    const connection = websocketConnectAdapter({
-      url: `ws://${globalThis.location.host}/ws`,
-      onMessage: (message: unknown): void => {
-        const parsed = wsMessageContract.safeParse(message);
-        if (!parsed.success) return;
-        if (
-          parsed.data.type !== 'execution-queue-updated' &&
-          parsed.data.type !== 'execution-queue-error'
-        ) {
-          return;
-        }
-        refresh().catch((error: unknown) => {
-          globalThis.console.error('[use-quest-queue]', error);
-        });
-      },
+    const subscription = webSocketChannelState.executionQueueChanged$().subscribe(() => {
+      refresh().catch((error: unknown) => {
+        globalThis.console.error('[use-quest-queue]', error);
+      });
     });
 
     return (): void => {
-      connection.close();
+      subscription.unsubscribe();
     };
   }, [refresh]);
 

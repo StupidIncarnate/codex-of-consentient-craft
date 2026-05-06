@@ -7,7 +7,11 @@ first** when triaging a new flake — there's a symptom→suspected-bug catalog
 at the bottom of the log that points at prior fixes.
 
 This playbook applies whenever you see a Playwright spec that passes alone but
-fails intermittently in the broader suite.
+fails intermittently in the broader suite. For user-reported regressions
+where the symptom is "the UI doesn't show what should be there" or "an
+existing test isn't strict enough to catch this," go to
+**`playbook/regression-through-e2e.md`** instead — it owns the
+"failing-test-before-fix" workflow for that class of bug.
 
 The playwright tests live at `packages/testing/e2e/web/*.spec.ts`. The harness
 pins `workers: 1, fullyParallel: false`, so all runs are serial.

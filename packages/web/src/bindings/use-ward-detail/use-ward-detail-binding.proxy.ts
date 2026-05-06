@@ -1,15 +1,27 @@
-import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
+import { rxjsTakeAdapterProxy } from '../../adapters/rxjs/take/rxjs-take-adapter.proxy';
+import { rxjsTimeoutAdapterProxy } from '../../adapters/rxjs/timeout/rxjs-timeout-adapter.proxy';
+import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
 
 export const useWardDetailBindingProxy = (): {
-  receiveWsMessage: (params: { data: string }) => void;
+  setupConnectedChannel: () => void;
+  deliverWsMessage: (params: { data: string }) => void;
   getSentMessages: () => unknown[];
 } => {
-  const wsProxy = websocketConnectAdapterProxy();
+  rxjsFilterAdapterProxy();
+  rxjsTakeAdapterProxy();
+  rxjsTimeoutAdapterProxy();
+  const channel = webSocketChannelStateProxy();
 
   return {
-    receiveWsMessage: ({ data }: { data: string }): void => {
-      wsProxy.receiveMessage({ data });
+    setupConnectedChannel: (): void => {
+      channel.setupEmpty();
+      channel.connect();
+      channel.triggerOpen();
     },
-    getSentMessages: (): unknown[] => wsProxy.getSentMessages(),
+    deliverWsMessage: ({ data }: { data: string }): void => {
+      channel.deliverMessage({ data });
+    },
+    getSentMessages: (): unknown[] => channel.getSentMessages(),
   };
 };

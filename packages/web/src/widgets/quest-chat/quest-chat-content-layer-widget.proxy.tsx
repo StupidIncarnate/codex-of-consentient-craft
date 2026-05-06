@@ -23,21 +23,21 @@ import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-wi
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
-export const QuestChatContentLayerWidgetProxy = ({
-  deferOpen = false,
-}: { deferOpen?: boolean } = {}): {
-  receiveWsMessage: (params: { data: string }) => void;
-  triggerWsOpen: () => void;
+export const QuestChatContentLayerWidgetProxy = (): {
+  setupConnectedChannel: () => void;
+  deliverWsMessage: (params: { data: string }) => void;
   setupChat: (params: { chatProcessId: ProcessId }) => void;
+  setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupPause: () => void;
   setupQuestNew: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   setupQuestNewError: () => void;
   typeMessage: (params: { text: string }) => Promise<void>;
   clickSend: () => Promise<void>;
   getChatRequestCount: () => RequestCount;
+  getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
 } => {
-  const binding = useQuestChatBindingProxy({ deferOpen });
+  const binding = useQuestChatBindingProxy();
   const questNew = questNewBrokerProxy();
   const chatPanel = ChatPanelWidgetProxy();
   questAbandonBrokerProxy();
@@ -52,14 +52,17 @@ export const QuestChatContentLayerWidgetProxy = ({
   QuestApprovedModalWidgetProxy();
   QuestSpecPanelWidgetProxy();
   return {
-    receiveWsMessage: ({ data }) => {
-      binding.receiveWsMessage({ data });
+    setupConnectedChannel: () => {
+      binding.setupConnectedChannel();
     },
-    triggerWsOpen: () => {
-      binding.triggerWsOpen();
+    deliverWsMessage: ({ data }) => {
+      binding.deliverWsMessage({ data });
     },
     setupChat: ({ chatProcessId }) => {
       binding.setupChat({ chatProcessId });
+    },
+    setupClarify: ({ chatProcessId }) => {
+      binding.setupClarify({ chatProcessId });
     },
     setupPause: () => {
       binding.setupPause();
@@ -77,6 +80,7 @@ export const QuestChatContentLayerWidgetProxy = ({
       await chatPanel.clickSend();
     },
     getChatRequestCount: () => binding.getChatRequestCount(),
+    getClarifyRequestCount: () => binding.getClarifyRequestCount(),
     getPauseRequestCount: () => binding.getPauseRequestCount(),
   };
 };

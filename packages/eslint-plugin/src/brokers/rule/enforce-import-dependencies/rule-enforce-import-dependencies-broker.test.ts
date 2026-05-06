@@ -1002,7 +1002,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'state',
             importedFolder: 'brokers',
-            allowed: 'contracts/, statics/, errors/, guards/, transformers/',
+            allowed: 'adapters/, contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],

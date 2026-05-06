@@ -1,24 +1,28 @@
 /**
- * PURPOSE: Wraps browser WebSocket for real-time connections with JSON message parsing and auto-reconnect
+ * PURPOSE: Wraps browser WebSocket for real-time connections with JSON message parsing. Reconnect is owned by the consumer (the web-socket-channel state module) which uses the onClose callback to schedule a fresh connection.
  *
  * USAGE:
- * const connection = websocketConnectAdapter({url: 'ws://localhost:3001/ws', onMessage: (msg) => handleMessage(msg)});
- * // Returns: {close: () => void}
+ * const connection = websocketConnectAdapter({
+ *   url: 'ws://localhost:3001/ws',
+ *   onMessage: (msg) => handleMessage(msg),
+ *   onOpen: () => { ... },
+ *   onClose: () => { ... },
+ * });
  * connection.close();
+ * connection.send({type: 'subscribe-quest', questId: '...'});
  */
-
-const RECONNECT_DELAY_MS = 3000;
 
 export const websocketConnectAdapter = ({
   url,
   onMessage,
   onOpen,
+  onClose,
 }: {
   url: string;
   onMessage: (message: unknown) => void;
   onOpen?: () => void;
+  onClose?: () => void;
 }): { close: () => void; send: (data: Record<string, unknown>) => boolean } => {
-  let shouldReconnect = true;
   const socket = new globalThis.WebSocket(url);
 
   socket.onopen = (): void => {
@@ -37,16 +41,13 @@ export const websocketConnectAdapter = ({
   };
 
   socket.onclose = (): void => {
-    if (shouldReconnect) {
-      globalThis.setTimeout(() => {
-        websocketConnectAdapter({ url, onMessage, ...(onOpen ? { onOpen } : {}) });
-      }, RECONNECT_DELAY_MS);
+    if (onClose) {
+      onClose();
     }
   };
 
   return {
     close: (): void => {
-      shouldReconnect = false;
       socket.close();
     },
     send: (data: Record<string, unknown>): boolean => {
