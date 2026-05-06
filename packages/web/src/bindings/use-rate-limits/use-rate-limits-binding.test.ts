@@ -9,6 +9,7 @@ import { useRateLimitsBindingProxy } from './use-rate-limits-binding.proxy';
 describe('useRateLimitsBinding', () => {
   it('VALID: {mount} => fetches and populates snapshot', async () => {
     const proxy = useRateLimitsBindingProxy();
+    proxy.setupConnectedChannel();
     const snapshot = RateLimitsSnapshotStub();
     proxy.setupSnapshot({ snapshot });
 
@@ -32,6 +33,7 @@ describe('useRateLimitsBinding', () => {
 
   it('EMPTY: {server returns null} => snapshot stays null', async () => {
     const proxy = useRateLimitsBindingProxy();
+    proxy.setupConnectedChannel();
     proxy.setupSnapshot({ snapshot: null });
 
     const { result } = testingLibraryRenderHookAdapter({
@@ -54,6 +56,7 @@ describe('useRateLimitsBinding', () => {
 
   it('VALID: {rate-limits-updated WS} => re-fetches and updates snapshot', async () => {
     const proxy = useRateLimitsBindingProxy();
+    proxy.setupConnectedChannel();
     const initial = RateLimitsSnapshotStub();
     proxy.setupSnapshot({ snapshot: initial });
 
@@ -76,7 +79,7 @@ describe('useRateLimitsBinding', () => {
 
     testingLibraryActAdapter({
       callback: () => {
-        proxy.websocket.receiveMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'rate-limits-updated',
             payload: {},
@@ -100,6 +103,7 @@ describe('useRateLimitsBinding', () => {
 
   it('VALID: {unrelated ws type} => does not re-fetch', async () => {
     const proxy = useRateLimitsBindingProxy();
+    proxy.setupConnectedChannel();
     const initial = RateLimitsSnapshotStub();
     proxy.setupSnapshot({ snapshot: initial });
 
@@ -121,10 +125,10 @@ describe('useRateLimitsBinding', () => {
 
     testingLibraryActAdapter({
       callback: () => {
-        proxy.websocket.receiveMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'quest-modified',
-            payload: {},
+            payload: { questId: 'add-auth', quest: {} },
             timestamp: '2026-05-05T13:00:00.000Z',
           }),
         });

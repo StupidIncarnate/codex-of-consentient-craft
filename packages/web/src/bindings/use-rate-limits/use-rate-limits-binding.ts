@@ -1,5 +1,5 @@
 /**
- * PURPOSE: React hook that exposes the latest 5h/7d rate-limits snapshot. Seeds from GET /api/rate-limits on mount, then re-fetches on rate-limits-updated WebSocket events.
+ * PURPOSE: React hook that exposes the latest 5h/7d rate-limits snapshot. Seeds from GET /api/rate-limits on mount, then re-fetches on every emission of the shared web socket channel's rateLimitsChanged$ observable.
  *
  * USAGE:
  * const { snapshot, isLoading } = useRateLimitsBinding();
@@ -8,11 +8,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 
-import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
 import { rateLimitsGetBroker } from '../../brokers/rate-limits/get/rate-limits-get-broker';
+import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
 export const useRateLimitsBinding = (): {
   snapshot: RateLimitsSnapshot | null;
@@ -37,20 +36,14 @@ export const useRateLimitsBinding = (): {
       globalThis.console.error('[use-rate-limits]', error);
     });
 
-    const connection = websocketConnectAdapter({
-      url: `ws://${globalThis.location.host}/ws`,
-      onMessage: (message: unknown): void => {
-        const parsed = wsMessageContract.safeParse(message);
-        if (!parsed.success) return;
-        if (parsed.data.type !== 'rate-limits-updated') return;
-        refresh().catch((error: unknown) => {
-          globalThis.console.error('[use-rate-limits]', error);
-        });
-      },
+    const subscription = webSocketChannelState.rateLimitsChanged$().subscribe(() => {
+      refresh().catch((error: unknown) => {
+        globalThis.console.error('[use-rate-limits]', error);
+      });
     });
 
     return (): void => {
-      connection.close();
+      subscription.unsubscribe();
     };
   }, [refresh]);
 

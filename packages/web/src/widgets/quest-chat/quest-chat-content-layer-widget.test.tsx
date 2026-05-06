@@ -1,7 +1,7 @@
 import { act, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
-import { GuildIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, ProcessIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
@@ -122,6 +122,7 @@ describe('QuestChatContentLayerWidget', () => {
 
     it('VALID: {quest at review_flows} => renders chat panel + spec panel', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
       const guildId = GuildIdStub({ value: 'dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb' });
       const quest = QuestStub({
         id: 'q-pre',
@@ -141,7 +142,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'quest-modified',
             payload: { questId: quest.id, quest },
@@ -159,6 +160,7 @@ describe('QuestChatContentLayerWidget', () => {
 
     it('VALID: {quest at in_progress} => renders execution panel + dumpster raccoon column (no chat-entry feed)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
       const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-cccccccccccc' });
       const quest = QuestStub({
         id: 'q-exec',
@@ -178,7 +180,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'quest-modified',
             payload: { questId: quest.id, quest },
@@ -201,6 +203,67 @@ describe('QuestChatContentLayerWidget', () => {
       );
       // No chat-entry feed inside the right column — only the dumpster raccoon.
       expect(queryByTestId('CHAT_MESSAGE')).toBe(null);
+    });
+
+    it('VALID: {clarification-request WS event} => panel renders questions and submit calls clarify broker', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      const guildId = GuildIdStub({ value: 'ffffffff-aaaa-bbbb-cccc-dddddddddddd' });
+      const quest = QuestStub({ id: 'q-clarify', status: 'review_flows' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
+      proxy.setupClarify({ chatProcessId });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: {
+              chatProcessId,
+              questions: [
+                {
+                  question: 'Which database do you prefer?',
+                  header: 'Database',
+                  options: [{ label: 'Postgres', description: 'Relational DB' }],
+                  multiSelect: false,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CLARIFY_PANEL');
+
+      const option = await findByTestId('CLARIFY_OPTION');
+      await act(async () => {
+        option.click();
+        return Promise.resolve();
+      });
+
+      expect(proxy.getClarifyRequestCount()).toBe(1);
     });
   });
 });

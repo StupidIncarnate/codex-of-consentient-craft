@@ -7,7 +7,7 @@
  */
 import '@mantine/core/styles.css';
 
-import { type ComponentType, createElement, type ReactNode, StrictMode } from 'react';
+import { type ComponentType, createElement, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -28,7 +28,7 @@ export const reactDomMountAdapter = ({
 
   const root = createRoot(element);
 
-  root.render(createElement(StrictMode, null, createElement(Wrapper, null, content)));
+  root.render(createElement(Wrapper, null, content));
 
   return { success: true as const };
 };

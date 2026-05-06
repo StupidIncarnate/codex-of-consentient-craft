@@ -10,6 +10,7 @@ describe('useQuestQueueBinding', () => {
   describe('initial mount', () => {
     it('VALID: {mount} => fetches and populates entries', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       const entries = [
         QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' }),
         QuestQueueEntryStub({ questId: 'q-2', questTitle: 'Second' }),
@@ -38,6 +39,7 @@ describe('useQuestQueueBinding', () => {
 
     it('EMPTY: {queue empty} => returns no active entry', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       proxy.setupEntries({ entries: [] });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -62,6 +64,7 @@ describe('useQuestQueueBinding', () => {
 
     it('VALID: {initial mount} => isLoading starts true', () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       proxy.setupEntries({ entries: [] });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -75,6 +78,7 @@ describe('useQuestQueueBinding', () => {
   describe('error entry derivation', () => {
     it('VALID: {head has error} => errorEntry equals head', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       const headWithError = QuestQueueEntryStub({
         questId: 'q-err',
         questTitle: 'Errored',
@@ -108,6 +112,7 @@ describe('useQuestQueueBinding', () => {
 
     it('VALID: {only non-head has error} => errorEntry is undefined', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       const head = QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Head' });
       const tailErr = QuestQueueEntryStub({
         questId: 'q-err',
@@ -143,6 +148,7 @@ describe('useQuestQueueBinding', () => {
   describe('websocket refetch', () => {
     it('VALID: {execution-queue-updated} => re-fetches and updates entries', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       const initial = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })];
       proxy.setupEntries({ entries: initial });
 
@@ -166,7 +172,7 @@ describe('useQuestQueueBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.websocket.receiveMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'execution-queue-updated',
               payload: {},
@@ -192,6 +198,7 @@ describe('useQuestQueueBinding', () => {
 
     it('VALID: {execution-queue-error} => re-fetches and surfaces errorEntry', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       const initial = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })];
       proxy.setupEntries({ entries: initial });
 
@@ -219,7 +226,7 @@ describe('useQuestQueueBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.websocket.receiveMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'execution-queue-error',
               payload: {},
@@ -245,6 +252,7 @@ describe('useQuestQueueBinding', () => {
 
     it('VALID: {unrelated ws type} => does not re-fetch', async () => {
       const proxy = useQuestQueueBindingProxy();
+      proxy.setupConnectedChannel();
       const initial = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })];
       proxy.setupEntries({ entries: initial });
 
@@ -268,10 +276,10 @@ describe('useQuestQueueBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.websocket.receiveMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
-              payload: {},
+              payload: { questId: 'add-auth', quest: {} },
               timestamp: '2024-01-15T10:00:00.000Z',
             }),
           });

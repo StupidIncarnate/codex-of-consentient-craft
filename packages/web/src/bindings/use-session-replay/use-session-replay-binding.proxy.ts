@@ -1,21 +1,31 @@
-import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
+import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
 
 export const useSessionReplayBindingProxy = (): {
-  receiveWsMessage: (params: { data: string }) => void;
+  setupConnectedChannel: () => void;
+  deliverWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
-  triggerWsOpen: () => void;
-  getSocketClose: () => jest.Mock;
+  triggerWsClose: () => void;
+  triggerWsReconnect: () => void;
 } => {
-  const wsProxy = websocketConnectAdapterProxy();
+  rxjsFilterAdapterProxy();
+  const channel = webSocketChannelStateProxy();
 
   return {
-    receiveWsMessage: ({ data }) => {
-      wsProxy.receiveMessage({ data });
+    setupConnectedChannel: (): void => {
+      channel.setupEmpty();
+      channel.connect();
+      channel.triggerOpen();
     },
-    getSentWsMessages: () => wsProxy.getSentMessages(),
-    triggerWsOpen: () => {
-      wsProxy.triggerOpen();
+    deliverWsMessage: ({ data }: { data: string }): void => {
+      channel.deliverMessage({ data });
     },
-    getSocketClose: () => wsProxy.getSocket().close,
+    getSentWsMessages: (): unknown[] => channel.getSentMessages(),
+    triggerWsClose: (): void => {
+      channel.triggerClose();
+    },
+    triggerWsReconnect: (): void => {
+      channel.triggerReconnect();
+    },
   };
 };

@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QuestQueueEntryStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { QuestQueueBarWidget } from './quest-queue-bar-widget';
 import { QuestQueueBarWidgetProxy } from './quest-queue-bar-widget.proxy';
 
@@ -160,6 +161,102 @@ describe('QuestQueueBarWidget', () => {
       const openLink = await findByTestId('QUEST_QUEUE_BAR_OPEN_LINK');
 
       expect(openLink.getAttribute('href')).toBe('/guild-x/quest/q-pending');
+    });
+  });
+
+  describe('websocket updates', () => {
+    it('VALID: {execution-queue-updated WS} => widget re-renders with new entries', async () => {
+      const proxy = QuestQueueBarWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupEntries({
+        entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
+      });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestQueueBarWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL');
+
+      proxy.setupEntries({
+        entries: [
+          QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' }),
+          QuestQueueEntryStub({ questId: 'q-2', questTitle: 'Second' }),
+        ],
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'execution-queue-updated',
+              payload: {},
+              timestamp: '2026-05-05T13:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      await waitFor(() => {
+        expect(
+          document.querySelector('[data-testid="QUEST_QUEUE_BAR_COLLAPSED_LABEL"]')!.textContent,
+        ).toBe('Quest 1/2 — First');
+      });
+
+      const label = await findByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL');
+
+      expect(label.textContent).toBe('Quest 1/2 — First');
+    });
+
+    it('VALID: {execution-queue-error WS} => widget re-renders with error badge', async () => {
+      const proxy = QuestQueueBarWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupEntries({
+        entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
+      });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestQueueBarWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL');
+
+      proxy.setupEntries({
+        entries: [
+          QuestQueueEntryStub({
+            questId: 'q-err',
+            questTitle: 'Errored',
+            error: {
+              message: 'runner threw' as never,
+              at: '2024-01-15T10:06:00.000Z' as never,
+            },
+          }),
+        ],
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'execution-queue-error',
+              payload: {},
+              timestamp: '2026-05-05T13:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      const badge = await findByTestId('QUEST_QUEUE_BAR_ERROR_BADGE');
+
+      expect(badge.getAttribute('title')).toBe('runner threw');
     });
   });
 

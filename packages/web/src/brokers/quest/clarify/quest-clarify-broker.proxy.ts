@@ -3,6 +3,7 @@
 
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
+import type { RequestCount } from '@dungeonmaster/testing';
 
 import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -11,6 +12,7 @@ export const questClarifyBrokerProxy = (): {
   setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupInvalidResponse: (params: { chatProcessId: unknown }) => void;
   setupError: () => void;
+  getRequestCount: () => RequestCount;
 } => {
   fetchPostAdapterProxy();
 
@@ -29,5 +31,6 @@ export const questClarifyBrokerProxy = (): {
     setupError: () => {
       endpoint.networkError();
     },
+    getRequestCount: (): RequestCount => endpoint.getRequestCount(),
   };
 };

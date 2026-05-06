@@ -67,6 +67,16 @@ describe('SessionViewWidget', () => {
         ),
       });
 
+      // Wait for guilds to resolve (DumpsterRaccoon shows while guildId is known but session
+      // is loading) before opening the channel so guildIdRef is non-null when opens$ fires.
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
       const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
 
       await waitFor(() => {
@@ -74,7 +84,7 @@ describe('SessionViewWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-output',
             payload: {
@@ -94,7 +104,7 @@ describe('SessionViewWidget', () => {
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
         });
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
             payload: { chatProcessId: replayProcessId },
@@ -136,6 +146,14 @@ describe('SessionViewWidget', () => {
       });
 
       await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
+      await waitFor(() => {
         expect(proxy.getReplayHistorySent()).toBe(true);
       });
 
@@ -173,6 +191,14 @@ describe('SessionViewWidget', () => {
         ),
       });
 
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
       const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
 
       await waitFor(() => {
@@ -180,7 +206,7 @@ describe('SessionViewWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-output',
             payload: {
@@ -200,7 +226,7 @@ describe('SessionViewWidget', () => {
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
         });
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
             payload: { chatProcessId: replayProcessId },
@@ -240,6 +266,14 @@ describe('SessionViewWidget', () => {
         ),
       });
 
+      await waitFor(() => {
+        expect(screen.getByTestId('dumpster-raccoon-widget')).toBeInTheDocument();
+      });
+
+      act(() => {
+        proxy.setupConnectedChannel();
+      });
+
       const replayProcessId = ProcessIdStub({ value: `replay-${sessionId}` });
 
       await waitFor(() => {
@@ -247,7 +281,7 @@ describe('SessionViewWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
             payload: { chatProcessId: replayProcessId },

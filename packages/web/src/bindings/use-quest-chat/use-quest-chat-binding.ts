@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const { entriesBySession, quest, pendingClarification, isStreaming, sendMessage, submitClarifyAnswers, stopChat } = useQuestChatBinding({ questId });
- * // Subscribes to ws://host/ws on mount, sends subscribe-quest, accumulates entries by sessionId
+ * // Subscribes to webSocketChannelState observables on mount, sends subscribe-quest when opens$ fires, accumulates entries by sessionId
  * // (uuid-keyed Map internally, sorted ChatEntry[] in the public surface), returns reactive state
  *
  * The internal Map<EntryUuid, ChatEntry> per session collapses duplicate emissions from the
@@ -27,28 +27,21 @@ import {
   askUserQuestionContract,
   chatEntryContract,
   questContract,
-  wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
 import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
-import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
-import { chatCompletePayloadContract } from '../../contracts/chat-complete-payload/chat-complete-payload-contract';
-import { chatHistoryCompletePayloadContract } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload-contract';
-import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
-import { clarificationRequestPayloadContract } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
-import { questModifiedPayloadContract } from '../../contracts/quest-modified-payload/quest-modified-payload-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
 import { upsertChatEntriesByUuidTransformer } from '../../transformers/upsert-chat-entries-by-uuid/upsert-chat-entries-by-uuid-transformer';
 
 const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
-
-type WsConnection = ReturnType<typeof websocketConnectAdapter>;
 
 export const useQuestChatBinding = ({
   questId,
@@ -89,34 +82,32 @@ export const useQuestChatBinding = ({
   );
 
   const questIdRef = useRef<QuestId | null>(questId);
-  const wsRef = useRef<WsConnection | null>(null);
-  const subscribedRef = useRef(false);
   questIdRef.current = questId;
 
-  const handleWebSocketMessage = useCallback((message: unknown): void => {
-    const parsed = wsMessageContract.safeParse(message);
-    if (!parsed.success) {
-      globalThis.console.warn('[WS] parse-failed', message);
-      return;
-    }
+  // Track the questId that was active at subscribe time so cleanup sends the correct id
+  const subscribedQuestIdRef = useRef<QuestId | null>(null);
 
-    const activeQuestId = questIdRef.current;
-    if (!activeQuestId) return;
+  useEffect(() => {
+    const opensSub = webSocketChannelState.opens$().subscribe((): void => {
+      const activeQuestId = questIdRef.current;
+      if (!activeQuestId) return;
+      subscribedQuestIdRef.current = activeQuestId;
+      webSocketChannelState.sendSubscribeQuest({ questId: activeQuestId });
+    });
 
-    if (parsed.data.type === 'chat-output') {
-      const payloadResult = chatOutputPayloadContract.safeParse(parsed.data.payload);
-      if (!payloadResult.success) {
-        globalThis.console.warn('[WS] chat-output payload-parse-failed', parsed.data.payload);
-        return;
-      }
-      if (payloadResult.data.questId !== activeQuestId) return;
+    const chatOutputSub = rxjsFilterAdapter({
+      source: webSocketChannelState.chatOutput$(),
+      predicate: (p) => p.questId === questIdRef.current,
+    }).subscribe((payload): void => {
+      const activeQuestId = questIdRef.current;
+      if (!activeQuestId) return;
 
-      const rawEntries = payloadResult.data.entries;
+      const rawEntries = payload.entries;
       if (!Array.isArray(rawEntries)) return;
 
       const validEntries: ChatEntry[] = [];
       const rejected: { candidate: unknown; reason: unknown }[] = [];
-      for (const candidate of rawEntries) {
+      for (const candidate of rawEntries as unknown[]) {
         const parseResult = chatEntryContract.safeParse(candidate);
         if (parseResult.success) {
           validEntries.push(parseResult.data);
@@ -127,9 +118,9 @@ export const useQuestChatBinding = ({
 
       globalThis.console.log('[WS] chat-output', {
         questId: activeQuestId,
-        sessionId: payloadResult.data.sessionId ?? null,
-        chatProcessId: payloadResult.data.chatProcessId ?? null,
-        slotIndex: payloadResult.data.slotIndex ?? null,
+        sessionId: payload.sessionId ?? null,
+        chatProcessId: payload.chatProcessId ?? null,
+        slotIndex: payload.slotIndex ?? null,
         validCount: validEntries.length,
         rawCount: rawEntries.length,
         entries: validEntries.map((e) => ({
@@ -150,12 +141,12 @@ export const useQuestChatBinding = ({
 
       if (validEntries.length === 0) return;
 
-      const sessionKey = payloadResult.data.sessionId ?? SYNTHETIC_SESSION_KEY;
+      const sessionKey = payload.sessionId ?? SYNTHETIC_SESSION_KEY;
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({ prev, key: sessionKey, newEntries: validEntries }),
       );
 
-      const slotIndexParsed = slotIndexContract.safeParse(payloadResult.data.slotIndex);
+      const slotIndexParsed = slotIndexContract.safeParse(payload.slotIndex);
       if (slotIndexParsed.success) {
         const slotKey = slotIndexParsed.data;
         setSlotEntriesInternal((prev) =>
@@ -164,97 +155,44 @@ export const useQuestChatBinding = ({
       }
 
       setIsStreaming(true);
-      return;
-    }
+    });
 
-    if (parsed.data.type === 'chat-complete') {
-      const payloadResult = chatCompletePayloadContract.safeParse(parsed.data.payload);
-      if (!payloadResult.success) return;
+    const chatStreamEndedSub = webSocketChannelState.chatStreamEnded$().subscribe((): void => {
       setIsStreaming(false);
-      return;
-    }
+    });
 
-    if (parsed.data.type === 'chat-history-complete') {
-      const payloadResult = chatHistoryCompletePayloadContract.safeParse(parsed.data.payload);
-      if (!payloadResult.success) return;
-      setIsStreaming(false);
-      return;
-    }
-
-    if (parsed.data.type === 'clarification-request') {
-      const payloadResult = clarificationRequestPayloadContract.safeParse(parsed.data.payload);
-      if (!payloadResult.success) return;
-      const result = askUserQuestionContract.safeParse({
-        questions: payloadResult.data.questions,
+    const clarificationRequestSub = webSocketChannelState
+      .clarificationRequest$()
+      .subscribe((payload): void => {
+        const result = askUserQuestionContract.safeParse({
+          questions: payload.questions,
+        });
+        if (!result.success) return;
+        setPendingClarification({ questions: result.data.questions });
       });
-      if (!result.success) return;
-      setPendingClarification({ questions: result.data.questions });
-      return;
-    }
 
-    if (parsed.data.type === 'quest-modified') {
-      const payloadResult = questModifiedPayloadContract.safeParse(parsed.data.payload);
-      if (!payloadResult.success) return;
-      if (payloadResult.data.questId !== activeQuestId) return;
-      const questParsed = questContract.safeParse(payloadResult.data.quest);
+    const questUpdatedSub = rxjsFilterAdapter({
+      source: webSocketChannelState.questUpdated$(),
+      predicate: (q) => q.id === questIdRef.current,
+    }).subscribe((updatedQuest): void => {
+      const questParsed = questContract.safeParse(updatedQuest);
       if (!questParsed.success) return;
       setQuest(questParsed.data);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Defer opening the WebSocket until a questId is known. Opening eagerly
-    // (before the first message creates the quest) used to cause subscribe-quest
-    // to land on the server before the JSONL was fully written, racing against
-    // chat-output replay. Now we open exactly when the live workspace becomes
-    // addressable, matching the pre-merge timing where a fresh widget mount
-    // drove the WS open.
-    if (!questId) return undefined;
-
-    wsRef.current = websocketConnectAdapter({
-      url: `ws://${globalThis.location.host}/ws`,
-      onMessage: handleWebSocketMessage,
-      onOpen: (): void => {
-        const activeQuestId = questIdRef.current;
-        if (!activeQuestId) return;
-        if (subscribedRef.current) return;
-        const ws = wsRef.current;
-        if (!ws) return;
-        const sent = ws.send({ type: 'subscribe-quest', questId: activeQuestId });
-        if (sent) {
-          subscribedRef.current = true;
-        }
-      },
     });
 
     return (): void => {
-      const activeQuestId = questIdRef.current;
-      const ws = wsRef.current;
-      if (ws && activeQuestId && subscribedRef.current) {
-        ws.send({ type: 'unsubscribe-quest', questId: activeQuestId });
-      }
-      subscribedRef.current = false;
-      if (ws) {
-        ws.close();
-      }
-      wsRef.current = null;
-    };
-  }, [questId, handleWebSocketMessage]);
+      opensSub.unsubscribe();
+      chatOutputSub.unsubscribe();
+      chatStreamEndedSub.unsubscribe();
+      clarificationRequestSub.unsubscribe();
+      questUpdatedSub.unsubscribe();
 
-  useEffect(() => {
-    // Backstop subscribe — covers the timing window where the WS opens
-    // synchronously inside `websocketConnectAdapter` (mock test rig) and
-    // onOpen fires before `wsRef.current` is assigned. In that case onOpen
-    // sees `wsRef.current === null` and returns; this effect runs after the
-    // outer effect commits and sends subscribe.
-    if (!questId) return;
-    if (subscribedRef.current) return;
-    const ws = wsRef.current;
-    if (!ws) return;
-    const sent = ws.send({ type: 'subscribe-quest', questId });
-    if (sent) {
-      subscribedRef.current = true;
-    }
+      const subscribedQuestId = subscribedQuestIdRef.current;
+      if (subscribedQuestId) {
+        webSocketChannelState.sendUnsubscribeQuest({ questId: subscribedQuestId });
+        subscribedQuestIdRef.current = null;
+      }
+    };
   }, [questId]);
 
   const sendMessage = useCallback(
