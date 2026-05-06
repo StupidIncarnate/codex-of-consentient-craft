@@ -27,6 +27,45 @@ chatLineProcessTransformer() → processor.processLine({ line, source, agentId? 
   Wire-level correlation is complete the moment each entry ships, so the web never receives
   follow-up patches.
 
+### chatStreamProcessHandleBroker — the per-spawn entry point
+
+**If you are spawning a Claude CLI process anywhere in the orchestrator, route its lines
+through `chatStreamProcessHandleBroker`.** Do NOT call `chatLineProcessTransformer` directly
+and do NOT hand-roll `rawLine → ChatEntry[]` translation.
+
+The handle broker owns the per-spawn lifecycle:
+
+- One `chatLineProcessTransformer` instance per agent (so the realAgentId↔toolUseId reverse
+  map is shared across that agent's stdout stream AND any sub-agent JSONL tails it triggers)
+- Auto-dispatch of `chatSubagentTailBroker` on every `agent-detected` signal
+- Memoized `sessionId` capture from the first system/init line
+- Plain-text fallback for non-JSON stdout (`spawnerType: 'command'` ward runs) so ward
+  output renders verbatim as a single assistant-text entry
+- `stop()` to compose into kill callbacks; `initialDrains()` to await pre-existing sub-agent
+  JSONL drain before declaring the spawn complete
+
+Wire it once per spawn and keep the handle alive for the spawn's lifetime:
+
+```ts
+const handle = chatStreamProcessHandleBroker({
+    chatProcessId,
+    guildId,
+    sessionId, // optional; auto-captured from system/init if omitted
+    onEntries: ({entries, sessionId}) => { /* relay to bus / web */
+    },
+});
+agentSpawnUnifiedBroker({prompt, onLine: ({line}) => handle.onLine({rawLine: line})});
+await handle.initialDrains();
+// later, in teardown:
+handle.stop();
+```
+
+Every existing spawn site already does this — `chatSpawnBroker` (chaoswhisperer /
+glyphsmith), `runOrchestrationLoopLayerResponder`, `orchestrationResumeResponder`,
+`recoverGuildLayerResponder`, `questModifyResponder`, and the orchestration-quest harness
+each keep a `Map<QuestWorkItemId, handle>` and route per-work-item lines through it. New
+spawn pipelines must follow the same shape; the convergence below depends on it.
+
 ### Two-source sub-agent correlation (READ THIS IF YOU ARE TOUCHING SUB-AGENT CODE)
 
 Claude CLI emits sub-agent activity in TWO incompatible shapes depending on the source:
