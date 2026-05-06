@@ -6,12 +6,9 @@ import {
   QuestIdStub,
   QuestStub,
   AssistantTextStreamLineStub,
-  AssistantToolUseStreamLineStub,
-  SuccessfulToolResultStreamLineStub,
   WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
 
@@ -28,9 +25,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -50,9 +45,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess,
       });
@@ -82,9 +75,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -106,9 +97,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete,
         registerProcess: jest.fn(),
       });
@@ -138,9 +127,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete,
         registerProcess: jest.fn(),
       });
@@ -174,9 +161,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
         onQuestCreated,
@@ -206,9 +191,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
         onQuestCreated,
@@ -231,9 +214,7 @@ describe('chatSpawnBroker', () => {
           role,
           guildId,
           message: 'Help me build auth',
-          processor: chatLineProcessTransformer(),
           onEntries: jest.fn(),
-          onAgentDetected: jest.fn(),
           onComplete: jest.fn(),
           registerProcess: jest.fn(),
         }),
@@ -258,9 +239,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries,
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -298,9 +277,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Create prototype',
-        processor: chatLineProcessTransformer(),
         onEntries,
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -338,9 +315,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Create prototype',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         onDesignSessionLinked,
         registerProcess: jest.fn(),
@@ -381,9 +356,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete,
         registerProcess: jest.fn(),
       });
@@ -424,9 +397,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Create prototype',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete,
         registerProcess: jest.fn(),
       });
@@ -470,9 +441,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         onSessionIdExtracted,
         registerProcess: jest.fn(),
@@ -516,9 +485,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         message: 'Continue working',
         sessionId,
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         onSessionIdExtracted,
         registerProcess: jest.fn(),
@@ -564,9 +531,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -604,9 +569,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete,
         registerProcess: jest.fn(),
       });
@@ -638,9 +601,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Create login page prototype',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -662,9 +623,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Iterate on prototype',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -686,9 +645,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Review approved design',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -711,9 +668,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Create prototype',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess,
       });
@@ -746,9 +701,7 @@ describe('chatSpawnBroker', () => {
         questId,
         message: 'Continue design',
         sessionId,
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -773,9 +726,7 @@ describe('chatSpawnBroker', () => {
           guildId,
           questId,
           message: 'Create prototype',
-          processor: chatLineProcessTransformer(),
           onEntries: jest.fn(),
-          onAgentDetected: jest.fn(),
           onComplete: jest.fn(),
           registerProcess: jest.fn(),
         }),
@@ -797,9 +748,7 @@ describe('chatSpawnBroker', () => {
           guildId,
           questId,
           message: 'Create prototype',
-          processor: chatLineProcessTransformer(),
           onEntries: jest.fn(),
-          onAgentDetected: jest.fn(),
           onComplete: jest.fn(),
           registerProcess: jest.fn(),
         }),
@@ -822,9 +771,7 @@ describe('chatSpawnBroker', () => {
           guildId,
           questId,
           message: 'Create prototype',
-          processor: chatLineProcessTransformer(),
           onEntries: jest.fn(),
-          onAgentDetected: jest.fn(),
           onComplete: jest.fn(),
           registerProcess: jest.fn(),
         }),
@@ -832,166 +779,10 @@ describe('chatSpawnBroker', () => {
     });
   });
 
-  describe('onAgentDetected via agent-detected output', () => {
-    it('VALID: {user tool_result with toolUseResult.agentId, sessionId set} => calls onAgentDetected with realAgentId + toolUseId + sessionId', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
-      const sessionId = SessionIdStub({ value: 'session-for-patch' });
-      const onAgentDetected = jest.fn();
-      const toolUseId = 'toolu_patch_test_01';
-
-      const assistantLine = JSON.stringify(
-        AssistantToolUseStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-          },
-        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-      );
-
-      const userLine = JSON.stringify({
-        ...SuccessfulToolResultStreamLineStub({
-          message: {
-            role: 'user',
-            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-          },
-        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-        toolUseResult: { agentId: 'agent-patch-test' },
-      });
-
-      proxy.setupResumeSession({
-        exitCode: ExitCodeStub({ value: 0 }),
-        stdoutLines: [assistantLine, userLine],
-      });
-
-      await chatSpawnBroker({
-        role,
-        guildId,
-        message: 'Continue working',
-        sessionId,
-        processor: chatLineProcessTransformer(),
-        onEntries: jest.fn(),
-        onAgentDetected,
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onAgentDetected).toHaveBeenCalledTimes(1);
-
-      const [[detectedArg]] = onAgentDetected.mock.calls;
-
-      expect(detectedArg).toStrictEqual({
-        chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        toolUseId: 'toolu_patch_test_01',
-        agentId: 'agent-patch-test',
-        sessionId,
-      });
-    });
-
-    it('VALID: {user tool_result with toolUseResult.agentId, sessionId undefined} => does not call onAgentDetected', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
-      const onAgentDetected = jest.fn();
-      const toolUseId = 'toolu_patch_no_session_01';
-
-      const assistantLine = JSON.stringify(
-        AssistantToolUseStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-          },
-        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-      );
-
-      const userLine = JSON.stringify({
-        ...SuccessfulToolResultStreamLineStub({
-          message: {
-            role: 'user',
-            content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-          },
-        } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
-        toolUseResult: { agentId: 'agent-no-session' },
-      });
-
-      proxy.setupNewSession({
-        exitCode: ExitCodeStub({ value: 0 }),
-        stdoutLines: [assistantLine, userLine],
-      });
-
-      await chatSpawnBroker({
-        role,
-        guildId,
-        message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
-        onEntries: jest.fn(),
-        onAgentDetected,
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onAgentDetected).toHaveBeenCalledTimes(0);
-    });
-
-    it('VALID: {assistant Task tool_use emitted alone, no matching user tool_result} => does not call onAgentDetected', async () => {
-      const proxy = chatSpawnBrokerProxy();
-      const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
-      const sessionId = SessionIdStub({ value: 'session-task-alone' });
-      const onAgentDetected = jest.fn();
-      const toolUseId = 'toolu_task_alone_01';
-
-      const assistantLine = JSON.stringify(
-        AssistantToolUseStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [{ type: 'tool_use', id: toolUseId, name: 'Task', input: {} }],
-          },
-        } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
-      );
-
-      proxy.setupResumeSession({
-        exitCode: ExitCodeStub({ value: 0 }),
-        stdoutLines: [assistantLine],
-      });
-
-      await chatSpawnBroker({
-        role,
-        guildId,
-        message: 'Continue working',
-        sessionId,
-        processor: chatLineProcessTransformer(),
-        onEntries: jest.fn(),
-        onAgentDetected,
-        onComplete: jest.fn(),
-        registerProcess: jest.fn(),
-      });
-
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-      await new Promise((resolve) => {
-        setImmediate(resolve);
-      });
-
-      expect(onAgentDetected).toHaveBeenCalledTimes(0);
-    });
-  });
+  // The old 'onAgentDetected via agent-detected output' describe block was removed when
+  // chat-spawn-broker delegated sub-agent dispatch into chatStreamProcessHandleBroker.
+  // Equivalent coverage now lives in
+  // brokers/chat/stream-process-handle/chat-stream-process-handle-broker.test.ts.
 
   describe('SUBAGENT_DEBUG gated logging', () => {
     it('EDGE: {SUBAGENT_DEBUG env var not set} => does not write SUBAGENT-TRACE lines to stderr', async () => {
@@ -1010,9 +801,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -1046,9 +835,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -1070,9 +857,7 @@ describe('chatSpawnBroker', () => {
         role,
         guildId,
         message: 'Help me build auth',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete: jest.fn(),
         registerProcess: jest.fn(),
       });
@@ -1099,9 +884,7 @@ describe('chatSpawnBroker', () => {
         guildId,
         questId,
         message: 'Create prototype',
-        processor: chatLineProcessTransformer(),
         onEntries: jest.fn(),
-        onAgentDetected: jest.fn(),
         onComplete,
         registerProcess: jest.fn(),
       });

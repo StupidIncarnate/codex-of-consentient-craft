@@ -11,7 +11,6 @@ import { registerModuleMock, requireActual } from '@dungeonmaster/testing/regist
 
 import { chatMainSessionTailBrokerProxy } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker.proxy';
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
-import { chatSubagentTailBrokerProxy } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker.proxy';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
@@ -111,7 +110,6 @@ export const ChatStartResponderProxy = ({
   const processStateProxy = orchestrationProcessesStateProxy();
   const pendingProxy = pendingClarificationStateProxy();
   orchestrationEventsStateProxy();
-  chatSubagentTailBrokerProxy();
   const mainTailProxy = chatMainSessionTailBrokerProxy();
 
   return {

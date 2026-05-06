@@ -10,22 +10,21 @@
  * questOrchestrationLoopBroker directly.
  */
 
-import type { AdapterResult, SessionId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, QuestWorkItemId, SessionId } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
   filePathContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import { chatStreamProcessHandleBroker } from '../../../brokers/chat/stream-process-handle/chat-stream-process-handle-broker';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
-import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const RunOrchestrationLoopLayerResponder = async ({
   questId,
@@ -89,6 +88,15 @@ export const RunOrchestrationLoopLayerResponder = async ({
   // chatProcessId) finds the right work-item bucket when sessionId is present.
   const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
 
+  // Per-work-item handles. Each agent dispatched by the loop gets its own handle so the
+  // chat-line processor's realAgentId↔toolUseId reverse map stays scoped to that agent
+  // (cross-talk would happen if a slot index were reused across work items with a shared
+  // map). Stopped together in finally; orphan tails would otherwise survive teardown.
+  const handlesByWorkItem = new Map<
+    QuestWorkItemId,
+    ReturnType<typeof chatStreamProcessHandleBroker>
+  >();
+
   try {
     await questOrchestrationLoopBroker({
       processId,
@@ -97,23 +105,38 @@ export const RunOrchestrationLoopLayerResponder = async ({
       onAgentEntry: ({ slotIndex, entry, questWorkItemId, sessionId }) => {
         const rawLine: unknown = entry.raw;
         if (typeof rawLine !== 'string') return;
-        const parsed = claudeLineNormalizeBroker({ rawLine });
-        const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
-        if (entries.length === 0) return;
-        const payload = buildOrchestrationLoopOnAgentEntryTransformer({
-          processId,
-          slotIndexToSessionId,
-          slotIndex,
-          entries,
-          questId,
-          workItemId: questWorkItemId,
-          ...(sessionId === undefined ? {} : { sessionId }),
-        });
-        orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
+
+        let handle = handlesByWorkItem.get(questWorkItemId);
+        if (handle === undefined) {
+          handle = chatStreamProcessHandleBroker({
+            chatProcessId: processId,
+            guildId,
+            ...(sessionId === undefined ? {} : { sessionId }),
+            onEntries: ({ entries, sessionId: handlerSessionId }) => {
+              const payload = buildOrchestrationLoopOnAgentEntryTransformer({
+                processId,
+                slotIndexToSessionId,
+                slotIndex,
+                entries,
+                questId,
+                workItemId: questWorkItemId,
+                ...(handlerSessionId === undefined ? {} : { sessionId: handlerSessionId }),
+              });
+              orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
+            },
+          });
+          handlesByWorkItem.set(questWorkItemId, handle);
+        }
+
+        handle.onLine({ rawLine });
       },
       abortSignal: abortController.signal,
     });
   } finally {
+    for (const handle of handlesByWorkItem.values()) {
+      handle.stop();
+    }
+    handlesByWorkItem.clear();
     orchestrationProcessesState.remove({ processId });
   }
 

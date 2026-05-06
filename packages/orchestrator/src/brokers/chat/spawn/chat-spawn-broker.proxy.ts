@@ -6,14 +6,12 @@ import {
   repoRootCwdContract,
 } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  claudeLineNormalizeBrokerProxy,
-  cwdResolveBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
+import { chatStreamProcessHandleBrokerProxy } from '../stream-process-handle/chat-stream-process-handle-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
 import { questUserAddBrokerProxy } from '../../quest/user-add/quest-user-add-broker.proxy';
 import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
@@ -42,10 +40,12 @@ export const chatSpawnBrokerProxy = (): {
   getSpawnedOptions: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
-  claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
+  // chatSpawnBroker creates a chatStreamProcessHandleBroker per call; loading its proxy
+  // wires up the transitive subagent-tail + claude-line-normalize mocks the handle needs.
+  chatStreamProcessHandleBrokerProxy();
   const unifiedProxy = agentSpawnUnifiedBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   const getProxy = questGetBrokerProxy();

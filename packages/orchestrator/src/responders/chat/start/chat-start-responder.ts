@@ -18,7 +18,6 @@ import type {
 
 import { chatMainSessionTailBroker } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker';
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
-import { chatSubagentTailBroker } from '../../../brokers/chat/subagent-tail/chat-subagent-tail-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
@@ -26,7 +25,6 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { pendingClarificationState } from '../../../state/pending-clarification/pending-clarification-state';
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
-import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { streamJsonToClarificationTransformer } from '../../../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
 
 export const ChatStartResponder = async ({
@@ -97,30 +95,26 @@ export const ChatStartResponder = async ({
     questions: ClarificationQuestion[];
   }[] = [];
 
-  const processor = chatLineProcessTransformer();
-  const subagentHandles: { stop: () => void; initialDrain: Promise<void> }[] = [];
-  // Tracks broker setup promises that haven't resolved yet. Without this, onComplete can
-  // fire and emit chat-complete BEFORE the broker has even set up the file watcher —
-  // any sub-agent entries it would later deliver are then orphaned past chat-complete on
-  // the wire. onComplete awaits this set so every detected sub-agent's drain runs to
-  // completion before chat-complete is announced. Setups remove themselves when they
-  // settle (success OR failure), so the set drains naturally.
-  const inflightSubagentSetups = new Set<Promise<void>>();
   // Post-exit tail handle for the MAIN session JSONL. Populated on `onComplete` when we
   // have a session ID — catches background-agent task-notifications appended after stdout
   // closes (Claude CLI writes them async). Stopped when the session's process is killed.
   let mainTailStopHandle: (() => void) | null = null;
+  // Forward-declared via a ref so the chatSpawnBroker callbacks below (defined inside
+  // the call) can reach the per-spawn stream handle's processor / stop / initialDrains.
+  // The ref is mutated immediately after the await resolves; the callbacks always fire
+  // later than that. Using a ref instead of a plain `let` keeps prefer-const + init-
+  // declarations linters happy without weakening the runtime guarantees.
+  type StreamHandle = Awaited<ReturnType<typeof chatSpawnBroker>>['handle'];
+  const streamHandleRef: { current: StreamHandle | null } = { current: null };
   // Sub-agent tails for `run_in_background` Tasks must keep delivering entries past parent
-  // CLI exit — Claude CLI writes the agent's JSONL while the parent is asleep. Stopping
-  // the watchers in `onComplete` would kill them before the background agent has finished
-  // writing. Tails are torn down only when the chat itself is torn down (user navigates
-  // away, /chat/stop, a new chat replaces this one) via the composed kill handlers below.
+  // CLI exit — Claude CLI writes the agent's JSONL while the parent is asleep. Tails are
+  // owned by `chatStreamProcessHandleBroker`'s handle (see `chat-spawn-broker`'s return);
+  // stopping them is composed into the kill handlers below.
 
   const spawnResult = await chatSpawnBroker({
     role: workItemRoleContract.parse('chaoswhisperer'),
     guildId,
     message,
-    processor,
     ...(sessionId && { sessionId }),
     onQuestCreated: ({ questId, chatProcessId }) => {
       chatQuestId = questId;
@@ -190,6 +184,8 @@ export const ChatStartResponder = async ({
       });
     },
     onEntries: ({ chatProcessId, entries }) => {
+      // sessionId surfaced by the handle is informational here — the responder's payload
+      // routes by chatQuestId/chatWorkItemId, which are learned via onQuestCreated below.
       if (chatQuestId === null || chatWorkItemId === null) {
         chatOutputBuffer.push({ chatProcessId, entries });
       } else {
@@ -292,59 +288,17 @@ export const ChatStartResponder = async ({
         },
       });
     },
-    onAgentDetected: ({ chatProcessId, agentId, sessionId: sid }) => {
-      // Track the setup so onComplete can await it. The .finally on the chain self-removes
-      // the entry once the broker has either successfully pushed its handle OR errored
-      // (the .catch above swallows the rejection so .finally always sees a resolved
-      // chain). Self-removal keeps the set bounded across long-lived sessions.
-      const setup = chatSubagentTailBroker({
-        sessionId: sid,
-        guildId,
-        agentId,
-        processor,
-        chatProcessId,
-        onEntries: ({ chatProcessId: cpid, entries }) => {
-          orchestrationEventsState.emit({
-            type: 'chat-output',
-            processId: cpid,
-            payload: {
-              chatProcessId: cpid,
-              entries,
-              ...(chatQuestId === null ? {} : { questId: chatQuestId }),
-              ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
-            },
-          });
-        },
-      })
-        .then((handle) => {
-          subagentHandles.push(handle);
-        })
-        .catch((error: unknown) => {
-          process.stderr.write(
-            `chatSubagentTailBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
-          );
-        })
-        .finally(() => {
-          inflightSubagentSetups.delete(setup);
-        });
-      inflightSubagentSetups.add(setup);
-    },
     onComplete: async ({ chatProcessId, exitCode, sessionId: sid }) => {
-      // Wait for every in-flight broker setup to resolve. Only then is `subagentHandles`
-      // populated with all handles; iterating earlier would skip brokers whose async
-      // setup hadn't finished and silently leak them past chat-complete.
-      if (inflightSubagentSetups.size > 0) {
-        await Promise.all(Array.from(inflightSubagentSetups));
-      }
-      // Wait for each tail's pre-existing-content drain to deliver every line via
-      // onEntries before chat-complete fires. Without this, the synthetic-emit drain's
-      // queued readline 'line' events would race chat-complete on the wire — clients
-      // could see chat-complete before the sub-agent's already-on-disk lines arrive.
-      // The tails are NOT stopped here — for `run_in_background` Tasks the parent CLI
-      // exits while Claude CLI is still writing the agent's JSONL. The watchers stay
-      // alive past chat-complete and are torn down via the chat-process kill below.
-      if (subagentHandles.length > 0) {
-        await Promise.all(subagentHandles.map(async (h) => h.initialDrain));
+      // Wait for every in-flight sub-agent broker setup AND each tail's pre-existing-
+      // content drain to deliver via onEntries before chat-complete fires. Without this,
+      // the synthetic-emit drain's queued readline 'line' events would race chat-complete
+      // on the wire — clients could see chat-complete before the sub-agent's already-on-
+      // disk lines arrive. The tails are NOT stopped here — for `run_in_background` Tasks
+      // the parent CLI exits while Claude CLI is still writing the agent's JSONL. The
+      // watchers stay alive past chat-complete and are torn down via the chat-process
+      // kill below.
+      if (streamHandleRef.current !== null) {
+        await streamHandleRef.current.initialDrains();
       }
 
       if (sid) {
@@ -360,10 +314,29 @@ export const ChatStartResponder = async ({
         // task-notifications after stdout closes, and those lines only reach the web via
         // this tail. Uses the SAME processor instance as stdout so agentId correlation
         // state carries forward seamlessly.
+        if (streamHandleRef.current === null) {
+          process.stderr.write(
+            `[chat-start] streamHandle missing in onComplete; skipping main-session tail\n`,
+          );
+          orchestrationProcessesState.remove({ processId: chatProcessId });
+          orchestrationEventsState.emit({
+            type: 'chat-complete',
+            processId: chatProcessId,
+            payload: {
+              chatProcessId,
+              exitCode,
+              sessionId: sid,
+              ...(chatQuestId === null ? {} : { questId: chatQuestId }),
+              ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
+            },
+          });
+          return;
+        }
+        const handleProcessor = streamHandleRef.current.processor;
         chatMainSessionTailBroker({
           sessionId: sid,
           guildId,
-          processor,
+          processor: handleProcessor,
           chatProcessId,
           onEntries: ({ chatProcessId: cpid, entries }) => {
             orchestrationEventsState.emit({
@@ -396,10 +369,7 @@ export const ChatStartResponder = async ({
                 kill: () => {
                   stop();
                   mainTailStopHandle = null;
-                  for (const handle of subagentHandles) {
-                    handle.stop();
-                  }
-                  subagentHandles.length = 0;
+                  streamHandleRef.current?.stop();
                 },
               },
             });
@@ -446,15 +416,14 @@ export const ChatStartResponder = async ({
               mainTailStopHandle();
               mainTailStopHandle = null;
             }
-            for (const handle of subagentHandles) {
-              handle.stop();
-            }
-            subagentHandles.length = 0;
+            streamHandleRef.current?.stop();
           },
         },
       });
     },
   });
+
+  streamHandleRef.current = spawnResult.handle;
 
   return {
     chatProcessId: spawnResult.chatProcessId,

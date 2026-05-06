@@ -15,7 +15,6 @@ import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
-import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
 export const DesignChatStartResponder = async ({
   guildId,
@@ -26,18 +25,15 @@ export const DesignChatStartResponder = async ({
   questId: QuestId;
   message: string;
 }): Promise<{ chatProcessId: ProcessId }> => {
-  const processor = chatLineProcessTransformer();
-
   // Create glyphsmith work item ID upfront for tracking. Stamped on every emit so the
   // server can route per-quest broadcasts to the right subscribed clients.
   const glyphWorkItemId: QuestWorkItemId = questWorkItemIdContract.parse(crypto.randomUUID());
 
-  return chatSpawnBroker({
+  const result = await chatSpawnBroker({
     role: workItemRoleContract.parse('glyphsmith'),
     guildId,
     questId,
     message,
-    processor,
     onDesignSessionLinked: ({ questId: qId, chatProcessId }) => {
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
@@ -63,9 +59,6 @@ export const DesignChatStartResponder = async ({
           workItemId: glyphWorkItemId,
         },
       });
-    },
-    onAgentDetected: () => {
-      // Design chat does not tail sub-agents
     },
     onComplete: ({ chatProcessId, exitCode, sessionId }) => {
       // Create and complete glyphsmith work item in one write
@@ -109,4 +102,6 @@ export const DesignChatStartResponder = async ({
       });
     },
   });
+
+  return { chatProcessId: result.chatProcessId };
 };
