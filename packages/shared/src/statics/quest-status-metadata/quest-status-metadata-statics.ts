@@ -15,6 +15,7 @@ export const questStatusMetadataStatics = {
       isActivelyExecuting: false,
       isUserPaused: false,
       isQuestBlocked: false,
+      isDeleteBlocked: false,
       isTerminal: false,
       isPauseable: true,
       isResumable: false,
