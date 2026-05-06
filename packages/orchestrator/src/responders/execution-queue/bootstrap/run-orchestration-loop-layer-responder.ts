@@ -35,32 +35,31 @@ export const RunOrchestrationLoopLayerResponder = async ({
 }): Promise<AdapterResult> => {
   const ok = adapterResultContract.parse({ success: true });
 
-  const existing = orchestrationProcessesState.findByQuestId({ questId });
-  // OrchestrationStartResponder pre-registers a placeholder process (prefix `proc-`)
-  // when an HTTP /start call returns a processId before the queue runner picks the
-  // quest up. We adopt that processId so callers polling /api/process/:processId
-  // continue to find the same handle once the loop is live. Other prefixes
-  // (`proc-queue-`, `chat-`, `proc-recovery-`) indicate a real loop is already
-  // running — skip in that case.
-  const adoptedProcessId = ((): ProcessId | null => {
-    if (existing === undefined) {
-      return null;
-    }
-    const { processId: existingId } = existing;
-    if (
-      existingId.startsWith('proc-') &&
-      !existingId.startsWith('proc-queue-') &&
-      !existingId.startsWith('proc-recovery-')
-    ) {
-      return existingId;
-    }
-    return null;
-  })();
-  if (existing !== undefined && adoptedProcessId === null) {
-    // Another responder (e.g. a chat pathway) already spawned a loop for this quest.
-    // The queue runner should not start a second one — await nothing.
+  // Enumerate every process registered for this quest. `chat-*` / `design-*` post-exit
+  // JSONL tails (registered by `chat-start-responder`'s `onComplete`) share the quest's
+  // real `questId` to keep the tail killable on quest teardown — they are NOT loop
+  // processes and must not block a fresh loop start. Only `proc-queue-*` /
+  // `proc-recovery-*` represent an actual orchestration loop in flight; using the old
+  // `findByQuestId` returned the chat tail (insertion order) and silently skipped the
+  // dispatch when the user clicked Begin Quest right after the spec chat ended.
+  const allForQuest = orchestrationProcessesState.findAllByQuestId({ questId });
+  const loopAlreadyRunning = allForQuest.some(
+    (p) => p.processId.startsWith('proc-queue-') || p.processId.startsWith('proc-recovery-'),
+  );
+  if (loopAlreadyRunning) {
     return ok;
   }
+  // OrchestrationStartResponder pre-registers a placeholder process (prefix `proc-`,
+  // not `proc-queue-` / `proc-recovery-`) when an HTTP /start call returns a processId
+  // before the queue runner picks the quest up. Adopt it so callers polling
+  // /api/process/:processId continue to find the same handle once the loop is live.
+  const placeholder = allForQuest.find(
+    (p) =>
+      p.processId.startsWith('proc-') &&
+      !p.processId.startsWith('proc-queue-') &&
+      !p.processId.startsWith('proc-recovery-'),
+  );
+  const adoptedProcessId: ProcessId | null = placeholder?.processId ?? null;
   const processId =
     adoptedProcessId ?? processIdContract.parse(`proc-queue-${crypto.randomUUID()}`);
   const abortController = new AbortController();

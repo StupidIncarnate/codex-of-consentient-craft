@@ -33,6 +33,16 @@ export const orchestrationProcessesState = {
     return undefined;
   },
 
+  findAllByQuestId: ({ questId }: { questId: QuestId }): OrchestrationProcess[] => {
+    const matches: OrchestrationProcess[] = [];
+    for (const process of state.processes.values()) {
+      if (process.questId === questId) {
+        matches.push(process);
+      }
+    }
+    return matches;
+  },
+
   kill: ({ processId }: { processId: ProcessId }): boolean => {
     const entry = state.processes.get(processId);
     if (!entry) return false;

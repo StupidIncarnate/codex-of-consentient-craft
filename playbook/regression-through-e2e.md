@@ -27,14 +27,42 @@ exist because each one catches a failure mode that the next phase can't.
 
 If a phase fails, you go back — you do not paper over.
 
-## Order is load-bearing: test BEFORE fix
+## Order is load-bearing: test BEFORE fix (MANDATORY)
 
 The phases are sequential, not a checklist you can reorder. Phase 2 (write
 the failing test) MUST be complete — code written, run against the unfixed
 codebase, **observed to fail on the assertion** — BEFORE you touch the
-implementation in Phase 3.
+implementation in Phase 3. This is non-negotiable. It applies to every
+class of bug this playbook covers, including:
 
-Why this is non-negotiable:
+- "I don't see X in the UI" reports.
+- "We already have a test for this but it isn't checking what it should"
+  reports — the strengthened/added assertion has to fail on the pre-fix
+  source.
+- Test gaps surfaced by an existing failing manual reproduction.
+
+### What you can do BEFORE the failing test exists
+
+- Read code, run discover/grep, ask the user clarifying questions.
+- Add temporary `process.stderr.write(...)` / `console.log(...)` lines for
+  runtime observability. These are read-only diagnostics; revert them
+  before the fix lands. They are not "implementation changes."
+- Inspect on-disk state (quest.json, JSONL files, logs) and live wire
+  traffic via Chrome MCP to corroborate the user's report.
+
+### What you MUST NOT do before the failing test exists
+
+- Edit any non-test source file with the intent to change behavior — even
+  a "tiny" rename, even "while I'm in here," even adding a new helper
+  method or contract that you "know" the fix needs.
+- Add new state methods, new contracts, new branches in responders, new
+  guards, etc. Code-reading conviction is not test-level proof. If you
+  catch yourself reaching for the implementation file, STOP and write the
+  test first.
+- Refactor adjacent code. Refactors require their own tests and their own
+  scope.
+
+### Why this is non-negotiable
 
 - A test you write *after* the fix has no proof it would have caught the
   bug. You assume the assertion targets the symptom; you have no evidence.
@@ -48,6 +76,15 @@ Why this is non-negotiable:
 - A test written after the fix often slips into the same shape as the
   fixed code — you write what you just made true. That's a tautology, not
   a regression guard.
+- Skipping this step has burned past sessions: an agent code-reads,
+  identifies a plausible root cause, ships a "fix," and the existing test
+  still passes vacuously because the assertions don't cover the broken
+  path. The user has to catch this manually, every time.
+
+If the test is hard to write — if you can't reproduce the user's bug in
+the harness — that is a *signal*, not a license. Surface the blocker to
+the user ("here is what I tried, here is why the harness doesn't repro
+yet") instead of moving to Phase 3 anyway.
 
 If you finish Phase 1 and you're tempted to "just fix it real quick" —
 stop. Write the test first. Watch it fail. Then fix.
