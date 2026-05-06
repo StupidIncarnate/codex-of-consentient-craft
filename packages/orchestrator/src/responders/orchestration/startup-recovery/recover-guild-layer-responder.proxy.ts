@@ -16,9 +16,9 @@ import type {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { isAnyAgentRunningQuestStatusGuard } from '@dungeonmaster/shared/guards';
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { chatStreamProcessHandleBrokerProxy } from '../../../brokers/chat/stream-process-handle/chat-stream-process-handle-broker.proxy';
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
@@ -49,7 +49,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   getRegisteredProcessIds: () => readonly ProcessId[];
   getAllPersistedContents: () => readonly unknown[];
 } => {
-  claudeLineNormalizeBrokerProxy();
+  chatStreamProcessHandleBrokerProxy();
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();

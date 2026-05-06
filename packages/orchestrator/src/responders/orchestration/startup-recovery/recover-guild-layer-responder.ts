@@ -11,11 +11,16 @@ import {
   processIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import type {
+  GuildListItem,
+  QuestId,
+  QuestWorkItemId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
+import { chatStreamProcessHandleBroker } from '../../../brokers/chat/stream-process-handle/chat-stream-process-handle-broker';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -29,7 +34,6 @@ import {
   isCompleteWorkItemStatusGuard,
   isRecoverableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
-import { rawLineToChatEntriesTransformer } from '../../../transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
 
 export const RecoverGuildLayerResponder = async ({
   guildItem,
@@ -130,6 +134,12 @@ export const RecoverGuildLayerResponder = async ({
       // Per-slot sessionId memo — see RunOrchestrationLoopLayerResponder for rationale.
       const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
 
+      // Per-work-item handles — same scoping rule as RunOrchestrationLoopLayerResponder.
+      const handlesByWorkItem = new Map<
+        QuestWorkItemId,
+        ReturnType<typeof chatStreamProcessHandleBroker>
+      >();
+
       questOrchestrationLoopBroker({
         processId,
         questId: quest.id,
@@ -137,26 +147,45 @@ export const RecoverGuildLayerResponder = async ({
         onAgentEntry: ({ slotIndex, entry, questWorkItemId, sessionId }) => {
           const rawLine: unknown = entry.raw;
           if (typeof rawLine !== 'string') return;
-          const parsed = claudeLineNormalizeBroker({ rawLine });
-          const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
-          if (entries.length === 0) return;
-          const payload = buildOrchestrationLoopOnAgentEntryTransformer({
-            processId,
-            slotIndexToSessionId,
-            slotIndex,
-            entries,
-            questId: quest.id,
-            workItemId: questWorkItemId,
-            ...(sessionId === undefined ? {} : { sessionId }),
-          });
-          orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
+
+          let handle = handlesByWorkItem.get(questWorkItemId);
+          if (handle === undefined) {
+            handle = chatStreamProcessHandleBroker({
+              chatProcessId: processId,
+              guildId: guildItem.id,
+              ...(sessionId === undefined ? {} : { sessionId }),
+              onEntries: ({ entries, sessionId: handlerSessionId }) => {
+                const payload = buildOrchestrationLoopOnAgentEntryTransformer({
+                  processId,
+                  slotIndexToSessionId,
+                  slotIndex,
+                  entries,
+                  questId: quest.id,
+                  workItemId: questWorkItemId,
+                  ...(handlerSessionId === undefined ? {} : { sessionId: handlerSessionId }),
+                });
+                orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
+              },
+            });
+            handlesByWorkItem.set(questWorkItemId, handle);
+          }
+
+          handle.onLine({ rawLine });
         },
         abortSignal: abortController.signal,
       })
         .then(() => {
+          for (const handle of handlesByWorkItem.values()) {
+            handle.stop();
+          }
+          handlesByWorkItem.clear();
           orchestrationProcessesState.remove({ processId });
         })
         .catch(() => {
+          for (const handle of handlesByWorkItem.values()) {
+            handle.stop();
+          }
+          handlesByWorkItem.clear();
           orchestrationProcessesState.remove({ processId });
         });
 

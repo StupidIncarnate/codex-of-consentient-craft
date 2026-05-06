@@ -6,7 +6,7 @@
  * const { guild, questId } = await quest.createTestQuest({ testbed, observableIds: ['obs-1'], stepCount: 2 });
  * const { quest: result } = await quest.pollForStatus({ questId, targetStatuses: ['complete'] });
  */
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import {
   DependencyStepStub,
@@ -25,8 +25,6 @@ import {
   processIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
@@ -42,7 +40,7 @@ import { questOrchestrationLoopBroker } from '../../../src/brokers/quest/orchest
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
 import { orchestrationEventsState } from '../../../src/state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../src/state/orchestration-processes/orchestration-processes-state';
-import { rawLineToChatEntriesTransformer } from '../../../src/transformers/raw-line-to-chat-entries/raw-line-to-chat-entries-transformer';
+import { chatStreamProcessHandleBroker } from '../../../src/brokers/chat/stream-process-handle/chat-stream-process-handle-broker';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 
 const QUEST_FILE_NAME = 'quest.json';
@@ -483,6 +481,11 @@ export const orchestrationQuestHarness = (): {
         },
       });
 
+      const handlesByWorkItem = new Map<
+        QuestWorkItemId,
+        ReturnType<typeof chatStreamProcessHandleBroker>
+      >();
+
       questOrchestrationLoopBroker({
         processId,
         questId,
@@ -492,30 +495,47 @@ export const orchestrationQuestHarness = (): {
           if (typeof rawLine !== 'string') {
             return;
           }
-          const parsed = claudeLineNormalizeBroker({ rawLine });
-          const entries = rawLineToChatEntriesTransformer({ parsed, rawLine });
-          if (entries.length === 0) {
-            return;
-          }
-          orchestrationEventsState.emit({
-            type: 'chat-output',
-            processId,
-            payload: {
-              processId,
-              slotIndex,
-              entries,
-              questId,
-              workItemId: questWorkItemId,
+
+          let handle = handlesByWorkItem.get(questWorkItemId);
+          if (handle === undefined) {
+            handle = chatStreamProcessHandleBroker({
+              chatProcessId: processId,
+              guildId,
               ...(sessionId === undefined ? {} : { sessionId }),
-            },
-          });
+              onEntries: ({ entries, sessionId: handlerSessionId }) => {
+                orchestrationEventsState.emit({
+                  type: 'chat-output',
+                  processId,
+                  payload: {
+                    processId,
+                    slotIndex,
+                    entries,
+                    questId,
+                    workItemId: questWorkItemId,
+                    ...(handlerSessionId === undefined ? {} : { sessionId: handlerSessionId }),
+                  },
+                });
+              },
+            });
+            handlesByWorkItem.set(questWorkItemId, handle);
+          }
+
+          handle.onLine({ rawLine });
         },
         abortSignal: abortController.signal,
       })
         .then(() => {
+          for (const handle of handlesByWorkItem.values()) {
+            handle.stop();
+          }
+          handlesByWorkItem.clear();
           orchestrationProcessesState.remove({ processId });
         })
         .catch(() => {
+          for (const handle of handlesByWorkItem.values()) {
+            handle.stop();
+          }
+          handlesByWorkItem.clear();
           orchestrationProcessesState.remove({ processId });
         });
 

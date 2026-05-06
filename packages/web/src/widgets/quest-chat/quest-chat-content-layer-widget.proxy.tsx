@@ -8,8 +8,6 @@ import { questNewBrokerProxy } from '../../brokers/quest/new/quest-new-broker.pr
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
-import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
-import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
@@ -38,8 +36,6 @@ export const QuestChatContentLayerWidgetProxy = ({
   questPauseBrokerProxy();
   questResumeBrokerProxy();
   questStartBrokerProxy();
-  AutoScrollContainerWidgetProxy();
-  ChatEntryListWidgetProxy();
   ExecutionPanelWidgetProxy();
   DumpsterRaccoonWidgetProxy();
   QuestApprovedModalWidgetProxy();

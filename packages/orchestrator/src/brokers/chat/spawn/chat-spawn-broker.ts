@@ -1,19 +1,17 @@
 /**
- * PURPOSE: Spawns a Claude CLI chat process for either ChaosWhisperer or Glyphsmith role with event emission for output streaming and lifecycle tracking
+ * PURPOSE: Spawns a Claude CLI chat process for either ChaosWhisperer or Glyphsmith role with event emission for output streaming and lifecycle tracking. The per-line stream is funneled through `chatStreamProcessHandleBroker` so sub-agent convergence (eager toolUseId stamping, source tagging, JSONL tail dispatch) is identical to every other agent spawn pipeline in the orchestrator.
  *
  * USAGE:
- * const { chatProcessId } = await chatSpawnBroker({
+ * const { chatProcessId, handle } = await chatSpawnBroker({
  *   role: 'chaoswhisperer',
  *   guildId: GuildIdStub(),
  *   message: 'Help me build auth',
- *   processor,
- *   onEntries: ({ chatProcessId, entries }) => {},
- *   onAgentDetected: ({ chatProcessId, toolUseId, agentId, sessionId }) => {},
+ *   onEntries: ({ chatProcessId, entries, sessionId }) => {},
  *   onComplete: ({ chatProcessId, exitCode, sessionId }) => {},
  *   onSessionIdExtracted: ({ chatProcessId, sessionId }) => {},
  *   registerProcess: ({ processId, kill }) => {},
  * });
- * // Spawns Claude CLI with role-specific prompt, streams output via callbacks, returns chatProcessId
+ * // `handle` exposes stop() + initialDrains() for chat lifecycle composition.
  */
 
 import type { GuildId, QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
@@ -21,27 +19,23 @@ import {
   filePathContract,
   processIdContract,
   repoRootCwdContract,
-  sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
-import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
-import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import type { ToolUseId } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { isDesignPhaseQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
+import { chatStreamProcessHandleBroker } from '../stream-process-handle/chat-stream-process-handle-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questModifyBroker } from '../../quest/modify/quest-modify-broker';
+import { sessionIdContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 export const chatSpawnBroker = async ({
@@ -50,9 +44,7 @@ export const chatSpawnBroker = async ({
   questId,
   message,
   sessionId,
-  processor,
   onEntries,
-  onAgentDetected,
   onComplete,
   onQuestCreated,
   onDesignSessionLinked,
@@ -64,13 +56,10 @@ export const chatSpawnBroker = async ({
   questId?: QuestId;
   message: string;
   sessionId?: SessionId;
-  processor: ChatLineProcessor;
-  onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
-  onAgentDetected: (params: {
+  onEntries: (params: {
     chatProcessId: ProcessId;
-    toolUseId: ToolUseId;
-    agentId: AgentId;
-    sessionId: SessionId;
+    entries: ChatEntry[];
+    sessionId: SessionId | undefined;
   }) => void;
   // onComplete may return a Promise; chat-spawn-broker fires it without awaiting (the
   // spawn-side teardown is already done at this point). chat-start-responder.onComplete
@@ -85,11 +74,13 @@ export const chatSpawnBroker = async ({
   onDesignSessionLinked?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
   registerProcess: (params: { processId: ProcessId; kill: () => void }) => void;
-}): Promise<{ chatProcessId: ProcessId }> => {
+}): Promise<{
+  chatProcessId: ProcessId;
+  handle: ReturnType<typeof chatStreamProcessHandleBroker>;
+}> => {
   const prefix = role === 'chaoswhisperer' ? 'chat' : 'design';
   const chatProcessId = processIdContract.parse(`${prefix}-${crypto.randomUUID()}`);
   const guild = await guildGetBroker({ guildId });
-  const sessionSource = chatLineSourceContract.parse('session');
 
   let resolvedQuestId: QuestId | null = null;
 
@@ -146,15 +137,15 @@ export const chatSpawnBroker = async ({
     }
   })();
 
-  // Runtime sessionId tracker. The `sessionId` parameter is set ONLY on resume — for a
-  // fresh chat it's undefined until Claude CLI emits its `system/init` line carrying the
-  // newly-allocated session_id. We update this closed-over variable as soon as any stream
-  // line carries `sessionId`, so the `agent-detected` handler below can correlate even on
-  // brand-new chats. Without this update, a `run_in_background` Task launched on the very
-  // first turn of a new chat fires `agent-detected` before `sessionId` is known, the guard
-  // below silently skips `onAgentDetected`, and the sub-agent tail is never started — the
-  // chain renders `(0 entries)` for the entire life of the chat.
-  let runtimeSessionId: SessionId | undefined = sessionId;
+  // The handle owns the per-line processor pipeline: ChatEntry batching, sub-agent
+  // convergence, and JSONL tail dispatch. Created BEFORE agentSpawnUnifiedBroker so the
+  // onLine callback below can forward straight into it.
+  const handle = chatStreamProcessHandleBroker({
+    chatProcessId,
+    guildId,
+    ...(sessionId ? { sessionId } : {}),
+    onEntries,
+  });
 
   const { kill, sessionId$ } = agentSpawnUnifiedBroker({
     prompt,
@@ -162,71 +153,7 @@ export const chatSpawnBroker = async ({
     model: roleToModelTransformer({ role }),
     ...(sessionId ? { resumeSessionId: sessionId } : {}),
     onLine: ({ line }) => {
-      const subagentDebug = process.env.SUBAGENT_DEBUG === '1';
-      if (subagentDebug) {
-        process.stderr.write(`[SUBAGENT-TRACE][STDOUT-RAW] ${line}\n`);
-      }
-      const parsed = claudeLineNormalizeBroker({ rawLine: line });
-
-      // Pick up sessionId synchronously per-line — system/init always arrives first
-      // and carries `sessionId`, so by the time a Task tool_result line appears with
-      // `tool_use_result.agentId`, runtimeSessionId is populated. Sync update avoids
-      // racing the next `line` event before sessionId$ Promise observers have run.
-      if (runtimeSessionId === undefined) {
-        const sidParse = normalizedStreamLineContract.safeParse(parsed);
-        if (sidParse.success) {
-          const sid = sidParse.data.sessionId;
-          if (typeof sid === 'string' && sid.length > 0) {
-            runtimeSessionId = sessionIdContract.parse(sid);
-          }
-        }
-      }
-
-      const outputs = processor.processLine({
-        parsed,
-        source: sessionSource,
-      });
-
-      for (const output of outputs) {
-        if (output.type === 'entries') {
-          onEntries({ chatProcessId, entries: output.entries });
-
-          if (subagentDebug) {
-            for (const entry of output.entries) {
-              const entryRole = entry.role;
-              const entryType = 'type' in entry ? entry.type : 'n/a';
-              const entryToolName = 'toolName' in entry ? entry.toolName : 'n/a';
-              const entryToolUseId = 'toolUseId' in entry ? entry.toolUseId : 'n/a';
-              const entryAgentIdVal = 'agentId' in entry ? entry.agentId : 'n/a';
-              const entrySource = 'source' in entry ? entry.source : 'n/a';
-              process.stderr.write(
-                `[SUBAGENT-TRACE][STDOUT-ENTRY] role=${entryRole} type=${entryType} toolName=${entryToolName} toolUseId=${entryToolUseId} agentId=${entryAgentIdVal} source=${entrySource}\n`,
-              );
-            }
-          }
-        }
-
-        // `agent-detected` is emitted when the processor learns the "real" internal agentId
-        // from tool_use_result.agentId on the parent stream. That's the JSONL-filename key
-        // we need to start `chatSubagentTailBroker`. The wire-level `agentId` on ChatEntries
-        // is kept as `toolUseId` — sub-agent tail lines arrive without `parent_tool_use_id`
-        // but the processor translates them into the same shape via its internal reverse map.
-        if (output.type === 'agent-detected') {
-          if (subagentDebug) {
-            process.stderr.write(
-              `[SUBAGENT-TRACE][STDOUT-AGENT-DETECTED] toolUseId=${String(output.toolUseId)} realAgentId=${String(output.agentId)} sessionId=${String(runtimeSessionId)}\n`,
-            );
-          }
-          if (runtimeSessionId !== undefined) {
-            onAgentDetected({
-              chatProcessId,
-              toolUseId: output.toolUseId,
-              agentId: output.agentId,
-              sessionId: runtimeSessionId,
-            });
-          }
-        }
-      }
+      handle.onLine({ rawLine: line });
     },
     onComplete: ({ exitCode, sessionId: extractedSessionId }) => {
       const finalSessionId = sessionId ?? extractedSessionId;
@@ -283,5 +210,5 @@ export const chatSpawnBroker = async ({
 
   registerProcess({ processId: chatProcessId, kill });
 
-  return { chatProcessId };
+  return { chatProcessId, handle };
 };
