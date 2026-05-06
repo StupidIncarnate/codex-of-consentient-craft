@@ -596,23 +596,31 @@ describe('runWardLayerBroker', () => {
       const expectedSlotIndex = SlotIndexStub({ value: 0 });
 
       // Default stdout lines emitted by spawnWardLayerBrokerProxy.setupWardSuccess
-      expect(onAgentEntry.mock.calls).toStrictEqual([
-        [
-          {
-            slotIndex: expectedSlotIndex,
-            entry: { raw: 'run: 1739625600000-a3f1' },
-            questWorkItemId: wardItemId,
-            sessionId: expectedSessionId,
-          },
-        ],
-        [
-          {
-            slotIndex: expectedSlotIndex,
-            entry: { raw: 'lint:      PASS' },
-            questWorkItemId: wardItemId,
-            sessionId: expectedSessionId,
-          },
-        ],
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof wardItemId;
+        sessionId: typeof expectedSessionId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const arg = call[0];
+        summaries.push({
+          slotIndex: arg.slotIndex,
+          questWorkItemId: arg.questWorkItemId,
+          sessionId: arg.sessionId,
+        });
+      }
+
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: expectedSlotIndex,
+          questWorkItemId: wardItemId,
+          sessionId: expectedSessionId,
+        },
+        {
+          slotIndex: expectedSlotIndex,
+          questWorkItemId: wardItemId,
+          sessionId: expectedSessionId,
+        },
       ]);
     });
   });

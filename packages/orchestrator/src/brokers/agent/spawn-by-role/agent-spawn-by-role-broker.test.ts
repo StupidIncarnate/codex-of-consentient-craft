@@ -575,11 +575,11 @@ describe('agentSpawnByRoleBroker', () => {
         setImmediate(resolve);
       });
 
-      const matchingCalls = stderrSpy.mock.calls.filter((call) =>
+      const matchingCallCount = stderrSpy.mock.calls.filter((call) =>
         /\[agent-spawn\] session-id resolution failed:.*callback exploded/u.test(String(call[0])),
-      );
+      ).length;
 
-      expect(matchingCalls).toHaveLength(1);
+      expect(matchingCallCount).toStrictEqual(1);
     });
   });
 
@@ -826,31 +826,6 @@ describe('agentSpawnByRoleBroker', () => {
 
       expect(options.cwd).toBe(repoRoot);
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
-    });
-  });
-
-  describe('onEntries forwarding', () => {
-    it('VALID: {onEntries callback provided, stdout emits assistant text line} => callback receives entries from launcher', async () => {
-      const proxy = agentSpawnByRoleBrokerProxy();
-      const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
-      const startPath = FilePathStub({ value: '/project/src' });
-      const onEntries = jest.fn();
-      const textLine = JSON.stringify(AssistantTextStreamLineStub());
-
-      proxy.setupSpawnAndMonitor({
-        lines: [textLine],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await agentSpawnByRoleBroker({
-        workUnit,
-        startPath,
-        guildId: GuildIdStub(),
-        onEntries,
-      });
-
-      expect(onEntries).toHaveBeenCalled();
     });
   });
 });

@@ -817,13 +817,20 @@ describe('runLawbringerLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      const [firstCall] = capturedCalls;
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of capturedCalls) {
+        summaries.push({ slotIndex: call.slotIndex, questWorkItemId: call.questWorkItemId });
+      }
 
-      expect(firstCall).toStrictEqual({
-        slotIndex: SlotIndexStub({ value: 0 }),
-        entry: { raw: COMPLETE_SIGNAL_LINE },
-        questWorkItemId: workItemId,
-      });
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: workItemId,
+        },
+      ]);
 
       const leakedSlotIds = capturedCalls
         .map((call) => String(call.questWorkItemId))

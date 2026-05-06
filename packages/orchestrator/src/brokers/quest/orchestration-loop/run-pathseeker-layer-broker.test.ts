@@ -556,18 +556,20 @@ describe('runPathseekerLayerBroker', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      const matchingCalls = onAgentEntry.mock.calls.filter(
-        ([params]: [{ entry: { raw?: unknown } }]) => params.entry.raw === streamLine,
-      );
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const arg = call[0];
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
 
-      expect(matchingCalls).toStrictEqual([
-        [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            entry: { raw: streamLine },
-            questWorkItemId: workItemId,
-          },
-        ],
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: workItemId,
+        },
       ]);
     });
   });

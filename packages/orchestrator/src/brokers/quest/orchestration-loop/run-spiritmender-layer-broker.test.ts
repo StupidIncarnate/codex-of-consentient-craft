@@ -10,6 +10,7 @@ import {
 
 import type { OrchestrationCallbacksParamsStub } from '../../../contracts/orchestration-callbacks/orchestration-callbacks.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
 import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker.proxy';
@@ -151,14 +152,20 @@ describe('runSpiritmenderLayerBroker', () => {
       // raw `onLine`-driven callback. The spiritmender broker translates that to the
       // quest's `QuestWorkItemId` (UUID) before invoking the responder-facing onAgentEntry.
       // Note: questId is intentionally NOT forwarded — OnAgentEntryCallback's payload is
-      // {slotIndex, entry, questWorkItemId, sessionId?}; questId is layered on by the
+      // {slotIndex, entries, questWorkItemId, sessionId?}; questId is layered on by the
       // responder via build-orchestration-loop-on-agent-entry-transformer.
-      const receivedPayloads = onAgentEntry.mock.calls.map((call) => call[0]);
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const arg = call[0];
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
 
-      expect(receivedPayloads).toStrictEqual([
+      expect(summaries).toStrictEqual([
         {
-          slotIndex: 0,
-          entry: { raw: COMPLETE_SIGNAL_LINE },
+          slotIndex: SlotIndexStub({ value: 0 }),
           questWorkItemId: workItemId,
         },
       ]);

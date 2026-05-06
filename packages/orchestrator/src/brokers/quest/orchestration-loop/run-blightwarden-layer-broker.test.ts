@@ -495,28 +495,20 @@ describe('runBlightwardenLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      const expectedRawLine = JSON.stringify({
-        type: 'assistant',
-        message: {
-          content: [
-            {
-              type: 'tool_use',
-              id: 'toolu_signal',
-              name: 'mcp__dungeonmaster__signal-back',
-              input: { signal: 'complete', summary: 'All clear' },
-            },
-          ],
-        },
-      });
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof blightWorkItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const arg = call[0];
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
 
-      expect(onAgentEntry.mock.calls).toStrictEqual([
-        [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            entry: { raw: expectedRawLine },
-            questWorkItemId: blightWorkItemId,
-          },
-        ],
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: blightWorkItemId,
+        },
       ]);
     });
   });

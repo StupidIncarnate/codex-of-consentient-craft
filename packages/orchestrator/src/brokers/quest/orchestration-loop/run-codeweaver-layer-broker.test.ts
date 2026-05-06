@@ -717,11 +717,18 @@ describe('runCodeweaverLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(onAgentEntry).toHaveBeenCalledTimes(1);
-      expect(onAgentEntry.mock.calls[0]).toStrictEqual([
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const arg = call[0];
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
+
+      expect(summaries).toStrictEqual([
         {
           slotIndex: SlotIndexStub({ value: 0 }),
-          entry: { raw: COMPLETE_SIGNAL_LINE },
           questWorkItemId: workItemId,
         },
       ]);

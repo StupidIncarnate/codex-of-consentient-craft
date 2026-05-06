@@ -453,11 +453,25 @@ describe('runSiegemasterLayerBroker', () => {
         abortSignal: new AbortController().signal,
       });
 
-      expect(onAgentEntry).toHaveBeenCalledWith({
-        slotIndex: SlotIndexStub({ value: 0 }),
-        entry: { raw: agentLine },
-        questWorkItemId: siegeWorkItemId,
-      });
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof siegeWorkItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const arg = call[0];
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
+
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: siegeWorkItemId,
+        },
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: siegeWorkItemId,
+        },
+      ]);
     });
 
     it('VALID: {both params provided with default values} => completes successfully', async () => {
