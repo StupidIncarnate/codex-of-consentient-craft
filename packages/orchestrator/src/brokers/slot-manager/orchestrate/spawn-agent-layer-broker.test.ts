@@ -2,6 +2,7 @@ import {
   DependencyStepStub,
   ExitCodeStub,
   FilePathStub,
+  GuildIdStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -27,6 +28,7 @@ describe('spawnAgentLayerBroker', () => {
       const result = await spawnAgentLayerBroker({
         workUnit,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
       });
 
       expect(result).toStrictEqual({
@@ -56,6 +58,7 @@ describe('spawnAgentLayerBroker', () => {
       const result = await spawnAgentLayerBroker({
         workUnit,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         continuationContext,
       });
 
@@ -86,6 +89,7 @@ describe('spawnAgentLayerBroker', () => {
       const result = await spawnAgentLayerBroker({
         workUnit,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         resumeSessionId,
       });
 
@@ -112,6 +116,7 @@ describe('spawnAgentLayerBroker', () => {
       const result = await spawnAgentLayerBroker({
         workUnit,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
       });
 
       expect(result).toStrictEqual({

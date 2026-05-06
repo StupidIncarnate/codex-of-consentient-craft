@@ -1,14 +1,14 @@
 /**
- * PURPOSE: Manages state for tracking all running processes (orchestration and chat) by processId
+ * PURPOSE: Manages state for tracking all running processes (orchestration and chat) by processId. Two registration shapes coexist: quest-level loop dispatchers (no `questWorkItemId`) found via `findByQuestId`, and per-agent launcher entries (with `questWorkItemId`) found via `findByQuestWorkItemId` for future per-agent message-injection.
  *
  * USAGE:
  * orchestrationProcessesState.register({orchestrationProcess});
  * orchestrationProcessesState.kill({processId});
  * orchestrationProcessesState.killAll();
- * // Unified process registry for lifecycle management and cleanup
+ * orchestrationProcessesState.findByQuestWorkItemId({questWorkItemId});
  */
 
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 
 import type { OrchestrationProcess } from '../../contracts/orchestration-process/orchestration-process-contract';
 
@@ -27,6 +27,19 @@ export const orchestrationProcessesState = {
   findByQuestId: ({ questId }: { questId: QuestId }): OrchestrationProcess | undefined => {
     for (const process of state.processes.values()) {
       if (process.questId === questId) {
+        return process;
+      }
+    }
+    return undefined;
+  },
+
+  findByQuestWorkItemId: ({
+    questWorkItemId,
+  }: {
+    questWorkItemId: QuestWorkItemId;
+  }): OrchestrationProcess | undefined => {
+    for (const process of state.processes.values()) {
+      if (process.questWorkItemId === questWorkItemId) {
         return process;
       }
     }

@@ -8,7 +8,7 @@
  * // Returns { success: false } if all attempts are exhausted.
  */
 
-import { errorMessageContract, type FilePath } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, type FilePath, type GuildId } from '@dungeonmaster/shared/contracts';
 
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
 import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
@@ -20,6 +20,7 @@ export const buildPreflightLoopLayerBroker = async ({
   buildCommand,
   cwd,
   startPath,
+  guildId,
   abortSignal,
   attempt,
   maxAttempts,
@@ -27,6 +28,7 @@ export const buildPreflightLoopLayerBroker = async ({
   buildCommand: string;
   cwd: AbsoluteFilePath;
   startPath: FilePath;
+  guildId: GuildId;
   abortSignal: AbortSignal;
   attempt: number;
   maxAttempts: number;
@@ -59,6 +61,7 @@ export const buildPreflightLoopLayerBroker = async ({
   await agentSpawnByRoleBroker({
     workUnit: spiritmenderWorkUnit,
     startPath,
+    guildId,
     abortSignal,
   });
 
@@ -66,6 +69,7 @@ export const buildPreflightLoopLayerBroker = async ({
     buildCommand,
     cwd,
     startPath,
+    guildId,
     abortSignal,
     attempt: nextAttempt,
     maxAttempts,

@@ -2,6 +2,7 @@ import {
   DesignDecisionStub,
   ExitCodeStub,
   FilePathStub,
+  GuildIdStub,
   PlanningScopeClassificationStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -42,6 +43,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -80,6 +82,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -124,6 +127,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -163,6 +167,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -219,6 +224,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -254,6 +260,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -307,6 +314,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -356,6 +364,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -385,6 +394,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -404,6 +414,7 @@ describe('runBlightwardenLayerBroker', () => {
           questId: 'nonexistent' as never,
           workItem,
           startPath: '/some/path' as never,
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
@@ -441,6 +452,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -478,6 +490,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
       });
@@ -534,6 +547,7 @@ describe('runBlightwardenLayerBroker', () => {
         questId,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
       });

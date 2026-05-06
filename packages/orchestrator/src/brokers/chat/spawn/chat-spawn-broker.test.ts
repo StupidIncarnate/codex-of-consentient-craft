@@ -56,6 +56,8 @@ describe('chatSpawnBroker', () => {
 
       expect(registerArg).toStrictEqual({
         processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
     });
@@ -67,12 +69,14 @@ describe('chatSpawnBroker', () => {
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'existing-session-123' });
+      const questId = QuestIdStub({ value: 'existing-quest-resume' });
 
-      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), questId });
 
       const result = await chatSpawnBroker({
         role,
         guildId,
+        questId,
         message: 'Continue working',
         sessionId,
         onEntries: jest.fn(),
@@ -118,13 +122,15 @@ describe('chatSpawnBroker', () => {
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'resume-session-789' });
+      const questId = QuestIdStub({ value: 'existing-quest-resume-completion' });
       const onComplete = jest.fn();
 
-      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), questId });
 
       const { chatProcessId } = await chatSpawnBroker({
         role,
         guildId,
+        questId,
         message: 'Continue working',
         sessionId,
         onEntries: jest.fn(),
@@ -182,13 +188,15 @@ describe('chatSpawnBroker', () => {
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'existing-session-999' });
+      const questId = QuestIdStub({ value: 'existing-quest-resume-no-create' });
       const onQuestCreated = jest.fn();
 
-      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupResumeSession({ exitCode: ExitCodeStub({ value: 0 }), questId });
 
       await chatSpawnBroker({
         role,
         guildId,
+        questId,
         message: 'Continue working',
         sessionId,
         onEntries: jest.fn(),
@@ -472,17 +480,20 @@ describe('chatSpawnBroker', () => {
       const guildId = GuildIdStub();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
       const sessionId = SessionIdStub({ value: 'resumed-session-xyz' });
+      const questId = QuestIdStub({ value: 'existing-quest-resume-no-extract' });
       const onSessionIdExtracted = jest.fn();
       const sessionLine = JSON.stringify({ session_id: 'extracted-session-should-ignore' });
 
       proxy.setupResumeSession({
         exitCode: ExitCodeStub({ value: 0 }),
         stdoutLines: [sessionLine],
+        questId,
       });
 
       await chatSpawnBroker({
         role,
         guildId,
+        questId,
         message: 'Continue working',
         sessionId,
         onEntries: jest.fn(),
@@ -679,6 +690,8 @@ describe('chatSpawnBroker', () => {
 
       expect(registerArg).toStrictEqual({
         processId: 'design-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questId: 'design-quest',
+        questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         kill: expect.any(Function),
       });
     });

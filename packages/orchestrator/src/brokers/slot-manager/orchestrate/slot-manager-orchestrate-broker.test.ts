@@ -1,4 +1,4 @@
-import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
@@ -24,6 +24,7 @@ describe('slotManagerOrchestrateBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub({ value: 3 }),
 
         slotOperations: SlotOperationsStub(),
@@ -47,6 +48,7 @@ describe('slotManagerOrchestrateBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub({ value: 3 }),
 
         slotOperations: SlotOperationsStub(),
@@ -76,6 +78,7 @@ describe('slotManagerOrchestrateBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub({ value: 3 }),
 
         slotOperations,
@@ -100,6 +103,7 @@ describe('slotManagerOrchestrateBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         workTracker,
         startPath,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub({ value: 3 }),
 
         slotOperations: SlotOperationsStub(),

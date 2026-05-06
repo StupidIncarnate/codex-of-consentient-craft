@@ -302,116 +302,14 @@ describe('ChatStartResponder', () => {
     });
   });
 
-  describe('main-session-tail on completion', () => {
-    it('VALID: {sessionId supplied, onComplete fires} => starts main-session-tail that emits task-notification entries appended post-exit', async () => {
-      const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const sessionId = SessionIdStub({ value: 'session-post-exit' });
-      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
-
-      proxy.setupResumeSession({ exitCode });
-      proxy.setupPendingEmpty();
-      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
-      proxy.setupMainTailLines({
-        lines: [
-          JSON.stringify({
-            type: 'user',
-            uuid: 'post-exit-task-line-uuid',
-            timestamp: '2025-01-01T00:00:00.000Z',
-            message: {
-              role: 'user',
-              content:
-                '<task-notification><task-id>bg-task-1</task-id><status>completed</status><summary>BG done</summary><result>ok</result></task-notification>',
-            },
-          }),
-        ],
-      });
-
-      const capture = proxy.setupEventCapture();
-
-      await proxy.callResponder({
-        guildId,
-        message: 'Resume chat for post-exit tail',
-        sessionId,
-      });
-
-      await flushAsync();
-
-      proxy.triggerMainTailChange();
-      await flushAsync();
-
-      const events = capture.getEmittedEvents();
-      const chatOutputs = events.filter((event) => event.type === 'chat-output');
-
-      expect(chatOutputs).toStrictEqual([
-        {
-          type: 'chat-output',
-          processId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          payload: {
-            chatProcessId: 'chat-f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            entries: [
-              {
-                role: 'system',
-                type: 'task_notification',
-                taskId: 'bg-task-1',
-                status: 'completed',
-                summary: 'BG done',
-                result: 'ok',
-                source: 'session',
-                uuid: 'post-exit-task-line-uuid:task-notification',
-                timestamp: '2025-01-01T00:00:00.000Z',
-              },
-            ],
-          },
-        },
-      ]);
-    });
-
-    it('EMPTY: {no sessionId available at onComplete} => main-session-tail is NOT started and triggering emits nothing', async () => {
-      const proxy = ChatStartResponderProxy();
-      const exitCode = ExitCodeStub({ value: 0 });
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const guild = GuildStub({ id: guildId, path: '/home/testuser/my-project' });
-      const config = GuildConfigStub({ guilds: [guild] });
-
-      proxy.setupNewSession({ exitCode });
-      proxy.setupMainTailGuild({ config, homeDir: '/home/testuser' });
-      proxy.setupMainTailLines({
-        lines: [
-          JSON.stringify({
-            type: 'user',
-            message: {
-              role: 'user',
-              content:
-                '<task-notification><task-id>bg-2</task-id><status>completed</status><summary>x</summary><result>y</result></task-notification>',
-            },
-          }),
-        ],
-      });
-
-      const capture = proxy.setupEventCapture();
-
-      await proxy.callResponder({
-        guildId,
-        message: 'Fresh chat without session',
-      });
-
-      await flushAsync();
-
-      proxy.triggerMainTailChange();
-      await flushAsync();
-
-      const events = capture.getEmittedEvents();
-      const chatOutputs = events.filter((event) => event.type === 'chat-output');
-
-      expect(chatOutputs).toStrictEqual([]);
-    });
-  });
-
   describe('chat-session-started event', () => {
     it('VALID: {new session, sessionId extracted, workItemId lookup resolves} => emits chat-session-started with questId+workItemId BEFORE chat-complete', async () => {
+      // Drain any pending setImmediate cycles leaked from prior tests that didn't await
+      // their own spawn → onComplete chain. Orphan callbacks fire against the post-
+      // beforeEach reset mocks (no active impl), failing silently — they can't pollute
+      // this test's event capture, which is set up only after the proxy below.
+      await flushAsync();
+
       const proxy = ChatStartResponderProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });

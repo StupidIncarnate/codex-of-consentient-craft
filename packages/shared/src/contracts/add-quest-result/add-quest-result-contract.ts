@@ -7,12 +7,15 @@
  */
 import { z } from 'zod';
 
+import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
+
 export const addQuestResultContract = z
   .object({
     success: z.boolean(),
     questId: z.string().brand<'QuestId'>().optional(),
     questFolder: z.string().brand<'QuestFolder'>().optional(),
     filePath: z.string().brand<'FilePath'>().optional(),
+    chaoswhispererWorkItemId: questWorkItemIdContract.optional(),
     error: z.string().brand<'ErrorMessage'>().optional(),
   })
   .brand<'AddQuestResult'>();

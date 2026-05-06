@@ -6,7 +6,7 @@
  * // Creates chaos work item, kicks orchestration loop with userMessage
  */
 
-import { getQuestInputContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntry,
   GuildId,
@@ -16,7 +16,6 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 
-import { chatMainSessionTailBroker } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker';
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -66,9 +65,18 @@ export const ChatStartResponder = async ({
           `[CLARIFICATION-DEBUG] resumed session: found linked questId=${chatQuestId}\n`,
         );
 
-        const runningProcess = orchestrationProcessesState.findByQuestId({
-          questId: chatQuestId,
-        });
+        // Kill any prior chat process for this work item so its post-exit main-session
+        // tail stops watching the JSONL before the new turn writes to it. Prefer
+        // `findByQuestWorkItemId` (matches the launcher's per-work-item registration)
+        // and fall back to `findByQuestId` for processes registered without a work item
+        // id (e.g. quest-level loop dispatchers, or the orchestration-start-responder's
+        // synthetic placeholder).
+        const runningProcess =
+          chatWorkItemId === null
+            ? orchestrationProcessesState.findByQuestId({ questId: chatQuestId })
+            : (orchestrationProcessesState.findByQuestWorkItemId({
+                questWorkItemId: chatWorkItemId,
+              }) ?? orchestrationProcessesState.findByQuestId({ questId: chatQuestId }));
         if (runningProcess) {
           orchestrationProcessesState.kill({ processId: runningProcess.processId });
         }
@@ -95,27 +103,24 @@ export const ChatStartResponder = async ({
     questions: ClarificationQuestion[];
   }[] = [];
 
-  // Post-exit tail handle for the MAIN session JSONL. Populated on `onComplete` when we
-  // have a session ID — catches background-agent task-notifications appended after stdout
-  // closes (Claude CLI writes them async). Stopped when the session's process is killed.
-  let mainTailStopHandle: (() => void) | null = null;
   // Forward-declared via a ref so the chatSpawnBroker callbacks below (defined inside
-  // the call) can reach the per-spawn stream handle's processor / stop / initialDrains.
+  // the call) can reach the per-spawn stream handle's `initialDrains()` from onComplete.
   // The ref is mutated immediately after the await resolves; the callbacks always fire
-  // later than that. Using a ref instead of a plain `let` keeps prefer-const + init-
-  // declarations linters happy without weakening the runtime guarantees.
+  // later than that. The post-exit main-session tail and its teardown live inside
+  // `agentLaunchBroker` (started in its spawn-onComplete after CLI exit, stopped via the
+  // composed kill it returns through registerProcess).
   type StreamHandle = Awaited<ReturnType<typeof chatSpawnBroker>>['handle'];
   const streamHandleRef: { current: StreamHandle | null } = { current: null };
-  // Sub-agent tails for `run_in_background` Tasks must keep delivering entries past parent
-  // CLI exit — Claude CLI writes the agent's JSONL while the parent is asleep. Tails are
-  // owned by `chatStreamProcessHandleBroker`'s handle (see `chat-spawn-broker`'s return);
-  // stopping them is composed into the kill handlers below.
 
   const spawnResult = await chatSpawnBroker({
     role: workItemRoleContract.parse('chaoswhisperer'),
     guildId,
     message,
     ...(sessionId && { sessionId }),
+    // chatQuestId was resolved above via questListBroker when resuming. Required by
+    // resolveChatQuestLayerBroker when sessionId is present so the resume path can
+    // look up the chaoswhisperer work item for addressability.
+    ...(chatQuestId !== null && { questId: chatQuestId }),
     onQuestCreated: ({ questId, chatProcessId }) => {
       chatQuestId = questId;
       // Resolve the chaoswhisperer work item id created by questUserAddBroker, then flush
@@ -293,10 +298,11 @@ export const ChatStartResponder = async ({
       // content drain to deliver via onEntries before chat-complete fires. Without this,
       // the synthetic-emit drain's queued readline 'line' events would race chat-complete
       // on the wire — clients could see chat-complete before the sub-agent's already-on-
-      // disk lines arrive. The tails are NOT stopped here — for `run_in_background` Tasks
-      // the parent CLI exits while Claude CLI is still writing the agent's JSONL. The
-      // watchers stay alive past chat-complete and are torn down via the chat-process
-      // kill below.
+      // disk lines arrive. The post-exit main-session tail (started by `agentLaunchBroker`
+      // in its onComplete) keeps watching the JSONL past chat-complete to catch
+      // background-agent task-notifications Claude CLI appends after exit; the launcher's
+      // composed kill (registered via the registerProcess callback below) is the eventual
+      // stopper.
       if (streamHandleRef.current !== null) {
         await streamHandleRef.current.initialDrains();
       }
@@ -309,83 +315,12 @@ export const ChatStartResponder = async ({
         process.stderr.write(
           `[CLARIFICATION-DEBUG] onComplete: promoteToSession processId=${chatProcessId} → sessionId=${sid}, promoted=${promoted}\n`,
         );
-
-        // Start tailing the main session JSONL. Claude CLI appends background-agent
-        // task-notifications after stdout closes, and those lines only reach the web via
-        // this tail. Uses the SAME processor instance as stdout so agentId correlation
-        // state carries forward seamlessly.
-        if (streamHandleRef.current === null) {
-          process.stderr.write(
-            `[chat-start] streamHandle missing in onComplete; skipping main-session tail\n`,
-          );
-          orchestrationProcessesState.remove({ processId: chatProcessId });
-          orchestrationEventsState.emit({
-            type: 'chat-complete',
-            processId: chatProcessId,
-            payload: {
-              chatProcessId,
-              exitCode,
-              sessionId: sid,
-              ...(chatQuestId === null ? {} : { questId: chatQuestId }),
-              ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
-            },
-          });
-          return;
-        }
-        const handleProcessor = streamHandleRef.current.processor;
-        chatMainSessionTailBroker({
-          sessionId: sid,
-          guildId,
-          processor: handleProcessor,
-          chatProcessId,
-          onEntries: ({ chatProcessId: cpid, entries }) => {
-            orchestrationEventsState.emit({
-              type: 'chat-output',
-              processId: cpid,
-              payload: {
-                chatProcessId: cpid,
-                entries,
-                ...(chatQuestId === null ? {} : { questId: chatQuestId }),
-                ...(chatWorkItemId === null ? {} : { workItemId: chatWorkItemId }),
-              },
-            });
-          },
-        })
-          .then((stop) => {
-            mainTailStopHandle = stop;
-            // Re-register the process with the post-exit teardown surface: the main-session
-            // tail AND any still-alive sub-agent tails. The CLI process has already exited;
-            // we keep the registry entry so any subsequent chat on the same quest (e.g. a
-            // second user message via --resume) can find and kill these tails before
-            // starting. Without this, the tails keep running and pick up JSONL lines
-            // written by the new chat process, causing duplicate chat-output events on
-            // the client. Sub-agent tails specifically must survive parent-CLI exit so
-            // `run_in_background` agents can continue delivering streamed entries — see
-            // the lifecycle comment near `subagentHandles`.
-            orchestrationProcessesState.register({
-              orchestrationProcess: {
-                processId: chatProcessId,
-                questId: chatQuestId ?? questIdContract.parse(`chat-${chatProcessId}`),
-                kill: () => {
-                  stop();
-                  mainTailStopHandle = null;
-                  streamHandleRef.current?.stop();
-                },
-              },
-            });
-          })
-          .catch((error: unknown) => {
-            process.stderr.write(
-              `chatMainSessionTailBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
-            );
-          });
       } else {
         process.stderr.write(
           `[CLARIFICATION-DEBUG] onComplete: NO sessionId available, skipping promoteToSession\n`,
         );
       }
 
-      orchestrationProcessesState.remove({ processId: chatProcessId });
       orchestrationEventsState.emit({
         type: 'chat-complete',
         processId: chatProcessId,
@@ -398,26 +333,24 @@ export const ChatStartResponder = async ({
         },
       });
     },
-    registerProcess: ({ processId, kill }) => {
-      // Compose the CLI kill with the file-watcher teardown. When the session is torn
-      // down (user navigates away, chat-stop, etc.), the CLI process, the post-exit main
-      // tail, AND every sub-agent tail are cleaned up together. Sub-agent tails are
-      // included here because they outlive parent CLI exit (see the lifecycle comment
-      // near `subagentHandles`) — without this stop, a `run_in_background` agent's
-      // watcher would leak past chat teardown and start delivering entries to a stale
-      // chat process.
+    registerProcess: ({ processId, questId: launcherQuestId, questWorkItemId, kill }) => {
+      // Forward the launcher's composed kill (CLI spawn + handle stop + post-exit tail
+      // stop) to the process registry. The launcher's questId+questWorkItemId are the
+      // authoritative identity (resolved by `resolveChatQuestLayerBroker` and passed
+      // synchronously into the launcher's registerProcess) — using them here means the
+      // next turn's resume path's `findByQuestWorkItemId` can locate this process and
+      // stop its lingering tail before the new turn writes to the same JSONL, even
+      // though `chatQuestId`/`chatWorkItemId` in this responder's closure may not yet
+      // be set (the `onQuestCreated`/`questGetBroker.then` chain runs AFTER the
+      // synchronous launcher setup). Closure variables stay null here so the chat-
+      // output buffer's race-prevention semantics keep working — early emits buffer
+      // until `onQuestCreated` populates the closure.
       orchestrationProcessesState.register({
         orchestrationProcess: {
           processId,
-          questId: chatQuestId ?? questIdContract.parse(`chat-${processId}`),
-          kill: () => {
-            kill();
-            if (mainTailStopHandle !== null) {
-              mainTailStopHandle();
-              mainTailStopHandle = null;
-            }
-            streamHandleRef.current?.stop();
-          },
+          questId: launcherQuestId,
+          questWorkItemId,
+          kill,
         },
       });
     },

@@ -1,6 +1,7 @@
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
+  AssistantToolUseStreamLineStub,
   GuildConfigStub,
   GuildIdStub,
   GuildStub,
@@ -42,6 +43,8 @@ describe('chatStreamProcessHandleBroker', () => {
         onEntries: ({ chatProcessId: cpid, entries, sessionId: sid }) => {
           calls.push({ chatProcessId: cpid, entries, sessionId: sid });
         },
+        onText: () => {},
+        onSignal: () => {},
       });
 
       handle.onLine({ rawLine: 'lint @dungeonmaster/shared PASS  42 files' });
@@ -76,6 +79,8 @@ describe('chatStreamProcessHandleBroker', () => {
         onEntries: (params) => {
           calls.push(params);
         },
+        onText: () => {},
+        onSignal: () => {},
       });
 
       handle.onLine({ rawLine: '' });
@@ -101,6 +106,8 @@ describe('chatStreamProcessHandleBroker', () => {
         onEntries: (params) => {
           calls.push(params);
         },
+        onText: () => {},
+        onSignal: () => {},
       });
 
       handle.onLine({
@@ -149,6 +156,8 @@ describe('chatStreamProcessHandleBroker', () => {
         onEntries: ({ sessionId: sid, entries }) => {
           calls.push({ sessionId: sid, entryCount: entries.length });
         },
+        onText: () => {},
+        onSignal: () => {},
       });
 
       handle.onLine({
@@ -215,6 +224,8 @@ describe('chatStreamProcessHandleBroker', () => {
         onEntries: ({ entries }) => {
           allEntries.push(...entries);
         },
+        onText: () => {},
+        onSignal: () => {},
       });
 
       handle.onLine({
@@ -337,6 +348,8 @@ describe('chatStreamProcessHandleBroker', () => {
         onEntries: ({ entries }) => {
           allCapturedEntries.push(...entries);
         },
+        onText: () => {},
+        onSignal: () => {},
       });
 
       handle.onLine({
@@ -419,6 +432,240 @@ describe('chatStreamProcessHandleBroker', () => {
       await flushImmediate();
 
       expect(allCapturedEntries).toStrictEqual(snapshotBeforeStop);
+    });
+  });
+
+  describe('onText callback', () => {
+    it('VALID: {plain-text fallback line} => onText fires once with rawLine wrapped as StreamText', () => {
+      const proxy = chatStreamProcessHandleBrokerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      proxy.setupTimestamps({ timestamps: [TS] });
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-text-fallback' });
+
+      const textCalls: unknown[] = [];
+      const signalCalls: unknown[] = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        onEntries: () => {},
+        onText: ({ chatProcessId: cpid, text }) => {
+          textCalls.push({ chatProcessId: cpid, text });
+        },
+        onSignal: (params) => {
+          signalCalls.push(params);
+        },
+      });
+
+      handle.onLine({ rawLine: 'lint @dungeonmaster/shared PASS  42 files' });
+
+      expect(textCalls).toStrictEqual([
+        {
+          chatProcessId: 'proc-text-fallback',
+          text: 'lint @dungeonmaster/shared PASS  42 files',
+        },
+      ]);
+      expect(signalCalls).toStrictEqual([]);
+    });
+
+    it('VALID: {assistant text JSON line} => onText fires once with extracted text', () => {
+      chatStreamProcessHandleBrokerProxy();
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-text-json' });
+
+      const textCalls: unknown[] = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        onEntries: () => {},
+        onText: ({ chatProcessId: cpid, text }) => {
+          textCalls.push({ chatProcessId: cpid, text });
+        },
+        onSignal: () => {},
+      });
+
+      handle.onLine({
+        rawLine: streamLineToJsonLineTransformer({
+          streamLine: {
+            ...AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [{ type: 'text', text: 'Hello there' }],
+              },
+            }),
+            uuid: 'line-uuid-text-fire',
+            timestamp: '2025-01-01T00:00:00Z',
+          },
+        }),
+      });
+
+      expect(textCalls).toStrictEqual([
+        {
+          chatProcessId: 'proc-text-json',
+          text: 'Hello there',
+        },
+      ]);
+    });
+
+    it('EMPTY: {assistant tool_use JSON line with no text content} => onText does not fire', () => {
+      chatStreamProcessHandleBrokerProxy();
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-text-no-fire' });
+
+      const textCalls: unknown[] = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        onEntries: () => {},
+        onText: (params) => {
+          textCalls.push(params);
+        },
+        onSignal: () => {},
+      });
+
+      handle.onLine({
+        rawLine: streamLineToJsonLineTransformer({
+          streamLine: {
+            ...AssistantToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: 'toolu_01nofire',
+                    name: 'Bash',
+                    input: { command: 'ls' },
+                  },
+                ],
+              },
+            }),
+            uuid: 'line-uuid-no-text',
+            timestamp: '2025-01-01T00:00:00Z',
+          },
+        }),
+      });
+
+      expect(textCalls).toStrictEqual([]);
+    });
+  });
+
+  describe('onSignal callback', () => {
+    it('VALID: {assistant signal-back tool_use line} => onSignal fires once with parsed StreamSignal', () => {
+      chatStreamProcessHandleBrokerProxy();
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-signal' });
+
+      const signalCalls: unknown[] = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        onEntries: () => {},
+        onText: () => {},
+        onSignal: ({ chatProcessId: cpid, signal }) => {
+          signalCalls.push({ chatProcessId: cpid, signal });
+        },
+      });
+
+      handle.onLine({
+        rawLine: streamLineToJsonLineTransformer({
+          streamLine: {
+            ...AssistantToolUseStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [
+                  {
+                    type: 'tool_use',
+                    id: 'toolu_01signalback',
+                    name: 'mcp__dungeonmaster__signal-back',
+                    input: { signal: 'complete', summary: 'Quest plan ready' },
+                  },
+                ],
+              },
+            }),
+            uuid: 'line-uuid-signal',
+            timestamp: '2025-01-01T00:00:00Z',
+          },
+        }),
+      });
+
+      expect(signalCalls).toStrictEqual([
+        {
+          chatProcessId: 'proc-signal',
+          signal: {
+            signal: 'complete',
+            summary: 'Quest plan ready',
+          },
+        },
+      ]);
+    });
+
+    it('EMPTY: {assistant text JSON line} => onSignal does not fire', () => {
+      chatStreamProcessHandleBrokerProxy();
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-no-signal' });
+
+      const signalCalls: unknown[] = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        onEntries: () => {},
+        onText: () => {},
+        onSignal: (params) => {
+          signalCalls.push(params);
+        },
+      });
+
+      handle.onLine({
+        rawLine: streamLineToJsonLineTransformer({
+          streamLine: {
+            ...AssistantTextStreamLineStub({
+              message: {
+                role: 'assistant',
+                content: [{ type: 'text', text: 'No signal here' }],
+              },
+            }),
+            uuid: 'line-uuid-no-signal',
+            timestamp: '2025-01-01T00:00:00Z',
+          },
+        }),
+      });
+
+      expect(signalCalls).toStrictEqual([]);
+    });
+
+    it('EMPTY: {plain-text fallback line} => onSignal does not fire', () => {
+      const proxy = chatStreamProcessHandleBrokerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      proxy.setupTimestamps({ timestamps: [TS] });
+
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-fallback-no-signal' });
+
+      const signalCalls: unknown[] = [];
+
+      const handle = chatStreamProcessHandleBroker({
+        chatProcessId,
+        guildId,
+        onEntries: () => {},
+        onText: () => {},
+        onSignal: (params) => {
+          signalCalls.push(params);
+        },
+      });
+
+      handle.onLine({ rawLine: 'plain ward output line' });
+
+      expect(signalCalls).toStrictEqual([]);
     });
   });
 });

@@ -17,9 +17,9 @@ import {
   getQuestInputContract,
   type AdapterResult,
   type FilePath,
+  type GuildId,
   type ModifyQuestInput,
   type QuestId,
-  type SessionId,
   type WorkItem,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
@@ -36,12 +36,14 @@ export const runBlightwardenLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  guildId,
   onAgentEntry,
   abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<AdapterResult> => {
@@ -66,22 +68,21 @@ export const runBlightwardenLayerBroker = async ({
   });
 
   const slotIndex = slotIndexContract.parse(0);
-  let trackedSessionId: SessionId | null = null;
 
   const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
     startPath,
+    guildId,
     abortSignal,
-    onLine: ({ line }: { line: string }) => {
+    onEntries: ({ entries, sessionId }) => {
       onAgentEntry({
         slotIndex,
-        entry: { raw: line },
+        entries,
         questWorkItemId: workItem.id,
-        ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+        ...(sessionId === undefined ? {} : { sessionId }),
       });
     },
     onSessionId: ({ sessionId }) => {
-      trackedSessionId = sessionId;
       questModifyBroker({
         input: {
           questId,

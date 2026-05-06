@@ -6,12 +6,7 @@
  * // Returns { resumed: true, restoredStatus: 'seek_scope' } when the paused quest transitions back to its pre-pause status and the loop is relaunched
  */
 
-import type {
-  QuestId,
-  QuestStatus,
-  QuestWorkItemId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import {
   filePathContract,
@@ -30,7 +25,6 @@ import {
   isCompleteWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
-import { chatStreamProcessHandleBroker } from '../../../brokers/chat/stream-process-handle/chat-stream-process-handle-broker';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -158,58 +152,29 @@ export const OrchestrationResumeResponder = async ({
   // Per-slot sessionId memo — see RunOrchestrationLoopLayerResponder for rationale.
   const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
 
-  // Per-work-item handles — same scoping rule as RunOrchestrationLoopLayerResponder.
-  const handlesByWorkItem = new Map<
-    QuestWorkItemId,
-    ReturnType<typeof chatStreamProcessHandleBroker>
-  >();
-
   questOrchestrationLoopBroker({
     processId,
     questId: reloaded.id,
     startPath,
-    onAgentEntry: ({ slotIndex, entry, questWorkItemId, sessionId }): void => {
-      const rawLine: unknown = entry.raw;
-      if (typeof rawLine !== 'string') return;
-
-      let handle = handlesByWorkItem.get(questWorkItemId);
-      if (handle === undefined) {
-        handle = chatStreamProcessHandleBroker({
-          chatProcessId: processId,
-          guildId,
-          ...(sessionId === undefined ? {} : { sessionId }),
-          onEntries: ({ entries, sessionId: handlerSessionId }) => {
-            const payload = buildOrchestrationLoopOnAgentEntryTransformer({
-              processId,
-              slotIndexToSessionId,
-              slotIndex,
-              entries,
-              questId: reloaded.id,
-              workItemId: questWorkItemId,
-              ...(handlerSessionId === undefined ? {} : { sessionId: handlerSessionId }),
-            });
-            orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
-          },
-        });
-        handlesByWorkItem.set(questWorkItemId, handle);
-      }
-
-      handle.onLine({ rawLine });
+    guildId,
+    onAgentEntry: ({ slotIndex, entries, questWorkItemId, sessionId }): void => {
+      const payload = buildOrchestrationLoopOnAgentEntryTransformer({
+        processId,
+        slotIndexToSessionId,
+        slotIndex,
+        entries,
+        questId: reloaded.id,
+        workItemId: questWorkItemId,
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
+      orchestrationEventsState.emit({ type: 'chat-output', processId, payload });
     },
     abortSignal: abortController.signal,
   })
     .then(() => {
-      for (const handle of handlesByWorkItem.values()) {
-        handle.stop();
-      }
-      handlesByWorkItem.clear();
       orchestrationProcessesState.remove({ processId });
     })
     .catch(() => {
-      for (const handle of handlesByWorkItem.values()) {
-        handle.stop();
-      }
-      handlesByWorkItem.clear();
       orchestrationProcessesState.remove({ processId });
     });
 

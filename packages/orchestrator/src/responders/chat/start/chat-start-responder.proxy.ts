@@ -2,14 +2,14 @@ import type {
   GetQuestResult,
   OrchestrationEventType,
   ProcessId,
+  Quest as QuestContract,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { getQuestResultContract } from '@dungeonmaster/shared/contracts';
+import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { ExitCodeStub, GuildConfigStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { chatMainSessionTailBrokerProxy } from '../../../brokers/chat/main-session-tail/chat-main-session-tail-broker.proxy';
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
@@ -110,7 +110,12 @@ export const ChatStartResponderProxy = ({
   const processStateProxy = orchestrationProcessesStateProxy();
   const pendingProxy = pendingClarificationStateProxy();
   orchestrationEventsStateProxy();
-  const mainTailProxy = chatMainSessionTailBrokerProxy();
+
+  // Parse the questSetup's quest JSON once at construction time so setupResumeSession
+  // can seed questGetMock with the matching quest for resolveChatQuestLayerBroker's
+  // questGetBroker call (which looks up the chaoswhisperer work item by questId).
+  const questSetupParsed: QuestContract | null =
+    questSetup === undefined ? null : questContract.parse(JSON.parse(questSetup.questJson));
 
   return {
     callResponder: ChatStartResponder,
@@ -119,6 +124,14 @@ export const ChatStartResponderProxy = ({
     },
     setupResumeSession: ({ exitCode, stdoutLines }): void => {
       spawnProxy.setupResumeSession({ exitCode, ...(stdoutLines && { stdoutLines }) });
+      // When a quest is configured in the proxy constructor, also seed questGetMock so
+      // resolveChatQuestLayerBroker's questGetBroker call (used to look up the
+      // chaoswhisperer work item by questId) returns the expected quest.
+      if (questSetupParsed !== null) {
+        questGetMock.mockResolvedValueOnce(
+          getQuestResultContract.parse({ success: true, quest: questSetupParsed }),
+        );
+      }
     },
     setupQuestsPath: questListProxy.setupQuestsPath,
     setupQuestDirectories: questListProxy.setupQuestDirectories,
@@ -144,15 +157,9 @@ export const ChatStartResponderProxy = ({
 
       return { getEmittedEvents: () => emittedEvents };
     },
-    setupMainTailGuild: ({ config, homeDir }: { config: GuildConfig; homeDir: string }): void => {
-      mainTailProxy.setupGuild({ config, homeDir });
-    },
-    setupMainTailLines: ({ lines }: { lines: readonly string[] }): void => {
-      mainTailProxy.setupLines({ lines });
-    },
-    triggerMainTailChange: (): void => {
-      mainTailProxy.triggerChange();
-    },
+    setupMainTailGuild: spawnProxy.setupMainTailGuild,
+    setupMainTailLines: spawnProxy.setupMainTailLines,
+    triggerMainTailChange: spawnProxy.triggerMainTailChange,
     // Resolve questGetBroker immediately with the supplied quest. Use when the test wants
     // chatWorkItemId to be set BEFORE any chat-output emits arrive (no buffering race).
     setupQuestGetImmediate: ({ quest }: { quest: Quest }): void => {

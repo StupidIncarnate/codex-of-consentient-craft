@@ -7,13 +7,10 @@ import {
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  claudeLineNormalizeBrokerProxy,
-  cwdResolveBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
+import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -33,12 +30,11 @@ export const runChatLayerBrokerProxy = (): {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
 } => {
-  claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  const spawnProxy = agentSpawnUnifiedBrokerProxy();
+  const launchProxy = agentLaunchBrokerProxy();
 
   // run-chat-layer-broker walks up from startPath to repo root via cwdResolveBroker.
   // Stub it directly so tests don't need to seed fs.access expectations for the walk-up.
@@ -48,22 +44,22 @@ export const runChatLayerBrokerProxy = (): {
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       modifyProxy.setupQuestFound({ quest });
-      spawnProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
     },
 
     setupSpawnSuccess: ({ quest, lines }: { quest: Quest; lines: readonly string[] }): void => {
       modifyProxy.setupQuestFound({ quest });
-      spawnProxy.setupSpawnAndEmitLines({ lines, exitCode: 0 });
+      launchProxy.setupSpawnAndEmitLines({ lines, exitCode: 0 });
     },
 
     setupSpawnThrow: ({ quest }: { quest: Quest }): void => {
       modifyProxy.setupQuestFound({ quest });
-      spawnProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
+      launchProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
     },
 
     setupSpawnNonZeroExit: ({ quest }: { quest: Quest }): void => {
       modifyProxy.setupQuestFound({ quest });
-      spawnProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 1 });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 1 });
     },
 
     setupCwdResolveSuccess: ({
@@ -78,11 +74,11 @@ export const runChatLayerBrokerProxy = (): {
       cwdResolveMock.mockRejectedValueOnce(error);
     },
 
-    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
+    getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),
 
-    getSpawnedOptions: (): unknown => spawnProxy.getSpawnedOptions(),
+    getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),
 
-    getSpawnedCwd: (): RepoRootCwd | undefined => spawnProxy.getSpawnedCwd(),
+    getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
 
     getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 

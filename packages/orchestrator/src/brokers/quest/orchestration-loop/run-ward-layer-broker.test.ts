@@ -1,5 +1,6 @@
 import {
   ExitCodeStub,
+  GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -63,6 +64,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -107,6 +109,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -156,6 +159,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -207,6 +211,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -259,6 +264,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -306,6 +312,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -355,6 +362,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -409,6 +417,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -458,6 +467,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -497,6 +507,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -537,6 +548,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -572,6 +584,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
       });
@@ -630,6 +643,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
       });

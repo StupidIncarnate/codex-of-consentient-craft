@@ -6,7 +6,7 @@
  * // Returns { completed: true } when all work items done
  */
 
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
 import type {
@@ -28,6 +28,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotCount,
   slotOperations,
   startPath,
+  guildId,
   onAgentEntry,
   onWorkItemSessionId,
   onFollowupCreated,
@@ -41,6 +42,7 @@ export const slotManagerOrchestrateBroker = async ({
   slotCount: SlotCount;
   slotOperations: SlotOperations;
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry?: OnSlotAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
@@ -56,6 +58,7 @@ export const slotManagerOrchestrateBroker = async ({
     slotOperations,
     activeAgents: [],
     startPath,
+    guildId,
     sessionIds: {},
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
