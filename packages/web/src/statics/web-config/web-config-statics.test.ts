@@ -34,6 +34,7 @@ describe('webConfigStatics', () => {
       },
       websocket: {
         reconnectDelayMs: 3000,
+        wardDetailTimeoutMs: 30000,
       },
     });
   });

@@ -3,13 +3,15 @@ import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
-import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
 import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker.proxy';
 import { questClarifyBrokerProxy } from '../../brokers/quest/clarify/quest-clarify-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
+import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
+import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
 
-export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: boolean } = {}): {
+export const useQuestChatBindingProxy = (): {
+  setupConnectedChannel: () => void;
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupChatError: () => void;
   setupClarify: (params: { chatProcessId: ProcessId }) => void;
@@ -24,19 +26,17 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
   getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
   getResumeRequestCount: () => RequestCount;
-  receiveWsMessage: (params: { data: string }) => void;
+  deliverWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
-  triggerWsOpen: () => void;
   triggerWsClose: () => void;
   triggerWsReconnect: () => void;
-  markFirstWsSocketClosed: () => void;
-  getSocketClose: () => jest.Mock;
 } => {
   const chatProxy = questChatBrokerProxy();
   const clarifyProxy = questClarifyBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
   const resumeProxy = questResumeBrokerProxy();
-  const wsProxy = websocketConnectAdapterProxy({ deferOpen });
+  rxjsFilterAdapterProxy();
+  const channel = webSocketChannelStateProxy();
   const uuidMock: SpyOnHandle = registerSpyOn({
     object: crypto,
     method: 'randomUUID',
@@ -49,6 +49,11 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
   });
 
   return {
+    setupConnectedChannel: () => {
+      channel.setupEmpty();
+      channel.connect();
+      channel.triggerOpen();
+    },
     setupChat: ({ chatProcessId }) => {
       chatProxy.setupChat({ chatProcessId });
     },
@@ -68,35 +73,24 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
       resumeProxy.setupResume({ restoredStatus });
     },
     setupUuids: ({ uuids }) => {
-      for (const uuid of uuids) {
-        uuidMock.mockReturnValueOnce(uuid);
-      }
+      for (const u of uuids) uuidMock.mockReturnValueOnce(u);
     },
     setupTimestamps: ({ timestamps }) => {
-      for (const ts of timestamps) {
-        dateProtoMock.mockReturnValueOnce(ts);
-      }
+      for (const t of timestamps) dateProtoMock.mockReturnValueOnce(t);
     },
     getChatRequestCount: () => chatProxy.getRequestCount(),
     getClarifyRequestCount: () => clarifyProxy.getRequestCount(),
     getPauseRequestCount: () => pauseProxy.getRequestCount(),
     getResumeRequestCount: () => resumeProxy.getRequestCount(),
-    receiveWsMessage: ({ data }) => {
-      wsProxy.receiveMessage({ data });
+    deliverWsMessage: ({ data }) => {
+      channel.deliverMessage({ data });
     },
-    getSentWsMessages: () => wsProxy.getSentMessages(),
-    triggerWsOpen: () => {
-      wsProxy.triggerOpen();
-    },
+    getSentWsMessages: () => channel.getSentMessages(),
     triggerWsClose: () => {
-      wsProxy.triggerClose();
+      channel.triggerClose();
     },
     triggerWsReconnect: () => {
-      wsProxy.triggerReconnect();
+      channel.triggerReconnect();
     },
-    markFirstWsSocketClosed: () => {
-      wsProxy.markFirstSocketClosed();
-    },
-    getSocketClose: () => wsProxy.getSocket().close,
   };
 };

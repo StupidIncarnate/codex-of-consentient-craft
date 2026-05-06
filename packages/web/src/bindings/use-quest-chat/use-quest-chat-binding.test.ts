@@ -19,7 +19,9 @@ import { useQuestChatBindingProxy } from './use-quest-chat-binding.proxy';
 describe('useQuestChatBinding', () => {
   describe('initial state', () => {
     it('EMPTY: {questId: null} => starts with empty entries map and not streaming', () => {
-      useQuestChatBindingProxy();
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupConnectedChannel();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestChatBinding({ questId: null }),
@@ -41,6 +43,7 @@ describe('useQuestChatBinding', () => {
   describe('subscribe-quest on mount', () => {
     it('VALID: {questId provided on mount} => sends subscribe-quest over WS', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-sub-1' });
 
       testingLibraryRenderHookAdapter({
@@ -54,6 +57,7 @@ describe('useQuestChatBinding', () => {
 
     it('EMPTY: {questId: null} => does not send subscribe-quest', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
 
       testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestChatBinding({ questId: null }),
@@ -68,6 +72,7 @@ describe('useQuestChatBinding', () => {
   describe('chat-output handling', () => {
     it('VALID: {chat-output with sessionId} => buckets entries under that session and sets isStreaming', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-out-1' });
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const entryUuid = '00000000-0000-4000-8000-000000000001';
@@ -79,7 +84,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
@@ -128,6 +133,7 @@ describe('useQuestChatBinding', () => {
 
     it('EDGE: {chat-output for different questId} => is ignored', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-mine' });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -136,7 +142,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
@@ -167,6 +173,7 @@ describe('useQuestChatBinding', () => {
   describe('quest-modified handling', () => {
     it('VALID: {quest-modified for matching questId} => sets quest', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-mod-1' });
       const quest = QuestStub({ id: questId });
 
@@ -176,7 +183,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
               payload: { questId: 'quest-mod-1', quest },
@@ -200,6 +207,7 @@ describe('useQuestChatBinding', () => {
 
     it('EDGE: {quest-modified for different questId} => is ignored', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-mine' });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -208,7 +216,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
               payload: {
@@ -237,6 +245,7 @@ describe('useQuestChatBinding', () => {
   describe('chat-history-complete handling', () => {
     it('VALID: {chat-history-complete after chat-output} => sets isStreaming to false', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-hist-1' });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -245,7 +254,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
@@ -257,7 +266,7 @@ describe('useQuestChatBinding', () => {
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
           });
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-history-complete',
               payload: { chatProcessId: ProcessIdStub({ value: 'proc-h' }) },
@@ -274,6 +283,7 @@ describe('useQuestChatBinding', () => {
   describe('clarification-request handling', () => {
     it('VALID: {clarification-request} => sets pendingClarification', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-clarify-1' });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -282,7 +292,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'clarification-request',
               payload: {
@@ -318,6 +328,7 @@ describe('useQuestChatBinding', () => {
   describe('sendMessage', () => {
     it('VALID: {questId, message} => appends user entry, sets isStreaming, posts to questChat', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-send-1' });
       const message = UserInputStub({ value: 'Hi' });
       const synthUuid = '00000000-0000-4000-8000-00000000000a';
@@ -359,8 +370,9 @@ describe('useQuestChatBinding', () => {
   });
 
   describe('cleanup', () => {
-    it('EDGE: {unmount with active questId} => sends unsubscribe-quest then closes WS', () => {
+    it('EDGE: {unmount with active questId} => sends unsubscribe-quest (channel keeps socket)', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-unmount-1' });
 
       const { unmount } = testingLibraryRenderHookAdapter({
@@ -373,20 +385,17 @@ describe('useQuestChatBinding', () => {
         },
       });
 
-      const sentMessages = proxy.getSentWsMessages();
-      const closeMock = proxy.getSocketClose();
-
-      expect(sentMessages).toStrictEqual([
+      expect(proxy.getSentWsMessages()).toStrictEqual([
         { type: 'subscribe-quest', questId: 'quest-unmount-1' },
         { type: 'unsubscribe-quest', questId: 'quest-unmount-1' },
       ]);
-      expect(closeMock).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('sendMessage pause→resume', () => {
     it('VALID: {quest paused} => resumes quest before posting chat', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-pause-resume-1' });
       const message = UserInputStub({ value: 'Hello after pause' });
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
@@ -399,7 +408,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
               payload: { questId: 'quest-pause-resume-1', quest: pausedQuest },
@@ -426,6 +435,7 @@ describe('useQuestChatBinding', () => {
 
     it('EDGE: {quest paused, resume fails} => chat is not invoked because resume promise rejects first', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-pause-resume-2' });
       const message = UserInputStub({ value: 'Hello after pause' });
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
@@ -437,7 +447,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'quest-modified',
               payload: { questId: 'quest-pause-resume-2', quest: pausedQuest },
@@ -466,6 +476,7 @@ describe('useQuestChatBinding', () => {
   describe('chat-complete handling', () => {
     it('VALID: {chat-complete after chat-output} => sets isStreaming to false', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-complete-1' });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -474,7 +485,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
@@ -486,7 +497,7 @@ describe('useQuestChatBinding', () => {
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
           });
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-complete',
               payload: {
@@ -507,6 +518,7 @@ describe('useQuestChatBinding', () => {
   describe('submitClarifyAnswers', () => {
     it('VALID: {questions, answers} => POSTs to questClarify endpoint once', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-clarify-submit-1' });
       proxy.setupClarify({ chatProcessId: ProcessIdStub({ value: 'proc-clar' }) });
       const stub = AskUserQuestionStub();
@@ -534,6 +546,7 @@ describe('useQuestChatBinding', () => {
   describe('stopChat', () => {
     it('VALID: {questId set} => POSTs to questPause endpoint once', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-stop-1' });
       proxy.setupPause();
 
@@ -557,6 +570,7 @@ describe('useQuestChatBinding', () => {
   describe('chat-output without sessionId', () => {
     it('VALID: {chat-output sans sessionId} => buckets entries under synthetic __no_session__ key', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-nosession-1' });
       const entryUuid = '00000000-0000-4000-8000-000000000099';
       const entryTs = '2025-01-01T00:00:00.000Z';
@@ -567,7 +581,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
@@ -609,6 +623,7 @@ describe('useQuestChatBinding', () => {
   describe('invalid messages', () => {
     it('EDGE: {invalid WS message shape} => is ignored', () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-bad-1' });
 
       const { result } = testingLibraryRenderHookAdapter({
@@ -617,7 +632,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({ not: 'valid' }),
           });
         },
@@ -639,6 +654,7 @@ describe('useQuestChatBinding', () => {
   describe('reconnect', () => {
     it('VALID: {WS closes and reconnects} => re-sends subscribe-quest and post-reconnect chat-output updates state', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-reconnect-1' });
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const entryUuid = '00000000-0000-4000-8000-000000000042';
@@ -655,10 +671,7 @@ describe('useQuestChatBinding', () => {
       testingLibraryActAdapter({
         callback: () => {
           proxy.triggerWsClose();
-          proxy.markFirstWsSocketClosed();
           proxy.triggerWsReconnect();
-          proxy.triggerWsOpen();
-          proxy.markFirstWsSocketClosed();
         },
       });
 
@@ -678,7 +691,7 @@ describe('useQuestChatBinding', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.receiveWsMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
@@ -720,6 +733,7 @@ describe('useQuestChatBinding', () => {
   describe('questId change', () => {
     it('VALID: {questId changes while mounted} => sends unsubscribe-quest then subscribe-quest for new id', async () => {
       const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
       const questId1 = QuestIdStub({ value: 'quest-change-old' });
       const questId2 = QuestIdStub({ value: 'quest-change-new' });
 
@@ -748,7 +762,7 @@ describe('useQuestChatBinding', () => {
         callback: () => {
           expect(proxy.getSentWsMessages()).toStrictEqual([
             { type: 'subscribe-quest', questId: 'quest-change-old' },
-            { type: 'unsubscribe-quest', questId: 'quest-change-new' },
+            { type: 'unsubscribe-quest', questId: 'quest-change-old' },
             { type: 'subscribe-quest', questId: 'quest-change-new' },
           ]);
         },
@@ -756,7 +770,7 @@ describe('useQuestChatBinding', () => {
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
         { type: 'subscribe-quest', questId: 'quest-change-old' },
-        { type: 'unsubscribe-quest', questId: 'quest-change-new' },
+        { type: 'unsubscribe-quest', questId: 'quest-change-old' },
         { type: 'subscribe-quest', questId: 'quest-change-new' },
       ]);
     });
