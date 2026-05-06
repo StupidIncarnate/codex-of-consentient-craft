@@ -109,14 +109,15 @@ export const chatStreamProcessHandleBroker = ({
       // Pick up sessionId synchronously per-line. system/init arrives first and carries
       // `sessionId`, so by the time a Task tool_result line surfaces an agent-detected
       // signal, runtimeSessionId is populated. Sync update avoids racing the next line
-      // event before any Promise observers have run.
-      if (runtimeSessionId === undefined) {
-        const sidParse = normalizedStreamLineContract.safeParse(parsed);
-        if (sidParse.success) {
-          const sid = sidParse.data.sessionId;
-          if (typeof sid === 'string' && sid.length > 0) {
-            runtimeSessionId = sessionIdContract.parse(sid);
-          }
+      // event before any Promise observers have run. When `initialSessionId` was supplied
+      // by the launcher (e.g. resume hint), system/init's authoritative id MUST overwrite
+      // it — the agent may have started a new session if resume failed, and downstream
+      // events must be tagged with the actual running session, not the resume hint.
+      const sidParse = normalizedStreamLineContract.safeParse(parsed);
+      if (sidParse.success) {
+        const sid = sidParse.data.sessionId;
+        if (typeof sid === 'string' && sid.length > 0) {
+          runtimeSessionId = sessionIdContract.parse(sid);
         }
       }
 

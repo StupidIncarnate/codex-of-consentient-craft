@@ -52,15 +52,16 @@ export const runPathseekerLayerBrokerProxy = (): {
       >[0]['lines'];
       exitCode: ExitCode;
     }): void => {
-      // Three quest fetches: initial (sessionId resolution), post-completion (steps),
-      // plus a third buffer for any disk-fallback path inside agentSpawnByRoleBroker that
-      // happens to consume the get-broker mock chain. The mockResolvedValueOnce-style
-      // proxy returns empty after the queue is exhausted, so over-seeding is safer than
-      // under-seeding.
-      getProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
+      // Setup order MUST match the broker's call order because the underlying mocks
+      // (pathJoin, readFile, readdir, writeFile) use FIFO `mockResolvedValueOnce`/`mockReturnValueOnce`
+      // queues shared across all proxies. The broker calls in this sequence:
+      //   1. questGetBroker (initial — sessionId resolution)
+      //   2. questModifyBroker (mark pathseeker complete)
+      //   3. questGetBroker (post-completion — re-fetch steps)
+      //   4. questModifyBroker (insert codeweaver/ward/siege/lawbringer/blightwarden/finalWard)
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       insertProxy.setupQuestModify({ quest });
       spawnProxy.setupSpawnOnce({ lines: spawnLines, exitCode });

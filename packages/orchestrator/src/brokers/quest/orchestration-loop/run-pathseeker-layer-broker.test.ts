@@ -561,7 +561,7 @@ describe('runPathseekerLayerBroker', () => {
         questWorkItemId: typeof workItemId;
       }[] = [];
       for (const call of onAgentEntry.mock.calls) {
-        const arg = call[0];
+        const [arg] = call;
         summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
       }
 
