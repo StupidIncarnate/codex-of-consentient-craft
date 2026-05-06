@@ -112,7 +112,7 @@ export const useSessionReplayBinding = ({
       chatOutputSub.unsubscribe();
       streamEndedSub.unsubscribe();
     };
-  }, []);
+  }, [sessionId, guildId]);
 
   return { entries, isLoading, sessionNotFound };
 };
