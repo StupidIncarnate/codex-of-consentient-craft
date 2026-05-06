@@ -1,4 +1,4 @@
-import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationProcessesState } from './orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from './orchestration-processes-state.proxy';
@@ -182,6 +182,57 @@ describe('orchestrationProcessesState', () => {
       const questId = QuestIdStub({ value: 'nonexistent' });
 
       const result = orchestrationProcessesState.findByQuestId({ questId });
+
+      expect(result).toBe(undefined);
+    });
+  });
+
+  describe('findByQuestWorkItemId', () => {
+    it('VALID: {process registered with questWorkItemId} => returns the matching process', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const processId = ProcessIdStub({ value: 'proc-launch-1' });
+      const questId = QuestIdStub({ value: 'quest-launch-1' });
+      const questWorkItemId = QuestWorkItemIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const kill = jest.fn();
+
+      orchestrationProcessesState.register({
+        orchestrationProcess: { processId, questId, questWorkItemId, kill },
+      });
+
+      const result = orchestrationProcessesState.findByQuestWorkItemId({ questWorkItemId });
+
+      expect(result).toStrictEqual({
+        processId: 'proc-launch-1',
+        questId: 'quest-launch-1',
+        questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        kill: expect.any(Function),
+      });
+    });
+
+    it('EMPTY: {process registered without questWorkItemId} => returns undefined for any lookup', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      const orchestrationProcess = OrchestrationProcessStub({ questId: 'loop-only-quest' });
+      proxy.setupWithProcess({ orchestrationProcess });
+      const questWorkItemId = QuestWorkItemIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      const result = orchestrationProcessesState.findByQuestWorkItemId({ questWorkItemId });
+
+      expect(result).toBe(undefined);
+    });
+
+    it('EMPTY: {unknown questWorkItemId} => returns undefined', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const questWorkItemId = QuestWorkItemIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      const result = orchestrationProcessesState.findByQuestWorkItemId({ questWorkItemId });
 
       expect(result).toBe(undefined);
     });

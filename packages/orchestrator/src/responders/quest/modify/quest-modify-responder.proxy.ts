@@ -9,7 +9,6 @@ import {
   GuildStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { chatStreamProcessHandleBrokerProxy } from '../../../brokers/chat/stream-process-handle/chat-stream-process-handle-broker.proxy';
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
@@ -26,7 +25,6 @@ export const QuestModifyResponderProxy = (): {
   setupQuestModifyEmpty: ReturnType<typeof questModifyBrokerProxy>['setupEmptyFolder'];
   setupAutoResume: (params: { quest: Quest }) => void;
 } => {
-  chatStreamProcessHandleBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();

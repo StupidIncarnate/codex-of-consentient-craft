@@ -1,6 +1,7 @@
 import {
   ExitCodeStub,
   FilePathStub,
+  GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -9,6 +10,7 @@ import {
 
 import type { OrchestrationCallbacksParamsStub } from '../../../contracts/orchestration-callbacks/orchestration-callbacks.stub';
 import { SlotCountStub } from '../../../contracts/slot-count/slot-count.stub';
+import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
 import { SlotOperationsStub } from '../../../contracts/slot-operations/slot-operations.stub';
 import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
 import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker.proxy';
@@ -60,6 +62,7 @@ describe('runSpiritmenderLayerBroker', () => {
           questId: QuestIdStub({ value: 'missing-quest' }),
           workItems: [],
           startPath: FilePathStub({ value: '/project' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
           onAgentEntry: jest.fn(),
@@ -98,6 +101,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry,
@@ -137,6 +141,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry,
@@ -147,14 +152,20 @@ describe('runSpiritmenderLayerBroker', () => {
       // raw `onLine`-driven callback. The spiritmender broker translates that to the
       // quest's `QuestWorkItemId` (UUID) before invoking the responder-facing onAgentEntry.
       // Note: questId is intentionally NOT forwarded — OnAgentEntryCallback's payload is
-      // {slotIndex, entry, questWorkItemId, sessionId?}; questId is layered on by the
+      // {slotIndex, entries, questWorkItemId, sessionId?}; questId is layered on by the
       // responder via build-orchestration-loop-on-agent-entry-transformer.
-      const receivedPayloads = onAgentEntry.mock.calls.map((call) => call[0]);
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const [arg] = call;
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
 
-      expect(receivedPayloads).toStrictEqual([
+      expect(summaries).toStrictEqual([
         {
-          slotIndex: 0,
-          entry: { raw: COMPLETE_SIGNAL_LINE },
+          slotIndex: SlotIndexStub({ value: 0 }),
           questWorkItemId: workItemId,
         },
       ]);
@@ -186,6 +197,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -233,6 +245,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -275,6 +288,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -312,6 +326,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -349,6 +364,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -388,6 +404,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -446,6 +463,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub({ value: 3 }),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -484,6 +502,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -523,6 +542,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -561,6 +581,7 @@ describe('runSpiritmenderLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),

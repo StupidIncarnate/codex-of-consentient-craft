@@ -8,7 +8,7 @@
  * // Returns { success: false } if all attempts are exhausted.
  */
 
-import { errorMessageContract, type FilePath } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, type FilePath, type GuildId } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { workUnitContract } from '../../../contracts/work-unit/work-unit-contract';
@@ -26,6 +26,7 @@ export const devServerStartLoopLayerBroker = async ({
   readinessTimeoutMs,
   cwd,
   startPath,
+  guildId,
   abortSignal,
   attempt,
   maxAttempts,
@@ -37,6 +38,7 @@ export const devServerStartLoopLayerBroker = async ({
   readinessTimeoutMs: number;
   cwd: AbsoluteFilePath;
   startPath: FilePath;
+  guildId: GuildId;
   abortSignal: AbortSignal;
   attempt: number;
   maxAttempts: number;
@@ -82,6 +84,7 @@ export const devServerStartLoopLayerBroker = async ({
     await agentSpawnByRoleBroker({
       workUnit: spiritmenderWorkUnit,
       startPath,
+      guildId,
       abortSignal,
     });
 
@@ -93,6 +96,7 @@ export const devServerStartLoopLayerBroker = async ({
       readinessTimeoutMs,
       cwd,
       startPath,
+      guildId,
       abortSignal,
       attempt: nextAttempt,
       maxAttempts,

@@ -5,6 +5,7 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  GuildIdStub,
   QuestStub,
   QuestWorkItemIdStub,
   RelatedDataItemStub,
@@ -49,6 +50,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -99,6 +101,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -147,6 +150,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -196,6 +200,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -251,6 +256,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -279,6 +285,7 @@ describe('runSiegemasterLayerBroker', () => {
           questId: 'nonexistent' as never,
           workItem,
           startPath: '/some/path' as never,
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
@@ -307,6 +314,7 @@ describe('runSiegemasterLayerBroker', () => {
           questId: quest.id,
           workItem,
           startPath: FilePathStub({ value: '/project' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
@@ -333,6 +341,7 @@ describe('runSiegemasterLayerBroker', () => {
           questId: quest.id,
           workItem,
           startPath: FilePathStub({ value: '/project' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
@@ -361,6 +370,7 @@ describe('runSiegemasterLayerBroker', () => {
           questId: quest.id,
           workItem,
           startPath: FilePathStub({ value: '/project' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),
@@ -396,6 +406,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
       });
@@ -437,15 +448,30 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
       });
 
-      expect(onAgentEntry).toHaveBeenCalledWith({
-        slotIndex: SlotIndexStub({ value: 0 }),
-        entry: { raw: agentLine },
-        questWorkItemId: siegeWorkItemId,
-      });
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof siegeWorkItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const [arg] = call;
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
+
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: siegeWorkItemId,
+        },
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: siegeWorkItemId,
+        },
+      ]);
     });
 
     it('VALID: {both params provided with default values} => completes successfully', async () => {
@@ -473,6 +499,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -517,6 +544,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -559,6 +587,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
       });
@@ -596,6 +625,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -633,6 +663,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -675,6 +706,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -724,6 +756,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -765,6 +798,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -810,6 +844,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem: workItem1,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -818,6 +853,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem: workItem2,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -867,6 +903,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem: workItem1,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -875,6 +912,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem: workItem2,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -910,6 +948,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -945,6 +984,7 @@ describe('runSiegemasterLayerBroker', () => {
         questId: quest.id,
         workItem,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -977,6 +1017,7 @@ describe('runSiegemasterLayerBroker', () => {
           questId: quest.id,
           workItem,
           startPath: FilePathStub({ value: '/project' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
         }),

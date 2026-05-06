@@ -3,6 +3,7 @@ import {
   DependencyStepStub,
   ExitCodeStub,
   FilePathStub,
+  GuildIdStub,
   SessionIdStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -42,7 +43,11 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -64,7 +69,11 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -92,7 +101,11 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -114,7 +127,11 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -136,7 +153,11 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -165,6 +186,7 @@ describe('agentSpawnByRoleBroker', () => {
       const result = await agentSpawnByRoleBroker({
         workUnit,
         startPath,
+        guildId: GuildIdStub(),
         continuationContext,
       });
 
@@ -195,6 +217,7 @@ describe('agentSpawnByRoleBroker', () => {
       const result = await agentSpawnByRoleBroker({
         workUnit,
         startPath,
+        guildId: GuildIdStub(),
         resumeSessionId,
       });
 
@@ -218,7 +241,11 @@ describe('agentSpawnByRoleBroker', () => {
 
       const startPath = FilePathStub({ value: '/project/src' });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         crashed: true,
@@ -242,7 +269,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 1 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -284,7 +315,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -307,14 +342,11 @@ describe('agentSpawnByRoleBroker', () => {
       const startPath = FilePathStub({ value: '/project/src' });
       const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
 
-      // Stream provides only the session-id line — no signal-back tool_use line in stream.
       proxy.setupSpawnAndMonitor({
         lines: [sessionLine],
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      // But the on-disk session JSONL contains a signal-back tool_use line (the agent did
-      // call mcp__dungeonmaster__signal-back; the live stream parser missed it).
       const diskSignalLine = JSON.stringify({
         type: 'assistant',
         message: {
@@ -332,7 +364,11 @@ describe('agentSpawnByRoleBroker', () => {
       });
       proxy.setupSessionJsonlContent({ content: `${diskSignalLine}\n` });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -383,7 +419,11 @@ describe('agentSpawnByRoleBroker', () => {
         content: `${firstSignalLine}\n${lastSignalLine}\n`,
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -407,7 +447,11 @@ describe('agentSpawnByRoleBroker', () => {
       });
       proxy.setupSessionJsonlMissing();
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -456,7 +500,11 @@ describe('agentSpawnByRoleBroker', () => {
       });
       proxy.setupSessionJsonlContent({ content: `${diskSignalLine}\n` });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -482,7 +530,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      const result = await agentSpawnByRoleBroker({ workUnit, startPath });
+      const result = await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       expect(result).toStrictEqual({
         sessionId: null,
@@ -512,16 +564,22 @@ describe('agentSpawnByRoleBroker', () => {
         throw new Error('callback exploded');
       };
 
-      await agentSpawnByRoleBroker({ workUnit, startPath, onSessionId });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+        onSessionId,
+      });
 
       await new Promise((resolve) => {
         setImmediate(resolve);
       });
 
-      expect(stderrSpy.mock.calls.length).toBeGreaterThan(0);
-      expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
-        /^\[agent-spawn\] session-id resolution failed:.*callback exploded\n$/u,
-      );
+      const matchingCallCount = stderrSpy.mock.calls.filter((call) =>
+        /\[agent-spawn\] session-id resolution failed:.*callback exploded/u.test(String(call[0])),
+      ).length;
+
+      expect(matchingCallCount).toStrictEqual(1);
     });
   });
 
@@ -536,7 +594,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
       const modelIdx = spawnedArgs.indexOf('--model');
@@ -556,7 +618,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
       const modelIdx = spawnedArgs.indexOf('--model');
@@ -575,7 +641,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
       const modelIdx = spawnedArgs.indexOf('--model');
@@ -596,7 +666,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const spawnedArgs = proxy.getSpawnedArgs() as readonly unknown[];
       const modelIdx = spawnedArgs.indexOf('--model');
@@ -617,7 +691,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
@@ -634,7 +712,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
@@ -658,7 +740,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
@@ -680,7 +766,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
@@ -701,7 +791,11 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
@@ -711,7 +805,6 @@ describe('agentSpawnByRoleBroker', () => {
 
     it('VALID: {non-smoketest spawn for auto-spawned recovery pathseeker on smoketest quest} => walks up from smoketest guild path to repo root', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
-      // Recovery pathseeker auto-spawned mid-flight has no smoketestPromptOverride.
       const workUnit = PathseekerWorkUnitStub();
       const startPath = FilePathStub({ value: '/home/user/.dungeonmaster-dev' });
       const repoRoot = '/home/user/repo';
@@ -723,33 +816,16 @@ describe('agentSpawnByRoleBroker', () => {
         exitCode: ExitCodeStub({ value: 0 }),
       });
 
-      await agentSpawnByRoleBroker({ workUnit, startPath });
+      await agentSpawnByRoleBroker({
+        workUnit,
+        startPath,
+        guildId: GuildIdStub(),
+      });
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
       expect(options.cwd).toBe(repoRoot);
       expect(proxy.getConfigRootCalls()).toStrictEqual([[{ startPath, kind: 'repo-root' }]]);
-    });
-  });
-
-  describe('onLine forwarding', () => {
-    it('VALID: {onLine callback provided, stdout emits lines} => callback receives lines', async () => {
-      const proxy = agentSpawnByRoleBrokerProxy();
-      const step = DependencyStepStub();
-      const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
-      const startPath = FilePathStub({ value: '/project/src' });
-      const onLine = jest.fn();
-      const sessionLine = makeSessionIdLine({ sessionId: SESSION_ID });
-
-      proxy.setupSpawnAndMonitor({
-        lines: [sessionLine],
-        exitCode: ExitCodeStub({ value: 0 }),
-      });
-
-      await agentSpawnByRoleBroker({ workUnit, startPath, onLine });
-
-      expect(onLine).toHaveBeenCalledTimes(1);
-      expect(onLine.mock.calls[0][0]).toStrictEqual({ line: sessionLine });
     });
   });
 });

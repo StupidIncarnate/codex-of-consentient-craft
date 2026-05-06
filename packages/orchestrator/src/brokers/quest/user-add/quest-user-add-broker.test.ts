@@ -30,6 +30,7 @@ describe('questUserAddBroker', () => {
       questId: expect.stringMatching(UUID_PATTERN),
       questFolder: expect.stringMatching(UUID_PATTERN),
       filePath: questFilePath,
+      chaoswhispererWorkItemId: expect.stringMatching(UUID_PATTERN),
     });
     expect(result.questFolder).toBe(result.questId);
   });

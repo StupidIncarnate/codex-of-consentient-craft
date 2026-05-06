@@ -52,6 +52,9 @@ export const questUserAddBroker = async ({
       questId,
       questFolder: questId,
       filePath: questFilePath,
+      // Surface the chaoswhisperer work item id so chatSpawnBroker can hand it to the
+      // launcher as `questWorkItemId` (addressability key) without re-fetching the quest.
+      chaoswhispererWorkItemId: initialWorkItem.id,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

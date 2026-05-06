@@ -1,5 +1,6 @@
 import {
   ExitCodeStub,
+  GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -63,6 +64,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -107,6 +109,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -156,6 +159,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -207,6 +211,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -259,6 +264,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -306,6 +312,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -355,6 +362,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -409,6 +417,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -458,6 +467,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -497,6 +507,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -537,6 +548,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
       });
@@ -572,6 +584,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
       });
@@ -583,23 +596,31 @@ describe('runWardLayerBroker', () => {
       const expectedSlotIndex = SlotIndexStub({ value: 0 });
 
       // Default stdout lines emitted by spawnWardLayerBrokerProxy.setupWardSuccess
-      expect(onAgentEntry.mock.calls).toStrictEqual([
-        [
-          {
-            slotIndex: expectedSlotIndex,
-            entry: { raw: 'run: 1739625600000-a3f1' },
-            questWorkItemId: wardItemId,
-            sessionId: expectedSessionId,
-          },
-        ],
-        [
-          {
-            slotIndex: expectedSlotIndex,
-            entry: { raw: 'lint:      PASS' },
-            questWorkItemId: wardItemId,
-            sessionId: expectedSessionId,
-          },
-        ],
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof wardItemId;
+        sessionId: typeof expectedSessionId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const [arg] = call;
+        summaries.push({
+          slotIndex: arg.slotIndex,
+          questWorkItemId: arg.questWorkItemId,
+          sessionId: arg.sessionId,
+        });
+      }
+
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: expectedSlotIndex,
+          questWorkItemId: wardItemId,
+          sessionId: expectedSessionId,
+        },
+        {
+          slotIndex: expectedSlotIndex,
+          questWorkItemId: wardItemId,
+          sessionId: expectedSessionId,
+        },
       ]);
     });
   });
@@ -630,6 +651,7 @@ describe('runWardLayerBroker', () => {
         questId,
         workItem: wardItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
       });

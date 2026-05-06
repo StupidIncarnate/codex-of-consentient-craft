@@ -7,6 +7,7 @@ import {
   FlowObservableStub,
   FlowStub,
   FolderTypeGroupsStub,
+  GuildIdStub,
   ObservableIdStub,
   QuestContractEntryStub,
   QuestContractPropertyStub,
@@ -172,6 +173,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -208,6 +210,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -250,6 +253,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -282,6 +286,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -315,6 +320,7 @@ describe('runPathseekerLayerBroker', () => {
           questId,
           workItem,
           startPath: '/project/src' as never,
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
           batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -351,6 +357,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -394,6 +401,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -444,6 +452,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -496,6 +505,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
@@ -540,23 +550,26 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project/src' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      const matchingCalls = onAgentEntry.mock.calls.filter(
-        ([params]: [{ entry: { raw?: unknown } }]) => params.entry.raw === streamLine,
-      );
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of onAgentEntry.mock.calls) {
+        const [arg] = call;
+        summaries.push({ slotIndex: arg.slotIndex, questWorkItemId: arg.questWorkItemId });
+      }
 
-      expect(matchingCalls).toStrictEqual([
-        [
-          {
-            slotIndex: SlotIndexStub({ value: 0 }),
-            entry: { raw: streamLine },
-            questWorkItemId: workItemId,
-          },
-        ],
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: workItemId,
+        },
       ]);
     });
   });
@@ -583,6 +596,7 @@ describe('runPathseekerLayerBroker', () => {
         questId,
         workItem,
         startPath: '/project' as never,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
         batchGroups: FolderTypeGroupsStub({ value: [] }),

@@ -1,4 +1,4 @@
-import { ExitCodeStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub, FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { buildPreflightLoopLayerBroker } from './build-preflight-loop-layer-broker';
 import { buildPreflightLoopLayerBrokerProxy } from './build-preflight-loop-layer-broker.proxy';
@@ -22,6 +22,7 @@ describe('buildPreflightLoopLayerBroker', () => {
         buildCommand: BUILD_COMMAND,
         cwd: CWD,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -42,6 +43,7 @@ describe('buildPreflightLoopLayerBroker', () => {
         buildCommand: BUILD_COMMAND,
         cwd: CWD,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -60,6 +62,7 @@ describe('buildPreflightLoopLayerBroker', () => {
         buildCommand: BUILD_COMMAND,
         cwd: CWD,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -86,6 +89,7 @@ describe('buildPreflightLoopLayerBroker', () => {
         buildCommand: BUILD_COMMAND,
         cwd: CWD,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -106,6 +110,7 @@ describe('buildPreflightLoopLayerBroker', () => {
         buildCommand: BUILD_COMMAND,
         cwd: CWD,
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: abortController.signal,
         attempt: 0,
         maxAttempts: 3,

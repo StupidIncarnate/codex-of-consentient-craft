@@ -10,6 +10,7 @@ import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters'
 import {
   absoluteFilePathContract,
   adapterResultContract,
+  chatEntryContract,
   fileContentsContract,
   filePathContract,
   sessionIdContract,
@@ -17,6 +18,7 @@ import {
   workItemContract,
   type AdapterResult,
   type FilePath,
+  type GuildId,
   type QuestId,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
@@ -50,12 +52,14 @@ export const runWardLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  guildId: _guildId,
   onAgentEntry,
   abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<AdapterResult> => {
@@ -83,9 +87,16 @@ export const runWardLayerBroker = async ({
     ...(workItem.wardMode === undefined ? {} : { wardMode: workItem.wardMode }),
     onLine: (line: string) => {
       process.stderr.write(`[dev] ward:output ${line.slice(0, LOG_SNIPPET_LENGTH)}\n`);
+      const wardEntry = chatEntryContract.parse({
+        role: 'assistant',
+        type: 'text',
+        content: line,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+      });
       onAgentEntry({
         slotIndex: WARD_SLOT_INDEX,
-        entry: { raw: line },
+        entries: [wardEntry],
         questWorkItemId: workItem.id,
         sessionId: wardSessionId,
       });

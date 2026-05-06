@@ -11,8 +11,8 @@ import {
   type AdapterResult,
   type FilePath,
   type FolderTypeGroups,
+  type GuildId,
   type QuestId,
-  type SessionId,
   type WorkItem,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
@@ -34,6 +34,7 @@ export const runPathseekerLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  guildId,
   onAgentEntry,
   abortSignal,
   batchGroups,
@@ -41,6 +42,7 @@ export const runPathseekerLayerBroker = async ({
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   batchGroups: FolderTypeGroups;
@@ -67,23 +69,22 @@ export const runPathseekerLayerBroker = async ({
   });
 
   const slotIndex = slotIndexContract.parse(0);
-  let trackedSessionId: SessionId | null = null;
 
   const spawnResult = await agentSpawnByRoleBroker({
     workUnit,
     startPath,
+    guildId,
     abortSignal,
     ...(resolvedSessionId === undefined ? {} : { resumeSessionId: resolvedSessionId }),
-    onLine: ({ line }: { line: string }) => {
+    onEntries: ({ entries, sessionId }) => {
       onAgentEntry({
         slotIndex,
-        entry: { raw: line },
+        entries,
         questWorkItemId: workItem.id,
-        ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+        ...(sessionId === undefined ? {} : { sessionId }),
       });
     },
     onSessionId: ({ sessionId }) => {
-      trackedSessionId = sessionId;
       questModifyBroker({
         input: {
           questId,

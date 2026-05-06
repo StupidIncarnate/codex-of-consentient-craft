@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Per-spawn handle that processes Claude CLI output lines through the converged chat-line processor — translating raw stdout/JSONL lines into ChatEntry batches, eagerly stamping sub-agent correlation, and dispatching `chatSubagentTailBroker` instances on every detected `agent-detected` signal so streaming and file sources for the same agent share one realAgentId↔toolUseId reverse map. Both the chat-spawn pipeline (chaoswhisperer / glyphsmith) and every orchestration-loop responder (pathseeker, codeweaver, lawbringer, siegemaster, spiritmender) wire their per-line callback through this broker so all four pipelines emit identical ChatEntry shapes. Plain-text lines (ward stdout, `spawnerType: 'command'`) bypass the processor and are wrapped in a single assistant-text ChatEntry.
+ * PURPOSE: Per-spawn handle that processes Claude CLI output lines through the converged chat-line processor — translating raw stdout/JSONL lines into ChatEntry batches, eagerly stamping sub-agent correlation, and dispatching `chatSubagentTailBroker` instances on every detected `agent-detected` signal so streaming and file sources for the same agent share one realAgentId↔toolUseId reverse map. Both the chat-spawn pipeline (chaoswhisperer / glyphsmith) and every orchestration-loop responder (pathseeker, codeweaver, lawbringer, siegemaster, spiritmender) wire their per-line callback through this broker so all four pipelines emit identical ChatEntry shapes. Plain-text lines (ward stdout, `spawnerType: 'command'`) bypass the processor and are wrapped in a single assistant-text ChatEntry. Required `onText` + `onSignal` callbacks fire from the same per-line normalize pass so callers consume captured assistant text and signal-back tool_use events without re-parsing.
  *
  * USAGE:
  * const handle = chatStreamProcessHandleBroker({
@@ -7,6 +7,8 @@
  *   guildId,
  *   sessionId,
  *   onEntries: ({ chatProcessId, entries, sessionId }) => { },
+ *   onText: ({ chatProcessId, text }) => { },
+ *   onSignal: ({ chatProcessId, signal }) => { },
  * });
  * agentSpawnUnifiedBroker({
  *   prompt,
@@ -24,7 +26,14 @@ import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
+import {
+  streamTextContract,
+  type StreamText,
+} from '../../../contracts/stream-text/stream-text-contract';
+import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
+import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
+import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
 import { chatSubagentTailBroker } from '../subagent-tail/chat-subagent-tail-broker';
 
 export const chatStreamProcessHandleBroker = ({
@@ -32,6 +41,8 @@ export const chatStreamProcessHandleBroker = ({
   guildId,
   sessionId: initialSessionId,
   onEntries,
+  onText,
+  onSignal,
 }: {
   chatProcessId: ProcessId;
   guildId: GuildId;
@@ -41,6 +52,11 @@ export const chatStreamProcessHandleBroker = ({
     entries: ChatEntry[];
     sessionId: SessionId | undefined;
   }) => void;
+  // Required — every agent emits text and may signal-back; the harness invariant is uniform
+  // observation across roles. Callers with no consumer wire a no-op explicitly so the lack
+  // of consumption is acknowledged at the call site, not silenced by an optional default.
+  onText: (params: { chatProcessId: ProcessId; text: StreamText }) => void;
+  onSignal: (params: { chatProcessId: ProcessId; signal: StreamSignal }) => void;
 }): {
   onLine: (params: { rawLine: string }) => void;
   stop: () => void;
@@ -83,21 +99,40 @@ export const chatStreamProcessHandleBroker = ({
           timestamp: new Date().toISOString(),
         });
         onEntries({ chatProcessId, entries: [fallbackEntry], sessionId: runtimeSessionId });
+        // Plain-text lines are still text — fire onText so the same accumulator that captures
+        // Claude assistant text also captures ward stdout. Signals only emerge from JSON tool_use
+        // lines, so onSignal does not fire on the fallback path.
+        onText({ chatProcessId, text: streamTextContract.parse(rawLine) });
         return;
       }
 
       // Pick up sessionId synchronously per-line. system/init arrives first and carries
       // `sessionId`, so by the time a Task tool_result line surfaces an agent-detected
       // signal, runtimeSessionId is populated. Sync update avoids racing the next line
-      // event before any Promise observers have run.
-      if (runtimeSessionId === undefined) {
-        const sidParse = normalizedStreamLineContract.safeParse(parsed);
-        if (sidParse.success) {
-          const sid = sidParse.data.sessionId;
-          if (typeof sid === 'string' && sid.length > 0) {
-            runtimeSessionId = sessionIdContract.parse(sid);
-          }
+      // event before any Promise observers have run. When `initialSessionId` was supplied
+      // by the launcher (e.g. resume hint), system/init's authoritative id MUST overwrite
+      // it — the agent may have started a new session if resume failed, and downstream
+      // events must be tagged with the actual running session, not the resume hint.
+      const sidParse = normalizedStreamLineContract.safeParse(parsed);
+      if (sidParse.success) {
+        const sid = sidParse.data.sessionId;
+        if (typeof sid === 'string' && sid.length > 0) {
+          runtimeSessionId = sessionIdContract.parse(sid);
         }
+      }
+
+      // Drive text + signal extraction from the same `parsed` object the processor consumes.
+      // Both transformers re-parse via `normalizedStreamLineContract` and gracefully return
+      // null for non-assistant or non-tool_use shapes; we only fire the callback when the
+      // transformer returns a value. ONE normalize pass per line for all three concerns.
+      const text = streamJsonToTextTransformer({ parsed });
+      if (text !== null) {
+        onText({ chatProcessId, text });
+      }
+
+      const signal = signalFromStreamTransformer({ parsed });
+      if (signal !== null) {
+        onSignal({ chatProcessId, signal });
       }
 
       const outputs = processor.processLine({ parsed, source: sessionSource });

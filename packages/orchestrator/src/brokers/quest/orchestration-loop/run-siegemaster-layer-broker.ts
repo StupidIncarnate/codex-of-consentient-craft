@@ -14,8 +14,8 @@ import {
   errorMessageContract,
   type AdapterResult,
   type FilePath,
+  type GuildId,
   type QuestId,
-  type SessionId,
   type WorkItem,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
@@ -46,12 +46,14 @@ export const runSiegemasterLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  guildId,
   onAgentEntry,
   abortSignal,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
 }): Promise<AdapterResult> => {
@@ -110,6 +112,7 @@ export const runSiegemasterLayerBroker = async ({
       buildCommand,
       cwd: absoluteStartPath,
       startPath,
+      guildId,
       abortSignal,
       attempt: 0,
       maxAttempts: MAX_BUILD_ATTEMPTS,
@@ -171,6 +174,7 @@ export const runSiegemasterLayerBroker = async ({
       readinessTimeoutMs,
       cwd: absoluteStartPath,
       startPath,
+      guildId,
       abortSignal,
       attempt: 0,
       maxAttempts: MAX_DEV_SERVER_START_ATTEMPTS,
@@ -228,7 +232,6 @@ export const runSiegemasterLayerBroker = async ({
   }
 
   const slotIndex = slotIndexContract.parse(0);
-  let trackedSessionId: SessionId | null = null;
 
   const workUnit = buildWorkUnitForRoleTransformer({
     role: 'siegemaster',
@@ -244,17 +247,17 @@ export const runSiegemasterLayerBroker = async ({
     const spawnResult = await agentSpawnByRoleBroker({
       workUnit,
       startPath,
+      guildId,
       abortSignal,
-      onLine: ({ line }: { line: string }) => {
+      onEntries: ({ entries, sessionId }) => {
         onAgentEntry({
           slotIndex,
-          entry: { raw: line },
+          entries,
           questWorkItemId: workItem.id,
-          ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+          ...(sessionId === undefined ? {} : { sessionId }),
         });
       },
       onSessionId: ({ sessionId }) => {
-        trackedSessionId = sessionId;
         questModifyBroker({
           input: {
             questId,

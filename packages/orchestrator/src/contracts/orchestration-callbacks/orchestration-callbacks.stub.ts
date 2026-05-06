@@ -7,6 +7,7 @@
  */
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { z } from 'zod';
 
 import { orchestrationCallbacksContract } from './orchestration-callbacks-contract';
@@ -19,7 +20,7 @@ export const OrchestrationCallbacksParamsStub = ({
   orchestrationCallbacksContract.parse({
     onAgentEntryParams: {
       slotIndex: 0,
-      entry: { raw: 'test line' },
+      entries: [AssistantTextChatEntryStub()],
       questWorkItemId: 'aaaaaaaa-1111-4222-9333-444444444444',
     },
     onWorkItemSessionIdParams: {

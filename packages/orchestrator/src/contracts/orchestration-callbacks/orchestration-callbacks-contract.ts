@@ -8,11 +8,17 @@
 
 import { z } from 'zod';
 import {
+  chatEntryContract,
   questWorkItemIdContract,
   sessionIdContract,
   streamSignalKindContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestWorkItemId, SessionId, StreamSignalKind } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  QuestWorkItemId,
+  SessionId,
+  StreamSignalKind,
+} from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
 import { agentRoleContract } from '../agent-role/agent-role-contract';
@@ -24,7 +30,7 @@ import type { WorkItemId } from '../work-item-id/work-item-id-contract';
 export const orchestrationCallbacksContract = z.object({
   onAgentEntryParams: z.object({
     slotIndex: slotIndexContract,
-    entry: z.record(z.unknown()),
+    entries: z.array(chatEntryContract),
     questWorkItemId: questWorkItemIdContract,
     sessionId: sessionIdContract.optional(),
   }),
@@ -49,7 +55,7 @@ export const orchestrationCallbacksContract = z.object({
 
 export type OnAgentEntryCallback = (params: {
   slotIndex: SlotIndex;
-  entry: Record<string, unknown>;
+  entries: ChatEntry[];
   questWorkItemId: QuestWorkItemId;
   sessionId?: SessionId;
 }) => void;
@@ -60,7 +66,7 @@ export type OnAgentEntryCallback = (params: {
 // before invoking the responder-facing OnAgentEntryCallback.
 export type OnSlotAgentEntryCallback = (params: {
   slotIndex: SlotIndex;
-  entry: Record<string, unknown>;
+  entries: ChatEntry[];
   workItemId: WorkItemId;
   sessionId?: SessionId;
 }) => void;

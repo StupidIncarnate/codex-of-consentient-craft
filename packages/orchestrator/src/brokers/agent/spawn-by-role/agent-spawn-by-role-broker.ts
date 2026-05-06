@@ -1,11 +1,15 @@
 /**
- * PURPOSE: Routes agent spawn requests to the correct spawn-streaming broker based on role
+ * PURPOSE: Routes orchestration-loop agent spawn requests through the unified `agentLaunchBroker`. Builds the prompt from the work unit's role, resolves cwd, and delegates the full spawn lifecycle (handle, post-exit main-tail, sub-agent tails) to the launcher. Captures `onText` into `outputLines[]` and the latest `onSignal` into `lastSignal` so the loop layer brokers receive a tidy `AgentSpawnStreamingResult`. Falls back to disk-walking the session JSONL for a missed signal-back when the live stream parser misses one.
  *
  * USAGE:
  * const result = await agentSpawnByRoleBroker({
  *   workUnit: { role: 'codeweaver', step: DependencyStepStub() },
+ *   startPath,
+ *   guildId,
+ *   questId,
+ *   questWorkItemId,
  * });
- * // Returns { sessionId, exitCode, signal, crashed }
+ * // Returns { sessionId, exitCode, signal, crashed, capturedOutput }
  */
 
 import {
@@ -14,11 +18,13 @@ import {
   filePathContract,
   repoRootCwdContract,
   type AbsoluteFilePath,
+  type ChatEntry,
   type FilePath,
+  type GuildId,
   type RepoRootCwd,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import {
   agentSpawnStreamingResultContract,
@@ -29,34 +35,36 @@ import {
   type ClaudeModel,
 } from '../../../contracts/claude-model/claude-model-contract';
 import type { ContinuationContext } from '../../../contracts/continuation-context/continuation-context-contract';
+import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import type { WorkUnit } from '../../../contracts/work-unit/work-unit-contract';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { roleToPromptTemplateTransformer } from '../../../transformers/role-to-prompt-template/role-to-prompt-template-transformer';
-import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
-import { streamJsonToTextTransformer } from '../../../transformers/stream-json-to-text/stream-json-to-text-transformer';
 import { workUnitToArgumentsTransformer } from '../../../transformers/work-unit-to-arguments/work-unit-to-arguments-transformer';
-import { agentSpawnUnifiedBroker } from '../spawn-unified/agent-spawn-unified-broker';
+import { agentLaunchBroker } from '../launch/agent-launch-broker';
 import { signalFromSessionJsonlBroker } from '../../signal/from-session-jsonl/signal-from-session-jsonl-broker';
 
 const SMOKETEST_MODEL = claudeModelContract.parse('haiku');
+const PROC_PREFIX = processIdPrefixContract.parse('proc');
 
 export const agentSpawnByRoleBroker = async ({
   workUnit,
   startPath,
+  guildId,
   resumeSessionId,
   continuationContext,
-  onLine,
+  onEntries,
   onSessionId,
   abortSignal,
 }: {
   workUnit: WorkUnit;
   startPath: FilePath;
+  guildId: GuildId;
   resumeSessionId?: SessionId;
   continuationContext?: ContinuationContext;
-  onLine?: (params: { line: string }) => void;
+  onEntries?: (params: { entries: ChatEntry[]; sessionId: SessionId | undefined }) => void;
   onSessionId?: (params: { sessionId: SessionId }) => void;
   abortSignal?: AbortSignal;
 }): Promise<AgentSpawnStreamingResult> => {
@@ -78,21 +86,10 @@ export const agentSpawnByRoleBroker = async ({
 
   const isSmoketestSpawn = overrideText !== undefined;
 
-  // Smoketest spawns force haiku for cost/speed. Real roles resolve via the role→model map.
   const model: ClaudeModel = isSmoketestSpawn
     ? SMOKETEST_MODEL
     : roleToModelTransformer({ role: workUnit.role });
 
-  // Walk up from `startPath` to the directory containing `.dungeonmaster.json` so the
-  // spawned agent's cwd lets `.mcp.json` resolve its relative `node packages/mcp/dist/src/index.js`
-  // command. `cwdResolveBroker({ kind: 'repo-root' })` is idempotent — when `startPath` itself
-  // contains `.dungeonmaster.json` (e.g. the codex guild's repo-root path) it returns `startPath`
-  // unchanged. For the smoketests guild, whose path is the dungeonmaster home (`.dungeonmaster-dev/`),
-  // it walks up to the repo root. This also correctly handles auto-spawned recovery agents
-  // (pathseeker for replan) on smoketest quests, which don't carry `smoketestPromptOverride`.
-  // Fallback to `startPath` when no `.dungeonmaster.json` ancestor exists — guild paths in
-  // standalone projects (and e2e isolated /tmp dirs) won't have one, and the spawn should still
-  // run from the guild path. Only smoketest spawns truly need the repo-root walk.
   const parsedStartPath = filePathContract.parse(startPath);
   const resolvedCwd: RepoRootCwd = await (async (): Promise<RepoRootCwd> => {
     try {
@@ -107,25 +104,32 @@ export const agentSpawnByRoleBroker = async ({
     const outputLines: StreamText[] = [];
 
     const streamingResult = await new Promise<AgentSpawnStreamingResult>((resolve) => {
-      const { kill, sessionId$ } = agentSpawnUnifiedBroker({
+      agentLaunchBroker({
+        guildId,
+        processIdPrefix: PROC_PREFIX,
         prompt,
         cwd: resolvedCwd,
-        ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
         model,
-        disableToolSearch: isSmoketestSpawn,
-        onLine: ({ line }) => {
-          onLine?.({ line });
-
-          const parsed = claudeLineNormalizeBroker({ rawLine: line });
-
-          const text = streamJsonToTextTransformer({ parsed });
-          if (text !== null) {
-            outputLines.push(text);
-          }
-
-          const signal = signalFromStreamTransformer({ parsed });
-          if (signal !== null) {
-            lastSignal = signal;
+        ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
+        ...(isSmoketestSpawn ? { disableToolSearch: true } : {}),
+        onEntries: ({ entries, sessionId }) => {
+          onEntries?.({ entries, sessionId });
+        },
+        onText: ({ text }) => {
+          outputLines.push(text);
+        },
+        onSignal: ({ signal }) => {
+          lastSignal = signal;
+        },
+        onSessionId: ({ sessionId }) => {
+          if (onSessionId !== undefined) {
+            try {
+              onSessionId({ sessionId });
+            } catch (error: unknown) {
+              process.stderr.write(
+                `[agent-spawn] session-id resolution failed: ${String(error)}\n`,
+              );
+            }
           }
         },
         onComplete: ({ exitCode, sessionId }) => {
@@ -142,32 +146,12 @@ export const agentSpawnByRoleBroker = async ({
             }),
           );
         },
+        ...(abortSignal === undefined ? {} : { abortSignal }),
       });
-
-      if (onSessionId !== undefined) {
-        sessionId$
-          .then((sid) => {
-            if (sid !== null) {
-              onSessionId({ sessionId: sid });
-            }
-          })
-          .catch((error: unknown) => {
-            process.stderr.write(`[agent-spawn] session-id resolution failed: ${String(error)}\n`);
-          });
-      }
-
-      if (abortSignal && !abortSignal.aborted) {
-        abortSignal.addEventListener('abort', kill, { once: true });
-      } else if (abortSignal?.aborted) {
-        kill();
-      }
     });
 
     // Disk fallback: when the live stream parser missed the agent's signal-back call but a
     // session JSONL exists on disk, walk the file for the last signal-back tool_use line.
-    // The live and disk paths emit the same envelope shape; differences in stream-event
-    // framing across Claude CLI versions make the live parser miss signals that are still
-    // reliably written to `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl`.
     if (streamingResult.signal === null && streamingResult.sessionId !== null) {
       const guildPath: AbsoluteFilePath = absoluteFilePathContract.parse(resolvedCwd);
       const fromDisk = await signalFromSessionJsonlBroker({

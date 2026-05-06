@@ -6,7 +6,7 @@
  * // Returns { done: true, result } when complete, or { done: false, activeAgents } to continue
  */
 
-import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { AgentRole } from '../../../contracts/agent-role/agent-role-contract';
@@ -52,6 +52,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations,
   activeAgents,
   startPath,
+  guildId,
   onAgentEntry,
   onWorkItemSessionId,
   onFollowupCreated,
@@ -67,6 +68,7 @@ export const orchestrationLoopLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry?: OnSlotAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
@@ -108,14 +110,16 @@ export const orchestrationLoopLayerBroker = async ({
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
         startPath,
+        guildId,
         ...(onAgentEntry === undefined
           ? {}
           : {
-              onLine: ({ line }: { line: string }) => {
-                const knownSessionId: SessionId | undefined = sessionIds[workItemId];
+              onEntries: ({ entries, sessionId: emittedSessionId }) => {
+                const knownSessionId: SessionId | undefined =
+                  emittedSessionId ?? sessionIds[workItemId];
                 onAgentEntry({
                   slotIndex,
-                  entry: { raw: line },
+                  entries,
                   workItemId,
                   ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                 });
@@ -193,15 +197,17 @@ export const orchestrationLoopLayerBroker = async ({
       const agentPromise = spawnAgentLayerBroker({
         workUnit,
         startPath,
+        guildId,
         ...(result.sessionId === null ? {} : { resumeSessionId: result.sessionId }),
         ...(onAgentEntry === undefined
           ? {}
           : {
-              onLine: ({ line }: { line: string }) => {
-                const knownSessionId: SessionId | undefined = sessionIds[completedAgent.workItemId];
+              onEntries: ({ entries, sessionId: emittedSessionId }) => {
+                const knownSessionId: SessionId | undefined =
+                  emittedSessionId ?? sessionIds[completedAgent.workItemId];
                 onAgentEntry({
                   slotIndex: newSlotIndex,
-                  entry: { raw: line },
+                  entries,
                   workItemId: completedAgent.workItemId,
                   ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                 });
@@ -336,14 +342,16 @@ export const orchestrationLoopLayerBroker = async ({
           const agentPromise = spawnAgentLayerBroker({
             workUnit: followupWorkUnit,
             startPath,
+            guildId,
             ...(onAgentEntry === undefined
               ? {}
               : {
-                  onLine: ({ line }: { line: string }) => {
-                    const knownSessionId: SessionId | undefined = sessionIds[newWorkItemId];
+                  onEntries: ({ entries, sessionId: emittedSessionId }) => {
+                    const knownSessionId: SessionId | undefined =
+                      emittedSessionId ?? sessionIds[newWorkItemId];
                     onAgentEntry({
                       slotIndex: newSlotIndex,
-                      entry: { raw: line },
+                      entries,
                       workItemId: newWorkItemId,
                       ...(knownSessionId === undefined ? {} : { sessionId: knownSessionId }),
                     });

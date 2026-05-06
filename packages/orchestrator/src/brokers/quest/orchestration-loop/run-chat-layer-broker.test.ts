@@ -1,5 +1,6 @@
 import {
   FilePathStub,
+  GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -31,6 +32,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
+          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toStrictEqual({ success: true });
@@ -53,6 +55,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Design the login page' }),
+          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).resolves.toStrictEqual({ success: true });
@@ -76,6 +79,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
+          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/spawn claude ENOENT/u);
@@ -103,6 +107,7 @@ describe('runChatLayerBroker', () => {
           workItem,
           startPath: FilePathStub({ value: '/project/src' }),
           userMessage: UserInputStub({ value: 'Help me build auth' }),
+          guildId: GuildIdStub(),
           onAgentEntry: jest.fn(),
         }),
       ).rejects.toThrow(/Chat agent exited with code 1/u);
@@ -132,6 +137,7 @@ describe('runChatLayerBroker', () => {
         workItem,
         startPath: FilePathStub({ value: '/project/src' }),
         userMessage,
+        guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
       });
 
@@ -171,6 +177,7 @@ describe('runChatLayerBroker', () => {
         workItem,
         startPath: FilePathStub({ value: '/resolved/repo/root/packages/foo' }),
         userMessage: UserInputStub({ value: 'Help me build auth' }),
+        guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
       });
 
@@ -203,6 +210,7 @@ describe('runChatLayerBroker', () => {
         questId,
         workItem,
         startPath: FilePathStub({ value: '/project/src' }),
+        guildId: GuildIdStub(),
         userMessage: UserInputStub({ value: 'Help me build auth' }),
         onAgentEntry,
       });
@@ -210,7 +218,7 @@ describe('runChatLayerBroker', () => {
       expect(onAgentEntry).toHaveBeenCalledTimes(1);
       expect(onAgentEntry).toHaveBeenCalledWith({
         slotIndex: 0,
-        entry: { raw: lines[0] },
+        entries: expect.any(Array),
         questWorkItemId: workItemId,
       });
       expect(stampedPayloads).toStrictEqual([{ questId, questWorkItemId: workItemId }]);
@@ -234,6 +242,7 @@ describe('runChatLayerBroker', () => {
         workItem,
         startPath: FilePathStub({ value: fallbackPath }),
         userMessage: UserInputStub({ value: 'Help me build auth' }),
+        guildId: GuildIdStub(),
         onAgentEntry: jest.fn(),
       });
 

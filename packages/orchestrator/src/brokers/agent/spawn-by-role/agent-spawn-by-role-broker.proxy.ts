@@ -1,14 +1,11 @@
 import { repoRootCwdContract, type ExitCode } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  claudeLineNormalizeBrokerProxy,
-  cwdResolveBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { signalFromSessionJsonlBrokerProxy } from '../../signal/from-session-jsonl/signal-from-session-jsonl-broker.proxy';
-import { agentSpawnUnifiedBrokerProxy } from '../spawn-unified/agent-spawn-unified-broker.proxy';
+import { agentLaunchBrokerProxy } from '../launch/agent-launch-broker.proxy';
 
 export const agentSpawnByRoleBrokerProxy = (): {
   setupSpawnAndMonitor: (params: { lines: readonly string[]; exitCode: ExitCode }) => void;
@@ -27,11 +24,10 @@ export const agentSpawnByRoleBrokerProxy = (): {
   setupSessionJsonlContent: (params: { content: string }) => void;
   setupSessionJsonlMissing: () => void;
 } => {
-  claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
-  const unifiedProxy = agentSpawnUnifiedBrokerProxy();
+  const launchProxy = agentLaunchBrokerProxy();
   // Wires the disk-fallback signal extractor's adapter (fsReadJsonlAdapter -> readFile).
   // The underlying fsReadJsonlAdapterProxy defaults to empty content, so spawns that resolve
   // with sessionId !== null && signal === null produce signal: null from the disk fallback
@@ -53,13 +49,11 @@ export const agentSpawnByRoleBrokerProxy = (): {
       lines: readonly string[];
       exitCode: ExitCode;
     }): void => {
-      // Set default config so all spawn calls auto-exit with this exitCode
-      unifiedProxy.setupSuccessConfig({ exitCode });
+      launchProxy.setupSpawnSuccess({ exitCode });
 
-      // Emit lines through readline mock so unified broker's onLine handler processes them
       if (lines.length > 0) {
         setImmediate(() => {
-          unifiedProxy.emitLines({ lines });
+          launchProxy.emitLines({ lines });
         });
       }
     },
@@ -71,8 +65,7 @@ export const agentSpawnByRoleBrokerProxy = (): {
       lines: readonly string[];
       exitCode: ExitCode;
     }): void => {
-      // Use mockReturnValueOnce so this spawn takes priority over later mockImplementation calls
-      unifiedProxy.setupSpawnAndEmitLines({ lines, exitCode });
+      launchProxy.setupSpawnAndEmitLines({ lines, exitCode });
     },
 
     setupSpawnAutoLines: ({
@@ -82,22 +75,20 @@ export const agentSpawnByRoleBrokerProxy = (): {
       lines: readonly string[];
       exitCode: ExitCode;
     }): void => {
-      // Set default config so all spawn calls auto-exit with this exitCode
-      unifiedProxy.setupSuccessConfig({ exitCode });
-      // Auto-emit lines per readline interface creation
-      unifiedProxy.setAutoEmitLines({ lines });
+      launchProxy.setupSpawnSuccess({ exitCode });
+      launchProxy.setAutoEmitLines({ lines });
     },
 
     setupSpawnOnceLazy: (): void => {
-      unifiedProxy.setupSpawnOnceLazy();
+      launchProxy.setupSpawnLazy();
     },
 
     setupSpawnFailure: (): void => {
-      unifiedProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
+      launchProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
     },
 
     setupSpawnFailureOnce: (): void => {
-      unifiedProxy.setupSpawnThrowOnce({ error: new Error('spawn claude ENOENT') });
+      launchProxy.setupSpawnThrowOnce({ error: new Error('spawn claude ENOENT') });
     },
 
     setupSpawnExitOnKill: ({
@@ -107,12 +98,12 @@ export const agentSpawnByRoleBrokerProxy = (): {
       lines: readonly string[];
       exitCode: ExitCode | null;
     }): void => {
-      unifiedProxy.setupSpawnExitOnKill({ lines, exitCode });
+      launchProxy.setupSpawnExitOnKill({ lines, exitCode });
     },
 
-    getSpawnedArgs: (): unknown => unifiedProxy.getSpawnedArgs(),
+    getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),
 
-    getSpawnedOptions: (): unknown => unifiedProxy.getSpawnedOptions(),
+    getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),
 
     setupStderrCapture: (): SpyOnHandle => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });

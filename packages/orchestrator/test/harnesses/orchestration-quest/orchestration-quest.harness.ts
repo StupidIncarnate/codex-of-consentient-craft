@@ -6,7 +6,7 @@
  * const { guild, questId } = await quest.createTestQuest({ testbed, observableIds: ['obs-1'], stepCount: 2 });
  * const { quest: result } = await quest.pollForStatus({ questId, targetStatuses: ['complete'] });
  */
-import type { ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import {
   DependencyStepStub,
@@ -40,7 +40,6 @@ import { questOrchestrationLoopBroker } from '../../../src/brokers/quest/orchest
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
 import { orchestrationEventsState } from '../../../src/state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../src/state/orchestration-processes/orchestration-processes-state';
-import { chatStreamProcessHandleBroker } from '../../../src/brokers/chat/stream-process-handle/chat-stream-process-handle-broker';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 
 const QUEST_FILE_NAME = 'quest.json';
@@ -481,61 +480,31 @@ export const orchestrationQuestHarness = (): {
         },
       });
 
-      const handlesByWorkItem = new Map<
-        QuestWorkItemId,
-        ReturnType<typeof chatStreamProcessHandleBroker>
-      >();
-
       questOrchestrationLoopBroker({
         processId,
         questId,
         startPath,
-        onAgentEntry: ({ slotIndex, entry, questWorkItemId, sessionId }) => {
-          const rawLine: unknown = entry.raw;
-          if (typeof rawLine !== 'string') {
-            return;
-          }
-
-          let handle = handlesByWorkItem.get(questWorkItemId);
-          if (handle === undefined) {
-            handle = chatStreamProcessHandleBroker({
-              chatProcessId: processId,
-              guildId,
+        guildId,
+        onAgentEntry: ({ slotIndex, entries, questWorkItemId, sessionId }) => {
+          orchestrationEventsState.emit({
+            type: 'chat-output',
+            processId,
+            payload: {
+              processId,
+              slotIndex,
+              entries,
+              questId,
+              workItemId: questWorkItemId,
               ...(sessionId === undefined ? {} : { sessionId }),
-              onEntries: ({ entries, sessionId: handlerSessionId }) => {
-                orchestrationEventsState.emit({
-                  type: 'chat-output',
-                  processId,
-                  payload: {
-                    processId,
-                    slotIndex,
-                    entries,
-                    questId,
-                    workItemId: questWorkItemId,
-                    ...(handlerSessionId === undefined ? {} : { sessionId: handlerSessionId }),
-                  },
-                });
-              },
-            });
-            handlesByWorkItem.set(questWorkItemId, handle);
-          }
-
-          handle.onLine({ rawLine });
+            },
+          });
         },
         abortSignal: abortController.signal,
       })
         .then(() => {
-          for (const handle of handlesByWorkItem.values()) {
-            handle.stop();
-          }
-          handlesByWorkItem.clear();
           orchestrationProcessesState.remove({ processId });
         })
         .catch(() => {
-          for (const handle of handlesByWorkItem.values()) {
-            handle.stop();
-          }
-          handlesByWorkItem.clear();
           orchestrationProcessesState.remove({ processId });
         });
 

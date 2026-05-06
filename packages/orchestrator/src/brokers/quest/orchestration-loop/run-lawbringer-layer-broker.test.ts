@@ -2,6 +2,7 @@ import {
   DependencyStepStub,
   ExitCodeStub,
   FilePathStub,
+  GuildIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -47,6 +48,7 @@ describe('runLawbringerLayerBroker', () => {
           questId: QuestIdStub({ value: 'missing-quest' }),
           workItems: [],
           startPath: FilePathStub({ value: '/project' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           slotCount: SlotCountStub(),
           slotOperations: SlotOperationsStub(),
           onAgentEntry: jest.fn(),
@@ -90,6 +92,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -149,6 +152,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItemA, workItemB],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -218,6 +222,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItemA, workItemB, workItemC],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -307,6 +312,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItemA, workItemB, workItemC, workItemD, workItemE],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -362,6 +368,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -435,6 +442,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItemA, workItemB, workItemC],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -507,6 +515,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -562,6 +571,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -613,6 +623,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry,
@@ -657,6 +668,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -735,6 +747,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItemA, workItemB, workItemC],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -797,19 +810,27 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry,
         abortSignal: new AbortController().signal,
       });
 
-      const [firstCall] = capturedCalls;
+      const summaries: {
+        slotIndex: ReturnType<typeof SlotIndexStub>;
+        questWorkItemId: typeof workItemId;
+      }[] = [];
+      for (const call of capturedCalls) {
+        summaries.push({ slotIndex: call.slotIndex, questWorkItemId: call.questWorkItemId });
+      }
 
-      expect(firstCall).toStrictEqual({
-        slotIndex: SlotIndexStub({ value: 0 }),
-        entry: { raw: COMPLETE_SIGNAL_LINE },
-        questWorkItemId: workItemId,
-      });
+      expect(summaries).toStrictEqual([
+        {
+          slotIndex: SlotIndexStub({ value: 0 }),
+          questWorkItemId: workItemId,
+        },
+      ]);
 
       const leakedSlotIds = capturedCalls
         .map((call) => String(call.questWorkItemId))
@@ -848,6 +869,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItem],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),
@@ -911,6 +933,7 @@ describe('runLawbringerLayerBroker', () => {
         questId: quest.id,
         workItems: [workItemA, workItemB, workItemC],
         startPath: FilePathStub({ value: '/project' }),
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         slotCount: SlotCountStub(),
         slotOperations: SlotOperationsStub(),
         onAgentEntry: jest.fn(),

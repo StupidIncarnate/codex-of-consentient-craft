@@ -1,6 +1,7 @@
 import {
   ExitCodeStub,
   FilePathStub,
+  GuildIdStub,
   QuestIdStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -40,6 +41,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -68,6 +70,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -99,6 +102,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -135,6 +139,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -170,6 +175,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -225,6 +231,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -271,6 +278,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -330,6 +338,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -413,6 +422,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -505,6 +515,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -586,6 +597,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -678,6 +690,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -761,6 +774,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -820,6 +834,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -872,6 +887,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -934,6 +950,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -990,6 +1007,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1053,6 +1071,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1114,6 +1133,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1173,6 +1193,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1238,6 +1259,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1298,6 +1320,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1384,6 +1407,7 @@ describe('orchestrationLoopLayerBroker', () => {
       // First call: lawbringer fails -> spawns spiritmender followup
       const result1 = await orchestrationLoopLayerBroker({
         questId,
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1403,6 +1427,7 @@ describe('orchestrationLoopLayerBroker', () => {
       // Second call: spiritmender followup fails -> spawns pathseeker followup
       await orchestrationLoopLayerBroker({
         questId,
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1473,6 +1498,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1524,6 +1550,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1585,6 +1612,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1635,6 +1663,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1688,6 +1717,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1735,6 +1765,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1784,6 +1815,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1832,6 +1864,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -1904,6 +1937,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath: FilePathStub({ value: '/project/src' }),
         slotCount: SlotCountStub({ value: 2 }),
@@ -1972,6 +2006,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath: FilePathStub({ value: '/project/src' }),
         slotCount: SlotCountStub({ value: 2 }),
@@ -2036,6 +2071,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath: FilePathStub({ value: '/project/src' }),
         slotCount: SlotCountStub({ value: 2 }),
@@ -2097,6 +2133,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2145,6 +2182,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2200,6 +2238,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2251,6 +2290,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2307,6 +2347,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2379,6 +2420,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
@@ -2430,6 +2472,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 3 }),
@@ -2489,6 +2532,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2550,6 +2594,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       const result = await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),
@@ -2619,6 +2664,7 @@ describe('orchestrationLoopLayerBroker', () => {
 
       await orchestrationLoopLayerBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
+        guildId: GuildIdStub(),
         workTracker,
         startPath,
         slotCount: SlotCountStub({ value: 2 }),

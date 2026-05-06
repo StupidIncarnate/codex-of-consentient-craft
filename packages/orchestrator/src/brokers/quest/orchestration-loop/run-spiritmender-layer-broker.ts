@@ -16,6 +16,7 @@ import {
   filePathContract,
   type AdapterResult,
   type FilePath,
+  type GuildId,
   type QuestId,
   type QuestWorkItemId,
   type StreamSignalKind,
@@ -46,6 +47,7 @@ export const runSpiritmenderLayerBroker = async ({
   questId,
   workItems,
   startPath,
+  guildId,
   slotCount,
   slotOperations,
   onAgentEntry,
@@ -54,6 +56,7 @@ export const runSpiritmenderLayerBroker = async ({
   questId: QuestId;
   workItems: WorkItem[];
   startPath: FilePath;
+  guildId: GuildId;
   slotCount: SlotCount;
   slotOperations: SlotOperations;
   onAgentEntry: OnAgentEntryCallback;
@@ -122,16 +125,17 @@ export const runSpiritmenderLayerBroker = async ({
     slotCount,
     slotOperations,
     startPath: filePathContract.parse(startPath),
+    guildId,
     maxFollowupDepth,
     abortSignal,
     // Slot manager passes its internal WorkItemId; translate to the quest work item id
     // before invoking the responder-facing onAgentEntry.
-    onAgentEntry: ({ slotIndex, entry, workItemId: slotWorkItemId, sessionId }) => {
+    onAgentEntry: ({ slotIndex, entries, workItemId: slotWorkItemId, sessionId }) => {
       const questItemId = slotToQuestMap.get(slotWorkItemId);
       if (questItemId === undefined) return;
       onAgentEntry({
         slotIndex,
-        entry,
+        entries,
         questWorkItemId: questItemId,
         ...(sessionId === undefined ? {} : { sessionId }),
       });

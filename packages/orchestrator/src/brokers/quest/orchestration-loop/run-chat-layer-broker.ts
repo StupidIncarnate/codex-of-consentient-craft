@@ -1,9 +1,8 @@
 /**
- * PURPOSE: Spawns chaos/glyph agents with streaming, writes sessionId to work item
+ * PURPOSE: Spawns chaos/glyph agents from the orchestration loop. Delegates the spawn lifecycle to `agentLaunchBroker` so chat-from-loop launches identically to chat-from-server (chatSpawnBroker) and to every other orchestration agent. Builds the prompt via chatPromptBuildTransformer, resolves cwd, and forwards the launcher's onEntries to the loop's onAgentEntry. Writes sessionId + completion status back to the work item once the spawn exits.
  *
  * USAGE:
- * await runChatLayerBroker({ questId, workItem, startPath, userMessage });
- * // Spawns chaos or glyph agent, writes sessionId and completion status back to quest
+ * await runChatLayerBroker({ questId, workItem, startPath, guildId, userMessage, onAgentEntry });
  */
 
 import {
@@ -14,32 +13,35 @@ import {
   type AdapterResult,
   type ExitCode,
   type FilePath,
+  type GuildId,
   type QuestId,
   type SessionId,
   type UserInput,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
+import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
-import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
-import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
+import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
 export const runChatLayerBroker = async ({
   questId,
   workItem,
   startPath,
+  guildId,
   userMessage,
   onAgentEntry,
 }: {
   questId: QuestId;
   workItem: WorkItem;
   startPath: FilePath;
+  guildId: GuildId;
   userMessage?: UserInput;
   onAgentEntry: OnAgentEntryCallback;
 }): Promise<AdapterResult> => {
@@ -60,9 +62,6 @@ export const runChatLayerBroker = async ({
 
   const model = roleToModelTransformer({ role: workItem.role });
 
-  // Walk up from `startPath` to the repo root (directory containing `.dungeonmaster.json`)
-  // so the spawned Claude CLI's cwd lets `.mcp.json` resolve. Falls back to startPath when
-  // no `.dungeonmaster.json` ancestor exists (standalone projects, isolated /tmp dirs).
   const parsedStartPath = filePathContract.parse(startPath);
   const resolvedCwd = await (async () => {
     try {
@@ -72,36 +71,51 @@ export const runChatLayerBroker = async ({
     }
   })();
 
+  const processIdPrefix = processIdPrefixContract.parse(
+    workItem.role === 'chaoswhisperer' ? 'chat' : 'design',
+  );
+
   try {
     const { sessionId, exitCode } = await new Promise<{
       sessionId: SessionId | null;
       exitCode: ExitCode | null;
     }>((resolve) => {
       let trackedSessionId: SessionId | null = null;
-
-      agentSpawnUnifiedBroker({
+      agentLaunchBroker({
+        guildId,
+        processIdPrefix,
         prompt,
         cwd: resolvedCwd,
         model,
         ...(workItem.sessionId === undefined ? {} : { resumeSessionId: workItem.sessionId }),
-        onLine: ({ line }) => {
+        onEntries: ({ entries, sessionId: emittedSessionId }) => {
           onAgentEntry({
             slotIndex,
-            entry: { raw: line },
+            entries,
             questWorkItemId: workItem.id,
-            ...(trackedSessionId === null ? {} : { sessionId: trackedSessionId }),
+            ...(emittedSessionId === undefined ? {} : { sessionId: emittedSessionId }),
           });
-
-          if (trackedSessionId === null) {
-            const parsed = claudeLineNormalizeBroker({ rawLine: line });
-            const sid = sessionIdExtractorTransformer({ parsed });
-            if (sid !== null) {
-              trackedSessionId = sid;
-            }
-          }
         },
-        onComplete: ({ exitCode: code }) => {
-          resolve({ sessionId: trackedSessionId, exitCode: code });
+        onText: (): void => {
+          // Chat-layer no-op
+        },
+        onSignal: (): void => {
+          // Chat-layer no-op
+        },
+        onSessionId: ({ sessionId: extractedSid }) => {
+          trackedSessionId = extractedSid;
+          onAgentEntry({
+            slotIndex,
+            entries: [],
+            questWorkItemId: workItem.id,
+            sessionId: extractedSid,
+          });
+        },
+        onComplete: ({ exitCode: code, sessionId: completedSessionId }) => {
+          resolve({
+            sessionId: completedSessionId ?? trackedSessionId,
+            exitCode: code,
+          });
         },
       });
     });
@@ -110,7 +124,6 @@ export const runChatLayerBroker = async ({
       throw new Error(`Chat agent exited with code ${String(exitCode)}`);
     }
 
-    // Write sessionId back to work item
     if (sessionId) {
       await questModifyBroker({
         input: {

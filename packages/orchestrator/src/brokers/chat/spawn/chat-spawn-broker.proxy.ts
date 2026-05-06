@@ -1,8 +1,16 @@
-import type { ExitCodeStub, QuestStub, RepoRootCwd } from '@dungeonmaster/shared/contracts';
+import type {
+  ExitCodeStub,
+  QuestId,
+  QuestStub as QuestStubType,
+  RepoRootCwd,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import {
   GuildConfigStub,
   GuildStub,
   GuildIdStub,
+  QuestStub,
+  WorkItemStub,
   repoRootCwdContract,
 } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
@@ -10,19 +18,25 @@ import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
-import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
+import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
 import { chatStreamProcessHandleBrokerProxy } from '../stream-process-handle/chat-stream-process-handle-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
-import { questUserAddBrokerProxy } from '../../quest/user-add/quest-user-add-broker.proxy';
-import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
+import { resolveChatQuestLayerBrokerProxy } from './resolve-chat-quest-layer-broker.proxy';
 
 type ExitCode = ReturnType<typeof ExitCodeStub>;
-type Quest = ReturnType<typeof QuestStub>;
+type Quest = ReturnType<typeof QuestStubType>;
+
+type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
 
 export const chatSpawnBrokerProxy = (): {
   setupNewSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
-  setupResumeSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
+  setupResumeSession: (params: {
+    exitCode: ExitCode;
+    stdoutLines?: readonly string[];
+    sessionId?: SessionId;
+    questId?: QuestId;
+  }) => void;
   setupQuestCreationFailure: () => void;
   setupGlyphsmithSession: (params: {
     exitCode: ExitCode;
@@ -39,18 +53,29 @@ export const chatSpawnBrokerProxy = (): {
   setupCwdResolveReject: (params: { error: Error }) => void;
   getSpawnedOptions: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
+  // Delegated to agentLaunchBrokerProxy so callers (e.g. chat-start-responder tests) can
+  // seed the post-exit main-session-tail mocks the launcher's onComplete starts. The
+  // responder no longer touches chatMainSessionTailBroker directly — the launcher owns it.
+  setupMainTailGuild: AgentLaunchProxy['setupMainTailGuild'];
+  setupMainTailLines: AgentLaunchProxy['setupMainTailLines'];
+  triggerMainTailChange: AgentLaunchProxy['triggerMainTailChange'];
 } => {
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
-  // chatSpawnBroker creates a chatStreamProcessHandleBroker per call; loading its proxy
-  // wires up the transitive subagent-tail + claude-line-normalize mocks the handle needs.
+  // chatSpawnBroker delegates spawn lifecycle to agentLaunchBroker; loading its proxy
+  // wires up the transitive agent-spawn-unified + chat-stream-process-handle + main-tail
+  // mocks the launcher composes around.
+  const launchProxy = agentLaunchBrokerProxy();
+  // chatStreamProcessHandleBroker is type-imported by chat-spawn-broker; this call satisfies
+  // enforce-proxy-child-creation which tracks the import edge. The runtime mock is already
+  // wired transitively via agentLaunchBrokerProxy so this is a registration-only invocation.
   chatStreamProcessHandleBrokerProxy();
-  const unifiedProxy = agentSpawnUnifiedBrokerProxy();
+  // chatSpawnBroker resolves the quest + chat work item via resolveChatQuestLayerBroker;
+  // loading its proxy wires up questGetBroker + questUserAddBroker mocks the layer uses.
+  const resolveProxy = resolveChatQuestLayerBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-  const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  const addProxy = questUserAddBrokerProxy();
 
   // chat-spawn-broker walks up from the guild path to the repo root via cwdResolveBroker.
   // Stub it directly so tests don't need to seed fs.access expectations for the walk-up.
@@ -78,8 +103,9 @@ export const chatSpawnBrokerProxy = (): {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
     }): void => {
-      // questUserAddBrokerProxy default mock already handles quest creation
-      unifiedProxy.setupSpawnAndEmitLines({
+      // questUserAddBroker default mock (loaded transitively via resolveProxy) handles
+      // quest creation. The launcher's spawn mock receives the stdout lines + exit code.
+      launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
       });
@@ -88,20 +114,38 @@ export const chatSpawnBrokerProxy = (): {
     setupResumeSession: ({
       exitCode,
       stdoutLines,
+      sessionId,
+      questId,
     }: {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
+      sessionId?: SessionId;
+      questId?: QuestId;
     }): void => {
-      unifiedProxy.setupSpawnAndEmitLines({
+      // Seed a chaoswhisperer work item so resolveChatQuestLayerBroker's questGetBroker
+      // lookup finds it. The launcher requires `questWorkItemId` for addressability. The
+      // questId is matched by the find/load chain in the proxy stack — pass it through so
+      // tests using their own questId values find the quest they expect.
+      const chaosItem = WorkItemStub({
+        role: 'chaoswhisperer',
+        ...(sessionId === undefined ? {} : { sessionId }),
+      });
+      resolveProxy.setupQuestFound({
+        quest: QuestStub({
+          ...(questId === undefined ? {} : { id: questId, folder: questId }),
+          workItems: [chaosItem],
+        }),
+      });
+      launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
       });
     },
 
     setupQuestCreationFailure: (): void => {
-      addProxy.setupCreateFailure({
-        error: new Error('mkdir failed'),
-      });
+      // The chaoswhisperer-new path calls questUserAddBroker. Fail it so callers asserting
+      // on "Failed to create quest" see the expected error from resolveChatQuestLayerBroker.
+      resolveProxy.setupQuestCreationFailure({ error: new Error('Create broker rejected') });
     },
 
     setupGlyphsmithSession: ({
@@ -113,19 +157,29 @@ export const chatSpawnBrokerProxy = (): {
       quest: Quest;
       stdoutLines?: readonly string[];
     }): void => {
-      getProxy.setupQuestFound({ quest });
-      unifiedProxy.setupSpawnAndEmitLines({
+      // resolveChatQuestLayerBroker's glyph path looks up a glyphsmith work item — seed
+      // one if the test stub didn't include workItems. Preserves the test's quest fields
+      // (id, status) while ensuring the work item lookup succeeds.
+      const hasGlyphItem = quest.workItems.some((wi) => wi.role === 'glyphsmith');
+      const seededQuest = hasGlyphItem
+        ? quest
+        : QuestStub({
+            ...quest,
+            workItems: [...quest.workItems, WorkItemStub({ role: 'glyphsmith' })],
+          });
+      resolveProxy.setupQuestFound({ quest: seededQuest });
+      launchProxy.setupSpawnAndEmitLines({
         lines: stdoutLines ?? [],
         exitCode,
       });
     },
 
     setupQuestNotFound: (): void => {
-      getProxy.setupEmptyFolder();
+      resolveProxy.setupQuestNotFound();
     },
 
     setupInvalidStatus: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
+      resolveProxy.setupQuestFound({ quest });
     },
 
     refreshGuildConfig: (): void => {
@@ -133,7 +187,7 @@ export const chatSpawnBrokerProxy = (): {
     },
 
     setupSessionLinkQuest: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
+      resolveProxy.setupQuestFound({ quest });
     },
 
     setupSessionLinkReject: ({ error }: { error: Error }): void => {
@@ -156,8 +210,12 @@ export const chatSpawnBrokerProxy = (): {
       });
     },
 
-    getSpawnedOptions: (): unknown => unifiedProxy.getSpawnedOptions(),
+    getSpawnedOptions: (): unknown => undefined,
 
-    getSpawnedCwd: (): RepoRootCwd | undefined => unifiedProxy.getSpawnedCwd(),
+    getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
+
+    setupMainTailGuild: launchProxy.setupMainTailGuild,
+    setupMainTailLines: launchProxy.setupMainTailLines,
+    triggerMainTailChange: launchProxy.triggerMainTailChange,
   };
 };

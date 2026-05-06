@@ -6,7 +6,7 @@
  * // Returns SlotManagerResult when orchestration completes or gets stuck
  */
 
-import type { FilePath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveAgent } from '../../../contracts/active-agent/active-agent-contract';
 import type { FollowupDepth } from '../../../contracts/followup-depth/followup-depth-contract';
@@ -31,6 +31,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations,
   activeAgents,
   startPath,
+  guildId,
   onAgentEntry,
   onWorkItemSessionId,
   onFollowupCreated,
@@ -46,6 +47,7 @@ export const runOrchestrationLayerBroker = async ({
   slotOperations: SlotOperations;
   activeAgents: ActiveAgent[];
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry?: OnSlotAgentEntryCallback;
   onWorkItemSessionId?: OnWorkItemSessionIdCallback;
   onFollowupCreated?: OnFollowupCreatedCallback;
@@ -71,6 +73,7 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     activeAgents,
     startPath,
+    guildId,
     sessionIds,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),
@@ -92,6 +95,7 @@ export const runOrchestrationLayerBroker = async ({
     slotOperations,
     activeAgents: loopResult.activeAgents,
     startPath,
+    guildId,
     sessionIds,
     ...(onAgentEntry === undefined ? {} : { onAgentEntry }),
     ...(onWorkItemSessionId === undefined ? {} : { onWorkItemSessionId }),

@@ -10,6 +10,7 @@ import type {
   AdapterResult,
   FilePath,
   FolderTypeGroups,
+  GuildId,
   ProcessId,
   QuestId,
   UserInput,
@@ -64,6 +65,7 @@ export const questOrchestrationLoopBroker = async ({
   processId,
   questId,
   startPath,
+  guildId,
   onAgentEntry,
   abortSignal,
   userMessage,
@@ -72,6 +74,7 @@ export const questOrchestrationLoopBroker = async ({
   processId: ProcessId;
   questId: QuestId;
   startPath: FilePath;
+  guildId: GuildId;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   userMessage?: UserInput;
@@ -257,6 +260,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItem: firstItem,
         startPath,
+        guildId,
         ...(userMessage === undefined ? {} : { userMessage }),
         onAgentEntry,
       });
@@ -265,6 +269,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItem: firstItem,
         startPath,
+        guildId,
         onAgentEntry,
         abortSignal,
         batchGroups,
@@ -274,6 +279,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItems: roleItems,
         startPath,
+        guildId,
         slotCount,
         slotOperations,
         onAgentEntry,
@@ -284,6 +290,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItem: firstItem,
         startPath,
+        guildId,
         onAgentEntry,
         abortSignal,
       });
@@ -292,6 +299,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItem: firstItem,
         startPath,
+        guildId,
         onAgentEntry,
         abortSignal,
       });
@@ -300,6 +308,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItems: roleItems,
         startPath,
+        guildId,
         slotCount,
         slotOperations,
         onAgentEntry,
@@ -310,6 +319,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItem: firstItem,
         startPath,
+        guildId,
         onAgentEntry,
         abortSignal,
       });
@@ -319,6 +329,7 @@ export const questOrchestrationLoopBroker = async ({
         questId,
         workItems: roleItems,
         startPath,
+        guildId,
         slotCount,
         slotOperations,
         onAgentEntry,
@@ -367,6 +378,7 @@ export const questOrchestrationLoopBroker = async ({
     processId,
     questId,
     startPath,
+    guildId,
     onAgentEntry,
     abortSignal,
     batchGroups,

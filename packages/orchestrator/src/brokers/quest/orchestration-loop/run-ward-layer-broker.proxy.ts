@@ -233,6 +233,16 @@ export const runWardLayerBrokerProxy = (): {
       uuids: readonly [string, string, string];
     }): void => {
       clearEnv();
+      // UUID call order in runWardLayerBroker:
+      //   1. wardSessionId (line 70) — skip with filler
+      //   2. per-line entry uuid in onLine (2 default stdout lines) — skip with fillers
+      //   3. wardResultId (line 118) — uuids[0]
+      //   4. spiritmenderId (line 216) — uuids[1]
+      //   5. wardRetry.id (line 282) — uuids[2]
+      const filler = 'ffffffff-ffff-4fff-bfff-ffffffffffff' as ReturnType<typeof crypto.randomUUID>;
+      uuidSpy.mockReturnValueOnce(filler); // wardSessionId
+      uuidSpy.mockReturnValueOnce(filler); // onLine entry uuid (line 1)
+      uuidSpy.mockReturnValueOnce(filler); // onLine entry uuid (line 2)
       uuidSpy.mockReturnValueOnce(uuids[0] as ReturnType<typeof crypto.randomUUID>);
       uuidSpy.mockReturnValueOnce(uuids[1] as ReturnType<typeof crypto.randomUUID>);
       uuidSpy.mockReturnValueOnce(uuids[2] as ReturnType<typeof crypto.randomUUID>);

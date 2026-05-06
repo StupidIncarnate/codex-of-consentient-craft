@@ -1,4 +1,4 @@
-import { ExitCodeStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub, FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { devServerStartLoopLayerBroker } from './dev-server-start-loop-layer-broker';
 import { devServerStartLoopLayerBrokerProxy } from './dev-server-start-loop-layer-broker.proxy';
@@ -25,6 +25,7 @@ describe('devServerStartLoopLayerBroker', () => {
         readinessTimeoutMs: READINESS_TIMEOUT_MS,
         cwd: CWD,
         startPath: START_PATH,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -49,6 +50,7 @@ describe('devServerStartLoopLayerBroker', () => {
         readinessTimeoutMs: READINESS_TIMEOUT_MS,
         cwd: CWD,
         startPath: START_PATH,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -71,6 +73,7 @@ describe('devServerStartLoopLayerBroker', () => {
         readinessTimeoutMs: READINESS_TIMEOUT_MS,
         cwd: CWD,
         startPath: START_PATH,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 3,
@@ -98,6 +101,7 @@ describe('devServerStartLoopLayerBroker', () => {
         readinessTimeoutMs: READINESS_TIMEOUT_MS,
         cwd: CWD,
         startPath: START_PATH,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 1,
@@ -119,6 +123,7 @@ describe('devServerStartLoopLayerBroker', () => {
         readinessTimeoutMs: READINESS_TIMEOUT_MS,
         cwd: CWD,
         startPath: START_PATH,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: new AbortController().signal,
         attempt: 0,
         maxAttempts: 1,
@@ -158,6 +163,7 @@ describe('devServerStartLoopLayerBroker', () => {
         readinessTimeoutMs: READINESS_TIMEOUT_MS,
         cwd: CWD,
         startPath: START_PATH,
+        guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         abortSignal: abortController.signal,
         attempt: 0,
         maxAttempts: 3,

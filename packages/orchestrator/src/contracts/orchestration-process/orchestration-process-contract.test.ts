@@ -14,6 +14,22 @@ describe('orchestrationProcessContract', () => {
         kill: expect.any(Function),
       });
     });
+
+    it('VALID: {with questWorkItemId} => parses successfully and preserves questWorkItemId', () => {
+      const result = orchestrationProcessContract.parse({
+        processId: 'proc-launcher-agent-1',
+        questId: 'add-auth',
+        questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        kill: () => undefined,
+      });
+
+      expect(result).toStrictEqual({
+        processId: 'proc-launcher-agent-1',
+        questId: 'add-auth',
+        questWorkItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        kill: expect.any(Function),
+      });
+    });
   });
 
   describe('invalid orchestration process', () => {
