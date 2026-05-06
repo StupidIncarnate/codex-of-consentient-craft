@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Single shared WebSocket connection per browser tab. All five WS-consuming bindings (chat, queue, rate-limits, session-replay, ward-detail) subscribe to typed observables on this middleware instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
+ * PURPOSE: Single shared WebSocket connection per browser tab. All five WS-consuming bindings (chat, queue, rate-limits, session-replay, ward-detail) subscribe to typed observables on this state instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
  *
  * USAGE:
- * webSocketChannelMiddleware.connect({ url: WsUrlStub({ value: 'ws://host/ws' }) });
- * const sub = webSocketChannelMiddleware.chatOutput$().subscribe((p) => ...);
- * webSocketChannelMiddleware.sendSubscribeQuest({ questId });
+ * webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://host/ws' }) });
+ * const sub = webSocketChannelState.chatOutput$().subscribe((p) => ...);
+ * webSocketChannelState.sendSubscribeQuest({ questId });
  * sub.unsubscribe();
  */
 
@@ -74,11 +74,11 @@ const internalState: {
   opensSubject: rxjsSubjectAdapter<undefined>(),
 };
 
-export const webSocketChannelMiddleware = {
+export const webSocketChannelState = {
   connect: ({ url }: { url: WsUrl }): void => {
     internalState.url = url;
     internalState.shouldReconnect = true;
-    webSocketChannelMiddleware.openConnection();
+    webSocketChannelState.openConnection();
   },
 
   disconnect: (): void => {
@@ -101,7 +101,7 @@ export const webSocketChannelMiddleware = {
 
     internalState.socket = websocketConnectAdapter({
       url: internalState.url,
-      onMessage: webSocketChannelMiddleware.dispatchInbound,
+      onMessage: webSocketChannelState.dispatchInbound,
       onOpen: (): void => {
         internalState.isOpen = true;
         internalState.opensSubject.next(undefined);
@@ -112,7 +112,7 @@ export const webSocketChannelMiddleware = {
         if (!internalState.shouldReconnect) return;
         internalState.reconnectTimer = globalThis.setTimeout(() => {
           internalState.reconnectTimer = null;
-          webSocketChannelMiddleware.openConnection();
+          webSocketChannelState.openConnection();
         }, RECONNECT_DELAY_MS_VALUE);
       },
     });
