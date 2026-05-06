@@ -104,7 +104,7 @@ export const websocketConnectAdapterProxy = ({ deferOpen = false }: { deferOpen?
     },
 
     getFirstSocket: (): MockSocket => {
-      const firstSocket = state.sockets[0];
+      const [firstSocket] = state.sockets;
       if (!firstSocket) {
         throw new Error('WebSocket not created yet');
       }
@@ -112,7 +112,7 @@ export const websocketConnectAdapterProxy = ({ deferOpen = false }: { deferOpen?
     },
 
     markFirstSocketClosed: (): void => {
-      const firstSocket = state.sockets[0];
+      const [firstSocket] = state.sockets;
       if (!firstSocket) {
         throw new Error('WebSocket not created yet');
       }

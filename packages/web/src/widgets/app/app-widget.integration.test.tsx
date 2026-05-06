@@ -2,12 +2,14 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { testingLibraryRenderHookAdapter } from '../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
-import { useQuestChatBinding } from '../bindings/use-quest-chat/use-quest-chat-binding';
-import { useQuestQueueBinding } from '../bindings/use-quest-queue/use-quest-queue-binding';
-import { useRateLimitsBinding } from '../bindings/use-rate-limits/use-rate-limits-binding';
-import { webConfigStatics } from '../statics/web-config/web-config-statics';
+import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
+import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
+import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
+import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
+import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
+import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 
 describe('shared websocket connection', () => {
   it('VALID: {chat + queue + rate-limits bindings mounted together} => exactly one WebSocket is opened', async () => {
@@ -55,6 +57,12 @@ describe('shared websocket connection', () => {
       };
     }) as never);
 
+    // Reset the channel singleton and connect it the way AppMountFlow does in
+    // production. The bindings then subscribe to channel observables; without
+    // this connect(), no socket is created at all.
+    webSocketChannelState.clear();
+    webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://localhost/ws' }) });
+
     const questId = QuestIdStub({ value: 'test-quest' });
 
     // Mount all three WS-consuming bindings simultaneously.
@@ -97,13 +105,8 @@ describe('shared websocket connection', () => {
       stopChat: expect.any(Function),
     });
 
-    // THE REFACTOR TARGET: after Phase 1, all three bindings share one
-    // WebSocket connection so exactly one constructor call is expected.
-    //
-    // Current (pre-refactor) state: each binding calls
-    // websocketConnectAdapter() independently, producing three separate
-    // `new WebSocket(...)` calls — this assertion is intentionally RED until
-    // the shared-channel refactor lands.
-    expect(socketConstructions).toHaveLength(1);
+    // After Phase 1, all three bindings share one WebSocket connection via the
+    // singleton webSocketChannelState — exactly one constructor call is expected.
+    expect(socketConstructions).toStrictEqual([true]);
   });
 });

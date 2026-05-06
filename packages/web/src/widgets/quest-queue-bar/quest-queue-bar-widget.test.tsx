@@ -167,6 +167,7 @@ describe('QuestQueueBarWidget', () => {
   describe('websocket updates', () => {
     it('VALID: {execution-queue-updated WS} => widget re-renders with new entries', async () => {
       const proxy = QuestQueueBarWidgetProxy();
+      proxy.setupConnectedChannel();
       proxy.setupEntries({
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
       });
@@ -190,7 +191,7 @@ describe('QuestQueueBarWidget', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.websocket.receiveMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'execution-queue-updated',
               payload: {},
@@ -213,6 +214,7 @@ describe('QuestQueueBarWidget', () => {
 
     it('VALID: {execution-queue-error WS} => widget re-renders with error badge', async () => {
       const proxy = QuestQueueBarWidgetProxy();
+      proxy.setupConnectedChannel();
       proxy.setupEntries({
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
       });
@@ -242,7 +244,7 @@ describe('QuestQueueBarWidget', () => {
 
       testingLibraryActAdapter({
         callback: () => {
-          proxy.websocket.receiveMessage({
+          proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'execution-queue-error',
               payload: {},

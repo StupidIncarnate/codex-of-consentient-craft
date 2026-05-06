@@ -61,6 +61,7 @@ describe('RateLimitsStackWidget', () => {
 
   it('VALID: {rate-limits-updated WS} => widget re-renders with updated percentage', async () => {
     const proxy = RateLimitsStackWidgetProxy();
+    proxy.setupConnectedChannel();
     const futureIso = new Date(Date.now() + 3600_000).toISOString();
     proxy.setupSnapshot({
       snapshot: RateLimitsSnapshotStub({
@@ -88,7 +89,7 @@ describe('RateLimitsStackWidget', () => {
 
     testingLibraryActAdapter({
       callback: () => {
-        proxy.websocket.receiveMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'rate-limits-updated',
             payload: {},

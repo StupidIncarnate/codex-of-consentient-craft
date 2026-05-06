@@ -122,6 +122,7 @@ describe('QuestChatContentLayerWidget', () => {
 
     it('VALID: {quest at review_flows} => renders chat panel + spec panel', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
       const guildId = GuildIdStub({ value: 'dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb' });
       const quest = QuestStub({
         id: 'q-pre',
@@ -141,7 +142,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'quest-modified',
             payload: { questId: quest.id, quest },
@@ -159,6 +160,7 @@ describe('QuestChatContentLayerWidget', () => {
 
     it('VALID: {quest at in_progress} => renders execution panel + dumpster raccoon column (no chat-entry feed)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
       const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-cccccccccccc' });
       const quest = QuestStub({
         id: 'q-exec',
@@ -178,7 +180,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'quest-modified',
             payload: { questId: quest.id, quest },
@@ -205,6 +207,7 @@ describe('QuestChatContentLayerWidget', () => {
 
     it('VALID: {clarification-request WS event} => panel renders questions and submit calls clarify broker', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
       const guildId = GuildIdStub({ value: 'ffffffff-aaaa-bbbb-cccc-dddddddddddd' });
       const quest = QuestStub({ id: 'q-clarify', status: 'review_flows' });
       const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
@@ -223,7 +226,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'quest-modified',
             payload: { questId: quest.id, quest },
@@ -233,7 +236,7 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       act(() => {
-        proxy.receiveWsMessage({
+        proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'clarification-request',
             payload: {
@@ -257,6 +260,7 @@ describe('QuestChatContentLayerWidget', () => {
       const option = await findByTestId('CLARIFY_OPTION');
       await act(async () => {
         option.click();
+        return Promise.resolve();
       });
 
       expect(proxy.getClarifyRequestCount()).toBe(1);

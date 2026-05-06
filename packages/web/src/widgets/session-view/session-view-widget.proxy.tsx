@@ -10,7 +10,8 @@ const isReplayHistoryMessage = (message: unknown): boolean => {
 };
 
 export const SessionViewWidgetProxy = (): {
-  receiveWsMessage: (params: { data: string }) => void;
+  setupConnectedChannel: () => void;
+  deliverWsMessage: (params: { data: string }) => void;
   setupGuilds: ReturnType<typeof useGuildsBindingProxy>['setupGuilds'];
   getReplayHistorySent: () => boolean;
   getReplayHistoryMessage: () => unknown;
@@ -21,8 +22,11 @@ export const SessionViewWidgetProxy = (): {
   DumpsterRaccoonWidgetProxy();
 
   return {
-    receiveWsMessage: ({ data }) => {
-      replayProxy.receiveWsMessage({ data });
+    setupConnectedChannel: () => {
+      replayProxy.setupConnectedChannel();
+    },
+    deliverWsMessage: ({ data }) => {
+      replayProxy.deliverWsMessage({ data });
     },
     setupGuilds: ({ guilds }) => {
       guildsProxy.setupGuilds({ guilds });
