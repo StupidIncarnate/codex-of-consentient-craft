@@ -33,8 +33,7 @@ describe('shared websocket connection', () => {
     const wsSpy = registerSpyOn({ object: globalThis as never, method: 'WebSocket' });
 
     // Expose the OPEN constant so the adapter's readyState guard resolves.
-    (globalThis.WebSocket as unknown as { OPEN: typeof WebSocket.OPEN }).OPEN =
-      WebSocket.OPEN;
+    (globalThis.WebSocket as unknown as { OPEN: typeof WebSocket.OPEN }).OPEN = WebSocket.OPEN;
 
     wsSpy.mockImplementation((() => {
       socketConstructions.push(true);
@@ -105,6 +104,6 @@ describe('shared websocket connection', () => {
     // websocketConnectAdapter() independently, producing three separate
     // `new WebSocket(...)` calls — this assertion is intentionally RED until
     // the shared-channel refactor lands.
-    expect(socketConstructions.length).toBe(1);
+    expect(socketConstructions).toHaveLength(1);
   });
 });

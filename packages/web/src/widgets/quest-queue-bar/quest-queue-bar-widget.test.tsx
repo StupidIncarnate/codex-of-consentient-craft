@@ -167,7 +167,9 @@ describe('QuestQueueBarWidget', () => {
   describe('websocket updates', () => {
     it('VALID: {execution-queue-updated WS} => widget re-renders with new entries', async () => {
       const proxy = QuestQueueBarWidgetProxy();
-      proxy.setupEntries({ entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })] });
+      proxy.setupEntries({
+        entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
+      });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -199,7 +201,9 @@ describe('QuestQueueBarWidget', () => {
       });
 
       await waitFor(() => {
-        expect((document.querySelector('[data-testid="QUEST_QUEUE_BAR_COLLAPSED_LABEL"]') as HTMLElement).textContent).toBe('Quest 1/2 — First');
+        expect(
+          document.querySelector('[data-testid="QUEST_QUEUE_BAR_COLLAPSED_LABEL"]')!.textContent,
+        ).toBe('Quest 1/2 — First');
       });
 
       const label = await findByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL');
@@ -209,7 +213,9 @@ describe('QuestQueueBarWidget', () => {
 
     it('VALID: {execution-queue-error WS} => widget re-renders with error badge', async () => {
       const proxy = QuestQueueBarWidgetProxy();
-      proxy.setupEntries({ entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })] });
+      proxy.setupEntries({
+        entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
+      });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (

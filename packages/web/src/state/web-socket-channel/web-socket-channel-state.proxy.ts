@@ -27,6 +27,7 @@ export const webSocketChannelStateProxy = (): {
   triggerOpen: () => void;
   triggerClose: () => void;
   triggerReconnectFlush: () => void;
+  triggerReconnect: () => void;
   getSentMessages: () => unknown[];
 } => {
   const wsProxy = websocketConnectAdapterProxy();
@@ -53,6 +54,20 @@ export const webSocketChannelStateProxy = (): {
     },
     triggerReconnectFlush: () => {
       wsProxy.triggerReconnect();
+    },
+    // triggerReconnect simulates a reconnect after triggerClose: directly calls openConnection
+    // (bypassing the real 3s timer) and then explicitly fires onopen on the new socket.
+    // The two-step approach (openConnection then explicit onopen) is necessary because
+    // websocketConnectAdapterProxy uses deferOpen=false, which fires the onopen setter
+    // synchronously during socket construction — BEFORE internalState.socket is assigned.
+    // Calling onopen explicitly after openConnection() ensures internalState.socket is
+    // non-null when sendReplayHistory checks it.
+    triggerReconnect: (): void => {
+      webSocketChannelState.openConnection();
+      const lastSocket = wsProxy.getSocket();
+      if (lastSocket.onopen) {
+        lastSocket.onopen();
+      }
     },
     getSentMessages: () => wsProxy.getSentMessages(),
   };
