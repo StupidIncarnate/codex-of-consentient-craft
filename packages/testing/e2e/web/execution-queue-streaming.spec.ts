@@ -88,6 +88,14 @@ test.describe('Execution Queue Streaming', () => {
     //    GET /api/quests/queue and updates the DOM.
     await request.post(`/api/quests/${questId1}/start`);
 
+    // 5b. Pause quest 1 immediately so it stays in the queue across the
+    //     duration of the test. Without pause, the fake CLI drains its single
+    //     queued response in milliseconds, the quest advances to the next role,
+    //     hits an empty fake-CLI queue, exits 1, and the quest is removed from
+    //     the execution queue before we can enqueue quest 2 alongside it. Pause
+    //     keeps the QueueEntry in place without consuming further responses.
+    await request.post(`/api/quests/${questId1}/pause`);
+
     // 6. Queue bar must appear with 'Quest 1/1' — proves DOM updated via WS,
     //    not a page reload.
     await expect(page.getByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL')).toContainText('Quest 1/1', {
