@@ -41,6 +41,8 @@ export const websocketConnectAdapterProxy = ({ deferOpen = false }: { deferOpen?
   triggerReconnect: () => void;
   triggerOpen: () => void;
   getSocket: () => MockSocket;
+  getFirstSocket: () => MockSocket;
+  markFirstSocketClosed: () => void;
   getSentMessages: () => unknown[];
 } => {
   const state: { sockets: MockSocket[] } = { sockets: [] };
@@ -99,6 +101,23 @@ export const websocketConnectAdapterProxy = ({ deferOpen = false }: { deferOpen?
         throw new Error('WebSocket not created yet');
       }
       return lastSocket;
+    },
+
+    getFirstSocket: (): MockSocket => {
+      const firstSocket = state.sockets[0];
+      if (!firstSocket) {
+        throw new Error('WebSocket not created yet');
+      }
+      return firstSocket;
+    },
+
+    markFirstSocketClosed: (): void => {
+      const firstSocket = state.sockets[0];
+      if (!firstSocket) {
+        throw new Error('WebSocket not created yet');
+      }
+      (firstSocket as unknown as { readyState: typeof WebSocket.CLOSED }).readyState =
+        WebSocket.CLOSED;
     },
 
     getSentMessages: (): unknown[] => {

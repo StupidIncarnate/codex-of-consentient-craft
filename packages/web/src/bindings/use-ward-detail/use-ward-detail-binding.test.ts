@@ -170,4 +170,70 @@ describe('useWardDetailBinding', () => {
       });
     });
   });
+
+  describe('correlation', () => {
+    it('VALID: {two requests in flight with different wardResultIds, responses arrive out-of-order} => each promise resolves with its matching response', () => {
+      const proxy = useWardDetailBindingProxy();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const wardResult1 = WardResultStub({ id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const wardResult2 = WardResultStub({ id: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
+      const detail1 = 'detail-for-id1';
+      const detail2 = 'detail-for-id2';
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useWardDetailBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.requestDetail({ wardResultId: wardResult1.id });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.requestDetail({ wardResultId: wardResult2.id });
+        },
+      });
+
+      // Deliver response for id2 first (out-of-order).
+      // Both sockets receive the broadcast, but only the socket whose handler
+      // matches wardResult2.id updates state; socket 1's handler filters it out.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'ward-detail-response',
+              wardResultId: wardResult2.id,
+              detail: detail2,
+            }),
+          });
+        },
+      });
+
+      expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({
+        detail: detail2,
+        loading: false,
+      });
+
+      // Deliver response for id1 second.
+      // Socket 1's handler matches; socket 2's handler filters it out.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'ward-detail-response',
+              wardResultId: wardResult1.id,
+              detail: detail1,
+            }),
+          });
+        },
+      });
+
+      expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({
+        detail: detail1,
+        loading: false,
+      });
+    });
+  });
 });

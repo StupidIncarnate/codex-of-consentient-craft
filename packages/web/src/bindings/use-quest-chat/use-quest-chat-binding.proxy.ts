@@ -21,11 +21,15 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
   }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   getChatRequestCount: () => RequestCount;
+  getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
   getResumeRequestCount: () => RequestCount;
   receiveWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
   triggerWsOpen: () => void;
+  triggerWsClose: () => void;
+  triggerWsReconnect: () => void;
+  markFirstWsSocketClosed: () => void;
   getSocketClose: () => jest.Mock;
 } => {
   const chatProxy = questChatBrokerProxy();
@@ -74,6 +78,7 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
       }
     },
     getChatRequestCount: () => chatProxy.getRequestCount(),
+    getClarifyRequestCount: () => clarifyProxy.getRequestCount(),
     getPauseRequestCount: () => pauseProxy.getRequestCount(),
     getResumeRequestCount: () => resumeProxy.getRequestCount(),
     receiveWsMessage: ({ data }) => {
@@ -82,6 +87,15 @@ export const useQuestChatBindingProxy = ({ deferOpen = false }: { deferOpen?: bo
     getSentWsMessages: () => wsProxy.getSentMessages(),
     triggerWsOpen: () => {
       wsProxy.triggerOpen();
+    },
+    triggerWsClose: () => {
+      wsProxy.triggerClose();
+    },
+    triggerWsReconnect: () => {
+      wsProxy.triggerReconnect();
+    },
+    markFirstWsSocketClosed: () => {
+      wsProxy.markFirstSocketClosed();
     },
     getSocketClose: () => wsProxy.getSocket().close,
   };

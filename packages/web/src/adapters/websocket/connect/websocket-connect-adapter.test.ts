@@ -78,6 +78,27 @@ describe('websocketConnectAdapter', () => {
       expect(globalThis.WebSocket).toHaveBeenCalledTimes(2);
     });
 
+    it('VALID: {send called after reconnect} => sends on the new socket', () => {
+      const proxy = websocketConnectAdapterProxy();
+      const onMessage = jest.fn();
+
+      const connection = websocketConnectAdapter({ url: 'ws://localhost:3001/ws', onMessage });
+
+      const firstSocket = proxy.getSocket();
+      proxy.triggerClose();
+      (firstSocket as unknown as { readyState: typeof WebSocket.CLOSED }).readyState =
+        WebSocket.CLOSED;
+      proxy.triggerReconnect();
+      proxy.triggerOpen();
+      (firstSocket as unknown as { readyState: typeof WebSocket.CLOSED }).readyState =
+        WebSocket.CLOSED;
+
+      const sent = connection.send({ type: 'after-reconnect' });
+
+      expect(sent).toBe(true);
+      expect(proxy.getSentMessages()).toStrictEqual([{ type: 'after-reconnect' }]);
+    });
+
     it('VALID: {close called then server closes} => does not schedule reconnect', () => {
       const proxy = websocketConnectAdapterProxy();
       const onMessage = jest.fn();

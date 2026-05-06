@@ -29,12 +29,14 @@ export const QuestChatContentLayerWidgetProxy = ({
   receiveWsMessage: (params: { data: string }) => void;
   triggerWsOpen: () => void;
   setupChat: (params: { chatProcessId: ProcessId }) => void;
+  setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupPause: () => void;
   setupQuestNew: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   setupQuestNewError: () => void;
   typeMessage: (params: { text: string }) => Promise<void>;
   clickSend: () => Promise<void>;
   getChatRequestCount: () => RequestCount;
+  getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
 } => {
   const binding = useQuestChatBindingProxy({ deferOpen });
@@ -61,6 +63,9 @@ export const QuestChatContentLayerWidgetProxy = ({
     setupChat: ({ chatProcessId }) => {
       binding.setupChat({ chatProcessId });
     },
+    setupClarify: ({ chatProcessId }) => {
+      binding.setupClarify({ chatProcessId });
+    },
     setupPause: () => {
       binding.setupPause();
     },
@@ -77,6 +82,7 @@ export const QuestChatContentLayerWidgetProxy = ({
       await chatPanel.clickSend();
     },
     getChatRequestCount: () => binding.getChatRequestCount(),
+    getClarifyRequestCount: () => binding.getClarifyRequestCount(),
     getPauseRequestCount: () => binding.getPauseRequestCount(),
   };
 };

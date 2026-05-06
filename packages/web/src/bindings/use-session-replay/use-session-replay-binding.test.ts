@@ -7,6 +7,7 @@ import {
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
 
 import { useSessionReplayBinding } from './use-session-replay-binding';
 import { useSessionReplayBindingProxy } from './use-session-replay-binding.proxy';
@@ -252,6 +253,151 @@ describe('useSessionReplayBinding', () => {
       });
 
       expect(closeMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('reconnect during replay', () => {
+    // Locks in the ws-channel-consolidation semantics: a reconnect mid-replay re-sends
+    // replay-history on the new connection so streaming resumes.
+    // Against current source this test is intentionally RED: requestSentRef guards
+    // re-sending so the second replay-history is never sent on the new socket.
+    it('VALID: {WS closes and reconnects mid-replay} => re-sends replay-history and resumes streaming', async () => {
+      const proxy = useSessionReplayBindingProxy();
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const guildId = GuildIdStub();
+      const entryUuid1 = '00000000-0000-4000-8000-000000000010';
+      const entryTs1 = '2025-01-01T00:00:00.000Z';
+      const entryUuid2 = '00000000-0000-4000-8000-000000000011';
+      const entryTs2 = '2025-01-02T00:00:00.000Z';
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
+      });
+
+      // Wait for the initial replay-history send
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.getSentWsMessages()).toStrictEqual([
+            {
+              type: 'replay-history',
+              sessionId,
+              guildId,
+              chatProcessId: `replay-${sessionId}`,
+            },
+          ]);
+        },
+      });
+
+      // Deliver one chat-output to prime the state before the disconnect
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: `replay-${sessionId}`,
+                questId: QuestIdStub(),
+                workItemId: QuestWorkItemIdStub(),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'first streamed entry',
+                    uuid: entryUuid1,
+                    timestamp: entryTs1,
+                  },
+                ],
+              },
+              timestamp: entryTs1,
+            }),
+          });
+        },
+      });
+
+      // Simulate WS close + reconnect mid-replay.
+      // Capture the current (first) socket before reconnect creates a second one.
+      // getCurrentSocket() returns the last socket, which is socket[0] at this point.
+      // Object.assign mutates readyState without inline structural type casts.
+      const firstSocket = proxy.getCurrentSocket();
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.triggerWsClose();
+          Object.assign(firstSocket, { readyState: WebSocket.CLOSED });
+          proxy.triggerWsReconnect();
+          proxy.triggerWsOpen();
+          // Re-mark closed: triggerOpen resets ALL sockets' readyState to OPEN
+          Object.assign(firstSocket, { readyState: WebSocket.CLOSED });
+        },
+      });
+
+      // Wait for the second replay-history on the new connection
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.getSentWsMessages()).toStrictEqual([
+            {
+              type: 'replay-history',
+              sessionId,
+              guildId,
+              chatProcessId: `replay-${sessionId}`,
+            },
+            {
+              type: 'replay-history',
+              sessionId,
+              guildId,
+              chatProcessId: `replay-${sessionId}`,
+            },
+          ]);
+        },
+      });
+
+      // Deliver a chat-output on the new connection; assert streaming resumed and
+      // the pre-reconnect entry was retained (dedup by uuid)
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                chatProcessId: `replay-${sessionId}`,
+                questId: QuestIdStub(),
+                workItemId: QuestWorkItemIdStub(),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'resumed after reconnect',
+                    uuid: entryUuid2,
+                    timestamp: entryTs2,
+                  },
+                ],
+              },
+              timestamp: entryTs2,
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'first streamed entry',
+            uuid: entryUuid1,
+            timestamp: entryTs1,
+          },
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'resumed after reconnect',
+            uuid: entryUuid2,
+            timestamp: entryTs2,
+          },
+        ],
+        isLoading: true,
+        sessionNotFound: false,
+      });
     });
   });
 });

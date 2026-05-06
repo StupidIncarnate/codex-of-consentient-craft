@@ -11,6 +11,7 @@ import {
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
 
 import { useQuestChatBinding } from './use-quest-chat-binding';
 import { useQuestChatBindingProxy } from './use-quest-chat-binding.proxy';
@@ -632,6 +633,132 @@ describe('useQuestChatBinding', () => {
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
+    });
+  });
+
+  describe('reconnect', () => {
+    it('VALID: {WS closes and reconnects} => re-sends subscribe-quest and post-reconnect chat-output updates state', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId = QuestIdStub({ value: 'quest-reconnect-1' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const entryUuid = '00000000-0000-4000-8000-000000000042';
+      const entryTs = '2025-01-01T00:00:00.000Z';
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([
+        { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+      ]);
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.triggerWsClose();
+          proxy.markFirstWsSocketClosed();
+          proxy.triggerWsReconnect();
+          proxy.triggerWsOpen();
+          proxy.markFirstWsSocketClosed();
+        },
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.getSentWsMessages()).toStrictEqual([
+            { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+            { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+          ]);
+        },
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([
+        { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+        { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+      ]);
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.receiveWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-reconnect-1',
+                workItemId: QuestWorkItemIdStub(),
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-reconnect' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'post-reconnect',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      const expectedMap = new Map();
+      expectedMap.set(sessionId, [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'post-reconnect',
+          uuid: entryUuid,
+          timestamp: entryTs,
+        },
+      ]);
+
+      expect(result.current.entriesBySession).toStrictEqual(expectedMap);
+    });
+  });
+
+  describe('questId change', () => {
+    it('VALID: {questId changes while mounted} => sends unsubscribe-quest then subscribe-quest for new id', async () => {
+      const proxy = useQuestChatBindingProxy();
+      const questId1 = QuestIdStub({ value: 'quest-change-old' });
+      const questId2 = QuestIdStub({ value: 'quest-change-new' });
+
+      let activeQuestId = questId1;
+
+      const { rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.getSentWsMessages()).toStrictEqual([
+            { type: 'subscribe-quest', questId: 'quest-change-old' },
+          ]);
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questId2;
+          rerender();
+        },
+      });
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(proxy.getSentWsMessages()).toStrictEqual([
+            { type: 'subscribe-quest', questId: 'quest-change-old' },
+            { type: 'unsubscribe-quest', questId: 'quest-change-new' },
+            { type: 'subscribe-quest', questId: 'quest-change-new' },
+          ]);
+        },
+      });
+
+      expect(proxy.getSentWsMessages()).toStrictEqual([
+        { type: 'subscribe-quest', questId: 'quest-change-old' },
+        { type: 'unsubscribe-quest', questId: 'quest-change-new' },
+        { type: 'subscribe-quest', questId: 'quest-change-new' },
+      ]);
     });
   });
 });

@@ -4,7 +4,10 @@ export const useSessionReplayBindingProxy = (): {
   receiveWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
   triggerWsOpen: () => void;
+  triggerWsClose: () => void;
+  triggerWsReconnect: () => void;
   getSocketClose: () => jest.Mock;
+  getCurrentSocket: () => object;
 } => {
   const wsProxy = websocketConnectAdapterProxy();
 
@@ -16,6 +19,13 @@ export const useSessionReplayBindingProxy = (): {
     triggerWsOpen: () => {
       wsProxy.triggerOpen();
     },
+    triggerWsClose: () => {
+      wsProxy.triggerClose();
+    },
+    triggerWsReconnect: () => {
+      wsProxy.triggerReconnect();
+    },
     getSocketClose: () => wsProxy.getSocket().close,
+    getCurrentSocket: () => wsProxy.getSocket() as object,
   };
 };

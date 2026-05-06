@@ -1,7 +1,7 @@
 import { act, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
-import { GuildIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, ProcessIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
@@ -201,6 +201,65 @@ describe('QuestChatContentLayerWidget', () => {
       );
       // No chat-entry feed inside the right column — only the dumpster raccoon.
       expect(queryByTestId('CHAT_MESSAGE')).toBe(null);
+    });
+
+    it('VALID: {clarification-request WS event} => panel renders questions and submit calls clarify broker', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      const guildId = GuildIdStub({ value: 'ffffffff-aaaa-bbbb-cccc-dddddddddddd' });
+      const quest = QuestStub({ id: 'q-clarify', status: 'review_flows' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
+      proxy.setupClarify({ chatProcessId });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      act(() => {
+        proxy.receiveWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: {
+              chatProcessId,
+              questions: [
+                {
+                  question: 'Which database do you prefer?',
+                  header: 'Database',
+                  options: [{ label: 'Postgres', description: 'Relational DB' }],
+                  multiSelect: false,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CLARIFY_PANEL');
+
+      const option = await findByTestId('CLARIFY_OPTION');
+      await act(async () => {
+        option.click();
+      });
+
+      expect(proxy.getClarifyRequestCount()).toBe(1);
     });
   });
 });
