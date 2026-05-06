@@ -46,4 +46,7 @@ export const apiRoutesStatics = {
     smoketestRun: '/api/tooling/smoketest/run',
     smoketestState: '/api/tooling/smoketest/state',
   },
+  rateLimits: {
+    get: '/api/rate-limits',
+  },
 } as const;

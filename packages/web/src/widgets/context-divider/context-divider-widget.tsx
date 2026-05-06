@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Renders a horizontal divider showing context token count with optional delta indicator
+ * PURPOSE: Renders a horizontal divider showing context token count with optional delta and cumulative sub-agent total indicators
  *
  * USAGE:
- * <ContextDividerWidget contextTokens={25500} delta={2100} source="session" />
- * // Renders "--- 25.5k context (+2.1k) ---" styled divider
+ * <ContextDividerWidget contextTokens={25500} delta={2100} source="session" subagentTotalTokens={12000} />
+ * // Renders "--- 25.5k context (+2.1k) · SubAgents - 12.0k ---" styled divider
  */
 
 import { Box, Text } from '@mantine/core';
@@ -18,12 +18,14 @@ export interface ContextDividerWidgetProps {
   contextTokens: ContextTokenCount;
   delta: ContextTokenDelta | null;
   source: 'session' | 'subagent';
+  subagentTotalTokens?: ContextTokenCount;
 }
 
 export const ContextDividerWidget = ({
   contextTokens,
   delta,
   source,
+  subagentTotalTokens,
 }: ContextDividerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const isSubagent = source === 'subagent';
@@ -50,6 +52,13 @@ export const ContextDividerWidget = ({
   const deltaLabel =
     delta === null ? '' : Number(delta) >= 0 ? ` (+${deltaText ?? ''})` : ` (-${deltaText ?? ''})`;
 
+  const formattedSubagentTotal =
+    subagentTotalTokens === undefined
+      ? null
+      : formatContextTokensTransformer({
+          count: contextTokenCountContract.parse(subagentTotalTokens),
+        });
+
   return (
     <Box
       data-testid="CONTEXT_DIVIDER"
@@ -74,6 +83,17 @@ export const ContextDividerWidget = ({
         {delta === null ? null : (
           <Text component="span" ff="monospace" style={{ color: deltaColor, fontSize: 10 }}>
             {deltaLabel}
+          </Text>
+        )}
+        {formattedSubagentTotal === null ? null : (
+          <Text
+            component="span"
+            ff="monospace"
+            data-testid="CONTEXT_DIVIDER_SUBAGENT_TOTAL"
+            style={{ color: colors['loot-rare'], fontSize: 10 }}
+          >
+            {' '}
+            · SubAgents - {formattedSubagentTotal}
           </Text>
         )}
       </Text>

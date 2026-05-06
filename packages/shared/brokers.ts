@@ -76,3 +76,6 @@ export * from './src/brokers/locations/design-scaffold-path-find/locations-desig
 export * from './src/brokers/locations/claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
 export * from './src/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker';
 export * from './src/brokers/locations/claude-subagent-session-file-path-find/locations-claude-subagent-session-file-path-find-broker';
+export * from './src/brokers/locations/rate-limits-snapshot-path-find/locations-rate-limits-snapshot-path-find-broker';
+export * from './src/brokers/locations/rate-limits-snapshot-tmp-path-find/locations-rate-limits-snapshot-tmp-path-find-broker';
+export * from './src/brokers/locations/rate-limits-history-path-find/locations-rate-limits-history-path-find-broker';

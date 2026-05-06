@@ -14,6 +14,7 @@ import { ProcessFlow } from '../flows/process/process-flow';
 import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
+import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { ServerFlow } from '../flows/server/server-flow';
 import { ToolingFlow } from '../flows/tooling/tooling-flow';
 
@@ -28,5 +29,6 @@ export const StartServer = (): AdapterResult =>
       HealthFlow(),
       DesignFlow(),
       ToolingFlow(),
+      RateLimitsFlow(),
     ],
   });

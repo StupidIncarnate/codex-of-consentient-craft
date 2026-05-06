@@ -8,8 +8,6 @@
 
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
-import { Center } from '@mantine/core';
-
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -18,6 +16,7 @@ import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
 import { QuestQueueBarWidget } from '../quest-queue-bar/quest-queue-bar-widget';
+import { RateLimitsStackWidget } from '../rate-limits-stack/rate-limits-stack-widget';
 import { ToolingDropdownWidget } from '../tooling-dropdown/tooling-dropdown-widget';
 
 const TRANSITION_DURATION = '0.4s';
@@ -55,13 +54,28 @@ export const AppWidget = (): React.JSX.Element => {
         }}
       />
 
-      {/* Logo: always horizontally centered, links to home */}
-      <div style={{ padding: '12px 0' }}>
-        <Center>
-          <Link to="/" style={{ textDecoration: 'none' }} data-testid="LOGO_LINK">
-            <LogoWidget />
-          </Link>
-        </Center>
+      {/* Logo row: logo horizontally centered via flex spacers, rate-limits stack right-aligned */}
+      <div
+        style={{
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ flex: '1 1 0', minWidth: 0 }} />
+        <Link to="/" style={{ textDecoration: 'none' }} data-testid="LOGO_LINK">
+          <LogoWidget />
+        </Link>
+        <div
+          style={{
+            flex: '1 1 0',
+            minWidth: 0,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <RateLimitsStackWidget />
+        </div>
       </div>
 
       {/* Map frame container: constrained on home, fills remaining space on quest */}

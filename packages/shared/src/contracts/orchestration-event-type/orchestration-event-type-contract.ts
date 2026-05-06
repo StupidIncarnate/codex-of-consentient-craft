@@ -25,6 +25,7 @@ export const orchestrationEventTypeContract = z.enum([
   'chat-session-started',
   'execution-queue-updated',
   'execution-queue-error',
+  'rate-limits-updated',
 ]);
 
 export type OrchestrationEventType = z.infer<typeof orchestrationEventTypeContract>;

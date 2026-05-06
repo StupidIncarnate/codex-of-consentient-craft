@@ -32,6 +32,7 @@ import type {
   QuestListItem,
   QuestQueueEntry,
   QuestStatus,
+  RateLimitsSnapshot,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 
@@ -48,6 +49,7 @@ import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flo
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
+import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
 import { StartupRecoveryFlow } from '../flows/startup-recovery/startup-recovery-flow';
 
@@ -60,6 +62,9 @@ ExecutionQueueFlow.bootstrapSyncListener();
 
 // Bootstrap the smoketest post-terminal listener on module load. Idempotent.
 SmoketestFlow.bootstrap();
+
+// Bootstrap the rate-limits.json watcher on module load. Idempotent.
+RateLimitsFlow.bootstrap();
 
 export const StartOrchestrator = {
   // Guild methods
@@ -238,4 +243,7 @@ export const StartOrchestrator = {
 
   setWebPresence: ({ isPresent }: { isPresent: boolean }): AdapterResult =>
     ExecutionQueueFlow.setWebPresence({ isPresent }),
+
+  // Rate limits
+  getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),
 };

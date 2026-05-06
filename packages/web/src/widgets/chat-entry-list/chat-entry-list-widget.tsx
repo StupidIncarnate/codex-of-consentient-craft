@@ -11,6 +11,7 @@
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
+import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
 import type { ToolName } from '../../contracts/tool-name/tool-name-contract';
@@ -93,6 +94,7 @@ export const ChatEntryListWidget = ({
   const lastEntryInList = entries.at(-1);
   const elements: React.JSX.Element[] = [];
   let mergedCursor = 0;
+  let runningSubagentTotal = 0;
 
   for (let i = 0; i < groupedEntries.length; i++) {
     const group = groupedEntries[i];
@@ -100,6 +102,9 @@ export const ChatEntryListWidget = ({
 
     if (group.kind === 'subagent-chain') {
       elements.push(<SubagentChainWidget key={`chain-${String(i)}`} group={group} />);
+      if (group.contextTokens !== null) {
+        runningSubagentTotal += Number(group.contextTokens);
+      }
       continue;
     }
 
@@ -161,12 +166,17 @@ export const ChatEntryListWidget = ({
       annotation?.cumulativeContext !== null &&
       annotation?.cumulativeContext !== undefined
     ) {
+      const subagentTotalProp =
+        runningSubagentTotal > 0
+          ? { subagentTotalTokens: contextTokenCountContract.parse(runningSubagentTotal) }
+          : {};
       elements.push(
         <ContextDividerWidget
           key={`divider-${String(i)}`}
           contextTokens={annotation.cumulativeContext}
           delta={annotation.contextDelta}
           source={annotation.source}
+          {...subagentTotalProp}
         />,
       );
     }

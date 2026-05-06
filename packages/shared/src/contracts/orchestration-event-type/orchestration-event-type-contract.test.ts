@@ -25,6 +25,7 @@ describe('orchestrationEventTypeContract', () => {
     'chat-session-started',
     'execution-queue-updated',
     'execution-queue-error',
+    'rate-limits-updated',
   ] as const)('VALID: {value: %s} => parses successfully', (type) => {
     expect(orchestrationEventTypeContract.parse(type)).toBe(type);
   });

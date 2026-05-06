@@ -21,6 +21,7 @@ import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';
 import { HomeContentWidgetProxy } from '../home-content/home-content-widget.proxy';
 import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
 import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-widget.proxy';
+import { RateLimitsStackWidgetProxy } from '../rate-limits-stack/rate-limits-stack-widget.proxy';
 import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
 import { ToolingDropdownWidgetProxy } from '../tooling-dropdown/tooling-dropdown-widget.proxy';
 
@@ -69,6 +70,7 @@ export const AppWidgetProxy = (): {
   setupSessionView();
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
+  RateLimitsStackWidgetProxy();
   ToolingDropdownWidgetProxy();
 
   return {

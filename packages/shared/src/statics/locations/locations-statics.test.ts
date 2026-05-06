@@ -27,6 +27,9 @@ describe('locationsStatics', () => {
         guildsDir: 'guilds',
         eventOutbox: 'event-outbox.jsonl',
         guildConfigFile: 'guild.json',
+        rateLimitsSnapshot: 'rate-limits.json',
+        rateLimitsSnapshotTmp: 'rate-limits.json.tmp',
+        rateLimitsHistory: 'rate-limits-history.jsonl',
       },
       guild: {
         questsDir: 'quests',

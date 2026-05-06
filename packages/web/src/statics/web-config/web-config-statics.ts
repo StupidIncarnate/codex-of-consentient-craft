@@ -30,6 +30,7 @@ export const webConfigStatics = {
       designSession: '/api/quests/:questId/design/session',
       toolingSmoketestRun: '/api/tooling/smoketest/run',
       toolingSmoketestState: '/api/tooling/smoketest/state',
+      rateLimits: '/api/rate-limits',
     },
   },
   polling: {

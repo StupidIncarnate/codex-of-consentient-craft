@@ -227,6 +227,58 @@ You should see symlinks pointing back to the monorepo.
 - **After running `npm install`** in your test project, the links may be removed. Re-run the link command from Step 2.
 - **To unlink**, run `npm unlink <package-name>` or delete the symlinks from `node_modules/`.
 
+## Rate-limit telemetry (optional)
+
+The dungeonmaster web UI can display your live Anthropic 5-hour and 7-day rate-limit usage in the top-right of every
+page, mirroring what Claude Code's statusline shows. Setting this up is one manual step the user has to apply, since
+it integrates with whatever statusline you already have.
+
+### What it does
+
+Whenever Claude Code refreshes its statusline (in any repo), our `dungeonmaster statusline-tap` subcommand reads the
+status JSON, extracts `rate_limits.{five_hour,seven_day}`, and writes a snapshot to:
+
+- `~/.dungeonmaster/rate-limits.json` (latest, atomic-rename writes; throttled to once per 5 seconds)
+- `~/.dungeonmaster/rate-limits-history.jsonl` (append-only log; reserved for future trajectory features)
+
+The dungeonmaster server polls the snapshot file every 5s and broadcasts updates over WebSocket to any connected web
+UI. Rate-limit data is per-Anthropic-account, so installing the tap on one machine surfaces quotas across every repo
+running Claude Code under the same account.
+
+### Wiring it in
+
+Edit `~/.claude/settings.json` and chain `dungeonmaster statusline-tap` into the front of your existing statusline
+command:
+
+```jsonc
+{
+  "statusLine": {
+    "command": "dungeonmaster statusline-tap | <your existing statusline command>"
+  }
+}
+```
+
+The tap is a pure pass-through: it reads JSON on stdin, side-effects to disk, and re-emits the same JSON on stdout
+unchanged. Your statusline visualization is untouched.
+
+### What you'll see
+
+The web UI's top-right shows two stacked monospace cards (5h on top, 7d below) once the tap has run at least once:
+
+```
+[ 5h ▰▰▱▱▱▱▱▱  3% (2h5m) ]
+[ 7d ▰▰▱▱▱▱▱▱ 20% (4d11h) ]
+```
+
+The bar fills proportionally; the color thresholds match the bash statusline (green/default below 50%, yellow at
+50-79%, red at 80%+). Without the tap wired up, the cards simply don't render — the rest of the UI is unaffected.
+
+### Failure modes
+
+- The tap exits 0 even on parse failure (it never blocks your statusline).
+- If `~/.dungeonmaster/rate-limits.json` is malformed or absent, the web UI just hides the cards.
+- Throttling is mtime-based: the tap skips a write when the snapshot's mtime is less than 5s old.
+
 ## License
 
 MIT

@@ -104,4 +104,62 @@ describe('ContextDividerWidget', () => {
       expect(divider.textContent).toBe('500 context');
     });
   });
+
+  describe('subagent running total', () => {
+    it('VALID: {subagentTotalTokens: 12000} => appends SubAgents segment', () => {
+      ContextDividerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ContextDividerWidget
+            contextTokens={ContextTokenCountStub({ value: 118800 })}
+            delta={ContextTokenDeltaStub({ value: 9000 })}
+            source="session"
+            subagentTotalTokens={ContextTokenCountStub({ value: 12000 })}
+          />
+        ),
+      });
+
+      const divider = screen.getByTestId('CONTEXT_DIVIDER');
+
+      expect(divider.textContent).toBe('118.8k context (+9.0k) · SubAgents - 12.0k');
+    });
+
+    it('VALID: {subagentTotalTokens: 0} => still appends SubAgents segment with 0', () => {
+      ContextDividerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ContextDividerWidget
+            contextTokens={ContextTokenCountStub({ value: 1000 })}
+            delta={null}
+            source="session"
+            subagentTotalTokens={ContextTokenCountStub({ value: 0 })}
+          />
+        ),
+      });
+
+      const divider = screen.getByTestId('CONTEXT_DIVIDER');
+
+      expect(divider.textContent).toBe('1.0k context · SubAgents - 0');
+    });
+
+    it('VALID: {subagentTotalTokens omitted} => SubAgents segment hidden', () => {
+      ContextDividerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ContextDividerWidget
+            contextTokens={ContextTokenCountStub({ value: 1000 })}
+            delta={null}
+            source="session"
+          />
+        ),
+      });
+
+      const divider = screen.getByTestId('CONTEXT_DIVIDER');
+
+      expect(divider.textContent).toBe('1.0k context');
+    });
+  });
 });

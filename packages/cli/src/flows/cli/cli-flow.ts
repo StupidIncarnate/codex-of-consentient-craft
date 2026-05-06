@@ -11,10 +11,12 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import { CliInitResponder } from '../../responders/cli/init/cli-init-responder';
 import { CliServeResponder } from '../../responders/cli/serve/cli-serve-responder';
+import { CliStatuslineTapResponder } from '../../responders/cli/statusline-tap/cli-statusline-tap-responder';
 
 const COMMANDS = {
   init: 'init',
   start: 'start',
+  statuslineTap: 'statusline-tap',
 } as const;
 
 export const CliFlow = async ({
@@ -26,6 +28,11 @@ export const CliFlow = async ({
 }): Promise<AdapterResult> => {
   if (command === COMMANDS.init) {
     await CliInitResponder({ context });
+    return adapterResultContract.parse({ success: true });
+  }
+
+  if (command === COMMANDS.statuslineTap) {
+    await CliStatuslineTapResponder();
     return adapterResultContract.parse({ success: true });
   }
 
