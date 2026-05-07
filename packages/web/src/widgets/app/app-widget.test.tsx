@@ -211,6 +211,13 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
+          await proxy.selectAllSessionsFilter();
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
           await proxy.clickSessionItem({ testId: 'SESSION_ITEM_session-1' });
           await Promise.resolve();
         },
@@ -612,6 +619,13 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
+          await proxy.selectAllSessionsFilter();
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
           await proxy.clickSessionItem({ testId: 'SESSION_ITEM_nav-s1' });
           await Promise.resolve();
         },
@@ -761,6 +775,13 @@ describe('AppWidget', () => {
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
+          await proxy.selectAllSessionsFilter();
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
           await proxy.clickSessionItem({ testId: 'SESSION_ITEM_logo-s1' });
           await Promise.resolve();
         },
@@ -866,6 +887,13 @@ describe('AppWidget', () => {
       await testingLibraryActAsyncAdapter({
         callback: async () => {
           await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.selectAllSessionsFilter();
           await Promise.resolve();
         },
       });

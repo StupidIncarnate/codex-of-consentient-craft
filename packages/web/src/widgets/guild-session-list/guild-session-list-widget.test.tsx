@@ -1,4 +1,9 @@
-import { SessionIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestIdStub,
+  QuestListItemStub,
+  SessionIdStub,
+  SessionListItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { SessionFilterStub } from '../../contracts/session-filter/session-filter.stub';
@@ -14,6 +19,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
@@ -36,6 +43,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -64,6 +73,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -87,6 +98,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -115,6 +128,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -144,6 +159,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -173,6 +190,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -198,6 +217,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
@@ -219,6 +240,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -241,6 +264,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
@@ -262,6 +287,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
@@ -280,25 +307,24 @@ describe('GuildSessionListWidget', () => {
   });
 
   describe('filtering', () => {
-    it('VALID: {filter: quests-only, mix of quest/non-quest sessions} => only quest sessions rendered', () => {
+    it('VALID: {filter: quests-only, with quests + sessions} => renders quest rows, not session rows', () => {
       const proxy = GuildSessionListWidgetProxy();
-      const questSessionId = SessionIdStub({ value: 'quest-session' });
-      const nonQuestSessionId = SessionIdStub({ value: 'non-quest-session' });
-      const questSession = SessionListItemStub({
-        sessionId: questSessionId,
-        questId: 'quest-abc' as never,
-        summary: 'Quest session',
-      });
-      const nonQuestSession = SessionListItemStub({
-        sessionId: nonQuestSessionId,
-        summary: 'Regular session',
+      const questId = QuestIdStub({ value: 'quest-row-1' });
+      const quest = QuestListItemStub({ id: questId, title: 'Quest One' as never });
+      const sessionId = SessionIdStub({ value: 'session-1' });
+      const session = SessionListItemStub({
+        sessionId,
+        questId: 'quest-row-1' as never,
+        summary: 'Session 1',
       });
       const filter = SessionFilterStub({ value: 'quests-only' });
 
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
-            sessions={[questSession, nonQuestSession]}
+            quests={[quest]}
+            onSelectQuest={jest.fn()}
+            sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -308,8 +334,8 @@ describe('GuildSessionListWidget', () => {
         ),
       });
 
-      expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${questSessionId}` })).toBe(true);
-      expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${nonQuestSessionId}` })).toBe(false);
+      expect(proxy.isSessionVisible({ testId: `QUEST_ITEM_${questId}` })).toBe(true);
+      expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${sessionId}` })).toBe(false);
     });
 
     it('VALID: {filter: all, mix of quest/non-quest sessions} => all sessions rendered', () => {
@@ -330,6 +356,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[questSession, nonQuestSession]}
             loading={false}
             filter={filter}
@@ -344,19 +372,18 @@ describe('GuildSessionListWidget', () => {
       expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${nonQuestSessionId}` })).toBe(true);
     });
 
-    it('EMPTY: {filter: quests-only, no quest sessions} => empty state shown', () => {
+    it('EMPTY: {filter: quests-only, no quests on disk} => empty state shown regardless of sessions', () => {
       const proxy = GuildSessionListWidgetProxy();
-      const nonQuestSessionId = SessionIdStub({ value: 'no-quest' });
-      const nonQuestSession = SessionListItemStub({
-        sessionId: nonQuestSessionId,
-        summary: 'Regular session',
-      });
+      const sessionId = SessionIdStub({ value: 'orphan-session' });
+      const session = SessionListItemStub({ sessionId, summary: 'Regular session' });
       const filter = SessionFilterStub({ value: 'quests-only' });
 
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
-            sessions={[nonQuestSession]}
+            quests={[]}
+            onSelectQuest={jest.fn()}
+            sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -367,7 +394,7 @@ describe('GuildSessionListWidget', () => {
       });
 
       expect(proxy.hasEmptyState()).toBe(true);
-      expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${nonQuestSessionId}` })).toBe(false);
+      expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${sessionId}` })).toBe(false);
     });
   });
 
@@ -382,6 +409,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -406,6 +435,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
@@ -423,7 +454,7 @@ describe('GuildSessionListWidget', () => {
   });
 
   describe('display text', () => {
-    it('VALID: {session with questTitle} => displays quest title instead of summary', () => {
+    it('VALID: {session with questTitle} => still displays the session summary (questTitle stays in the badge)', () => {
       const proxy = GuildSessionListWidgetProxy();
       const sessionId = SessionIdStub({ value: 'quest-display' });
       const session = SessionListItemStub({
@@ -437,6 +468,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -448,7 +481,7 @@ describe('GuildSessionListWidget', () => {
       });
 
       expect(proxy.getSessionDisplayText({ testId: `SESSION_ITEM_${sessionId}` })).toBe(
-        'Deploy Feature',
+        'Fix the login bug',
       );
     });
 
@@ -464,6 +497,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
@@ -490,6 +525,8 @@ describe('GuildSessionListWidget', () => {
       mantineRenderAdapter({
         ui: (
           <GuildSessionListWidget
+            quests={[]}
+            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}

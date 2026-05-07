@@ -2,13 +2,19 @@
  * PURPOSE: Renders a list of sessions with status indicators, quest badges, filter toggle, and add button
  *
  * USAGE:
- * <GuildSessionListWidget sessions={sessions} filter={filter} onFilterChange={handleFilter} onSelect={handleSelect} onAdd={handleAdd} />
- * // Renders SESSIONS header with session list showing summaries and status indicators
+ * <GuildSessionListWidget sessions={sessions} quests={quests} filter={filter} onFilterChange={handleFilter} onSelect={handleSelect} onSelectQuest={handleQuestSelect} onAdd={handleAdd} />
+ * // Renders SESSIONS header. In "quests-only" mode shows one row per quest file; in "all" mode shows one row per session JSONL.
  */
 
 import { Badge, Group, Loader, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core';
 
-import type { QuestStatus, SessionId, SessionListItem } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestId,
+  QuestListItem,
+  QuestStatus,
+  SessionId,
+  SessionListItem,
+} from '@dungeonmaster/shared/contracts';
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';
@@ -20,10 +26,12 @@ import type { ButtonVariant } from '../../contracts/button-variant/button-varian
 
 export interface GuildSessionListWidgetProps {
   sessions: readonly SessionListItem[];
+  quests: readonly QuestListItem[];
   loading: boolean;
   filter: SessionFilter;
   onFilterChange: (params: { filter: SessionFilter }) => void;
   onSelect: (params: { sessionId: SessionId }) => void;
+  onSelectQuest: (params: { questId: QuestId }) => void;
   onAdd: () => void;
 }
 
@@ -56,16 +64,29 @@ const STATUS_COLOR_MAP = new Map<QuestStatus, (typeof colors)[keyof typeof color
 const TERMINAL_ROW_OPACITY = 0.5;
 const TERMINAL_STATUSES = new Set(['abandoned']);
 
+const ROW_BASE_STYLE = {
+  fontFamily: 'monospace' as const,
+  fontSize: ITEM_FONT_SIZE,
+  color: colors.text,
+  borderRadius: 2,
+  display: 'flex' as const,
+  alignItems: 'center' as const,
+  justifyContent: 'space-between' as const,
+  gap: 12,
+};
+
 export const GuildSessionListWidget = ({
   sessions,
+  quests,
   loading,
   filter,
   onFilterChange,
   onSelect,
+  onSelectQuest,
   onAdd,
 }: GuildSessionListWidgetProps): React.JSX.Element => {
-  const filtered =
-    filter === 'quests-only' ? sessions.filter((s) => s.questId !== undefined) : sessions;
+  const isQuestMode = filter === 'quests-only';
+  const isEmpty = isQuestMode ? quests.length === 0 : sessions.length === 0;
 
   return (
     <Stack gap={4} data-testid="GUILD_SESSION_LIST">
@@ -93,18 +114,49 @@ export const GuildSessionListWidget = ({
         ]}
       />
       {loading && <Loader size="xs" color={colors.warning} data-testid="SESSION_LOADER" />}
-      {!loading && filtered.length === 0 && (
+      {!loading && isEmpty && (
         <Text
           ff="monospace"
           size="xs"
           style={{ color: colors['text-dim'] }}
           data-testid="SESSION_EMPTY_STATE"
         >
-          No sessions yet
+          {isQuestMode ? 'No quests yet' : 'No sessions yet'}
         </Text>
       )}
       {!loading &&
-        filtered.map((session) => {
+        isQuestMode &&
+        quests.map((quest) => {
+          const isTerminal = TERMINAL_STATUSES.has(quest.status);
+          return (
+            <UnstyledButton
+              key={quest.id}
+              onClick={() => {
+                onSelectQuest({ questId: quest.id });
+              }}
+              px="xs"
+              py={3}
+              data-testid={`QUEST_ITEM_${quest.id}`}
+              style={{ ...ROW_BASE_STYLE, opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1 }}
+            >
+              <span style={{ flex: 1, minWidth: 0 }}>{quest.title}</span>
+              <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
+                <span
+                  data-testid={`QUEST_STATUS_${quest.id}`}
+                  style={{
+                    color: STATUS_COLOR_MAP.get(quest.status) ?? colors['text-dim'],
+                    fontSize: STATUS_FONT_SIZE,
+                  }}
+                >
+                  {quest.status.toUpperCase().split('_').join(' ')}
+                </span>
+              </Group>
+            </UnstyledButton>
+          );
+        })}
+      {!loading &&
+        !isQuestMode &&
+        sessions.map((session) => {
           const isTerminal =
             session.questStatus !== undefined && TERMINAL_STATUSES.has(session.questStatus);
           return (
@@ -116,21 +168,9 @@ export const GuildSessionListWidget = ({
               px="xs"
               py={3}
               data-testid={`SESSION_ITEM_${session.sessionId}`}
-              style={{
-                fontFamily: 'monospace',
-                fontSize: ITEM_FONT_SIZE,
-                color: colors.text,
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1,
-              }}
+              style={{ ...ROW_BASE_STYLE, opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1 }}
             >
-              <span style={{ flex: 1, minWidth: 0 }}>
-                {session.questTitle ?? session.summary ?? 'Untitled session'}
-              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>{session.summary ?? 'Untitled session'}</span>
               <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                 {session.questTitle ? (
                   <Badge

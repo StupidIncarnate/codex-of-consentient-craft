@@ -11,9 +11,16 @@ import { useNavigate } from 'react-router-dom';
 
 import { Box, Center, Group, Text } from '@mantine/core';
 
-import type { GuildId, GuildName, GuildPath, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  GuildName,
+  GuildPath,
+  QuestId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
+import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
 import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
@@ -43,6 +50,9 @@ export const HomeContentWidget = (): React.JSX.Element => {
 
   const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
   const { data: sessions, loading: sessionsLoading } = useSessionListBinding({
+    guildId: selectedGuildId,
+  });
+  const { data: questsList, loading: questsLoading } = useQuestsBinding({
     guildId: selectedGuildId,
   });
 
@@ -117,7 +127,8 @@ export const HomeContentWidget = (): React.JSX.Element => {
             {selectedGuildId ? (
               <GuildSessionListWidget
                 sessions={sessions}
-                loading={sessionsLoading}
+                quests={questsList}
+                loading={sessionFilter === 'quests-only' ? questsLoading : sessionsLoading}
                 filter={sessionFilter}
                 onFilterChange={({ filter }) => {
                   setSessionFilter(filter);
@@ -132,6 +143,18 @@ export const HomeContentWidget = (): React.JSX.Element => {
                       : `/${slug}/quest/${session.questId}`;
                   const result = navigate(target, {
                     state: { questId: session?.questId ?? null },
+                  });
+                  if (result instanceof Promise) {
+                    result.catch((navError: unknown) => {
+                      globalThis.console.error('[home-content] navigation failed', navError);
+                    });
+                  }
+                }}
+                onSelectQuest={({ questId }: { questId: QuestId }) => {
+                  const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
+                  const slug = selectedGuild?.urlSlug ?? selectedGuildId;
+                  const result = navigate(`/${slug}/quest/${String(questId)}`, {
+                    state: { questId },
                   });
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {

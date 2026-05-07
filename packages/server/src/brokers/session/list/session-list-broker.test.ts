@@ -227,7 +227,7 @@ describe('sessionListBroker', () => {
       ]);
     });
 
-    it('VALID: {quest with userRequest} => overrides session summary with userRequest', async () => {
+    it('VALID: {quest with userRequest} => preserves the session-specific summary, does not overwrite with userRequest', async () => {
       const proxy = sessionListBrokerProxy();
       const guildId = GuildIdStub();
       const guild = GuildStub({ path: '/home/user/my-guild' });
@@ -264,7 +264,7 @@ describe('sessionListBroker', () => {
         {
           sessionId: 'session-1',
           startedAt: undefined,
-          summary: 'Implement OAuth login flow',
+          summary: 'Built login page',
           questId: 'add-auth',
           questTitle: 'Add Authentication',
           questStatus: 'in_progress',
@@ -314,7 +314,7 @@ describe('sessionListBroker', () => {
         {
           sessionId: 'smoketest-session',
           startedAt: undefined,
-          summary: 'Smoketest user request',
+          summary: 'Smoketest run',
           questId: 'add-auth',
           questTitle: 'Smoketest Quest',
           questStatus: 'in_progress',

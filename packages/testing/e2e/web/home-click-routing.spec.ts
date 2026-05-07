@@ -64,6 +64,12 @@ test.describe('Home page session click routing', () => {
 
     await page.getByText('Routing Guild').click();
 
+    // Default filter is "Quests Only" which renders quest rows, not session rows.
+    // Switch to "All" so the underlying session row (which has the QUEST badge) is
+    // visible — this test exercises the session-row click path, not the quest-row
+    // click path.
+    await page.getByTestId('SESSION_FILTER').getByText('All').click();
+
     // The quest-linked row carries a QUEST badge — assert it before clicking so we
     // know the server actually correlated this session to the quest.
     await expect(page.getByTestId(`SESSION_QUEST_BADGE_${sessionId}`)).toBeVisible({

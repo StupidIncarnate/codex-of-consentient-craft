@@ -15,10 +15,12 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type {
   GuildIdStub,
   GuildListItemStub,
+  QuestListItemStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
+import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-session-list-binding.proxy';
 import { guildCreateBrokerProxy } from '../../brokers/guild/create/guild-create-broker.proxy';
 import { GuildAddModalWidgetProxy } from '../guild-add-modal/guild-add-modal-widget.proxy';
@@ -29,6 +31,7 @@ import { GuildSessionListWidgetProxy } from '../guild-session-list/guild-session
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+type QuestListItem = ReturnType<typeof QuestListItemStub>;
 
 export const HomeContentWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
@@ -36,6 +39,8 @@ export const HomeContentWidgetProxy = (): {
   setupCreateGuild: (params: { id: GuildId }) => void;
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupSessionsError: () => void;
+  setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQuestsError: () => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
@@ -56,6 +61,7 @@ export const HomeContentWidgetProxy = (): {
 } => {
   const sessionsProxy = useSessionListBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
+  const questsProxy = useQuestsBindingProxy();
   const createGuildProxy = guildCreateBrokerProxy();
   const guildList = GuildListWidgetProxy();
   const sessionList = GuildSessionListWidgetProxy();
@@ -77,6 +83,12 @@ export const HomeContentWidgetProxy = (): {
     },
     setupSessionsError: (): void => {
       sessionsProxy.setupError();
+    },
+    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
+      questsProxy.setupQuests({ quests });
+    },
+    setupQuestsError: (): void => {
+      questsProxy.setupError();
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
       await guildList.clickItem({ testId });

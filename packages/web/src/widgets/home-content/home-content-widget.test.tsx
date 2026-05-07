@@ -416,6 +416,15 @@ describe('HomeContentWidget', () => {
         },
       });
 
+      // Default filter is "Quests Only" which renders quest rows, not session
+      // rows. To click the underlying session row, switch to "All" first.
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.selectAllSessionsFilter();
+          await Promise.resolve();
+        },
+      });
+
       await waitFor(() => {
         const sessionEl = screen.getByTestId(`SESSION_ITEM_${sessionId}`);
 

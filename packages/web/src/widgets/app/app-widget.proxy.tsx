@@ -56,6 +56,7 @@ export const AppWidgetProxy = (): {
   clickCreateGuild: () => Promise<void>;
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
+  selectAllSessionsFilter: () => Promise<void>;
   isQuestChatVisible: () => boolean;
   isSessionViewVisible: () => boolean;
   clickLogoLink: () => Promise<void>;
@@ -119,6 +120,9 @@ export const AppWidgetProxy = (): {
     },
     clickSessionItem: async ({ testId }: { testId: string }): Promise<void> => {
       await homeProxy.clickSessionItem({ testId });
+    },
+    selectAllSessionsFilter: async (): Promise<void> => {
+      await homeProxy.selectAllSessionsFilter();
     },
     isQuestChatVisible: (): boolean =>
       screen.queryByTestId('QUEST_CHAT') !== null ||

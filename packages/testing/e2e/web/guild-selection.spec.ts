@@ -54,8 +54,9 @@ test.describe('Guild Selection & Session Loading', () => {
     await page.goto('/');
     await page.getByText('Empty Guild').click();
 
+    // Default filter is "Quests Only" — empty state for that mode reads "No quests yet".
     await expect(page.getByTestId('SESSION_EMPTY_STATE')).toBeVisible();
-    await expect(page.getByText('No sessions yet')).toBeVisible();
+    await expect(page.getByText('No quests yet')).toBeVisible();
   });
 
   test('EDGE: switch between guilds refreshes session list', async ({ page, request }) => {

@@ -197,7 +197,6 @@ export const sessionListBroker = async ({
     }
     return {
       ...entry,
-      ...(quest.userRequest ? { summary: quest.userRequest } : {}),
       questId: quest.id,
       questTitle: quest.title,
       questStatus: quest.status,
