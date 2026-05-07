@@ -20,9 +20,11 @@ exist because each one catches a failure mode that the next phase can't.
 3. Fix + test pass  →  fix the impl. Re-run the test. If it doesn't pass, the asserts are
                        wrong OR the fix is wrong. Find out which before moving on.
 4. Manual verify    →  YOU restart dev, open Chrome, drive the bug's reproduction prompt,
-                       confirm the UI now shows what it should.
+                       and MEASURE the user-stated invariant (count rows, check exact text,
+                       walk the URL the user gave). Tests-green is necessary, not sufficient.
+                       This phase is MANDATORY before Phase 5. No exceptions.
 5. User validation  →  ping the user. They drive their own validation. Do NOT commit before
-                       they say it's good.
+                       they say it's good. Reaching Phase 5 without Phase 4 = burning the user.
 ```
 
 If a phase fails, you go back — you do not paper over.
@@ -237,11 +239,33 @@ If the failing-fix-passing-test cycle doesn't snap together cleanly:
 
 ---
 
-## Phase 4: Manual verification (you drive)
+## Phase 4: Manual verification (you drive — MANDATORY before Phase 5)
 
 This is non-negotiable. Tests can be green and the UI can still be
 broken — different reasons every time (stale dev server, vite cache,
-transformer change not in `dist/`, WS reconnect race).
+transformer change not in `dist/`, WS reconnect race, e2e harness
+asserting a different invariant than the user stated).
+
+**You drive Chrome before the user does. Every time. No exceptions.**
+Reaching Phase 5 without first measuring the user's stated invariant in
+a real browser is the failure mode this playbook exists to prevent. The
+user has burned sessions on agents that handed off after "tests green +
+something rendered" without checking *whether the rendered thing matches
+what the user said was wrong*. Don't be that agent.
+
+Common failure shapes when this phase is skipped or done lazily:
+
+- E2E asserts row text is distinct, but the user said "should be one
+  row, not three." Test passes, UI still has three rows.
+- E2E asserts an element is visible, but the user said it should be at
+  a specific URL/route. Test passes, navigation lands somewhere else.
+- E2E uses a synthetic harness fixture, but the user's data on disk
+  has a shape the fixture didn't cover. Test passes, real data still
+  breaks.
+
+If you only see the green checkmark from Phase 3 and not the actual
+browser, you have not done Phase 4. Tests-green proves the assertion
+holds; only Chrome proves the assertion was the right one.
 
 ### 4a. Restart the dev server
 
@@ -285,15 +309,49 @@ same processor but reads from JSONL on disk. Both paths must show the
 fix. If streaming works but replay doesn't (or vice versa), parity is
 broken — the fix is incomplete.
 
+### 4d. Measure against the user's stated invariant — quote it back to yourself
+
+Re-read the user's exact words about what's wrong. Pull out the
+**structural invariant** they stated and measure it in Chrome with
+`javascript_tool`/`read_page`/`find` — not just "I see something
+rendered."
+
+| User said | What to measure |
+|---|---|
+| "should be one row per X file" | `document.querySelectorAll('[data-testid^="…"]').length` matches the on-disk file count |
+| "showing duplicates" | distinct values in the visible set; row count vs unique-key count |
+| "should be at /foo/:bar" | `window.location.pathname` after the click |
+| "doesn't show the X icon" | `getByTestId('X_ICON')` resolves and is visible — not just "the row exists" |
+| "live during streaming" | the element appears DURING a fresh send, not only after reload |
+
+Write down the count or value you measured, and the count or value the
+user said was right. They must match. If the user's words name a number
+("1 row", "3 sessions") and your measurement returns a different number,
+the fix is incomplete — even if the e2e is green. Go back to Phase 1
+and figure out which invariant you missed.
+
+This step is what catches "the test passed but on the wrong invariant."
+A test only proves the assertion you wrote is now true; it cannot prove
+the assertion was the right one. Chrome proves the assertion was right.
+
 ---
 
 ## Phase 5: Hand off to the user
+
+You can only enter Phase 5 after Phase 4 is **done with measurements**
+— not "the dev server started," not "I clicked around," but
+"I measured the invariant the user named and the number/value matches."
+If you cannot quote the user's invariant and your measured value side by
+side in your handoff message, you have not finished Phase 4. Go back.
 
 After Phase 4 passes, post a concise summary and **wait**:
 
 - What the bug was (one sentence).
 - Where the fix landed (file + ~line range).
-- What you verified in Chrome (URL + what you saw).
+- What you measured in Chrome: the URL, the user's invariant in their
+  own words, and the number/value you actually observed. Side by side.
+  Example: *"You said 'one row per quest file', disk has 1 quest file,
+  Chrome shows `questRows: 1, sessionRows: 0`."*
 - "Ready for your validation."
 
 **Do not commit yet.** The user runs their own validation pass — it
@@ -391,6 +449,13 @@ session id or quest id in the message if it helps trace later.
 
 - ❌ "Tests pass, shipping it" without manual verify.
 - ❌ "Manual verify worked, committing" without user validation.
+- ❌ Reaching Phase 5 without driving Chrome yourself. Tests-green +
+  "I think it should work" is not Phase 4. The user has been burned by
+  this; they will catch you skipping it.
+- ❌ Phase 4 hand-wave: starting dev, navigating to a URL, reading the
+  page once, and declaring victory without measuring against the user's
+  stated invariant. If they said "1 row" and you didn't check the row
+  count, you didn't do Phase 4. Go back to step 4d.
 - ❌ Asserting on the intermediate cause (contract parse, transformer
   output) instead of the user-visible symptom.
 - ❌ Writing a test using a stub that already passes through the broken
