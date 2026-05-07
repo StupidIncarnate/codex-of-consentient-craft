@@ -383,5 +383,12 @@ test.describe('Quest Begin Transition', () => {
     await expect(
       executionPanel.getByTestId('execution-row-role-badge').filter({ hasText: '[PATHSEEKER]' }),
     ).toBeVisible({ timeout: CHAT_TAIL_PATHSEEKER_TIMEOUT });
+
+    // The mocked pathseeker response text must actually stream into the UI —
+    // proves the dispatch wired through to the fake CLI's output and the WS
+    // execution stream rendered it, not just that a row was inserted.
+    await expect(executionPanel.getByText(pathseekerMarker)).toBeVisible({
+      timeout: CHAT_TAIL_PATHSEEKER_TIMEOUT,
+    });
   });
 });
