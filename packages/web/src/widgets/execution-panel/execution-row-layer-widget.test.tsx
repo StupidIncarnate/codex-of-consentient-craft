@@ -268,7 +268,7 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
 
-    it('VALID: {status: "pending"} => clicking header does not expand', async () => {
+    it('VALID: {status: "pending", no entries} => clicking header does not expand', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -279,6 +279,27 @@ describe('ExecutionRowLayerWidget', () => {
       await userEvent.click(header);
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+    });
+
+    it('VALID: {status: "pending", entries: [text]} => clicking header expands content', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'pending' })}
+            entries={[AssistantTextChatEntryStub({ content: 'Prior session output' })]}
+          />
+        ),
+      });
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+
+      const header = screen.getByTestId('execution-row-header');
+      await userEvent.click(header);
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
   });
 
@@ -309,6 +330,34 @@ describe('ExecutionRowLayerWidget', () => {
       );
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+    });
+
+    it('VALID: {in_progress → pending with entries} => stays expanded (paused work item keeps its messages)', () => {
+      ExecutionRowLayerWidgetProxy();
+
+      const entries = [AssistantTextChatEntryStub({ content: 'Prior session output' })];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={entries}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+
+      rerender(
+        <ExecutionRowLayerWidget
+          {...defaultProps()}
+          status={ExecutionStepStatusStub({ value: 'pending' })}
+          entries={entries}
+        />,
+      );
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
 
     it('VALID: {in_progress → failed} => collapses expanded row', () => {

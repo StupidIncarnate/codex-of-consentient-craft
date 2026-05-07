@@ -128,6 +128,7 @@ export const ExecutionRowLayerWidget = ({
     if (
       prevStatusRef.current === ('in_progress' as ExecutionStepStatus) &&
       status !== ('in_progress' as ExecutionStepStatus) &&
+      status !== ('pending' as ExecutionStepStatus) &&
       !userClickedRef.current
     ) {
       setExpanded(false);
@@ -138,7 +139,7 @@ export const ExecutionRowLayerWidget = ({
 
   const statusCfg = executionStepStatusConfigStatics.statusConfig[status];
   const roleColor = executionStepStatusConfigStatics.roleColors[role];
-  const isExpandable = EXPANDABLE_STATUSES.includes(status);
+  const isExpandable = EXPANDABLE_STATUSES.includes(status) || hasEntries;
   const orderDisplay = String(order).padStart(ORDER_PAD_LENGTH, '0');
   const subtitle = executionRowSubtitleTransformer({ status, dependsOn, files });
   const headerContextLabel = computeRowContextTotalTransformer({ entries: entries ?? [] });
