@@ -7,7 +7,9 @@
  */
 export const mcpServerStatics = {
   timeouts: {
-    startupMs: 2000,
     requestMs: 10000,
+    readinessDeadlineMs: 30000,
+    readinessProbeAttemptMs: 1500,
+    readinessProbeIntervalMs: 200,
   },
 } as const;

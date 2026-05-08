@@ -123,30 +123,73 @@ export const mcpServerHarness = (): {
     // Drain stderr so the pipe doesn't block when the child writes warnings.
     serverProcess.stderr.on('data', () => undefined);
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, mcpServerStatics.timeouts.startupMs);
+    const sendRequestWithTimeout = async (
+      request: JsonRpcRequest,
+      timeoutMs: number,
+    ): Promise<JsonRpcResponse> =>
+      new Promise((resolve, reject) => {
+        pendingResponses.set(request.id, resolve);
+
+        const requestJson = `${JSON.stringify(request)}\n`;
+        serverProcess.stdin.write(requestJson);
+
+        const timeoutId = setTimeout(() => {
+          if (pendingResponses.has(request.id)) {
+            pendingResponses.delete(request.id);
+            pendingTimeouts.delete(request.id);
+            reject(new Error(`Request ${String(request.id)} timed out`));
+          }
+        }, timeoutMs);
+
+        pendingTimeouts.set(request.id, timeoutId);
+      });
+
+    // Deadline-budgeted readiness probe: send a throwaway initialize request
+    // with a short per-attempt timeout, retrying until one succeeds or the
+    // overall deadline is hit. Replaces a fixed startup sleep — under heavy
+    // ward CPU contention (parallel jest+tsc+playwright) `npx tsx` cold-start
+    // can easily exceed any fixed budget, while in isolation it warms up in
+    // well under a second. Probing returns the moment the subprocess is
+    // actually responsive on stdio.
+    const probeReady = async (params: { deadline: number; attemptId: number }): Promise<void> => {
+      if (Date.now() >= params.deadline) {
+        throw new Error('MCP server did not become ready within readiness deadline');
+      }
+      const probeRequest = JsonRpcRequestStub({
+        id: RpcIdStub({ value: params.attemptId }),
+        method: RpcMethodStub({ value: 'initialize' }),
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'mcp-harness-probe', version: '0.0.0' },
+        },
+      });
+      const probeOutcome = await sendRequestWithTimeout(
+        probeRequest,
+        mcpServerStatics.timeouts.readinessProbeAttemptMs,
+      ).then(
+        () => 'ready' as const,
+        () => 'pending' as const,
+      );
+      if (probeOutcome === 'ready') {
+        return undefined;
+      }
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, mcpServerStatics.timeouts.readinessProbeIntervalMs);
+      });
+      return probeReady({ deadline: params.deadline, attemptId: params.attemptId + 1 });
+    };
+
+    await probeReady({
+      deadline: Date.now() + mcpServerStatics.timeouts.readinessDeadlineMs,
+      attemptId: 900000,
     });
 
     return {
       process: serverProcess,
       dungeonmasterHome: testbed.guildPath,
       sendRequest: async (request: JsonRpcRequest): Promise<JsonRpcResponse> =>
-        new Promise((resolve, reject) => {
-          pendingResponses.set(request.id, resolve);
-
-          const requestJson = `${JSON.stringify(request)}\n`;
-          serverProcess.stdin.write(requestJson);
-
-          const timeoutId = setTimeout(() => {
-            if (pendingResponses.has(request.id)) {
-              pendingResponses.delete(request.id);
-              pendingTimeouts.delete(request.id);
-              reject(new Error(`Request ${request.id} timed out`));
-            }
-          }, mcpServerStatics.timeouts.requestMs);
-
-          pendingTimeouts.set(request.id, timeoutId);
-        }),
+        sendRequestWithTimeout(request, mcpServerStatics.timeouts.requestMs),
       close: async (): Promise<void> =>
         new Promise((resolve) => {
           for (const timeoutId of pendingTimeouts.values()) {

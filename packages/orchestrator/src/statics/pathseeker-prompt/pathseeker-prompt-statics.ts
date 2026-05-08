@@ -217,7 +217,6 @@ Before you generate steps, walk the actual files in the plan and verify they acc
 
 For every file the synthesized plan will CREATE:
 - \`discover\` the target folder to confirm the folder type exists and is the right one
-- Read one sibling in that folder to confirm the file-naming and export-naming convention the minion cited
 - Confirm the companion files the minion listed match what \`get-folder-detail\` would return for that folder type (call it if you are unsure)
 
 For every file the synthesized plan will MODIFY:

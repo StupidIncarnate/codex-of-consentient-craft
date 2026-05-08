@@ -29,6 +29,13 @@ const rateLimits = rateLimitsHarness();
 wireHarnessLifecycle({ harness: rateLimits, testObj: test });
 
 test.describe('Multi-widget coexistence', () => {
+  // Per-test timeout budget. The test's sequential waits (CHAT_PANEL toBeVisible,
+  // RATE_LIMITS_STACK toBeVisible, WS frame-activity poll, /start round-trip,
+  // QUEST_QUEUE_BAR_COLLAPSED_LABEL toBeVisible + toContainText) can cumulatively
+  // approach the playwright config default of 10 s under full-ward CPU contention.
+  // 30 s gives roughly 3x worst-case headroom.
+  test.use({ timeout: 30_000 });
+
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
   });
@@ -117,19 +124,30 @@ test.describe('Multi-widget coexistence', () => {
     });
 
     // 5. Register the WebSocket listener BEFORE navigating. Track every
-    //    connection whose pathname is '/ws' — that is the backend socket
-    //    endpoint. Vite's HMR socket connects to a different port/pathname
-    //    and is excluded by the pathname check.
-    let backendWsCount = 0;
+    //    connection whose pathname is '/ws' AND that exchanged at least one
+    //    frame post-handshake. A construction-only count would also tally
+    //    sockets that failed their handshake (e.g. proxy hiccups under
+    //    full-ward CPU contention) and got replaced by the adapter's 3 s
+    //    reconnect — those don't represent a consolidation violation. Frame
+    //    activity on a socket proves it actually became a working channel,
+    //    which is what "exactly one WebSocket opened" means in practice.
+    //    Vite's HMR socket connects to a different pathname and is excluded.
+    const activeBackendSockets = new Set<unknown>();
     page.on('websocket', (ws) => {
       try {
         const { pathname } = new URL(String(ws.url()));
-        if (pathname === BACKEND_WS_PATHNAME) {
-          backendWsCount += 1;
+        if (pathname !== BACKEND_WS_PATHNAME) {
+          return;
         }
       } catch {
-        // Unparseable URL — not a backend socket, ignore.
+        return;
       }
+      ws.on('framesent', () => {
+        activeBackendSockets.add(ws);
+      });
+      ws.on('framereceived', () => {
+        activeBackendSockets.add(ws);
+      });
     });
 
     // 6. Navigate to the primary quest URL. This route mounts three widgets
@@ -162,13 +180,11 @@ test.describe('Multi-widget coexistence', () => {
     //     opened their sockets. The queue bar binding's WS connection is already
     //     counted even though the bar isn't visible yet (queue is empty).
     //
-    //     TODAY this is RED: each binding opens its own socket →
-    //     useRateLimitsBinding, useQuestQueueBinding, and useQuestChatBinding
-    //     each call `new WebSocket('/ws')`, yielding backendWsCount = 3.
-    //
-    //     After the consolidation phase all bindings subscribe through a single
-    //     shared channel, so backendWsCount will drop to 1 and this test turns GREEN.
-    expect(backendWsCount).toBe(EXPECTED_BACKEND_WS_COUNT);
+    //     All bindings subscribe through a single shared channel, so the count
+    //     of frame-active sockets must be exactly 1.
+    await expect
+      .poll(() => activeBackendSockets.size, { timeout: WIDGET_TIMEOUT })
+      .toBe(EXPECTED_BACKEND_WS_COUNT);
 
     // 7c. NOW start the queued quest to prove the queue binding is live and
     //     updates the DOM via its existing WS connection (fan-out sanity check).
@@ -181,6 +197,16 @@ test.describe('Multi-widget coexistence', () => {
       }),
     });
     await request.post(`/api/quests/${queuedQuestId}/start`);
+
+    // 7c-bis. Pause the queued quest immediately so it stays in the execution
+    //         queue for the duration of the visibility/text assertions below.
+    //         Without this, the fake CLI drains the single queued response in
+    //         milliseconds, the quest advances to the next role with an empty
+    //         CLI queue, exits 1, and the orchestration loop hits a terminal
+    //         state — removing the queue entry before the React render that
+    //         would have shown QUEST_QUEUE_BAR_COLLAPSED_LABEL completes.
+    //         (Pattern mirrored from execution-queue-streaming.spec.ts.)
+    await request.post(`/api/quests/${queuedQuestId}/pause`);
 
     // 7d. Queue bar must appear via WS — proves the binding received the
     //     execution-queue-updated event and re-fetched the queue without a reload.

@@ -23,6 +23,103 @@ Each entry follows this shape:
 
 ---
 
+## 2026-05-07 — Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)
+
+**Branch / worktree:** master.
+**Failing specs:**
+
+- `multi-widget-coexistence.spec.ts:43` "VALID: {chat + queue + rate-limits widgets mounted together} => exactly one
+  WebSocket opened"
+- `rate-limits-live-update.spec.ts:12` "VALID: {snapshot file updated mid-session} => rate-limits card DOM updates via
+  WS without reload"
+- `mcp/.../mcp-server-flow.integration.test.ts` "VALID: Server starts and responds to initialize request"
+
+**Symptom:** All three failed under full ward (CPU-contended) but passed in
+isolation. Multi-widget asserted `backendWsCount === 1` and tripped on
+construction-time counting (handshake-failure WSs counted alongside the durable
+one). Rate-limits exhausted its 9 s polling timeout because the orchestrator's
+5 s file poll fell outside the budget. Mcp init timed out because the harness
+slept a fixed 2 s for tsx warmup which wasn't enough under contention.
+
+**Root cause:** None of these are product bugs — they're test-budget mismatches
+against worst-case CPU-contended paths.
+
+1. **Multi-widget WS count**: `page.on('websocket')` fires on construction. If
+   the dev-mode WS proxy briefly fails handshake under load and the adapter's
+   onclose path schedules a 3 s reconnect, the test counts both the dead and
+   the durable socket. `backendWsCount` becomes 2.
+2. **Multi-widget queue bar (latent)**: separate flake exposed once the WS
+   count fix unblocked progress past line 178. The queued quest hit terminal
+   state in <1 s because only one fake-CLI response was queued — the queue bar
+   was visible for too brief a window for React+Playwright to observe. The
+   `execution-queue-streaming.spec.ts` pattern of pausing the quest immediately
+   was missing.
+3. **Rate-limits poll cycle**: `RateLimitsBootstrapResponder` hard-coded a
+   `POLL_INTERVAL_MS = 5000`. The test gives 9 s for a snapshot update to
+   propagate. Under load, setInterval ticks slip and the WS round-trip from
+   tick → emit → fetch → render exceeds the 9 s budget.
+4. **Mcp init startup**: `mcp-server.harness.ts` slept a fixed
+   `mcpServerStatics.timeouts.startupMs = 2000` then sent the init request.
+   `npx tsx` cold-start under parallel jest+tsc+playwright contention can take
+   3-5 s, leaving the request hitting the subprocess before stdio is wired.
+   Once the 10 s `requestMs` runs out, the test rejects with `Request 1 timed
+   out`.
+
+**Fix locations:**
+
+- `packages/testing/e2e/web/multi-widget-coexistence.spec.ts:128-142,176-178`
+  — count only WSs that emit a frame post-handshake (`framesent` /
+  `framereceived`), and switch the strict count assertion to `expect.poll`
+  over the `WIDGET_TIMEOUT` budget.
+- `packages/testing/e2e/web/multi-widget-coexistence.spec.ts:32-37,200-208`
+  — bump per-test timeout to 30 s and pause the queued quest immediately
+  after `/start` so it stays in the execution queue across the queue-bar
+  visibility/text assertions (mirror of `execution-queue-streaming.spec.ts:91-97`).
+- `packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.ts:16-30`
+  — accept `DUNGEONMASTER_RATE_LIMITS_POLL_MS` env var override of the
+  `DEFAULT_POLL_INTERVAL_MS = 5000`. Production keeps 5 s; e2e overrides to 500 ms.
+- `packages/testing/playwright.config.ts:webServer.env`
+  — set `DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500'` so the poll interval no
+  longer dominates the test budget.
+- `packages/mcp/src/statics/mcp-server/mcp-server-statics.ts`
+  — replace `startupMs: 2000` with `readinessDeadlineMs: 30000`,
+  `readinessProbeAttemptMs: 1500`, `readinessProbeIntervalMs: 200`.
+- `packages/mcp/test/harnesses/mcp-server/mcp-server.harness.ts`
+  — replace fixed `setTimeout(startupMs)` with a recursive `probeReady`
+  function that sends throwaway initialize requests with a short per-attempt
+  timeout, retrying until success or the readiness deadline. Returns the
+  moment the subprocess is actually responsive on stdio. Uses a `.then(ok,
+  fail)` outcome flag to satisfy `consistent-return` with a
+  void-returning async arrow.
+
+**Negative results / dead ends:**
+
+- **Bumping the multi-widget test's per-test timeout from 10 s → 30 s alone**
+  did not help — the queue-bar assertion still failed because the queued quest
+  cycled through the orchestration loop and exited terminal in under a second,
+  emptying the queue before any React render could surface it. The
+  `request.post(/pause)` immediately after `/start` is the deterministic fix.
+- **Counting all `page.on('websocket')` constructions** worked when the WS
+  consolidation was first verified, but breaks under load where transient
+  handshake failures create extra (dead) socket constructions. Frame-activity
+  counting is the right relaxation — it still catches a real consolidation
+  violation (two durable sockets both exchanging frames) while ignoring
+  handshake-failure noise.
+
+**Reproducer:**
+
+```bash
+cd packages/testing
+# All three pass 30/30 (or 15/15 for mcp integration):
+npx playwright test --repeat-each=15 --retries=0 --reporter=line \
+  e2e/web/multi-widget-coexistence.spec.ts \
+  e2e/web/rate-limits-live-update.spec.ts
+# Mcp init fix is verified by full integration ward, since under
+# parallel CPU contention `npx tsx` takes >2 s to warm.
+```
+
+---
+
 ## 2026-05-04 — chat-stream-vs-replay-parity:1245 TOOL_ROW header click toggles instead of expands
 
 **Branch / worktree:** master (no worktree — fix landed directly).
@@ -487,5 +584,9 @@ checked. Each entry below has a direct link to the entry above.
 | Fails at repeat 11+ in broad sweep, passes alone                                               | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak"                                                                                                                                  |
 | Sub-agent chain renders "(0 entries)"                                                          | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder)                                                                                                                                     |
 | `TOOL_ROW_RESULT` toBeVisible times out, page snapshot shows chevron `▸` collapsed AFTER click | "chat-stream-vs-replay-parity:1245 TOOL_ROW header click toggles instead of expands" — `defaultExpanded={true}` from streaming `isLastUnpaired` window locks `expanded=true` in `useState`, blind click toggles → collapse |
+| `backendWsCount` is 2+ in multi-widget assertion under full ward, passes alone                 | "Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)" — handshake-failure WS counted alongside durable one; count by `framesent`/`framereceived` instead                                     |
+| Rate-limits / queue / outbox-watcher visible-update test times out under load                  | "Three CPU-contention flakes" — fixed-poll-interval responders exceed test budget; expose env-var override for the interval                                                                                                |
+| `QUEST_QUEUE_BAR_COLLAPSED_LABEL` not visible after `request.post(/start)` in e2e              | Queued quest hits terminal in <1 s — emptying the queue before React renders. Pause the quest immediately after start (see `execution-queue-streaming.spec.ts:91-97` pattern)                                              |
+| MCP integration test "Server starts and responds" times out under full ward                    | "Three CPU-contention flakes" — fixed `startupMs` sleep insufficient under tsx cold-start contention; replace with deadline-budgeted readiness probe                                                                       |
 
 When you fix a flake not yet in this catalog, add a new symptom row.

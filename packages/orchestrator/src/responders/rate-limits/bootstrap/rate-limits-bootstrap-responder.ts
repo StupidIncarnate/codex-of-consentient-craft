@@ -13,7 +13,7 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 import { rateLimitsBootstrapState } from '../../../state/rate-limits-bootstrap/rate-limits-bootstrap-state';
 import { rateLimitsState } from '../../../state/rate-limits/rate-limits-state';
 
-const POLL_INTERVAL_MS = 5000;
+const DEFAULT_POLL_INTERVAL_MS = 5000;
 const WATCHER_PROCESS_ID = processIdContract.parse('rate-limits-watcher');
 
 export const RateLimitsBootstrapResponder = (): AdapterResult => {
@@ -21,8 +21,12 @@ export const RateLimitsBootstrapResponder = (): AdapterResult => {
     return { success: true as const };
   }
 
+  const overrideMs = Number(process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS);
+  const intervalMs =
+    Number.isFinite(overrideMs) && overrideMs > 0 ? overrideMs : DEFAULT_POLL_INTERVAL_MS;
+
   const handle = rateLimitsWatchBroker({
-    intervalMs: POLL_INTERVAL_MS,
+    intervalMs,
     onSnapshot: ({ snapshot }): void => {
       rateLimitsState.set({ snapshot });
       orchestrationEventsState.emit({

@@ -64,6 +64,10 @@ export default defineConfig({
         FAKE_CLAUDE_QUEUE_DIR,
         FAKE_WARD_QUEUE_DIR,
         WARD_CLI_PATH: FAKE_WARD_CLI,
+        // Shorten the rate-limits.json poller from the production 5 s interval
+        // so e2e tests aren't gated by the poll cycle. The orchestrator's
+        // RateLimitsBootstrapResponder reads this env var on startup.
+        DUNGEONMASTER_RATE_LIMITS_POLL_MS: '500',
       },
     },
     {
