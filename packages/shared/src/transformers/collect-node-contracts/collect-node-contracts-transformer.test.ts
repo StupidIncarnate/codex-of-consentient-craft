@@ -29,6 +29,7 @@ describe('collectNodeContractsTransformer', () => {
           name: 'LoginCredentials',
           kind: 'data',
           status: 'new',
+          source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
           nodeId: 'submit-form',
           properties: [
             {
@@ -65,6 +66,7 @@ describe('collectNodeContractsTransformer', () => {
           name: 'RequestBody',
           kind: 'data',
           status: 'new',
+          source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
           nodeId: 'api-call',
           properties: [
             {
@@ -79,6 +81,7 @@ describe('collectNodeContractsTransformer', () => {
           name: 'ResponseBody',
           kind: 'data',
           status: 'new',
+          source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
           nodeId: 'api-call',
           properties: [
             {

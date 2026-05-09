@@ -1,0 +1,150 @@
+import { bannedJestMatchersStatics } from './banned-jest-matchers-statics';
+
+describe('bannedJestMatchersStatics', () => {
+  it('VALID: exported value => matches the canonical banned-matcher record', () => {
+    expect(bannedJestMatchersStatics).toStrictEqual({
+      entries: [
+        {
+          name: 'toEqual',
+          proseToken: '.toEqual(',
+          eslintMessage: 'Use .toStrictEqual() instead',
+          eslint: true,
+          prose: true,
+        },
+        {
+          name: 'toMatchObject',
+          proseToken: '.toMatchObject(',
+          eslintMessage: 'Use .toStrictEqual() instead',
+          eslint: true,
+          prose: true,
+        },
+        {
+          name: 'toContain',
+          proseToken: '.toContain(',
+          eslintMessage: 'Use .toStrictEqual() for arrays or .toMatch(/^exact$/u) for strings',
+          eslint: true,
+          prose: true,
+        },
+        {
+          name: 'toContainEqual',
+          proseToken: undefined,
+          eslintMessage: 'Use .toStrictEqual() on the full array instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'toBeTruthy',
+          proseToken: undefined,
+          eslintMessage: 'Use .toBe(true) instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'toBeFalsy',
+          proseToken: undefined,
+          eslintMessage: 'Use .toBe(false) instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'toHaveProperty',
+          proseToken: '.toHaveProperty(',
+          eslintMessage: 'Test actual value with .toBe() instead',
+          eslint: true,
+          prose: true,
+        },
+        {
+          name: 'objectContaining',
+          proseToken: 'expect.objectContaining(',
+          eslintMessage: 'Test complete object instead',
+          eslint: true,
+          prose: true,
+        },
+        {
+          name: 'arrayContaining',
+          proseToken: undefined,
+          eslintMessage: 'Test complete array instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'stringContaining',
+          proseToken: undefined,
+          eslintMessage: 'Test full string value with .toBe() or use anchored .toMatch(/^exact$/u)',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'any(String)',
+          proseToken: 'expect.any(',
+          eslintMessage: 'Test actual string value instead',
+          eslint: true,
+          prose: true,
+        },
+        {
+          name: 'any(Number)',
+          proseToken: undefined,
+          eslintMessage: 'Test actual number instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'any(Object)',
+          proseToken: undefined,
+          eslintMessage: 'Test complete object shape instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'toBeDefined',
+          proseToken: undefined,
+          eslintMessage: 'Test actual value with .toBe() or .toStrictEqual() instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'toHaveLength',
+          proseToken: undefined,
+          eslintMessage: 'Test complete array with .toStrictEqual() instead',
+          eslint: true,
+          prose: false,
+        },
+        {
+          name: 'includes',
+          proseToken: '.includes(',
+          eslintMessage:
+            'Use .toStrictEqual() on the full collection or .toBe() on the exact string instead',
+          eslint: false,
+          prose: true,
+        },
+      ],
+      proseTokens: [
+        '.toEqual(',
+        '.toMatchObject(',
+        '.toContain(',
+        '.toHaveProperty(',
+        'expect.objectContaining(',
+        'expect.any(',
+        '.includes(',
+      ],
+      eslintRestrictedMatchers: {
+        toEqual: 'Use .toStrictEqual() instead',
+        toMatchObject: 'Use .toStrictEqual() instead',
+        toContain: 'Use .toStrictEqual() for arrays or .toMatch(/^exact$/u) for strings',
+        toContainEqual: 'Use .toStrictEqual() on the full array instead',
+        toBeTruthy: 'Use .toBe(true) instead',
+        toBeFalsy: 'Use .toBe(false) instead',
+        toHaveProperty: 'Test actual value with .toBe() instead',
+        objectContaining: 'Test complete object instead',
+        arrayContaining: 'Test complete array instead',
+        stringContaining:
+          'Test full string value with .toBe() or use anchored .toMatch(/^exact$/u)',
+        'any(String)': 'Test actual string value instead',
+        'any(Number)': 'Test actual number instead',
+        'any(Object)': 'Test complete object shape instead',
+        toBeDefined: 'Test actual value with .toBe() or .toStrictEqual() instead',
+        toHaveLength: 'Test complete array with .toStrictEqual() instead',
+      },
+    });
+  });
+});

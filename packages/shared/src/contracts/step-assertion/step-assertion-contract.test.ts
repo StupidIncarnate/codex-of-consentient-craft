@@ -104,6 +104,28 @@ describe('stepAssertionContract', () => {
         expected: 'returns default response',
       });
     });
+
+    it('VALID: {observablesSatisfied populated} => parses with assertion-level observable claims', () => {
+      const assertion = StepAssertionStub({
+        prefix: 'VALID',
+        input: '{session row with questStatus="in_progress"}',
+        expected: 'no SESSION_ROW_DELETE_SKULL element present within that row',
+        observablesSatisfied: ['no-skull-while-running'],
+      });
+
+      expect(assertion).toStrictEqual({
+        prefix: 'VALID',
+        input: '{session row with questStatus="in_progress"}',
+        expected: 'no SESSION_ROW_DELETE_SKULL element present within that row',
+        observablesSatisfied: ['no-skull-while-running'],
+      });
+    });
+
+    it('VALID: {observablesSatisfied omitted} => parses without the optional field', () => {
+      const assertion = StepAssertionStub();
+
+      expect('observablesSatisfied' in assertion).toBe(false);
+    });
   });
 
   describe('invalid assertions', () => {

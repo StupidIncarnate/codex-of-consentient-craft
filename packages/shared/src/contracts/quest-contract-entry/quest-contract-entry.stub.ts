@@ -13,6 +13,7 @@ export const QuestContractEntryStub = ({
     name: 'LoginCredentials',
     kind: 'data',
     status: 'new',
+    source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
     nodeId: FlowNodeIdStub({ value: 'default-node' }),
     properties: [
       {

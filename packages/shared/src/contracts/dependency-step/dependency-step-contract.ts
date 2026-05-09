@@ -13,6 +13,7 @@ import { z } from 'zod';
 
 import { contractNameContract } from '../contract-name/contract-name-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { sliceNameContract } from '../slice-name/slice-name-contract';
 import { stepAssertionContract } from '../step-assertion/step-assertion-contract';
 import { stepFileReferenceContract } from '../step-file-reference/step-file-reference-contract';
 import { stepFocusActionContract } from '../step-focus-action/step-focus-action-contract';
@@ -20,8 +21,17 @@ import { stepIdContract } from '../step-id/step-id-contract';
 
 export const dependencyStepContract = z.object({
   id: stepIdContract,
+  slice: sliceNameContract.describe(
+    'Slice name this step belongs to (e.g., "backend", "frontend"). Step ID must be prefixed with the slice name followed by a dash (enforced as a save-time invariant)',
+  ),
   name: z.string().min(1).brand<'StepName'>(),
   assertions: z.array(stepAssertionContract).min(1),
+  instructions: z
+    .array(z.string().min(1).brand<'StepInstruction'>())
+    .default([])
+    .describe(
+      'Editorial directives for this step — removals, comment updates, file-shape preservation, cross-step constraints. Prose form, no length cap. Distinct from assertions[] which contain only behavioral expect()-shaped predicates.',
+    ),
   observablesSatisfied: z.array(observableIdContract),
   dependsOn: z.array(stepIdContract),
   focusFile: stepFileReferenceContract

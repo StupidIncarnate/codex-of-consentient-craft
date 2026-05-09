@@ -13,7 +13,7 @@ import { blightwardenDedupMinionStatics } from '../../statics/blightwarden-dedup
 import { blightwardenIntegrityMinionStatics } from '../../statics/blightwarden-integrity-minion/blightwarden-integrity-minion-statics';
 import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-minion/blightwarden-perf-minion-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
-import { pathseekerQuestReviewMinionStatics } from '../../statics/pathseeker-quest-review-minion/pathseeker-quest-review-minion-statics';
+import { pathseekerVerifyMinionStatics } from '../../statics/pathseeker-verify-minion/pathseeker-verify-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
 
@@ -29,11 +29,11 @@ export const agentNameToPromptTransformer = ({
         model: 'sonnet',
         prompt: chaoswhispererGapMinionStatics.prompt.template,
       });
-    case 'pathseeker-quest-review-minion':
+    case 'pathseeker-verify-minion':
       return agentPromptResultContract.parse({
-        name: 'pathseeker-quest-review-minion',
+        name: 'pathseeker-verify-minion',
         model: 'sonnet',
-        prompt: pathseekerQuestReviewMinionStatics.prompt.template,
+        prompt: pathseekerVerifyMinionStatics.prompt.template,
       });
     case 'pathseeker-surface-scope-minion':
       return agentPromptResultContract.parse({

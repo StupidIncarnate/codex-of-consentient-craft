@@ -11,4 +11,17 @@ describe('lawbringerPromptStatics', () => {
       },
     });
   });
+
+  it('VALID: scope section => defers observable satisfaction to Pathseeker Verify Minion', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(
+      /^- Check if the step satisfies observables — that's the Pathseeker Verify Minion's job$/mu,
+    );
+  });
+
+  it('VALID: prompt template => does not reference the renamed Pathseeker Quest Review Minion', () => {
+    const needle = 'Quest Review Minion';
+    const { template } = lawbringerPromptStatics.prompt;
+
+    expect(template.indexOf(needle)).toBe(-1);
+  });
 });

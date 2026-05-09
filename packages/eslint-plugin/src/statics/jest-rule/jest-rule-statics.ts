@@ -8,6 +8,8 @@
  *
  * WHEN-TO-USE: When building ESLint configuration for test files with Jest-specific rules
  */
+import { bannedJestMatchersStatics } from '@dungeonmaster/shared/statics';
+
 export const jestRuleStatics = {
   rules: {
     // Enforce consistent test or it keyword
@@ -92,28 +94,8 @@ export const jestRuleStatics = {
     ],
 
     // Disallow specific matchers
-    // Based on testing-standards.md - Forbidden Jest Matchers section
-    'jest/no-restricted-matchers': [
-      'error',
-      {
-        toEqual: 'Use .toStrictEqual() instead',
-        toMatchObject: 'Use .toStrictEqual() instead',
-        toContain: 'Use .toStrictEqual() for arrays or .toMatch(/^exact$/u) for strings',
-        toContainEqual: 'Use .toStrictEqual() on the full array instead',
-        toBeTruthy: 'Use .toBe(true) instead',
-        toBeFalsy: 'Use .toBe(false) instead',
-        toHaveProperty: 'Test actual value with .toBe() instead',
-        objectContaining: 'Test complete object instead',
-        arrayContaining: 'Test complete array instead',
-        stringContaining:
-          'Test full string value with .toBe() or use anchored .toMatch(/^exact$/u)',
-        'any(String)': 'Test actual string value instead',
-        'any(Number)': 'Test actual number instead',
-        'any(Object)': 'Test complete object shape instead',
-        toBeDefined: 'Test actual value with .toBe() or .toStrictEqual() instead',
-        toHaveLength: 'Test complete array with .toStrictEqual() instead',
-      },
-    ],
+    // Source of truth: bannedJestMatchersStatics in @dungeonmaster/shared
+    'jest/no-restricted-matchers': ['error', bannedJestMatchersStatics.eslintRestrictedMatchers],
 
     // Disallow using expect outside of it or test blocks
     'jest/no-standalone-expect': 'error',

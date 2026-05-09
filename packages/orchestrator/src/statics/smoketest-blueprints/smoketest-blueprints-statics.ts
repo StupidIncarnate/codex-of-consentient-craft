@@ -137,6 +137,7 @@ export const smoketestBlueprintsStatics = {
     steps: [
       {
         id: 'smoketest-emit-signal-step',
+        slice: 'smoketest',
         name: 'Smoketest emit-signal step',
         assertions: [
           {

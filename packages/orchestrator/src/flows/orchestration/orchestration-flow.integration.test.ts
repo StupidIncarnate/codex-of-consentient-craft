@@ -117,9 +117,13 @@ describe('OrchestrationFlow', () => {
 
       const questId = addResult.questId!;
 
+      // stepCount: 0 + no observables — V8 invariant requires every flow-node
+      // observable be claimed by a step or assertion, so observable coverage
+      // and step coverage must align. This test only exercises start /
+      // getStatus delegation, so an empty flow is sufficient.
       await questHelper.approveQuest({
         questId,
-        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        observableIds: [],
         stepCount: 0,
       });
 
@@ -1894,9 +1898,13 @@ describe('OrchestrationFlow', () => {
         // loop directly: createTestQuest seeds an in_progress quest with chaos
         // already complete and the pathseeker pending, mirroring what
         // OrchestrationStartResponder produces post-start.
+        // stepCount: 0 + no observables — V8 invariant requires every
+        // flow-node observable be claimed by a step, so observable coverage
+        // must align with step coverage. This test only exercises pathseeker
+        // retry exhaustion, so an empty flow is sufficient.
         const { questId } = await questHelper.createTestQuest({
           testbed,
-          observableIds: [ObservableIdStub({ value: 'obs-1' })],
+          observableIds: [],
           stepCount: 0,
         });
 
@@ -2160,10 +2168,12 @@ describe('OrchestrationFlow', () => {
           observableIds: [ObservableIdStub({ value: 'obs-1' })],
         });
 
-        // Create 3 steps: step-1 depends on step-0, step-2 is independent
-        const step0Id = StepIdStub({ value: 'step-0' });
-        const step1Id = StepIdStub({ value: 'step-1' });
-        const step2Id = StepIdStub({ value: 'step-2' });
+        // Create 3 steps: step-1 depends on step-0, step-2 is independent.
+        // Step ids must be prefixed with the step's slice value (V1 invariant);
+        // DependencyStepStub defaults slice to 'backend'.
+        const step0Id = StepIdStub({ value: 'backend-step-0' });
+        const step1Id = StepIdStub({ value: 'backend-step-1' });
+        const step2Id = StepIdStub({ value: 'backend-step-2' });
         const coveredObs = [ObservableIdStub({ value: 'obs-1' })];
         const steps = [
           DependencyStepStub({

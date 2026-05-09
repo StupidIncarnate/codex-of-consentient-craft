@@ -90,4 +90,16 @@ describe('smoketestBlueprintsStatics', () => {
         'Agent stream includes exactly one mcp__dungeonmaster__signal-back tool-use with the scripted signal',
     });
   });
+
+  it('VALID: {minimal.steps[0]} => slice is "smoketest" and id starts with "smoketest-" (V1 slice-prefix invariant)', () => {
+    const [step] = smoketestBlueprintsStatics.minimal.steps;
+
+    expect({
+      slice: step?.slice,
+      idStartsWithSmoketestPrefix: step?.id.startsWith('smoketest-'),
+    }).toStrictEqual({
+      slice: 'smoketest',
+      idStartsWithSmoketestPrefix: true,
+    });
+  });
 });

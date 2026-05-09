@@ -8,7 +8,7 @@ const NOW = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
 
 describe('caseCatalogToBlueprintTransformer', () => {
   describe('signals suite', () => {
-    it('VALID: {3 signal cases} => produces blueprint with 3 chained steps whose ids, names, dependsOn, and focusFile are all case-derived', () => {
+    it('VALID: {3 signal cases} => produces blueprint with 3 chained steps whose ids, names, dependsOn, focusFile, and slice are all case-derived', () => {
       const proxy = caseCatalogToBlueprintTransformerProxy();
       proxy.setupUuids({
         uuids: [
@@ -27,6 +27,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
       expect(
         result.blueprint.steps.map((step) => ({
           id: step.id,
+          slice: step.slice,
           name: step.name,
           dependsOn: step.dependsOn,
           focusFilePath: step.focusFile?.path,
@@ -34,6 +35,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
       ).toStrictEqual([
         {
           id: 'case-signal-complete',
+          slice: 'case',
           name: 'Signal: complete',
           dependsOn: [],
           focusFilePath:
@@ -41,6 +43,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
         },
         {
           id: 'case-signal-failed',
+          slice: 'case',
           name: 'Signal: failed',
           dependsOn: ['case-signal-complete'],
           focusFilePath:
@@ -48,6 +51,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
         },
         {
           id: 'case-signal-failed-replan',
+          slice: 'case',
           name: 'Signal: failed-replan',
           dependsOn: ['case-signal-failed'],
           focusFilePath:

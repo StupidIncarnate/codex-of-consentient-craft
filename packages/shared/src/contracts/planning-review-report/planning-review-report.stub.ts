@@ -11,6 +11,7 @@ export const PlanningReviewReportStub = ({
     criticalItems: [],
     warnings: [],
     info: [],
+    noveltyConcerns: [],
     rawReport: '# Review Report\n\nNo blocking issues.',
     reviewedAt: '2024-01-15T10:00:00.000Z',
     ...props,

@@ -384,7 +384,8 @@ describe('QuestFlow', () => {
           questId,
           steps: [
             {
-              id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+              id: 'backend-attempted-step',
+              slice: 'backend',
               name: 'Attempted Step',
               assertions: [{ prefix: 'VALID', input: '{x}', expected: 'returns y' }],
               observablesSatisfied: [],

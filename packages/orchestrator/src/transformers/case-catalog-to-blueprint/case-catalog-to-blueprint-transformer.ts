@@ -55,6 +55,7 @@ export const caseCatalogToBlueprintTransformer = ({
     const prevStepId = prev === undefined ? undefined : `case-${prev.caseId}`;
     return {
       id: stepId,
+      slice: 'case',
       name: entry.name,
       assertions: [
         {

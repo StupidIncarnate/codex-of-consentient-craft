@@ -3,7 +3,6 @@ import {
   FilePathStub,
   FlowIdStub,
   FlowNodeStub,
-  FlowObservableStub,
   FlowStub,
   GuildIdStub,
   QuestStub,
@@ -26,8 +25,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('complete signal without failure', () => {
     it('VALID: {signal: complete} => marks siege complete with completedAt', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -67,8 +65,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('failed signal', () => {
     it('VALID: {signal: failed} => marks siege failed with errorMessage and skips pending lawbringers', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -116,8 +113,7 @@ describe('runSiegemasterLayerBroker', () => {
     });
 
     it('VALID: {signal: failed} => creates pathseeker replan with dependsOn [siegeWorkItemId] and insertedBy siege', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -163,8 +159,7 @@ describe('runSiegemasterLayerBroker', () => {
     });
 
     it('VALID: {signal: failed with summary} => persists summary as errorMessage', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -223,8 +218,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('crash / timeout (no signal, exitCode 1)', () => {
     it('VALID: {no signal, exitCode 1} => marks siege failed, skips pending, creates pathseeker replan', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -380,8 +374,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('onAgentEntry wiring', () => {
     it('VALID: {onAgentEntry provided} => completes successfully with onAgentEntry', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -417,8 +410,7 @@ describe('runSiegemasterLayerBroker', () => {
     });
 
     it('VALID: {agent emits a line} => onAgentEntry receives questWorkItemId equal to workItem.id', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -475,8 +467,7 @@ describe('runSiegemasterLayerBroker', () => {
     });
 
     it('VALID: {both params provided with default values} => completes successfully', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -512,8 +503,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('fire-and-forget resilience', () => {
     it('VALID: {questModifyBroker rejects during session-id update} => logs to stderr, does not throw', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -601,8 +591,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('dev server preflight: build passes + server starts', () => {
     it('VALID: {devServer config, build passes, server starts} => siege runs with devServerUrl in work unit', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -638,8 +627,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('dev server preflight: build fails once, spiritmender fixes, retry succeeds', () => {
     it('VALID: {build fails once, spiritmender runs, rebuild passes} => siege proceeds to completion', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -676,8 +664,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('dev server preflight: build exhausts retries', () => {
     it('VALID: {build fails 3 times} => marks siege failed with build_preflight_exhausted, creates pathseeker', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -726,8 +713,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('dev server preflight: server fails to start', () => {
     it('VALID: {build passes, server exits before ready after all retries} => marks siege failed with dev_server_start_exhausted', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -773,8 +759,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('no devServer config (backward compat)', () => {
     it('VALID: {no devServer in config} => existing behavior unchanged, siege runs without devServerUrl', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -811,8 +796,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('multi-flow: each siege call resolves its own flow', () => {
     it('VALID: {two siege calls with different flows} => each call resolves its own flow via relatedDataItems', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flowOne = FlowStub({ id: FlowIdStub({ value: 'flow-one' }), nodes: [node] });
       const flowTwo = FlowStub({ id: FlowIdStub({ value: 'flow-two' }), nodes: [node] });
       const siege1WorkItemId = QuestWorkItemIdStub({
@@ -869,8 +853,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('multi-flow: first siege fails, second siege gets clean fresh server', () => {
     it('VALID: {first siege fails, second siege succeeds} => second run starts its own fresh server independently', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flowOne = FlowStub({ id: FlowIdStub({ value: 'flow-one' }), nodes: [node] });
       const flowTwo = FlowStub({ id: FlowIdStub({ value: 'flow-two' }), nodes: [node] });
       const siege1WorkItemId = QuestWorkItemIdStub({
@@ -924,8 +907,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('server stop always called (finally block)', () => {
     it('VALID: {devServer config, agent crashes} => dev server still stopped in finally', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -960,8 +942,7 @@ describe('runSiegemasterLayerBroker', () => {
 
   describe('config resolution error handling', () => {
     it('VALID: {ConfigNotFoundError} => treats missing config as null, runs siege without devServer', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',
@@ -993,8 +974,7 @@ describe('runSiegemasterLayerBroker', () => {
     });
 
     it('INVALID: {config file malformed JSON} => broker throws with original error (no silent fallback)', async () => {
-      const observable = FlowObservableStub();
-      const node = FlowNodeStub({ observables: [observable] });
+      const node = FlowNodeStub({ observables: [] });
       const flow = FlowStub({ nodes: [node] });
       const siegeWorkItemId = QuestWorkItemIdStub({
         value: 'a1111111-1111-4111-8111-111111111111',

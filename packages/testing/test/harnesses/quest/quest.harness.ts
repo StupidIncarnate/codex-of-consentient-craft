@@ -182,24 +182,35 @@ export const questHarness = ({
       })),
       userRequest,
       designDecisions: [],
-      steps: steps.map((s) => ({
-        id: s.id,
-        name: s.name,
-        assertions: [
-          {
-            prefix: 'VALID',
-            input: '{valid input}',
-            expected: 'returns expected result',
-          },
-        ],
-        observablesSatisfied: [],
-        dependsOn: [],
-        focusFile: { path: 'src/test-step.ts' },
-        accompanyingFiles: [],
-        inputContracts: ['Void'],
-        outputContracts: ['Void'],
-        uses: [],
-      })),
+      // V1 invariant: every step's id MUST start with `${slice}-`. Derive the
+      // slice from the id's first segment (text before the first '-'), so
+      // callers passing 'cw-step' get slice 'cw' and id remains 'cw-step'.
+      // This keeps relatedDataItems references pointing at the same step ids
+      // the test suite already uses ('steps/cw-step', 'steps/lb-step', etc.)
+      // while satisfying the slice-prefix invariant on round-trip read.
+      steps: steps.map((s) => {
+        const dashIndex = s.id.indexOf('-');
+        const sliceName = dashIndex === -1 ? s.id : s.id.slice(0, dashIndex);
+        return {
+          id: s.id,
+          slice: sliceName,
+          name: s.name,
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{valid input}',
+              expected: 'returns expected result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/test-step.ts' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+          uses: [],
+        };
+      }),
       toolingRequirements: [],
       contracts: [],
       planningNotes: seededPlanningNotes,

@@ -173,6 +173,9 @@ export * from './src/contracts/design-decision/design-decision.stub';
 export * from './src/contracts/tooling-requirement/tooling-requirement-contract';
 export * from './src/contracts/tooling-requirement/tooling-requirement.stub';
 
+export * from './src/contracts/slice-name/slice-name-contract';
+export * from './src/contracts/slice-name/slice-name.stub';
+
 export * from './src/contracts/step-assertion/step-assertion-contract';
 export * from './src/contracts/step-assertion/step-assertion.stub';
 
@@ -411,6 +414,9 @@ export * from './src/contracts/planning-synthesis/planning-synthesis.stub';
 
 export * from './src/contracts/planning-walk-findings/planning-walk-findings-contract';
 export * from './src/contracts/planning-walk-findings/planning-walk-findings.stub';
+
+export * from './src/contracts/novelty-concern/novelty-concern-contract';
+export * from './src/contracts/novelty-concern/novelty-concern.stub';
 
 export * from './src/contracts/planning-review-report/planning-review-report-contract';
 export * from './src/contracts/planning-review-report/planning-review-report.stub';

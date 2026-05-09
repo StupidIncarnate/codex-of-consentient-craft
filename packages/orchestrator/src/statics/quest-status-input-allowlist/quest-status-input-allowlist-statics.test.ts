@@ -88,7 +88,14 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedPlanningNotesFields: ['scopeClassification'],
       },
       seek_synth: {
-        allowedFields: ['planningNotes', 'contracts', 'toolingRequirements', 'flows', 'status'],
+        allowedFields: [
+          'planningNotes',
+          'steps',
+          'contracts',
+          'toolingRequirements',
+          'flows',
+          'status',
+        ],
         flowsRule: 'observable-wording-only',
         blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
@@ -192,6 +199,17 @@ describe('questStatusInputAllowlistStatics', () => {
     expect(questStatusInputAllowlistStatics.seek_synth.allowedPlanningNotesFields).toStrictEqual([
       'surfaceReports',
       'synthesis',
+    ]);
+  });
+
+  it("VALID: seek_synth => allowedFields includes 'steps' so surface-scope minions can commit steps directly", () => {
+    expect(questStatusInputAllowlistStatics.seek_synth.allowedFields).toStrictEqual([
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
     ]);
   });
 

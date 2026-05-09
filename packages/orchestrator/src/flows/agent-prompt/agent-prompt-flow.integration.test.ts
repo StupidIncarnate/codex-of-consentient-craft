@@ -6,7 +6,7 @@
  */
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { pathseekerQuestReviewMinionStatics } from '../../statics/pathseeker-quest-review-minion/pathseeker-quest-review-minion-statics';
+import { pathseekerVerifyMinionStatics } from '../../statics/pathseeker-verify-minion/pathseeker-verify-minion-statics';
 import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
 
 import { AgentPromptFlow } from './agent-prompt-flow';
@@ -23,13 +23,13 @@ describe('AgentPromptFlow', () => {
       });
     });
 
-    it('VALID: {agent: pathseeker-quest-review-minion} => returns prompt result with name, model, and prompt', () => {
-      const result = AgentPromptFlow.get({ agent: 'pathseeker-quest-review-minion' });
+    it('VALID: {agent: pathseeker-verify-minion} => returns prompt result with name, model, and prompt', () => {
+      const result = AgentPromptFlow.get({ agent: 'pathseeker-verify-minion' });
 
       expect(result).toStrictEqual({
-        name: 'pathseeker-quest-review-minion',
+        name: 'pathseeker-verify-minion',
         model: 'sonnet',
-        prompt: pathseekerQuestReviewMinionStatics.prompt.template,
+        prompt: pathseekerVerifyMinionStatics.prompt.template,
       });
     });
 

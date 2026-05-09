@@ -131,6 +131,9 @@ export const orchestrationQuestHarness = (): {
     observableIds: ReturnType<typeof ObservableIdStub>[];
     stepCount: number;
   }): ReturnType<typeof DependencyStepStub>[] => {
+    // Step ids must be prefixed with the step's `slice` value (V1 invariant). The
+    // DependencyStepStub default slice is 'backend'; mirror it here so step ids
+    // start with 'backend-' (e.g., 'backend-step-0').
     const steps = [];
     for (let i = 0; i < stepCount; i++) {
       const coveredObs = observableIds.map((id) => ObservableIdStub({ value: id }));
@@ -139,7 +142,7 @@ export const orchestrationQuestHarness = (): {
       const proxyPath = `packages/orchestrator/src/brokers/step-${String(i)}/create/step-${String(i)}-create-broker.proxy.ts`;
       steps.push(
         DependencyStepStub({
-          id: StepIdStub({ value: `step-${String(i)}` }),
+          id: StepIdStub({ value: `backend-step-${String(i)}` }),
           name: `Step ${String(i)}`,
           observablesSatisfied: coveredObs,
           dependsOn: [],

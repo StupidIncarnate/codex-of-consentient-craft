@@ -9,6 +9,7 @@ export const PlanningScopeClassificationStub = ({
   planningScopeClassificationContract.parse({
     size: 'medium',
     slicing: 'Slice A handles auth, Slice B handles session storage',
+    slices: [],
     rationale: 'Two independent surfaces with a shared session contract',
     classifiedAt: '2024-01-15T10:00:00.000Z',
     ...props,

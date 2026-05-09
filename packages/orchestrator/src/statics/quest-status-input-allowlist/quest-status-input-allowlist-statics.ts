@@ -134,7 +134,14 @@ export const questStatusInputAllowlistStatics = {
     allowedPlanningNotesFields: ['scopeClassification'],
   },
   seek_synth: {
-    allowedFields: ['planningNotes', 'contracts', 'toolingRequirements', 'flows', 'status'],
+    allowedFields: [
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
+    ],
     flowsRule: 'observable-wording-only',
     blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],

@@ -11,6 +11,7 @@ describe('planningReviewReportContract', () => {
         criticalItems: [],
         warnings: [],
         info: [],
+        noveltyConcerns: [],
         rawReport: '# Review Report\n\nNo blocking issues.',
         reviewedAt: '2024-01-15T10:00:00.000Z',
       });
@@ -27,6 +28,7 @@ describe('planningReviewReportContract', () => {
         criticalItems: [],
         warnings: ['Consider splitting broker X'],
         info: [],
+        noveltyConcerns: [],
         rawReport: '# Review Report\n\nNo blocking issues.',
         reviewedAt: '2024-01-15T10:00:00.000Z',
       });
@@ -43,6 +45,7 @@ describe('planningReviewReportContract', () => {
         criticalItems: ['Plan violates layer import rules'],
         warnings: [],
         info: [],
+        noveltyConcerns: [],
         rawReport: '# Review Report\n\nNo blocking issues.',
         reviewedAt: '2024-01-15T10:00:00.000Z',
       });
@@ -58,10 +61,49 @@ describe('planningReviewReportContract', () => {
         criticalItems: [],
         warnings: [],
         info: [],
+        noveltyConcerns: [],
         rawReport: '# Review Report\n\nNo blocking issues.',
         reviewedBy: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
         reviewedAt: '2024-01-15T10:00:00.000Z',
       });
+    });
+
+    it('VALID: {noveltyConcerns populated} => parses successfully with novelty entries', () => {
+      const result = PlanningReviewReportStub({
+        noveltyConcerns: [
+          {
+            area: 'tech',
+            description: 'First time wrapping @mantine/notifications.show in this repo',
+            recommendsExploratory: true,
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'clean',
+        criticalItems: [],
+        warnings: [],
+        info: [],
+        noveltyConcerns: [
+          {
+            area: 'tech',
+            description: 'First time wrapping @mantine/notifications.show in this repo',
+            recommendsExploratory: true,
+          },
+        ],
+        rawReport: '# Review Report\n\nNo blocking issues.',
+        reviewedAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('VALID: {noveltyConcerns omitted} => defaults to empty array', () => {
+      const result = planningReviewReportContract.parse({
+        signal: 'clean',
+        rawReport: '# body',
+        reviewedAt: '2024-01-15T10:00:00.000Z',
+      });
+
+      expect(result.noveltyConcerns).toStrictEqual([]);
     });
   });
 

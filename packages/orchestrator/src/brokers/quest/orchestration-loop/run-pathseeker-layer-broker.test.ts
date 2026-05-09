@@ -51,8 +51,9 @@ const buildValidQuestWith2Steps = ({
 }): ReturnType<typeof QuestStub> => {
   const obsId1 = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
   const obsId2 = ObservableIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
-  const stepId1 = StepIdStub({ value: 'e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
-  const stepId2 = StepIdStub({ value: 'f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
+  // Step IDs must start with the slice prefix ('backend-') to satisfy the V1 save invariant.
+  const stepId1 = StepIdStub({ value: 'backend-e5f6a7b8-c9d0-4e1f-a2b3-4c5d6e7f8a9b' });
+  const stepId2 = StepIdStub({ value: 'backend-f6a7b8c9-d0e1-4f2a-b3c4-5d6e7f8a9b0c' });
   const contractName = ContractNameStub({ value: 'IsValid' });
 
   return QuestStub({
@@ -122,8 +123,9 @@ const buildVerifyFailQuest = ({
   workItem,
 }: {
   workItem: ReturnType<typeof WorkItemStub>;
-}): ReturnType<typeof QuestStub> =>
-  QuestStub({
+}): ReturnType<typeof QuestStub> => {
+  const observableId = ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' });
+  return QuestStub({
     id: QuestIdStub({ value: 'test-quest' }),
     status: 'in_progress',
     flows: [
@@ -132,22 +134,23 @@ const buildVerifyFailQuest = ({
           FlowNodeStub({
             id: 'login-page',
             type: 'terminal',
-            observables: [
-              FlowObservableStub({
-                id: ObservableIdStub({ value: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' }),
-              }),
-            ],
+            observables: [FlowObservableStub({ id: observableId })],
           }),
         ],
       }),
     ],
+    // Step satisfies the observable and uses a slice-prefixed id so save-time
+    // invariants (V1 + V8) pass — the test's "verify fail" surface is the spawn
+    // crash path, not a save failure.
     steps: [
       DependencyStepStub({
-        observablesSatisfied: [],
+        id: StepIdStub({ value: 'backend-verify-fail-step' }),
+        observablesSatisfied: [observableId],
       }),
     ],
     workItems: [workItem],
   });
+};
 
 type PersistedQuest = ReturnType<typeof QuestStub>;
 
@@ -343,7 +346,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub()],
+        steps: [DependencyStepStub({ id: StepIdStub({ value: 'backend-default-step' }) })],
         workItems: [workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();
@@ -387,7 +390,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub()],
+        steps: [DependencyStepStub({ id: StepIdStub({ value: 'backend-default-step' }) })],
         workItems: [priorPathseeker, workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();
@@ -438,7 +441,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub()],
+        steps: [DependencyStepStub({ id: StepIdStub({ value: 'backend-default-step' }) })],
         workItems: [workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();
@@ -489,7 +492,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub()],
+        steps: [DependencyStepStub({ id: StepIdStub({ value: 'backend-default-step' }) })],
         workItems: [workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();
@@ -533,7 +536,7 @@ describe('runPathseekerLayerBroker', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        steps: [DependencyStepStub()],
+        steps: [DependencyStepStub({ id: StepIdStub({ value: 'backend-default-step' }) })],
         workItems: [workItem],
       });
       const proxy = runPathseekerLayerBrokerProxy();

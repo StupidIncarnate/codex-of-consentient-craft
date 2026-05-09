@@ -3,11 +3,10 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { dependencyStepContract } from './dependency-step-contract';
 import type { DependencyStep } from './dependency-step-contract';
 
-export const DependencyStepStub = ({
-  ...props
-}: StubArgument<DependencyStep> = {}): DependencyStep =>
+export const DependencyStepStub = ({ ...props }: StubArgument<DependencyStep> = {}): DependencyStep =>
   dependencyStepContract.parse({
     id: 'create-login-api',
+    slice: 'backend',
     name: 'Test Step',
     assertions: [
       {
@@ -16,6 +15,7 @@ export const DependencyStepStub = ({
         expected: 'returns expected result',
       },
     ],
+    instructions: [],
     observablesSatisfied: [],
     dependsOn: [],
     focusFile: {

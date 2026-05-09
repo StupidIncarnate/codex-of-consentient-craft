@@ -317,7 +317,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
   `packages/orchestrator/src/statics/` (e.g., `chaoswhisperer-gap-minion-statics.ts`,
-  `pathseeker-quest-review-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents — parent roles
+  `pathseeker-verify-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents — parent roles
   tell spawned agents to call the MCP tool to get their instructions.
 
 ## Quest Pipeline
@@ -340,7 +340,7 @@ Web UI "Start Quest" ──► server orchestration-start-responder  (or: MCP st
 Orchestration Loop (workItems queue)
   │  "find next ready item, run it, repeat"
   │
-  ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk → seek_plan) + pathseeker-quest-review-minion (retry max 3)
+  ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk → seek_plan) + pathseeker-verify-minion (retry max 3)
   ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
   │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
@@ -466,7 +466,7 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 **Minion direct-writes to `planningNotes`.** During the seek_* phases, PathSeeker's subordinate minions also commit their own output directly via `modify-quest`:
 
 - `pathseeker-surface-scope-minion` writes entries to `planningNotes.surfaceReports[]` (one per minion — dispatched in parallel during `seek_synth`).
-- `pathseeker-quest-review-minion` writes `planningNotes.reviewReport` during `seek_plan`.
+- `pathseeker-verify-minion` writes `planningNotes.reviewReport` during `seek_plan`.
 
 These writes flow through the same `modify-quest` pipeline as PathSeeker's own writes; the `questStatusInputAllowlistStatics` entry for each seek_* status governs exactly which `planningNotes.*` sub-fields are writable at that status. Minion output is durable the moment it's committed — a minion crash after write does not lose work.
 
@@ -548,8 +548,8 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. Parent roles spawn an agent and instruct it to
 call `get-agent-prompt` as its first action.
 
-| Agent                           | Spawned By          | Purpose                                                      |
-|---------------------------------|---------------------|--------------------------------------------------------------|
-| chaoswhisperer-gap-minion       | ChaosWhisperer      | Validate spec completeness before execution                  |
-| pathseeker-surface-scope-minion | PathSeeker pipeline | Surface-scope research per slice; writes `surfaceReports[]`  |
-| pathseeker-quest-review-minion  | PathSeeker pipeline | Verify + semantic review after steps; writes `reviewReport`  |
+| Agent                           | Spawned By          | Purpose                                                     |
+|---------------------------------|---------------------|-------------------------------------------------------------|
+| chaoswhisperer-gap-minion       | ChaosWhisperer      | Validate spec completeness before execution                 |
+| pathseeker-surface-scope-minion | PathSeeker pipeline | Surface-scope research per slice; writes `surfaceReports[]` |
+| pathseeker-verify-minion        | PathSeeker pipeline | Verify + semantic review after steps; writes `reviewReport` |

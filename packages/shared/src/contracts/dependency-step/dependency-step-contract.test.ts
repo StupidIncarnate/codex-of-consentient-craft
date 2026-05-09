@@ -6,6 +6,7 @@ describe('dependencyStepContract', () => {
     it('VALID: {complete step} => parses successfully', () => {
       const step = DependencyStepStub({
         id: 'create-user-api',
+        slice: 'backend',
         name: 'Create user API endpoint',
         assertions: [
           {
@@ -20,6 +21,7 @@ describe('dependencyStepContract', () => {
             expected: 'throws validation error',
           },
         ],
+        instructions: ['Update PURPOSE comment to mention the new guard logic'],
         observablesSatisfied: ['login-redirects-to-dashboard'],
         dependsOn: ['setup-database'],
         focusFile: {
@@ -41,6 +43,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'create-user-api',
+        slice: 'backend',
         name: 'Create user API endpoint',
         assertions: [
           {
@@ -55,6 +58,7 @@ describe('dependencyStepContract', () => {
             expected: 'throws validation error',
           },
         ],
+        instructions: ['Update PURPOSE comment to mention the new guard logic'],
         observablesSatisfied: ['login-redirects-to-dashboard'],
         dependsOn: ['setup-database'],
         focusFile: {
@@ -80,6 +84,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'create-login-api',
+        slice: 'backend',
         name: 'Test Step',
         assertions: [
           {
@@ -88,6 +93,7 @@ describe('dependencyStepContract', () => {
             expected: 'returns expected result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: [],
         focusFile: {
@@ -115,6 +121,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'create-login-api',
+        slice: 'backend',
         name: 'Test Step',
         assertions: [
           {
@@ -123,6 +130,7 @@ describe('dependencyStepContract', () => {
             expected: 'returns expected result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: [],
         focusFile: {
@@ -142,9 +150,10 @@ describe('dependencyStepContract', () => {
       });
     });
 
-    it('VALID: {uses defaults to []} => parses without uses field', () => {
+    it('VALID: {uses and instructions default to []} => parses without uses or instructions field', () => {
       const step = dependencyStepContract.parse({
         id: 'create-login-api',
+        slice: 'backend',
         name: 'Test Step',
         assertions: [
           {
@@ -165,6 +174,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'create-login-api',
+        slice: 'backend',
         name: 'Test Step',
         assertions: [
           {
@@ -173,6 +183,7 @@ describe('dependencyStepContract', () => {
             expected: 'returns expected result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: [],
         focusFile: {
@@ -192,6 +203,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'create-login-api',
+        slice: 'backend',
         name: 'Test Step',
         assertions: [
           {
@@ -200,6 +212,7 @@ describe('dependencyStepContract', () => {
             expected: 'returns expected result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: [],
         focusFile: {
@@ -229,6 +242,7 @@ describe('dependencyStepContract', () => {
     it('VALID: {operational step with focusAction instead of focusFile} => parses successfully', () => {
       const step = dependencyStepContract.parse({
         id: 'run-ward-verification',
+        slice: 'verification',
         name: 'Run ward and verify green',
         assertions: [
           {
@@ -250,6 +264,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'run-ward-verification',
+        slice: 'verification',
         name: 'Run ward and verify green',
         assertions: [
           {
@@ -258,6 +273,7 @@ describe('dependencyStepContract', () => {
             expected: 'exits 0 with zero failures across lint, typecheck, unit',
           },
         ],
+        instructions: [],
         observablesSatisfied: ['ward-green'],
         dependsOn: ['sweep-complete'],
         focusAction: {
@@ -278,6 +294,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'create-login-api',
+        slice: 'backend',
         name: 'Test Step',
         assertions: [
           {
@@ -286,6 +303,7 @@ describe('dependencyStepContract', () => {
             expected: 'returns expected result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: ['setup-database', 'create-schema'],
         focusFile: {
@@ -311,6 +329,7 @@ describe('dependencyStepContract', () => {
       const parseEmptyAssertions = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
+          slice: 'backend',
           name: 'Test',
           assertions: [],
           observablesSatisfied: [],
@@ -324,9 +343,57 @@ describe('dependencyStepContract', () => {
       expect(parseEmptyAssertions).toThrow(/Array must contain at least 1 element/u);
     });
 
+    it('INVALID: {missing slice} => throws validation error', () => {
+      const parseMissingSlice = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          name: 'Test',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseMissingSlice).toThrow(/Required/u);
+    });
+
+    it('INVALID: {slice: "Not-Kebab"} => throws validation error', () => {
+      const parseInvalidSlice = (): unknown =>
+        dependencyStepContract.parse({
+          id: 'valid-step',
+          slice: 'Not-Kebab',
+          name: 'Test',
+          assertions: [
+            {
+              prefix: 'VALID',
+              input: '{input}',
+              expected: 'result',
+            },
+          ],
+          observablesSatisfied: [],
+          dependsOn: [],
+          focusFile: { path: 'src/file.ts' },
+          accompanyingFiles: [],
+          inputContracts: ['Void'],
+          outputContracts: ['Void'],
+        });
+
+      expect(parseInvalidSlice).toThrow(/invalid_string/u);
+    });
+
     it('VALID: {neither focusFile nor focusAction} => parses successfully (XOR enforced by quest-step-has-focus-target-guard)', () => {
       const step = dependencyStepContract.parse({
         id: 'valid-step',
+        slice: 'backend',
         name: 'Test',
         assertions: [
           {
@@ -344,6 +411,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'valid-step',
+        slice: 'backend',
         name: 'Test',
         assertions: [
           {
@@ -352,6 +420,7 @@ describe('dependencyStepContract', () => {
             expected: 'result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: [],
         accompanyingFiles: [],
@@ -364,6 +433,7 @@ describe('dependencyStepContract', () => {
     it('VALID: {both focusFile and focusAction} => parses successfully (XOR enforced by quest-step-has-focus-target-guard)', () => {
       const step = dependencyStepContract.parse({
         id: 'valid-step',
+        slice: 'backend',
         name: 'Test',
         assertions: [
           {
@@ -383,6 +453,7 @@ describe('dependencyStepContract', () => {
 
       expect(step).toStrictEqual({
         id: 'valid-step',
+        slice: 'backend',
         name: 'Test',
         assertions: [
           {
@@ -391,6 +462,7 @@ describe('dependencyStepContract', () => {
             expected: 'result',
           },
         ],
+        instructions: [],
         observablesSatisfied: [],
         dependsOn: [],
         focusFile: { path: 'src/file.ts' },
@@ -406,6 +478,7 @@ describe('dependencyStepContract', () => {
       const parseEmptyInputContracts = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
+          slice: 'backend',
           name: 'Test',
           assertions: [
             {
@@ -429,6 +502,7 @@ describe('dependencyStepContract', () => {
       const parseEmptyOutputContracts = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
+          slice: 'backend',
           name: 'Test',
           assertions: [
             {
@@ -452,6 +526,7 @@ describe('dependencyStepContract', () => {
       const parseInvalidId = (): unknown =>
         dependencyStepContract.parse({
           id: 'Bad-Id',
+          slice: 'backend',
           name: 'Test',
           assertions: [
             {
@@ -475,6 +550,7 @@ describe('dependencyStepContract', () => {
       const parseEmptyName = (): unknown =>
         dependencyStepContract.parse({
           id: 'valid-step',
+          slice: 'backend',
           name: '',
           assertions: [
             {

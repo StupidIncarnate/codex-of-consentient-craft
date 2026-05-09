@@ -5,7 +5,7 @@ import { QuestContractEntryStub } from './quest-contract-entry.stub';
 
 describe('questContractEntryContract', () => {
   describe('valid entries', () => {
-    it('VALID: {id, name, kind, status, nodeId, properties with one property} => parses minimal entry', () => {
+    it('VALID: {id, name, kind, status, source, nodeId, properties with one property} => parses minimal entry', () => {
       const entry = QuestContractEntryStub();
 
       expect(entry).toStrictEqual({
@@ -13,6 +13,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         nodeId: 'default-node',
         properties: [
           {
@@ -122,6 +123,7 @@ describe('questContractEntryContract', () => {
         name: 'ShippingAddress',
         kind: 'data',
         status: 'new',
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         nodeId: 'default-node',
         properties: [
           {
@@ -191,6 +193,7 @@ describe('questContractEntryContract', () => {
         name: 'AuthLoginEndpoint',
         kind: 'endpoint',
         status: 'new',
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         nodeId: 'default-node',
         properties: [
           {
@@ -228,6 +231,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         nodeId: 'submit-form',
         properties: [
           {
@@ -249,6 +253,7 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         nodeId: 'default-node',
         properties: [
           {
@@ -269,6 +274,7 @@ describe('questContractEntryContract', () => {
           name: 'ValidName',
           kind: 'data',
           status: 'new',
+          source: 'packages/shared/src/contracts/valid-name/valid-name-contract.ts',
           nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
@@ -282,6 +288,7 @@ describe('questContractEntryContract', () => {
           name: '',
           kind: 'data',
           status: 'new',
+          source: 'packages/shared/src/contracts/valid-name/valid-name-contract.ts',
           nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
@@ -295,9 +302,37 @@ describe('questContractEntryContract', () => {
           name: 'ValidName',
           kind: 'data',
           status: 'new',
+          source: 'packages/shared/src/contracts/valid-name/valid-name-contract.ts',
           properties: [{ name: 'field' }],
         });
       }).toThrow(/invalid_type/u);
+    });
+
+    it('INVALID: {without source} => throws validation error (source is required)', () => {
+      expect(() => {
+        return questContractEntryContract.parse({
+          id: 'valid-id',
+          name: 'ValidName',
+          kind: 'data',
+          status: 'new',
+          nodeId: 'some-node',
+          properties: [{ name: 'field' }],
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: {source: ""} => throws validation error (source must be non-empty)', () => {
+      expect(() => {
+        return questContractEntryContract.parse({
+          id: 'valid-id',
+          name: 'ValidName',
+          kind: 'data',
+          status: 'new',
+          source: '',
+          nodeId: 'some-node',
+          properties: [{ name: 'field' }],
+        });
+      }).toThrow(/too_small/u);
     });
   });
 
@@ -312,29 +347,10 @@ describe('questContractEntryContract', () => {
         name: 'LoginCredentials',
         kind: 'data',
         status: 'new',
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         nodeId: 'default-node',
         properties: [],
       });
-    });
-
-    it('EDGE: {without source} => parses entry without optional source field', () => {
-      const entry = QuestContractEntryStub();
-
-      expect(entry).toStrictEqual({
-        id: 'login-credentials',
-        name: 'LoginCredentials',
-        kind: 'data',
-        status: 'new',
-        nodeId: 'default-node',
-        properties: [
-          {
-            name: 'email',
-            type: 'EmailAddress',
-            description: 'User email for authentication',
-          },
-        ],
-      });
-      expect('source' in entry).toBe(false);
     });
   });
 });

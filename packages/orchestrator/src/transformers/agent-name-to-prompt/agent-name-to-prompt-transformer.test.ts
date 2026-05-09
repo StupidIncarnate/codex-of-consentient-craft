@@ -5,7 +5,7 @@ import { blightwardenIntegrityMinionStatics } from '../../statics/blightwarden-i
 import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-minion/blightwarden-perf-minion-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { pathseekerQuestReviewMinionStatics } from '../../statics/pathseeker-quest-review-minion/pathseeker-quest-review-minion-statics';
+import { pathseekerVerifyMinionStatics } from '../../statics/pathseeker-verify-minion/pathseeker-verify-minion-statics';
 import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
@@ -22,15 +22,15 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
-  it('VALID: {agent: "pathseeker-quest-review-minion"} => returns pathseeker quest review minion prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-quest-review-minion' });
+  it('VALID: {agent: "pathseeker-verify-minion"} => returns pathseeker verify minion prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-verify-minion' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'pathseeker-quest-review-minion',
+      name: 'pathseeker-verify-minion',
       model: 'sonnet',
-      prompt: pathseekerQuestReviewMinionStatics.prompt.template,
+      prompt: pathseekerVerifyMinionStatics.prompt.template,
     });
   });
 

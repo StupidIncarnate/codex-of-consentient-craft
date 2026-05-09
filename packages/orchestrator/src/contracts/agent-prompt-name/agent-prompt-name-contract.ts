@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 export const agentPromptNameContract = z.enum([
   'chaoswhisperer-gap-minion',
-  'pathseeker-quest-review-minion',
+  'pathseeker-verify-minion',
   'pathseeker-surface-scope-minion',
   'blightwarden-security-minion',
   'blightwarden-dedup-minion',

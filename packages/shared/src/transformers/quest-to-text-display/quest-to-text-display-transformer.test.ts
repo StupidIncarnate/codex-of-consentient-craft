@@ -102,7 +102,9 @@ describe('questToTextDisplayTransformer', () => {
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/^#login-creds \u2014 LoginCredentials \(data, new\)$/mu);
+      expect(result).toMatch(
+        /^#login-creds \u2014 LoginCredentials \(data, new\) \[\u2192 packages\/shared\/src\/contracts\/login-credentials\/login-credentials-contract\.ts\]$/mu,
+      );
       expect(result).toMatch(/^ {2}email: EmailAddress \u2014 User email$/mu);
     });
 

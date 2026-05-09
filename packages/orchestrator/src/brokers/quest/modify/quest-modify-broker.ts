@@ -220,8 +220,17 @@ export const questModifyBroker = async ({
         // questTerminalNodesMissingObservablesTransformer.
         Object.assign(quest, questContract.parse(quest));
 
-        // Tier 3: save-time invariants (POST-mutation; runs on every call)
-        const invariantFailures = questSaveInvariantsTransformer({ quest });
+        // Tier 3: save-time invariants (POST-mutation; runs on every call). When the
+        // input transitions the quest INTO 'in_progress', the invariants set ALSO
+        // includes the 'completeness' scope (whole-quest coverage checks: step
+        // contract refs resolve, new contracts have creating step, observables
+        // satisfied). Those completeness checks fire premature during the
+        // slice-by-slice seek_synth commits — they only make sense once the plan
+        // is fully assembled, which is the moment of transition to 'in_progress'.
+        const invariantFailures = questSaveInvariantsTransformer({
+          quest,
+          ...(validated.status === undefined ? {} : { nextStatus: validated.status }),
+        });
         if (invariantFailures.length > 0) {
           return modifyQuestResultContract.parse({
             success: false,

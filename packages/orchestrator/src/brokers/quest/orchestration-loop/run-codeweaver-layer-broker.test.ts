@@ -29,6 +29,21 @@ const COMPLETE_SIGNAL_LINE = JSON.stringify({
   },
 });
 
+// Build a step whose id starts with the slice prefix (V1 invariant) and whose focusFile
+// is unique per ordinal (V2 invariant). The default DependencyStepStub uses slice='backend'
+// and a fixed broker focusFile path; tests need distinct steps without violating either.
+const buildBackendStepStub = (ordinal: number): ReturnType<typeof DependencyStepStub> =>
+  DependencyStepStub({
+    id: `backend-step-${ordinal}` as never,
+    focusFile: {
+      path: `src/brokers/step-${ordinal}/step-${ordinal}-broker.ts`,
+    } as never,
+    accompanyingFiles: [
+      { path: `src/brokers/step-${ordinal}/step-${ordinal}-broker.test.ts` },
+      { path: `src/brokers/step-${ordinal}/step-${ordinal}-broker.proxy.ts` },
+    ] as never,
+  });
+
 describe('runCodeweaverLayerBroker', () => {
   describe('export', () => {
     it('VALID: {module} => exports a function', () => {
@@ -90,7 +105,7 @@ describe('runCodeweaverLayerBroker', () => {
 
   describe('result mapping', () => {
     it('VALID: {1 codeweaver, agent signals complete} => marks work item complete', async () => {
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -131,8 +146,8 @@ describe('runCodeweaverLayerBroker', () => {
     });
 
     it('VALID: {2 codeweavers, both signal complete} => marks both work items complete', async () => {
-      const step1 = DependencyStepStub({ id: 'step-1' });
-      const step2 = DependencyStepStub({ id: 'step-2' });
+      const step1 = buildBackendStepStub(1);
+      const step2 = buildBackendStepStub(2);
 
       const workItemId1 = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -186,9 +201,9 @@ describe('runCodeweaverLayerBroker', () => {
     });
 
     it('VALID: {3 codeweavers, all signal complete} => marks all 3 work items complete', async () => {
-      const step1 = DependencyStepStub({ id: 'step-1' });
-      const step2 = DependencyStepStub({ id: 'step-2' });
-      const step3 = DependencyStepStub({ id: 'step-3' });
+      const step1 = buildBackendStepStub(1);
+      const step2 = buildBackendStepStub(2);
+      const step3 = buildBackendStepStub(3);
 
       const workItemId1 = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -253,7 +268,7 @@ describe('runCodeweaverLayerBroker', () => {
     });
 
     it('VALID: {1 codeweaver, null signal} => marks work item failed', async () => {
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -294,9 +309,9 @@ describe('runCodeweaverLayerBroker', () => {
     });
 
     it('VALID: {3 codeweavers, all concurrent, shared signal line} => all mapped to complete quest work items', async () => {
-      const step1 = DependencyStepStub({ id: 'step-1' });
-      const step2 = DependencyStepStub({ id: 'step-2' });
-      const step3 = DependencyStepStub({ id: 'step-3' });
+      const step1 = buildBackendStepStub(1);
+      const step2 = buildBackendStepStub(2);
+      const step3 = buildBackendStepStub(3);
 
       const workItemId1 = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -366,11 +381,11 @@ describe('runCodeweaverLayerBroker', () => {
     });
 
     it('VALID: {5 codeweavers with slotCount 3, all share one broadcast line} => first 3 complete, overflow 2 fail', async () => {
-      const step1 = DependencyStepStub({ id: 'step-1' });
-      const step2 = DependencyStepStub({ id: 'step-2' });
-      const step3 = DependencyStepStub({ id: 'step-3' });
-      const step4 = DependencyStepStub({ id: 'step-4' });
-      const step5 = DependencyStepStub({ id: 'step-5' });
+      const step1 = buildBackendStepStub(1);
+      const step2 = buildBackendStepStub(2);
+      const step3 = buildBackendStepStub(3);
+      const step4 = buildBackendStepStub(4);
+      const step5 = buildBackendStepStub(5);
 
       const workItemId1 = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -466,7 +481,7 @@ describe('runCodeweaverLayerBroker', () => {
 
   describe('failure callback persistence', () => {
     it('VALID: {1 codeweaver, null signal} => failed codeweaver quest work item persisted with failed status', async () => {
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -523,7 +538,7 @@ describe('runCodeweaverLayerBroker', () => {
         },
       });
 
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -579,7 +594,7 @@ describe('runCodeweaverLayerBroker', () => {
         },
       });
 
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -632,7 +647,7 @@ describe('runCodeweaverLayerBroker', () => {
         session_id: 'e7a1b2c3-d4e5-4f6a-8b9c-0d1e2f3a4b5c',
       });
 
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -680,7 +695,7 @@ describe('runCodeweaverLayerBroker', () => {
 
   describe('onAgentEntry id translation', () => {
     it('VALID: {1 codeweaver, slot emits entry} => onAgentEntry receives translated QuestWorkItemId (UUID), not slot-internal id', async () => {
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -744,7 +759,7 @@ describe('runCodeweaverLayerBroker', () => {
         session_id: String(sessionId),
       });
 
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -787,7 +802,7 @@ describe('runCodeweaverLayerBroker', () => {
 
   describe('abort signal', () => {
     it('VALID: {abortSignal already aborted, 1 codeweaver in_progress} => work item remains in_progress (not marked complete)', async () => {
-      const step = DependencyStepStub({ id: 'step-1' });
+      const step = buildBackendStepStub(1);
       const workItemId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -829,9 +844,9 @@ describe('runCodeweaverLayerBroker', () => {
     });
 
     it('VALID: {abortSignal already aborted, 3 codeweavers in_progress} => all remain in_progress (not marked complete)', async () => {
-      const step1 = DependencyStepStub({ id: 'step-1' });
-      const step2 = DependencyStepStub({ id: 'step-2' });
-      const step3 = DependencyStepStub({ id: 'step-3' });
+      const step1 = buildBackendStepStub(1);
+      const step2 = buildBackendStepStub(2);
+      const step3 = buildBackendStepStub(3);
 
       const workItemId1 = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',

@@ -7,6 +7,9 @@
  *
  * const filtered = await questGetBroker({ input: GetQuestInputStub({ questId: 'add-auth', stage: 'spec' }) });
  * // Returns: { success: true, quest: {...} } with only spec-stage sections populated; other sections are empty arrays
+ *
+ * const sliced = await questGetBroker({ input: GetQuestInputStub({ questId: 'add-auth', stage: 'planning', slice: ['backend'] }) });
+ * // Returns quest with steps[] filtered to entries whose step.slice is in the slice array. Other sections are unaffected.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -43,10 +46,18 @@ export const questGetBroker = async ({
 
     const loadedQuest = await questLoadBroker({ questFilePath });
 
-    const quest = questSectionFilterTransformer({
+    const filtered = questSectionFilterTransformer({
       quest: loadedQuest,
       ...(sections !== undefined && { sections }),
     });
+
+    const quest =
+      validated.slice === undefined
+        ? filtered
+        : {
+            ...filtered,
+            steps: filtered.steps.filter((step) => validated.slice?.includes(step.slice)),
+          };
 
     return getQuestResultContract.parse({
       success: true,

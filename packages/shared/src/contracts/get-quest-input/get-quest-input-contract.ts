@@ -7,10 +7,14 @@
  *
  * const filtered: GetQuestInput = getQuestInputContract.parse({ questId: 'add-auth', stage: 'spec' });
  * // Returns only the sections mapped to the 'spec' stage; excluded sections come back as empty arrays
+ *
+ * const sliced: GetQuestInput = getQuestInputContract.parse({ questId: 'add-auth', stage: 'planning', slice: ['backend'] });
+ * // Returns only steps[] entries whose step.slice is in the slice array; other sections are unaffected
  */
 import { z } from 'zod';
 
 import { questStageContract } from '../quest-stage/quest-stage-contract';
+import { sliceNameContract } from '../slice-name/slice-name-contract';
 
 export const getQuestInputContract = z
   .object({
@@ -26,6 +30,12 @@ export const getQuestInputContract = z
           '- "planning": planningNotes, steps, contracts',
           '- "implementation": planningNotes, steps, contracts, toolingRequirements',
         ].join(' '),
+      )
+      .optional(),
+    slice: z
+      .array(sliceNameContract)
+      .describe(
+        'Optional slice-name filter for steps[]. When set, only steps whose step.slice is in this array are returned; other quest sections (flows, contracts, planningNotes, tooling) are unaffected. Omit to return steps from every slice.',
       )
       .optional(),
   })

@@ -8,6 +8,8 @@
 
 import { z } from 'zod';
 
+import { observableIdContract } from '../observable-id/observable-id-contract';
+
 const stepAssertionPrefixContract = z.enum([
   'VALID',
   'INVALID',
@@ -25,6 +27,12 @@ export const stepAssertionContract = z
     field: z.string().min(1).brand<'AssertionField'>().optional(),
     input: z.string().min(1).brand<'AssertionInput'>(),
     expected: z.string().min(1).brand<'AssertionExpected'>(),
+    observablesSatisfied: z
+      .array(observableIdContract)
+      .optional()
+      .describe(
+        'Observables proven by this specific assertion. Validator V8 unions step-level and assertion-level observable claims when checking coverage.',
+      ),
   })
   .refine(
     (data) => {

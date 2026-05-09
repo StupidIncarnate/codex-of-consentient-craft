@@ -42,13 +42,17 @@ describe('questModifyBroker', () => {
         questId: 'add-auth',
         steps: [
           {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            id: 'backend-create-api',
+            slice: 'backend',
             name: 'Create API',
             assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
             observablesSatisfied: [],
             dependsOn: [],
             focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
-            accompanyingFiles: [],
+            accompanyingFiles: [
+              { path: 'src/brokers/auth/create/auth-create-broker.proxy.ts' },
+              { path: 'src/brokers/auth/create/auth-create-broker.test.ts' },
+            ],
             inputContracts: ['Void'],
             outputContracts: ['Void'],
           },
@@ -66,12 +70,20 @@ describe('questModifyBroker', () => {
         id: 'login-flow' as never,
         nodes: [FlowNodeStub({ id: 'submit-form' as never })],
       });
+      // Seed a step whose outputContracts produces the new contract so the
+      // V7 (orphan new contracts) invariant is satisfied — every status:'new'
+      // contract must be created by at least one step.
+      const seededStep = DependencyStepStub({
+        id: 'backend-create-login-credentials' as never,
+        outputContracts: ['LoginCredentials' as never],
+      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
         flows: [flow],
         contracts: [],
+        steps: [seededStep],
       });
 
       proxy.setupQuestFound({ quest });
@@ -84,6 +96,7 @@ describe('questModifyBroker', () => {
             name: 'LoginCredentials',
             kind: 'data',
             status: 'new',
+            source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
             nodeId: 'submit-form',
             properties: [
               {
@@ -221,15 +234,24 @@ describe('questModifyBroker', () => {
 
     it('VALID: {questId, status: "explore_observables"} with quest at "flows_approved" with observables in flow nodes => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
+      const observable = FlowObservableStub();
+      // Seed a step claiming the observable so the V8 (unsatisfied observables)
+      // invariant — which runs on every modify-quest call — is satisfied. The
+      // step id is slice-prefixed so the V1 invariant also passes.
+      const seededStep = DependencyStepStub({
+        id: 'backend-create-login-api' as never,
+        observablesSatisfied: [observable.id],
+      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
         flows: [
           FlowStub({
-            nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
+            nodes: [FlowNodeStub({ observables: [observable] })],
           }),
         ],
+        steps: [seededStep],
       });
 
       proxy.setupQuestFound({ quest });
@@ -422,6 +444,7 @@ describe('questModifyBroker', () => {
         steps: [
           {
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            slice: 'backend',
             name: 'Create API',
             assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
             observablesSatisfied: [],
@@ -1119,7 +1142,9 @@ describe('questModifyBroker', () => {
       });
       // Step missing focusFile creates a passed=false "Step Focus Target" blocking check,
       // while the warnings-signal reviewReport adds a passed=true info check. Broker must
-      // block on the false and surface only the blocking entry in failedChecks.
+      // block on the false and surface only the blocking entry in failedChecks. The id
+      // is slice-prefixed so the V1 invariant passes — this test exercises the Tier 4
+      // completeness layer, not Tier 3 invariants.
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -1129,7 +1154,7 @@ describe('questModifyBroker', () => {
         steps: [
           (() => {
             const base = DependencyStepStub({
-              id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' as never,
+              id: 'backend-missing-focus' as never,
             });
             // Force missing focus target: both focusFile and focusAction undefined
             const { focusFile: _focusFile, ...rest } = base;
@@ -1159,7 +1184,109 @@ describe('questModifyBroker', () => {
             name: 'Step Focus Target',
             passed: false,
             details:
-              "Steps missing focusFile/focusAction: step 'f47ac10b-58cc-4372-a567-0e02b2c3d479' has neither focusFile nor focusAction",
+              "Steps missing focusFile/focusAction: step 'backend-missing-focus' has neither focusFile nor focusAction",
+          },
+        ],
+      });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    });
+  });
+
+  describe('completeness scope gating (Tier 3, transition-to-in_progress only)', () => {
+    it('VALID: {modify-quest without status: in_progress, quest with unsatisfied observable} => succeeds (completeness skipped on slice-by-slice commits)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const observable = FlowObservableStub({ id: 'obs-orphan' as never });
+      const node = FlowNodeStub({
+        id: 'login-page' as never,
+        observables: [observable],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_synth',
+        flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
+        steps: [],
+        planningNotes: { surfaceReports: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Seek_synth permits step writes; commit a step that does NOT satisfy the
+      // observable. Without the new completeness scope split, V8 would have
+      // fired here (the old gating ran V8 once steps.length > 0). With the
+      // split, V8 only fires on transition to in_progress, so this commit lands.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'backend-create-other',
+            slice: 'backend',
+            name: 'Other',
+            assertions: [{ prefix: 'VALID', input: '{x}', expected: 'returns y' }],
+            observablesSatisfied: [],
+            dependsOn: [],
+            focusFile: { path: 'src/brokers/other/create/other-create-broker.ts' },
+            accompanyingFiles: [
+              { path: 'src/brokers/other/create/other-create-broker.proxy.ts' },
+              { path: 'src/brokers/other/create/other-create-broker.test.ts' },
+            ],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('INVALID: {status: in_progress, quest with unsatisfied observable} => rejects with completeness failure (V8 fires at transition)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const reviewReport = PlanningReviewReportStub({ signal: 'clean' });
+      const observable = FlowObservableStub({ id: 'obs-orphan' as never });
+      const terminal = FlowNodeStub({
+        id: 'login-page' as never,
+        type: 'terminal' as never,
+        observables: [observable],
+      });
+      const edge = FlowEdgeStub({
+        id: 'self' as never,
+        from: 'login-page' as never,
+        to: 'login-page' as never,
+      });
+      const unrelatedStep = DependencyStepStub({
+        id: 'backend-other-step' as never,
+        slice: 'backend' as never,
+        observablesSatisfied: [],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'seek_plan',
+        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
+        steps: [unrelatedStep],
+        planningNotes: { surfaceReports: [], reviewReport },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'in_progress',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Observables Are Satisfied',
+            passed: false,
+            details:
+              "Unsatisfied observables: observable 'obs-orphan' (flow 'login-flow', node 'login-page') is not claimed by any step.observablesSatisfied or step.assertions[].observablesSatisfied",
           },
         ],
       });

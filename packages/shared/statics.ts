@@ -27,3 +27,4 @@ export * from './src/statics/locations/locations-statics';
 export * from './src/statics/widget-tree/widget-tree-statics';
 export * from './src/statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';
 export * from './src/statics/rate-limit/rate-limit-statics';
+export * from './src/statics/banned-jest-matchers/banned-jest-matchers-statics';

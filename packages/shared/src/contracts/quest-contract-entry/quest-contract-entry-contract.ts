@@ -28,9 +28,11 @@ export const questContractEntryContract = z.object({
   ),
   source: z
     .string()
+    .min(1)
     .brand<'FilePath'>()
-    .optional()
-    .describe('File path where this contract lives or will be created'),
+    .describe(
+      'File path where this contract lives or will be created. REQUIRED — the dedup error message uses this path to tell a conflicting writer where the existing entry lives.',
+    ),
   nodeId: flowNodeIdContract.describe(
     'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
   ),

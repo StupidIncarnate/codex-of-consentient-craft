@@ -13,7 +13,7 @@ export const getAgentPromptInputContract = z
       .string()
       .min(1)
       .brand<'AgentPromptInputAgent'>()
-      .describe('Agent name (e.g. chaoswhisperer-gap-minion, pathseeker-quest-review-minion)'),
+      .describe('Agent name (e.g. chaoswhisperer-gap-minion, pathseeker-verify-minion)'),
   })
   .strict();
 
