@@ -35,7 +35,7 @@ Two reasonable directions:
 
 The lifecycle change is atomic — status enum removal cascades. One PR, ordered to keep `npm run ward` green at each major step:
 
-### Phase A — additive (safe, no breakage)
+### Phase A — additive (safe, no breakage) — [x] DONE
 
 **A1. Create two new minion prompt statics.**
 
@@ -83,7 +83,7 @@ Edit `packages/orchestrator/src/flows/agent-prompt/agent-prompt-flow.integration
 
 After A1+A2: `npm run build && npm run ward` should still pass. Nothing dispatches the new minions yet.
 
-### Phase B — reshape PathSeeker prompt + surface-scope minion
+### Phase B — reshape PathSeeker prompt + surface-scope minion — [x] DONE
 
 **B1. Rewrite PathSeeker prompt's `seek_walk` section.**
 
@@ -142,7 +142,7 @@ File: `pathseeker-surface-scope-minion-statics.test.ts` — update regex pattern
 
 After B1+B2: prompts changed but the status enum still has `seek_plan`. Quests in flight survive (PathSeeker's old prompt mentioning seek_plan doesn't break; the agent just won't reach the seek_plan section because it'll transition to `in_progress` from seek_walk). `npm run ward` should still pass.
 
-### Phase C — drop `seek_plan` from the lifecycle
+### Phase C — drop `seek_plan` from the lifecycle — [x] DONE
 
 **C1. Move completeness validators to fire on `seek_walk → in_progress`.**
 
@@ -201,7 +201,7 @@ npm run build --workspace=@dungeonmaster/shared
 
 After C1–C6: status enum is `seek_walk → in_progress`, modify-quest rejects writes during a status that no longer exists, completeness fires at the right transition. Anything still referencing the seek_plan status now fails the type-check.
 
-### Phase D — delete verify-minion and `reviewReport`
+### Phase D — delete verify-minion and `reviewReport` — [x] DONE
 
 **D1. Delete the verify-minion prompt and registry.**
 
@@ -242,7 +242,7 @@ Files to edit (consumers):
 npm run build --workspace=@dungeonmaster/shared
 ```
 
-### Phase E — fix downstream references
+### Phase E — fix downstream references — [x] DONE
 
 **E1. Other prompts referencing verify-minion.**
 

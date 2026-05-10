@@ -11,7 +11,7 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-type Section = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
+type Section = 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
 
 export const orchestratorGetQuestPlanningNotesAdapter = async ({
   questId,
