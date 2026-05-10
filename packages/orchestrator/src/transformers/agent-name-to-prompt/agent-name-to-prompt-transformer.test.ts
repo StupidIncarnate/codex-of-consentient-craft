@@ -5,6 +5,8 @@ import { blightwardenIntegrityMinionStatics } from '../../statics/blightwarden-i
 import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-minion/blightwarden-perf-minion-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
+import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
+import { pathseekerContractDedupMinionStatics } from '../../statics/pathseeker-contract-dedup-minion/pathseeker-contract-dedup-minion-statics';
 import { pathseekerVerifyMinionStatics } from '../../statics/pathseeker-verify-minion/pathseeker-verify-minion-statics';
 import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
@@ -43,6 +45,30 @@ describe('agentNameToPromptTransformer', () => {
       name: 'pathseeker-surface-scope-minion',
       model: 'sonnet',
       prompt: pathseekerSurfaceScopeMinionStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "pathseeker-contract-dedup-minion"} => returns pathseeker contract dedup minion prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-contract-dedup-minion' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'pathseeker-contract-dedup-minion',
+      model: 'sonnet',
+      prompt: pathseekerContractDedupMinionStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "pathseeker-assertion-correctness-minion"} => returns pathseeker assertion correctness minion prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness-minion' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'pathseeker-assertion-correctness-minion',
+      model: 'sonnet',
+      prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
     });
   });
 

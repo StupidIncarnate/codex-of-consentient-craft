@@ -26,6 +26,22 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('pathseeker-surface-scope-minion');
   });
 
+  it('VALID: {value: "pathseeker-contract-dedup-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-contract-dedup-minion' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('pathseeker-contract-dedup-minion');
+  });
+
+  it('VALID: {value: "pathseeker-assertion-correctness-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness-minion' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('pathseeker-assertion-correctness-minion');
+  });
+
   it('VALID: {value: "blightwarden-security-minion"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'blightwarden-security-minion' });
 
