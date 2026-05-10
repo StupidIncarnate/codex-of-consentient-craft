@@ -126,8 +126,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Wave 1 semantic similarity', () => {
-    const needle = '#### Wave 1 — Semantic similarity';
+  it('VALID: seek_walk section => contains Sweep 1 semantic similarity', () => {
+    const needle = '#### Sweep 1 — Semantic similarity';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -137,8 +137,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Wave 2 cross-slice DAG', () => {
-    const needle = '#### Wave 2 — Cross-slice DAG';
+  it('VALID: seek_walk section => contains Sweep 2 cross-slice glue review', () => {
+    const needle = '#### Sweep 2 — Cross-slice glue review';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -148,8 +148,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Wave 3 corrective walk header', () => {
-    const needle = '#### Wave 3 — Corrective walk';
+  it('VALID: seek_walk section => contains Sweep 3 build-the-map header', () => {
+    const needle = '#### Sweep 3 — Build the map';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -159,8 +159,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Wave 3 => walks INSIDE each minion-owned slice', () => {
-    const needle = 'INSIDE each minion-owned slice';
+  it('VALID: seek_walk Sweep 3 => walks every step in every slice', () => {
+    const needle = 'Walk every step in every slice';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -182,8 +182,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Wave 3 => fixes assertions vs instructions channel mistakes', () => {
-    const needle = 'MOVE that content into `instructions[]`';
+  it('VALID: seek_walk Sweep 3 => names within-slice channel discipline as a minion self-check', () => {
+    const needle = 'Within-slice channel discipline';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -193,8 +193,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Wave 3 => adds missing steps the minion did not see', () => {
-    const needle = 'ADD a missing step the minion didn';
+  it('VALID: seek_walk Sweep 3 => adds missing steps the minion did not see', () => {
+    const needle = "add a missing step the minion didn't see";
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -204,8 +204,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Wave 3 => allows whole-slice rewrite when a minion misunderstood', () => {
-    const needle = 'Whole-slice rewrite is allowed';
+  it('VALID: seek_walk Sweep 3 => allows whole-slice rewrite when a minion misunderstood', () => {
+    const needle = 'Whole-slice rewrite (rare).';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -215,9 +215,9 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: workflow paragraph => walks every slice and fixes minion mistakes within slices', () => {
+  it('VALID: workflow paragraph => walks every slice while building institutional memory', () => {
     const needle =
-      'you walk every slice — fixing the glue between slices AND any mistakes a minion made inside its own slice';
+      'you walk every slice — building the institutional memory of every focus file, every cross-slice connection, every architectural surprise';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

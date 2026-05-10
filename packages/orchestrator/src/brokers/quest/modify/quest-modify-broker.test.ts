@@ -1404,6 +1404,227 @@ describe('questModifyBroker', () => {
     });
   });
 
+  describe('cross-slice DAG auto-wiring (post-upsert)', () => {
+    it("VALID: {seeded cross-slice consumer.uses[] resolves to another slice's outputContracts} => broker auto-appends producer id to consumer.dependsOn on persist", async () => {
+      const proxy = questModifyBrokerProxy();
+      // Producer in 'backend' slice exporting ThingContract via outputContracts.
+      // Default DependencyStepStub focusFile is `src/brokers/login/create/...` —
+      // that's the producer's file.
+      const producerStep = DependencyStepStub({
+        id: 'backend-make-thing' as never,
+        slice: 'backend' as never,
+        outputContracts: ['ThingContract' as never],
+        exportName: 'thingContract' as never,
+      });
+      // Consumer in 'web' slice referencing ThingContract via uses[]. Different
+      // focusFile (V2 duplicate-focus-files invariant) and broker-folder companions.
+      const consumerStep = DependencyStepStub({
+        id: 'web-use-thing' as never,
+        slice: 'web' as never,
+        uses: ['ThingContract' as never],
+        dependsOn: [],
+        focusFile: { path: 'src/brokers/thing/render/thing-render-broker.ts' },
+        accompanyingFiles: [
+          { path: 'src/brokers/thing/render/thing-render-broker.proxy.ts' },
+          { path: 'src/brokers/thing/render/thing-render-broker.test.ts' },
+        ],
+      });
+      const quest = QuestStub({
+        id: 'add-thing',
+        folder: '001-add-thing',
+        status: 'in_progress',
+        steps: [producerStep, consumerStep],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // No-op modify (just the questId) — auto-wire still runs on the post-upsert
+      // quest.steps and the persisted snapshot reflects the wired graph.
+      const input = ModifyQuestInputStub({ questId: 'add-thing' });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      const persistedConsumer = persisted.steps.find((step) => String(step.id) === 'web-use-thing');
+
+      expect(persistedConsumer?.dependsOn).toStrictEqual(['backend-make-thing']);
+    });
+  });
+
+  describe('contract source path resolution (DET3)', () => {
+    it('INVALID: {contracts: [new] but source already resolves on disk} => returns Contract Source Resolution failedCheck', async () => {
+      const proxy = questModifyBrokerProxy();
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+      });
+      const seededStep = DependencyStepStub({
+        id: 'backend-create-login-credentials' as never,
+        outputContracts: ['LoginCredentials' as never],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        contracts: [],
+        steps: [seededStep],
+      });
+
+      proxy.setupQuestFound({ quest });
+      // Force fs.access to succeed once so the validator sees the new contract's
+      // source as "already exists on disk" — which is the rejection path.
+      proxy.setupContractSourceResolvesOnce();
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'LoginCredentials',
+            kind: 'data',
+            status: 'new',
+            source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
+            nodeId: 'submit-form',
+            properties: [
+              {
+                name: 'email',
+                type: 'EmailAddress',
+                description: 'User email for authentication',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Contract source path resolution failed',
+        failedChecks: [
+          {
+            name: 'Contract Source Resolution',
+            passed: false,
+            details:
+              "Contract 'LoginCredentials' has status 'new' but source 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts' already resolves on disk. Set status to 'existing' or 'modified', change the source path, or drop the entry.",
+          },
+        ],
+      });
+    });
+
+    it('INVALID: {contracts: [existing] but source does not resolve on disk} => returns Contract Source Resolution failedCheck', async () => {
+      const proxy = questModifyBrokerProxy();
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+      });
+      const seededStep = DependencyStepStub({
+        id: 'backend-consume-existing' as never,
+        outputContracts: ['Void' as never],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        contracts: [],
+        steps: [seededStep],
+      });
+
+      proxy.setupQuestFound({ quest });
+      // Default fs.access is "not found" — we do NOT call
+      // setupContractSourceResolvesOnce, so an 'existing' contract's source path
+      // appears missing on disk (the rejection path).
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'b47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'EmailAddress',
+            kind: 'data',
+            status: 'existing',
+            source: 'packages/shared/src/contracts/missing-thing/missing-thing-contract.ts',
+            nodeId: 'submit-form',
+            properties: [
+              {
+                name: 'value',
+                type: 'EmailAddress',
+                description: 'Email value',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Contract source path resolution failed',
+        failedChecks: [
+          {
+            name: 'Contract Source Resolution',
+            passed: false,
+            details:
+              "Contract 'EmailAddress' has status 'existing' but source 'packages/shared/src/contracts/missing-thing/missing-thing-contract.ts' does not resolve on disk. Set status to 'new', or correct the source path.",
+          },
+        ],
+      });
+    });
+
+    it('VALID: {contracts: [existing] with source that resolves on disk} => succeeds (path-disk consistency holds)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+      });
+      const seededStep = DependencyStepStub({
+        id: 'backend-consume-shared' as never,
+        outputContracts: ['Void' as never],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        contracts: [],
+        steps: [seededStep],
+      });
+
+      proxy.setupQuestFound({ quest });
+      proxy.setupContractSourceResolvesOnce();
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'c47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'EmailAddress',
+            kind: 'data',
+            status: 'existing',
+            source: 'packages/shared/src/contracts/email-address/email-address-contract.ts',
+            nodeId: 'submit-form',
+            properties: [
+              {
+                name: 'value',
+                type: 'EmailAddress',
+                description: 'Email value',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('valid transition passes all tiers', () => {
     it('VALID: {explore_flows -> review_flows with connected non-orphan flow} => transitions and persists', async () => {
       const proxy = questModifyBrokerProxy();

@@ -101,7 +101,14 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
       },
       seek_walk: {
-        allowedFields: ['planningNotes', 'contracts', 'toolingRequirements', 'flows', 'status'],
+        allowedFields: [
+          'planningNotes',
+          'steps',
+          'contracts',
+          'toolingRequirements',
+          'flows',
+          'status',
+        ],
         flowsRule: 'observable-wording-only',
         blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: ['walkFindings'],
@@ -216,6 +223,17 @@ describe('questStatusInputAllowlistStatics', () => {
   it('VALID: seek_walk => allowedPlanningNotesFields limits writes to walkFindings', () => {
     expect(questStatusInputAllowlistStatics.seek_walk.allowedPlanningNotesFields).toStrictEqual([
       'walkFindings',
+    ]);
+  });
+
+  it("VALID: seek_walk => allowedFields includes 'steps' so PathSeeker can patch step fields during the walk", () => {
+    expect(questStatusInputAllowlistStatics.seek_walk.allowedFields).toStrictEqual([
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
     ]);
   });
 

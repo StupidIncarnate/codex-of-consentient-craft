@@ -28,6 +28,35 @@ export const pathseekerVerifyMinionStatics = {
 
 **What NOT to flag — doc redundancy rule.** Codeweaver reads CLAUDE.md, \`get-architecture\`, \`get-testing-patterns\`, and \`get-syntax-rules\` itself. Do NOT raise a finding because a step's \`instructions[]\` doesn't tell codeweaver to follow a documented rule (e.g., "step is missing instruction: 'use \`registerMock\`, not \`jest.mock\`'" — that's redundant with testing-patterns; codeweaver knows). Conversely, DO flag instructions that redundantly cite documented standards as **warnings** — they're noise that drowns slice-specific directives. Reserve \`instructions[]\` for slice-specific decisions: removals, comment-text edits, sibling-pattern citations, cross-step constraints, and architectural surprises.
 
+\`\`\`
+REDUNDANT (warn):
+  instructions: [
+    "Use \`registerMock\` from @dungeonmaster/testing, not \`jest.mock\`",
+    "Use \`toStrictEqual\`, not \`toEqual\`",
+    "Add PURPOSE/USAGE header in standard format",
+    "Named export only, no default export"
+  ]
+  -> All four are documented in get-testing-patterns / get-syntax-rules / get-architecture.
+     Codeweaver reads them. These instructions are noise. Warn the author to remove.
+
+SLICE-SPECIFIC (do not flag):
+  instructions: [
+    "Remove the existing skull rendering branch (currently around lines 38–44)",
+    "Mirror sibling pattern at packages/web/src/brokers/quest/abandon/quest-abandon-broker.ts",
+    "Cross-step: depends on the cast at widget line 149 being removed by step \`frontend-update-session-list-item-contract\`"
+  ]
+  -> Removal points, sibling-pattern citation for THIS step's design, cross-step constraint.
+     None of these are in any doc; they're load-bearing for this slice. Leave them alone.
+
+REDUNDANT-LOOKING BUT ACTUALLY SLICE-SPECIFIC (do not flag):
+  instructions: [
+    "Use \`createSelector\` from reselect — not the local memoize wrapper, which adds a stale-closure bug here"
+  ]
+  -> Mentions a documented library primitive, but the directive is "do NOT use the local
+     wrapper" and explains the slice-specific reason. That's slice-specific judgment, not
+     doc redundancy. Leave alone.
+\`\`\`
+
 ## Process
 
 ### Findings Output Protocol (read first)
@@ -97,7 +126,7 @@ For every step in \`steps[]\`:
 You do not need to inspect every step against every sibling — that would blow context. Sample:
 
 1. Group \`steps[]\` by \`slice\` and by inferred folder type (from \`focusFile.path\` — \`brokers/\`, \`widgets/\`, \`responders/\`, etc.).
-2. From each (slice, folderType) bucket, pick ONE representative step. If a bucket has only one step, pick it.
+2. **Sample at most 5 representative steps across all (slice, folderType) combinations.** Pick from the highest-novelty buckets first (folder types this slice has not produced before, unusual slice-folder combinations, steps with the most assertions or the most cross-slice \`uses[]\`). If your sample budget is filled before you cover every bucket, that is correct — depth on a few high-value samples beats shallow coverage of all buckets.
 3. For each picked step:
    - Use the \`discover\` MCP tool with a glob targeting the same folder type in the same package (e.g. \`packages/<pkg>/src/brokers/**\`) and look at 2–3 existing siblings.
    - Compare: file shape conventions, accompanying-file shape, assertion style, contract usage. Does the picked step's plan follow the established sibling pattern?
@@ -119,7 +148,7 @@ Walk \`steps[].uses[]\` and \`contracts[]\` looking for tech or testing patterns
 3. If genuinely novel, surface it as a **Novelty** finding with:
    - \`area: 'tech' | 'testing' | 'pattern'\`
    - \`description\`: one sentence explaining what's novel and where it appears (which step / contract).
-   - \`recommendsExploratory\`: \`true\` if the novelty has unknown failure modes that a small spike or e2e exploratory step would de-risk; \`false\` if the novelty is shallow (a new but well-documented npm import, for example).
+   - \`recommendsExploratory\`: \`true\` ONLY if EITHER (a) the novel surface is a **custom integration** (not a library primitive — e.g., a hand-rolled correlation between two streams, a new MCP tool wiring, a custom JSONL-on-disk handshake) OR (b) the surface depends on a **system property** (browser, OS, network, hardware, filesystem semantics) **not exercised elsewhere in the codebase**. \`false\` for everything else, including: a new but well-documented npm import, a library method this codebase hasn't called yet, a novel-but-shallow contract shape, a sibling pattern that's new to this slice but established in another slice. Shallow novelty does not warrant exploratory work — codeweaver handles it inline.
 
 Pathseeker reads these noveltyConcerns and, for each one with \`recommendsExploratory: true\`, may insert an exploratory step ahead of the dependent step in the DAG. You are providing judgment input, not making the dispatch decision.
 

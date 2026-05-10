@@ -94,7 +94,7 @@ For each observable assigned to your slice:
    - A removal step (no assertion-shaped predicate, but \`instructions[]\` describes the removal)?
 3. Note cross-slice dependencies — does proving this observable depend on a symbol another slice will produce? Capture as a \`uses[]\` candidate (you'll wire the actual list in Step 7).
 
-**Emit the mapping as a markdown block in your response before proceeding to Step 5.** Format:
+**When to emit the mapping markdown:** REQUIRED if your slice has 4 or more observables — a slice that big benefits from the explicit overview. SKIP for slices with 3 or fewer observables — the overhead outweighs the benefit; just hold the mapping in working memory and move on. Format:
 
 \`\`\`markdown
 #### Observable Mapping — Slice [sliceName]
@@ -252,6 +252,17 @@ BAD instruction (prose paragraph — split into directives):
      ]
 \`\`\`
 
+**Per-prefix \`field\` requirement.** The save-time validator enforces this; assertions that violate it are rejected on commit. Author correctly the first time:
+
+| Prefix | \`field\` |
+|--------|---------|
+| VALID | forbidden |
+| INVALID | required |
+| INVALID_MULTIPLE | required |
+| ERROR | forbidden |
+| EDGE | forbidden |
+| EMPTY | forbidden |
+
 **Cross-step constraints** belong in instructions[] too. Phrase as a single directive, not prose. Example:
 \`\`\`
 instructions: [
@@ -259,7 +270,26 @@ instructions: [
 ]
 \`\`\`
 
-### Step 9: Commit Your Steps and Contracts via modify-quest
+### Step 9: Pre-Commit Self-Review
+
+You are at peak context: you've just walked sibling files, drafted assertions, and held all your slice's steps in working memory. This is the only moment where you can correct same-author drift cheaply. Walk this checklist before calling \`modify-quest\` — the verify-minion catches most of these in seek_plan, but every issue you fix here is one fewer critical-item pathseeker has to triage downstream.
+
+For each observable in your slice:
+
+- **\`then[]\`-clause coverage.** Every \`then[]\` clause on the observable must have at least one matching assertion on the satisfying step (or per-assertion \`observablesSatisfied\`). Asymmetric coverage is a drift signature: if you wrote a "no broker call on Esc-key" assertion but did NOT write the parallel "no broker call on outside-click" assertion for the same observable, you missed a clause. Walk every claimed observable's \`then[]\` and confirm one assertion per clause.
+
+For each step you authored:
+
+- **CLAUDE.md compliance.** Walk the package CLAUDE.md(s) you loaded in Step 2. For every rule that constrains your folder type, confirm your step's planned shape complies. If a rule blocks the planned shape (e.g., the rule forbids the file shape you proposed), restructure the step now — do NOT add a "remind codeweaver of rule X" instruction. Codeweaver reads CLAUDE.md itself.
+- **Per-prefix \`field\` correctness.** INVALID and INVALID_MULTIPLE assertions REQUIRE \`field\`. VALID, ERROR, EDGE, EMPTY assertions FORBID \`field\`. The save-time validator rejects mismatches on commit; catch them now.
+- **Banned matchers and paraphrases.** Assertion strings cannot contain \`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`expect.any\`, \`expect.objectContaining\` (literal). They also should not paraphrase those matchers ("approximately equals", "matches roughly", "contains the substring"). Codeweaver picks the matcher; assertion text describes the expected behavior in plain prose.
+- **\`accompanyingFiles\` completeness.** \`focusFile\` steps must list every required companion for the folder type (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts; \`.test.ts\` for everything implementation). Skipped only for \`focusAction\` steps.
+- **Sibling-pattern fit.** Every \`focusFile\` step that creates a new file should cite a sibling in \`instructions[]\` (\`"Mirror sibling pattern at packages/foo/src/brokers/bar/baz/baz-broker.ts"\`). Confirm the cited sibling actually exists and the new file's planned shape is structurally similar.
+- **Instructions: directive, not prose.** Every \`instructions[]\` entry is ONE directive — pseudo-code, an imperative bullet, or a structured shape. Multi-sentence prose hides directives. If you find a prose paragraph, split it into separate entries.
+
+This is same-author second-look with a structured checklist, not peer review. Fix what you find, then proceed to Step 10.
+
+### Step 10: Commit Your Steps and Contracts via modify-quest
 
 Call \`modify-quest\` with your slice's payload:
 
@@ -299,11 +329,17 @@ These checks reach across the WHOLE quest (every slice's steps, every flow's obs
 
 You should still author your data correctly — name your new contracts on the producing step's outputContracts, claim your slice's observables on a step or assertion, materialize shared contracts as \`status: 'existing'\` entries — but you do NOT need to verify cross-slice resolution on your commit. The data rides along until pathseeker transitions to in_progress. If a completeness check fails at transition because your slice missed a coverage requirement, **pathseeker fixes it in Wave 3 (or re-dispatches the slice in extreme cases) — you are done after your commit lands.**
 
-### Step 10: Verify Your Slice Landed (Post-Commit Sanity Check)
+### Step 11: Verify Your Slice Landed (Post-Commit Sanity Check — Conditional)
 
-If your modify-quest call returned \`success: true\`, immediately read back YOUR slice's data to confirm it persisted as you intended. This is a one-time sanity check — not a re-validation of the validators (those already passed) but a guard against subtle upsert mishaps (a step you thought you were creating got merged onto a same-id existing step, a contract you thought was \`new\` got reduced to \`existing\`, etc.).
+This step is **conditional**. Run it ONLY when the modify-quest response signals something unusual:
 
-Call:
+- The response includes a \`failedChecks\` array (info-level passed:true entries surfaced even on success)
+- The number of items returned in your read-back is fewer than you sent (potential dedup coalescence on overlapping IDs)
+- You wrote with array upsert IDs that you suspect overlapped existing IDs from a prior run
+
+If the modify-quest response is a clean \`success: true\` with no failedChecks and no IDs you suspect collide with prior state, **skip Step 11 and go straight to Step 15**. The validators already passed mechanically; the sanity check has no role in the clean-success path.
+
+When you do run it, immediately read back YOUR slice's data to confirm it persisted as you intended:
 
 \`\`\`
 get-quest({ questId: "QUEST_ID", stage: "planning", slice: ["{yourSliceName}"] })
@@ -323,9 +359,9 @@ Verify:
 
 If the read-back diverges from what you sent, signal-back \`failed\` with a summary describing the divergence. Pathseeker can decide whether to re-dispatch or fix in seek_walk.
 
-If everything looks right, proceed to Step 14 (Signal Back).
+If everything looks right, proceed to Step 15 (Signal Back).
 
-### Step 11: Contract Dedup Reconciliation
+### Step 12: Contract Dedup Reconciliation
 
 If your modify-quest call returns \`success: false\` with a failedCheck of name \`quest-duplicate-contract-names\`, another minion already declared a contract with the same name. (Minions write in parallel; whichever commit lands first wins the name. The second commit gets the failedCheck.) The failedCheck message embeds the EXISTING entry's source path, e.g.:
 
@@ -341,14 +377,14 @@ Pick ONE of three reconciliations and re-issue the modify-quest call:
 
 If after reconciliation the modify-quest still fails on dedup, that's a real conflict pathseeker has to mediate — signal-back \`failed\` with the failedChecks list and let pathseeker decide.
 
-### Step 12: Cross-Slice File Collisions
+### Step 13: Cross-Slice File Collisions
 
 If quest-duplicate-step-focus-files rejects your write because another slice's step already claims your focusFile.path, two slices both tried to create the same file. Choose:
 
 - The file is genuinely shared (e.g., a contract under \`packages/shared/...\`): drop your step, consume the file's exports via your step's uses[], and let pathseeker wire the cross-slice dependsOn during seek_walk.
 - The file should belong to one slice and the other slice was wrong: signal-back \`failed\` with the failedCheck and a brief explanation; pathseeker will decide which slice keeps the step.
 
-### Step 13: Handle modify-quest Failure
+### Step 14: Handle modify-quest Failure
 
 If \`modify-quest\` returns \`success: false\` for any reason other than the dedup cases handled above, DO NOT signal-back \`complete\`. Your work never landed on the quest. Signal-back \`failed\` and include the failedChecks list verbatim:
 
@@ -359,7 +395,7 @@ signal-back({
 })
 \`\`\`
 
-### Step 14: Signal Back
+### Step 15: Signal Back
 
 Once your steps and contracts have been successfully committed (modify-quest \`success: true\`), signal back with a brief confirmation:
 

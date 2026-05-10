@@ -34,8 +34,11 @@ import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
+import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
 import { questCompletenessForTransitionTransformer } from '../../../transformers/quest-completeness-for-transition/quest-completeness-for-transition-transformer';
+import { questContractSourceResolutionTransformer } from '../../../transformers/quest-contract-source-resolution/quest-contract-source-resolution-transformer';
+import { questCrossSliceDagAutowireTransformer } from '../../../transformers/quest-cross-slice-dag-autowire/quest-cross-slice-dag-autowire-transformer';
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
@@ -211,6 +214,12 @@ export const questModifyBroker = async ({
           }
         }
 
+        // Auto-wire cross-slice dependsOn from uses[] resolution. Runs before the contract
+        // re-parse so the wired graph is what gets validated downstream.
+        quest.steps = questCrossSliceDagAutowireTransformer({
+          steps: quest.steps,
+        });
+
         // Re-parse mutated quest through questContract so defaults (e.g., flow nodes'
         // observables: []) are applied to newly-upserted entries before invariants /
         // completeness checks iterate them. Without this, input nodes lacking an
@@ -219,6 +228,58 @@ export const questModifyBroker = async ({
         // transformers such as questDuplicateObservableIdsInNodeTransformer and
         // questTerminalNodesMissingObservablesTransformer.
         Object.assign(quest, questContract.parse(quest));
+
+        // Resolve contract source paths against disk and reject status-vs-disk mismatches.
+        // Scoped to the contracts being WRITTEN in this call (validated.contracts) — running
+        // it against quest.contracts on every modify-quest call would re-validate paths the
+        // caller did not touch, which is both wasteful and surfaces stale state from a prior
+        // disk change (e.g., a contract path that became invalid after a refactor).
+        if (validated.contracts !== undefined) {
+          const writtenContracts = quest.contracts.filter((entry) =>
+            (validated.contracts ?? []).some(
+              (incoming) => String(incoming.id) === String(entry.id),
+            ),
+          );
+          // PathSeeker writes contract sources as bare-repo-relative (e.g., `packages/web/...`).
+          // The strict filePathContract union demands absolute or `./`-prefixed relative; prepend
+          // `./` so a bare path matches relativeFilePathContract. fs.access then resolves the
+          // `./`-relative path against cwd at the I/O layer.
+          const sourceExistenceChecks = await Promise.all(
+            writtenContracts.map(async (entry) => {
+              const sourceStr = String(entry.source);
+              const normalized =
+                sourceStr.startsWith('/') ||
+                sourceStr.startsWith('./') ||
+                sourceStr.startsWith('../')
+                  ? sourceStr
+                  : `./${sourceStr}`;
+              const filePath = filePathContract.parse(normalized);
+              const exists = await fsIsAccessibleAdapter({ filePath });
+              return { source: sourceStr, exists };
+            }),
+          );
+          const resolvedSources = new Set<unknown>(
+            sourceExistenceChecks.filter((c) => c.exists).map((c) => c.source),
+          );
+          const sourceMismatchOffenders = questContractSourceResolutionTransformer({
+            contracts: writtenContracts,
+            resolvedSources,
+          });
+          if (sourceMismatchOffenders.length > 0) {
+            const sourceFailedChecks: VerifyQuestCheck[] = sourceMismatchOffenders.map((message) =>
+              verifyQuestCheckContract.parse({
+                name: 'Contract Source Resolution',
+                passed: false,
+                details: String(message),
+              }),
+            );
+            return modifyQuestResultContract.parse({
+              success: false,
+              error: 'Contract source path resolution failed',
+              failedChecks: sourceFailedChecks,
+            });
+          }
+        }
 
         // Tier 3: save-time invariants (POST-mutation; runs on every call). When the
         // input transitions the quest INTO 'in_progress', the invariants set ALSO

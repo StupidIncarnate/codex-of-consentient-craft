@@ -65,13 +65,13 @@ describe('pathseekerSurfaceScopeMinionStatics', () => {
       );
     });
 
-    it('VALID: template => Step 11 header introduces Contract Dedup Reconciliation section', () => {
+    it('VALID: template => Step 12 header introduces Contract Dedup Reconciliation section', () => {
       expect(pathseekerSurfaceScopeMinionStatics.prompt.template).toMatch(
-        /^### Step 11: Contract Dedup Reconciliation$/mu,
+        /^### Step 12: Contract Dedup Reconciliation$/mu,
       );
     });
 
-    it('VALID: template => Step 11 names the dedup validator that triggers reconciliation', () => {
+    it('VALID: template => Step 12 names the dedup validator that triggers reconciliation', () => {
       const needle =
         'If your modify-quest call returns `success: false` with a failedCheck of name `quest-duplicate-contract-names`, another minion already declared a contract with the same name.';
       const { template } = pathseekerSurfaceScopeMinionStatics.prompt;
@@ -83,19 +83,19 @@ describe('pathseekerSurfaceScopeMinionStatics', () => {
       expect(found).toBe(needle);
     });
 
-    it('VALID: template => Step 11 documents reconciliation option (a) remove the write', () => {
+    it('VALID: template => Step 12 documents reconciliation option (a) remove the write', () => {
       expect(pathseekerSurfaceScopeMinionStatics.prompt.template).toMatch(
         /^\*\*\(a\) Remove your contract write\.\*\* The other slice owns the contract\. Drop it from your contracts\[\] array and treat it as something your steps consume via inputContracts\. If you also need it materialized for the unresolved-step-contract-refs validator, add a `status: 'existing'` entry pointing at the same source the other minion used \(this is a no-op write — the upsert will collapse on name\)\.$/mu,
       );
     });
 
-    it('VALID: template => Step 11 documents reconciliation option (b) adopt the existing source', () => {
+    it('VALID: template => Step 12 documents reconciliation option (b) adopt the existing source', () => {
       expect(pathseekerSurfaceScopeMinionStatics.prompt.template).toMatch(
         /^\*\*\(b\) Adopt the existing source\.\*\* If the existing entry's source path is correct for your slice's needs \(e\.g\., it already lives in `packages\/shared\/\.\.\.` and you can consume it as-is\), change YOUR write's `source` field to match the existing entry's source\. The upsert collapses on name, so the net effect is one contract entry — but your write signals you're a consumer, not the author\.$/mu,
       );
     });
 
-    it('VALID: template => Step 11 documents reconciliation option (c) promote to shared', () => {
+    it('VALID: template => Step 12 documents reconciliation option (c) promote to shared', () => {
       const needle =
         "**(c) Promote to shared.** If both slices legitimately need to own this contract and the existing entry's source is in another slice's package (a leak), change BOTH writes to point at a shared path";
       const { template } = pathseekerSurfaceScopeMinionStatics.prompt;

@@ -7,6 +7,8 @@ JSONL file on disk) is translated into structured `ChatEntry[]`. The server just
 translated entries; the web just renders them. **If you're adding logic that parses a string
 format, filters stream content, or converts one shape into another — it goes here.**
 
+DO NOT ADD MIGRATION LOGIC! THIS PACKAGE IS STILL GREENFIELD!
+
 ### The unified funnel
 
 Every line from every source — live stdout during streaming, sub-agent JSONL file, replay of

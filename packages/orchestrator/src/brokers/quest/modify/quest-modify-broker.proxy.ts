@@ -24,6 +24,7 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questModifyBroker } from './quest-modify-broker';
+import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
@@ -38,6 +39,7 @@ export const questModifyBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
   setupReject: (params: { error: Error }) => void;
+  setupContractSourceResolvesOnce: () => void;
   getAllPersistedContents: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
@@ -46,6 +48,12 @@ export const questModifyBrokerProxy = (): {
   const persistProxy = questPersistBrokerProxy();
   const lockLayerProxy = withQuestModifyLockLayerBrokerProxy();
   lockLayerProxy.setupEmpty();
+  // questModifyBroker calls fsIsAccessibleAdapter once per contract entry to resolve
+  // source paths against disk. Default to "not found" so 'new' contracts (the common
+  // test-stub default) pass the contract-source-resolution validator. Tests that need
+  // a path to appear "existing" can override via the proxy's `resolves()` method.
+  const fsAccessProxy = fsIsAccessibleAdapterProxy();
+  fsAccessProxy.defaultsToNotFound();
 
   // Re-apply passthrough to actual implementation (resetAllMocks clears between tests)
   const realMod = requireActual<{ questModifyBroker: typeof questModifyBroker }>({
@@ -109,6 +117,14 @@ export const questModifyBrokerProxy = (): {
       (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockRejectedValueOnce(
         error,
       );
+    },
+
+    // Queues one fs.access success so the contract-source-resolution validator
+    // sees the next contract source as "exists on disk." Use this for tests that
+    // exercise `status: 'existing'` or `status: 'modified'` contracts, or that
+    // intentionally trigger a `status: 'new'`-with-existing-path rejection.
+    setupContractSourceResolvesOnce: (): void => {
+      fsAccessProxy.resolves();
     },
 
     getAllPersistedContents: (): readonly unknown[] =>

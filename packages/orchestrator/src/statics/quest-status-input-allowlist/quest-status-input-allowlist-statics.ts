@@ -147,7 +147,14 @@ export const questStatusInputAllowlistStatics = {
     allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
   },
   seek_walk: {
-    allowedFields: ['planningNotes', 'contracts', 'toolingRequirements', 'flows', 'status'],
+    allowedFields: [
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
+    ],
     flowsRule: 'observable-wording-only',
     blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: ['walkFindings'],

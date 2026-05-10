@@ -5,6 +5,7 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 export const fsIsAccessibleAdapterProxy = (): {
   resolves: () => void;
   rejects: (params: { error: Error }) => void;
+  defaultsToNotFound: () => void;
 } => {
   const mock: MockHandle = registerMock({ fn: access });
 
@@ -17,6 +18,14 @@ export const fsIsAccessibleAdapterProxy = (): {
 
     rejects: ({ error }: { error: Error }): void => {
       mock.mockRejectedValueOnce(error);
+    },
+
+    defaultsToNotFound: (): void => {
+      mock.mockImplementation(async () =>
+        Promise.reject(
+          Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+        ),
+      );
     },
   };
 };
