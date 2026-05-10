@@ -4,7 +4,6 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSynthesisStub,
   PlanningWalkFindingsStub,
@@ -170,21 +169,10 @@ describe('questCompletenessForTransitionTransformer', () => {
 
       expect(failures).toStrictEqual([]);
     });
-
-    it('VALID: {nextStatus: seek_plan} => returns empty array (gate-content handles presence)', () => {
-      const quest = QuestStub({ status: 'seek_walk' });
-
-      const failures = questCompletenessForTransitionTransformer({
-        quest,
-        nextStatus: 'seek_plan',
-      });
-
-      expect(failures).toStrictEqual([]);
-    });
   });
 
-  describe('seek_plan -> in_progress composite check', () => {
-    it('INVALID: {reviewReport absent} => returns blocking Plan Review Report failedCheck', () => {
+  describe('seek_walk -> in_progress composite check', () => {
+    it('VALID: {step-structure clean, spec clean} => returns empty array', () => {
       const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
       const observable = FlowObservableStub({ id: 'obs-ok' as never });
       Object.assign(terminal, { observables: [observable] });
@@ -194,7 +182,7 @@ describe('questCompletenessForTransitionTransformer', () => {
         to: 'done' as never,
       });
       const quest = QuestStub({
-        status: 'seek_plan',
+        status: 'seek_walk',
         flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
         steps: [DependencyStepStub({ id: 'create-user-api' as never })],
         planningNotes: {
@@ -202,122 +190,6 @@ describe('questCompletenessForTransitionTransformer', () => {
           surfaceReports: [],
           synthesis: PlanningSynthesisStub(),
           walkFindings: PlanningWalkFindingsStub(),
-        },
-      });
-
-      const failures = questCompletenessForTransitionTransformer({
-        quest,
-        nextStatus: 'in_progress',
-      });
-
-      expect(failures).toStrictEqual([
-        {
-          name: 'Plan Review Report',
-          passed: false,
-          details:
-            'Missing planningNotes.reviewReport: plan review must be completed before transition to in_progress',
-        },
-      ]);
-    });
-
-    it('INVALID: {reviewReport signal=critical with 2 criticalItems} => returns blocking failedCheck listing items', () => {
-      const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
-      const observable = FlowObservableStub({ id: 'obs-ok' as never });
-      Object.assign(terminal, { observables: [observable] });
-      const edge = FlowEdgeStub({
-        id: 'self' as never,
-        from: 'done' as never,
-        to: 'done' as never,
-      });
-      const quest = QuestStub({
-        status: 'seek_plan',
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
-        steps: [DependencyStepStub({ id: 'create-user-api' as never })],
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          surfaceReports: [],
-          synthesis: PlanningSynthesisStub(),
-          walkFindings: PlanningWalkFindingsStub(),
-          reviewReport: PlanningReviewReportStub({
-            signal: 'critical',
-            criticalItems: ['Missing contract import' as never, 'Step ordering wrong' as never],
-          }),
-        },
-      });
-
-      const failures = questCompletenessForTransitionTransformer({
-        quest,
-        nextStatus: 'in_progress',
-      });
-
-      expect(failures).toStrictEqual([
-        {
-          name: 'Plan Review Report',
-          passed: false,
-          details:
-            'Plan review reported critical issues: Missing contract import; Step ordering wrong',
-        },
-      ]);
-    });
-
-    it('VALID: {reviewReport signal=warnings with 1 warning} => returns passed (info-level) failedCheck surfacing warning', () => {
-      const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
-      const observable = FlowObservableStub({ id: 'obs-ok' as never });
-      Object.assign(terminal, { observables: [observable] });
-      const edge = FlowEdgeStub({
-        id: 'self' as never,
-        from: 'done' as never,
-        to: 'done' as never,
-      });
-      const quest = QuestStub({
-        status: 'seek_plan',
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
-        steps: [DependencyStepStub({ id: 'create-user-api' as never })],
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          surfaceReports: [],
-          synthesis: PlanningSynthesisStub(),
-          walkFindings: PlanningWalkFindingsStub(),
-          reviewReport: PlanningReviewReportStub({
-            signal: 'warnings',
-            warnings: ['Consider extracting helper' as never],
-          }),
-        },
-      });
-
-      const failures = questCompletenessForTransitionTransformer({
-        quest,
-        nextStatus: 'in_progress',
-      });
-
-      expect(failures).toStrictEqual([
-        {
-          name: 'Plan Review Report',
-          passed: true,
-          details: 'Plan review reported warnings (non-blocking): Consider extracting helper',
-        },
-      ]);
-    });
-
-    it('VALID: {reviewReport signal=clean, step-structure clean, spec clean} => returns empty array', () => {
-      const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
-      const observable = FlowObservableStub({ id: 'obs-ok' as never });
-      Object.assign(terminal, { observables: [observable] });
-      const edge = FlowEdgeStub({
-        id: 'self' as never,
-        from: 'done' as never,
-        to: 'done' as never,
-      });
-      const quest = QuestStub({
-        status: 'seek_plan',
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
-        steps: [DependencyStepStub({ id: 'create-user-api' as never })],
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          surfaceReports: [],
-          synthesis: PlanningSynthesisStub(),
-          walkFindings: PlanningWalkFindingsStub(),
-          reviewReport: PlanningReviewReportStub({ signal: 'clean' }),
         },
       });
 
@@ -351,7 +223,7 @@ describe('questCompletenessForTransitionTransformer', () => {
         }),
       });
       const quest = QuestStub({
-        status: 'seek_plan',
+        status: 'seek_walk',
         flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
         steps: [broker, flow],
         planningNotes: {
@@ -359,7 +231,6 @@ describe('questCompletenessForTransitionTransformer', () => {
           surfaceReports: [],
           synthesis: PlanningSynthesisStub(),
           walkFindings: PlanningWalkFindingsStub(),
-          reviewReport: PlanningReviewReportStub({ signal: 'clean' }),
         },
       });
 
@@ -400,7 +271,7 @@ describe('questCompletenessForTransitionTransformer', () => {
         focusFile: undefined,
       });
       const quest = QuestStub({
-        status: 'seek_plan',
+        status: 'seek_walk',
         flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
         steps: [cycleA, cycleB, missingFocus],
         planningNotes: {
@@ -408,7 +279,6 @@ describe('questCompletenessForTransitionTransformer', () => {
           surfaceReports: [],
           synthesis: PlanningSynthesisStub(),
           walkFindings: PlanningWalkFindingsStub(),
-          reviewReport: PlanningReviewReportStub({ signal: 'clean' }),
         },
       });
 
@@ -438,11 +308,10 @@ describe('questCompletenessForTransitionTransformer', () => {
     });
   });
 
-  describe('non-seek_plan -> in_progress transitions (no composite check fires)', () => {
-    it('VALID: {currentStatus: blocked, nextStatus: in_progress, no reviewReport} => returns empty array (resume path)', () => {
+  describe('non-seek_walk -> in_progress transitions (no composite check fires)', () => {
+    it('VALID: {currentStatus: blocked, nextStatus: in_progress} => returns empty array (resume path)', () => {
       const quest = QuestStub({
         status: 'blocked',
-        // intentionally no planningNotes.reviewReport — resume paths don't require it
       });
 
       const failures = questCompletenessForTransitionTransformer({
@@ -453,7 +322,7 @@ describe('questCompletenessForTransitionTransformer', () => {
       expect(failures).toStrictEqual([]);
     });
 
-    it('VALID: {currentStatus: paused, nextStatus: in_progress, no reviewReport} => returns empty array (resume path)', () => {
+    it('VALID: {currentStatus: paused, nextStatus: in_progress} => returns empty array (resume path)', () => {
       const quest = QuestStub({
         status: 'paused',
       });

@@ -113,19 +113,6 @@ describe('questStatusInputAllowlistStatics', () => {
         blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: ['walkFindings'],
       },
-      seek_plan: {
-        allowedFields: [
-          'planningNotes',
-          'steps',
-          'contracts',
-          'toolingRequirements',
-          'flows',
-          'status',
-        ],
-        flowsRule: 'observable-wording-only',
-        blightReportsRule: 'forbidden',
-        allowedPlanningNotesFields: ['reviewReport'],
-      },
       in_progress: {
         allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
         flowsRule: 'observable-wording-only',
@@ -180,7 +167,6 @@ describe('questStatusInputAllowlistStatics', () => {
         'review_design',
         'review_flows',
         'review_observables',
-        'seek_plan',
         'seek_scope',
         'seek_synth',
         'seek_walk',
@@ -190,10 +176,6 @@ describe('questStatusInputAllowlistStatics', () => {
 
   it('VALID: in_progress => allows planningNotes.blightReports via blightReportsRule', () => {
     expect(questStatusInputAllowlistStatics.in_progress.blightReportsRule).toBe('full');
-  });
-
-  it('VALID: seek_plan => blocks planningNotes.blightReports via blightReportsRule', () => {
-    expect(questStatusInputAllowlistStatics.seek_plan.blightReportsRule).toBe('forbidden');
   });
 
   it('VALID: seek_scope => allowedPlanningNotesFields limits writes to scopeClassification', () => {
@@ -234,12 +216,6 @@ describe('questStatusInputAllowlistStatics', () => {
       'toolingRequirements',
       'flows',
       'status',
-    ]);
-  });
-
-  it('VALID: seek_plan => allowedPlanningNotesFields limits writes to reviewReport', () => {
-    expect(questStatusInputAllowlistStatics.seek_plan.allowedPlanningNotesFields).toStrictEqual([
-      'reviewReport',
     ]);
   });
 

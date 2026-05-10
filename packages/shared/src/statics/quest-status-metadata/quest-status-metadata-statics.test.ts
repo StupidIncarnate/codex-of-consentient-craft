@@ -2,7 +2,7 @@ import { questStatusMetadataStatics } from './quest-status-metadata-statics';
 
 describe('questStatusMetadataStatics', () => {
   describe('coverage', () => {
-    it('VALID: statuses => covers all 20 quest statuses', () => {
+    it('VALID: statuses => covers all 19 quest statuses', () => {
       const statusKeys = Object.keys(questStatusMetadataStatics.statuses).sort();
 
       expect(statusKeys).toStrictEqual(
@@ -23,7 +23,6 @@ describe('questStatusMetadataStatics', () => {
           'review_design',
           'review_flows',
           'review_observables',
-          'seek_plan',
           'seek_scope',
           'seek_synth',
           'seek_walk',
@@ -506,31 +505,6 @@ describe('questStatusMetadataStatics', () => {
         nextApprovalStatus: null,
         previousReviewStatus: null,
         displayHeader: 'SEEK WALK',
-      });
-    });
-
-    it('VALID: seek_plan => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.seek_plan).toStrictEqual({
-        isPreExecution: false,
-        isPathseekerRunning: true,
-        isAnyAgentRunning: true,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: false,
-        isRecoverable: true,
-        isAutoResumable: false,
-        isGateApproved: false,
-        isDesignPhase: false,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        shouldRenderExecutionPanel: true,
-        nextApprovalStatus: null,
-        previousReviewStatus: null,
-        displayHeader: 'SEEK PLAN',
       });
     });
   });

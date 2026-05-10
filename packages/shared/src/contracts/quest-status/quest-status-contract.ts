@@ -23,7 +23,6 @@ export const questStatusContract = z.enum([
   'seek_scope',
   'seek_synth',
   'seek_walk',
-  'seek_plan',
   'in_progress',
   'paused',
   'blocked',

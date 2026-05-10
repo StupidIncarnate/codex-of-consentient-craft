@@ -20,7 +20,6 @@ const PAUSEABLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.st
   'seek_scope',
   'seek_synth',
   'seek_walk',
-  'seek_plan',
   'in_progress',
   'blocked',
 ]);

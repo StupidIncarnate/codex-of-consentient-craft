@@ -16,7 +16,6 @@ const RECOVERABLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.
     'seek_scope',
     'seek_synth',
     'seek_walk',
-    'seek_plan',
     'in_progress',
   ],
 );

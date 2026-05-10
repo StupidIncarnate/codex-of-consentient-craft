@@ -107,14 +107,6 @@ describe('questStatusContract', () => {
       expect(result).toBe('seek_walk');
     });
 
-    it('VALID: seek_plan => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'seek_plan' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('seek_plan');
-    });
-
     it('VALID: pending => parses successfully', () => {
       const status = QuestStatusStub({ value: 'pending' });
 

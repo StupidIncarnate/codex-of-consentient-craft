@@ -6,7 +6,7 @@ const STATUSES = Object.keys(
 ) as readonly (keyof typeof questStatusMetadataStatics.statuses)[];
 
 const ANY_AGENT_RUNNING_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> =
-  new Set(['seek_scope', 'seek_synth', 'seek_walk', 'seek_plan', 'in_progress']);
+  new Set(['seek_scope', 'seek_synth', 'seek_walk', 'in_progress']);
 
 describe('isAnyAgentRunningQuestStatusGuard', () => {
   describe('state matrix', () => {

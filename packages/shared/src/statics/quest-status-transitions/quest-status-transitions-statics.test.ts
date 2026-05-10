@@ -16,8 +16,7 @@ describe('questStatusTransitionsStatics', () => {
       design_approved: ['seek_scope', 'explore_design', 'paused'],
       seek_scope: ['seek_synth', 'abandoned', 'paused'],
       seek_synth: ['seek_walk', 'seek_scope', 'abandoned', 'paused'],
-      seek_walk: ['seek_plan', 'seek_scope', 'abandoned', 'paused'],
-      seek_plan: ['in_progress', 'seek_walk', 'abandoned', 'paused'],
+      seek_walk: ['in_progress', 'seek_scope', 'abandoned', 'paused'],
       in_progress: [
         'in_progress',
         'paused',
@@ -42,7 +41,6 @@ describe('questStatusTransitionsStatics', () => {
         'seek_scope',
         'seek_synth',
         'seek_walk',
-        'seek_plan',
         'in_progress',
         'blocked',
         'abandoned',
@@ -144,19 +142,10 @@ describe('questStatusTransitionsStatics', () => {
       ]);
     });
 
-    it('VALID: seek_walk transitions => exact [seek_plan, seek_scope, abandoned, paused]', () => {
+    it('VALID: seek_walk transitions => exact [in_progress, seek_scope, abandoned, paused]', () => {
       expect(questStatusTransitionsStatics.seek_walk).toStrictEqual([
-        'seek_plan',
-        'seek_scope',
-        'abandoned',
-        'paused',
-      ]);
-    });
-
-    it('VALID: seek_plan transitions => exact [in_progress, seek_walk, abandoned, paused]', () => {
-      expect(questStatusTransitionsStatics.seek_plan).toStrictEqual([
         'in_progress',
-        'seek_walk',
+        'seek_scope',
         'abandoned',
         'paused',
       ]);
@@ -188,7 +177,6 @@ describe('questStatusTransitionsStatics', () => {
         'seek_scope',
         'seek_synth',
         'seek_walk',
-        'seek_plan',
         'in_progress',
         'blocked',
         'abandoned',

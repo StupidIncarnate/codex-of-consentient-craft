@@ -11,7 +11,6 @@ const RENDER_EXECUTION_PANEL_STATUSES: ReadonlySet<
   'seek_scope',
   'seek_synth',
   'seek_walk',
-  'seek_plan',
   'in_progress',
   'paused',
   'blocked',

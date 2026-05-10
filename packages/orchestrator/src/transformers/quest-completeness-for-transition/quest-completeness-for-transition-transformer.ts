@@ -8,19 +8,15 @@
  * Branch scoping:
  *   review_flows                          -> flow-completeness scope only
  *   review_observables                    -> flow-completeness + spec-completeness (cumulative)
- *   seek_synth | seek_walk | seek_plan    -> no additional checks (presence gates live in
- *                                             hasQuestGateContentGuard; see plan §2, §4)
- *   in_progress (FROM seek_plan only)     -> spec-completeness fold + inline step-structure checks
- *                                             + planningNotes.reviewReport signal gate
+ *   seek_synth | seek_walk                -> no additional checks (presence gates live in
+ *                                             hasQuestGateContentGuard)
+ *   in_progress (FROM seek_walk only)     -> spec-completeness fold + inline step-structure checks
  *   in_progress (FROM any other status)   -> no checks (preserves blocked/paused → in_progress
- *                                             resume paths — confirmed via plan §4)
+ *                                             resume paths)
  *   any other status                      -> []
  *
  * Severity encoding (existing codebase convention):
  *   - VerifyQuestCheck.passed === false  => blocking failedCheck
- *   - VerifyQuestCheck.passed === true   => non-blocking info-level entry (emitted only by the
- *                                            seek_plan → in_progress branch to surface a warnings
- *                                            signal from planningNotes.reviewReport to the caller).
  *   The contract has no severity field — `passed` IS the severity flag.
  */
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
@@ -56,7 +52,7 @@ export const questCompletenessForTransitionTransformer = ({
     return [...flowChecks, ...specChecks].filter((check) => !check.passed);
   }
 
-  if (nextStatus === 'in_progress' && quest.status === 'seek_plan') {
+  if (nextStatus === 'in_progress' && quest.status === 'seek_walk') {
     const results: VerifyQuestCheck[] = [];
 
     // Fold: spec-completeness scope covers the spec structural invariants that must still
@@ -120,41 +116,6 @@ export const questCompletenessForTransitionTransformer = ({
           passed: false,
           details: checkDetailsSchema.parse(
             `Integration steps missing transitive deps on same-package steps: ${integrationDepOffenders.map((offender) => String(offender)).join('; ')}`,
-          ),
-        }),
-      );
-    }
-
-    // Plan review report gate: blocking for missing / critical, info-level for warnings,
-    // clean emits nothing.
-    const { reviewReport } = quest.planningNotes;
-    if (reviewReport === undefined) {
-      results.push(
-        verifyQuestCheckContract.parse({
-          name: checkNameSchema.parse('Plan Review Report'),
-          passed: false,
-          details: checkDetailsSchema.parse(
-            'Missing planningNotes.reviewReport: plan review must be completed before transition to in_progress',
-          ),
-        }),
-      );
-    } else if (reviewReport.signal === 'critical') {
-      const items = reviewReport.criticalItems.map((item) => String(item)).join('; ');
-      results.push(
-        verifyQuestCheckContract.parse({
-          name: checkNameSchema.parse('Plan Review Report'),
-          passed: false,
-          details: checkDetailsSchema.parse(`Plan review reported critical issues: ${items}`),
-        }),
-      );
-    } else if (reviewReport.signal === 'warnings') {
-      const warningText = reviewReport.warnings.map((item) => String(item)).join('; ');
-      results.push(
-        verifyQuestCheckContract.parse({
-          name: checkNameSchema.parse('Plan Review Report'),
-          passed: true,
-          details: checkDetailsSchema.parse(
-            `Plan review reported warnings (non-blocking): ${warningText}`,
           ),
         }),
       );

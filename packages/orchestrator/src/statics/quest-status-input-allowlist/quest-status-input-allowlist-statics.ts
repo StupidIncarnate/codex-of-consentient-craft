@@ -45,7 +45,6 @@ export type QuestStatusPlanningNotesField =
   | 'surfaceReports'
   | 'synthesis'
   | 'walkFindings'
-  | 'reviewReport'
   | 'blightReports';
 
 export const questStatusInputAllowlistStatics = {
@@ -158,19 +157,6 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'observable-wording-only',
     blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: ['walkFindings'],
-  },
-  seek_plan: {
-    allowedFields: [
-      'planningNotes',
-      'steps',
-      'contracts',
-      'toolingRequirements',
-      'flows',
-      'status',
-    ],
-    flowsRule: 'observable-wording-only',
-    blightReportsRule: 'forbidden',
-    allowedPlanningNotesFields: ['reviewReport'],
   },
   in_progress: {
     allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],

@@ -6,7 +6,7 @@ const STATUSES = Object.keys(
 ) as readonly (keyof typeof questStatusMetadataStatics.statuses)[];
 
 const PATHSEEKER_RUNNING_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.statuses> =
-  new Set(['seek_scope', 'seek_synth', 'seek_walk', 'seek_plan']);
+  new Set(['seek_scope', 'seek_synth', 'seek_walk']);
 
 describe('isPathseekerRunningQuestStatusGuard', () => {
   describe('state matrix', () => {

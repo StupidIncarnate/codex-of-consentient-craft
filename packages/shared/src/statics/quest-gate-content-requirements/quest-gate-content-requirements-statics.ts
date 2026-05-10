@@ -13,7 +13,7 @@ export const questGateContentRequirementsStatics = {
     design_approved: ['flows'],
     seek_synth: ['planningNotes.scopeClassification'],
     seek_walk: ['planningNotes.scopeClassification', 'planningNotes.synthesis'],
-    seek_plan: [
+    in_progress: [
       'planningNotes.scopeClassification',
       'planningNotes.synthesis',
       'planningNotes.walkFindings',
