@@ -8,7 +8,7 @@
  * questSaveInvariantsTransformer({quest, nextStatus: 'in_progress'});
  * // ALSO runs the 'completeness' scope (whole-quest coverage checks: step contract
  * // references resolve, new contracts have creating step, observables are satisfied).
- * // Completeness checks fire ONLY at the seek_plan → in_progress transition; during
+ * // Completeness checks fire ONLY at the seek_walk → in_progress transition; during
  * // earlier seek_synth slice-by-slice commits the plan is half-assembled and these
  * // checks would reject legitimate intermediate writes. The merged failed-check array
  * // mirrors the existing single-array contract — callers do not need to know which

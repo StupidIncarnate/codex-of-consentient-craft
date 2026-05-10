@@ -123,15 +123,6 @@ export const smoketestBlueprintsStatics = {
         planPatches: [],
         verifiedAt: FIXED_TIMESTAMP,
       },
-      reviewReport: {
-        signal: 'clean',
-        criticalItems: [],
-        warnings: [],
-        info: [],
-        rawReport:
-          '# Smoketest plan review\nSmoketest blueprint bypasses real plan review; emitted as clean so the seek_plan → in_progress gate opens.',
-        reviewedAt: FIXED_TIMESTAMP,
-      },
       blightReports: [],
     },
     steps: [

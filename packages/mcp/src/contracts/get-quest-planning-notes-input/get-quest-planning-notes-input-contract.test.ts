@@ -51,14 +51,6 @@ describe('getQuestPlanningNotesInputContract', () => {
       expect(result).toStrictEqual({ questId: 'add-auth', section: 'walk' });
     });
 
-    it('VALID: {questId, section: "review"} => parses successfully', () => {
-      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'review' });
-
-      const result = getQuestPlanningNotesInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', section: 'review' });
-    });
-
     it('VALID: {questId, section: "blight"} => parses successfully', () => {
       const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'blight' });
 

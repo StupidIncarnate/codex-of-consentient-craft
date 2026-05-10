@@ -142,7 +142,7 @@ describe('pathseekerSurfaceScopeMinionStatics', () => {
       expect(found).toBe(needle);
     });
 
-    it('VALID: template => seek_plan authoring reminder anchors every new contract', () => {
+    it('VALID: template => seek_walk → in_progress authoring reminder anchors every new contract', () => {
       const needle =
         "**Anchor every new contract.** Every `status: 'new'` contract you declare must be named in some step's `outputContracts`.";
       const { template } = pathseekerSurfaceScopeMinionStatics.prompt;

@@ -319,8 +319,9 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
   `packages/orchestrator/src/statics/` (e.g., `chaoswhisperer-gap-minion-statics.ts`,
-  `pathseeker-verify-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents — parent roles
-  tell spawned agents to call the MCP tool to get their instructions.
+  `pathseeker-surface-scope-minion-statics.ts`, `pathseeker-contract-dedup-minion-statics.ts`,
+  `pathseeker-assertion-correctness-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents —
+  parent roles tell spawned agents to call the MCP tool to get their instructions.
 
 ## Quest Pipeline
 
@@ -342,7 +343,7 @@ Web UI "Start Quest" ──► server orchestration-start-responder  (or: MCP st
 Orchestration Loop (workItems queue)
   │  "find next ready item, run it, repeat"
   │
-  ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk → seek_plan) + pathseeker-verify-minion (retry max 3)
+  ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk) + cleanup minions during seek_walk (contract-dedup, assertion-correctness)
   ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
   │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
@@ -373,18 +374,17 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 ```
 pending ──┐
            ▼
-created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► seek_scope ──► seek_synth ──► seek_walk ──► seek_plan ──► in_progress ──► complete
-                                    │                                                          │                   │                          │              │              │              │
-                                    └──► explore_flows (back)                                   └──► explore_observables (back)                └──► seek_scope │              │              ├──► blocked ──► in_progress
-                                                                                                                   │                                         └──► seek_scope │              │         └──► abandoned
-                                                                                                                   │                                                         └──► seek_walk │              └──► abandoned
-                                                                                                                   ▼                                                                        │
-                                                                                                            explore_design ──► review_design ──► design_approved ──► seek_scope ...        │
-                                                                                                                                      │                                                    │
-                                                                                                                                      └──► explore_design (back)                           │
-                                                                                                                                                                                           │
-                                                                                                 in_progress ──► seek_walk (failure routing)                                               │
-                                                                                                 in_progress ──► seek_scope (full replan) ─────────────────────────────────────────────────┘
+created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► seek_scope ──► seek_synth ──► seek_walk ──► in_progress ──► complete
+                                    │                                                          │                   │                          │              │              │
+                                    └──► explore_flows (back)                                   └──► explore_observables (back)                └──► seek_scope │              ├──► blocked ──► in_progress
+                                                                                                                   │                                         └──► seek_scope │         └──► abandoned
+                                                                                                                   ▼                                                                  └──► abandoned
+                                                                                                            explore_design ──► review_design ──► design_approved ──► seek_scope ...
+                                                                                                                                      │
+                                                                                                                                      └──► explore_design (back)
+
+                                                                                                 in_progress ──► seek_walk (failure routing)
+                                                                                                 in_progress ──► seek_scope (full replan)
 ```
 
 | Status                | Set By                                                    | Gate                                                      |
@@ -402,8 +402,7 @@ created ──► explore_flows ──► review_flows ──► flows_approved 
 | `seek_scope`          | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.scopeClassification`              |
 | `seek_synth`          | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.surfaceReports[]` + `planningNotes.synthesis` |
 | `seek_walk`           | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.walkFindings`                     |
-| `seek_plan`           | PathSeeker agent transitions via modify-quest             | Requires `steps[]`, `planningNotes.reviewReport`, + spec-completeness checks pass |
-| `in_progress`         | `start-quest` / PathSeeker transition from `seek_plan`    | Steps can be added/modified                               |
+| `in_progress`         | `start-quest` / PathSeeker transition from `seek_walk`    | Steps can be added/modified                               |
 | `blocked`             | Pipeline blocker                                          | Execution paused                                          |
 | `complete`            | All phases pass                                           | Terminal                                                  |
 | `abandoned`           | User abandons                                             | Terminal                                                  |
@@ -468,7 +467,6 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 **Minion direct-writes to `planningNotes`.** During the seek_* phases, PathSeeker's subordinate minions also commit their own output directly via `modify-quest`:
 
 - `pathseeker-surface-scope-minion` writes entries to `planningNotes.surfaceReports[]` (one per minion — dispatched in parallel during `seek_synth`).
-- `pathseeker-verify-minion` writes `planningNotes.reviewReport` during `seek_plan`.
 
 These writes flow through the same `modify-quest` pipeline as PathSeeker's own writes; the `questStatusInputAllowlistStatics` entry for each seek_* status governs exactly which `planningNotes.*` sub-fields are writable at that status. Minion output is durable the moment it's committed — a minion crash after write does not lose work.
 
@@ -552,6 +550,7 @@ call `get-agent-prompt` as its first action.
 
 | Agent                           | Spawned By          | Purpose                                                     |
 |---------------------------------|---------------------|-------------------------------------------------------------|
-| chaoswhisperer-gap-minion       | ChaosWhisperer      | Validate spec completeness before execution                 |
-| pathseeker-surface-scope-minion | PathSeeker pipeline | Surface-scope research per slice; writes `surfaceReports[]` |
-| pathseeker-verify-minion        | PathSeeker pipeline | Verify + semantic review after steps; writes `reviewReport` |
+| chaoswhisperer-gap-minion             | ChaosWhisperer      | Validate spec completeness before execution                                                                       |
+| pathseeker-surface-scope-minion       | PathSeeker pipeline | Surface-scope research per slice; writes `surfaceReports[]`                                                       |
+| pathseeker-contract-dedup-minion      | PathSeeker pipeline | Cross-slice contract near-duplicates + in-package similar-contract scan during seek_walk; writes steps[] + contracts[] |
+| pathseeker-assertion-correctness-minion | PathSeeker pipeline | Assertion well-formedness + clause-mapping depth + paraphrased banned matchers + per-prefix field correctness during seek_walk; writes steps[] |

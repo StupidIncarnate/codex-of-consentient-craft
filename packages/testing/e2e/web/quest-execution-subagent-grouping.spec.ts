@@ -71,13 +71,6 @@ const SCENARIOS = [
     extraWorkItems: [],
   },
   {
-    name: 'seek_plan (pathseeker)',
-    triggerKind: 'pauseResume',
-    preStatus: 'seek_plan',
-    seedSteps: [],
-    extraWorkItems: [],
-  },
-  {
     name: 'in_progress + codeweaver',
     triggerKind: 'start',
     preStatus: 'approved',

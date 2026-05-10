@@ -5,7 +5,6 @@ import {
   FlowObservableStub,
   FlowStub,
   PlanningBlightReportStub,
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSurfaceReportStub,
   PlanningSynthesisStub,
@@ -691,38 +690,6 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes.surfaceReports).toStrictEqual([updatedReport]);
     });
 
-    it('VALID: {planningNotes.reviewReport overwrite} => replaces prior reviewReport wholesale', async () => {
-      const proxy = questModifyBrokerProxy();
-      const oldReview = PlanningReviewReportStub({ signal: 'warnings' });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_plan',
-        planningNotes: {
-          surfaceReports: [],
-          reviewReport: oldReview,
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const newReview = PlanningReviewReportStub({ signal: 'clean' });
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          reviewReport: newReview,
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes.reviewReport).toStrictEqual(newReview);
-    });
-
     it('VALID: {planningNotes.surfaceReports with _delete: true} => removes matching entry', async () => {
       const proxy = questModifyBrokerProxy();
       const keepId = '11111111-1111-4111-8111-111111111111' as never;
@@ -1046,152 +1013,6 @@ describe('questModifyBroker', () => {
     });
   });
 
-  describe('seek_plan -> in_progress review report signal handling (Tier 4 info-level)', () => {
-    it('VALID: {reviewReport signal: "warnings"} => transition succeeds with warning entry as passed=true failedCheck', async () => {
-      const proxy = questModifyBrokerProxy();
-      const reviewReport = PlanningReviewReportStub({
-        signal: 'warnings',
-        warnings: ['Consider splitting step 3 into two'] as never,
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_plan',
-        flows: [],
-        designDecisions: [],
-        steps: [],
-        planningNotes: {
-          surfaceReports: [],
-          reviewReport,
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'in_progress',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: true,
-        failedChecks: [
-          {
-            name: 'Plan Review Report',
-            passed: true,
-            details:
-              'Plan review reported warnings (non-blocking): Consider splitting step 3 into two',
-          },
-        ],
-      });
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.status).toBe('in_progress');
-    });
-
-    it('INVALID: {reviewReport signal: "critical"} => transition fails with passed=false failedCheck', async () => {
-      const proxy = questModifyBrokerProxy();
-      const reviewReport = PlanningReviewReportStub({
-        signal: 'critical',
-        criticalItems: ['Missing contract ref for step A'] as never,
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_plan',
-        flows: [],
-        designDecisions: [],
-        steps: [],
-        planningNotes: {
-          surfaceReports: [],
-          reviewReport,
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'in_progress',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: 'Completeness checks failed for transition to in_progress',
-        failedChecks: [
-          {
-            name: 'Plan Review Report',
-            passed: false,
-            details: 'Plan review reported critical issues: Missing contract ref for step A',
-          },
-        ],
-      });
-      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
-    });
-
-    it('INVALID: {mixed passed=true and passed=false checks} => transition fails, only blocking check surfaces', async () => {
-      const proxy = questModifyBrokerProxy();
-      const reviewReport = PlanningReviewReportStub({
-        signal: 'warnings',
-        warnings: ['Minor refactor suggestion'] as never,
-      });
-      // Step missing focusFile creates a passed=false "Step Focus Target" blocking check,
-      // while the warnings-signal reviewReport adds a passed=true info check. Broker must
-      // block on the false and surface only the blocking entry in failedChecks. The id
-      // is slice-prefixed so the V1 invariant passes — this test exercises the Tier 4
-      // completeness layer, not Tier 3 invariants.
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_plan',
-        flows: [],
-        designDecisions: [],
-        steps: [
-          (() => {
-            const base = DependencyStepStub({
-              id: 'backend-missing-focus' as never,
-            });
-            // Force missing focus target: both focusFile and focusAction undefined
-            const { focusFile: _focusFile, ...rest } = base;
-            return rest as typeof base;
-          })(),
-        ],
-        planningNotes: {
-          surfaceReports: [],
-          reviewReport,
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'in_progress',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: 'Completeness checks failed for transition to in_progress',
-        failedChecks: [
-          {
-            name: 'Step Focus Target',
-            passed: false,
-            details:
-              "Steps missing focusFile/focusAction: step 'backend-missing-focus' has neither focusFile nor focusAction",
-          },
-        ],
-      });
-      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
-    });
-  });
-
   describe('completeness scope gating (Tier 3, transition-to-in_progress only)', () => {
     it('VALID: {modify-quest without status: in_progress, quest with unsatisfied observable} => succeeds (completeness skipped on slice-by-slice commits)', async () => {
       const proxy = questModifyBrokerProxy();
@@ -1243,7 +1064,6 @@ describe('questModifyBroker', () => {
 
     it('INVALID: {status: in_progress, quest with unsatisfied observable} => rejects with completeness failure (V8 fires at transition)', async () => {
       const proxy = questModifyBrokerProxy();
-      const reviewReport = PlanningReviewReportStub({ signal: 'clean' });
       const observable = FlowObservableStub({ id: 'obs-orphan' as never });
       const terminal = FlowNodeStub({
         id: 'login-page' as never,
@@ -1263,10 +1083,15 @@ describe('questModifyBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        status: 'seek_plan',
+        status: 'seek_walk',
         flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
         steps: [unrelatedStep],
-        planningNotes: { surfaceReports: [], reviewReport },
+        planningNotes: {
+          surfaceReports: [],
+          scopeClassification: PlanningScopeClassificationStub(),
+          synthesis: PlanningSynthesisStub(),
+          walkFindings: PlanningWalkFindingsStub(),
+        },
       });
 
       proxy.setupQuestFound({ quest });

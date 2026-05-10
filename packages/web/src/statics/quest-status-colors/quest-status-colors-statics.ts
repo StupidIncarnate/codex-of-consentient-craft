@@ -24,7 +24,6 @@ export const questStatusColorsStatics = {
     seek_scope: 'indigo',
     seek_synth: 'violet',
     seek_walk: 'grape',
-    seek_plan: 'pink',
     in_progress: 'cyan',
     complete: 'green',
     paused: 'yellow',

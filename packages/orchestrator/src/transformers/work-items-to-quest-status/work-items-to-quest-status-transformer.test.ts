@@ -92,15 +92,6 @@ describe('workItemsToQuestStatusTransformer', () => {
 
       expect(result).toBe('seek_walk');
     });
-
-    it('VALID: {currentStatus: "seek_plan", empty workItems} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'seek_plan',
-      });
-
-      expect(result).toBe('seek_plan');
-    });
   });
 
   describe('complete status', () => {

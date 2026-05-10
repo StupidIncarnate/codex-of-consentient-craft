@@ -14,7 +14,7 @@
  * - Sub-field allowlist for planningNotes: when `planningNotes` is present in the input (permitted via either the
  *   top-level allowedFields entry OR the blight-only carveout), every sub-field present must appear in the
  *   per-status `allowedPlanningNotesFields` array. Any sub-field outside that list is rejected. This closes the
- *   gap where seek_scope/seek_synth/seek_walk/seek_plan used to accept any planningNotes.* sub-field.
+ *   gap where seek_scope/seek_synth/seek_walk used to accept any planningNotes.* sub-field.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
@@ -93,7 +93,7 @@ export const questInputForbiddenFieldsTransformer = ({
   // Sub-field allowlist for planningNotes: applies whenever planningNotes was accepted at the top
   // level (either via allowedFields OR via the blight-only carveout). Every sub-field being written
   // must appear in `allowedPlanningNotesFields`. This blocks a seek_walk writer from stamping
-  // `scopeClassification`, a seek_plan writer from writing `walkFindings`, etc.
+  // `scopeClassification`, a seek_synth writer from writing `walkFindings`, etc.
   if (
     inputPlanningNotes !== undefined &&
     (allowedSet.has('planningNotes') || planningNotesBlightOnly)

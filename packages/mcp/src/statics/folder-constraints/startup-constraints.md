@@ -180,7 +180,7 @@ describe('StartInstall', () => {
                 packageName: '@dungeonmaster/orchestrator',
                 success: true,
                 action: 'created',
-                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with pathseeker-verify-minion.md and chaoswhisperer-gap-minion.md',
+                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with chaoswhisperer-gap-minion.md',
             });
             expect(questContent).toMatch(/ChaosWhisperer/u);
         });

@@ -150,7 +150,6 @@ export const questModifyBroker = async ({
             }),
             ...(incoming.synthesis !== undefined && { synthesis: incoming.synthesis }),
             ...(incoming.walkFindings !== undefined && { walkFindings: incoming.walkFindings }),
-            ...(incoming.reviewReport !== undefined && { reviewReport: incoming.reviewReport }),
             ...(incoming.surfaceReports !== undefined && {
               surfaceReports: questArrayUpsertTransformer({
                 existing: current.surfaceReports,

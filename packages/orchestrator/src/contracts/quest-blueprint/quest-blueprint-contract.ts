@@ -9,7 +9,7 @@
  *   designDecisions: [],
  *   contracts: [],
  *   toolingRequirements: [],
- *   planningNotes: { scopeClassification, surfaceReports, synthesis, walkFindings, reviewReport },
+ *   planningNotes: { scopeClassification, surfaceReports, synthesis, walkFindings },
  *   steps: [...],
  *   targetStatus: 'in_progress',
  *   skipRoles: ['ward'],

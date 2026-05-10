@@ -2311,7 +2311,6 @@ describe('ExecutionPanelWidget', () => {
         { status: 'seek_scope' },
         { status: 'seek_synth' },
         { status: 'seek_walk' },
-        { status: 'seek_plan' },
         { status: 'in_progress' },
       ] as const)(
         'VALID: {status: $status} => PAUSE button visible, RESUME button not visible',

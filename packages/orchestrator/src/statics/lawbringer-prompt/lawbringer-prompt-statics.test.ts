@@ -12,16 +12,16 @@ describe('lawbringerPromptStatics', () => {
     });
   });
 
-  it('VALID: scope section => defers observable satisfaction to Pathseeker Verify Minion', () => {
+  it("VALID: scope section => defers observable satisfaction to PathSeeker's seek_walk flow walk", () => {
     expect(lawbringerPromptStatics.prompt.template).toMatch(
-      /^- Check if the step satisfies observables — that's the Pathseeker Verify Minion's job$/mu,
+      /^- Check if the step satisfies observables — observable checking during seek_walk is PathSeeker's flow-walk responsibility; Lawbringer's job is post-implementation rule compliance only$/mu,
     );
   });
 
-  it('VALID: prompt template => does not reference the renamed Pathseeker Quest Review Minion', () => {
-    const needle = 'Quest Review Minion';
+  it('VALID: prompt template => does not reference removed verify-minion roles', () => {
     const { template } = lawbringerPromptStatics.prompt;
 
-    expect(template.indexOf(needle)).toBe(-1);
+    expect(template.indexOf('Verify Minion')).toBe(-1);
+    expect(template.indexOf('Quest Review Minion')).toBe(-1);
   });
 });

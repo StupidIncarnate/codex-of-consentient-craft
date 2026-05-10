@@ -83,7 +83,7 @@ describe('questEnqueueRecoverableBroker', () => {
       const questBMiddleRecoverable = QuestStub({
         id: QuestIdStub({ value: 'b-middle' }),
         folder: '001-b-mid',
-        status: 'seek_plan',
+        status: 'seek_walk',
         createdAt: '2024-01-03T00:00:00.000Z',
       });
       const questBPaused = QuestStub({
@@ -138,7 +138,7 @@ describe('questEnqueueRecoverableBroker', () => {
         ],
         guildIds: [GUILD_A_ID, GUILD_B_ID, GUILD_B_ID, GUILD_A_ID],
         guildSlugs: [GUILD_A_SLUG, GUILD_B_SLUG, GUILD_B_SLUG, GUILD_A_SLUG],
-        statuses: ['in_progress', 'in_progress', 'seek_plan', 'seek_scope'],
+        statuses: ['in_progress', 'in_progress', 'seek_walk', 'seek_scope'],
       });
     });
 
@@ -238,7 +238,7 @@ describe('questEnqueueRecoverableBroker', () => {
         id: QuestIdStub({ value: 'shape-quest' }),
         folder: '001-shape',
         title: 'Shape Test Quest',
-        status: 'seek_plan',
+        status: 'seek_walk',
         createdAt: '2024-01-01T00:00:00.000Z',
         questSource: 'smoketest-mcp',
       });
@@ -276,7 +276,7 @@ describe('questEnqueueRecoverableBroker', () => {
         guildIds: [GUILD_A_ID],
         guildSlugs: [GUILD_A_SLUG],
         questTitles: ['Shape Test Quest'],
-        statuses: ['seek_plan'],
+        statuses: ['seek_walk'],
         questSources: ['smoketest-mcp'],
         enqueuedAtMatches: [true],
       });

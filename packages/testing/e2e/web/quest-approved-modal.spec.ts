@@ -251,7 +251,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
-    // The full pipeline (seek_scope → seek_synth → seek_walk → seek_plan → in_progress)
+    // The full pipeline (seek_scope → seek_synth → seek_walk → in_progress)
     // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
     // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
     // only activates at in_progress and beyond. Full pipeline validation lives in

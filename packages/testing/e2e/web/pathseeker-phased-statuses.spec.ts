@@ -167,55 +167,6 @@ test.describe('PathSeeker Phased Statuses', () => {
     await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
   });
 
-  test('VALID: {status: seek_plan} => execution panel renders (seek_* is execution phase)', async ({
-    page,
-    request,
-  }) => {
-    const guilds = guildHarness({ request });
-    const quests = questHarness({ request });
-    const nav = navigationHarness({ page });
-    const guild = await guilds.createGuild({
-      name: 'PathSeeker Seek Plan Guild',
-      path: GUILD_PATH,
-    });
-    const guildId = String(guild.id);
-
-    const sessionId = `e2e-seek-plan-${Date.now()}`;
-    sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
-
-    const created = await quests.createQuest({
-      guildId,
-      title: 'E2E Seek Plan Quest',
-      userRequest: 'Build the feature',
-    });
-    const { questId, questFolder } = created;
-    const questFilePath = created.filePath;
-
-    quests.writeQuestFile({
-      questId,
-      questFolder,
-      questFilePath,
-      status: 'seek_plan',
-      workItems: [
-        {
-          id: 'e2e00000-0000-4000-8000-000000000004',
-          role: 'chaoswhisperer',
-          sessionId,
-          status: 'complete',
-        },
-      ],
-    });
-
-    const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
-
-    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
-    await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toBeVisible();
-  });
-
   test('VALID: {status: seek_scope, PATCH planningNotes.scopeClassification} => PATCH succeeds, GET returns planningNotes, UI stays stable', async ({
     page,
     request,

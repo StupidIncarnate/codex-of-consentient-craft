@@ -54,7 +54,6 @@ const STATUS_COLOR_MAP = new Map<QuestStatus, (typeof colors)[keyof typeof color
   ['seek_scope', colors['seek-scope']],
   ['seek_synth', colors['seek-synth']],
   ['seek_walk', colors['seek-walk']],
-  ['seek_plan', colors['seek-plan']],
   ['in_progress', colors.primary],
   ['complete', colors.success],
   ['blocked', colors.danger],

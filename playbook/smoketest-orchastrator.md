@@ -142,7 +142,7 @@ Begin Quest click.
    is paused by the gate itself — nothing is dispatching downstream yet. Snapshot now; restore skips ChaosWhisperer
    entirely.
 2. **Post-PathSeeker-start (THEORETICALLY USEFUL, PRACTICALLY NOT VIABLE FOR LLMs).** After the Begin Quest click
-   takes the quest through `seek_scope → seek_synth → seek_walk → seek_plan → in_progress`, PathSeeker's own work is
+   takes the quest through `seek_scope → seek_synth → seek_walk → in_progress`, PathSeeker's own work is
    done but no codeweaver has dispatched yet. Snapshotting here would skip both ChaosWhisperer AND PathSeeker
    (saving ~20 minutes on restore). BUT — the orchestration loop dispatches the first ready codeweavers within
    milliseconds of the `in_progress` transition, and once a codeweaver writes a file you no longer have a clean
@@ -403,7 +403,7 @@ then idled for 2+ minutes with no STOP trigger and no notification). If you need
 interval (e.g. 60–120 seconds), then re-call `get-quest` in the main thread.
 
 **Gate states to stop at:** `review_flows`, `review_observables`, `approved`, `seek_scope`, `seek_synth`, `seek_walk`,
-`seek_plan`, `in_progress`, `complete`, `blocked`, `abandoned`. The first three require a user action (approve /
+`in_progress`, `complete`, `blocked`, `abandoned`. The first three require a user action (approve /
 begin-quest). The rest are pipeline status changes.
 
 ## Clarification Questions (Blocking) — ChaosWhisperer only
@@ -504,7 +504,7 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
 
 **→ FAIL assertion #1 (UI never switches after Begin Quest click):** UI bug in the execution-panel guard or in the
 binding that reacts to `quest-modified`. Most likely candidate: `isExecutionPhaseGuard` is missing one of the
-intermediate statuses (`seek_scope`, `seek_synth`, `seek_walk`, `seek_plan`, `in_progress`). File it, fix, restart.
+intermediate statuses (`seek_scope`, `seek_synth`, `seek_walk`, `in_progress`). File it, fix, restart.
 DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
 **→ FAIL no "Begin Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
 **→ PASS:** continue.
@@ -514,8 +514,7 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
 - **Assert via `mcp__dungeonmaster__get-planning-notes`:**
     - `seek_scope` → `scopeClassification` populated → `seek_synth`
     - `seek_synth` → parallel surface minions → `surfaceReports[]` + `synthesis` → `seek_walk`
-    - `seek_walk` → `walkFindings` → `seek_plan`
-    - `seek_plan` → `steps[]`, `reviewReport` → `in_progress`
+    - `seek_walk` → `walkFindings` + `steps[]` → `in_progress`
 
 **→ PASS:** continue.
 

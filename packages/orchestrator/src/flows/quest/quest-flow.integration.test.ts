@@ -3,7 +3,6 @@ import {
   GuildNameStub,
   GuildPathStub,
   ObservableIdStub,
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSurfaceReportStub,
   PlanningSynthesisStub,
@@ -33,11 +32,11 @@ describe('QuestFlow', () => {
   });
 
   describe('transition matrix — forward path', () => {
-    it('VALID: {approved → seek_scope → seek_synth → seek_walk → seek_plan → in_progress} => each transition succeeds with correct gate content', async () => {
+    it('VALID: {approved → seek_scope → seek_synth → seek_walk → in_progress} => each transition succeeds with correct gate content', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-forward' }),
       });
-      // Full setup (with queue harness) because the final seek_plan → in_progress
+      // Full setup (with queue harness) because the final seek_walk → in_progress
       // transition triggers QuestModifyResponder's auto-resume orchestration loop.
       envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
@@ -83,20 +82,11 @@ describe('QuestFlow', () => {
         }),
       });
 
-      const toSeekPlan = await QuestFlow.modify({
-        questId,
-        input: ModifyQuestInputStub({
-          questId,
-          planningNotes: { walkFindings: PlanningWalkFindingsStub() },
-          status: 'seek_plan',
-        }),
-      });
-
       const toInProgress = await QuestFlow.modify({
         questId,
         input: ModifyQuestInputStub({
           questId,
-          planningNotes: { reviewReport: PlanningReviewReportStub({ signal: 'clean' }) },
+          planningNotes: { walkFindings: PlanningWalkFindingsStub() },
           status: 'in_progress',
         }),
       });
@@ -108,7 +98,6 @@ describe('QuestFlow', () => {
       expect(toSeekScope).toStrictEqual({ success: true });
       expect(toSeekSynth).toStrictEqual({ success: true });
       expect(toSeekWalk).toStrictEqual({ success: true });
-      expect(toSeekPlan).toStrictEqual({ success: true });
       expect(toInProgress).toStrictEqual({ success: true });
       expect(afterRead.quest!.status).toBe('in_progress');
     });
@@ -183,54 +172,6 @@ describe('QuestFlow', () => {
       expect(result).toStrictEqual({ success: true });
     });
 
-    it('VALID: {seek_plan → seek_walk} => succeeds (re-walk after verify failed)', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-back-plan-walk' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const guild = await GuildAddResponder({
-        name: GuildNameStub({ value: 'Back Plan→Walk Guild' }),
-        path: GuildPathStub({ value: testbed.guildPath }),
-      });
-      const addResult = await QuestUserAddResponder({
-        title: 'Back Plan→Walk Quest',
-        userRequest: 'Tests seek_plan back-edge to seek_walk',
-        guildId: guild.id,
-      });
-      const questId = addResult.questId!;
-
-      await questHelper.approveQuest({
-        questId,
-        observableIds: [ObservableIdStub({ value: 'obs-1' })],
-        stepCount: 1,
-        finalStatus: 'seek_plan',
-      });
-
-      // seek_walk gate requires scopeClassification + synthesis — seed directly via harness
-      // (bypasses validators; writing those sub-fields via modify-quest at seek_plan is
-      // correctly rejected by the per-sub-field allowlist).
-      await questHelper.seedQuestState({
-        questId,
-        finalStatus: 'seek_plan',
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          synthesis: PlanningSynthesisStub(),
-          surfaceReports: [],
-          blightReports: [],
-        },
-      });
-
-      const result = await QuestFlow.modify({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'seek_walk' }),
-      });
-
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({ success: true });
-    });
-
     it('VALID: {in_progress → seek_walk} => succeeds (downstream failure routing)', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-back-inprog-walk' }),
@@ -250,13 +191,11 @@ describe('QuestFlow', () => {
 
       // Seed scopeClassification + synthesis directly via harness (bypasses validators),
       // then re-seed to in_progress so the seek_walk gate-content is already satisfied.
-      // Writing those planningNotes sub-fields via modify-quest at seek_plan is correctly
-      // rejected by the per-sub-field allowlist (only reviewReport is writable at seek_plan).
       await questHelper.approveQuest({
         questId,
         observableIds: [ObservableIdStub({ value: 'obs-1' })],
         stepCount: 1,
-        finalStatus: 'seek_plan',
+        finalStatus: 'seek_walk',
       });
       await questHelper.seedQuestState({
         questId,
@@ -450,73 +389,10 @@ describe('QuestFlow', () => {
         error: 'Missing required content for transition to seek_synth',
       });
     });
-
-    it('INVALID: {seek_plan → in_progress, reviewReport.signal=critical} => rejected by completeness check', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-bad-complete-critical' }),
-      });
-      envHarness.setupHome({ tempDir: testbed.guildPath });
-
-      const guild = await GuildAddResponder({
-        name: GuildNameStub({ value: 'Bad Completeness Guild' }),
-        path: GuildPathStub({ value: testbed.guildPath }),
-      });
-      const addResult = await QuestUserAddResponder({
-        title: 'Bad Completeness Quest',
-        userRequest: 'Tests completeness rejection when reviewReport.signal is critical',
-        guildId: guild.id,
-      });
-      const questId = addResult.questId!;
-
-      await questHelper.approveQuest({
-        questId,
-        observableIds: [ObservableIdStub({ value: 'obs-1' })],
-        stepCount: 1,
-        finalStatus: 'seek_plan',
-      });
-
-      // Pre-commit gate-content so the gate-content guard passes, leaving
-      // the critical reviewReport as the only failing check at completeness time.
-      await QuestFlow.modify({
-        questId,
-        input: ModifyQuestInputStub({
-          questId,
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-            synthesis: PlanningSynthesisStub(),
-            walkFindings: PlanningWalkFindingsStub(),
-            reviewReport: PlanningReviewReportStub({
-              signal: 'critical',
-              criticalItems: ['Missing wiring in foo-broker'],
-            }),
-          },
-        }),
-      });
-
-      const result = await QuestFlow.modify({
-        questId,
-        input: ModifyQuestInputStub({ questId, status: 'in_progress' }),
-      });
-
-      testbed.cleanup();
-
-      const planReviewCheck = result.failedChecks?.find((c) => c.name === 'Plan Review Report');
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: 'Completeness checks failed for transition to in_progress',
-        failedChecks: result.failedChecks,
-      });
-      expect(planReviewCheck).toStrictEqual({
-        name: 'Plan Review Report',
-        passed: false,
-        details: planReviewCheck?.details,
-      });
-    });
   });
 
   describe('resume — get-planning-notes', () => {
-    it('VALID: {quest at seek_walk with partial planningNotes} => returns scope + synthesis + surfaceReports, walkFindings/reviewReport absent', async () => {
+    it('VALID: {quest at seek_walk with partial planningNotes} => returns scope + synthesis + surfaceReports, walkFindings absent', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-resume-partial' }),
       });

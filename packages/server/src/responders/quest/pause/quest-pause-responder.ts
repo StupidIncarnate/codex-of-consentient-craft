@@ -49,7 +49,7 @@ export const QuestPauseResponder = async ({
         status: httpStatusStatics.clientError.badRequest,
         data: {
           error:
-            'Quest must be in a pauseable status (in_progress, seek_scope, seek_synth, seek_walk, or seek_plan) to pause',
+            'Quest must be in a pauseable status (in_progress, seek_scope, seek_synth, or seek_walk) to pause',
         },
       });
     }

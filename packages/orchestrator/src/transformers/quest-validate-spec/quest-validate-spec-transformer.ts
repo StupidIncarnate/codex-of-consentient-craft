@@ -163,10 +163,9 @@ export const questValidateSpecTransformer = ({
     );
   } else if (scope === 'completeness') {
     // V4, V7, V8 — whole-quest coverage checks that only fire when transitioning
-    // into 'in_progress'. They were previously gated on `steps.length > 0` inside
-    // 'invariants' scope, but that gate is unnecessary here because the broker
-    // only invokes this scope on the seek_plan → in_progress transition where
-    // steps must already exist (the in_progress gate-content guards check that).
+    // into 'in_progress'. The broker only invokes this scope on the
+    // seek_walk → in_progress transition where steps must already exist (the
+    // in_progress gate-content guards check that).
     specs.push(
       {
         name: 'Step Contract References Resolve',

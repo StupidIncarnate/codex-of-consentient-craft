@@ -22,7 +22,6 @@ export const questGateSectionsStatics = {
     seek_scope: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     seek_synth: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     seek_walk: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
-    seek_plan: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     in_progress: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     paused: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     blocked: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],

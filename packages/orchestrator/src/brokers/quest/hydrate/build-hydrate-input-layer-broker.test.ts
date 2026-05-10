@@ -69,7 +69,7 @@ describe('buildHydrateInputLayerBroker', () => {
       });
     });
 
-    it('VALID: {toStatus: in_progress} => includes steps + planningNotes.reviewReport', () => {
+    it('VALID: {toStatus: in_progress} => includes steps + planningNotes.walkFindings', () => {
       buildHydrateInputLayerBrokerProxy();
       const blueprint = QuestBlueprintStub();
 
@@ -83,7 +83,7 @@ describe('buildHydrateInputLayerBroker', () => {
         questId: QUEST_ID,
         status: 'in_progress',
         steps: blueprint.steps,
-        planningNotes: { reviewReport: blueprint.planningNotes.reviewReport },
+        planningNotes: { walkFindings: blueprint.planningNotes.walkFindings },
       });
     });
   });

@@ -157,9 +157,10 @@ steps: array of step objects, each with:
         cross-step constraints, and sibling-pattern citations.
   - inputContracts / outputContracts: contract names this step consumes / produces.
         Author these correctly — the unresolved-step-contract-refs check fires only at
-        the seek_plan transition (not on your write), so cross-slice references that
-        haven't landed yet won't reject you. Pathseeker wires the cross-slice graph in
-        Wave 2 and verifies resolution before transitioning to in_progress.
+        the seek_walk → in_progress transition (not on your write), so cross-slice
+        references that haven't landed yet won't reject you. Pathseeker wires the
+        cross-slice graph in Wave 2 and verifies resolution before transitioning to
+        in_progress.
   - observablesSatisfied (step-level) and/or per-assertion observablesSatisfied: claim
         the observable IDs this step (or specific assertion) proves. The
         observables-coverage validator unions both sets when checking observable coverage.
@@ -197,7 +198,7 @@ For \`runtime\` flows (user clicks, API hits) your steps are almost entirely \`f
 
 ### Step 8: Assertions vs Instructions — the Boundary
 
-\`assertions[]\` is for behavioral predicates that compile to \`expect(...)\`. \`instructions[]\` is for editorial directives about file shape, comments, removals, imports, and cross-step constraints. The boundary is the minion's responsibility: the banned-matcher scan catches banned matchers mechanically but cannot tell behavioral assertions from editorial ones. Verify-minion catches drift in seek_plan, but by then it's a critical-item to fix — better to author the split correctly here.
+\`assertions[]\` is for behavioral predicates that compile to \`expect(...)\`. \`instructions[]\` is for editorial directives about file shape, comments, removals, imports, and cross-step constraints. The boundary is the minion's responsibility: the banned-matcher scan catches banned matchers mechanically but cannot tell behavioral assertions from editorial ones. Author the split correctly here so pathseeker doesn't have to triage drift during its seek_walk flow walk.
 
 **Test:** if you can phrase the line as \`it('...', () => { expect(...).toBe(...) })\`, it's an assertion. If it's a directive about file shape, comment text, removals, imports, or cross-step constraints, it's an instruction.
 
@@ -272,7 +273,7 @@ instructions: [
 
 ### Step 9: Pre-Commit Self-Review
 
-You are at peak context: you've just walked sibling files, drafted assertions, and held all your slice's steps in working memory. This is the only moment where you can correct same-author drift cheaply. Walk this checklist before calling \`modify-quest\` — the verify-minion catches most of these in seek_plan, but every issue you fix here is one fewer critical-item pathseeker has to triage downstream.
+You are at peak context: you've just walked sibling files, drafted assertions, and held all your slice's steps in working memory. This is the only moment where you can correct same-author drift cheaply. Walk this checklist before calling \`modify-quest\` — with no downstream verify-minion, this self-review plus the mandatory Step 11 post-commit readback is your slice's only safety net.
 
 For each observable in your slice:
 
@@ -308,7 +309,7 @@ modify-quest({
 
 **Empty slice:** If your slice's research surfaces no new work (every contract already exists, no new files needed), commit \`steps: []\` and \`contracts: []\` (an empty write that signals you investigated and found nothing missing) and signal \`complete\` with a summary explaining the finding. Do NOT signal \`failed\` — empty is a valid outcome.
 
-The validator runs in two tiers. **Only the write-time tier fires on your modify-quest call** — the completeness tier (cross-slice coverage) only fires when pathseeker transitions the quest to \`in_progress\` at the end of seek_plan. That means: do NOT panic about an outputContract you produce being unreferenced by another slice's step yet, or about the cross-slice contract dedup graph being incomplete during your own write. Other minions are still working in parallel; cross-slice gaps only become rejections at the seek_plan exit, which is pathseeker's problem.
+The validator runs in two tiers. **Only the write-time tier fires on your modify-quest call** — the completeness tier (cross-slice coverage) only fires when pathseeker transitions the quest to \`in_progress\` at the seek_walk → in_progress transition. That means: do NOT panic about an outputContract you produce being unreferenced by another slice's step yet, or about the cross-slice contract dedup graph being incomplete during your own write. Other minions are still working in parallel; cross-slice gaps only become rejections at the seek_walk → in_progress transition, which is pathseeker's problem.
 
 #### Write-time validators (fire on YOUR modify-quest call)
 
@@ -322,7 +323,7 @@ The validator runs in two tiers. **Only the write-time tier fires on your modify
 
 #### Completeness validators (do NOT fire on your write — fire only at transition to in_progress)
 
-These checks reach across the WHOLE quest (every slice's steps, every flow's observables, every contract entry). During seek_synth your slice is one of N being committed in parallel; the plan is half-assembled by definition. These validators would reject your write for missing data another minion hasn't produced yet, so they are deferred to the seek_plan exit:
+These checks reach across the WHOLE quest (every slice's steps, every flow's observables, every contract entry). During seek_synth your slice is one of N being committed in parallel; the plan is half-assembled by definition. These validators would reject your write for missing data another minion hasn't produced yet, so they are deferred to the seek_walk exit:
 
 | Validator | What it checks | When it fires |
 |-----------|----------------|---------------|
@@ -412,9 +413,9 @@ signal-back({
 })
 \`\`\`
 
-## Authoring reminders for the seek_plan transition
+## Authoring reminders for the seek_walk → in_progress transition
 
-These don't reject your write (they're completeness checks, deferred to the seek_plan exit), but pathseeker has to clean up any gaps. Author correctly so pathseeker doesn't have to:
+These don't reject your write (they're completeness checks, deferred to the seek_walk exit), but pathseeker has to clean up any gaps. Author correctly so pathseeker doesn't have to:
 
 - **Anchor every new contract.** Every \`status: 'new'\` contract you declare must be named in some step's \`outputContracts\`. Orphaned new contracts are surface-area pathseeker has to either delete or assign a creating step to.
 - **Claim every observable in your slice.** Every observable in your assigned flows must appear in some step's \`observablesSatisfied\` OR an assertion's \`observablesSatisfied\`. Step-level for whole-step satisfaction (e.g., a removal step); assertion-level for specific behavioral proofs. Don't paper over by tagging an unrelated step.

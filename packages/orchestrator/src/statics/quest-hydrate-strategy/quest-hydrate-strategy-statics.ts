@@ -25,7 +25,6 @@ export const questHydrateStrategyStatics = {
     'seek_scope',
     'seek_synth',
     'seek_walk',
-    'seek_plan',
     'in_progress',
   ] as const,
   strategies: {
@@ -83,16 +82,10 @@ export const questHydrateStrategyStatics = {
       planningNotesFields: ['surfaceReports', 'synthesis'],
       flowsMode: 'exclude',
     },
-    seek_plan: {
-      fromStatus: 'seek_walk',
-      blueprintFields: [],
-      planningNotesFields: ['walkFindings'],
-      flowsMode: 'exclude',
-    },
     in_progress: {
-      fromStatus: 'seek_plan',
+      fromStatus: 'seek_walk',
       blueprintFields: ['steps'],
-      planningNotesFields: ['reviewReport'],
+      planningNotesFields: ['walkFindings'],
       flowsMode: 'exclude',
     },
     created: null,

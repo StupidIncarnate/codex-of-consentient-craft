@@ -78,8 +78,6 @@ export const buildHydrateInputLayerBroker = ({
                 return { ...acc, synthesis: blueprint.planningNotes.synthesis };
               case 'walkFindings':
                 return { ...acc, walkFindings: blueprint.planningNotes.walkFindings };
-              case 'reviewReport':
-                return { ...acc, reviewReport: blueprint.planningNotes.reviewReport };
               default:
                 return acc;
             }

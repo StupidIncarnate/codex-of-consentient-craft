@@ -10,7 +10,6 @@ describe('smoketestBlueprintsStatics', () => {
       contractCount: smoketestBlueprintsStatics.minimal.contracts.length,
       stepCount: smoketestBlueprintsStatics.minimal.steps.length,
       surfaceReportCount: smoketestBlueprintsStatics.minimal.planningNotes.surfaceReports.length,
-      reviewReportSignal: smoketestBlueprintsStatics.minimal.planningNotes.reviewReport.signal,
       skipRoles: smoketestBlueprintsStatics.minimal.skipRoles,
     }).toStrictEqual({
       hasTitle: true,
@@ -20,19 +19,17 @@ describe('smoketestBlueprintsStatics', () => {
       contractCount: 1,
       stepCount: 1,
       surfaceReportCount: 1,
-      reviewReportSignal: 'clean',
       skipRoles: ['ward'],
     });
   });
 
-  it('VALID: {minimal.planningNotes} => every planningNotes sub-field required for seek_plan gate is defined', () => {
+  it('VALID: {minimal.planningNotes} => every planningNotes sub-field required for seek_walk -> in_progress gate is defined', () => {
     const { planningNotes } = smoketestBlueprintsStatics.minimal;
 
     expect({
       scopeClassificationKeys: Object.keys(planningNotes.scopeClassification).sort(),
       synthesisKeys: Object.keys(planningNotes.synthesis).sort(),
       walkFindingsKeys: Object.keys(planningNotes.walkFindings).sort(),
-      reviewReportKeys: Object.keys(planningNotes.reviewReport).sort(),
     }).toStrictEqual({
       scopeClassificationKeys: ['classifiedAt', 'rationale', 'size', 'slicing'],
       synthesisKeys: [
@@ -43,7 +40,6 @@ describe('smoketestBlueprintsStatics', () => {
         'synthesizedAt',
       ],
       walkFindingsKeys: ['filesRead', 'planPatches', 'structuralIssuesFound', 'verifiedAt'],
-      reviewReportKeys: ['criticalItems', 'info', 'rawReport', 'reviewedAt', 'signal', 'warnings'],
     });
   });
 

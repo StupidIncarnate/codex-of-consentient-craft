@@ -16,7 +16,6 @@ describe('classifyStatusLiteralTransformer', () => {
       'seek_scope',
       'seek_synth',
       'seek_walk',
-      'seek_plan',
       'paused',
       'blocked',
       'abandoned',
