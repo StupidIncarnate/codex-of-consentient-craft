@@ -1,6 +1,5 @@
 import {
   PlanningBlightReportStub,
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSurfaceReportStub,
   PlanningSynthesisStub,
@@ -33,7 +32,6 @@ describe('questGetPlanningNotesBroker', () => {
       const blight = PlanningBlightReportStub();
       const synthesis = PlanningSynthesisStub();
       const walk = PlanningWalkFindingsStub();
-      const review = PlanningReviewReportStub();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -43,7 +41,6 @@ describe('questGetPlanningNotesBroker', () => {
           blightReports: [blight],
           synthesis,
           walkFindings: walk,
-          reviewReport: review,
         },
       });
       proxy.setupQuestFound({ quest });
@@ -58,7 +55,6 @@ describe('questGetPlanningNotesBroker', () => {
         blightReports: [blight],
         synthesis,
         walkFindings: walk,
-        reviewReport: review,
       });
     });
   });
@@ -189,39 +185,6 @@ describe('questGetPlanningNotesBroker', () => {
       const result = await questGetPlanningNotesBroker({
         questId: QuestIdStub({ value: 'add-auth' }),
         section: 'walk',
-      });
-
-      expect(result).toBe(undefined);
-    });
-  });
-
-  describe('section: review', () => {
-    it('VALID: {section: "review"} => returns reviewReport', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const review = PlanningReviewReportStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { surfaceReports: [], reviewReport: review },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'review',
-      });
-
-      expect(result).toStrictEqual(review);
-    });
-
-    it('VALID: {section: "review", absent} => returns undefined', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'review',
       });
 
       expect(result).toBe(undefined);

@@ -21,7 +21,7 @@ import { questLoadBroker } from '../load/quest-load-broker';
 
 type PlanningNotes = Quest['planningNotes'];
 
-export type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
+export type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
 
 export type QuestGetPlanningNotesResult =
   | PlanningNotes
@@ -29,8 +29,7 @@ export type QuestGetPlanningNotesResult =
   | PlanningNotes['surfaceReports']
   | PlanningNotes['blightReports']
   | PlanningNotes['synthesis']
-  | PlanningNotes['walkFindings']
-  | PlanningNotes['reviewReport'];
+  | PlanningNotes['walkFindings'];
 
 export const questGetPlanningNotesBroker = async ({
   questId,
@@ -68,9 +67,5 @@ export const questGetPlanningNotesBroker = async ({
     return notes.walkFindings;
   }
 
-  if (section === 'blight') {
-    return notes.blightReports;
-  }
-
-  return notes.reviewReport;
+  return notes.blightReports;
 };

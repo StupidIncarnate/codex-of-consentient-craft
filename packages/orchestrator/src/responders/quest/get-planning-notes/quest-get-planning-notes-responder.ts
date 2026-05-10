@@ -16,7 +16,7 @@ import { questGetPlanningNotesBroker } from '../../../brokers/quest/get-planning
 
 type PlanningNotes = Quest['planningNotes'];
 
-type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'review' | 'blight';
+type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
 
 type PlanningNotesData =
   | PlanningNotes
@@ -24,8 +24,7 @@ type PlanningNotesData =
   | PlanningNotes['surfaceReports']
   | PlanningNotes['blightReports']
   | PlanningNotes['synthesis']
-  | PlanningNotes['walkFindings']
-  | PlanningNotes['reviewReport'];
+  | PlanningNotes['walkFindings'];
 
 export type QuestGetPlanningNotesResponderResult =
   | { readonly success: true; readonly data: PlanningNotesData }

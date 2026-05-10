@@ -12,7 +12,6 @@ import { dependencyStepContract } from '../dependency-step/dependency-step-contr
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
-import { planningReviewReportContract } from '../planning-review-report/planning-review-report-contract';
 import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
 import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
 import { planningSynthesisContract } from '../planning-synthesis/planning-synthesis-contract';
@@ -91,11 +90,10 @@ export const questContract = z.object({
       blightReports: z.array(planningBlightReportContract).default([]),
       synthesis: planningSynthesisContract.optional(),
       walkFindings: planningWalkFindingsContract.optional(),
-      reviewReport: planningReviewReportContract.optional(),
     })
     .default({ surfaceReports: [], blightReports: [] })
     .describe(
-      'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings, review report) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings)',
+      'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings)',
     ),
   questSource: questSourceContract
     .optional()

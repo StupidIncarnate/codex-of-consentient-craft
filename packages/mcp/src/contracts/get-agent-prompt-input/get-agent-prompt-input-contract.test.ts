@@ -10,12 +10,12 @@ describe('getAgentPromptInputContract', () => {
     expect(result).toStrictEqual({ agent: 'chaoswhisperer-gap-minion' });
   });
 
-  it('VALID: {agent: "pathseeker-verify-minion"} => parses successfully', () => {
-    const input = GetAgentPromptInputStub({ agent: 'pathseeker-verify-minion' });
+  it('VALID: {agent: "pathseeker-surface-scope-minion"} => parses successfully', () => {
+    const input = GetAgentPromptInputStub({ agent: 'pathseeker-surface-scope-minion' });
 
     const result = getAgentPromptInputContract.parse(input);
 
-    expect(result).toStrictEqual({ agent: 'pathseeker-verify-minion' });
+    expect(result).toStrictEqual({ agent: 'pathseeker-surface-scope-minion' });
   });
 
   it('VALID: {default stub} => parses with default', () => {

@@ -11,7 +11,6 @@
 
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
 import {
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSynthesisStub,
   PlanningWalkFindingsStub,
@@ -22,7 +21,6 @@ type GateContentRequirement = Readonly<{
   scopeClassification: boolean;
   synthesis: boolean;
   walkFindings: boolean;
-  reviewReport: boolean;
 }>;
 
 const GATE_CONTENT_REQUIREMENTS: Readonly<Partial<Record<QuestStatus, GateContentRequirement>>> = {
@@ -30,25 +28,16 @@ const GATE_CONTENT_REQUIREMENTS: Readonly<Partial<Record<QuestStatus, GateConten
     scopeClassification: true,
     synthesis: false,
     walkFindings: false,
-    reviewReport: false,
   },
   seek_walk: {
     scopeClassification: true,
     synthesis: true,
     walkFindings: false,
-    reviewReport: false,
-  },
-  seek_plan: {
-    scopeClassification: true,
-    synthesis: true,
-    walkFindings: true,
-    reviewReport: false,
   },
   in_progress: {
     scopeClassification: true,
     synthesis: true,
     walkFindings: true,
-    reviewReport: true,
   },
 };
 
@@ -84,9 +73,6 @@ export const questGateContentSeedTransformer = ({
   }
   if (requirements.walkFindings && seeded.walkFindings === undefined) {
     seeded.walkFindings = PlanningWalkFindingsStub();
-  }
-  if (requirements.reviewReport && seeded.reviewReport === undefined) {
-    seeded.reviewReport = PlanningReviewReportStub();
   }
   return seeded;
 };

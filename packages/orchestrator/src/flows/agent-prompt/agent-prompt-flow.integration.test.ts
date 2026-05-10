@@ -8,7 +8,6 @@
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
 import { pathseekerContractDedupMinionStatics } from '../../statics/pathseeker-contract-dedup-minion/pathseeker-contract-dedup-minion-statics';
-import { pathseekerVerifyMinionStatics } from '../../statics/pathseeker-verify-minion/pathseeker-verify-minion-statics';
 import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
 
 import { AgentPromptFlow } from './agent-prompt-flow';
@@ -22,16 +21,6 @@ describe('AgentPromptFlow', () => {
         name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
         prompt: chaoswhispererGapMinionStatics.prompt.template,
-      });
-    });
-
-    it('VALID: {agent: pathseeker-verify-minion} => returns prompt result with name, model, and prompt', () => {
-      const result = AgentPromptFlow.get({ agent: 'pathseeker-verify-minion' });
-
-      expect(result).toStrictEqual({
-        name: 'pathseeker-verify-minion',
-        model: 'sonnet',
-        prompt: pathseekerVerifyMinionStatics.prompt.template,
       });
     });
 

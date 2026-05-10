@@ -1,5 +1,4 @@
 import {
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSynthesisStub,
   PlanningWalkFindingsStub,
@@ -33,29 +32,14 @@ describe('questGateContentSeedTransformer', () => {
     });
   });
 
-  describe('seek_plan status', () => {
-    it('VALID: {status: seek_plan, no override} => adds scopeClassification + synthesis + walkFindings stubs and empty report arrays', () => {
-      const result = questGateContentSeedTransformer({ status: 'seek_plan' });
-
-      expect(result).toStrictEqual({
-        scopeClassification: PlanningScopeClassificationStub(),
-        synthesis: PlanningSynthesisStub(),
-        walkFindings: PlanningWalkFindingsStub(),
-        surfaceReports: [],
-        blightReports: [],
-      });
-    });
-  });
-
   describe('in_progress status', () => {
-    it('VALID: {status: in_progress, no override} => adds all four stubs and empty report arrays', () => {
+    it('VALID: {status: in_progress, no override} => adds scopeClassification + synthesis + walkFindings stubs and empty report arrays', () => {
       const result = questGateContentSeedTransformer({ status: 'in_progress' });
 
       expect(result).toStrictEqual({
         scopeClassification: PlanningScopeClassificationStub(),
         synthesis: PlanningSynthesisStub(),
         walkFindings: PlanningWalkFindingsStub(),
-        reviewReport: PlanningReviewReportStub(),
         surfaceReports: [],
         blightReports: [],
       });

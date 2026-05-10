@@ -1,6 +1,5 @@
 import {
   PlanningBlightReportStub,
-  PlanningReviewReportStub,
   PlanningScopeClassificationStub,
   PlanningSurfaceReportStub,
   PlanningSynthesisStub,
@@ -32,7 +31,6 @@ describe('QuestGetPlanningNotesResponder', () => {
       const blight = PlanningBlightReportStub();
       const synthesis = PlanningSynthesisStub();
       const walk = PlanningWalkFindingsStub();
-      const review = PlanningReviewReportStub();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -42,7 +40,6 @@ describe('QuestGetPlanningNotesResponder', () => {
           blightReports: [blight],
           synthesis,
           walkFindings: walk,
-          reviewReport: review,
         },
       });
       proxy.setupQuestFound({ quest });
@@ -57,7 +54,6 @@ describe('QuestGetPlanningNotesResponder', () => {
           blightReports: [blight],
           synthesis,
           walkFindings: walk,
-          reviewReport: review,
         },
       });
     });
@@ -122,21 +118,6 @@ describe('QuestGetPlanningNotesResponder', () => {
       const result = await proxy.callResponder({ questId: 'add-auth', section: 'walk' });
 
       expect(result).toStrictEqual({ success: true, data: walk });
-    });
-
-    it('VALID: {section: "review"} => returns success with reviewReport', async () => {
-      const proxy = QuestGetPlanningNotesResponderProxy();
-      const review = PlanningReviewReportStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { surfaceReports: [], reviewReport: review },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await proxy.callResponder({ questId: 'add-auth', section: 'review' });
-
-      expect(result).toStrictEqual({ success: true, data: review });
     });
 
     it('VALID: {section: "blight"} => returns success with blightReports array', async () => {

@@ -10,14 +10,6 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
-  it('VALID: {value: "pathseeker-verify-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-verify-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('pathseeker-verify-minion');
-  });
-
   it('VALID: {value: "pathseeker-surface-scope-minion"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'pathseeker-surface-scope-minion' });
 
