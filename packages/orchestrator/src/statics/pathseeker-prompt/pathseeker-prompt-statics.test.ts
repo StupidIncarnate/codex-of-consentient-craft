@@ -82,8 +82,74 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_synth section => defaults corrections to seek_walk Phase 2', () => {
-    const needle = 'The default is to defer corrections to seek_walk Phase 2';
+  it('VALID: seek_synth section => defaults corrections to the seek_walk architect review', () => {
+    const needle = 'defer corrections to the seek_walk architect review';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_synth section => declares Wave A surface-scope minions subsection', () => {
+    const needle = '#### Wave A — Surface-Scope Minions (parallel, one per slice)';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_synth section => declares Wave B cleanup minions subsection', () => {
+    const needle = '#### Wave B — Cleanup Minions (parallel, AFTER Wave A is fully complete)';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_synth Wave B => enforces sequencing rule that Wave B does not start until Wave A is fully complete', () => {
+    const needle = 'Wave B does NOT start until every Wave A minion has signaled';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_synth Wave B => dispatches pathseeker-contract-dedup-minion', () => {
+    const needle = "agent: 'pathseeker-contract-dedup-minion'";
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_synth Wave B => dispatches pathseeker-assertion-correctness-minion', () => {
+    const needle = "agent: 'pathseeker-assertion-correctness-minion'";
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_synth Wave B => waits for both cleanup minions before exit', () => {
+    const needle = 'Wait for both Wave B minions to signal';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -104,7 +170,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_synth section => describes Fold option on minion failure', () => {
+  it('VALID: seek_synth section => describes Fold option on Wave A minion failure', () => {
     const needle = '**Fold.**';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -126,8 +192,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Phase 1 cleanup minion dispatch', () => {
-    const needle = '#### Phase 1 — Dispatch cleanup minions in parallel';
+  it('VALID: seek_walk section => Step 1 pulls the full quest at implementation stage', () => {
+    const needle = '#### Step 1 — Pull the full quest';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -137,8 +203,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 1 => dispatches pathseeker-contract-dedup-minion', () => {
-    const needle = "agent: 'pathseeker-contract-dedup-minion'";
+  it('VALID: seek_walk section => Step 2 walks every flow entry to exit', () => {
+    const needle = '#### Step 2 — Walk every user flow entry → exit';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -148,8 +214,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 1 => dispatches pathseeker-assertion-correctness-minion', () => {
-    const needle = "agent: 'pathseeker-assertion-correctness-minion'";
+  it('VALID: seek_walk section => Step 3 patches and authors exploratory steps', () => {
+    const needle = '#### Step 3 — Patch and author';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -159,8 +225,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 1 => requires waiting for both minions before Phase 2', () => {
-    const needle = 'Wait for both minions to signal';
+  it('VALID: seek_walk section => Step 4 single combined commit at exit', () => {
+    const needle = '#### Step 4 — Single combined commit at exit';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -170,18 +236,15 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Phase 2 single full-flow sweep', () => {
-    const needle = '#### Phase 2 — Single full-flow sweep';
+  it('VALID: seek_walk section => no Phase 1 cleanup minion dispatch (cleanup ran in seek_synth Wave B)', () => {
+    const phase1Needle = '#### Phase 1';
     const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
+    const idx = template.indexOf(phase1Needle);
 
-    expect(found).toBe(needle);
+    expect(idx).toBe(-1);
   });
 
-  it('VALID: seek_walk Phase 2 => traces entry node to exit node', () => {
+  it('VALID: seek_walk Step 2 => traces entry node to exit node', () => {
     const needle = 'Trace entry node → exit node';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -192,7 +255,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => names upstream glue confirmation', () => {
+  it('VALID: seek_walk Step 2 => names upstream glue confirmation', () => {
     const needle = '**(a) Upstream glue.**';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -203,7 +266,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => names downstream glue confirmation', () => {
+  it('VALID: seek_walk Step 2 => names downstream glue confirmation', () => {
     const needle = '**(b) Downstream glue.**';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -214,7 +277,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => names requirement-reading correctness', () => {
+  it('VALID: seek_walk Step 2 => names requirement-reading correctness', () => {
     const needle = '**(c) Requirement-reading correctness.**';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -225,7 +288,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => names CLAUDE.md / project-standards integrity check', () => {
+  it('VALID: seek_walk Step 2 => names CLAUDE.md / project-standards integrity check', () => {
     const needle = '**(d) CLAUDE.md / project-standards integrity**';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -236,7 +299,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => authors exploratory steps for novelty inline', () => {
+  it('VALID: seek_walk Step 3 => authors exploratory steps for novelty inline', () => {
     const needle = 'author an exploratory step directly in your final commit';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -247,7 +310,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => adds missing steps the minion did not see', () => {
+  it('VALID: seek_walk Step 3 => adds missing steps the minion did not see', () => {
     const needle = "add a missing step the minion didn't see";
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -258,7 +321,7 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Phase 2 => allows whole-slice rewrite when a minion misunderstood', () => {
+  it('VALID: seek_walk Step 3 => allows whole-slice rewrite when a minion misunderstood', () => {
     const needle = 'Whole-slice rewrite (rare).';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
@@ -359,7 +422,7 @@ describe('pathseekerPromptStatics', () => {
   });
 
   it('VALID: workflow paragraph => walks every flow end-to-end', () => {
-    const needle = 'tracing each user flow entry→exit, confirming the parallel minions';
+    const needle = 'tracing each user flow entry→exit, confirming the assembled plan';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

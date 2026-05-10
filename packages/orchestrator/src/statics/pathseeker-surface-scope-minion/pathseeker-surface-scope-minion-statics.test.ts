@@ -25,7 +25,7 @@ describe('pathseekerSurfaceScopeMinionStatics', () => {
 
     it('VALID: template => Constraints/Scope bullet forbids cross-slice writes', () => {
       expect(pathseekerSurfaceScopeMinionStatics.prompt.template).toMatch(
-        /^- \*\*No cross-slice writes\.\*\* Do not set `dependsOn` entries that point at steps in other slices, and do not author step IDs outside your slice's prefix\. Pathseeker handles cross-slice DAG wiring in seek_walk Wave 2\.$/mu,
+        /^- \*\*No cross-slice writes\.\*\* Do not set `dependsOn` entries that point at steps in other slices, and do not author step IDs outside your slice's prefix\. Pathseeker handles cross-slice DAG wiring during seek_walk\.$/mu,
       );
     });
 

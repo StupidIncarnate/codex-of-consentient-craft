@@ -15,7 +15,7 @@ describe('pathseekerContractDedupMinionStatics', () => {
   describe('prompt.template content', () => {
     it('VALID: template => declares contract-dedup role in opening paragraph', () => {
       expect(pathseekerContractDedupMinionStatics.prompt.template).toMatch(
-        /^You are a Pathseeker Contract Dedup Minion\. Pathseeker has dispatched you during seek_walk to scan the quest's contracts\[\] for cross-slice near-duplicates and in-package pre-existing matches, then collapse them directly via modify-quest\. You run ONCE per seek_walk — no retry loop, no second pass\. Surface-scope minions wrote their slices in parallel during seek_synth; you are the first pass that sees the WHOLE contracts\[\] graph and reconciles drift the literal name-equality validator missed\.$/mu,
+        /^You are a Pathseeker Contract Dedup Minion\. Pathseeker has dispatched you during seek_synth Wave B \(after every surface-scope minion has finished writing its slice\) to scan the quest's contracts\[\] for cross-slice near-duplicates and in-package pre-existing matches, then collapse them directly via modify-quest\. You run ONCE per seek_synth — no retry loop, no second pass\. Surface-scope minions wrote their slices in parallel during seek_synth Wave A; you are the first pass that sees the WHOLE contracts\[\] graph and reconciles drift the literal name-equality validator missed\.$/mu,
       );
     });
 
@@ -36,7 +36,7 @@ describe('pathseekerContractDedupMinionStatics', () => {
     });
 
     it('VALID: template => Scope bullet enforces single-pass discipline', () => {
-      const needle = '- **Single-pass discipline.** You run exactly once during seek_walk,';
+      const needle = '- **Single-pass discipline.** You run exactly once during seek_synth,';
       const { template } = pathseekerContractDedupMinionStatics.prompt;
       const found = template.slice(
         template.indexOf(needle),

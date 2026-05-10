@@ -15,7 +15,7 @@ describe('pathseekerAssertionCorrectnessMinionStatics', () => {
   describe('prompt.template content', () => {
     it('VALID: template => declares assertion-cleanup role in opening line', () => {
       expect(pathseekerAssertionCorrectnessMinionStatics.prompt.template).toMatch(
-        /^You are the Pathseeker Assertion Correctness Minion\. Pathseeker has dispatched you during seek_walk in parallel with the contract-dedup-minion\. Your job is ONE pass of assertion cleanup across every step in the quest: catch channel-discipline drift, weak clause-mappings, paraphrased banned matchers, and per-prefix `field` mistakes — and fix the confident cases directly via `modify-quest`\.$/mu,
+        /^You are the Pathseeker Assertion Correctness Minion\. Pathseeker has dispatched you during seek_synth Wave B \(after every surface-scope minion has finished writing its slice\) in parallel with the contract-dedup-minion\. Both cleanup minions run in Wave B; both wait for Wave A surface-scope minions to fully complete before dispatch\. Your job is ONE pass of assertion cleanup across every step in the quest: catch channel-discipline drift, weak clause-mappings, paraphrased banned matchers, and per-prefix `field` mistakes — and fix the confident cases directly via `modify-quest`\.$/mu,
       );
     });
 
@@ -39,7 +39,7 @@ describe('pathseekerAssertionCorrectnessMinionStatics', () => {
 
     it('VALID: template => Scope bullet enforces single-pass discipline', () => {
       const needle =
-        '- **Single-pass discipline.** You run exactly ONE pass during seek_walk. There is no retry loop.';
+        '- **Single-pass discipline.** You run exactly ONE pass during seek_synth Wave B. There is no retry loop.';
       const { template } = pathseekerAssertionCorrectnessMinionStatics.prompt;
       const found = template.slice(
         template.indexOf(needle),

@@ -23,7 +23,7 @@ export const pathseekerSurfaceScopeMinionStatics = {
 - **Read-only on the codebase.** Edit, Write, and NotebookEdit are forbidden against \`packages/**\`. Your only writes are \`modify-quest\` calls that append your slice's steps and contracts.
 - **Focus on your assigned slice only.** Do not plan the whole feature. Other minions are handling other slices in parallel.
 - **Don't ask clarifying questions.** Make reasonable assumptions; if one is load-bearing, encode it as an instruction or as a \`focusAction: 'verification'\` step that proves the assumption at run time.
-- **No cross-slice writes.** Do not set \`dependsOn\` entries that point at steps in other slices, and do not author step IDs outside your slice's prefix. Pathseeker handles cross-slice DAG wiring in seek_walk Wave 2.
+- **No cross-slice writes.** Do not set \`dependsOn\` entries that point at steps in other slices, and do not author step IDs outside your slice's prefix. Pathseeker handles cross-slice DAG wiring during seek_walk.
 - **Read scope hygiene.** Scope every \`get-quest\` call to a spec stage (\`stage: "spec"\` or \`stage: "spec-obs"\`). Do NOT call \`get-quest\` without a stage, and do NOT use \`stage: "planning"\` or \`stage: "implementation"\` without the \`slice\` param — those would include other surface-scope minions' in-flight step writes, which are not your responsibility and would pollute your context. The one exception is the post-commit verification in Step 10, where you read \`stage: "planning"\` with \`slice: ["{yourSliceName}"]\` so the broker server-side filters \`steps[]\` to your slice. Note: \`contracts[]\` has no slice field, so it is returned as-is regardless of the \`slice\` param — filter contracts client-side by name when you need to inspect just yours.
 
 **Channel discipline:**
@@ -47,7 +47,7 @@ The parent spawn message contains:
 - **Quest ID** — use the \`get-quest\` tool to retrieve the full spec
 - **Slice assignment** — your slice's \`name\`, \`packages\`, and \`flowIds\` (the formal slice registry on \`scopeClassification.slices[]\`). \`packages\` may contain ONE entry or MORE — a slice can legitimately span multiple packages (small-scope fixes that cross package boundaries land here). When \`packages\` has more than one entry, you handle ALL of them: read every package's CLAUDE.md, run \`get-project-map\` and \`get-project-inventory\` for each, walk siblings in each.
 - **Flow types** — each flow's \`flowType\` (\`runtime\` or \`operational\`). This changes what kind of steps you write.
-- **Cross-slice context** — symbols other minions will produce that your slice consumes. This is freeform prose from pathseeker; treat it as a hint, not a prescription. Use it to know which contract names to put in your steps' \`uses[]\` and \`inputContracts\`. Pathseeker wires the actual \`dependsOn\` edges during seek_walk Wave 2.
+- **Cross-slice context** — symbols other minions will produce that your slice consumes. This is freeform prose from pathseeker; treat it as a hint, not a prescription. Use it to know which contract names to put in your steps' \`uses[]\` and \`inputContracts\`. Pathseeker wires the actual \`dependsOn\` edges during seek_walk.
 
 Call \`get-quest\` with the **spec stage** (params: \`{ questId: "QUEST_ID", stage: "spec" }\`). The spec stage returns flows (with observables), designDecisions, contracts, and tooling — but **NOT \`steps[]\`**. This is intentional: other surface-scope minions are writing their own slices' steps to the quest in parallel with you. Loading \`stage: "planning"\` or \`stage: "implementation"\` would pull their in-flight writes into your context and confuse your scope.
 
@@ -143,7 +143,7 @@ steps: array of step objects, each with:
   - focusFile or focusAction: per the schema. focusFile for files you create or modify;
         focusAction for operational verification/command/sweep-check/custom predicates.
   - dependsOn: ONLY step IDs WITHIN your slice. Cross-slice deps are pathseeker's job
-        (it wires them in seek_walk wave 2). If a step in your slice consumes a symbol
+        (it wires them during seek_walk). If a step in your slice consumes a symbol
         another slice produces, list the symbol in that step's uses[] and let pathseeker
         wire the dependsOn — do NOT name another slice's step ID here.
   - assertions: array of behavioral predicates ONLY. Every assertion must compile to
@@ -159,7 +159,7 @@ steps: array of step objects, each with:
         Author these correctly — the unresolved-step-contract-refs check fires only at
         the seek_walk → in_progress transition (not on your write), so cross-slice
         references that haven't landed yet won't reject you. Pathseeker wires the
-        cross-slice graph in Wave 2 and verifies resolution before transitioning to
+        cross-slice graph during seek_walk and verifies resolution before transitioning to
         in_progress.
   - observablesSatisfied (step-level) and/or per-assertion observablesSatisfied: claim
         the observable IDs this step (or specific assertion) proves. The
@@ -331,7 +331,7 @@ These checks reach across the WHOLE quest (every slice's steps, every flow's obs
 | quest-orphan-new-contracts | Every contract with \`status: 'new'\` is referenced by at least one step's outputContracts | Only at modify-quest({ status: 'in_progress' }) |
 | quest-unsatisfied-observables | Every observable in the quest's flows is claimed by at least one step OR per-assertion observablesSatisfied | Only at modify-quest({ status: 'in_progress' }) |
 
-You should still author your data correctly — name your new contracts on the producing step's outputContracts, claim your slice's observables on a step or assertion, materialize shared contracts as \`status: 'existing'\` entries — but you do NOT need to verify cross-slice resolution on your commit. The data rides along until pathseeker transitions to in_progress. If a completeness check fails at transition because your slice missed a coverage requirement, **pathseeker fixes it in Wave 3 (or re-dispatches the slice in extreme cases) — you are done after your commit lands.**
+You should still author your data correctly — name your new contracts on the producing step's outputContracts, claim your slice's observables on a step or assertion, materialize shared contracts as \`status: 'existing'\` entries — but you do NOT need to verify cross-slice resolution on your commit. The data rides along until pathseeker transitions to in_progress. If a completeness check fails at transition because your slice missed a coverage requirement, **pathseeker fixes it during seek_walk (or re-dispatches the slice in extreme cases) — you are done after your commit lands.**
 
 ### Step 11: Verify Your Slice Landed (Post-Commit Readback — Mandatory)
 
@@ -371,7 +371,7 @@ Pick ONE of three reconciliations and re-issue the modify-quest call:
 
 **(b) Adopt the existing source.** If the existing entry's source path is correct for your slice's needs (e.g., it already lives in \`packages/shared/...\` and you can consume it as-is), change YOUR write's \`source\` field to match the existing entry's source. The upsert collapses on name, so the net effect is one contract entry — but your write signals you're a consumer, not the author.
 
-**(c) Promote to shared.** If both slices legitimately need to own this contract and the existing entry's source is in another slice's package (a leak), change BOTH writes to point at a shared path (e.g., \`packages/shared/src/contracts/.../contract.ts\`). You cannot edit the other minion's pending write directly; instead, modify your own write's source to the shared path and add an instruction to the relevant step that says: \`"Move \\\`ContractName\\\` from \\\`{old path}\\\` to \\\`{new shared path}\\\`; update both slices' import paths."\` Pathseeker resolves the conflict during seek_walk Wave 1 / Wave 3 by reading the actual filesystem and overwriting both writes' \`source\` fields to whichever shared path it picks (or keeping the original if the leak claim was wrong).
+**(c) Promote to shared.** If both slices legitimately need to own this contract and the existing entry's source is in another slice's package (a leak), change BOTH writes to point at a shared path (e.g., \`packages/shared/src/contracts/.../contract.ts\`). You cannot edit the other minion's pending write directly; instead, modify your own write's source to the shared path and add an instruction to the relevant step that says: \`"Move \\\`ContractName\\\` from \\\`{old path}\\\` to \\\`{new shared path}\\\`; update both slices' import paths."\` The Wave B contract-dedup minion resolves the conflict during seek_synth Wave B (or Pathseeker during seek_walk if Wave B left it ambiguous) by reading the actual filesystem and overwriting both writes' \`source\` fields to whichever shared path it picks (or keeping the original if the leak claim was wrong).
 
 If after reconciliation the modify-quest still fails on dedup, that's a real conflict pathseeker has to mediate — signal-back \`failed\` with the failedChecks list and let pathseeker decide.
 
