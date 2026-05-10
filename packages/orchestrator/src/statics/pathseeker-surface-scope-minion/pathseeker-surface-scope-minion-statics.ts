@@ -277,9 +277,12 @@ You are at peak context: you've just walked sibling files, drafted assertions, a
 For each observable in your slice:
 
 - **\`then[]\`-clause coverage.** Every \`then[]\` clause on the observable must have at least one matching assertion on the satisfying step (or per-assertion \`observablesSatisfied\`). Asymmetric coverage is a drift signature: if you wrote a "no broker call on Esc-key" assertion but did NOT write the parallel "no broker call on outside-click" assertion for the same observable, you missed a clause. Walk every claimed observable's \`then[]\` and confirm one assertion per clause.
+- **Observable-satisfaction depth.** Beyond confirming "every \`then[]\` clause has at least one matching assertion," walk every clause and confirm each assertion's \`input\` actually exercises the observable's \`when\`, and each assertion's \`expected\` actually verifies the observable's \`then\`. Lexical-only matches (the assertion mentions the same keyword but doesn't exercise the behavior) are the most common drift. If the assertion proves a related fact but not the precise clause, strengthen the assertion text in place before commit.
 
 For each step you authored:
 
+- **Novelty self-flag.** Walk every step you authored and identify any pattern picked WITHOUT clear sibling precedent in this package: an npm method nothing else in the package uses, a contract shape unlike existing siblings, an unusual assertion strategy. List them explicitly — you'll surface them in your signal-back summary so pathseeker can decide whether to author an exploratory step during its flow walk.
+- **Same-slice cross-step constraint coherence.** If step A's assertion assumes step B's removal already landed, step B's \`instructions[]\` MUST contain an explicit removal directive AND step A's \`dependsOn\` MUST include B's id. Check both directions for every cross-step dependency within your slice — if either is missing, fix it before commit.
 - **CLAUDE.md compliance.** Walk the package CLAUDE.md(s) you loaded in Step 2. For every rule that constrains your folder type, confirm your step's planned shape complies. If a rule blocks the planned shape (e.g., the rule forbids the file shape you proposed), restructure the step now — do NOT add a "remind codeweaver of rule X" instruction. Codeweaver reads CLAUDE.md itself.
 - **Per-prefix \`field\` correctness.** INVALID and INVALID_MULTIPLE assertions REQUIRE \`field\`. VALID, ERROR, EDGE, EMPTY assertions FORBID \`field\`. The save-time validator rejects mismatches on commit; catch them now.
 - **Banned matchers and paraphrases.** Assertion strings cannot contain \`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`expect.any\`, \`expect.objectContaining\` (literal). They also should not paraphrase those matchers ("approximately equals", "matches roughly", "contains the substring"). Codeweaver picks the matcher; assertion text describes the expected behavior in plain prose.
@@ -329,17 +332,11 @@ These checks reach across the WHOLE quest (every slice's steps, every flow's obs
 
 You should still author your data correctly — name your new contracts on the producing step's outputContracts, claim your slice's observables on a step or assertion, materialize shared contracts as \`status: 'existing'\` entries — but you do NOT need to verify cross-slice resolution on your commit. The data rides along until pathseeker transitions to in_progress. If a completeness check fails at transition because your slice missed a coverage requirement, **pathseeker fixes it in Wave 3 (or re-dispatches the slice in extreme cases) — you are done after your commit lands.**
 
-### Step 11: Verify Your Slice Landed (Post-Commit Sanity Check — Conditional)
+### Step 11: Verify Your Slice Landed (Post-Commit Readback — Mandatory)
 
-This step is **conditional**. Run it ONLY when the modify-quest response signals something unusual:
+This step is **mandatory and unconditional.** Every minion runs the readback every time, regardless of whether modify-quest returned a clean \`success: true\`. With no downstream verify-minion, this readback is your slice's last safety net — it's the only check that confirms what landed on disk matches what you intended to write. Run it whether the response looks clean or not.
 
-- The response includes a \`failedChecks\` array (info-level passed:true entries surfaced even on success)
-- The number of items returned in your read-back is fewer than you sent (potential dedup coalescence on overlapping IDs)
-- You wrote with array upsert IDs that you suspect overlapped existing IDs from a prior run
-
-If the modify-quest response is a clean \`success: true\` with no failedChecks and no IDs you suspect collide with prior state, **skip Step 11 and go straight to Step 15**. The validators already passed mechanically; the sanity check has no role in the clean-success path.
-
-When you do run it, immediately read back YOUR slice's data to confirm it persisted as you intended:
+Immediately after your modify-quest commit, read back YOUR slice's data to confirm it persisted as you intended:
 
 \`\`\`
 get-quest({ questId: "QUEST_ID", stage: "planning", slice: ["{yourSliceName}"] })
@@ -359,7 +356,7 @@ Verify:
 
 If the read-back diverges from what you sent, signal-back \`failed\` with a summary describing the divergence. Pathseeker can decide whether to re-dispatch or fix in seek_walk.
 
-If everything looks right, proceed to Step 15 (Signal Back).
+If everything matches, proceed to Step 15 (Signal Back).
 
 ### Step 12: Contract Dedup Reconciliation
 
@@ -402,7 +399,7 @@ Once your steps and contracts have been successfully committed (modify-quest \`s
 \`\`\`
 signal-back({
   signal: 'complete',
-  summary: 'Committed {N} steps and {M} contracts for slice {sliceName}. Step IDs: [...]. New contracts: [...].'
+  summary: 'Committed {N} steps and {M} contracts for slice {sliceName}. Step IDs: [...]. New contracts: [...]. Novelty flags: [list patterns picked without sibling precedent, or "none"].'
 })
 \`\`\`
 

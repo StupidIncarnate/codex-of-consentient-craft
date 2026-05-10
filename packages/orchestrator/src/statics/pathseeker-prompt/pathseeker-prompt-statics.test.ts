@@ -82,8 +82,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_synth section => defaults corrections to seek_walk Wave 3', () => {
-    const needle = 'The default is to defer corrections to seek_walk Wave 3';
+  it('VALID: seek_synth section => defaults corrections to seek_walk Phase 2', () => {
+    const needle = 'The default is to defer corrections to seek_walk Phase 2';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -126,8 +126,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Sweep 1 semantic similarity', () => {
-    const needle = '#### Sweep 1 — Semantic similarity';
+  it('VALID: seek_walk section => contains Phase 1 cleanup minion dispatch', () => {
+    const needle = '#### Phase 1 — Dispatch cleanup minions in parallel';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -137,8 +137,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Sweep 2 cross-slice glue review', () => {
-    const needle = '#### Sweep 2 — Cross-slice glue review';
+  it('VALID: seek_walk Phase 1 => dispatches pathseeker-contract-dedup-minion', () => {
+    const needle = "agent: 'pathseeker-contract-dedup-minion'";
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -148,8 +148,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => contains Sweep 3 build-the-map header', () => {
-    const needle = '#### Sweep 3 — Build the map';
+  it('VALID: seek_walk Phase 1 => dispatches pathseeker-assertion-correctness-minion', () => {
+    const needle = "agent: 'pathseeker-assertion-correctness-minion'";
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -159,8 +159,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Sweep 3 => walks every step in every slice', () => {
-    const needle = 'Walk every step in every slice';
+  it('VALID: seek_walk Phase 1 => requires waiting for both minions before Phase 2', () => {
+    const needle = 'Wait for both minions to signal';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -170,7 +170,183 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Wave 3 => declares pathseeker authority over every step in every slice is unconditional', () => {
+  it('VALID: seek_walk section => contains Phase 2 single full-flow sweep', () => {
+    const needle = '#### Phase 2 — Single full-flow sweep';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => traces entry node to exit node', () => {
+    const needle = 'Trace entry node → exit node';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => names upstream glue confirmation', () => {
+    const needle = '**(a) Upstream glue.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => names downstream glue confirmation', () => {
+    const needle = '**(b) Downstream glue.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => names requirement-reading correctness', () => {
+    const needle = '**(c) Requirement-reading correctness.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => names CLAUDE.md / project-standards integrity check', () => {
+    const needle = '**(d) CLAUDE.md / project-standards integrity**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => authors exploratory steps for novelty inline', () => {
+    const needle = 'author an exploratory step directly in your final commit';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => adds missing steps the minion did not see', () => {
+    const needle = "add a missing step the minion didn't see";
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Phase 2 => allows whole-slice rewrite when a minion misunderstood', () => {
+    const needle = 'Whole-slice rewrite (rare).';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk exit => transitions directly to in_progress', () => {
+    const needle = 'status: "in_progress"';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk exit => walkFindings example uses filesRead field', () => {
+    const needle = 'filesRead: [';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk exit => walkFindings example uses structuralIssuesFound field', () => {
+    const needle = 'structuralIssuesFound: [';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk exit => walkFindings example uses planPatches field', () => {
+    const needle = 'planPatches: [';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk exit => walkFindings example uses verifiedAt field', () => {
+    const needle = 'verifiedAt:';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: status lifecycle preamble => collapses to three seek statuses', () => {
+    const needle = 'seek_scope → seek_synth → seek_walk → in_progress';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: status lifecycle preamble => walkFindings required at seek_walk to in_progress transition', () => {
+    const needle = 'REQUIRED at `seek_walk → in_progress` transition';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: pathseeker authority => declares authority over every step in every slice is unconditional', () => {
     const needle =
       "Pathseeker's authority over every step in every slice is unconditional and applies at every status";
     const { template } = pathseekerPromptStatics.prompt;
@@ -182,42 +358,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk Sweep 3 => names within-slice channel discipline as a minion self-check', () => {
-    const needle = 'Within-slice channel discipline';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_walk Sweep 3 => adds missing steps the minion did not see', () => {
-    const needle = "add a missing step the minion didn't see";
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_walk Sweep 3 => allows whole-slice rewrite when a minion misunderstood', () => {
-    const needle = 'Whole-slice rewrite (rare).';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: workflow paragraph => walks every slice while building institutional memory', () => {
-    const needle =
-      'you walk every slice — building the institutional memory of every focus file, every cross-slice connection, every architectural surprise';
+  it('VALID: workflow paragraph => walks every flow end-to-end', () => {
+    const needle = 'tracing each user flow entry→exit, confirming the parallel minions';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -229,83 +371,6 @@ describe('pathseekerPromptStatics', () => {
 
   it('VALID: boundaries section => permits correcting a landed slice at any phase', () => {
     const needle = 'Once a minion has landed, you may correct its slice at any phase.';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => declares the section header', () => {
-    const needle = '### Status: `seek_plan`';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => spawns the new pathseeker-verify-minion', () => {
-    const needle = 'pathseeker-verify-minion';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => states verify-minion runs once', () => {
-    const needle = 'It runs ONCE';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => forbids spawning a second verify-minion', () => {
-    const needle = 'Do NOT spawn a second verify-minion';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => handles noveltyConcerns', () => {
-    const needle = 'noveltyConcerns';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => references recommendsExploratory flag', () => {
-    const needle = 'recommendsExploratory';
-    const { template } = pathseekerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: seek_plan section => spawns Explore subagent for novelty research', () => {
-    const needle = 'subagent_type: "Explore"';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -491,8 +556,8 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_plan section => mentions completeness validators fire on transition', () => {
-    const needle = 'completeness validators fire on this call';
+  it('VALID: seek_walk exit => mentions completeness validators fire on transition', () => {
+    const needle = 'completeness validators fire on this transition';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

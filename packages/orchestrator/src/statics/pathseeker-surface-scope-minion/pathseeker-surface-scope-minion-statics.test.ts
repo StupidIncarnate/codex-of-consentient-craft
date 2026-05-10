@@ -177,6 +177,72 @@ describe('pathseekerSurfaceScopeMinionStatics', () => {
       expect(found).toBe(needle);
     });
 
+    it('VALID: template => Step 9 contains observable-satisfaction depth bullet', () => {
+      const needle =
+        "- **Observable-satisfaction depth.** Beyond confirming \"every `then[]` clause has at least one matching assertion,\" walk every clause and confirm each assertion's `input` actually exercises the observable's `when`, and each assertion's `expected` actually verifies the observable's `then`.";
+      const { template } = pathseekerSurfaceScopeMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => Step 9 contains novelty self-flag bullet', () => {
+      const needle =
+        '- **Novelty self-flag.** Walk every step you authored and identify any pattern picked WITHOUT clear sibling precedent in this package';
+      const { template } = pathseekerSurfaceScopeMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => Step 9 contains same-slice cross-step constraint coherence bullet', () => {
+      const needle =
+        "- **Same-slice cross-step constraint coherence.** If step A's assertion assumes step B's removal already landed, step B's `instructions[]` MUST contain an explicit removal directive AND step A's `dependsOn` MUST include B's id.";
+      const { template } = pathseekerSurfaceScopeMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => Step 11 header declares mandatory unconditional readback', () => {
+      expect(pathseekerSurfaceScopeMinionStatics.prompt.template).toMatch(
+        /^### Step 11: Verify Your Slice Landed \(Post-Commit Readback — Mandatory\)$/mu,
+      );
+    });
+
+    it('VALID: template => Step 11 opener states the readback is mandatory and unconditional', () => {
+      const needle =
+        'This step is **mandatory and unconditional.** Every minion runs the readback every time, regardless of whether modify-quest returned a clean `success: true`.';
+      const { template } = pathseekerSurfaceScopeMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => Step 15 signal-back summary template includes Novelty flags', () => {
+      const needle =
+        'New contracts: [...]. Novelty flags: [list patterns picked without sibling precedent, or "none"].';
+      const { template } = pathseekerSurfaceScopeMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
     it('VALID: template => Quest Context section ends with $ARGUMENTS placeholder', () => {
       expect(pathseekerSurfaceScopeMinionStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
     });
