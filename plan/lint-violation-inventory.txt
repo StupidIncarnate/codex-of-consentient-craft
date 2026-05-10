@@ -1,85 +1,0 @@
-
-> dungeonmaster@0.1.0-beta.1 ward
-> dungeonmaster-ward --only lint
-
-lint        @dungeonmaster/config running...lint        @dungeonmaster/cli   running...lint        @dungeonmaster/eslint-plugin running...lint        @dungeonmaster/hooks running...[Klint        @dungeonmaster/cli   PASS  75 files, 75 discovered (9.3s)
-[K
-lint        @dungeonmaster/local-eslint running...[Klint        @dungeonmaster/config PASS  98 files, 98 discovered (11.2s)
-[K
-lint        @dungeonmaster/mcp   running...[Klint        @dungeonmaster/local-eslint PASS  42 files, 42 discovered (8.3s)
-[K
-lint        @dungeonmaster/shared running...[Klint        @dungeonmaster/hooks PASS  341 files, 341 discovered (18.9s)
-[K
-lint        @dungeonmaster/server running...[Klint        @dungeonmaster/eslint-plugin PASS  580 files, 580 discovered (26.6s)
-[K
-lint        @dungeonmaster/orchestrator running...[Klint        @dungeonmaster/mcp   PASS  440 files, 440 discovered (21.2s)
-[K
-lint        @dungeonmaster/testing running...[Klint        @dungeonmaster/server PASS  376 files, 376 discovered (18.9s)
-[K
-lint        @dungeonmaster/ward  running...[Klint        @dungeonmaster/shared PASS  722 files, 722 discovered (27.1s)
-[K
-lint        @dungeonmaster/web   running...[Klint        @dungeonmaster/testing PASS  349 files, 349 discovered (22.0s)
-[K
-[Klint        @dungeonmaster/ward  PASS  320 files, 320 discovered (19.0s)
-[K
-[Klint        @dungeonmaster/orchestrator FAIL  1049 files, 24 errors, 1049 discovered (48.8s)
-[K
-lint        @dungeonmaster/tooling running...[Klint        @dungeonmaster/web   PASS  631 files, 631 discovered (31.0s)
-[K
-[Klint        @dungeonmaster/tooling PASS  78 files, 78 discovered (7.5s)
-[K
-[K
-run: 1777205098157-9c9e  (83.9s)
-lint:      FAIL  13 packages (5093 files passed/8 files failed, 5101 discovered)  @dungeonmaster/orchestrator (24)  48.8s
-
---- lint ---
-packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 39)
-packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts
-  @typescript-eslint/no-unused-vars 'ProcessSyncEventLayerBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 39)
-packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; loadQuest: ({ questId }: { questId: string & BRAND<"QuestId">; }) => Promise<{ status: "pending" | "complete" | "created" | "explore_flows" | ... 15 more ... | "abandoned"; ... 20 more ...; smoketestResults?: { ...; }[] | undefined; } | undefined>; removeByQuestId: ({ ...`. (line 45)
-packages/orchestrator/src/brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 48)
-packages/orchestrator/src/brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy.ts
-  @typescript-eslint/no-unused-vars 'SmoketestClearPriorQuestsBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 48)
-packages/orchestrator/src/brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questSource: "user" | "smoketest-mcp" | "smoketest-signals" | "smoketest-orchestration"; }) => Promise<{ deletedCount: number & BRAND<"DeletedCount">; }>) | undefined`. (line 54)
-packages/orchestrator/src/brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 51)
-packages/orchestrator/src/brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts
-  @typescript-eslint/no-unused-vars 'SmoketestEnsureGuildBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 51)
-packages/orchestrator/src/brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `(() => Promise<{ guildId: string & BRAND<"GuildId">; }>) | undefined`. (line 57)
-packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in brokers/ files. Define types in contracts/ and import them. (line 63)
-packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts
-  @typescript-eslint/no-unused-vars 'ProcessTerminalEventLayerBrokerModule' is defined but never used. Allowed unused vars must match /^_/u. (line 63)
-packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; entry: { assertions: readonly ({ expected: "pending" | "complete" | "created" | "explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | ... 12 more ... | "abandoned"; kind: "quest-status"; } | { ...; } | { ...; } | { ...; })[]; isOrchestration: bo...`. (line 69)
-packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 68)
-packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts
-  @typescript-eslint/no-unused-vars 'EnqueueBundledSuiteLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 68)
-packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { suite: "mcp" | "signals"; questSource: "user" | "smoketest-mcp" | "smoketest-signals" | "smoketest-orchestration"; guildId: string & BRAND<"GuildId">; guildSlug: string & BRAND<...>; }) => Promise<...>) | undefined`. (line 74)
-packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 64)
-packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts
-  @typescript-eslint/no-unused-vars 'EnqueueOrchestrationScenarioLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 64)
-packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { scenario: { name: string & BRAND<"SmoketestScenarioName">; assertions: ({ expected: "pending" | "complete" | "created" | "explore_flows" | "review_flows" | "flows_approved" | ... 13 more ... | "abandoned"; kind: "quest-status"; } | { ...; } | { ...; } | { ...; })[]; caseId: string & BRAND<...>; blueprint...`. (line 70)
-packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 38)
-packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.proxy.ts
-  @typescript-eslint/no-unused-vars 'LoadQuestLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 38)
-packages/orchestrator/src/responders/smoketest/run/load-quest-layer-responder.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; }) => Promise<{ status: "pending" | "complete" | "created" | "explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | ... 12 more ... | "abandoned"; ... 20 more ...; smoketestResults?: { ...; }[] | undefined; }>) | undefined`. (line 44)
-packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts
-  @dungeonmaster/ban-adhoc-types Ad-hoc interface definitions are forbidden in responders/ files. Define types in contracts/ and import them. (line 60)
-packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts
-  @typescript-eslint/no-unused-vars 'OverwriteWorkItemsLayerResponderModule' is defined but never used. Allowed unused vars must match /^_/u. (line 60)
-packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts
-  @typescript-eslint/no-unsafe-argument Unsafe argument of type error typed assigned to a parameter of type `((args_0: { questId: string & BRAND<"QuestId">; workItems: readonly { status: "pending" | "failed" | "complete" | "in_progress" | "queued" | "skipped"; id: string & BRAND<"QuestWorkItemId">; ... 16 more ...; actualSignal?: "failed" | ... 2 more ... | undefined; }[]; }) => Promise<...>) | undefined`. (line 66)
-
-Full error details: npm run ward -- detail 1777205098157-9c9e <filePath>
