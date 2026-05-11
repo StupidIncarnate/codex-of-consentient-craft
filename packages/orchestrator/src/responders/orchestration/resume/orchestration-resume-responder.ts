@@ -81,6 +81,16 @@ export const OrchestrationResumeResponder = async ({
 
   const reloaded = reloadedResult.quest;
 
+  const announcementProcessId = processIdContract.parse(`proc-resume-${crypto.randomUUID()}`);
+  orchestrationEventsState.emit({
+    type: 'quest-resumed',
+    processId: announcementProcessId,
+    payload: {
+      questId,
+      restoredStatus,
+    },
+  });
+
   // Short-circuit if a process is already running for this quest.
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId: reloaded.id });
   if (existingProcess) {

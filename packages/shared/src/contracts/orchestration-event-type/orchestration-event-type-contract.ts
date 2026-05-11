@@ -19,6 +19,8 @@ export const orchestrationEventTypeContract = z.enum([
   'quest-created',
   'quest-modified',
   'quest-persisted',
+  'quest-paused',
+  'quest-resumed',
   'clarification-request',
   'chat-history-complete',
   'quest-session-linked',

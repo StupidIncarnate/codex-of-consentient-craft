@@ -7,10 +7,11 @@
  */
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
-import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questPauseBroker } from '../../../brokers/quest/pause/quest-pause-broker';
+import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
 export const OrchestrationPauseResponder = async ({
@@ -28,6 +29,10 @@ export const OrchestrationPauseResponder = async ({
 
   const { quest } = getResult;
 
+  const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
+  const announcementProcessId =
+    existingProcess?.processId ?? processIdContract.parse(`proc-pause-${crypto.randomUUID()}`);
+
   const result = await questPauseBroker({
     questId,
     previousStatus: quest.status,
@@ -40,6 +45,15 @@ export const OrchestrationPauseResponder = async ({
   if (!result.paused) {
     throw new Error(`Failed to pause quest: ${questId}`);
   }
+
+  orchestrationEventsState.emit({
+    type: 'quest-paused',
+    processId: announcementProcessId,
+    payload: {
+      questId,
+      previousStatus: quest.status,
+    },
+  });
 
   return result;
 };

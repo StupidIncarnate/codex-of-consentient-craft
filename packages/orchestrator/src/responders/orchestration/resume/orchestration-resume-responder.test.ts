@@ -62,6 +62,27 @@ describe('OrchestrationResumeResponder', () => {
     });
   });
 
+  describe('quest-resumed event emission on resume', () => {
+    it('VALID: {paused quest resumed successfully} => emits exactly one quest-resumed event on orchestrationEventsState announcing the resume', async () => {
+      const questId = QuestIdStub({ value: 'resume-emits-event' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const emittedQuestIds = proxy
+        .getEmittedResumeEvents()
+        .map((emit) => String(emit.payload.questId));
+
+      expect(emittedQuestIds).toStrictEqual([String(questId)]);
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {quest not found} => throws Quest not found', async () => {
       const questId = QuestIdStub({ value: 'nonexistent' });

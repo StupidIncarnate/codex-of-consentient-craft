@@ -15,6 +15,7 @@ import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
+import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
@@ -30,13 +31,15 @@ export const OrchestrationResumeResponderProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
   getRegisteredProcessIds: () => readonly ProcessId[];
+  getEmittedResumeEvents: () => readonly CapturedOrchestrationEmit[];
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildGetProxy = guildGetBrokerProxy();
   questOrchestrationLoopBrokerProxy();
-  orchestrationEventsStateProxy();
+  const eventsProxy = orchestrationEventsStateProxy();
+  const emittedResumeEvents = eventsProxy.captureEmits({ type: 'quest-resumed' });
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
@@ -127,5 +130,7 @@ export const OrchestrationResumeResponderProxy = (): {
     },
 
     getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),
+
+    getEmittedResumeEvents: (): readonly CapturedOrchestrationEmit[] => emittedResumeEvents,
   };
 };

@@ -37,6 +37,23 @@ describe('OrchestrationPauseResponder', () => {
     });
   });
 
+  describe('quest-paused event emission on pause', () => {
+    it('VALID: {quest paused successfully} => emits exactly one quest-paused event on orchestrationEventsState', async () => {
+      const questId = QuestIdStub({ value: 'pause-emits-event' });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
+      const proxy = OrchestrationPauseResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const emittedQuestIds = proxy
+        .getEmittedPauseEvents()
+        .map((emit) => String(emit.payload.questId));
+
+      expect(emittedQuestIds).toStrictEqual([String(questId)]);
+    });
+  });
+
   describe('error cases (responder-specific behavior)', () => {
     it('ERROR: {quest not found} => throws "Quest not found"', async () => {
       const questId = QuestIdStub({ value: 'pause-missing' });
