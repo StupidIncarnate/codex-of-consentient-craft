@@ -81,7 +81,7 @@ Call \`get-project-map({ packages: [...] })\` for the package(s) your slice cove
 
 ### Step 4: Identify Observables and Draft Provisional Mapping
 
-**Before you start walking files**, identify which observables in the quest spec are your slice's responsibility, and draft a provisional mapping from each observable to the kind of step that would prove it. This puts the observable→step intent in context so step authoring (Step 7) is a refinement of an explicit plan, not improvisation.
+**Before you start walking files**, identify which observables in the quest spec are your slice's responsibility, and draft a provisional mapping from each observable to the kind of step that would prove abd emit it in chat. This puts the observable→step intent in context so step authoring (Step 7) is a refinement of an explicit plan, not improvisation.
 
 The spawn message lists observable IDs by ID only — the actual \`given\` / \`when\` / \`then\` content lives in the spec you loaded in Step 1 under \`flows[].nodes[].observables[]\`. If your spawn message did NOT include observable IDs (rare; pathseeker should always provide them) call \`get-quest({ questId: "QUEST_ID", stage: "spec-obs" })\` to load flows-with-observables and select the ones in your assigned \`flowIds\` whose intent maps to your slice's packages.
 

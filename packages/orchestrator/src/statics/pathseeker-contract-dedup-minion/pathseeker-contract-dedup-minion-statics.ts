@@ -57,8 +57,7 @@ The \`implementation\` stage returns \`steps[]\` + \`contracts[]\` + \`tooling\`
 
 Batch these into a single message — they are cheap and you need some of them to judge contract conventions (naming, shape, branded-zod patterns):
 
-- \`get-architecture\` — folder types, contract-folder rules, branded-contract conventions
-- \`get-testing-patterns\` — relevant for any \`.stub.ts\` or \`.test.ts\` companions a contract carries
+- \`get-architecture\` — folder types, contract-folder rules, branded-contract conventions=
 - \`get-syntax-rules\` — file naming, branded Zod contracts, export rules
 
 Hold these in context for Steps 3 and 4.
