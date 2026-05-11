@@ -129,13 +129,14 @@ test.describe('Session ID Routing', () => {
         // No explicit replay needed: navigateToQuest sends subscribe-quest which triggers
         // server-side replay-on-subscribe for all work item sessions automatically.
 
-        // Find the execution row for this role and expand it
+        // Terminal-no-steps execution panels auto-expand every row so users read
+        // history without clicking — assert the row is expanded without driving a
+        // click that would now toggle it closed.
         const roleRow = page.getByTestId('execution-row-layer-widget').filter({
           has: page
             .getByTestId('execution-row-role-badge')
             .filter({ hasText: `[${role.toUpperCase()}]` }),
         });
-        await roleRow.first().getByTestId('execution-row-header').click();
 
         await expect(roleRow.first().getByTestId('execution-row-expanded')).toBeVisible({
           timeout: PANEL_TIMEOUT,
@@ -319,16 +320,11 @@ test.describe('Session ID Routing', () => {
     // No explicit replay needed: navigateToQuest sends subscribe-quest which triggers
     // server-side replay-on-subscribe for all work item sessions automatically.
 
-    // Expand first codeweaver row
-    await cwRows.nth(0).getByTestId('execution-row-header').click();
-
+    // Terminal-no-steps execution panels auto-expand every row so users can read
+    // history without clicking. Both codeweaver rows are already expanded.
     await expect(cwRows.nth(0).getByTestId('execution-row-expanded')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
-
-    // Expand second codeweaver row
-    await cwRows.nth(1).getByTestId('execution-row-header').click();
-
     await expect(cwRows.nth(1).getByTestId('execution-row-expanded')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });

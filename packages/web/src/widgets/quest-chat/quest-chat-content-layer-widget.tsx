@@ -38,6 +38,7 @@ import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broke
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
@@ -95,6 +96,12 @@ export const QuestChatContentLayerWidget = ({
     }
   }, [submitting, isStreaming, entriesBySession]);
 
+  // Synthetic user entries (from sendMessage/submitClarifyAnswers) live under
+  // SYNTHETIC_SESSION_KEY in the binding; agent entries live under the live
+  // sessionId bucket. Per-bucket sort alone respects Map insertion order across
+  // sessions, which pushes the user answer to the end whenever it was inserted
+  // after the agent's bucket already exists. Sort GLOBALLY by timestamp here so
+  // streaming matches the replay path (which lands every entry in the same bucket).
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];
     for (const list of entriesBySession.values()) {
@@ -103,7 +110,7 @@ export const QuestChatContentLayerWidget = ({
     const localFiltered = localEntries.filter(
       (entry) => !hasEquivalentChatEntryGuard({ entry, among: all }),
     );
-    return [...localFiltered, ...all];
+    return sortChatEntriesByTimestampTransformer({ entries: [...localFiltered, ...all] });
   }, [entriesBySession, localEntries]);
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);

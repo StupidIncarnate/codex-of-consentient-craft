@@ -130,13 +130,24 @@ export const ExecutionPanelWidget = ({
     wardResultsById.set(wr.id, wr);
   }
 
+  // Terminal-quest-no-steps (hasWorkItemsOnly) is the abandon-early case:
+  // OrchestrationAbandonResponder marks every non-terminal work item as
+  // `skipped` while transitioning to `abandoned`, so an abandon during the
+  // chaoswhisperer phase produces { status: 'abandoned', workItems:
+  // [{ role: 'chaoswhisperer', status: 'skipped', sessionId }] }. Filtering
+  // skipped items out (the active-quest default) would hide the only row that
+  // could display the chaos transcript, leaving a blank panel even though the
+  // server is replaying chat-output for that sessionId. For active-quest and
+  // step-driven terminal renders, drain+skip recoveries still hide their
+  // skipped items so the visible chain reflects what actually ran.
   const floorGroups = useMemo(
     () =>
       workItemsToFloorGroupsTransformer({
         workItems: quest.workItems,
         allWorkItems: quest.workItems,
+        includeSkipped: hasWorkItemsOnly,
       }),
-    [quest.workItems],
+    [quest.workItems, hasWorkItemsOnly],
   );
 
   // The synthetic "Planning steps..." pathseeker row in the planning branch
@@ -360,6 +371,7 @@ export const ExecutionPanelWidget = ({
                           dependsOn={wiDepLabels as unknown as DependencyLabel[]}
                           isAdhoc={wi.insertedBy !== undefined}
                           entries={wiEntries}
+                          autoExpand={true}
                           attempt={wi.attempt}
                           maxAttempts={wi.maxAttempts}
                           startedAt={wi.startedAt}

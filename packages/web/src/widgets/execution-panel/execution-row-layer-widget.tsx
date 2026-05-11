@@ -44,6 +44,7 @@ export interface ExecutionRowLayerWidgetProps {
   summary?: WorkItem['summary'];
   entries?: ChatEntry[];
   isStreaming?: boolean;
+  autoExpand?: boolean;
   attempt?: WorkItem['attempt'];
   maxAttempts?: WorkItem['maxAttempts'];
   startedAt?: WorkItem['startedAt'];
@@ -99,6 +100,7 @@ export const ExecutionRowLayerWidget = ({
   summary,
   entries,
   isStreaming,
+  autoExpand,
   attempt,
   maxAttempts,
   startedAt,
@@ -113,7 +115,8 @@ export const ExecutionRowLayerWidget = ({
   const { colors } = emberDepthsThemeStatics;
   const hasEntries = entries !== undefined && entries.length > 0;
   const [expanded, setExpanded] = useState(
-    status === ('in_progress' as ExecutionStepStatus) && hasEntries,
+    (status === ('in_progress' as ExecutionStepStatus) && hasEntries) ||
+      (autoExpand === true && hasEntries),
   );
   const prevStatusRef = useRef<ExecutionStepStatus>(status);
   const userClickedRef = useRef(false);
@@ -123,6 +126,16 @@ export const ExecutionRowLayerWidget = ({
       setExpanded(true);
     }
   }, [status, hasEntries, expanded]);
+
+  // Terminal-quest rendering (autoExpand=true) auto-expands the row once entries
+  // arrive — initial state computes before the WS replay delivers chat-output,
+  // so the constructor sees hasEntries=false and would leave the row collapsed.
+  // The userClickedRef gate keeps this from re-expanding after a manual collapse.
+  useEffect(() => {
+    if (autoExpand === true && hasEntries && !expanded && !userClickedRef.current) {
+      setExpanded(true);
+    }
+  }, [autoExpand, hasEntries, expanded]);
 
   useEffect(() => {
     if (

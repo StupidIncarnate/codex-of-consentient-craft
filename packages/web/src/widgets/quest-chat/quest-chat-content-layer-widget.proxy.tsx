@@ -31,6 +31,10 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupPause: () => void;
   setupQuestNew: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   setupQuestNewError: () => void;
+  setupTimestamps: (params: { timestamps: readonly string[] }) => void;
+  setupUuids: (params: {
+    uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
+  }) => void;
   typeMessage: (params: { text: string }) => Promise<void>;
   clickSend: () => Promise<void>;
   getChatRequestCount: () => RequestCount;
@@ -72,6 +76,12 @@ export const QuestChatContentLayerWidgetProxy = (): {
     },
     setupQuestNewError: () => {
       questNew.setupError();
+    },
+    setupTimestamps: ({ timestamps }) => {
+      binding.setupTimestamps({ timestamps });
+    },
+    setupUuids: ({ uuids }) => {
+      binding.setupUuids({ uuids });
     },
     typeMessage: async ({ text }) => {
       await chatPanel.typeMessage({ text });

@@ -1,4 +1,4 @@
-import { act, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { GuildIdStub, ProcessIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
@@ -264,6 +264,140 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       expect(proxy.getClarifyRequestCount()).toBe(1);
+    });
+
+    it('VALID: {clarify answered between two agent batches with different sessionIds} => user answer renders BETWEEN earlier and later agent messages (cross-session timestamp order)', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      const guildId = GuildIdStub({ value: '99999999-aaaa-bbbb-cccc-dddddddddddd' });
+      const quest = QuestStub({ id: 'q-clarify-order', status: 'review_flows' });
+      const chatProcessId = ProcessIdStub({ value: 'proc-clarify-order' });
+      proxy.setupClarify({ chatProcessId });
+      // Mocked timestamp for the synthetic user entry created by submitClarifyAnswers.
+      // Sits BETWEEN the two agent chat-outputs (T1=10s, T2=30s, T3=50s).
+      proxy.setupTimestamps({ timestamps: ['2026-05-11T03:59:30.000Z'] });
+      proxy.setupUuids({ uuids: ['ddddddd2-dddd-4ddd-8ddd-dddddddddddd'] });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-clarify-order' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2026-05-11T03:59:00.000Z',
+          }),
+        });
+      });
+
+      // Earlier agent text — arrives at T1=10s with the live sessionId. Goes into
+      // entriesBySessionInternal under the real-session bucket FIRST (Map insertion order).
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId,
+              sessionId: 'aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+              questId: quest.id,
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'AGENT_FIRST_TEXT',
+                  uuid: 'aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                  timestamp: '2026-05-11T03:59:10.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-05-11T03:59:10.000Z',
+          }),
+        });
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: {
+              chatProcessId,
+              questions: [
+                {
+                  question: 'Which database do you prefer?',
+                  header: 'Database',
+                  options: [{ label: 'Postgres', description: 'Relational DB' }],
+                  multiSelect: false,
+                },
+              ],
+            },
+            timestamp: '2026-05-11T03:59:25.000Z',
+          }),
+        });
+      });
+
+      const option = await screen.findByTestId('CLARIFY_OPTION');
+      await act(async () => {
+        option.click();
+        return Promise.resolve();
+      });
+
+      // Later agent text — arrives at T3=50s with the SAME real sessionId. Lands in
+      // the already-inserted real-session bucket; the synthetic user entry inserted at
+      // T2 lives under SYNTHETIC_SESSION_KEY in the binding. flattenedEntries must sort
+      // them GLOBALLY by timestamp; per-bucket sort alone leaves the user entry at the
+      // end because Map iteration follows insertion order.
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId,
+              sessionId: 'aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+              questId: quest.id,
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'AGENT_THIRD_TEXT',
+                  uuid: 'aaaaaaa3-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                  timestamp: '2026-05-11T03:59:50.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-05-11T03:59:50.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        const lastIdx = screen
+          .queryAllByTestId('CHAT_MESSAGE')
+          .map((m) => String(m.textContent))
+          .findIndex((t) => t.includes('AGENT_THIRD_TEXT'));
+
+        expect(lastIdx).toBe(2);
+      });
+
+      const messageTexts = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .map((m) => String(m.textContent));
+      const positions = [
+        messageTexts.findIndex((t) => t.includes('AGENT_FIRST_TEXT')),
+        messageTexts.findIndex((t) => t.includes('Database: Postgres')),
+        messageTexts.findIndex((t) => t.includes('AGENT_THIRD_TEXT')),
+      ];
+
+      expect(positions).toStrictEqual([0, 1, 2]);
     });
   });
 });

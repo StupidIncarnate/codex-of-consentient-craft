@@ -39,6 +39,7 @@ import { slotIndexContract } from '../../contracts/slot-index/slot-index-contrac
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
+import { replaceEpochChatEntryTimestampTransformer } from '../../transformers/replace-epoch-chat-entry-timestamp/replace-epoch-chat-entry-timestamp-transformer';
 import { upsertChatEntriesByUuidTransformer } from '../../transformers/upsert-chat-entries-by-uuid/upsert-chat-entries-by-uuid-transformer';
 
 const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
@@ -110,7 +111,7 @@ export const useQuestChatBinding = ({
       for (const candidate of rawEntries as unknown[]) {
         const parseResult = chatEntryContract.safeParse(candidate);
         if (parseResult.success) {
-          validEntries.push(parseResult.data);
+          validEntries.push(replaceEpochChatEntryTimestampTransformer({ entry: parseResult.data }));
         } else {
           rejected.push({ candidate, reason: parseResult.error.issues });
         }

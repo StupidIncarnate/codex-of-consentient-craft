@@ -24,12 +24,16 @@ import { roleToConfigIndexTransformer } from '../role-to-config-index/role-to-co
 export const workItemsToFloorGroupsTransformer = ({
   workItems,
   allWorkItems,
+  includeSkipped,
 }: {
   workItems: WorkItem[];
   allWorkItems?: WorkItem[];
+  includeSkipped?: boolean;
 }): FloorGroup[] => {
   const unfilteredItems = allWorkItems ?? workItems;
-  const filtered = workItems.filter((wi) => !isSkippedWorkItemStatusGuard({ status: wi.status }));
+  const filtered = includeSkipped
+    ? [...workItems]
+    : workItems.filter((wi) => !isSkippedWorkItemStatusGuard({ status: wi.status }));
 
   if (filtered.length === 0) return [];
 

@@ -1407,7 +1407,7 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('session entries for work items', () => {
-    it('VALID: {work item with sessionId and matching sessionEntries} => passes entries to row', async () => {
+    it('VALID: {terminal quest with work item sessionId and matching sessionEntries} => auto-expands row showing entries', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const sessionId = SessionIdStub({ value: '91c4944d-55e3-4231-bd48-140245f11867' });
       const entry = AssistantTextChatEntryStub({ content: 'Exploring codebase...' });
@@ -1428,8 +1428,6 @@ describe('ExecutionPanelWidget', () => {
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
       });
-
-      await userEvent.click(screen.getByTestId('execution-row-header'));
 
       const messages = proxy.getExecutionMessages();
 
