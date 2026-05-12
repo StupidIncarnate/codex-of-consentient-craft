@@ -3,13 +3,12 @@
  *
  * USAGE:
  * defaultBatchGroupsStatics.value;
- * // Returns the curated batch-group list: [['contracts','statics','errors'], ['guards','transformers'], ['state','middleware']]
+ * // Returns the curated batch-group list — two wide groups; folder types outside every group stay one-per-codeweaver
  */
 
 export const defaultBatchGroupsStatics = {
   value: [
-    ['contracts', 'statics', 'errors'],
-    ['guards', 'transformers'],
-    ['state', 'middleware'],
+    ['contracts', 'statics', 'errors', 'guards', 'transformers', 'state', 'middleware', 'adapters'],
+    ['responders', 'flows'],
   ],
 } as const;

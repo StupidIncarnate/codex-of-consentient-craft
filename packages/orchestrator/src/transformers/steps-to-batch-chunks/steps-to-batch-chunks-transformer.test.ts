@@ -165,4 +165,86 @@ describe('stepsToBatchChunksTransformer', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('maxStepsPerChunk cap (6)', () => {
+    const makeContractSteps = (count: number) =>
+      Array.from({ length: count }, (_, i) =>
+        DependencyStepStub({
+          id: `step-${String(i + 1)}`,
+          focusFile: { path: `src/contracts/c${String(i + 1)}/c${String(i + 1)}-contract.ts` },
+        }),
+      );
+
+    it('VALID: 6 same-group steps => one full chunk of 6 (cap exactly reached)', () => {
+      const steps = makeContractSteps(6);
+
+      const result = stepsToBatchChunksTransformer({
+        steps,
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
+      });
+
+      expect(result).toStrictEqual([steps]);
+    });
+
+    it('VALID: 7 same-group steps => two chunks of [6, 1]', () => {
+      const steps = makeContractSteps(7);
+
+      const result = stepsToBatchChunksTransformer({
+        steps,
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
+      });
+
+      expect(result).toStrictEqual([steps.slice(0, 6), steps.slice(6, 7)]);
+    });
+
+    it('VALID: 12 same-group steps => two chunks of [6, 6]', () => {
+      const steps = makeContractSteps(12);
+
+      const result = stepsToBatchChunksTransformer({
+        steps,
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
+      });
+
+      expect(result).toStrictEqual([steps.slice(0, 6), steps.slice(6, 12)]);
+    });
+
+    it('VALID: 13 same-group steps => three chunks of [6, 6, 1]', () => {
+      const steps = makeContractSteps(13);
+
+      const result = stepsToBatchChunksTransformer({
+        steps,
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
+      });
+
+      expect(result).toStrictEqual([steps.slice(0, 6), steps.slice(6, 12), steps.slice(12, 13)]);
+    });
+
+    it('VALID: mixed (7 contracts + 3 responders + 1 broker) => solo-first then capped groups in group-index order', () => {
+      const contracts = makeContractSteps(7);
+      const responders = Array.from({ length: 3 }, (_, i) =>
+        DependencyStepStub({
+          id: `responder-${String(i + 1)}`,
+          focusFile: { path: `src/responders/r${String(i + 1)}/r${String(i + 1)}-responder.ts` },
+        }),
+      );
+      const broker = DependencyStepStub({
+        id: 'broker',
+        focusFile: { path: 'src/brokers/x/y/x-y-broker.ts' },
+      });
+
+      const result = stepsToBatchChunksTransformer({
+        steps: [...contracts, ...responders, broker],
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts'], ['responders']] }),
+      });
+
+      // Solo emitted in encounter order (broker), then grouped flushed in group-index order
+      // with the contracts group split by the cap.
+      expect(result).toStrictEqual([
+        [broker],
+        contracts.slice(0, 6),
+        contracts.slice(6, 7),
+        responders,
+      ]);
+    });
+  });
 });

@@ -535,16 +535,21 @@ DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
     - `blightwardenItem.dependsOn = allLawIds`
     - `finalWardItem.dependsOn = [blightwardenItem.id]`
   - **Codeweaver/lawbringer batching.** Number of codeweaver work items M is not 1-per-step. Default batch groups
-    are `[contracts, statics, errors]`, `[guards, transformers]`, `[state, middleware]`; steps whose focusFile
-    folder types fall in the same group collapse into a single work item. Folder types outside every group
-    stay 1-step-per-agent. Lawbringers use the identical chunking.
+    are `[contracts, statics, errors, guards, transformers, state, middleware, adapters]` and `[responders, flows]`;
+    steps whose focusFile folder types fall in the same group collapse into a single work item. Folder types
+    outside every group (brokers, bindings, widgets, migrations, assets) stay 1-step-per-agent. Lawbringers use
+    the identical chunking. Each chunk is additionally capped at `defaultMaxStepsPerChunkStatics.value` (= 6)
+    steps — any group accumulator larger than the cap is sliced into sub-chunks of size ≤ 6 preserving
+    insertion order. So 13 same-group steps produce 3 work items of `[6, 6, 1]` rather than one item of 13.
     - Each codeweaver work item has `relatedDataItems: ['steps/<id>', ...]` — **array, not single**. A batched
-      item has length > 1. A solo-folder item has length 1.
+      item has length > 1 and ≤ 6. A solo-folder item has length 1.
     - Batched work item `dependsOn` is the **union** of every batched step's resolved step dependencies (dedupe'd),
       excluding the work item's own id. A codeweaver chunk containing step A+B where A depends on a step in
       chunk X and B depends on a step in chunk Y must have `dependsOn = [pathseekerId, chunkXId, chunkYId]`.
+      Cross-chunk deps created BY the cap split (step #8 deps on step #1 with cap=6 → step #8's chunk-2 cw
+      depends on step #1's chunk-1 cw) are wired the same way.
     - If the quest's steps include 0 batchable steps, M should equal N (full fallback behavior). If all steps
-      collapse into one group, M should be 1. Mixed quests should land somewhere in between.
+      collapse into one group AND fit under the cap, M should be 1. Mixed quests should land somewhere in between.
   - **Forward step refs resolve correctly.** If a step declared earlier in the quest's `steps[]` array depends on
     a step declared LATER (e.g. step #1 deps on step #5), the codeweaver workItem for step #1 MUST include step
     #5's workItem id in its `dependsOn`. Historically the transformer walked in order and dropped forward refs —

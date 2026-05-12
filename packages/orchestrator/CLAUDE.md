@@ -344,13 +344,13 @@ Orchestration Loop (workItems queue)
   │  "find next ready item, run it, repeat"
   │
   ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk) + cleanup minions during seek_walk (contract-dedup, assertion-correctness)
-  ├─ Codeweaver ──── x3 concurrent via slot manager, 1 step each
+  ├─ Codeweaver ──── x3 concurrent via slot manager, 1+ steps each (chunked by `agents.batchGroups`, capped at `defaultMaxStepsPerChunkStatics.value`)
   │     └─ PathSeeker on failure (drain + skip + replan)
   ├─ Ward ────────── npm run ward (spawnerType: 'command')
   │     └─ Spiritmender on failure (targeted code fix)
   ├─ Siegemaster ─── integration tests for observables
   │     └─ Creates fix chain: codeweaver-fix → ward-rerun → siege-recheck
-  ├─ Lawbringer ──── x3 concurrent via slot manager, 1 file pair each
+  ├─ Lawbringer ──── x3 concurrent via slot manager, 1+ steps each (same chunking as codeweaver)
   │     └─ Spiritmender on failure (targeted code fix)
   │
   ▼

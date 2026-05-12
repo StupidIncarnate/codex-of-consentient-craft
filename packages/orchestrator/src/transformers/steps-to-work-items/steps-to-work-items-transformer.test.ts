@@ -943,4 +943,201 @@ describe('stepsToWorkItemsTransformer', () => {
       expect(finalWardItem?.dependsOn).toStrictEqual(['00000000-0000-4000-8000-000000000004']);
     });
   });
+
+  describe('cap-split forward-ref resolution', () => {
+    it('VALID: {8 contract steps in one group, step #8 depends on step #1} => chunks of [6, 2]; chunk-2 codeweaver depends on chunk-1 codeweaver', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({
+        uuids: [
+          '00000000-0000-4000-8000-000000000001', // codeweaver chunk-1 (steps 1-6)
+          '00000000-0000-4000-8000-000000000002', // codeweaver chunk-2 (steps 7-8)
+          '00000000-0000-4000-8000-000000000003', // ward (changed)
+          '00000000-0000-4000-8000-000000000004', // siege
+          '00000000-0000-4000-8000-000000000005', // lawbringer chunk-1
+          '00000000-0000-4000-8000-000000000006', // lawbringer chunk-2
+          '00000000-0000-4000-8000-000000000007', // blightwarden
+          '00000000-0000-4000-8000-000000000008', // ward (full)
+        ],
+      });
+
+      const step1Id = StepIdStub({ value: 'cap-step-1' });
+      const step2Id = StepIdStub({ value: 'cap-step-2' });
+      const step3Id = StepIdStub({ value: 'cap-step-3' });
+      const step4Id = StepIdStub({ value: 'cap-step-4' });
+      const step5Id = StepIdStub({ value: 'cap-step-5' });
+      const step6Id = StepIdStub({ value: 'cap-step-6' });
+      const step7Id = StepIdStub({ value: 'cap-step-7' });
+      const step8Id = StepIdStub({ value: 'cap-step-8' });
+
+      const step1 = DependencyStepStub({
+        id: step1Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c1/c1-contract.ts' },
+      });
+      const step2 = DependencyStepStub({
+        id: step2Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c2/c2-contract.ts' },
+      });
+      const step3 = DependencyStepStub({
+        id: step3Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c3/c3-contract.ts' },
+      });
+      const step4 = DependencyStepStub({
+        id: step4Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c4/c4-contract.ts' },
+      });
+      const step5 = DependencyStepStub({
+        id: step5Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c5/c5-contract.ts' },
+      });
+      const step6 = DependencyStepStub({
+        id: step6Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c6/c6-contract.ts' },
+      });
+      const step7 = DependencyStepStub({
+        id: step7Id,
+        dependsOn: [],
+        focusFile: { path: 'src/contracts/c7/c7-contract.ts' },
+      });
+      // Step #8 forward-refs back to step #1 — they land in different cap-split chunks
+      // (#1 in chunk-1 [steps 1-6], #8 in chunk-2 [steps 7-8]), so chunk-2's codeweaver
+      // must list chunk-1's codeweaver id in dependsOn.
+      const step8 = DependencyStepStub({
+        id: step8Id,
+        dependsOn: [step1Id],
+        focusFile: { path: 'src/contracts/c8/c8-contract.ts' },
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [step1, step2, step3, step4, step5, step6, step7, step8],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
+      });
+
+      expect(result).toStrictEqual([
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [
+            `steps/${String(step1Id)}`,
+            `steps/${String(step2Id)}`,
+            `steps/${String(step3Id)}`,
+            `steps/${String(step4Id)}`,
+            `steps/${String(step5Id)}`,
+            `steps/${String(step6Id)}`,
+          ],
+          dependsOn: [pathseekerWorkItemId],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000002',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(step7Id)}`, `steps/${String(step8Id)}`],
+          dependsOn: [pathseekerWorkItemId, '00000000-0000-4000-8000-000000000001'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000003',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: [
+            '00000000-0000-4000-8000-000000000001',
+            '00000000-0000-4000-8000-000000000002',
+          ],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'changed',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000004',
+          role: 'siegemaster',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: ['flows/login-flow'],
+          dependsOn: ['00000000-0000-4000-8000-000000000003'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000005',
+          role: 'lawbringer',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [
+            `steps/${String(step1Id)}`,
+            `steps/${String(step2Id)}`,
+            `steps/${String(step3Id)}`,
+            `steps/${String(step4Id)}`,
+            `steps/${String(step5Id)}`,
+            `steps/${String(step6Id)}`,
+          ],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000006',
+          role: 'lawbringer',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(step7Id)}`, `steps/${String(step8Id)}`],
+          dependsOn: ['00000000-0000-4000-8000-000000000004'],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000007',
+          role: 'blightwarden',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [],
+          dependsOn: [
+            '00000000-0000-4000-8000-000000000005',
+            '00000000-0000-4000-8000-000000000006',
+          ],
+          maxAttempts: 1,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: '00000000-0000-4000-8000-000000000008',
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          relatedDataItems: [],
+          dependsOn: ['00000000-0000-4000-8000-000000000007'],
+          maxAttempts: 3,
+          attempt: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          wardMode: 'full',
+        },
+      ]);
+    });
+  });
 });

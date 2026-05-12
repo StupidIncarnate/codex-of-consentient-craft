@@ -279,6 +279,10 @@ export * from './src/contracts/file-count/file-count.stub';
 export * from './src/contracts/array-index/array-index-contract';
 export * from './src/contracts/array-index/array-index.stub';
 
+// Step Chunk Size Contracts
+export * from './src/contracts/step-chunk-size/step-chunk-size-contract';
+export * from './src/contracts/step-chunk-size/step-chunk-size.stub';
+
 // JSONL Stream Line Contracts
 export * from './src/contracts/system-init-stream-line/system-init-stream-line-contract';
 export * from './src/contracts/system-init-stream-line/system-init-stream-line.stub';
