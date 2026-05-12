@@ -258,6 +258,166 @@ describe('SubagentChainWidget', () => {
         screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.getAttribute('data-testid')),
       ).toStrictEqual(['CHAT_MESSAGE']);
     });
+
+    it('VALID: {expanded with text anchor + 3 tool-pairs, default tail-window} => only anchor + LAST tool visible; Read+Grep absent', () => {
+      SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        innerGroups: [
+          {
+            kind: 'single',
+            entry: AssistantTextChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              content: 'ANCHOR_TEXT',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolUseId: 'use_a',
+              toolName: 'Read',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolName: 'use_a',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolUseId: 'use_b',
+              toolName: 'Grep',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolName: 'use_b',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolUseId: 'use_c',
+              toolName: 'Bash',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolName: 'use_c',
+            }),
+          },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      const messageTexts = screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent);
+      const toolNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
+
+      expect(messageTexts).toStrictEqual(['SUB-AGENTANCHOR_TEXT']);
+      expect(toolNames).toStrictEqual(['Bash']);
+      expect(screen.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+        /^▸ Show 2 earlier entries$/u,
+      );
+    });
+
+    it('VALID: {expanded with text anchor + 3 tool-pairs, click Show earlier} => all 3 tools visible in order, toggle flips to Hide', async () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        innerGroups: [
+          {
+            kind: 'single',
+            entry: AssistantTextChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              content: 'ANCHOR_TEXT',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolUseId: 'use_a',
+              toolName: 'Read',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolName: 'use_a',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolUseId: 'use_b',
+              toolName: 'Grep',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolName: 'use_b',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolUseId: 'use_c',
+              toolName: 'Bash',
+            }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({
+              source: 'subagent',
+              agentId: 'agent-001',
+              toolName: 'use_c',
+            }),
+          },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      await proxy.clickShowEarlier();
+
+      const toolNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
+
+      expect(toolNames).toStrictEqual(['Read', 'Grep', 'Bash']);
+      expect(screen.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+        /^▾ Hide 2 earlier entries$/u,
+      );
+    });
   });
 
   describe('per-line token badges', () => {
