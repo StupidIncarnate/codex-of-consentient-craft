@@ -22,6 +22,7 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
+import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
 import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
@@ -44,7 +45,7 @@ import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
 import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
 import { runWardLayerBroker } from './run-ward-layer-broker';
 
-const SLOT_COUNT = 3;
+const DEFAULT_SLOT_COUNT = 3;
 
 const CHAT_ROLES = new Set<WorkItemRole>([
   'chaoswhisperer' as WorkItemRole,
@@ -52,7 +53,7 @@ const CHAT_ROLES = new Set<WorkItemRole>([
 ]);
 
 // Roles whose layer brokers fan work out through slot-manager-orchestrate-broker.
-// For these, only the first SLOT_COUNT items actually dispatch immediately — the rest
+// For these, only the first slotCount items actually dispatch immediately — the rest
 // are held by the slot manager and should be surfaced as `queued` instead of `in_progress`
 // so the UI can distinguish "ready, waiting for slot" from "actually running".
 const SLOT_MANAGED_ROLES = new Set<WorkItemRole>([
@@ -70,6 +71,7 @@ export const questOrchestrationLoopBroker = async ({
   abortSignal,
   userMessage,
   batchGroups: providedBatchGroups,
+  slotCount: providedSlotCount,
 }: {
   processId: ProcessId;
   questId: QuestId;
@@ -79,29 +81,38 @@ export const questOrchestrationLoopBroker = async ({
   abortSignal: AbortSignal;
   userMessage?: UserInput;
   batchGroups?: FolderTypeGroups;
+  slotCount?: SlotCount;
 }): Promise<AdapterResult> => {
   const result = adapterResultContract.parse({ success: true });
   if (abortSignal.aborted) {
     return result;
   }
 
-  const slotCount = slotCountContract.parse(SLOT_COUNT);
-  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
+  // Resolve slotCount + batchGroups from project config ONCE per quest run, then
+  // propagate through the recursive loop. A missing `.dungeonmaster` file (end-user
+  // installs, temp environments) is not an error — fall back to the curated defaults
+  // the contracts would have produced.
+  const { slotCount, batchGroups } =
+    providedSlotCount !== undefined && providedBatchGroups !== undefined
+      ? { slotCount: providedSlotCount, batchGroups: providedBatchGroups }
+      : await (async (): Promise<{ slotCount: SlotCount; batchGroups: FolderTypeGroups }> => {
+          const fallbackSlotCount = slotCountContract.parse(DEFAULT_SLOT_COUNT);
+          const fallbackBatchGroups = folderTypeGroupsContract.parse(undefined);
+          try {
+            const config = await dungeonmasterConfigResolveAdapter({ startPath });
+            return {
+              slotCount: providedSlotCount ?? config.orchestration?.slotCount ?? fallbackSlotCount,
+              batchGroups: providedBatchGroups ?? config.agents?.batchGroups ?? fallbackBatchGroups,
+            };
+          } catch {
+            return {
+              slotCount: providedSlotCount ?? fallbackSlotCount,
+              batchGroups: providedBatchGroups ?? fallbackBatchGroups,
+            };
+          }
+        })();
 
-  // Resolve batchGroups from project config ONCE per quest run, then propagate
-  // through the recursive loop. A missing `.dungeonmaster` file (end-user installs,
-  // temp environments) is not an error — fall back to the curated default the
-  // contract would have produced.
-  const batchGroups: FolderTypeGroups =
-    providedBatchGroups ??
-    (await (async (): Promise<FolderTypeGroups> => {
-      try {
-        const config = await dungeonmasterConfigResolveAdapter({ startPath });
-        return config.agents?.batchGroups ?? folderTypeGroupsContract.parse(undefined);
-      } catch {
-        return folderTypeGroupsContract.parse(undefined);
-      }
-    })());
+  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
   // 1. Load quest
   const input = getQuestInputContract.parse({ questId });
@@ -240,7 +251,7 @@ export const questOrchestrationLoopBroker = async ({
   // write will transition them directly to complete/failed.
   const now = new Date().toISOString();
   const isSlotManagedRole = SLOT_MANAGED_ROLES.has(roleName);
-  const immediateCount = isSlotManagedRole ? SLOT_COUNT : roleItems.length;
+  const immediateCount = isSlotManagedRole ? Number(slotCount) : roleItems.length;
   const workItemStatusUpdates = roleItems.map((wi, index) => ({
     id: wi.id,
     status: index < immediateCount ? 'in_progress' : 'queued',
@@ -373,7 +384,7 @@ export const questOrchestrationLoopBroker = async ({
     throw error;
   }
 
-  // 9. Recurse — pass batchGroups through so we only resolve config once per quest run
+  // 9. Recurse — pass slotCount + batchGroups through so we only resolve config once per quest run
   return questOrchestrationLoopBroker({
     processId,
     questId,
@@ -382,5 +393,6 @@ export const questOrchestrationLoopBroker = async ({
     onAgentEntry,
     abortSignal,
     batchGroups,
+    slotCount,
   });
 };

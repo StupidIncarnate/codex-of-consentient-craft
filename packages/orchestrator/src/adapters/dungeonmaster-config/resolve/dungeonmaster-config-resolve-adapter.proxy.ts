@@ -4,6 +4,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const dungeonmasterConfigResolveAdapterProxy = (): {
   setupConfigResolved: (params: { config: DungeonmasterConfig }) => void;
+  setupConfigReplace: (params: { config: DungeonmasterConfig }) => void;
   setupConfigResolveError: (params: { error: Error }) => void;
   makeRealConfig: () => DungeonmasterConfig;
   makeConfigWithArgs: (args: never) => DungeonmasterConfig;
@@ -14,6 +15,11 @@ export const dungeonmasterConfigResolveAdapterProxy = (): {
 
   return {
     setupConfigResolved: ({ config }: { config: DungeonmasterConfig }): void => {
+      handle.mockResolvedValueOnce(config);
+    },
+
+    setupConfigReplace: ({ config }: { config: DungeonmasterConfig }): void => {
+      handle.mockClear();
       handle.mockResolvedValueOnce(config);
     },
 

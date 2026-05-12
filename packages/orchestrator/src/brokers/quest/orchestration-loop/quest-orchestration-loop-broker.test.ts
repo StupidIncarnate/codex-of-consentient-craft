@@ -976,6 +976,109 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
 
+    // READS: quest with 3 codeweavers ready, project config pins orchestration.slotCount=1
+    // WRITES (dispatch): only cw1 → in_progress, cw2+cw3 → queued (slot manager will work them off)
+    // terminalQuest: recursion plumbing — cw1 in_progress, cw2/cw3 queued → no ready items, loop exits
+    it('VALID: {3 codeweavers ready, config.orchestration.slotCount=1} => only first dispatches in_progress, rest queued', async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const depId = QuestWorkItemIdStub({ value: 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80' });
+      const cw1Id = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const cw2Id = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
+      const cw3Id = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: depId, role: 'pathseeker', status: 'complete' }),
+          WorkItemStub({
+            id: cw1Id,
+            role: 'codeweaver',
+            status: 'pending',
+            dependsOn: [depId],
+          }),
+          WorkItemStub({
+            id: cw2Id,
+            role: 'codeweaver',
+            status: 'pending',
+            dependsOn: [depId],
+          }),
+          WorkItemStub({
+            id: cw3Id,
+            role: 'codeweaver',
+            status: 'pending',
+            dependsOn: [depId],
+          }),
+        ],
+      });
+      // Recursion plumbing: cw1 in_progress + cw2/cw3 queued → no ready items, loop exits
+      const terminalQuest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: depId, role: 'pathseeker', status: 'complete' }),
+          WorkItemStub({
+            id: cw1Id,
+            role: 'codeweaver',
+            status: 'in_progress',
+            dependsOn: [depId],
+          }),
+          WorkItemStub({
+            id: cw2Id,
+            role: 'codeweaver',
+            status: 'queued',
+            dependsOn: [depId],
+          }),
+          WorkItemStub({
+            id: cw3Id,
+            role: 'codeweaver',
+            status: 'queued',
+            dependsOn: [depId],
+          }),
+        ],
+      });
+      const proxy = questOrchestrationLoopBrokerProxy();
+      proxy.setupSlotCappedDispatch({ quest, terminalQuest, slotCount: 1 });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-slot-cap' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).resolves.toStrictEqual({ success: true });
+
+      // First persist = dispatch write (cw1 in_progress, cw2+cw3 queued — config cap of 1 honored)
+      const quests = proxy.getAllPersistedQuests();
+
+      expect(quests[0]!.workItems).toStrictEqual([
+        WorkItemStub({ id: depId, role: 'pathseeker', status: 'complete' }),
+        WorkItemStub({
+          id: cw1Id,
+          role: 'codeweaver',
+          status: 'in_progress',
+          dependsOn: [depId],
+          startedAt: '2024-01-15T10:00:00.000Z',
+        }),
+        WorkItemStub({
+          id: cw2Id,
+          role: 'codeweaver',
+          status: 'queued',
+          dependsOn: [depId],
+          startedAt: '2024-01-15T10:00:00.000Z',
+        }),
+        WorkItemStub({
+          id: cw3Id,
+          role: 'codeweaver',
+          status: 'queued',
+          dependsOn: [depId],
+          startedAt: '2024-01-15T10:00:00.000Z',
+        }),
+      ]);
+    });
+
     // READS: quest with a single pending pathseeker
     // WRITES (dispatch): ps → in_progress + startedAt
     // terminalQuest: recursion plumbing — ps is complete → all terminal → loop exits

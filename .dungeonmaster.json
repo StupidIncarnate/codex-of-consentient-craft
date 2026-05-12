@@ -4,6 +4,9 @@
   "dungeonmaster": {
     "port": 4800
   },
+  "orchestration": {
+    "slotCount": 1
+  },
   "devServer": {
     "buildCommand": "npm run build",
     "devCommand": "npm run dev",

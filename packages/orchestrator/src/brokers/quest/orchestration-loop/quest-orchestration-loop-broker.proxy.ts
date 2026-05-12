@@ -99,6 +99,11 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupPreExecutionStatus: (params: { quest: QuestParam }) => void;
   setupItemsStillRunning: (params: { quest: QuestParam }) => void;
   setupSingleDispatch: (params: { quest: QuestParam; terminalQuest: QuestParam }) => void;
+  setupSlotCappedDispatch: (params: {
+    quest: QuestParam;
+    terminalQuest: QuestParam;
+    slotCount: number;
+  }) => void;
   setupModifyReject: (params: { error: Error }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getAllPersistedQuests: () => readonly Quest[];
@@ -329,6 +334,30 @@ export const questOrchestrationLoopBrokerProxy = (): {
       // Single item ready => dispatch and check in_progress marking
       getProxy.setupQuestFound({ quest });
       // Mark item in_progress
+      modifyProxy.setupQuestFound({ quest });
+      // Recursion: load terminal quest
+      getProxy.setupQuestFound({ quest: terminalQuest });
+      modifyProxy.setupQuestFound({ quest: terminalQuest });
+    },
+
+    setupSlotCappedDispatch: ({
+      quest,
+      terminalQuest,
+      slotCount,
+    }: {
+      quest: QuestParam;
+      terminalQuest: QuestParam;
+      slotCount: number;
+    }): void => {
+      // Replace the constructor's default config with one that pins orchestration.slotCount
+      configProxy.setupConfigReplace({
+        config: configProxy.makeConfigWithArgs({
+          framework: 'react',
+          schema: 'zod',
+          orchestration: { slotCount },
+        } as never),
+      });
+      getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       // Recursion: load terminal quest
       getProxy.setupQuestFound({ quest: terminalQuest });
