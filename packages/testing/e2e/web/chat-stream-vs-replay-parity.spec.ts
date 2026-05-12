@@ -1523,10 +1523,13 @@ test.describe('Chat stream vs replay parity', () => {
     // text. Today this fails because the contract-rejection path drops the entire tool_result
     // entry — the row's body is empty, mirroring the symptom on the live dev server.
     const toolRow = chatPanel.locator('[data-testid="TOOL_ROW"]').first();
-
-    await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
-
     const toolRowResult = toolRow.getByTestId('TOOL_ROW_RESULT');
+
+    // If we blindly click the header, an already-expanded row would COLLAPSE and the assertions
+    // below would race the toggle. Click only when the body is not already in the DOM.
+    if ((await toolRowResult.count()) === 0) {
+      await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+    }
 
     await expect(toolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(toolRowResult).toContainText(resultContent, { timeout: CHAT_TIMEOUT });
@@ -1550,10 +1553,12 @@ test.describe('Chat stream vs replay parity', () => {
     ).toHaveCount(ZERO_COUNT);
 
     const replayToolRow = replayPanel.locator('[data-testid="TOOL_ROW"]').first();
-
-    await replayToolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
-
     const replayToolRowResult = replayToolRow.getByTestId('TOOL_ROW_RESULT');
+
+    // Same race as the streaming half: click only when the body is not already in the DOM.
+    if ((await replayToolRowResult.count()) === 0) {
+      await replayToolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true });
+    }
 
     await expect(replayToolRowResult).toBeVisible({ timeout: CHAT_TIMEOUT });
     await expect(replayToolRowResult).toContainText(resultContent, { timeout: CHAT_TIMEOUT });

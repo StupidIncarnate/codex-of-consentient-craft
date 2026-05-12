@@ -189,12 +189,79 @@ npx playwright test --repeat-each=15 --retries=0 --reporter=line \
 
 **Cross-reference for future flake hunters:** other tests in the same spec
 that use the unconditional `TOOL_ROW_HEADER`.click()` → `TOOL_ROW_RESULT`
-visibility pattern (lines ~667, 710, 1514, 1541, 1738, 1778, 1974, 2011)
-are exposed to the same race. They have not been observed flaking yet —
-likely because their tool_use/tool_result pairing happens inside a sub-agent
-chain or with a different stream cadence — but if any of them surfaces with
-a `▸` chevron in the failure snapshot, apply the same conditional-click
-guard.
+visibility pattern (lines ~667, 710, 1752, 1792, 1987, 2025 — lines 1531
+and 1560 fixes landed 2026-05-11; see entry below) are exposed to the same
+race. The 1560 occurrence has now been observed flaking on the replay half;
+the others have not been observed flaking yet — likely because their
+tool_use/tool_result pairing happens inside a sub-agent chain or with a
+different stream cadence — but if any of them surfaces with a `▸` chevron
+in the failure snapshot, apply the same conditional-click guard.
+
+---
+
+## 2026-05-11 — chat-stream-vs-replay-parity MCP/Bash toolUseResult-array test TOOL_ROW header click toggles instead of expands
+
+**Branch / worktree:** master (no worktree — fix landed directly).
+**Failing specs:**
+
+- `chat-stream-vs-replay-parity.spec.ts` "VALID: {tool_result line carries
+  top-level toolUseResult as array of text blocks (MCP / Bash text-return shape)}
+  => paired TOOL_ROW with non-empty body, identical after streaming and after reload"
+  — replay-half `expect(replayToolRowResult).toBeVisible()` timed out (post-fix
+  the assertion lands at line 1564).
+
+**Symptom:** Test failed once during a scoped 6-spec run, then passed in
+isolation, then passed in a re-run, then passed in the next full ward.
+Identical to the 2026-05-04 entry above, but on the MCP/Bash text-return
+variant of the parity test — and on the replay half rather than the
+streaming half. The cross-reference at the bottom of the 2026-05-04 entry
+explicitly called this line out as exposed but not yet observed flaking.
+
+**Root cause:** Same `defaultExpanded={true}` + `useState` sticky-expand race
+documented in the 2026-05-04 entry. `chat-entry-list-widget.tsx:130` sets
+`isLastUnpaired = isStreaming && mergedItem.toolResult === null && entry === lastEntryInList`
+and passes `defaultExpanded={true}` while it holds. `tool-row-widget.tsx:56`
+initializes `useState(defaultExpanded === true)` — which only runs on mount.
+When the tool_use arrives in one render before the tool_result, the widget
+mounts with `expanded=true`. The tool_result then arrives, `isLastUnpaired`
+flips false, but `expanded` stays sticky. The test then blindly calls
+`click({ force: true })` on `TOOL_ROW_HEADER`, which TOGGLES → false →
+`TOOL_ROW_RESULT` unmounts → assertion times out.
+
+Note that the failing assertion is on the REPLAY half — the same race fires
+on the replay rerender too, since the replayed JSONL still flows through the
+streaming render path before the row reaches its final state. The streaming
+half held this time but is exposed to the same race.
+
+**Fix location:**
+
+- `packages/testing/e2e/web/chat-stream-vs-replay-parity.spec.ts:1525-1535`
+  (streaming half) and `:1554-1564` (replay half) — replaced unconditional
+  `await toolRow.getByTestId('TOOL_ROW_HEADER').click({ force: true })` with
+  a conditional click guarded by `(await toolRowResult.count()) === 0`. End
+  state ("row is expanded") is now deterministic regardless of which render
+  batch boundary the tool_use/tool_result fell across. Same diff shape as
+  the 2026-05-04 fix at lines 1368/1400.
+
+The widget behaviour itself is correct UX (auto-expand a streaming tool
+call, let the user click to collapse) and was not modified.
+
+**Negative results / dead ends:** None — the prior log entry's
+symptom→suspected-bug catalog row ("TOOL_ROW_RESULT toBeVisible times out,
+page snapshot shows chevron `▸` collapsed AFTER click") matched directly,
+and the cross-reference explicitly named this line as exposed. No new
+diagnosis required.
+
+**Reproducer:**
+
+```bash
+cd packages/testing
+# Pre-fix: 1 failure observed in a scoped 6-spec sweep at workers:1; passes
+# in isolation. Post-fix: 15/15 pass in 37.3s.
+npx playwright test --repeat-each=15 --retries=0 --reporter=line \
+  --grep "tool_result line carries top-level toolUseResult as array of text blocks" \
+  e2e/web/chat-stream-vs-replay-parity.spec.ts
+```
 
 ---
 
@@ -575,18 +642,18 @@ whether `chat-start-responder.onComplete` is awaiting it.
 When an agent picks up an e2e flake, this list should be the first thing
 checked. Each entry below has a direct link to the entry above.
 
-| Symptom                                                                                        | Likely candidates                                                                                                                                                                                                          |
-|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `isStreaming` pinned true / chat input disabled after first response                           | "Chat resume-flow flakes" — three independent bugs share this symptom                                                                                                                                                      |
-| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame                         | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline                                                                  |
-| `expect(text).toBeVisible()` times out, no WS frame for that text                              | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe                                                                                                                                    |
-| Strict-mode violation: text resolved to N elements                                             | Buffer-replay dupe — frame delivered twice via different paths                                                                                                                                                             |
-| Fails at repeat 11+ in broad sweep, passes alone                                               | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak"                                                                                                                                  |
-| Sub-agent chain renders "(0 entries)"                                                          | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder)                                                                                                                                     |
-| `TOOL_ROW_RESULT` toBeVisible times out, page snapshot shows chevron `▸` collapsed AFTER click | "chat-stream-vs-replay-parity:1245 TOOL_ROW header click toggles instead of expands" — `defaultExpanded={true}` from streaming `isLastUnpaired` window locks `expanded=true` in `useState`, blind click toggles → collapse |
-| `backendWsCount` is 2+ in multi-widget assertion under full ward, passes alone                 | "Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)" — handshake-failure WS counted alongside durable one; count by `framesent`/`framereceived` instead                                     |
-| Rate-limits / queue / outbox-watcher visible-update test times out under load                  | "Three CPU-contention flakes" — fixed-poll-interval responders exceed test budget; expose env-var override for the interval                                                                                                |
-| `QUEST_QUEUE_BAR_COLLAPSED_LABEL` not visible after `request.post(/start)` in e2e              | Queued quest hits terminal in <1 s — emptying the queue before React renders. Pause the quest immediately after start (see `execution-queue-streaming.spec.ts:91-97` pattern)                                              |
-| MCP integration test "Server starts and responds" times out under full ward                    | "Three CPU-contention flakes" — fixed `startupMs` sleep insufficient under tsx cold-start contention; replace with deadline-budgeted readiness probe                                                                       |
+| Symptom                                                                                        | Likely candidates                                                                                                                                                                                                                                                                                                                                                                                                      |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `isStreaming` pinned true / chat input disabled after first response                           | "Chat resume-flow flakes" — three independent bugs share this symptom                                                                                                                                                                                                                                                                                                                                                  |
+| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame                         | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline                                                                                                                                                                                                                                                              |
+| `expect(text).toBeVisible()` times out, no WS frame for that text                              | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe                                                                                                                                                                                                                                                                                                                                |
+| Strict-mode violation: text resolved to N elements                                             | Buffer-replay dupe — frame delivered twice via different paths                                                                                                                                                                                                                                                                                                                                                         |
+| Fails at repeat 11+ in broad sweep, passes alone                                               | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak"                                                                                                                                                                                                                                                                                                                              |
+| Sub-agent chain renders "(0 entries)"                                                          | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder)                                                                                                                                                                                                                                                                                                                                 |
+| `TOOL_ROW_RESULT` toBeVisible times out, page snapshot shows chevron `▸` collapsed AFTER click | "chat-stream-vs-replay-parity TOOL_ROW header click toggles instead of expands" — `defaultExpanded={true}` from streaming `isLastUnpaired` window locks `expanded=true` in `useState`, blind click toggles → collapse. Recurs across tests in this spec (2026-05-04 fix landed at lines 1368/1400, 2026-05-11 fix at lines 1531/1560). The cross-reference under the 2026-05-04 entry lists other still-exposed lines. |
+| `backendWsCount` is 2+ in multi-widget assertion under full ward, passes alone                 | "Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)" — handshake-failure WS counted alongside durable one; count by `framesent`/`framereceived` instead                                                                                                                                                                                                                                 |
+| Rate-limits / queue / outbox-watcher visible-update test times out under load                  | "Three CPU-contention flakes" — fixed-poll-interval responders exceed test budget; expose env-var override for the interval                                                                                                                                                                                                                                                                                            |
+| `QUEST_QUEUE_BAR_COLLAPSED_LABEL` not visible after `request.post(/start)` in e2e              | Queued quest hits terminal in <1 s — emptying the queue before React renders. Pause the quest immediately after start (see `execution-queue-streaming.spec.ts:91-97` pattern)                                                                                                                                                                                                                                          |
+| MCP integration test "Server starts and responds" times out under full ward                    | "Three CPU-contention flakes" — fixed `startupMs` sleep insufficient under tsx cold-start contention; replace with deadline-budgeted readiness probe                                                                                                                                                                                                                                                                   |
 
 When you fix a flake not yet in this catalog, add a new symptom row.
