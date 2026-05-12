@@ -21,8 +21,8 @@ import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/
 import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
 import { collectPairTailEntriesTransformer } from '../../transformers/collect-pair-tail-entries/collect-pair-tail-entries-transformer';
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
+import { computeTailVisibleIndicesTransformer } from '../../transformers/compute-tail-visible-indices/compute-tail-visible-indices-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
-import { findAnchorUnitTailIndexTransformer } from '../../transformers/find-anchor-unit-tail-index/find-anchor-unit-tail-index-transformer';
 import { findTrailingEmptyThinkingIndexTransformer } from '../../transformers/find-trailing-empty-thinking-index/find-trailing-empty-thinking-index-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
@@ -38,6 +38,7 @@ type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
 interface RenderUnit {
   element: React.JSX.Element;
   isAnchor: boolean;
+  isSubagentChain: boolean;
 }
 
 export interface ChatEntryListWidgetProps {
@@ -89,6 +90,7 @@ export const ChatEntryListWidget = ({
       renderUnits.push({
         element: <SubagentChainWidget key={`chain-${String(i)}`} group={group} />,
         isAnchor: true,
+        isSubagentChain: true,
       });
       if (group.contextTokens !== null) {
         runningSubagentTotal += Number(group.contextTokens);
@@ -103,6 +105,7 @@ export const ChatEntryListWidget = ({
       renderUnits.push({
         element: <StreamingIndicatorWidget key={`thinking-${String(i)}`} isSubagent={isSubagent} />,
         isAnchor: false,
+        isSubagentChain: false,
       });
       continue;
     }
@@ -135,6 +138,7 @@ export const ChatEntryListWidget = ({
           />
         ),
         isAnchor: false,
+        isSubagentChain: false,
       });
     } else {
       renderUnits.push({
@@ -149,6 +153,7 @@ export const ChatEntryListWidget = ({
           />
         ),
         isAnchor: isMessageAnchorEntryGuard({ entry }),
+        isSubagentChain: false,
       });
     }
 
@@ -174,34 +179,41 @@ export const ChatEntryListWidget = ({
           />
         ),
         isAnchor: false,
+        isSubagentChain: false,
       });
     }
   }
 
-  const tailUnitIndex = collapseToTail
-    ? Number(findAnchorUnitTailIndexTransformer({ flags: renderUnits.map((u) => u.isAnchor) }))
+  // Tail window: keep the most recent MESSAGE anchor (text/user/system, not a sub-agent
+  // chain), every sub-agent chain that follows it (each chain is its own collapsible unit
+  // with its own toggle), and the very last unit. Intermediate tool pairs collapse out so
+  // long streaming tool runs don't blow past a single screen height while parallel
+  // sub-agent chains remain visible.
+  const collapsedIndices = collapseToTail
+    ? computeTailVisibleIndicesTransformer({
+        isAnchorFlags: renderUnits.map((u) => u.isAnchor),
+        isSubagentChainFlags: renderUnits.map((u) => u.isSubagentChain),
+      })
+    : [];
+  const collapsedUnits = collapsedIndices
+    .map((idx) => renderUnits[Number(idx)])
+    .filter((u): u is RenderUnit => u !== undefined);
+
+  // Collapsed minimum-visible bound — at least 1 unit visible when no message anchor, at
+  // least 2 (anchor + last) when there is one — applied so the toggle's hidden-count never
+  // drops below what the user can actually un-hide.
+  const hasMessageAnchor = renderUnits.some((u) => u.isAnchor && !u.isSubagentChain);
+  const collapsedMinVisible = hasMessageAnchor
+    ? tailWindowConfigStatics.maxVisibleWhenCollapsed
+    : tailWindowConfigStatics.minVisibleWhenCollapsed;
+  const collapsedVisibleCount =
+    renderUnits.length === 0 ? 0 : Math.max(collapsedUnits.length, collapsedMinVisible);
+  const wouldHideCount = collapseToTail
+    ? Math.max(0, renderUnits.length - collapsedVisibleCount)
     : 0;
 
-  // Tail window: keep just the most recent message anchor + the most recent unit overall.
-  // Everything between them collapses out so multiple parallel chains don't blow past
-  // a single screen height as new tool calls stream in.
-  const lastUnitIndex = renderUnits.length - 1;
-  const collapsedVisibleCount =
-    renderUnits.length === 0
-      ? 0
-      : tailUnitIndex >= lastUnitIndex
-        ? tailWindowConfigStatics.minVisibleWhenCollapsed
-        : tailWindowConfigStatics.maxVisibleWhenCollapsed;
-  const wouldHideCount = collapseToTail ? renderUnits.length - collapsedVisibleCount : 0;
-
-  let visibleUnits: RenderUnit[] = renderUnits;
-  if (collapseToTail && !showAllEarlier && renderUnits.length > 0) {
-    const anchorUnit = renderUnits[tailUnitIndex];
-    const lastUnit = renderUnits[lastUnitIndex];
-    if (anchorUnit !== undefined && lastUnit !== undefined) {
-      visibleUnits = tailUnitIndex >= lastUnitIndex ? [lastUnit] : [anchorUnit, lastUnit];
-    }
-  }
+  const visibleUnits: RenderUnit[] =
+    collapseToTail && !showAllEarlier && renderUnits.length > 0 ? collapsedUnits : renderUnits;
 
   const trailingElements: React.JSX.Element[] = [];
   if (showEndStreamingIndicator && isStreaming) {

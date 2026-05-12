@@ -695,5 +695,75 @@ describe('ChatEntryListWidget', () => {
         'Bash',
       ]);
     });
+
+    it('VALID: {collapseToTail true, earlier tools + text anchor + 2 sub-agent chains} => anchor text + BOTH chain headers visible, earlier tools hidden', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_pre1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_pre1' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_pre2', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_pre2' }),
+              AssistantTextChatEntryStub({ content: 'PARENT_ANCHOR_marker' }),
+              TaskToolUseChatEntryStub({
+                toolUseId: 'task-a',
+                agentId: 'agent-a',
+                toolInput: JSON.stringify({
+                  description: 'Backend minion',
+                  prompt: 'Do backend work',
+                }),
+              }),
+              AssistantTextChatEntryStub({
+                content: 'chain a inner',
+                source: 'subagent',
+                agentId: 'agent-a',
+              }),
+              TaskToolUseChatEntryStub({
+                toolUseId: 'task-b',
+                agentId: 'agent-b',
+                toolInput: JSON.stringify({
+                  description: 'Frontend minion',
+                  prompt: 'Do frontend work',
+                }),
+              }),
+              AssistantTextChatEntryStub({
+                content: 'chain b inner',
+                source: 'subagent',
+                agentId: 'agent-b',
+              }),
+            ]}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      // Both sub-agent chain headers must be rendered — chains have their own collapse
+      // toggles and must not be hidden by the parent tail-window.
+      expect(
+        screen.queryAllByTestId('SUBAGENT_CHAIN_HEADER').map((h) => h.textContent),
+      ).toStrictEqual([
+        '▾ SUB-AGENT"Backend minion" (1 entries)',
+        '▾ SUB-AGENT"Frontend minion" (1 entries)',
+      ]);
+
+      // The parent text anchor must be visible (along with each chain's inner text).
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        'CHAOSWHISPERERPARENT_ANCHOR_marker',
+        'SUB-AGENTchain a inner',
+        'SUB-AGENTchain b inner',
+      ]);
+
+      // Earlier tool rows (Read, Grep) must be hidden behind the toggle.
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([]);
+
+      // Toggle must be present to expose the hidden earlier tools.
+      expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+        /^▸ Show \d+ earlier entries$/u,
+      );
+    });
   });
 });
