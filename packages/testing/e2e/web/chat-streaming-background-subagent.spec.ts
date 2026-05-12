@@ -190,6 +190,10 @@ test.describe('Streaming sub-agent grouping (run_in_background — agent JSONL g
 
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
 
+    // Sub-agent chain default tail-window pins the most-recent text anchor (LATE_MARKER)
+    // and hides earlier entries. Click "Show N earlier" to reveal INITIAL_MARKER too.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     await expect(chainScope.getByText(LATE_MARKER).first()).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });

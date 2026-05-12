@@ -156,6 +156,12 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
     await expect(chainHeader).toContainText('2 entries', { timeout: CHAT_TIMEOUT });
 
     const chainScope = page.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries (only the latest message
+    // anchor + subsequent activity is visible). Click "Show N earlier" to reveal the
+    // full inner transcript so the prompt + assistant rows can both be asserted.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     const messages = chainScope.getByTestId('CHAT_MESSAGE');
 
     // EXACTLY two CHAT_MESSAGE rows render inside the chain — one for the prompt
@@ -275,7 +281,13 @@ test.describe('Replay sub-agent grouping (file-sourced: main JSONL + subagent JS
     await expect(chains).toHaveCount(3, { timeout: CHAT_TIMEOUT });
 
     const expectChainRows = async (chainIndex: number, sub: typeof subAlpha): Promise<void> => {
-      const messages = chains.nth(chainIndex).getByTestId('CHAT_MESSAGE');
+      const chain = chains.nth(chainIndex);
+
+      // Sub-agent chain default tail-window hides the prompt row when an assistant message
+      // anchor follows it. Click "Show N earlier" to reveal the full inner transcript.
+      await chain.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
+      const messages = chain.getByTestId('CHAT_MESSAGE');
 
       await expect(messages).toHaveCount(2, { timeout: CHAT_TIMEOUT });
 

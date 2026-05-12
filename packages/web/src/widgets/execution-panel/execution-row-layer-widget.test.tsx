@@ -388,6 +388,48 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
     });
 
+    it('VALID: {in_progress, hasEntries, user clicks header to collapse} => stays collapsed even when new entries arrive (auto-expand effect must not race the user click)', async () => {
+      ExecutionRowLayerWidgetProxy();
+
+      const entries = [AssistantTextChatEntryStub({ content: 'Working on it' })];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={entries}
+          />
+        ),
+      });
+
+      // Initial render auto-expands because status === 'in_progress' && hasEntries.
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+
+      // User collapses the row.
+      await userEvent.click(screen.getByTestId('execution-row-header'));
+
+      // Bug: the in-progress auto-expand effect re-fires when `expanded` flips false
+      // (because `expanded` is in its dependency array) and immediately re-expands.
+      // Fix: `!userClickedRef.current` guard suppresses the re-expand. Row stays collapsed.
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+
+      // Re-render with a new entry (simulates streaming) — row must remain collapsed.
+      const moreEntries = [
+        AssistantTextChatEntryStub({ content: 'Working on it' }),
+        AssistantTextChatEntryStub({ content: 'Still working...' }),
+      ];
+      rerender(
+        <ExecutionRowLayerWidget
+          {...defaultProps()}
+          status={ExecutionStepStatusStub({ value: 'in_progress' })}
+          entries={moreEntries}
+        />,
+      );
+
+      expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
+    });
+
     it('EDGE: {complete, manually expanded} => stays expanded on re-render', async () => {
       ExecutionRowLayerWidgetProxy();
 
@@ -620,7 +662,31 @@ describe('ExecutionRowLayerWidget', () => {
       expect(screen.getByTestId('SUBAGENT_CHAIN_HEADER')).toBeInTheDocument();
     });
 
-    it('VALID: {multiple thinking entries} => all thinking rows render in order', () => {
+    it('VALID: {multiple thinking entries, show all earlier} => all thinking rows render in order', async () => {
+      const proxy = ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantThinkingChatEntryStub({ content: 'first' }),
+              AssistantThinkingChatEntryStub({ content: 'final' }),
+            ]}
+          />
+        ),
+      });
+
+      // Tail-window default would hide the earlier thinking entry; expand to assert ordering across all entries.
+      await proxy.clickShowEarlier();
+
+      const contents = screen.queryAllByTestId('THINKING_ROW_CONTENT').map((c) => c.textContent);
+
+      expect(contents).toStrictEqual(['first', 'final']);
+    });
+
+    it('VALID: {multiple thinking entries, default tail-window} => only the last thinking entry is rendered', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -638,10 +704,39 @@ describe('ExecutionRowLayerWidget', () => {
 
       const contents = screen.queryAllByTestId('THINKING_ROW_CONTENT').map((c) => c.textContent);
 
-      expect(contents).toStrictEqual(['first', 'final']);
+      expect(contents).toStrictEqual(['final']);
     });
 
-    it('VALID: {multiple tool pairs separated by text} => all tool rows render when expanded', () => {
+    it('VALID: {multiple tool pairs separated by text, show all earlier} => all tool rows render', async () => {
+      const proxy = ExecutionRowLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionRowLayerWidget
+            {...defaultProps()}
+            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+              AssistantTextChatEntryStub({ content: 'thinking about next step' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_2', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_2' }),
+              AssistantTextChatEntryStub({ content: 'one more' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_3', toolName: 'Bash' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_3' }),
+            ]}
+          />
+        ),
+      });
+
+      await proxy.clickShowEarlier();
+
+      const toolRowNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
+
+      expect(toolRowNames).toStrictEqual(['Read', 'Grep', 'Bash']);
+    });
+
+    it('VALID: {multiple tool pairs separated by text, default tail-window} => only last text + subsequent tool render', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -665,7 +760,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const toolRowNames = screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent);
 
-      expect(toolRowNames).toStrictEqual(['Read', 'Grep', 'Bash']);
+      expect(toolRowNames).toStrictEqual(['Bash']);
     });
   });
 

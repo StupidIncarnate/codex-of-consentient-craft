@@ -140,8 +140,8 @@ describe('SubagentChainWidget', () => {
   });
 
   describe('inner groups rendering', () => {
-    it('VALID: {expanded with tool entries} => renders flat without tool-group collapse', () => {
-      SubagentChainWidgetProxy();
+    it('VALID: {expanded with tool entries, show all earlier} => renders flat without tool-group collapse', async () => {
+      const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
         innerGroups: [
           {
@@ -159,12 +159,41 @@ describe('SubagentChainWidget', () => {
         ui: <SubagentChainWidget group={group} />,
       });
 
+      // Tail-window default hides earlier non-message entries; click the toggle to show all.
+      await proxy.clickShowEarlier();
+
       expect(screen.queryAllByTestId('TOOL_GROUP_HEADER')).toStrictEqual([]);
 
       const toolRows = screen.queryAllByTestId('TOOL_ROW');
       const chatMessages = screen.queryAllByTestId('CHAT_MESSAGE');
 
       expect(toolRows.length + chatMessages.length).toBe(2);
+    });
+
+    it('VALID: {expanded with tool entries, default tail-window} => renders only last entry plus toggle', () => {
+      const proxy = SubagentChainWidgetProxy();
+      const group = SubagentChainGroupStub({
+        innerGroups: [
+          {
+            kind: 'single',
+            entry: AssistantToolUseChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
+          },
+          {
+            kind: 'single',
+            entry: AssistantToolResultChatEntryStub({ source: 'subagent', agentId: 'agent-001' }),
+          },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <SubagentChainWidget group={group} />,
+      });
+
+      const toolRows = screen.queryAllByTestId('TOOL_ROW');
+      const chatMessages = screen.queryAllByTestId('CHAT_MESSAGE');
+
+      expect(toolRows.length + chatMessages.length).toBe(1);
+      expect(proxy.hasShowEarlierToggle()).toBe(true);
     });
 
     it('VALID: {expanded with single innerGroup} => renders ChatMessageWidget', () => {
@@ -413,8 +442,8 @@ describe('SubagentChainWidget', () => {
       expect(badges).toStrictEqual([]);
     });
 
-    it('VALID: {full chain with mixed entries} => correct delta tracking across entry types', () => {
-      SubagentChainWidgetProxy();
+    it('VALID: {full chain with mixed entries, show all earlier} => correct delta tracking across entry types', async () => {
+      const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({
         innerGroups: [
           {
@@ -495,6 +524,9 @@ describe('SubagentChainWidget', () => {
       mantineRenderAdapter({
         ui: <SubagentChainWidget group={group} />,
       });
+
+      // Tail-window default would hide the earlier two tool-pair badges; expand to assert annotations across the full chain.
+      await proxy.clickShowEarlier();
 
       const badges = screen.queryAllByTestId('TOKEN_BADGE');
 
