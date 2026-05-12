@@ -18,6 +18,7 @@ import type { ExecutionRole } from '../../contracts/execution-role/execution-rol
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
+import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
 import { collectPairTailEntriesTransformer } from '../../transformers/collect-pair-tail-entries/collect-pair-tail-entries-transformer';
 import { collectSubagentChainsTransformer } from '../../transformers/collect-subagent-chains/collect-subagent-chains-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
@@ -180,8 +181,27 @@ export const ChatEntryListWidget = ({
   const tailUnitIndex = collapseToTail
     ? Number(findAnchorUnitTailIndexTransformer({ flags: renderUnits.map((u) => u.isAnchor) }))
     : 0;
-  const visibleStartIndex = collapseToTail && !showAllEarlier ? tailUnitIndex : 0;
-  const visibleUnits = renderUnits.slice(visibleStartIndex);
+
+  // Tail window: keep just the most recent message anchor + the most recent unit overall.
+  // Everything between them collapses out so multiple parallel chains don't blow past
+  // a single screen height as new tool calls stream in.
+  const lastUnitIndex = renderUnits.length - 1;
+  const collapsedVisibleCount =
+    renderUnits.length === 0
+      ? 0
+      : tailUnitIndex >= lastUnitIndex
+        ? tailWindowConfigStatics.minVisibleWhenCollapsed
+        : tailWindowConfigStatics.maxVisibleWhenCollapsed;
+  const wouldHideCount = collapseToTail ? renderUnits.length - collapsedVisibleCount : 0;
+
+  let visibleUnits: RenderUnit[] = renderUnits;
+  if (collapseToTail && !showAllEarlier && renderUnits.length > 0) {
+    const anchorUnit = renderUnits[tailUnitIndex];
+    const lastUnit = renderUnits[lastUnitIndex];
+    if (anchorUnit !== undefined && lastUnit !== undefined) {
+      visibleUnits = tailUnitIndex >= lastUnitIndex ? [lastUnit] : [anchorUnit, lastUnit];
+    }
+  }
 
   const trailingElements: React.JSX.Element[] = [];
   if (showEndStreamingIndicator && isStreaming) {
@@ -194,11 +214,13 @@ export const ChatEntryListWidget = ({
     );
   }
 
+  // Toggle persists once a chain has anything hidden by the tail window — even after
+  // the user expands, so they can collapse back.
   const showEarlierToggle =
-    collapseToTail && tailUnitIndex > 0 ? (
+    wouldHideCount > 0 ? (
       <ShowEarlierToggleWidget
         key="show-earlier-toggle"
-        hiddenCount={tailStartIndexContract.parse(tailUnitIndex)}
+        hiddenCount={tailStartIndexContract.parse(wouldHideCount)}
         expanded={showAllEarlier}
         onToggle={(): void => {
           setShowAllEarlier((prev) => !prev);
