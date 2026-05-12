@@ -548,5 +548,152 @@ describe('ChatEntryListWidget', () => {
       ]);
       expect(toggle.textContent).toMatch(/^▾ Hide \d+ earlier entries?$/u);
     });
+
+    const buildAnchorPlusThreeToolPairsFixture = (): ReturnType<
+      typeof AssistantTextChatEntryStub
+    >[] => [
+      AssistantTextChatEntryStub({ content: FIRST }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_a', toolName: 'Read' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_b', toolName: 'Grep' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_c', toolName: 'Bash' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_c' }),
+    ];
+
+    it('VALID: {collapseToTail true, anchor text + 3 sequential tool-pairs} => only anchor + LAST tool visible, intermediate tools hidden, toggle reads "Show 2 earlier entries"', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={buildAnchorPlusThreeToolPairsFixture()}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${FIRST}`,
+      ]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Bash',
+      ]);
+      expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+        /^▸ Show 2 earlier entries$/u,
+      );
+    });
+
+    it('VALID: {collapseToTail true, anchor text + 3 sequential tool-pairs, click Show earlier} => all 4 units visible in order, toggle flips to "Hide 2 earlier entries"', async () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={buildAnchorPlusThreeToolPairsFixture()}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      const toggle = screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE');
+      await userEvent.click(toggle);
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${FIRST}`,
+      ]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Read',
+        'Grep',
+        'Bash',
+      ]);
+      expect(toggle.textContent).toMatch(/^▾ Hide 2 earlier entries$/u);
+    });
+
+    it('VALID: {collapseToTail true, anchor + 3 tool-pairs, click toggle twice} => collapses back to anchor + LAST tool only', async () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={buildAnchorPlusThreeToolPairsFixture()}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      const toggle = screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE');
+      await userEvent.click(toggle);
+      await userEvent.click(toggle);
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${FIRST}`,
+      ]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Bash',
+      ]);
+      expect(toggle.textContent).toMatch(/^▸ Show 2 earlier entries$/u);
+    });
+
+    it('EDGE: {collapseToTail true, zero text anchor, 3 tool-pairs in a row} => only LAST tool visible, toggle reads "Show 2 earlier entries"', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_a', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_b', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_c', toolName: 'Bash' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_c' }),
+            ]}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([]);
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Bash',
+      ]);
+      expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE').textContent).toMatch(
+        /^▸ Show 2 earlier entries$/u,
+      );
+    });
+
+    it('EDGE: {collapseToTail true, zero text anchor, 3 tool-pairs, click Show earlier} => expand reveals all 3 tools in order', async () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_a', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_b', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_c', toolName: 'Bash' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_c' }),
+            ]}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE'));
+
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Read',
+        'Grep',
+        'Bash',
+      ]);
+    });
   });
 });
