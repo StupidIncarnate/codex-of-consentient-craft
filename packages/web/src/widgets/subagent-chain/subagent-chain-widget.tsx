@@ -15,6 +15,7 @@ import { contextTokenCountContract } from '../../contracts/context-token-count/c
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { tailWindowConfigStatics } from '../../statics/tail-window-config/tail-window-config-statics';
 import { computeMergedItemTailIndexTransformer } from '../../transformers/compute-merged-item-tail-index/compute-merged-item-tail-index-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
@@ -92,14 +93,37 @@ export const SubagentChainWidget = ({
             const singleEntries = group.innerGroups.map((ig) => ig.entry);
             const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
-            const tailStartIndex = computeMergedItemTailIndexTransformer({ items: mergedItems });
-            const visibleStartIndex = showAllEarlier ? 0 : tailStartIndex;
+            const tailStartIndex = Number(
+              computeMergedItemTailIndexTransformer({ items: mergedItems }),
+            );
 
+            // Tail window: keep the most recent message anchor + the most recent item overall.
+            // Everything between collapses out so chains don't blow past a single screen
+            // height as new tool calls stream in.
+            const lastIndex = mergedItems.length - 1;
+            const allIndices = mergedItems.map((_, i) => i);
+            const tailIndices =
+              mergedItems.length === 0
+                ? []
+                : tailStartIndex >= lastIndex
+                  ? [lastIndex]
+                  : [tailStartIndex, lastIndex];
+            const visibleIndices = showAllEarlier ? allIndices : tailIndices;
+            const collapsedVisibleCount =
+              mergedItems.length === 0
+                ? 0
+                : tailStartIndex >= lastIndex
+                  ? tailWindowConfigStatics.minVisibleWhenCollapsed
+                  : tailWindowConfigStatics.maxVisibleWhenCollapsed;
+            const wouldHideCount = mergedItems.length - collapsedVisibleCount;
+
+            // Toggle persists once a chain has anything hidden by the tail window — even after
+            // the user expands, so they can collapse back.
             const toggleRow =
-              tailStartIndex > 0 ? (
+              wouldHideCount > 0 ? (
                 <ShowEarlierToggleWidget
                   key="show-earlier-toggle"
-                  hiddenCount={tailStartIndexContract.parse(tailStartIndex)}
+                  hiddenCount={tailStartIndexContract.parse(wouldHideCount)}
                   expanded={showAllEarlier}
                   onToggle={(): void => {
                     setShowAllEarlier((prev) => !prev);
@@ -108,9 +132,10 @@ export const SubagentChainWidget = ({
                 />
               ) : null;
 
-            const renderedItems = mergedItems.slice(visibleStartIndex).map((item, sliceIndex) => {
-              const index = visibleStartIndex + sliceIndex;
+            const renderedItems = visibleIndices.map((index) => {
+              const item = mergedItems[index];
               const annotation = annotations[index];
+              if (item === undefined) return null;
 
               if (item.kind === 'tool-pair') {
                 const toolUseEntry = item.toolUse;
