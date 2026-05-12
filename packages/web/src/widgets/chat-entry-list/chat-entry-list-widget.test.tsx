@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import {
   AssistantTextChatEntryStub,
@@ -390,6 +391,162 @@ describe('ChatEntryListWidget', () => {
       const message = screen.getByTestId('CHAT_MESSAGE');
 
       expect(message.textContent?.startsWith('PATHSEEKER')).toBe(true);
+    });
+  });
+
+  describe('collapseToTail (execution variant)', () => {
+    const FIRST = 'TAIL_FIRST_marker';
+    const MIDDLE = 'TAIL_MIDDLE_marker';
+    const LAST = 'TAIL_LAST_marker';
+
+    const buildSevenEntryFixture = (): ReturnType<typeof AssistantTextChatEntryStub>[] => [
+      AssistantTextChatEntryStub({ content: FIRST }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_a' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+      AssistantTextChatEntryStub({ content: MIDDLE }),
+      AssistantToolUseChatEntryStub({ toolUseId: 'use_b' }),
+      AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+      AssistantTextChatEntryStub({ content: LAST }),
+    ];
+
+    it('VALID: {collapseToTail false (default) with text/tool/text/tool/text} => all 3 text messages render in order, no toggle', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <ChatEntryListWidget entries={buildSevenEntryFixture()} isStreaming={false} />,
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${FIRST}`,
+        `CHAOSWHISPERER${MIDDLE}`,
+        `CHAOSWHISPERER${LAST}`,
+      ]);
+      expect(screen.queryByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE')).toBe(null);
+    });
+
+    it('VALID: {collapseToTail true with text/tool/text/tool/text} => only LAST text renders + toggle visible', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={buildSevenEntryFixture()}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${LAST}`,
+      ]);
+      expect(
+        screen.queryAllByTestId('TOOL_ROW').map((t) => t.getAttribute('data-testid')),
+      ).toStrictEqual([]);
+      expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE')).toBeInTheDocument();
+    });
+
+    it('VALID: {collapseToTail true with anchor text + subsequent tool} => last text and tool both visible, earlier text hidden', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantTextChatEntryStub({ content: FIRST }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_a' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+              AssistantTextChatEntryStub({ content: LAST }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_b', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+            ]}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${LAST}`,
+      ]);
+      expect(
+        screen.queryAllByTestId('TOOL_ROW').map((t) => t.getAttribute('data-testid')),
+      ).toStrictEqual(['TOOL_ROW']);
+      expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE')).toBeInTheDocument();
+    });
+
+    it('VALID: {collapseToTail true, no message anchor (only tool pairs)} => only last tool-pair renders + toggle', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_a', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_a' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_b', toolName: 'Bash' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_b' }),
+            ]}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      expect(
+        screen.queryAllByTestId('TOOL_ROW').map((t) => t.getAttribute('data-testid')),
+      ).toStrictEqual(['TOOL_ROW']);
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([]);
+      expect(screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE')).toBeInTheDocument();
+    });
+
+    it('VALID: {collapseToTail true, single entry} => no toggle (nothing hidden)', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[AssistantTextChatEntryStub({ content: LAST })]}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${LAST}`,
+      ]);
+      expect(screen.queryByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE')).toBe(null);
+    });
+
+    it('VALID: {collapseToTail true, click "Show N earlier"} => earlier entries become visible and toggle flips to "Hide"', async () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={buildSevenEntryFixture()}
+            isStreaming={false}
+            collapseToTail={true}
+          />
+        ),
+      });
+
+      // Pre-click: only LAST visible.
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${LAST}`,
+      ]);
+
+      const toggle = screen.getByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE');
+      await userEvent.click(toggle);
+
+      // Post-click: all 3 text messages visible in original order.
+      expect(screen.queryAllByTestId('CHAT_MESSAGE').map((m) => m.textContent)).toStrictEqual([
+        `CHAOSWHISPERER${FIRST}`,
+        `CHAOSWHISPERER${MIDDLE}`,
+        `CHAOSWHISPERER${LAST}`,
+      ]);
+      expect(toggle.textContent).toMatch(/^▾ Hide \d+ earlier entries?$/u);
     });
   });
 });

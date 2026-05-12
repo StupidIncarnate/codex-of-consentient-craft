@@ -122,7 +122,12 @@ export const ExecutionRowLayerWidget = ({
   const userClickedRef = useRef(false);
 
   useEffect(() => {
-    if (status === ('in_progress' as ExecutionStepStatus) && hasEntries && !expanded) {
+    if (
+      status === ('in_progress' as ExecutionStepStatus) &&
+      hasEntries &&
+      !expanded &&
+      !userClickedRef.current
+    ) {
       setExpanded(true);
     }
   }, [status, hasEntries, expanded]);
@@ -418,6 +423,7 @@ export const ExecutionRowLayerWidget = ({
               isStreaming={isStreaming ?? false}
               roleLabel={role}
               swapTrailingEmptyThinkingForIndicator={true}
+              collapseToTail={true}
             />
           ) : null}
           {isStreaming ? <StreamingBarLayerWidget /> : null}

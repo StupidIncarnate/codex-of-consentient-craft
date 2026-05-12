@@ -12,11 +12,15 @@ import { useState } from 'react';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
+import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
+import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { computeMergedItemTailIndexTransformer } from '../../transformers/compute-merged-item-tail-index/compute-merged-item-tail-index-transformer';
 import { computeTokenAnnotationsTransformer } from '../../transformers/compute-token-annotations/compute-token-annotations-transformer';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { mergeToolEntriesTransformer } from '../../transformers/merge-tool-entries/merge-tool-entries-transformer';
 import { ChatMessageWidget } from '../chat-message/chat-message-widget';
+import { ShowEarlierToggleWidget } from '../show-earlier-toggle/show-earlier-toggle-widget';
 import { ToolRowWidget } from '../tool-row/tool-row-widget';
 
 type ToolResultEntry = Extract<ChatEntry, { type: 'tool_result' }>;
@@ -30,10 +34,11 @@ export const SubagentChainWidget = ({
 }: SubagentChainWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
   const [expanded, setExpanded] = useState(true);
+  const [showAllEarlier, setShowAllEarlier] = useState(false);
 
   if (group.kind !== 'subagent-chain') return null;
 
-  const chevron = expanded ? '\u25BE' : '\u25B8';
+  const chevron = expanded ? '▾' : '▸';
 
   const formattedTokens =
     group.contextTokens === null
@@ -87,8 +92,24 @@ export const SubagentChainWidget = ({
             const singleEntries = group.innerGroups.map((ig) => ig.entry);
             const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
+            const tailStartIndex = computeMergedItemTailIndexTransformer({ items: mergedItems });
+            const visibleStartIndex = showAllEarlier ? 0 : tailStartIndex;
 
-            return mergedItems.map((item, index) => {
+            const toggleRow =
+              tailStartIndex > 0 ? (
+                <ShowEarlierToggleWidget
+                  key="show-earlier-toggle"
+                  hiddenCount={tailStartIndexContract.parse(tailStartIndex)}
+                  expanded={showAllEarlier}
+                  onToggle={(): void => {
+                    setShowAllEarlier((prev) => !prev);
+                  }}
+                  testId={toggleTestIdContract.parse('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE')}
+                />
+              ) : null;
+
+            const renderedItems = mergedItems.slice(visibleStartIndex).map((item, sliceIndex) => {
+              const index = visibleStartIndex + sliceIndex;
               const annotation = annotations[index];
 
               if (item.kind === 'tool-pair') {
@@ -124,6 +145,13 @@ export const SubagentChainWidget = ({
                 />
               );
             });
+
+            return (
+              <>
+                {toggleRow}
+                {renderedItems}
+              </>
+            );
           })()}
           {group.taskNotification === null ? null : (
             <ChatMessageWidget entry={group.taskNotification} />

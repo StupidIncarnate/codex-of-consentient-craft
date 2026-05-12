@@ -637,6 +637,10 @@ test.describe('Chat stream vs replay parity', () => {
 
     const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
 
+    // Sub-agent chain default tail-window hides earlier entries; click "Show N earlier"
+    // to reveal the full inner transcript so all paired TOOL_ROW assertions can run.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     // Inner tool_use + tool_result MUST merge into a single TOOL_ROW with the inner
     // toolName + file path. Anything else means tool merging didn't run inside the chain.
     await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
@@ -688,6 +692,9 @@ test.describe('Chat stream vs replay parity', () => {
     await expect(replayChainHeader).toContainText('3 entries', { timeout: CHAT_TIMEOUT });
 
     const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries on replay too.
+    await replayChainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
 
     await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
     await expect(
@@ -947,6 +954,10 @@ test.describe('Chat stream vs replay parity', () => {
 
     const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
 
+    // Sub-agent chain default tail-window hides earlier entries; click "Show N earlier"
+    // to reveal the full inner transcript so all paired TOOL_ROW assertions can run.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     // 3 paired TOOL_ROW. Filter-by-file-path proves each tool_use was paired with its
     // OWN tool_result (and not, say, all three tool_uses pointing at the same result).
     await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(PARALLEL_TOOL_COUNT);
@@ -991,6 +1002,9 @@ test.describe('Chat stream vs replay parity', () => {
     });
 
     const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries on replay too.
+    await replayChainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
 
     await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(
       PARALLEL_TOOL_COUNT,
@@ -1184,6 +1198,10 @@ test.describe('Chat stream vs replay parity', () => {
 
     const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
 
+    // Sub-agent chain default tail-window hides earlier entries; click "Show N earlier"
+    // to reveal both inner texts and the tool row between them.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     await expect(chainScope.getByText(innerFirstText).first()).toBeVisible({
       timeout: CHAT_TIMEOUT,
     });
@@ -1221,6 +1239,9 @@ test.describe('Chat stream vs replay parity', () => {
     });
 
     const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries on replay too.
+    await replayChainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
 
     await expect(replayChainScope.getByText(innerFirstText).first()).toBeVisible({
       timeout: CHAT_TIMEOUT,
@@ -1731,6 +1752,10 @@ test.describe('Chat stream vs replay parity', () => {
 
     const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
 
+    // Sub-agent chain default tail-window hides earlier entries; click "Show N earlier"
+    // to reveal the inner TOOL_ROW so its assertions can run.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
     await expect(
       chainScope.locator('[data-testid="TOOL_ROW_STATUS"]', { hasText: '✓' }),
@@ -1770,6 +1795,9 @@ test.describe('Chat stream vs replay parity', () => {
     });
 
     const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries on replay too.
+    await replayChainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
 
     await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
     await expect(
@@ -1969,6 +1997,10 @@ test.describe('Chat stream vs replay parity', () => {
 
     const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
 
+    // Sub-agent chain default tail-window hides earlier entries; click "Show N earlier"
+    // to reveal the inner TOOL_ROW so its assertions can run.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     await expect(chainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
     await expect(
       chainScope.locator('[data-testid="CHAT_MESSAGE"]').filter({ hasText: 'TOOL RESULT' }),
@@ -2006,6 +2038,9 @@ test.describe('Chat stream vs replay parity', () => {
     });
 
     const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries on replay too.
+    await replayChainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
 
     await expect(replayChainScope.locator('[data-testid="TOOL_ROW"]')).toHaveCount(ONE_COUNT);
     await expect(
@@ -2210,6 +2245,11 @@ test.describe('Chat stream vs replay parity', () => {
     // is SUB-AGENT PROMPT → start text → tool row → done text. Before the fix the streaming
     // path showed tools first and SUB-AGENT PROMPT last (entry count inflated by dual-emit).
     const chainScope = chatPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries; click "Show N earlier"
+    // to reveal the full inner positional sequence under test.
+    await chainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     const chainMessages = chainScope.locator('[data-testid="CHAT_MESSAGE"]');
 
     await expect(chainMessages.nth(0)).toContainText('SUB-AGENT PROMPT', { timeout: CHAT_TIMEOUT });
@@ -2239,6 +2279,10 @@ test.describe('Chat stream vs replay parity', () => {
     });
 
     const replayChainScope = replayPanel.getByTestId('SUBAGENT_CHAIN');
+
+    // Sub-agent chain default tail-window hides earlier entries on replay too.
+    await replayChainScope.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE').click();
+
     const replayChainMessages = replayChainScope.locator('[data-testid="CHAT_MESSAGE"]');
 
     await expect(replayChainMessages.nth(0)).toContainText('SUB-AGENT PROMPT', {
