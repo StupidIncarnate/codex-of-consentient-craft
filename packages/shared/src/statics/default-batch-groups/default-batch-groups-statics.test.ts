@@ -1,12 +1,20 @@
 import { defaultBatchGroupsStatics } from './default-batch-groups-statics';
 
 describe('defaultBatchGroupsStatics', () => {
-  it('VALID: value => matches curated three-group shape', () => {
+  it('VALID: value => matches curated two-group shape', () => {
     expect(defaultBatchGroupsStatics).toStrictEqual({
       value: [
-        ['contracts', 'statics', 'errors'],
-        ['guards', 'transformers'],
-        ['state', 'middleware'],
+        [
+          'contracts',
+          'statics',
+          'errors',
+          'guards',
+          'transformers',
+          'state',
+          'middleware',
+          'adapters',
+        ],
+        ['responders', 'flows'],
       ],
     });
   });

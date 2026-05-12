@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Groups DependencyStep[] into batch chunks by folder type according to `agents.batchGroups` configuration
+ * PURPOSE: Groups DependencyStep[] into batch chunks by folder type according to `agents.batchGroups`, capping each chunk at `defaultMaxStepsPerChunkStatics.value` so a single codeweaver/lawbringer never owns more than that many steps
  *
  * USAGE:
  * stepsToBatchChunksTransformer({ steps, batchGroups: [['contracts', 'statics']] });
- * // Returns DependencyStep[][] — each inner array is one batch: folder types in the same group collapse, ungrouped stay solo
+ * // Returns DependencyStep[][] — each inner array is one batch: same-group steps collapse, capped at the static; ungrouped stay solo
  */
 
 import {
@@ -13,7 +13,7 @@ import {
   type FolderType,
   type FolderTypeGroups,
 } from '@dungeonmaster/shared/contracts';
-import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+import { defaultMaxStepsPerChunkStatics, folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import { pathToFolderTypeTransformer } from '../path-to-folder-type/path-to-folder-type-transformer';
 
@@ -24,6 +24,8 @@ export const stepsToBatchChunksTransformer = ({
   steps: DependencyStep[];
   batchGroups: FolderTypeGroups;
 }): DependencyStep[][] => {
+  const maxStepsPerChunk = defaultMaxStepsPerChunkStatics.value;
+
   const groupOf = new Map<FolderType, ArrayIndex>();
   batchGroups.forEach((group, index) => {
     const brandedIndex = arrayIndexContract.parse(index);
@@ -61,7 +63,9 @@ export const stepsToBatchChunksTransformer = ({
     const brandedIndex = arrayIndexContract.parse(index);
     const accumulated = accumulators.get(brandedIndex);
     if (accumulated) {
-      result.push(accumulated);
+      for (let i = 0; i < accumulated.length; i += maxStepsPerChunk) {
+        result.push(accumulated.slice(i, i + maxStepsPerChunk));
+      }
     }
   });
 
