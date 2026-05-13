@@ -98,24 +98,36 @@ Capture each confident match as a tuple: \`(newContractName, existingContractSou
 
 Compose a SINGLE modify-quest call that batches every confirmed reconciliation. Two write classes:
 
+**Use partial-patch shape on every step and contract you touch.** The surface-scope minion already wrote these entries; sending the full shape risks clobbering its assertions, instructions, focusFile, properties, etc. The broker merges by id (steps) and id (contracts) and only touches the fields you send.
+
 **(A) Cross-slice near-duplicate merges (from Step 3).** For each \`(loserName, winnerName, winnerSource)\`:
 
-1. Rewrite every consumer step's \`inputContracts\` / \`outputContracts\` — replace every occurrence of \`loserName\` with \`winnerName\`. Submit the affected step entries in your \`steps[]\` array; the upsert collapses on step \`id\` and updates only the contract-ref fields. Leave assertions[] / instructions[] / focusFile / accompanyingFiles untouched on those steps.
-2. Add the surviving contract entry to your \`contracts[]\` array with \`name: winnerName\` and \`source: winnerSource\` (and the original \`status\` preserved — typically \`'new'\` since the surface-scope minion that wrote it declared it new). The upsert collapses on name, so this updates the existing winner entry rather than duplicating it.
-3. Drop the duplicate via \`{ name: loserName, _delete: true }\` in your \`contracts[]\` array. The upsert recognises \`_delete: true\` and removes the entry by name.
+1. Rewrite every consumer step's \`inputContracts\` / \`outputContracts\` — replace every occurrence of \`loserName\` with \`winnerName\`. Submit each affected step as a partial-patch: \`{ id, inputContracts: [...new...], outputContracts: [...new...] }\` — send ONLY the contract-ref fields you changed, not the full step.
+2. For the surviving contract, send a partial-patch \`{ id: <winner-id>, name: winnerName, source: winnerSource }\` to your \`contracts[]\` array. (The contract upsert keys on \`id\`; \`name\` and \`source\` are scalar overwrites on the existing entry.)
+3. Drop the duplicate via \`{ id: <loser-id>, _delete: true }\` in your \`contracts[]\` array.
 
 **(B) In-package reuse flips (from Step 4).** For each \`(newContractName, existingContractSource)\`:
 
-1. Add an entry to your \`contracts[]\` array with \`name: newContractName\`, \`status: 'existing'\`, and \`source: existingContractSource\`. The upsert collapses on name, flipping the previously \`status: 'new'\` entry to \`status: 'existing'\` and updating its source to point at the on-disk file.
-2. If the existing contract is a drop-in replacement and the producing step's \`outputContracts\` named the new contract specifically (rather than just consuming it), rewrite that step's \`outputContracts\` to remove the now-unnecessary new-contract claim. Submit the affected step entry in your \`steps[]\` array. (If the contract is just consumed via \`inputContracts\`, no step rewrite is needed — the surviving \`status: 'existing'\` entry satisfies the contract-ref validator at the seek_walk → in_progress transition.)
+1. Send a partial-patch \`{ id: <existing-new-contract-id>, status: 'existing', source: existingContractSource }\` to your \`contracts[]\` array. The merge flips the \`status: 'new'\` entry to \`status: 'existing'\` and updates its source.
+2. If the existing contract is a drop-in replacement and the producing step's \`outputContracts\` named the new contract specifically (rather than just consuming it), rewrite that step's \`outputContracts\` to remove the now-unnecessary new-contract claim. Submit the step as a partial-patch \`{ id, outputContracts: [...new...] }\`. (If the contract is just consumed via \`inputContracts\`, no step rewrite is needed — the flipped \`status: 'existing'\` entry satisfies the contract-ref validator at the seek_walk → in_progress transition.)
 
 Call modify-quest:
 
 \`\`\`
 modify-quest({
   questId: "QUEST_ID",
-  steps: [ /* every step you rewrote */ ],
-  contracts: [ /* every contract you added / updated / deleted */ ]
+  steps: [
+    // partial-patch shape — only the changed contract-ref fields, keyed by step id
+    { id: "<step-id>", inputContracts: [ /* updated refs */ ], outputContracts: [ /* updated refs */ ] }
+  ],
+  contracts: [
+    // partial-patch shape on the surviving entry
+    { id: "<winner-uuid>", name: "<winnerName>", source: "<winnerSource>" },
+    // delete the loser by id
+    { id: "<loser-uuid>", _delete: true },
+    // in-package reuse flip (partial)
+    { id: "<existing-new-contract-uuid>", status: "existing", source: "<existingContractSource>" }
+  ]
 })
 \`\`\`
 

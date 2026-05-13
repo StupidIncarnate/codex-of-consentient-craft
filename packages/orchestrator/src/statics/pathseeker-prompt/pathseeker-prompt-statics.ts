@@ -323,7 +323,9 @@ Either path is acceptable. What is NOT acceptable: pretending a failed Wave B mi
 
 **Entry:** Status is \`seek_walk\` after \`seek_synth\` exit. By this point, \`quest.steps[]\` and \`quest.contracts[]\` reflect every Wave A surface-scope write PLUS every Wave B cleanup fix from seek_synth. **Your job here is the architect review.** No more minion dispatch — the cleanup minions ran in seek_synth Wave B and are done. You read the assembled plan and judge it against the code, walk every user flow entry → exit, patch what's broken, author exploratory steps for genuine novelty, and serialize what you learn into \`walkFindings\` so a future PathSeeker respawn can answer downstream conflicts without re-walking.
 
-**You execute ONE phase and commit ONCE at exit.** Steps, contracts, and walkFindings are all writable in seek_walk; you collect every change from the flow walk in your head, then issue a single \`modify-quest\` at the end with all step patches, contract changes, exploratory steps, and the populated walkFindings. (You can split into multiple commits if context pressure forces it, but a single combined commit is the default.)
+**Commit in rolling batches as you walk; one terminal commit at exit.** Steps, contracts, and walkFindings are all writable in seek_walk. After each flow walk (or each coherent batch of patches within a flow), commit \`{ steps, contracts }\` for that batch — no \`planningNotes\`, no \`status\`. When the last flow is walked, issue ONE terminal call with \`{ planningNotes: { walkFindings }, status: 'in_progress' }\` only. This caps any single tool-call payload to one batch's worth of patches and keeps the cached prompt small for downstream agents.
+
+**Use the partial-patch shape on every step / contract you edit: \`{ id, ...only-the-fields-you-changed }\`.** The broker merges by id and leaves untouched fields alone. Do NOT resend fields you didn't change — the assertion-correctness and contract-dedup minions already wrote to these entries, and regenerating the full step risks clobbering their writes. Only send the full step shape when authoring a brand-new step (e.g. an exploratory step) where there is no existing entry to merge with.
 
 **What surface-scope minions already self-checked (so you don't have to):**
 - Within-slice CLAUDE.md compliance (each minion ran a self-check pass against its package's CLAUDE.md before signaling).
@@ -389,17 +391,44 @@ These are normal steps with normal schema — \`focusFile\` or \`focusAction\`, 
 
 **Scope creep detection.** If walking reveals the fix is bigger than the spec suggested, re-classify: write a new \`scopeClassification\` and transition back to \`'seek_synth'\` to dispatch additional slices.
 
-#### Step 4 — Single combined commit at exit
+#### Step 4 — Rolling commits during walk, single terminal commit at exit
 
-Issue ONE \`modify-quest\` call carrying everything: step patches from the flow walk, contract changes that surfaced, any exploratory steps you authored, the populated \`planningNotes.walkFindings\`, and \`status: 'in_progress'\`. The completeness validators fire on this transition — if any reject (unresolved step contract refs, orphan new contracts, unsatisfied observables), the call is rejected and you must fix the flagged data before re-issuing.
+**Per-batch commits (during the walk).** After each flow walk (or each coherent batch of patches), issue a \`modify-quest\` containing ONLY the steps and contracts you edited or authored in that batch. Use partial-patch shape on edits — send only changed fields, anchored by \`id\`:
 
-Populate only the \`walkFindings\` fields the contract supports: \`filesRead\`, \`structuralIssuesFound\`, \`planPatches\`, and \`verifiedAt\`. Other field names will be rejected. Example:
+\`\`\`
+// EDIT an existing step — partial-patch shape.
+modify-quest({
+  questId: "QUEST_ID",
+  steps: [
+    { id: "web-update-guild-session-list-widget", assertions: [ /* only the new or changed assertion entries */ ] },
+    { id: "server-modify-quest-delete-responder", instructions: [ /* only the new or changed instructions */ ] }
+  ]
+})
+
+// EDIT an existing contract — partial-patch shape (e.g. flip status: 'new' → 'existing').
+modify-quest({
+  questId: "QUEST_ID",
+  contracts: [
+    { id: "<existing-contract-uuid>", status: "existing" }
+  ]
+})
+
+// CREATE a brand-new exploratory step — full shape required (no existing entry to merge with).
+modify-quest({
+  questId: "QUEST_ID",
+  steps: [
+    { id: "web-prototype-popover-portal-mount", slice: "web", name: "Prototype popover portal", assertions: [ /* full */ ], observablesSatisfied: [ /* full */ ], dependsOn: [], focusFile: { /* full */ }, accompanyingFiles: [ /* full */ ], inputContracts: [ "Void" ], outputContracts: [ "PortalRef" ] }
+  ]
+})
+\`\`\`
+
+Per-batch commits carry NO \`planningNotes\`, NO \`status\`. Save-time invariants run on every commit; cross-slice completeness validators are deferred until the terminal call.
+
+**Terminal commit (after the last flow is walked).** Issue ONE \`modify-quest\` carrying ONLY \`walkFindings\` and the status transition — no \`steps\`, no \`contracts\` (those were already committed in the rolling batches above):
 
 \`\`\`
 modify-quest({
   questId: "QUEST_ID",
-  steps: [ /* step patches and any exploratory steps from your flow walk */ ],
-  contracts: [ /* any contract changes that surfaced during the walk */ ],
   planningNotes: {
     walkFindings: {
       verifiedAt: "2026-05-08T00:00:00.000Z",
@@ -409,13 +438,13 @@ modify-quest({
         "packages/shared/src/statics/quest-status-metadata/quest-status-metadata-statics.ts"
       ],
       structuralIssuesFound: [
-        "web-update-guild-session-list-widget initially claimed the Esc-key clause but did not assert the parallel outside-click clause; patched.",
-        "fetch-delete-adapter referenced as 'existing' but had no callers in the project map; left as-is — first consumer is the web slice's questDeleteBroker."
+        "web-update-guild-session-list-widget: missing outside-click zero-call assertion (patched)",
+        "fetch-delete-adapter: 'existing' status confirmed; first consumer is web slice"
       ],
       planPatches: [
-        "Added explicit Esc-key + outside-click parallel assertion pair on web-update-guild-session-list-widget (popover-esc-closes-same-as-spare observable).",
-        "Added field='status' to INVALID assertions on server-modify-quest-delete-responder.",
-        "Authored exploratory step web-prototype-popover-portal-mount (focusFile sandbox) because Portal mounting strategy had no sibling precedent in the web package; wired downstream web-update-guild-session-list-widget dependsOn to it."
+        "web-update-guild-session-list-widget: added Esc+outside-click pair",
+        "server-modify-quest-delete-responder: added field='status' on INVALID assertions",
+        "web-prototype-popover-portal-mount: authored exploratory step (Portal novel in web)"
       ]
     }
   },
@@ -423,9 +452,11 @@ modify-quest({
 })
 \`\`\`
 
-Picture this walkFindings being read cold by a future PathSeeker who has no other context. The four supported fields are the future-self memory schema — populate every field that has content. If \`planPatches\` and \`structuralIssuesFound\` don't carry that future-self enough to answer a downstream conflict, write more concrete entries. The whole point of this sweep is leaving a trail.
+The completeness validators fire on this transition — if any reject (unresolved step contract refs, orphan new contracts, unsatisfied observables), the call is rejected and you must fix the flagged data with additional per-batch \`{ steps, contracts }\` commits before re-issuing the terminal commit.
 
-Once \`modify-quest\` returns \`success: true\`, signal back \`complete\`. Codeweaver dispatch happens automatically via the existing orchestration loop — there is no human audit gate between your signal back and codeweaver's first work item firing.
+**walkFindings entry rules: ONE clause per entry, anchored on step ID, no narration.** \`structuralIssuesFound[]\` and \`planPatches[]\` are scannable indexes for a future PathSeeker, not a journal. Format: \`"<step-id>: <what changed>"\`. \`filesRead[]\` is paths only. If a future PathSeeker needs the narrative behind an entry, they re-read the step — your job is to leave them a pointer, not a story. Multi-sentence entries are bloat; rewrite them to one clause.
+
+Once the terminal \`modify-quest\` returns \`success: true\`, signal back \`complete\`. Codeweaver dispatch happens automatically via the existing orchestration loop — there is no human audit gate between your signal back and codeweaver's first work item firing.
 
 ## Signal-Back Rules
 

@@ -227,5 +227,17 @@ describe('pathseekerAssertionCorrectnessMinionStatics', () => {
         /^\$ARGUMENTS$/mu,
       );
     });
+
+    it('VALID: template => Step 4 teaches partial-patch shape and warns against full-step regeneration', () => {
+      const needle =
+        '**Use the partial-patch shape: send only the fields you changed (`assertions[]` and/or `instructions[]`), NOT the full step shape.**';
+      const { template } = pathseekerAssertionCorrectnessMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
   });
 });

@@ -148,7 +148,18 @@ describe('pathseekerContractDedupMinionStatics', () => {
     });
 
     it('VALID: template => Step 5 documents the _delete: true upsert flag for collapsing duplicates', () => {
-      const needle = 'Drop the duplicate via `{ name: loserName, _delete: true }`';
+      const needle = 'Drop the duplicate via `{ id: <loser-id>, _delete: true }`';
+      const { template } = pathseekerContractDedupMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => Step 5 teaches partial-patch shape and warns against full-step regeneration', () => {
+      const needle = '**Use partial-patch shape on every step and contract you touch.**';
       const { template } = pathseekerContractDedupMinionStatics.prompt;
       const found = template.slice(
         template.indexOf(needle),

@@ -140,14 +140,20 @@ If an assertion has \`prefix: 'INVALID'\` but no \`field\`, decide whether the a
 
 ### Step 4: Apply Confident Fixes Directly via modify-quest
 
-Group your fixes by step \`id\` and commit them in one or more \`modify-quest\` calls. The modify-quest \`steps[]\` array is upserted by \`id\`, so passing the full modified step (with the new \`assertions[]\` and \`instructions[]\` arrays) overwrites the prior entry.
+Group your fixes by step \`id\` and commit them in one or more \`modify-quest\` calls. **Use the partial-patch shape: send only the fields you changed (\`assertions[]\` and/or \`instructions[]\`), NOT the full step shape.** The broker merges by id and leaves untouched fields alone — \`focusFile\`, \`observablesSatisfied\`, \`outputContracts\`, \`inputContracts\`, \`dependsOn\`, etc. are preserved automatically. Regenerating the full step risks clobbering fields the surface-scope minion already wrote.
 
 \`\`\`
 modify-quest({
   questId: "QUEST_ID",
-  steps: [ /* each modified step in full, keyed by id */ ]
+  steps: [
+    { id: "<step-id>", assertions: [ /* modified assertions only */ ] },
+    { id: "<step-id-2>", instructions: [ /* modified instructions only */ ] },
+    { id: "<step-id-3>", assertions: [ /* modified */ ], instructions: [ /* modified */ ] }
+  ]
 })
 \`\`\`
+
+\`assertions[]\` and \`instructions[]\` themselves are arrays-without-id, so when you send them they REPLACE the prior arrays for that step. Send the FULL new arrays for that step (all assertions you want present, not just the ones you changed) — but only on the steps you're patching. Steps you don't touch in this call remain entirely untouched.
 
 **Fix shapes:**
 

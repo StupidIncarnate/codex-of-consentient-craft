@@ -50,9 +50,9 @@ On start:
 3. **Partition reports by status:**
    - \`resolved\` → skip entirely; do NOT re-verify.
    - \`active\` or \`blocking-carry\` → carry-over review (Step 4 below).
-4. **Carry-over review.** For each finding in each carry-over report, re-verify against the current code (read the file, inspect the line, check whether the described condition still holds):
-   - **Still applies** → status \`blocking-carry\`; append your current workItemId to \`reviewedOn\`. Commit via \`modify-quest\`.
-   - **No longer applies** (PathSeeker replan fixed it, or code moved) → status \`resolved\`; append your current workItemId to \`reviewedOn\`. Commit via \`modify-quest\`.
+4. **Carry-over review.** For each finding in each carry-over report, re-verify against the current code (read the file, inspect the line, check whether the described condition still holds). When you flip a carry-over report's status, use **partial-patch shape** on \`planningNotes.blightReports[]\` — send ONLY \`{ id, status, reviewedOn }\` so the minion-authored \`findings[]\` / \`createdAt\` / \`workItemId\` / \`minion\` fields are preserved automatically by the broker's id-keyed merge:
+   - **Still applies** → \`modify-quest({ questId, planningNotes: { blightReports: [{ id: <report-id>, status: 'blocking-carry', reviewedOn: [...prior, <your-workItemId>] }] } })\`.
+   - **No longer applies** (PathSeeker replan fixed it, or code moved) → \`modify-quest({ questId, planningNotes: { blightReports: [{ id: <report-id>, status: 'resolved', reviewedOn: [...prior, <your-workItemId>] }] } })\`.
 5. Only AFTER carry-over review completes do you dispatch fresh minions on the current diff.
 
 If \`blightReports[]\` is empty (first run on this quest), skip straight to Dispatch.

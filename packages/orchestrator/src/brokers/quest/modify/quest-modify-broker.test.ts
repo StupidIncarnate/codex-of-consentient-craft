@@ -63,6 +63,53 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {questId, steps: [partial patch]} => merges only the changed field, preserves siblings (partial-patch safety)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingStep = DependencyStepStub({
+        id: 'backend-create-api' as never,
+        slice: 'backend' as never,
+        name: 'Create API' as never,
+        instructions: ['original instruction' as never],
+        focusFile: {
+          path: 'src/brokers/auth/create/auth-create-broker.ts' as never,
+        },
+        accompanyingFiles: [
+          { path: 'src/brokers/auth/create/auth-create-broker.proxy.ts' as never },
+          { path: 'src/brokers/auth/create/auth-create-broker.test.ts' as never },
+        ],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        steps: [existingStep],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'backend-create-api' as never,
+            instructions: ['new instruction only' as never],
+          } as never,
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      const [persistedStep] = persisted.steps;
+
+      expect(persistedStep).toStrictEqual({
+        ...existingStep,
+        instructions: ['new instruction only'],
+      });
+    });
+
     it('VALID: {questId, contracts: [new]} => adds new contract', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({

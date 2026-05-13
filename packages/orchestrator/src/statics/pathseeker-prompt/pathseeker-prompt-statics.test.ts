@@ -225,8 +225,52 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: seek_walk section => Step 4 single combined commit at exit', () => {
-    const needle = '#### Step 4 — Single combined commit at exit';
+  it('VALID: seek_walk section => Step 4 rolling commits during walk, single terminal commit at exit', () => {
+    const needle = '#### Step 4 — Rolling commits during walk, single terminal commit at exit';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Step 4 => teaches per-batch commit pattern without planningNotes or status', () => {
+    const needle = 'Per-batch commits carry NO `planningNotes`, NO `status`';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Step 4 => teaches partial-patch shape for edits', () => {
+    const needle = 'EDIT an existing step — partial-patch shape';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Step 4 => teaches full-shape for brand-new exploratory steps', () => {
+    const needle = 'CREATE a brand-new exploratory step — full shape required';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: seek_walk Step 4 => enforces one-clause-per-entry walkFindings rule', () => {
+    const needle = 'ONE clause per entry, anchored on step ID, no narration';
     const { template } = pathseekerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

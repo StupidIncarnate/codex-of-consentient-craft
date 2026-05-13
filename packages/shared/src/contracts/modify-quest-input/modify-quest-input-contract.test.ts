@@ -107,4 +107,81 @@ describe('modifyQuestInputContract', () => {
       },
     });
   });
+
+  it('VALID: {steps partial-patch shape: id + instructions only} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      steps: [{ id: 'web-update-widget', instructions: ['Make sure to handle empty arrays'] }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      steps: [{ id: 'web-update-widget', instructions: ['Make sure to handle empty arrays'] }],
+    });
+  });
+
+  it('VALID: {steps partial-patch shape: id only} => parses as no-op patch', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      steps: [{ id: 'web-update-widget' }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      steps: [{ id: 'web-update-widget' }],
+    });
+  });
+
+  it('VALID: {contracts partial-patch shape: id + status flip} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      contracts: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'existing' }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      contracts: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'existing' }],
+    });
+  });
+
+  it('VALID: {designDecisions partial-patch shape: id + rationale only} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      designDecisions: [
+        { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', rationale: 'Sharpened wording' },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      designDecisions: [
+        { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', rationale: 'Sharpened wording' },
+      ],
+    });
+  });
+
+  it('VALID: {planningNotes.blightReports partial-patch: id + status only} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      planningNotes: {
+        blightReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'blocking-carry' }],
+      },
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      planningNotes: {
+        blightReports: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'blocking-carry' }],
+      },
+    });
+  });
+
+  it('INVALID: {steps partial-patch missing id} => throws validation error', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        steps: [{ instructions: ['orphan patch'] } as never],
+      });
+    }).toThrow(/Required|Invalid/u);
+  });
 });

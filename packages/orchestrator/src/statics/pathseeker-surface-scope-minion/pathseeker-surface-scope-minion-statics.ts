@@ -295,17 +295,17 @@ This is same-author second-look with a structured checklist, not peer review. Fi
 
 ### Step 10: Commit Your Steps and Contracts via modify-quest
 
-Call \`modify-quest\` with your slice's payload:
+Call \`modify-quest\` with your slice's payload. Your slice's steps and contracts are brand-new entries (the slice was just created), so send the **full shape** for each — every required field present. Partial-patch shape is for editing an existing entry; you are authoring originals.
 
 \`\`\`
 modify-quest({
   questId: "QUEST_ID",
-  steps: [ /* your slice's step objects */ ],
-  contracts: [ /* your slice's contract entries */ ]
+  steps: [ /* your slice's step objects, full shape each */ ],
+  contracts: [ /* your slice's contract entries, full shape each */ ]
 })
 \`\`\`
 
-\`steps\` and \`contracts\` are top-level arrays. Both are object arrays — do NOT wrap either in JSON.stringify; pass them as structured arguments. The seek_synth allowlist permits both.
+\`steps\` and \`contracts\` are top-level arrays. Both are object arrays — do NOT wrap either in JSON.stringify; pass them as structured arguments. The seek_synth allowlist permits both. Downstream agents (Wave B cleanup minions and Pathseeker during seek_walk) will edit your entries via partial-patch — \`{ id, ...only-the-fields-they-changed }\` — so the assertions, instructions, focusFile, etc. you wrote here are preserved automatically when they patch a different field.
 
 **Empty slice:** If your slice's research surfaces no new work (every contract already exists, no new files needed), commit \`steps: []\` and \`contracts: []\` (an empty write that signals you investigated and found nothing missing) and signal \`complete\` with a summary explaining the finding. Do NOT signal \`failed\` — empty is a valid outcome.
 

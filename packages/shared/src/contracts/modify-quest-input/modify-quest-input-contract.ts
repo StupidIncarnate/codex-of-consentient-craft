@@ -4,6 +4,13 @@
  * USAGE:
  * const input: ModifyQuestInput = modifyQuestInputContract.parse({ questId: 'add-auth', contexts: [...] });
  * // Returns validated ModifyQuestInput with questId and optional arrays for upsert
+ *
+ * Each array-of-objects entry accepts THREE shapes (matched in order):
+ *   1. Full shape — every required field present. Used to create a new entry.
+ *   2. Partial-patch shape — { id, ...subset of fields }. Used to edit an existing entry; fields not sent are preserved.
+ *   3. Delete marker — { id, _delete: true }. Removes the entry.
+ * The server-side merge (questItemDeepMergeTransformer) only touches fields present in the update, so partial-patch
+ * is the safe shape for editing entries another minion may have written.
  */
 import { z } from 'zod';
 
@@ -34,29 +41,55 @@ import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for
 
 const deleteMarker = z.literal(true);
 
+const fullFlowObservable = flowObservableContract.extend({ _delete: z.boolean().optional() });
 const deletableObservableContract = z.union([
-  flowObservableContract.extend({ _delete: z.boolean().optional() }),
+  fullFlowObservable,
+  fullFlowObservable.partial().required({ id: true }),
   z.object({ id: observableIdContract, _delete: deleteMarker }),
 ]);
+
+const fullFlowNode = flowNodeContract.extend({
+  observables: z.array(deletableObservableContract).optional(),
+  _delete: z.boolean().optional(),
+});
 const deletableNodeContract = z.union([
-  flowNodeContract.extend({
-    observables: z.array(deletableObservableContract).optional(),
-    _delete: z.boolean().optional(),
-  }),
+  fullFlowNode,
+  fullFlowNode.partial().required({ id: true }),
   z.object({ id: flowNodeIdContract, _delete: deleteMarker }),
 ]);
+
+const fullFlowEdge = flowEdgeContract.extend({ _delete: z.boolean().optional() });
 const deletableEdgeContract = z.union([
-  flowEdgeContract.extend({ _delete: z.boolean().optional() }),
+  fullFlowEdge,
+  fullFlowEdge.partial().required({ id: true }),
   z.object({ id: flowEdgeIdContract, _delete: deleteMarker }),
 ]);
+
+const fullFlow = flowContract.extend({
+  nodes: z.array(deletableNodeContract).optional(),
+  edges: z.array(deletableEdgeContract).optional(),
+  _delete: z.boolean().optional(),
+});
 const deletableFlowContract = z.union([
-  flowContract.extend({
-    nodes: z.array(deletableNodeContract).optional(),
-    edges: z.array(deletableEdgeContract).optional(),
-    _delete: z.boolean().optional(),
-  }),
+  fullFlow,
+  fullFlow.partial().required({ id: true }),
   z.object({ id: flowIdContract, _delete: deleteMarker }),
 ]);
+
+const fullDesignDecision = designDecisionContract.extend({ _delete: z.boolean().optional() });
+const fullDependencyStep = dependencyStepContract.extend({ _delete: z.boolean().optional() });
+const fullToolingRequirement = toolingRequirementContract.extend({
+  _delete: z.boolean().optional(),
+});
+const fullQuestContractEntry = questContractEntryContract.extend({
+  _delete: z.boolean().optional(),
+});
+const fullPlanningSurfaceReport = planningSurfaceReportContract.extend({
+  _delete: z.boolean().optional(),
+});
+const fullPlanningBlightReport = planningBlightReportContract.extend({
+  _delete: z.boolean().optional(),
+});
 
 export const modifyQuestInputContract = z
   .object({
@@ -64,42 +97,56 @@ export const modifyQuestInputContract = z
     designDecisions: z
       .array(
         z.union([
-          designDecisionContract.extend({ _delete: z.boolean().optional() }),
+          fullDesignDecision,
+          fullDesignDecision.partial().required({ id: true }),
           z.object({ id: designDecisionIdContract, _delete: deleteMarker }),
         ]),
       )
-      .describe('Design decisions to upsert (existing ID updates, new ID adds)')
+      .describe(
+        'Design decisions to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing entry without clobbering other fields',
+      )
       .optional(),
     steps: z
       .array(
         z.union([
-          dependencyStepContract.extend({ _delete: z.boolean().optional() }),
+          fullDependencyStep,
+          fullDependencyStep.partial().required({ id: true }),
           z.object({ id: stepIdContract, _delete: deleteMarker }),
         ]),
       )
-      .describe('Dependency steps to upsert (existing ID updates, new ID adds)')
+      .describe(
+        'Dependency steps to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing step without clobbering other fields (assertions, instructions, contracts left untouched)',
+      )
       .optional(),
     toolingRequirements: z
       .array(
         z.union([
-          toolingRequirementContract.extend({ _delete: z.boolean().optional() }),
+          fullToolingRequirement,
+          fullToolingRequirement.partial().required({ id: true }),
           z.object({ id: toolingRequirementIdContract, _delete: deleteMarker }),
         ]),
       )
-      .describe('Tooling requirements to upsert (existing ID updates, new ID adds)')
+      .describe(
+        'Tooling requirements to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing entry without clobbering other fields',
+      )
       .optional(),
     contracts: z
       .array(
         z.union([
-          questContractEntryContract.extend({ _delete: z.boolean().optional() }),
+          fullQuestContractEntry,
+          fullQuestContractEntry.partial().required({ id: true }),
           z.object({ id: questContractEntryIdContract, _delete: deleteMarker }),
         ]),
       )
-      .describe('Contracts to upsert (existing ID updates, new ID adds)')
+      .describe(
+        'Contracts to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch (e.g. flip status from new to existing) without clobbering other fields',
+      )
       .optional(),
     flows: z
       .array(deletableFlowContract)
-      .describe('Flows to upsert (existing ID updates, new ID adds)')
+      .describe(
+        'Flows to upsert. Send full shape for new flows; send { id, nodes: [...] } or similar partial shapes to edit nested structure without restating the whole flow',
+      )
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),
     pausedAtStatus: questStatusContract
@@ -130,7 +177,8 @@ export const modifyQuestInputContract = z
         surfaceReports: z
           .array(
             z.union([
-              planningSurfaceReportContract.extend({ _delete: z.boolean().optional() }),
+              fullPlanningSurfaceReport,
+              fullPlanningSurfaceReport.partial().required({ id: true }),
               z.object({ id: planningSurfaceReportContract.shape.id, _delete: deleteMarker }),
             ]),
           )
@@ -138,7 +186,8 @@ export const modifyQuestInputContract = z
         blightReports: z
           .array(
             z.union([
-              planningBlightReportContract.extend({ _delete: z.boolean().optional() }),
+              fullPlanningBlightReport,
+              fullPlanningBlightReport.partial().required({ id: true }),
               z.object({ id: planningBlightReportContract.shape.id, _delete: deleteMarker }),
             ]),
           )
