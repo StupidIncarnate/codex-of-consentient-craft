@@ -11,6 +11,7 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import path from 'path';
+import { createInterface } from 'readline';
 import type { Readable } from 'stream';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
@@ -29,6 +30,7 @@ export const childProcessSpawnStreamJsonAdapter = ({
   stdinMode = 'inherit',
   model,
   disableToolSearch = false,
+  onStderrLine,
 }: {
   prompt: PromptText;
   resumeSessionId?: SessionId;
@@ -36,6 +38,10 @@ export const childProcessSpawnStreamJsonAdapter = ({
   stdinMode?: 'inherit' | 'ignore';
   model: ClaudeModel;
   disableToolSearch?: boolean;
+  // When provided, stderr is piped instead of inherited and each line is forwarded to the
+  // callback. Used by the launcher to tag each subprocess's stderr with `proc:<id>` so
+  // SDK retry/throttle messages from parallel spawns can be attributed and grepped.
+  onStderrLine?: (params: { line: string }) => void;
 }): SpawnStreamJsonResult => {
   // Settings discovery is anchored to the explicit RepoRootCwd. When cwd is undefined we
   // skip the .claude/settings.json read entirely — there is no implicit fallback. Callers
@@ -91,15 +97,31 @@ export const childProcessSpawnStreamJsonAdapter = ({
     ? { ...process.env, ENABLE_TOOL_SEARCH: 'false' }
     : { ...process.env };
 
+  const stderrMode = onStderrLine === undefined ? 'inherit' : 'pipe';
+
   const childProcess = spawn(cliPath, args, {
-    stdio: [stdinMode, 'pipe', 'inherit'],
+    stdio: [stdinMode, 'pipe', stderrMode],
     env,
     ...(cwd && { cwd }),
   });
 
-  // stdout is guaranteed to exist when stdio[1] is 'pipe'
-  // Using non-null assertion as TypeScript doesn't narrow based on stdio config
+  // stdio[1] is unconditionally 'pipe', so stdout is guaranteed non-null at runtime —
+  // but TypeScript widens the spawn overload result to `Readable | null` once stdio[2]
+  // is a variable instead of a literal, so a runtime guard is needed to satisfy the
+  // narrower return type.
   const { stdout } = childProcess;
+  if (stdout === null) {
+    throw new Error(
+      'childProcessSpawnStreamJsonAdapter: childProcess.stdout is null despite stdio[1] = pipe',
+    );
+  }
+
+  if (onStderrLine !== undefined && childProcess.stderr !== null) {
+    const stderrReader = createInterface({ input: childProcess.stderr });
+    stderrReader.on('line', (line: string) => {
+      onStderrLine({ line });
+    });
+  }
 
   return {
     process: childProcess,

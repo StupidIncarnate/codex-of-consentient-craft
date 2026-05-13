@@ -354,6 +354,15 @@ export const ChatStartResponder = async ({
         },
       });
     },
+    recordActivity: ({ processId }) => {
+      orchestrationProcessesState.recordActivity({ processId });
+    },
+    setMetadata: ({ processId, osPid }) => {
+      orchestrationProcessesState.setMetadata({
+        processId,
+        ...(osPid === undefined ? {} : { osPid }),
+      });
+    },
   });
 
   streamHandleRef.current = spawnResult.handle;

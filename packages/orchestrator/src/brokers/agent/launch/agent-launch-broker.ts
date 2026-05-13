@@ -34,6 +34,7 @@ import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessIdPrefix } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
+import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
@@ -58,6 +59,8 @@ export const agentLaunchBroker = ({
   onSessionId,
   onComplete,
   registerProcess,
+  recordActivity,
+  setMetadata,
   abortSignal,
 }: {
   guildId: GuildId;
@@ -101,6 +104,14 @@ export const agentLaunchBroker = ({
     kill: () => void;
   }) => void;
 
+  // Telemetry callbacks bound to `orchestrationProcessesState` by the caller. State
+  // mutation lives at the responder layer per architecture; the launcher invokes these
+  // hooks on every line (recordActivity) and once the spawn's OS pid is known
+  // (setMetadata). The `processStaleWatchBroker` reads `getActivity({ processId })` to
+  // decide whether a registered process has gone silent.
+  recordActivity?: (params: { processId: ProcessId }) => void;
+  setMetadata?: (params: { processId: ProcessId; osPid?: ProcessPid }) => void;
+
   abortSignal?: AbortSignal;
 }): {
   processId: ProcessId;
@@ -140,7 +151,20 @@ export const agentLaunchBroker = ({
     cwd,
     model,
     onLine: ({ line }): void => {
+      // Telemetry — bump the registry's lastActivityAt for this processId BEFORE
+      // dispatching to the line processor, so a slow/throwing processor doesn't mask
+      // the activity signal. Idempotent and side-effect-free when recordActivity is
+      // undefined (loop-level launches that don't register telemetry).
+      recordActivity?.({ processId });
       handle.onLine({ rawLine: line });
+    },
+    // Tag every stderr line from the child Claude CLI with this spawn's processId so SDK
+    // retry / overloaded / 429 messages from parallel spawns can be attributed and grepped
+    // in the dev log. Pairs with `processStaleWatchBroker`'s `[dev] WARN stale proc:<id>`
+    // output: when the watchdog flags a silent process, the same proc:<id> in stderr lines
+    // shows WHY (e.g. "API request failed (529 overloaded), retrying in 4s").
+    onStderrLine: ({ line }): void => {
+      process.stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
     },
     onComplete: ({ exitCode, sessionId: completedSessionId }): void => {
       // CLI exited. Do NOT stop the handle here — it owns the sub-agent tails, and for
@@ -195,7 +219,15 @@ export const agentLaunchBroker = ({
     spawnParams.disableToolSearch = disableToolSearch;
   }
 
-  const { kill: spawnKill, sessionId$ } = agentSpawnUnifiedBroker(spawnParams);
+  const { kill: spawnKill, sessionId$, pid: osPid } = agentSpawnUnifiedBroker(spawnParams);
+
+  // Stamp the OS pid onto the registry entry once spawn has fork'd. Used by
+  // `processStaleWatchBroker` for `kill(pid, 0)` liveness probes. `osPid` is undefined
+  // only when spawn fails synchronously — in that case the launcher's onComplete fires
+  // with the failure and there's no PID to record.
+  if (osPid !== undefined) {
+    setMetadata?.({ processId, osPid });
+  }
 
   // Compose the universal kill via a layer broker — assembles the spawn-kill + handle-stop
   // + tail-stop sequence into one function so the launcher can hand it to registerProcess,

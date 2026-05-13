@@ -18,6 +18,8 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
 import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
+import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
+import { processPidContract } from '../../../contracts/process-pid/process-pid-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 
@@ -30,6 +32,7 @@ export const agentSpawnUnifiedBroker = ({
   onLine,
   onError,
   onComplete,
+  onStderrLine,
 }: {
   prompt: PromptText;
   cwd: RepoRootCwd;
@@ -39,7 +42,11 @@ export const agentSpawnUnifiedBroker = ({
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
   onComplete: (params: { exitCode: ExitCode | null; sessionId: SessionId | null }) => void;
-}): { kill: () => void; sessionId$: Promise<SessionId | null> } => {
+  // Forwarded to the spawn adapter. Default behavior (undefined) inherits stderr to the
+  // parent terminal. The launcher always passes a tagging callback so each subprocess's
+  // stderr gets `proc:<id>` attribution in the dev log.
+  onStderrLine?: (params: { line: string }) => void;
+}): { kill: () => void; sessionId$: Promise<SessionId | null>; pid: ProcessPid | undefined } => {
   const spawnParams: Parameters<typeof childProcessSpawnStreamJsonAdapter>[0] = {
     prompt,
     cwd,
@@ -52,6 +59,10 @@ export const agentSpawnUnifiedBroker = ({
 
   if (disableToolSearch !== undefined) {
     spawnParams.disableToolSearch = disableToolSearch;
+  }
+
+  if (onStderrLine !== undefined) {
+    spawnParams.onStderrLine = onStderrLine;
   }
 
   const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnParams);
@@ -94,10 +105,18 @@ export const agentSpawnUnifiedBroker = ({
     onComplete({ exitCode: parsedExitCode, sessionId: trackedSessionId });
   });
 
+  // childProcess.pid is undefined only if spawn failed synchronously (e.g. ENOENT). Surface
+  // it so the launcher can record OS-level telemetry against the registry entry — the stale
+  // watchdog uses this for kill(pid, 0) liveness probes and /proc/<pid>/stat CPU sampling.
+  const childPid = childProcess.pid;
+  const pid: ProcessPid | undefined =
+    typeof childPid === 'number' && childPid > 0 ? processPidContract.parse(childPid) : undefined;
+
   return {
     kill: (): void => {
       childProcess.kill();
     },
     sessionId$,
+    pid,
   };
 };

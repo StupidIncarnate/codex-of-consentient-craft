@@ -48,6 +48,7 @@ import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
+import { ProcessStaleWatchFlow } from '../flows/process-stale-watch/process-stale-watch-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { SmoketestFlow } from '../flows/smoketest/smoketest-flow';
@@ -65,6 +66,12 @@ SmoketestFlow.bootstrap();
 
 // Bootstrap the rate-limits.json watcher on module load. Idempotent.
 RateLimitsFlow.bootstrap();
+
+// Bootstrap the stale-process watchdog on module load. Idempotent.
+// Scans the orchestration-processes registry every 30s and emits a [dev] WARN line
+// to stderr for any registered process whose stdout has been silent past the 60s
+// threshold. Includes OS-level kill(pid, 0) liveness probe when an osPid is known.
+ProcessStaleWatchFlow.bootstrap();
 
 export const StartOrchestrator = {
   // Guild methods

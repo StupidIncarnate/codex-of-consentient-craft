@@ -101,6 +101,15 @@ export const DesignChatStartResponder = async ({
         orchestrationProcess: { processId, questId, kill },
       });
     },
+    recordActivity: ({ processId }) => {
+      orchestrationProcessesState.recordActivity({ processId });
+    },
+    setMetadata: ({ processId, osPid }) => {
+      orchestrationProcessesState.setMetadata({
+        processId,
+        ...(osPid === undefined ? {} : { osPid }),
+      });
+    },
   });
 
   return { chatProcessId: result.chatProcessId };

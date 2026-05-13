@@ -93,6 +93,12 @@ export const RunOrchestrationLoopLayerResponder = async ({
       startPath,
       guildId,
       onAgentEntry: ({ slotIndex, entries, questWorkItemId, sessionId }) => {
+        // The loop dispatcher is the only registered process; every agent it spawns
+        // (pathseeker, codeweaver, lawbringer, siegemaster, spiritmender) routes its
+        // ChatEntries through here. Bump the loop's lastActivityAt so the stale-watch
+        // sees the quest making progress whenever any child agent emits a line.
+        orchestrationProcessesState.recordActivity({ processId });
+
         const payload = buildOrchestrationLoopOnAgentEntryTransformer({
           processId,
           slotIndexToSessionId,
