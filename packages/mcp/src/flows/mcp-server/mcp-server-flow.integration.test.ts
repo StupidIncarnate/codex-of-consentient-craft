@@ -556,14 +556,17 @@ describe('McpServerFlow', () => {
       'get-quest-status',
       'get-quest-planning-notes',
       'get-agent-prompt',
+      'run-ward',
       // Mutating actions, not reference content
       'modify-quest',
       'start-quest',
       'signal-back',
       'ask-user-question',
-      // Dynamic listings whose size scales with user data
+      'create-quest',
+      // Dynamic listings / state-driven returns whose size scales with user data
       'list-quests',
       'list-guilds',
+      'get-next-step',
     ] as const;
 
     const sizeCappedTools = mcpToolsStatics.tools.names.filter(

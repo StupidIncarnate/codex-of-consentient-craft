@@ -7,9 +7,13 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
  */
 
+import { orchestratorCreateQuestAdapterProxy } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.proxy';
+import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
+import { orchestratorGetServerConfigAdapterProxy } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
+import { orchestratorRunWardAdapterProxy } from '../../../adapters/orchestrator/run-ward/orchestrator-run-ward-adapter.proxy';
 import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
 import { orchestratorGetQuestStatusBrokerProxy } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
@@ -20,13 +24,25 @@ import type {
   GetQuestResultStub,
   ModifyQuestResultStub,
   OrchestrationStatusStub,
+  QuestIdStub,
+  UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
+import {
+  NextStepStub,
+  QuestRunWardResultStub,
+  QuestGetServerConfigResultStub,
+} from '@dungeonmaster/orchestrator/testing';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
 type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
+type NextStep = ReturnType<typeof NextStepStub>;
+type QuestRunWardResult = ReturnType<typeof QuestRunWardResultStub>;
+type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
+type QuestId = ReturnType<typeof QuestIdStub>;
+type UrlSlug = ReturnType<typeof UrlSlugStub>;
 
 export const QuestHandleResponderProxy = (): {
   callResponder: typeof QuestHandleResponder;
@@ -41,6 +57,17 @@ export const QuestHandleResponderProxy = (): {
   setupListGuildsThrows: (params: { error: Error }) => void;
   setupGetPlanningNotesReturns: (params: { result: GetPlanningNotesResult }) => void;
   setupGetPlanningNotesThrows: (params: { error: Error }) => void;
+  setupCreateQuestReturns: (params: { questId: QuestId; guildSlug: UrlSlug }) => void;
+  setupCreateQuestThrows: (params: { error: Error }) => void;
+  setupGetNextStepReturns: (params: { step: NextStep }) => void;
+  setupGetNextStepThrows: (params: { error: Error }) => void;
+  setupRunWardReturns: (params: { result: QuestRunWardResult }) => void;
+  setupRunWardThrows: (params: { error: Error }) => void;
+  setupGetServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
+  setupGetServerConfigThrows: (params: { error: Error }) => void;
+  buildIdleNextStep: () => NextStep;
+  buildRunWardResult: () => QuestRunWardResult;
+  buildServerConfig: () => QuestGetServerConfigResult;
   getLastModifyInput: () => unknown;
   getLastGetPlanningNotesInput: () => unknown;
 } => {
@@ -51,6 +78,10 @@ export const QuestHandleResponderProxy = (): {
   const listQuestsProxy = orchestratorListQuestsAdapterProxy();
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
+  const createQuestProxy = orchestratorCreateQuestAdapterProxy();
+  const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
+  const runWardProxy = orchestratorRunWardAdapterProxy();
+  const getServerConfigProxy = orchestratorGetServerConfigAdapterProxy();
 
   return {
     callResponder: QuestHandleResponder,
@@ -98,6 +129,50 @@ export const QuestHandleResponderProxy = (): {
     setupGetPlanningNotesThrows: ({ error }: { error: Error }): void => {
       getPlanningNotesProxy.throws({ error });
     },
+
+    setupCreateQuestReturns: ({
+      questId,
+      guildSlug,
+    }: {
+      questId: QuestId;
+      guildSlug: UrlSlug;
+    }): void => {
+      createQuestProxy.returns({ questId, guildSlug });
+    },
+
+    setupCreateQuestThrows: ({ error }: { error: Error }): void => {
+      createQuestProxy.throws({ error });
+    },
+
+    setupGetNextStepReturns: ({ step }: { step: NextStep }): void => {
+      getNextStepProxy.returns({ step });
+    },
+
+    setupGetNextStepThrows: ({ error }: { error: Error }): void => {
+      getNextStepProxy.throws({ error });
+    },
+
+    setupRunWardReturns: ({ result }: { result: QuestRunWardResult }): void => {
+      runWardProxy.returns({ result });
+    },
+
+    setupRunWardThrows: ({ error }: { error: Error }): void => {
+      runWardProxy.throws({ error });
+    },
+
+    setupGetServerConfigReturns: ({ result }: { result: QuestGetServerConfigResult }): void => {
+      getServerConfigProxy.returns({ result });
+    },
+
+    setupGetServerConfigThrows: ({ error }: { error: Error }): void => {
+      getServerConfigProxy.throws({ error });
+    },
+
+    buildIdleNextStep: (): NextStep => NextStepStub({ type: 'idle' }),
+
+    buildRunWardResult: (): QuestRunWardResult => QuestRunWardResultStub(),
+
+    buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 
     getLastModifyInput: (): unknown => modifyQuestProxy.getLastCalledInput(),
 

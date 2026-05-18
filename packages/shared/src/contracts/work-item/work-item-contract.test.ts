@@ -18,6 +18,7 @@ describe('workItemContract', () => {
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
+        retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
       });
     });
@@ -33,6 +34,8 @@ describe('workItemContract', () => {
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         attempt: 1,
         maxAttempts: 3,
+        retryCount: 2,
+        lastWardRunId: '1739625600000-a3f1.jsonl',
         createdAt: '2024-01-15T10:00:00.000Z',
         startedAt: '2024-01-15T10:01:00.000Z',
         completedAt: '2024-01-15T10:05:00.000Z',
@@ -54,6 +57,8 @@ describe('workItemContract', () => {
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         attempt: 1,
         maxAttempts: 3,
+        retryCount: 2,
+        lastWardRunId: '1739625600000-a3f1.jsonl',
         createdAt: '2024-01-15T10:00:00.000Z',
         startedAt: '2024-01-15T10:01:00.000Z',
         completedAt: '2024-01-15T10:05:00.000Z',
@@ -82,6 +87,7 @@ describe('workItemContract', () => {
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
+        retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
         wardMode: 'full',
       });
@@ -107,6 +113,7 @@ describe('workItemContract', () => {
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
+        retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
       });
     });
@@ -129,6 +136,7 @@ describe('workItemContract', () => {
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
+        retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
       });
     });
@@ -289,6 +297,7 @@ describe('workItemContract', () => {
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
+        retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
         smoketestExpectedSignal: 'failed',
         actualSignal: 'complete',
@@ -314,9 +323,77 @@ describe('workItemContract', () => {
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
+        retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
         actualSignal: 'failed-replan',
       });
+    });
+  });
+
+  describe('retry and ward run tracking', () => {
+    it('VALID: {retryCount: 3} => parses successfully', () => {
+      const item = WorkItemStub({ retryCount: 3 });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 3,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('VALID: {lastWardRunId: file name} => parses successfully', () => {
+      const item = WorkItemStub({ lastWardRunId: '1739625600000-a3f1.jsonl' });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        lastWardRunId: '1739625600000-a3f1.jsonl',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('INVALID: {retryCount: -1} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          retryCount: -1,
+        });
+      }).toThrow(/too_small/u);
+    });
+
+    it('INVALID: {retryCount: 1.5} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          retryCount: 1.5,
+        });
+      }).toThrow(/integer/u);
     });
   });
 });

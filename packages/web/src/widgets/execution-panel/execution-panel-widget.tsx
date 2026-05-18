@@ -24,6 +24,7 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
+import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
@@ -44,12 +45,18 @@ import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/trans
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
+import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
+
+const DUMPSTER_LAUNCH_BANNER_MESSAGE = displayLabelContract.parse(
+  "Run this in your Claude session — it'll pick this quest up on its next pass.",
+);
+const DUMPSTER_LAUNCH_COMMAND = displayLabelContract.parse('/dumpster-launch');
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
@@ -219,6 +226,12 @@ export const ExecutionPanelWidget = ({
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
+          {isTerminalQuestStatusGuard({ status: quest.status }) ? null : (
+            <DumpsterCommandBannerWidget
+              message={DUMPSTER_LAUNCH_BANNER_MESSAGE}
+              command={DUMPSTER_LAUNCH_COMMAND}
+            />
+          )}
           {isTerminalQuestStatusGuard({ status: quest.status }) ? (
             <Box
               data-testid="execution-panel-terminal-banner"
@@ -300,9 +313,6 @@ export const ExecutionPanelWidget = ({
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
-                            {...(wi.smoketestExpectedSignal
-                              ? { expectedSignal: wi.smoketestExpectedSignal }
-                              : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
                             {...(guildSlug ? { guildSlug } : {})}
@@ -378,9 +388,6 @@ export const ExecutionPanelWidget = ({
                           completedAt={wi.completedAt}
                           {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                           {...(wi.summary ? { summary: wi.summary } : {})}
-                          {...(wi.smoketestExpectedSignal
-                            ? { expectedSignal: wi.smoketestExpectedSignal }
-                            : {})}
                           {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                           {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
                           {...(guildSlug ? { guildSlug } : {})}
@@ -449,9 +456,6 @@ export const ExecutionPanelWidget = ({
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
-                            {...(wi.smoketestExpectedSignal
-                              ? { expectedSignal: wi.smoketestExpectedSignal }
-                              : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
                             {...(guildSlug ? { guildSlug } : {})}
@@ -524,9 +528,6 @@ export const ExecutionPanelWidget = ({
                             {...(wi.summary ? { summary: wi.summary } : {})}
                             {...(resolvedWardResults.length > 0
                               ? { wardResults: resolvedWardResults }
-                              : {})}
-                            {...(wi.smoketestExpectedSignal
-                              ? { expectedSignal: wi.smoketestExpectedSignal }
                               : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}

@@ -1,18 +1,31 @@
 /**
- * PURPOSE: Resolves an agent name to its prompt data for the get-agent-prompt MCP tool
+ * PURPOSE: Resolves an agent name to its prompt data for the get-agent-prompt MCP tool.
+ * Reads quest.json for the supplied questId and appends a "Work item context" block to the
+ * returned prompt. questId and workItemId are required — every caller is a Task()-dispatched
+ * sub-agent under `/dumpster-launch`.
  *
  * USAGE:
- * const result = AgentPromptFlow.get({ agent: 'chaoswhisperer-gap-minion' });
- * // Returns { name: 'chaoswhisperer-gap-minion', model: 'sonnet', prompt: '...' }
+ * const augmented = await AgentPromptFlow.get({ agent: 'codeweaver', questId, workItemId });
+ * // Returns AgentPromptResult whose prompt has the work-item context block appended
  */
 
-import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
-import { agentNameToPromptTransformer } from '../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
+import type { AgentPromptResult, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+
+import { AgentPromptGetResponder } from '../../responders/agent-prompt/get/agent-prompt-get-responder';
 
 export const AgentPromptFlow = {
-  get: ({ agent }: { agent: string }): AgentPromptResult => {
-    const parsed = agentPromptNameContract.parse(agent);
-    return agentNameToPromptTransformer({ agent: parsed });
-  },
+  get: async ({
+    agent,
+    questId,
+    workItemId,
+  }: {
+    agent: string;
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+  }): Promise<AgentPromptResult> =>
+    AgentPromptGetResponder({
+      agent,
+      questId,
+      workItemId,
+    }),
 };

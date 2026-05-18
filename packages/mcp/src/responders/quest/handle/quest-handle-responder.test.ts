@@ -4,6 +4,9 @@ import {
   GetQuestResultStub,
   ModifyQuestResultStub,
   OrchestrationStatusStub,
+  QuestIdStub,
+  QuestWorkItemIdStub,
+  UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 
@@ -746,6 +749,214 @@ describe('QuestHandleResponder', () => {
             type: 'text',
             text: JSON.stringify(
               { success: false, error: 'Notes unavailable' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('create-quest', () => {
+    it('VALID: {} => returns { questId, guildSlug } JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      proxy.setupCreateQuestReturns({ questId, guildSlug });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-quest' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ questId, guildSlug }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupCreateQuestThrows({ error: new Error('No guild available') });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-quest' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'No guild available' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('get-next-step', () => {
+    it('VALID: {} => returns NextStep JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const step = proxy.buildIdleNextStep();
+      proxy.setupGetNextStepReturns({ step });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-next-step' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(step, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetNextStepThrows({ error: new Error('Scan failed') });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-next-step' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Scan failed' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('run-ward', () => {
+    it('VALID: {questId, workItemId, mode} => returns QuestRunWardResult JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const wardResult = proxy.buildRunWardResult();
+      proxy.setupRunWardReturns({ result: wardResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'run-ward' }),
+        args: {
+          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+          mode: 'changed',
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(wardResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('INVALID: {mode: "partial"} => throws validation error', async () => {
+      const proxy = QuestHandleResponderProxy();
+
+      await expect(
+        proxy.callResponder({
+          tool: ToolNameStub({ value: 'run-ward' }),
+          args: {
+            questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+            workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+            mode: 'partial',
+          },
+        }),
+      ).rejects.toThrow(/Invalid enum value/u);
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupRunWardThrows({ error: new Error('Ward died') });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'run-ward' }),
+        args: {
+          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+          mode: 'full',
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: false, error: 'Ward died' }, null, JSON_INDENT_SPACES),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('get-server-config', () => {
+    it('VALID: {} => returns { baseUrl, port } JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const config = proxy.buildServerConfig();
+      proxy.setupGetServerConfigReturns({ result: config });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-server-config' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { baseUrl: config.baseUrl, port: config.port },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetServerConfigThrows({ error: new Error('Config unavailable') });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-server-config' }),
+        args: {},
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Config unavailable' },
               null,
               JSON_INDENT_SPACES,
             ),

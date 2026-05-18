@@ -2,16 +2,22 @@
 
 ## Chat-line translation: this package owns it
 
-The orchestrator is the single place where raw Claude CLI output (stdout stream-json OR the
-JSONL file on disk) is translated into structured `ChatEntry[]`. The server just relays the
-translated entries; the web just renders them. **If you're adding logic that parses a string
-format, filters stream content, or converts one shape into another — it goes here.**
+The orchestrator is the single place where raw Claude CLI output (the JSONL files on disk
+that the user's interactive Claude session writes) is translated into structured
+`ChatEntry[]`. The server just relays the translated entries; the web just renders them.
+**If you're adding logic that parses a string format, filters stream content, or converts
+one shape into another — it goes here.**
+
+The translation pipeline is driven by `quest-monitor-jsonl-watcher-broker`, which tails the
+`/dumpster-launch` session JSONL plus its `subagents/agent-*.jsonl` siblings as they appear
+on disk. There is no orchestrator-spawned Claude process — the user's own session writes the
+JSONL files and the watcher feeds them through the funnel below.
 
 DO NOT ADD MIGRATION LOGIC! THIS PACKAGE IS STILL GREENFIELD!
 
 ### The unified funnel
 
-Every line from every source — live stdout during streaming, sub-agent JSONL file, replay of
+Every line from every source — parent session JSONL tail, sub-agent JSONL file, replay of
 the main JSONL — passes through a single factory:
 
 ```
@@ -29,53 +35,40 @@ chatLineProcessTransformer() → processor.processLine({ line, source, agentId? 
   Wire-level correlation is complete the moment each entry ships, so the web never receives
   follow-up patches.
 
-### chatStreamProcessHandleBroker — the per-spawn entry point
+### chatStreamProcessHandleBroker — the per-handle entry point
 
-**If you are spawning a Claude CLI process anywhere in the orchestrator, route its lines
-through `chatStreamProcessHandleBroker`.** Do NOT call `chatLineProcessTransformer` directly
-and do NOT hand-roll `rawLine → ChatEntry[]` translation.
+**If you are feeding lines into the chat pipeline, route them through
+`chatStreamProcessHandleBroker`.** Do NOT call `chatLineProcessTransformer` directly and do
+NOT hand-roll `rawLine → ChatEntry[]` translation.
 
-The handle broker owns the per-spawn lifecycle:
+The handle broker owns the per-handle lifecycle:
 
-- One `chatLineProcessTransformer` instance per agent (so the realAgentId↔toolUseId reverse
-  map is shared across that agent's stdout stream AND any sub-agent JSONL tails it triggers)
+- One `chatLineProcessTransformer` instance per session (so the realAgentId↔toolUseId
+  reverse map is shared across that session's JSONL tail AND any sub-agent JSONL tails it
+  triggers)
 - Auto-dispatch of `chatSubagentTailBroker` on every `agent-detected` signal
 - Memoized `sessionId` capture from the first system/init line
-- Plain-text fallback for non-JSON stdout (`spawnerType: 'command'` ward runs) so ward
-  output renders verbatim as a single assistant-text entry
-- `stop()` to compose into kill callbacks; `initialDrains()` to await pre-existing sub-agent
-  JSONL drain before declaring the spawn complete
+- Plain-text fallback for non-JSON lines (`spawnerType: 'command'` ward runs invoked via the
+  `run-ward` MCP tool) so ward output renders verbatim as a single assistant-text entry
+- `stop()` to compose into teardown callbacks; `initialDrains()` to await pre-existing
+  sub-agent JSONL drain before declaring catch-up complete
 
-Wire it once per spawn and keep the handle alive for the spawn's lifetime:
-
-```ts
-const handle = chatStreamProcessHandleBroker({
-    chatProcessId,
-    guildId,
-    sessionId, // optional; auto-captured from system/init if omitted
-    onEntries: ({entries, sessionId}) => { /* relay to bus / web */
-    },
-});
-agentSpawnUnifiedBroker({prompt, onLine: ({line}) => handle.onLine({rawLine: line})});
-await handle.initialDrains();
-// later, in teardown:
-handle.stop();
-```
-
-Every existing spawn site already does this — `chatSpawnBroker` (chaoswhisperer /
-glyphsmith), `runOrchestrationLoopLayerResponder`, `orchestrationResumeResponder`,
-`recoverGuildLayerResponder`, `questModifyResponder`, and the orchestration-quest harness
-each keep a `Map<QuestWorkItemId, handle>` and route per-work-item lines through it. New
-spawn pipelines must follow the same shape; the convergence below depends on it.
+`quest-monitor-jsonl-watcher-broker` constructs one handle for the registered
+`/dumpster-launch` session and keeps it alive for the session's lifetime. The legacy spawn
+brokers (`chatSpawnBroker`, `runOrchestrationLoopLayerResponder`,
+`orchestrationResumeResponder`, `recoverGuildLayerResponder`) remain on disk and still wire
+through the same handle shape for any code path that hasn't moved to the
+`/dumpster-launch` flow; the convergence below depends on every feeder following this
+shape.
 
 ### Two-source sub-agent correlation (READ THIS IF YOU ARE TOUCHING SUB-AGENT CODE)
 
 Claude CLI emits sub-agent activity in TWO incompatible shapes depending on the source:
 
-| Source | What links sub-agent to parent Task? | Where the link lives |
-|--------|---------------------------------------|----------------------|
-| **Streaming (stdout)** | `parent_tool_use_id` field (top-level) | On **every** sub-agent line |
-| **File (JSONL on disk)** | `agentId` = real internal id | Sub-agent's JSONL filename (`subagents/agent-<realAgentId>.jsonl`) + inside each line |
+| Source                                                 | What links sub-agent to parent Task?   | Where the link lives                                                                  |
+|--------------------------------------------------------|----------------------------------------|---------------------------------------------------------------------------------------|
+| **Streaming (legacy spawn stdout)**                    | `parent_tool_use_id` field (top-level) | On **every** sub-agent line                                                           |
+| **File (JSONL on disk — the `/dumpster-launch` path)** | `agentId` = real internal id           | Sub-agent's JSONL filename (`subagents/agent-<realAgentId>.jsonl`) + inside each line |
 
 The translation between the two lives in ONE place: the main session JSONL's `user` tool_result
 line, where `tool_use_result.agentId` (real id) sits alongside the content item's `tool_use_id`
@@ -230,15 +223,19 @@ Field-presence matrix (post-normalization, camelCase):
 
 The four entry points that feed the processor:
 
-| Path                    | Broker                          | Source                             | Start position |
-|-------------------------|---------------------------------|------------------------------------|----------------|
-| Parent stdout streaming | `chat-spawn-broker`             | CLI stdout via `spawn-stream-json` | —              |
-| Sub-agent streaming     | `chat-subagent-tail-broker`     | `subagents/agent-<id>.jsonl`       | `beginning`    |
-| Parent replay           | `chat-history-replay-broker`    | `<sessionId>.jsonl` (full read)    | —              |
-| Main JSONL post-exit    | `chat-main-session-tail-broker` | `<sessionId>.jsonl` (tail)         | `end`          |
+| Path                            | Broker                                                | Source                                                         | Start position |
+|---------------------------------|-------------------------------------------------------|----------------------------------------------------------------|----------------|
+| `/dumpster-launch` session tail | `quest-monitor-jsonl-watcher-broker`                  | Registered launch session's `<sessionId>.jsonl` (live append)  | `end`          |
+| Sub-agent tail                  | `chat-subagent-tail-broker`                           | `subagents/agent-<id>.jsonl` written by Task-dispatched agents | `beginning`    |
+| Parent replay (web reopen)      | `chat-history-replay-broker`                          | `<sessionId>.jsonl` (full read for catch-up of past entries)   | —              |
+| Legacy spawn stdout / tail      | `chat-spawn-broker` + `chat-main-session-tail-broker` | CLI stdout via `spawn-stream-json` + post-exit JSONL tail      | — / `end`      |
 
-The post-exit tail catches background-agent `<task-notification>` lines Claude CLI appends
-after the parent process exits — stdout is already closed so the tail is the only live path.
+The `/dumpster-launch` session tail is the live driver under the dispatch-loop flow. The
+sub-agent tail watches `subagents/agent-*.jsonl` siblings as new files appear (each Task
+the launch session dispatches creates one). The replay path is what hydrates the web UI's
+chat history when a browser reconnects to a quest that's mid-flight. The legacy spawn path
+still backs any code path that hasn't moved to the launch model (e.g. surviving
+non-pathseeker callers of `chat-spawn-broker`).
 
 ### Sanitation & parsing happens here, not on the web
 
@@ -259,21 +256,25 @@ invokes). Do NOT move any of this to the web:
 - **Source tagging** — every emitted entry carries `source: 'session' | 'subagent'` so the
   web can decide chain membership.
 
-### Tail lifecycle (chat-start-responder)
+### Tail lifecycle
 
-The responder owns the lifecycle of both tails it starts:
+The `quest-monitor-jsonl-watcher-broker` owns the lifecycle of both tails it starts when
+`/dumpster-launch` calls `register-monitor-session`:
 
 - `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
-  Omit it (or pass `'beginning'`) for the sub-agent tail — it must drain the JSONL Claude
-  CLI already wrote while the parent blocked on the Agent tool. Pass `'end'` for the main
-  post-exit tail — stdout already streamed every existing line, so only NEW appends
-  (background task-notifications) should emit.
-- `chatMainSessionTailBroker` is started from `chat-start-responder`'s `onComplete` handler
-  the moment a `sessionId` is known. The returned `stop` handle is captured in a
-  closed-over variable and composed into the `registerProcess` kill callback so teardown
-  cleans up both the CLI child process AND the file-tail watcher in one call.
-- Sub-agent tails follow the same composition pattern (`subagentStopHandles[]` are all
-  stopped synchronously in `onComplete` before the main tail starts).
+  Pass `'beginning'` for sub-agent tails — they must drain the JSONL Claude already wrote
+  while the parent blocked on the Task tool. Pass `'end'` for the parent
+  `/dumpster-launch` session tail — only NEW appends from the moment of registration
+  forward should emit.
+- The watcher captures `sessionId` from the first system/init line it sees and starts the
+  parent tail at `'end'`. As `Task`-dispatched agents create their own
+  `subagents/agent-<id>.jsonl` files, `chatSubagentTailBroker` instances spin up against
+  each one at `'beginning'`.
+- `register-monitor-session` enforces single-launcher semantics (one live launch session
+  per server); on teardown, every tail handle is stopped in one composition.
+
+The legacy `chat-start-responder` still composes its own tail lifecycle for the surviving
+spawn paths, with the same `fsWatchTailAdapter` semantics.
 
 After the processor, `streamJsonToChatEntryTransformer` converts the stamped raw line into
 `ChatEntry[]`. `mapContentItemToChatEntryTransformer`, `mapUsageToChatUsageTransformer`,
@@ -319,42 +320,55 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
   `packages/orchestrator/src/statics/` (e.g., `chaoswhisperer-gap-minion-statics.ts`,
-  `pathseeker-surface-scope-minion-statics.ts`, `pathseeker-contract-dedup-minion-statics.ts`,
-  `pathseeker-assertion-correctness-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents —
-  parent roles tell spawned agents to call the MCP tool to get their instructions.
+  `pathseeker-surface-statics.ts`, `pathseeker-dedup-statics.ts`,
+  `pathseeker-assertion-correctness-statics.ts`, `pathseeker-walk-statics.ts`). There are no
+  `.claude/agents/*.md` files for these agents — the `/dumpster-launch` dispatcher tells each
+  Task-spawned sub-agent to call the MCP tool to get its instructions.
 
 ## Quest Pipeline
 
 ```
-Web UI "Start Chat" ──► server chat-start-responder ──► chat-spawn-broker (role: chaoswhisperer)
-  ├─ Explore agents ────── codebase research (read-only)
-  ├─ chaoswhisperer-gap-minion ── spec validation (read-only)
+User runs /dumpster-create in their Claude session
+  │   (slash command body = YAML frontmatter + dumpsterCreatePromptStatics template,
+  │    composed inline in slash-commands-statics — no get-agent-prompt MCP fetch)
+  ▼
+ChaosWhisperer (the slash-command-loaded session) executes the prompt in order:
+  │   1. Creates the new quest via mcp__dungeonmaster__create-quest
+  │   2. Opens /<guildSlug>/quest/<questId>?chat=hidden in the web UI
+  │   3. Walks the user through the status lifecycle below
   │
   ├─ Phase 1: Discovery ──────── explore codebase, interview user → status: explore_flows
   ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory) → status: review_flows
   ├─ Phase 3: Gate #1 ─────────── user approves flows → status: flows_approved
   ├─ Phase 4: Observables ─────── embedded in flow nodes → status: explore_observables → review_observables
-  ├─ Phase 5: Gate #2 ─────────── user approves observables + contracts → status: approved
+  ├─ Phase 5: Gate #2 ─────────── user approves observables + contracts + packagesAffected[] → status: approved
   │
   ▼
-Web UI "Start Quest" ──► server orchestration-start-responder  (or: MCP start-quest tool)
+Web UI "Start Quest" button ──► server orchestration-start-responder
+  │   Mutates quest.status; redirects to execute view; does NOT spawn anything.
+  │   Execute view banner: "Run /dumpster-launch in your Claude session."
   │
   ▼
-Orchestration Loop (workItems queue)
-  │  "find next ready item, run it, repeat"
+User runs /dumpster-launch (long-lived dispatch loop in their session)
+  │   Registers session via mcp__dungeonmaster__register-monitor-session
+  │   Loop: get-next-step() → Task() / run-ward() → await → repeat
   │
-  ├─ PathSeeker ──── phased statuses (seek_scope → seek_synth → seek_walk) + cleanup minions during seek_walk (contract-dedup, assertion-correctness)
-  ├─ Codeweaver ──── x3 concurrent via slot manager, 1+ steps each (chunked by `agents.batchGroups`, capped at `defaultMaxStepsPerChunkStatics.value`)
+  ├─ pathseeker-surface ──── N parallel via Task() (one per affected package)
+  ├─ pathseeker-dedup + pathseeker-assertion-correctness ──── 2 parallel via Task()
+  ├─ pathseeker-walk ─────── single Task(), triggers stepsToWorkItemsTransformer post-success
+  │     │
+  │     ▼   (downstream chain auto-generated from walkFindings)
+  ├─ Codeweaver ──── one Task() per work item; chunked by `agents.batchGroups`, capped at `defaultMaxStepsPerChunkStatics.value`
   │     └─ PathSeeker on failure (drain + skip + replan)
-  ├─ Ward ────────── npm run ward (spawnerType: 'command')
+  ├─ Ward ────────── mcp__dungeonmaster__run-ward({mode: 'changed' | 'full'}); spawnerType: 'command'
   │     └─ Spiritmender on failure (targeted code fix)
   ├─ Siegemaster ─── integration tests for observables
   │     └─ Creates fix chain: codeweaver-fix → ward-rerun → siege-recheck
-  ├─ Lawbringer ──── x3 concurrent via slot manager, 1+ steps each (same chunking as codeweaver)
+  ├─ Lawbringer ──── one Task() per work item; same chunking as codeweaver
   │     └─ Spiritmender on failure (targeted code fix)
   │
   ▼
-Complete
+Complete ──► /dumpster-launch's next get-next-step() picks up the next FIFO quest in the queue
 ```
 
 ## Work Items Model
@@ -363,49 +377,57 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 `status`, `dependsOn` (ordering), and `relatedDataItems` (links to quest-level data like steps or wardResults).
 
 - **Ordering**: `dependsOn` array — item runs when all deps are complete/skipped
-- **Dispatch**: orchestration loop finds next ready item, routes to layer broker by role
-- **Concurrency**: slot manager groups parallel-capable roles (codeweaver, siegemaster, lawbringer)
-- **Dynamic insertion**: retries, spiritmender, fix chains — append items with correct `dependsOn`
-- **Session tracking**: `sessionId` on each work item (replaces executionLog/pathseekerRuns)
-- **Ward**: only non-agent item (`spawnerType: 'command'`), all others are `'agent'`
+- **Dispatch**: `quest-get-next-step-broker` selects ready work items from the FIFO-active quest and returns a
+  `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which then Task()s the agents or calls the
+  `run-ward` MCP tool
+- **Concurrency**: intrinsic — `pathseeker-surface` items (siblings via `dependsOn: []`) return as one `spawn-agents`
+  batch; `pathseeker-dedup` + `pathseeker-assertion-correctness` return as one batch; everything else returns one agent
+  per response. `slotManagerStatics` slot caps stay configured but are not consulted by `get-next-step`.
+- **Dynamic insertion**: retries, spiritmender, fix chains — append items with correct `dependsOn`. The
+  `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream codeweaver /
+  ward / siegemaster / lawbringer / blightwarden chain.
+- **Session tracking**: `sessionId` on each work item — captured by `get-agent-prompt` from the MCP transport metadata
+  of the calling Task-spawned sub-agent
+- **Ward**: only non-agent item (`spawnerType: 'command'`); driven by the `run-ward` MCP tool which blocks until ward
+  exits and persists the result onto the work item
 
 ## Quest Status Lifecycle
 
 ```
 pending ──┐
            ▼
-created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► seek_scope ──► seek_synth ──► seek_walk ──► in_progress ──► complete
-                                    │                                                          │                   │                          │              │              │
-                                    └──► explore_flows (back)                                   └──► explore_observables (back)                └──► seek_scope │              ├──► blocked ──► in_progress
-                                                                                                                   │                                         └──► seek_scope │         └──► abandoned
-                                                                                                                   ▼                                                                  └──► abandoned
-                                                                                                            explore_design ──► review_design ──► design_approved ──► seek_scope ...
+created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
+                                    │                                                          │                   │                                │
+                                    └──► explore_flows (back)                                   └──► explore_observables (back)                      ├──► blocked ──► in_progress
+                                                                                                                   │                                 └──► abandoned
+                                                                                                                   ▼
+                                                                                                            explore_design ──► review_design ──► design_approved ──► in_progress
                                                                                                                                       │
                                                                                                                                       └──► explore_design (back)
-
-                                                                                                 in_progress ──► seek_walk (failure routing)
-                                                                                                 in_progress ──► seek_scope (full replan)
 ```
 
-| Status                | Set By                                                    | Gate                                                      |
-|-----------------------|-----------------------------------------------------------|-----------------------------------------------------------|
-| `created`             | `add-quest`                                               | ChaosWhisperer starting up                                |
-| `explore_flows`       | ChaosWhisperer (Phase 1 exit)                             | Can add: flows, designDecisions                           |
-| `review_flows`        | ChaosWhisperer (Phase 2 exit)                             | User reviews flows, APPROVE button visible                |
-| `flows_approved`      | User approves flows (Gate #1)                             | Can add: observables (in flow nodes), contracts, tooling  |
-| `explore_observables` | ChaosWhisperer (Phase 4 entry)                            | Can add: observables, contracts, tooling                  |
-| `review_observables`  | ChaosWhisperer (Phase 4 exit)                             | User reviews observables, APPROVE button visible          |
-| `approved`            | User approves observables (Gate #2)                       | Spec locked. `start-quest` or `explore_design` allowed.   |
-| `explore_design`      | Glyphsmith starts design work                             | Create prototypes, iterate on designs                     |
-| `review_design`       | Glyphsmith ready for design review                        | User reviews designs, APPROVE button visible              |
-| `design_approved`     | User approves designs                                     | Design locked. `start-quest` allowed.                     |
-| `seek_scope`          | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.scopeClassification`              |
-| `seek_synth`          | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.surfaceReports[]` + `planningNotes.synthesis` |
-| `seek_walk`           | PathSeeker agent transitions via modify-quest             | Requires `planningNotes.walkFindings`                     |
-| `in_progress`         | `start-quest` / PathSeeker transition from `seek_walk`    | Steps can be added/modified                               |
-| `blocked`             | Pipeline blocker                                          | Execution paused                                          |
-| `complete`            | All phases pass                                           | Terminal                                                  |
-| `abandoned`           | User abandons                                             | Terminal                                                  |
+The `seek_scope` / `seek_synth` / `seek_walk` enum values remain on the contract for
+quest.json backward compatibility but are no longer assigned by any transition. The
+pathseeker phase boundaries that those statuses used to encode are now expressed as
+`dependsOn` edges on the four `pathseeker-*` work items (see "PathSeeker work-item graph"
+below).
+
+| Status                | Set By                                          | Gate                                                                                              |
+|-----------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `created`             | `add-quest`                                     | ChaosWhisperer starting up                                                                        |
+| `explore_flows`       | ChaosWhisperer (Phase 1 exit)                   | Can add: flows, designDecisions                                                                   |
+| `review_flows`        | ChaosWhisperer (Phase 2 exit)                   | User reviews flows, APPROVE button visible                                                        |
+| `flows_approved`      | User approves flows (Gate #1)                   | Can add: observables (in flow nodes), contracts, tooling                                          |
+| `explore_observables` | ChaosWhisperer (Phase 4 entry)                  | Can add: observables, contracts, tooling                                                          |
+| `review_observables`  | ChaosWhisperer (Phase 4 exit)                   | User reviews observables, APPROVE button visible                                                  |
+| `approved`            | User approves observables (Gate #2)             | Spec locked. `start-quest` or `explore_design` allowed.                                           |
+| `explore_design`      | Glyphsmith starts design work                   | Create prototypes, iterate on designs                                                             |
+| `review_design`       | Glyphsmith ready for design review              | User reviews designs, APPROVE button visible                                                      |
+| `design_approved`     | User approves designs                           | Design locked. `start-quest` allowed.                                                             |
+| `in_progress`         | `start-quest` (via Web UI "Start Quest" button) | Steps can be added/modified; `/dumpster-launch` dispatches pathseeker-* and downstream work items |
+| `blocked`             | Pipeline blocker                                | Execution paused                                                                                  |
+| `complete`            | All phases pass                                 | Terminal                                                                                          |
+| `abandoned`           | User abandons                                   | Terminal                                                                                          |
 
 ## Flows (Mermaid Diagrams)
 
@@ -455,22 +477,47 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 
 ## Agent Roles
 
-| Role         | Spawned By         | Signals          | On Failure        | MCP Tools (modify-quest)                             |
-|--------------|--------------------|------------------|-------------------|------------------------------------------------------|
-| Glyphsmith   | startDesignChat    | N/A (design)     | N/A               | status                                               |
-| PathSeeker   | orchestration loop | complete, failed | Bubble to user    | planningNotes, steps, contracts, toolingRequirements |
-| Codeweaver   | slot manager (x3)  | complete, failed | → PathSeeker      | none                                                 |
-| Spiritmender | slot manager       | complete, failed | → PathSeeker      | none                                                 |
-| Siegemaster  | orchestration loop | complete, failed | Creates fix chain | none                                                 |
-| Lawbringer   | slot manager (x3)  | complete, failed | → Spiritmender    | none                                                 |
+| Role                             | Dispatched By                                                       | Signals          | On Failure        | MCP Tools (modify-quest)                                               |
+|----------------------------------|---------------------------------------------------------------------|------------------|-------------------|------------------------------------------------------------------------|
+| ChaosWhisperer                   | `/dumpster-create`                                                  | N/A (spec)       | N/A               | full spec surface (flows, observables, contracts, packagesAffected, …) |
+| Glyphsmith                       | startDesignChat                                                     | N/A (design)     | N/A               | status                                                                 |
+| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel, one per slice)           | complete, failed | Bubble to user    | planningNotes (surface slice), steps (slice), contracts (slice)        |
+| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)                       | complete, failed | Bubble to user    | steps, contracts (in-package + cross-slice dedup)                      |
+| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)                       | complete, failed | Bubble to user    | steps (assertion correctness)                                          |
+| pathseeker-walk                  | `/dumpster-launch` via Task() (after dedup + assertion-correctness) | complete, failed | Bubble to user    | planningNotes.walkFindings, steps (exploratory)                        |
+| Codeweaver                       | `/dumpster-launch` via Task()                                       | complete, failed | → pathseeker      | none                                                                   |
+| Spiritmender                     | `/dumpster-launch` via Task()                                       | complete, failed | → pathseeker      | none                                                                   |
+| Siegemaster                      | `/dumpster-launch` via Task()                                       | complete, failed | Creates fix chain | none                                                                   |
+| Lawbringer                       | `/dumpster-launch` via Task()                                       | complete, failed | → Spiritmender    | none                                                                   |
 
-**Minion direct-writes to `planningNotes`.** During the seek_* phases, PathSeeker's subordinate minions also commit their own output directly via `modify-quest`:
+### PathSeeker work-item graph
 
-- `pathseeker-surface-scope-minion` writes entries to `planningNotes.surfaceReports[]` (one per minion — dispatched in parallel during `seek_synth`).
+PathSeeker is dispatched as four distinct work-item roles, each with `dependsOn` edges that
+encode the previous three-phase (seek_scope / seek_synth / seek_walk) ordering:
 
-These writes flow through the same `modify-quest` pipeline as PathSeeker's own writes; the `questStatusInputAllowlistStatics` entry for each seek_* status governs exactly which `planningNotes.*` sub-fields are writable at that status. Minion output is durable the moment it's committed — a minion crash after write does not lose work.
+```
+pathseeker-surface (×N slices, one per packagesAffected entry, dependsOn: [])
+        │
+        ▼   (after all surface items complete)
+pathseeker-dedup + pathseeker-assertion-correctness (parallel, dependsOn: [...all surface ids])
+        │
+        ▼   (after both corrections complete)
+pathseeker-walk (single, dependsOn: [dedup, assertion-correctness])
+        │
+        ▼   (post-success hook)
+stepsToWorkItemsTransformer fires → codeweaver / ward / siegemaster / lawbringer / blightwarden chain inserted
+```
 
-PathSeeker itself reads accumulated planning state via the `get-quest-planning-notes` MCP tool when resuming after a restart or downstream failure.
+Slice generation: on Start Quest, the work-item insertion broker reads
+`quest.packagesAffected[]` (declared during ChaosWhisperer spec approval), builds one slice
+per package into `scopeClassification.slices[]`, and inserts the graph above.
+
+Each pathseeker-* work item writes its own output directly via `modify-quest`. Writes flow
+through the same `modify-quest` pipeline as any other agent; the
+`questStatusInputAllowlistStatics` entry for `in_progress` governs which `planningNotes.*`
+sub-fields are writable. Work-item output is durable the moment it's committed — a Task
+crash after write does not lose work. Resumed work items read accumulated planning state
+via the `get-quest-planning-notes` MCP tool.
 
 ## Signal System
 
@@ -537,20 +584,27 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 
 ## Quest Kickoff Surfaces
 
-| Surface                                | Purpose                                                                     |
-|----------------------------------------|-----------------------------------------------------------------------------|
-| Web UI "New Chat" / "Start Chat"       | Hits server `chat-start-responder`; spawns ChaosWhisperer spec conversation |
-| MCP `start-quest` tool                 | Programmatic quest execution kickoff (agents + tests)                       |
-| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls                    |
+| Surface                                | Purpose                                                                                                                                                                |
+|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/dumpster-create` slash command       | Primary entry point. Runs ChaosWhisperer in the user's Claude session; ChaosWhisperer creates the new quest via MCP as its first action.                               |
+| `/dumpster-launch` slash command       | Primary entry point. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → Task() / `run-ward` → await → repeat across all approved quests. |
+| MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer inside `/dumpster-create`).                                                                                        |
+| MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — `/dumpster-launch` picks the quest up on its next pass).                              |
+| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything.                                       |
 
 ## Agents (MCP-Delivered)
 
-Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. Parent roles spawn an agent and instruct it to
-call `get-agent-prompt` as its first action.
+Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The dispatch
+surface (`/dumpster-launch`'s Task() invocations) hands each sub-agent a stub prompt that
+says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions
+exactly." The MCP responder interpolates work-item-specific context (scope, package, steps,
+file paths) into the returned prompt and persists the calling session id onto
+`quest.workItems[workItemId].sessionId`.
 
-| Agent                           | Spawned By          | Purpose                                                     |
-|---------------------------------|---------------------|-------------------------------------------------------------|
-| chaoswhisperer-gap-minion             | ChaosWhisperer      | Validate spec completeness before execution                                                                       |
-| pathseeker-surface-scope-minion       | PathSeeker pipeline | Surface-scope research per slice; writes `surfaceReports[]`                                                       |
-| pathseeker-contract-dedup-minion      | PathSeeker pipeline | Cross-slice contract near-duplicates + in-package similar-contract scan during seek_walk; writes steps[] + contracts[] |
-| pathseeker-assertion-correctness-minion | PathSeeker pipeline | Assertion well-formedness + clause-mapping depth + paraphrased banned matchers + per-prefix field correctness during seek_walk; writes steps[] |
+| Agent                            | Dispatched By                                     | Purpose                                                                                                                           |
+|----------------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| chaoswhisperer-gap-minion        | ChaosWhisperer (inside `/dumpster-create`)        | Validate spec completeness before execution                                                                                       |
+| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel)        | Slice-scoped step + contract authoring; writes `quest.steps[]` and `quest.contracts[]` for its slice                              |
+| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)     | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`                                                         |
+| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)     | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`              |
+| pathseeker-walk                  | `/dumpster-launch` via Task() (after corrections) | Full architect-review walk: trace every flow entry→exit, patch structural issues, author exploratory steps, commit `walkFindings` |

@@ -37,7 +37,7 @@ const renderApp = (): void => {
 };
 
 describe('AppWidget', () => {
-  describe('queue bar + drawer mounting', () => {
+  describe('queue bar mounting', () => {
     it('VALID: {queue has entries} => QuestQueueBarWidget is mounted and visible', async () => {
       const proxy = AppWidgetProxy();
 
@@ -58,21 +58,6 @@ describe('AppWidget', () => {
       });
 
       expect(proxy.isQuestQueueBarVisible()).toBe(true);
-    });
-
-    it('VALID: {rendered} => SmoketestDrawer testids are NOT in the DOM', async () => {
-      const proxy = AppWidgetProxy();
-
-      proxy.setupGuilds({ guilds: [] });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
-      });
-
-      expect(proxy.isSmoketestDrawerMounted()).toBe(false);
     });
   });
 

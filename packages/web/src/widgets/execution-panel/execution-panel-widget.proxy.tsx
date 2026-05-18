@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
+import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
@@ -17,6 +18,8 @@ export const ExecutionPanelWidgetProxy = (): {
   hasSpecPanel: () => boolean;
   hasActionBar: () => boolean;
   hasAbandonButton: () => boolean;
+  hasDumpsterLaunchBanner: () => boolean;
+  getDumpsterLaunchBannerCommand: () => HTMLElement['textContent'];
   getStepRows: () => HTMLElement[];
   getFloorHeaders: () => HTMLElement[];
   getActionButtons: () => HTMLElement[];
@@ -34,6 +37,7 @@ export const ExecutionPanelWidgetProxy = (): {
   clickResumeButton: () => Promise<void>;
 } => {
   AutoScrollContainerWidgetProxy();
+  DumpsterCommandBannerWidgetProxy();
   ExecutionRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
   FloorHeaderLayerWidgetProxy();
@@ -70,6 +74,12 @@ export const ExecutionPanelWidgetProxy = (): {
     hasActionBar: (): boolean => screen.queryByTestId('execution-panel-action-bar') !== null,
     hasAbandonButton: (): boolean =>
       getAbandonBarButtons().some((btn) => btn.textContent === 'ABANDON QUEST'),
+    hasDumpsterLaunchBanner: (): boolean =>
+      screen.queryByTestId('DUMPSTER_COMMAND_BANNER') !== null,
+    getDumpsterLaunchBannerCommand: (): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId('DUMPSTER_COMMAND_BANNER_COMMAND');
+      return element?.textContent ?? null;
+    },
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
     getFloorHeaders: (): HTMLElement[] => screen.queryAllByTestId('floor-header-layer-widget'),
     getActionButtons: (): HTMLElement[] => {

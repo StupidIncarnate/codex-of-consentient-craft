@@ -48,6 +48,7 @@ describe('questCreateBroker', () => {
       designDecisions: [],
       steps: [],
       toolingRequirements: [],
+      packagesAffected: [],
       contracts: [],
       flows: [],
       needsDesign: false,

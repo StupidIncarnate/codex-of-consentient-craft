@@ -112,4 +112,24 @@ export const smoketestProbeArgsStatics = {
     args: { packageName: 'shared' },
     summary: 'mcp-get-project-inventory-probe-ok',
   },
+  'create-quest': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-create-quest-not-in-mcp-suite',
+    note: 'create-quest spawns a real quest via guildList state — covered end-to-end in the /dumpster-create flow, not here.',
+  },
+  'get-next-step': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-get-next-step-not-in-mcp-suite',
+    note: 'get-next-step long-polls quest state and belongs to the orchestration smoketest suite.',
+  },
+  'run-ward': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-run-ward-not-in-mcp-suite',
+    note: 'run-ward spawns a real ward subprocess — not safe to exercise from inside the smoketest harness.',
+  },
+  'get-server-config': {
+    mode: 'call',
+    args: {},
+    summary: 'mcp-get-server-config-probe-ok',
+  },
 } as const;

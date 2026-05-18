@@ -1,0 +1,159 @@
+import { dumpsterCreatePromptStatics } from '../dumpster-create-prompt/dumpster-create-prompt-statics';
+import { slashCommandsStatics } from './slash-commands-statics';
+
+describe('slashCommandsStatics', () => {
+  describe('dumpsterCreate', () => {
+    it('VALID: dumpsterCreate.fileName => is dumpster-create.md', () => {
+      expect(slashCommandsStatics.dumpsterCreate.fileName).toBe('dumpster-create.md');
+    });
+
+    it('VALID: dumpsterCreate.body => starts with YAML frontmatter delimiter', () => {
+      expect(slashCommandsStatics.dumpsterCreate.body.slice(0, 4)).toBe('---\n');
+    });
+
+    it('VALID: dumpsterCreate.body => declares ChaosWhisperer as the spec-conversation description', () => {
+      const needle = 'description: Run a Dumpster spec conversation (ChaosWhisperer)';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => allowed-tools line lists mcp__dungeonmaster__* and Task', () => {
+      const needle =
+        'allowed-tools: mcp__dungeonmaster__*, Bash, Read, Glob, Grep, Edit, Write, Task';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => embeds the dumpster-create prompt template verbatim', () => {
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = body.indexOf(template);
+
+      expect(foundIndex).toBeGreaterThan(0);
+      expect(body.slice(foundIndex, foundIndex + template.length)).toBe(template);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the create-quest instruction from the chaos prompt', () => {
+      const needle = 'call `mcp__dungeonmaster__create-quest` to create the new quest';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the open-UI instruction with chat=hidden', () => {
+      const needle = '?chat=hidden';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the get-server-config instruction', () => {
+      const needle = 'mcp__dungeonmaster__get-server-config()';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the xdg-open / open Bash fallback', () => {
+      const needle = 'xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => contains the packagesAffected requirement from the chaos prompt', () => {
+      const needle = '**Declare `packagesAffected[]`**';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => no longer contains the three-step wrapper trailer line', () => {
+      const removedNeedle = 'Continue the spec conversation per the chaoswhisperer prompt.';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+
+      expect(body.indexOf(removedNeedle)).toBe(-1);
+    });
+
+    it('VALID: dumpsterCreate.body => no longer instructs calling get-agent-prompt for chaoswhisperer', () => {
+      const removedNeedle = 'mcp__dungeonmaster__get-agent-prompt({ agent: "chaoswhisperer" })';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+
+      expect(body.indexOf(removedNeedle)).toBe(-1);
+    });
+  });
+
+  describe('dumpsterLaunch', () => {
+    it('VALID: dumpsterLaunch.fileName => is dumpster-launch.md', () => {
+      expect(slashCommandsStatics.dumpsterLaunch.fileName).toBe('dumpster-launch.md');
+    });
+
+    it('VALID: dumpsterLaunch.body => starts with YAML frontmatter delimiter', () => {
+      expect(slashCommandsStatics.dumpsterLaunch.body.slice(0, 4)).toBe('---\n');
+    });
+
+    it('VALID: dumpsterLaunch.body => ends with the loop-back instruction line and newline', () => {
+      const tail = '3. Loop back to 1.\n';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+
+      expect(body.slice(body.length - tail.length)).toBe(tail);
+    });
+
+    it('VALID: dumpsterLaunch.body => no longer instructs calling register-monitor-session', () => {
+      const removedNeedle = 'register-monitor-session';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+
+      expect(body.indexOf(removedNeedle)).toBe(-1);
+    });
+
+    it('VALID: dumpsterLaunch.body => has no Startup section', () => {
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+
+      expect(body.indexOf('Startup:')).toBe(-1);
+    });
+
+    it('VALID: dumpsterLaunch.body => instructs calling get-next-step with no arguments', () => {
+      const needle = 'mcp__dungeonmaster__get-next-step()';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterLaunch.body => allowed-tools line lists mcp__dungeonmaster__*, Task, Bash', () => {
+      const needle = 'allowed-tools: mcp__dungeonmaster__*, Task, Bash';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterLaunch.body => instructs calling run-ward with questId/workItemId/mode', () => {
+      const needle =
+        'mcp__dungeonmaster__run-ward({ questId: result.questId, workItemId: result.workItemId, mode: result.mode })';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+});

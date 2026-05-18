@@ -10,7 +10,7 @@ import type { QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/con
 
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
-import { chaoswhispererPromptStatics } from '../../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
+import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 
 export const chatPromptBuildTransformer = ({
@@ -28,7 +28,7 @@ export const chatPromptBuildTransformer = ({
     return promptTextContract.parse(message);
   }
 
-  const statics = role === 'chaoswhisperer' ? chaoswhispererPromptStatics : glyphsmithPromptStatics;
+  const statics = role === 'chaoswhisperer' ? dumpsterCreatePromptStatics : glyphsmithPromptStatics;
 
   let promptText = statics.prompt.template.replace(statics.prompt.placeholders.arguments, message);
 

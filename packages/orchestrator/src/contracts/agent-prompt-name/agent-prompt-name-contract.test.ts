@@ -10,28 +10,36 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
-  it('VALID: {value: "pathseeker-surface-scope-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-surface-scope-minion' });
+  it('VALID: {value: "pathseeker-surface"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-surface' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('pathseeker-surface-scope-minion');
+    expect(result).toBe('pathseeker-surface');
   });
 
-  it('VALID: {value: "pathseeker-contract-dedup-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-contract-dedup-minion' });
+  it('VALID: {value: "pathseeker-dedup"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-dedup' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('pathseeker-contract-dedup-minion');
+    expect(result).toBe('pathseeker-dedup');
   });
 
-  it('VALID: {value: "pathseeker-assertion-correctness-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness-minion' });
+  it('VALID: {value: "pathseeker-assertion-correctness"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('pathseeker-assertion-correctness-minion');
+    expect(result).toBe('pathseeker-assertion-correctness');
+  });
+
+  it('VALID: {value: "pathseeker-walk"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pathseeker-walk' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('pathseeker-walk');
   });
 
   it('VALID: {value: "blightwarden-security-minion"} => parses successfully', () => {

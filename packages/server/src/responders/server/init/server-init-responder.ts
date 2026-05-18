@@ -43,11 +43,16 @@ import type {
   QuestWorkItemId,
   WsMessage,
 } from '@dungeonmaster/shared/contracts';
+
+import { orchestratorFindQuestByWorkItemIdAdapter } from '../../../adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
+import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
+import { filterParentSourceEntriesTransformer } from '../../../transformers/filter-parent-source-entries/filter-parent-source-entries-transformer';
+import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
@@ -473,6 +478,17 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     payload: Record<PropertyKey, unknown>;
   }[] = [];
 
+  // Parent /dumpster-launch session is a dispatcher, not a speaker. Track Task tool_use
+  // ids we've seen on session-source entries so the matching user.tool_result entries
+  // (whose `toolName` field carries the original tool_use_id under the converged wire
+  // shape) can pass through; everything else session-sourced is dropped.
+  const monitorTaskToolUseIds = new Set<ToolName>();
+
+  // Cache of workItemId → questId resolved via the orchestrator. The first chat-output
+  // emit for a given workItemId may broadcast without questId (lookup pending); subsequent
+  // emits stamp it from this map. Hits last for the server process lifetime.
+  const workItemQuestIdCache = new Map<QuestWorkItemId, QuestId>();
+
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
     if (type === 'quest-modified') continue;
@@ -483,7 +499,9 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       handler: ({ processId, payload }) => {
         const parsedPayload = chatOutputPayloadContract.safeParse(payload);
         const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
-        const payloadQuestId = parsedPayload.success ? parsedPayload.data.questId : undefined;
+        const originalPayloadQuestId = parsedPayload.success
+          ? parsedPayload.data.questId
+          : undefined;
         const payloadChatProcessId = parsedPayload.success
           ? parsedPayload.data.chatProcessId
           : undefined;
@@ -501,9 +519,62 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           return;
         }
 
+        // Filter parent-source dispatcher chatter from chat-output entries. Subagent
+        // entries pass through unchanged. Session-source entries drop unless they're a
+        // Task/Agent tool_use (recorded into monitorTaskToolUseIds) or its matching
+        // user.tool_result. If the entire batch is filtered out, skip the broadcast.
+        let effectivePayload = payload;
+        if (type === 'chat-output') {
+          const originalEntries = parseChatOutputEntriesTransformer({
+            payload: payload as Record<PropertyKey, unknown>,
+          });
+          if (originalEntries.length > 0) {
+            const filtered = filterParentSourceEntriesTransformer({
+              entries: originalEntries,
+              taskToolUseIds: monitorTaskToolUseIds,
+            });
+            if (filtered.length === 0) {
+              return;
+            }
+            if (filtered.length !== originalEntries.length) {
+              effectivePayload = { ...payload, entries: filtered };
+            }
+          }
+        }
+
+        // Resolve questId via workItemId lookup when the payload carries a workItemId but
+        // no questId — used by the /dumpster-launch monitor session's emits, where the
+        // active-quest singleton is gone. Cache hits stamp synchronously; cache misses
+        // broadcast without questId and trigger a background lookup that populates the
+        // cache for the next emit.
+        let resolvedQuestId = originalPayloadQuestId;
+        if (
+          resolvedQuestId === undefined &&
+          payloadWorkItemId !== undefined &&
+          type === 'chat-output'
+        ) {
+          const cached = workItemQuestIdCache.get(payloadWorkItemId);
+          if (cached === undefined) {
+            orchestratorFindQuestByWorkItemIdAdapter({ workItemId: payloadWorkItemId })
+              .then((looked) => {
+                if (looked !== null) workItemQuestIdCache.set(payloadWorkItemId, looked);
+              })
+              .catch((error: unknown) => {
+                processDevLogAdapter({
+                  message: `workItemId→questId lookup failed for ${payloadWorkItemId}: ${String(error)}`,
+                });
+              });
+          } else {
+            resolvedQuestId = cached;
+            effectivePayload = { ...effectivePayload, questId: cached };
+          }
+        }
+
+        const payloadQuestId = resolvedQuestId;
+
         const envelope = wsMessageContract.parse({
           type,
-          payload: { ...payload, processId },
+          payload: { ...effectivePayload, processId },
           timestamp: isoTimestampContract.parse(new Date().toISOString()),
         });
 

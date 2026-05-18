@@ -5,9 +5,10 @@ import { blightwardenIntegrityMinionStatics } from '../../statics/blightwarden-i
 import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-minion/blightwarden-perf-minion-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
-import { pathseekerContractDedupMinionStatics } from '../../statics/pathseeker-contract-dedup-minion/pathseeker-contract-dedup-minion-statics';
-import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
+import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
+import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
+import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
+import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
 describe('agentNameToPromptTransformer', () => {
@@ -23,39 +24,51 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
-  it('VALID: {agent: "pathseeker-surface-scope-minion"} => returns pathseeker surface scope minion prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-surface-scope-minion' });
+  it('VALID: {agent: "pathseeker-surface"} => returns pathseeker-surface prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-surface' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'pathseeker-surface-scope-minion',
+      name: 'pathseeker-surface',
       model: 'sonnet',
-      prompt: pathseekerSurfaceScopeMinionStatics.prompt.template,
+      prompt: pathseekerSurfaceStatics.prompt.template,
     });
   });
 
-  it('VALID: {agent: "pathseeker-contract-dedup-minion"} => returns pathseeker contract dedup minion prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-contract-dedup-minion' });
+  it('VALID: {agent: "pathseeker-dedup"} => returns pathseeker-dedup prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-dedup' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'pathseeker-contract-dedup-minion',
+      name: 'pathseeker-dedup',
       model: 'sonnet',
-      prompt: pathseekerContractDedupMinionStatics.prompt.template,
+      prompt: pathseekerDedupStatics.prompt.template,
     });
   });
 
-  it('VALID: {agent: "pathseeker-assertion-correctness-minion"} => returns pathseeker assertion correctness minion prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness-minion' });
+  it('VALID: {agent: "pathseeker-assertion-correctness"} => returns pathseeker-assertion-correctness prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'pathseeker-assertion-correctness-minion',
+      name: 'pathseeker-assertion-correctness',
       model: 'sonnet',
-      prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
+      prompt: pathseekerAssertionCorrectnessStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "pathseeker-walk"} => returns pathseeker-walk prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker-walk' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'pathseeker-walk',
+      model: 'sonnet',
+      prompt: pathseekerWalkStatics.prompt.template,
     });
   });
 

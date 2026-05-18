@@ -32,6 +32,10 @@ export const mcpToolsStatics = {
       'get-project-map',
       'get-quest-planning-notes',
       'get-project-inventory',
+      'create-quest',
+      'get-next-step',
+      'run-ward',
+      'get-server-config',
     ] as const,
   },
 } as const;

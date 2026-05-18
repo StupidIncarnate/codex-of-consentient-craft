@@ -11,7 +11,15 @@ import { z } from 'zod';
 export const workItemRoleContract = z.enum([
   'chaoswhisperer',
   'glyphsmith',
+  /** @deprecated Retained for forward-compat with quest.json files that still
+   * reference the monolithic pathseeker role. New work items must use
+   * `pathseeker-surface`, `pathseeker-dedup`, `pathseeker-assertion-correctness`,
+   * or `pathseeker-walk`. */
   'pathseeker',
+  'pathseeker-surface',
+  'pathseeker-dedup',
+  'pathseeker-assertion-correctness',
+  'pathseeker-walk',
   'codeweaver',
   'ward',
   'spiritmender',

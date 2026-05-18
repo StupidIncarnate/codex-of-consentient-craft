@@ -1,8 +1,4 @@
 import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
-import {
-  claudeMockHarness,
-  SimpleTextResponseStub,
-} from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
@@ -14,19 +10,11 @@ const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
 const PATHSEEKER_TIMEOUT = 10_000;
-// Tighter timeouts for the chat-tail-leak test, which has more pre-poll wallclock
-// (chat round-trip + APPROVE + Begin Quest) and must fit inside the global 10s
-// per-test timeout. The orchestration loop marks pathseeker `in_progress` within
-// ~100ms of the dispatch decision, well under 5s.
-const CHAT_TAIL_RESPONSE_TIMEOUT = 4_000;
-const CHAT_TAIL_PATHSEEKER_TIMEOUT = 5_000;
 const HTTP_OK = 200;
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
-const claudeMock = claudeMockHarness({ guildPath: GUILD_PATH });
-wireHarnessLifecycle({ harness: claudeMock, testObj: test });
 
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
@@ -34,7 +22,7 @@ test.describe('Quest Begin Transition', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: clicking Begin Quest sends POST to transition quest status into PathSeeker pipeline (seek_scope)', async ({
+  test('VALID: clicking Begin Quest sends POST to transition quest status into in_progress', async ({
     page,
     request,
   }) => {
@@ -107,10 +95,13 @@ test.describe('Quest Begin Transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
-    // seek_* is now classified as an execution phase (isExecutionPhaseGuard), so the
-    // UI MUST swap the spec panel for the execution panel live via the quest-modified
-    // WS event — no page reload required.
+    // start-quest transitions approved → in_progress directly so /dumpster-launch's
+    // questGetNextStepBroker picks the quest up on its next pass. The seek_* statuses
+    // are dead enum values under the dispatch-loop model; the responder briefly passes
+    // through seek_scope internally to satisfy the planningNotes allowlist, but the
+    // final persisted status is always in_progress. The UI MUST swap the spec panel
+    // for the execution panel live via the quest-modified WS event — no page reload
+    // required.
     await expect
       .poll(
         async () => {
@@ -123,7 +114,7 @@ test.describe('Quest Begin Transition', () => {
         },
         { timeout: PATHSEEKER_TIMEOUT },
       )
-      .toBe('seek_scope');
+      .toBe('in_progress');
 
     // UI panel swap must happen live (WS-driven) — no reload.
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -132,7 +123,7 @@ test.describe('Quest Begin Transition', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
-  test('VALID: Begin Quest from review_observables transitions quest into PathSeeker pipeline (seek_scope) and promotes chaoswhisperer work item', async ({
+  test('VALID: Begin Quest from review_observables transitions quest into in_progress and promotes chaoswhisperer work item', async ({
     page,
     request,
   }) => {
@@ -202,15 +193,12 @@ test.describe('Quest Begin Transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
-    // The full pipeline (seek_scope → seek_synth → seek_walk → in_progress)
-    // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
-    // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
-    // only activates at in_progress and beyond.
-    // We still assert two OrchestrationStartResponder effects on the persisted quest:
-    //   1. status is set to seek_scope
+    // start-quest transitions approved → in_progress directly so /dumpster-launch
+    // picks the quest up on its next pass. We assert three OrchestrationStartResponder
+    // effects on the persisted quest:
+    //   1. status is set to in_progress (final persisted state)
     //   2. the pending chaoswhisperer work item is promoted to complete
-    //   3. a pathseeker work item is added (its runtime status depends on subsequent
+    //   3. pathseeker work items are added (their runtime status depends on subsequent
     //      pipeline execution, which is deferred to Phase C manual verification)
     await expect
       .poll(
@@ -224,64 +212,59 @@ test.describe('Quest Begin Transition', () => {
         },
         { timeout: PATHSEEKER_TIMEOUT },
       )
-      .toBe('seek_scope');
+      .toBe('in_progress');
 
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
     const chaoswhispererItem = questData.quest.workItems.find(
       (wi: { role: string }) => wi.role === 'chaoswhisperer',
     );
-    const pathseekerCount = questData.quest.workItems.filter(
-      (wi: { role: string }) => wi.role === 'pathseeker',
+    const pathseekerCount = questData.quest.workItems.filter((wi: { role: string }) =>
+      wi.role.startsWith('pathseeker-'),
     ).length;
 
     expect(chaoswhispererItem.status).toBe('complete');
-    // At least one pathseeker item was created by OrchestrationStartResponder.
-    // In the e2e environment the fake CLI may cause retries that create additional
-    // pathseeker items; we only assert that >=1 exists (the responder's primary effect).
+    // At least one pathseeker-* work item was created by OrchestrationStartResponder.
+    // Under the /dumpster-launch flow OrchestrationStartResponder inserts the four-tier
+    // pathseeker graph (surface × N → dedup + assertion-correctness → walk); we only
+    // assert that >=1 exists (the responder's primary effect).
     expect(pathseekerCount >= 1).toBe(true);
   });
 
-  test('VALID: Begin Quest after a real chaoswhisperer chat dispatches the pathseeker work item (status leaves pending) and renders the [PATHSEEKER] row in the execution panel', async ({
+  test('VALID: Begin Quest inserts the four-tier pathseeker work-item graph into quest.json', async ({
     page,
     request,
   }) => {
-    // Reproduces the user-reported scenario: a chaoswhisperer chat has actually run
-    // (so `chat-start-responder.onComplete` has registered a `chat-${UUID}` post-exit
-    // JSONL tail under the quest's real questId via `orchestrationProcessesState`).
-    // A subsequent Begin Quest click MUST still cause the orchestration loop to
-    // dispatch the inserted pathseeker work item out of `pending` — anything less
-    // is the bug where the queue runner sees the lingering chat tail under the
-    // quest's questId and silently treats it as "another loop is already running."
-    // The earlier tests in this file write the quest file directly without ever
-    // running a chat, so they don't register a chat tail and therefore can't catch
-    // this regression.
+    // Under the `/dumpster-launch` model, Begin Quest mutates quest state only —
+    // OrchestrationStartResponder calls questBuildPathseekerGraphBroker to insert
+    // the surface × N → dedup + assertion-correctness → walk graph (one slice
+    // when packagesAffected is empty), promotes the chaoswhisperer chat item to
+    // complete, and transitions the quest to in_progress. The orchestrator does
+    // NOT spawn anything; `/dumpster-launch` running in the user's Claude session
+    // calls get-next-step() to pick the work up on its next pass. This test
+    // exercises the post-Begin-Quest persisted graph shape, which is the new
+    // observable replacing the old "[PATHSEEKER] row streams via spawn pipeline"
+    // surface that the chat-start spawn pipeline used to drive.
     const guild = await guildHarness({ request }).createGuild({
-      name: 'Chat Tail Begin Guild',
+      name: 'Pathseeker Graph Begin Guild',
       path: GUILD_PATH,
     });
     const guildId = String(guild.id);
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
-    const sessionId = `e2e-chat-tail-begin-${Date.now()}`;
+    const sessionId = `e2e-pathseeker-graph-${Date.now()}`;
     sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await questHarness({ request }).createQuest({
       guildId,
-      title: 'E2E Chat-Tail Begin Quest',
+      title: 'E2E Pathseeker Graph Quest',
       userRequest: 'Build the feature',
     });
     const { questId } = created;
     const { questFolder } = created;
     const questFilePath = created.filePath;
 
-    // Seed the quest at review_observables with a chaoswhisperer work item bound to
-    // the seeded session JSONL — the same shape the real spec phase produces. The
-    // sessionId on the work item is what `chat-start-responder` resumes (`--resume`)
-    // when the user sends a chat message from the quest workspace, which is what
-    // ultimately triggers `chatMainSessionTailBroker` to register the post-exit
-    // tail under the quest's questId.
     quests.writeQuestFile({
       questId,
       questFolder,
@@ -302,41 +285,12 @@ test.describe('Quest Begin Transition', () => {
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // Drive a real chat round-trip so the post-exit tail registers under questId.
-    // The clarification-request flow is irrelevant — any completed chat exits via
-    // `chat-start-responder.onComplete`, which is what registers the tail.
-    const chatTailMarker = `Chat tail registration marker ${Date.now()}`;
-    claudeMock.queueResponse({
-      response: SimpleTextResponseStub({ text: chatTailMarker }),
-    });
-
-    await page.getByTestId('CHAT_INPUT').fill('Tell me about scope');
-    await page.getByTestId('SEND_BUTTON').click();
-
-    // Wait for the response text — proves the chat fully completed and the
-    // post-exit tail registration has fired by the time we move on. The natural
-    // delay between this assertion and the Begin Quest click below is more than
-    // enough for `chatMainSessionTailBroker(...).then(register)` to have run.
-    await expect(page.getByText(chatTailMarker)).toBeVisible({
-      timeout: CHAT_TAIL_RESPONSE_TIMEOUT,
-    });
-
-    // Approve the spec to unlock the Begin Quest modal.
+    // APPROVE → modal appears.
     await page.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' }).click();
 
     await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
       timeout: MODAL_TIMEOUT,
     });
-
-    // Queue a pathseeker response so when the orchestration loop dispatches the
-    // pathseeker work item, the fake CLI has something to stream — gives the UI
-    // a stable "running" surface to assert against. Without this the fake CLI
-    // would exit non-zero and the work item could flap pending → in_progress →
-    // failed before our assertion observes it.
-    const pathseekerMarker = `Pathseeker dispatched marker ${Date.now()}`;
-    const pathseekerResponse = SimpleTextResponseStub({ text: pathseekerMarker });
-    pathseekerResponse.delayMs = 1500;
-    claudeMock.queueResponse({ response: pathseekerResponse });
 
     const startPromise = page.waitForRequest(
       (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
@@ -347,10 +301,8 @@ test.describe('Quest Begin Transition', () => {
 
     await startPromise;
 
-    // The bug surface: pathseeker work item stays at 'pending' forever because
-    // the queue runner found the lingering chat tail under the questId and
-    // skipped the loop start. With the fix the loop dispatches the pathseeker
-    // and the work item moves to in_progress (and onward).
+    // Wait for in_progress — proves OrchestrationStartResponder finished its
+    // three-stage modify pipeline (approved → seek_scope → in_progress).
     await expect
       .poll(
         async () => {
@@ -359,36 +311,60 @@ test.describe('Quest Begin Transition', () => {
             return null;
           }
           const data = await response.json();
-          const pathseekers = data.quest.workItems.filter(
-            (wi: { role: string }) => wi.role === 'pathseeker',
-          );
-          if (pathseekers.length === 0) {
-            return null;
-          }
-          // The orchestration loop has dispatched at least one pathseeker as
-          // soon as ANY pathseeker work item leaves the 'pending' state.
-          return pathseekers.some((wi: { status: string }) => wi.status !== 'pending');
+          return data.quest.status;
         },
-        { timeout: CHAT_TAIL_PATHSEEKER_TIMEOUT },
+        { timeout: PATHSEEKER_TIMEOUT },
       )
-      .toBe(true);
+      .toBe('in_progress');
 
-    // UI half: the [PATHSEEKER] role badge must render in the execution panel.
-    // Without dispatch the row still shows up as a pending entry but it is
-    // not the target — the assertion above already covers status; here we
-    // confirm the UI surfaced the dispatched row.
-    const executionPanel = page.getByTestId('execution-panel-widget');
+    // Inspect the persisted work-item graph. Empty packagesAffected → one default
+    // slice → exactly one pathseeker-surface item plus the dedup +
+    // assertion-correctness + walk roles. Dependency edges must mirror the
+    // documented surface → corrections → walk fan-in.
+    const questResponse = await request.get(`/api/quests/${questId}`);
+    const questData = await questResponse.json();
+    const surfaceItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'pathseeker-surface',
+    );
+    const dedupItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'pathseeker-dedup',
+    );
+    const assertionItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'pathseeker-assertion-correctness',
+    );
+    const walkItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'pathseeker-walk',
+    );
 
-    await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(
-      executionPanel.getByTestId('execution-row-role-badge').filter({ hasText: '[PATHSEEKER]' }),
-    ).toBeVisible({ timeout: CHAT_TAIL_PATHSEEKER_TIMEOUT });
+    expect(surfaceItems.length).toBe(1);
+    expect(dedupItems.length).toBe(1);
+    expect(assertionItems.length).toBe(1);
+    expect(walkItems.length).toBe(1);
 
-    // The mocked pathseeker response text must actually stream into the UI —
-    // proves the dispatch wired through to the fake CLI's output and the WS
-    // execution stream rendered it, not just that a row was inserted.
-    await expect(executionPanel.getByText(pathseekerMarker)).toBeVisible({
-      timeout: CHAT_TAIL_PATHSEEKER_TIMEOUT,
+    const [surfaceItem] = surfaceItems;
+    const [dedupItem] = dedupItems;
+    const [assertionItem] = assertionItems;
+    const [walkItem] = walkItems;
+
+    // surface depends on the prior chat work item ids (chaoswhisperer here).
+    expect(surfaceItem.dependsOn).toContain('e2e00000-0000-4000-8000-000000000099');
+
+    // dedup + assertion-correctness fan in on every surface id.
+    expect(dedupItem.dependsOn).toContain(surfaceItem.id);
+    expect(assertionItem.dependsOn).toContain(surfaceItem.id);
+
+    // walk depends on both corrections. Both ids appear in walkItem.dependsOn —
+    // testing the same property twice (not two distinct properties), so this
+    // does not trip property-bleedthrough.
+    const walkDeps = walkItem.dependsOn as readonly (typeof dedupItem.id)[];
+
+    expect(walkDeps).toContain(dedupItem.id);
+    expect(walkDeps).toContain(assertionItem.id);
+
+    // UI panel swap mirrors the other tests in this file.
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
     });
+    await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 });

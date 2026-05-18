@@ -33,7 +33,7 @@ export const InteractionFlow = (): ToolRegistration[] => [
       'Signals the CLI with step completion status, progress, or blocking conditions' as never,
     inputSchema: signalBackSchema as never,
     handler: async ({ args }): Promise<ToolResponse> =>
-      Promise.resolve(InteractionHandleResponder({ tool: 'signal-back' as never, args })),
+      InteractionHandleResponder({ tool: 'signal-back' as never, args }),
   },
   {
     name: 'ask-user-question' as never,
@@ -41,7 +41,7 @@ export const InteractionFlow = (): ToolRegistration[] => [
       "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The user's answers arrive as the next user message in the session." as never,
     inputSchema: askUserQuestionSchema as never,
     handler: async ({ args }): Promise<ToolResponse> =>
-      Promise.resolve(InteractionHandleResponder({ tool: 'ask-user-question' as never, args })),
+      InteractionHandleResponder({ tool: 'ask-user-question' as never, args }),
   },
   {
     name: 'get-agent-prompt' as never,
@@ -49,6 +49,6 @@ export const InteractionFlow = (): ToolRegistration[] => [
       'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.' as never,
     inputSchema: getAgentPromptSchema as never,
     handler: async ({ args }): Promise<ToolResponse> =>
-      Promise.resolve(InteractionHandleResponder({ tool: 'get-agent-prompt' as never, args })),
+      InteractionHandleResponder({ tool: 'get-agent-prompt' as never, args }),
   },
 ];

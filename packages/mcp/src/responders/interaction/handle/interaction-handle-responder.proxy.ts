@@ -9,6 +9,7 @@
 import { signalBackBrokerProxy } from '../../../brokers/signal/back/signal-back-broker.proxy';
 import { askUserQuestionBrokerProxy } from '../../../brokers/ask/user-question/ask-user-question-broker.proxy';
 import { orchestratorGetAgentPromptAdapterProxy } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter.proxy';
+import { orchestratorHandleSignalBackAdapterProxy } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter.proxy';
 import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import { InteractionHandleResponder } from './interaction-handle-responder';
 
@@ -19,6 +20,7 @@ export const InteractionHandleResponderProxy = (): {
   signalBackBrokerProxy();
   askUserQuestionBrokerProxy();
   const agentPromptProxy = orchestratorGetAgentPromptAdapterProxy();
+  orchestratorHandleSignalBackAdapterProxy();
 
   return {
     callResponder: InteractionHandleResponder,

@@ -1,12 +1,16 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+
 import { StreamSignalStub } from '../../../contracts/stream-signal/stream-signal.stub';
 import { WorkItemIdStub } from '../../../contracts/work-item-id/work-item-id.stub';
 import { WorkTrackerStub } from '../../../contracts/work-tracker/work-tracker.stub';
 import { handleSignalLayerBroker } from './handle-signal-layer-broker';
 import { handleSignalLayerBrokerProxy } from './handle-signal-layer-broker.proxy';
 
+const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+
 describe('handleSignalLayerBroker', () => {
   describe('complete signal', () => {
-    it('VALID: {signal: complete, workItemId} => calls markCompleted and returns continue action', async () => {
+    it('VALID: {signal: complete, questId, workItemId} => calls markCompleted and returns continue action', async () => {
       handleSignalLayerBrokerProxy();
       const workItemId = WorkItemIdStub({ value: 'work-item-1' });
       const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
@@ -17,6 +21,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'codeweaver',
@@ -24,20 +29,6 @@ describe('handleSignalLayerBroker', () => {
 
       expect(result).toStrictEqual({ action: 'continue' });
       expect(mockMarkCompleted).toHaveBeenCalledTimes(1);
-    });
-
-    it('VALID: {signal: complete, no workItemId} => skips markCompleted and returns continue action', async () => {
-      handleSignalLayerBrokerProxy();
-      const mockMarkCompleted = jest.fn().mockResolvedValue(undefined);
-      const workTracker = WorkTrackerStub({
-        markCompleted: mockMarkCompleted,
-      });
-      const signal = StreamSignalStub({ signal: 'complete' });
-
-      const result = await handleSignalLayerBroker({ signal, workTracker, role: 'codeweaver' });
-
-      expect(result).toStrictEqual({ action: 'continue' });
-      expect(mockMarkCompleted).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -53,6 +44,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'codeweaver',
@@ -79,6 +71,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'siegemaster',
@@ -108,6 +101,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'lawbringer',
@@ -137,6 +131,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'spiritmender',
@@ -166,6 +161,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'blightwarden',
@@ -192,6 +188,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'pathseeker',
@@ -202,26 +199,6 @@ describe('handleSignalLayerBroker', () => {
         summary: 'Cannot plan steps',
       });
       expect(mockMarkFailed).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('failed signal - no workItemId', () => {
-    it('VALID: {signal: failed, no workItemId} => skips markFailed', async () => {
-      handleSignalLayerBrokerProxy();
-      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
-      const workTracker = WorkTrackerStub({
-        markFailed: mockMarkFailed,
-      });
-      const signal = StreamSignalStub({ signal: 'failed', summary: 'Error occurred' as never });
-
-      const result = await handleSignalLayerBroker({ signal, workTracker, role: 'codeweaver' });
-
-      expect(result).toStrictEqual({
-        action: 'spawn_role',
-        targetRole: 'pathseeker',
-        summary: 'Error occurred',
-      });
-      expect(mockMarkFailed).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -237,6 +214,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'siegemaster',
@@ -263,6 +241,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'codeweaver',
@@ -286,6 +265,7 @@ describe('handleSignalLayerBroker', () => {
 
       const result = await handleSignalLayerBroker({
         signal,
+        questId,
         workItemId,
         workTracker,
         role: 'pathseeker',

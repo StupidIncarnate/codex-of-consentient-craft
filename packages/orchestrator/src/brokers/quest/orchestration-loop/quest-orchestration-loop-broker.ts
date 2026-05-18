@@ -40,10 +40,16 @@ import { runBlightwardenLayerBroker } from './run-blightwarden-layer-broker';
 import { runChatLayerBroker } from './run-chat-layer-broker';
 import { runCodeweaverLayerBroker } from './run-codeweaver-layer-broker';
 import { runLawbringerLayerBroker } from './run-lawbringer-layer-broker';
-import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
 import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
 import { runWardLayerBroker } from './run-ward-layer-broker';
+
+// NOTE: `runPathseekerLayerBroker` is intentionally NOT imported here. Pathseeker dispatch
+// moves under the `/dumpster-launch` model: `get-next-step` returns the four pathseeker-*
+// roles (surface × N → dedup + assertion-correctness → walk) directly, and the post-walk
+// hook (questPostWalkHookBroker) fires from `QuestHandleSignalBackResponder` when a
+// pathseeker-walk work item signals complete. The orchestration loop no longer spawns
+// pathseekers itself, so the legacy role is silently dropped here.
 
 const DEFAULT_SLOT_COUNT = 3;
 
@@ -275,16 +281,19 @@ export const questOrchestrationLoopBroker = async ({
         ...(userMessage === undefined ? {} : { userMessage }),
         onAgentEntry,
       });
-    } else if (roleName === 'pathseeker') {
-      await runPathseekerLayerBroker({
-        questId,
-        workItem: firstItem,
-        startPath,
-        guildId,
-        onAgentEntry,
-        abortSignal,
-        batchGroups,
-      });
+    } else if (
+      roleName === 'pathseeker' ||
+      roleName === 'pathseeker-surface' ||
+      roleName === 'pathseeker-dedup' ||
+      roleName === 'pathseeker-assertion-correctness' ||
+      roleName === 'pathseeker-walk'
+    ) {
+      // Pathseeker dispatch retired — handled via `get-next-step` MCP tool under the
+      // `/dumpster-launch` model. The orchestration loop no longer spawns pathseekers.
+      // Drop through so the loop just recurses; the work item stays `in_progress` (set
+      // above) until the external dispatcher signals back, which fires the post-walk
+      // hook for `pathseeker-walk` via `QuestHandleSignalBackResponder`.
+      return result;
     } else if (roleName === 'codeweaver') {
       await runCodeweaverLayerBroker({
         questId,

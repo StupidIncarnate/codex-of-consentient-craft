@@ -19,6 +19,38 @@ describe('roleToPromptTemplateTransformer', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
+    it('VALID: {role: pathseeker-surface} => returns pathseeker-surface prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'pathseeker-surface' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('VALID: {role: pathseeker-dedup} => returns pathseeker-dedup prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'pathseeker-dedup' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('VALID: {role: pathseeker-assertion-correctness} => returns pathseeker-assertion-correctness prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'pathseeker-assertion-correctness' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('VALID: {role: pathseeker-walk} => returns pathseeker-walk prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'pathseeker-walk' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
+
     it('VALID: {role: siegemaster} => returns siegemaster prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'siegemaster' }),

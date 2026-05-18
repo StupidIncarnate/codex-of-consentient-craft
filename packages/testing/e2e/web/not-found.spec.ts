@@ -44,7 +44,10 @@ test.describe('Not Found', () => {
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
   });
 
-  test('EDGE: valid guild slug renders chat (no false positive)', async ({ page, request }) => {
+  test('EDGE: valid guild slug renders /dumpster-create placeholder (no false positive)', async ({
+    page,
+    request,
+  }) => {
     const guild = await guildHarness({ request }).createGuild({
       name: 'Real Guild',
       path: GUILD_PATH,
@@ -59,7 +62,15 @@ test.describe('Not Found', () => {
     await page.goto(`/${urlSlug}/quest`);
     await guildsResponsePromise;
 
-    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
+    // The no-questId route renders the `/dumpster-create` placeholder banner.
+    // Quest creation runs in the user's Claude session via the slash command;
+    // the web UI no longer has a CHAT_INPUT on this route. Asserting the
+    // placeholder + the literal `/dumpster-create` command text proves the
+    // route is recognized (and is the inverse of the NOT_FOUND surface).
+    await expect(page.getByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')).toBeVisible();
+    await expect(page.getByTestId('DUMPSTER_COMMAND_BANNER_COMMAND')).toHaveText(
+      '/dumpster-create',
+    );
     await expect(page.getByTestId('NOT_FOUND')).not.toBeVisible();
   });
 

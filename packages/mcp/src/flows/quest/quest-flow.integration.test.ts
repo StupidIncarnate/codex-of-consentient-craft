@@ -2,7 +2,7 @@ import { QuestFlow } from './quest-flow';
 
 describe('QuestFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 7 registrations with correct tool names', () => {
+    it('VALID: returns 11 registrations with correct tool names', () => {
       const registrations = QuestFlow();
 
       const names = registrations.map(({ name }) => name);
@@ -15,6 +15,10 @@ describe('QuestFlow', () => {
         'list-quests',
         'list-guilds',
         'get-quest-planning-notes',
+        'create-quest',
+        'get-next-step',
+        'run-ward',
+        'get-server-config',
       ]);
     });
 
@@ -24,6 +28,10 @@ describe('QuestFlow', () => {
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
       expect(handlerTypes).toStrictEqual([
+        'function',
+        'function',
+        'function',
+        'function',
         'function',
         'function',
         'function',
@@ -47,6 +55,10 @@ describe('QuestFlow', () => {
         'Lists all quests in the .dungeonmaster-quests folder.',
         'Lists all registered guilds with their IDs, names, paths, and quest counts.',
         "Returns PathSeeker's phased planningNotes for a quest (scope classification, surface reports, synthesis, walk findings, review report). Used by PathSeeker on resume to re-read already-committed phase artifacts.",
+        'Creates a new anonymous quest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id.',
+        'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | run-ward | idle. Long-polls internally up to ~25s.',
+        'Runs `npm run ward` synchronously in changed or full mode and persists the result onto the named work item. Blocks until ward exits.',
+        'Returns the dungeonmaster server config { baseUrl, port } so slash commands can point the browser at the running server.',
       ]);
     });
 
@@ -56,6 +68,10 @@ describe('QuestFlow', () => {
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
       expect(schemaTypes).toStrictEqual([
+        'object',
+        'object',
+        'object',
+        'object',
         'object',
         'object',
         'object',

@@ -14,7 +14,6 @@ describe('QuestApprovedModalWidget', () => {
           <QuestApprovedModalWidget
             opened={true}
             onKeepChatting={jest.fn()}
-            onNewQuest={jest.fn()}
             onBeginQuest={jest.fn()}
           />
         ),
@@ -31,7 +30,6 @@ describe('QuestApprovedModalWidget', () => {
           <QuestApprovedModalWidget
             opened={true}
             onKeepChatting={jest.fn()}
-            onNewQuest={jest.fn()}
             onBeginQuest={jest.fn()}
           />
         ),
@@ -48,7 +46,6 @@ describe('QuestApprovedModalWidget', () => {
           <QuestApprovedModalWidget
             opened={true}
             onKeepChatting={jest.fn()}
-            onNewQuest={jest.fn()}
             onBeginQuest={jest.fn()}
           />
         ),
@@ -57,21 +54,20 @@ describe('QuestApprovedModalWidget', () => {
       expect(screen.getByRole('button', { name: 'Keep Chatting' })).toBeInTheDocument();
     });
 
-    it('VALID: {opened: true} => renders Start a new Quest button', () => {
-      QuestApprovedModalWidgetProxy();
+    it('VALID: {opened: true} => does NOT render the "Start a new Quest" button (removed in /dumpster-create pivot)', () => {
+      const proxy = QuestApprovedModalWidgetProxy();
 
       mantineRenderAdapter({
         ui: (
           <QuestApprovedModalWidget
             opened={true}
             onKeepChatting={jest.fn()}
-            onNewQuest={jest.fn()}
             onBeginQuest={jest.fn()}
           />
         ),
       });
 
-      expect(screen.getByRole('button', { name: 'Start a new Quest' })).toBeInTheDocument();
+      expect(proxy.hasNewQuestButton()).toBe(false);
     });
 
     it('VALID: {opened: false} => does not render modal title', () => {
@@ -82,7 +78,6 @@ describe('QuestApprovedModalWidget', () => {
           <QuestApprovedModalWidget
             opened={false}
             onKeepChatting={jest.fn()}
-            onNewQuest={jest.fn()}
             onBeginQuest={jest.fn()}
           />
         ),
@@ -102,7 +97,6 @@ describe('QuestApprovedModalWidget', () => {
           <QuestApprovedModalWidget
             opened={true}
             onKeepChatting={jest.fn()}
-            onNewQuest={jest.fn()}
             onBeginQuest={onBeginQuest}
           />
         ),
@@ -122,7 +116,6 @@ describe('QuestApprovedModalWidget', () => {
           <QuestApprovedModalWidget
             opened={true}
             onKeepChatting={onKeepChatting}
-            onNewQuest={jest.fn()}
             onBeginQuest={jest.fn()}
           />
         ),
@@ -131,26 +124,6 @@ describe('QuestApprovedModalWidget', () => {
       await proxy.clickKeepChatting();
 
       expect(onKeepChatting).toHaveBeenCalledTimes(1);
-    });
-
-    it('VALID: {click Start a new Quest} => calls onNewQuest', async () => {
-      const proxy = QuestApprovedModalWidgetProxy();
-      const onNewQuest = jest.fn();
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestApprovedModalWidget
-            opened={true}
-            onKeepChatting={jest.fn()}
-            onNewQuest={onNewQuest}
-            onBeginQuest={jest.fn()}
-          />
-        ),
-      });
-
-      await proxy.clickNewQuest();
-
-      expect(onNewQuest).toHaveBeenCalledTimes(1);
     });
   });
 });

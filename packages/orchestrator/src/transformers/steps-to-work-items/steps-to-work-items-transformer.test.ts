@@ -53,6 +53,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -64,6 +65,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000001'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'changed',
         },
@@ -76,6 +78,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000002'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -87,6 +90,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000003'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -98,6 +102,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -109,6 +114,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000005'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },
@@ -162,6 +168,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -173,6 +180,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId, '00000000-0000-4000-8000-000000000001'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -187,6 +195,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'changed',
         },
@@ -199,6 +208,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000003'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -210,6 +220,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -221,6 +232,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -235,6 +247,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -246,6 +259,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000007'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },
@@ -298,6 +312,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -309,6 +324,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000001'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'changed',
         },
@@ -321,6 +337,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000002'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -335,6 +352,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -349,6 +367,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -364,6 +383,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -375,6 +395,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000006'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -386,6 +407,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000007'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },
@@ -430,6 +452,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -441,6 +464,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000001'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'changed',
         },
@@ -453,6 +477,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000002'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -464,6 +489,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000003'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -475,6 +501,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },
@@ -519,6 +546,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'changed',
         },
@@ -531,6 +559,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000001'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -545,6 +574,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -559,6 +589,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -570,6 +601,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },
@@ -1043,6 +1075,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -1054,6 +1087,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: [pathseekerWorkItemId, '00000000-0000-4000-8000-000000000001'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -1068,6 +1102,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'changed',
         },
@@ -1080,6 +1115,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000003'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -1098,6 +1134,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -1109,6 +1146,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000004'],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -1123,6 +1161,7 @@ describe('stepsToWorkItemsTransformer', () => {
           ],
           maxAttempts: 1,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
         },
         {
@@ -1134,6 +1173,7 @@ describe('stepsToWorkItemsTransformer', () => {
           dependsOn: ['00000000-0000-4000-8000-000000000007'],
           maxAttempts: 3,
           attempt: 0,
+          retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
         },

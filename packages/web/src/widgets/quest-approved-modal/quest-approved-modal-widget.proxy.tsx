@@ -8,7 +8,7 @@ export const QuestApprovedModalWidgetProxy = (): {
   getTitle: () => HTMLElement['textContent'];
   clickBeginQuest: () => Promise<void>;
   clickKeepChatting: () => Promise<void>;
-  clickNewQuest: () => Promise<void>;
+  hasNewQuestButton: () => boolean;
 } => {
   PixelBtnWidgetProxy();
 
@@ -32,12 +32,9 @@ export const QuestApprovedModalWidgetProxy = (): {
         await userEvent.click(target);
       }
     },
-    clickNewQuest: async (): Promise<void> => {
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const target = buttons.find((el) => el.textContent === 'Start a new Quest');
-      if (target) {
-        await userEvent.click(target);
-      }
+    hasNewQuestButton: (): boolean => {
+      const buttons = screen.queryAllByTestId('PIXEL_BTN');
+      return buttons.some((el) => el.textContent === 'Start a new Quest');
     },
   };
 };

@@ -361,6 +361,56 @@ describe('ServerInitResponder', () => {
 
       expect({ aGotIt, bGotIt }).toStrictEqual({ aGotIt: true, bGotIt: false });
     });
+
+    it('VALID: {chat-output payload carries questId} => envelope sent to subscribed client preserves questId field', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-envelope-X' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdX, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendA = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
+        ws: clientA,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendA.mockClear();
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-envelope' }),
+        payload: { questId: questIdX, chatProcessId: 'cp-envelope', entries: [] },
+      });
+
+      const envelopeFrames = sendA.mock.calls
+        .map((c) => JSON.parse(String(c[0])) as Record<PropertyKey, unknown>)
+        .filter((m) => {
+          const p = m.payload as Record<PropertyKey, unknown> | undefined;
+          return p?.chatProcessId === 'cp-envelope';
+        });
+
+      const summary = envelopeFrames.map((frame) => ({
+        type: frame.type,
+        payloadQuestId: (frame.payload as Record<PropertyKey, unknown>).questId,
+        payloadChatProcessId: (frame.payload as Record<PropertyKey, unknown>).chatProcessId,
+        payloadProcessId: (frame.payload as Record<PropertyKey, unknown>).processId,
+      }));
+
+      expect(summary).toStrictEqual([
+        {
+          type: 'chat-output',
+          payloadQuestId: questIdX,
+          payloadChatProcessId: 'cp-envelope',
+          payloadProcessId: 'p-envelope',
+        },
+      ]);
+    });
   });
 
   describe('global event broadcast', () => {

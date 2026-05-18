@@ -13,10 +13,11 @@ import { blightwardenDedupMinionStatics } from '../../statics/blightwarden-dedup
 import { blightwardenIntegrityMinionStatics } from '../../statics/blightwarden-integrity-minion/blightwarden-integrity-minion-statics';
 import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-minion/blightwarden-perf-minion-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
-import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
-import { pathseekerContractDedupMinionStatics } from '../../statics/pathseeker-contract-dedup-minion/pathseeker-contract-dedup-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { pathseekerSurfaceScopeMinionStatics } from '../../statics/pathseeker-surface-scope-minion/pathseeker-surface-scope-minion-statics';
+import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
+import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
+import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
+import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
 
 export const agentNameToPromptTransformer = ({
   agent,
@@ -30,23 +31,29 @@ export const agentNameToPromptTransformer = ({
         model: 'sonnet',
         prompt: chaoswhispererGapMinionStatics.prompt.template,
       });
-    case 'pathseeker-surface-scope-minion':
+    case 'pathseeker-surface':
       return agentPromptResultContract.parse({
-        name: 'pathseeker-surface-scope-minion',
+        name: 'pathseeker-surface',
         model: 'sonnet',
-        prompt: pathseekerSurfaceScopeMinionStatics.prompt.template,
+        prompt: pathseekerSurfaceStatics.prompt.template,
       });
-    case 'pathseeker-contract-dedup-minion':
+    case 'pathseeker-dedup':
       return agentPromptResultContract.parse({
-        name: 'pathseeker-contract-dedup-minion',
+        name: 'pathseeker-dedup',
         model: 'sonnet',
-        prompt: pathseekerContractDedupMinionStatics.prompt.template,
+        prompt: pathseekerDedupStatics.prompt.template,
       });
-    case 'pathseeker-assertion-correctness-minion':
+    case 'pathseeker-assertion-correctness':
       return agentPromptResultContract.parse({
-        name: 'pathseeker-assertion-correctness-minion',
+        name: 'pathseeker-assertion-correctness',
         model: 'sonnet',
-        prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
+        prompt: pathseekerAssertionCorrectnessStatics.prompt.template,
+      });
+    case 'pathseeker-walk':
+      return agentPromptResultContract.parse({
+        name: 'pathseeker-walk',
+        model: 'sonnet',
+        prompt: pathseekerWalkStatics.prompt.template,
       });
     case 'blightwarden-security-minion':
       return agentPromptResultContract.parse({

@@ -12,7 +12,10 @@ import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
-import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
+import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
+import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
+import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 
@@ -21,7 +24,15 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
     case 'codeweaver':
       return contentTextContract.parse(codeweaverPromptStatics.prompt.template);
     case 'pathseeker':
-      return contentTextContract.parse(pathseekerPromptStatics.prompt.template);
+      return contentTextContract.parse(pathseekerWalkStatics.prompt.template);
+    case 'pathseeker-surface':
+      return contentTextContract.parse(pathseekerSurfaceStatics.prompt.template);
+    case 'pathseeker-dedup':
+      return contentTextContract.parse(pathseekerDedupStatics.prompt.template);
+    case 'pathseeker-assertion-correctness':
+      return contentTextContract.parse(pathseekerAssertionCorrectnessStatics.prompt.template);
+    case 'pathseeker-walk':
+      return contentTextContract.parse(pathseekerWalkStatics.prompt.template);
     case 'siegemaster':
       return contentTextContract.parse(siegemasterPromptStatics.prompt.template);
     case 'lawbringer':

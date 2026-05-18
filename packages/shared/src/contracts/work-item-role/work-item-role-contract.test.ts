@@ -27,6 +27,38 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('pathseeker');
     });
 
+    it('VALID: pathseeker-surface => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'pathseeker-surface' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-surface');
+    });
+
+    it('VALID: pathseeker-dedup => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'pathseeker-dedup' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-dedup');
+    });
+
+    it('VALID: pathseeker-assertion-correctness => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'pathseeker-assertion-correctness' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-assertion-correctness');
+    });
+
+    it('VALID: pathseeker-walk => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'pathseeker-walk' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-walk');
+    });
+
     it('VALID: codeweaver => parses successfully', () => {
       const role = WorkItemRoleStub({ value: 'codeweaver' });
 

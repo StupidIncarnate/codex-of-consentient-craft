@@ -17,7 +17,6 @@ import { LogoWidget } from '../logo/logo-widget';
 import { MapFrameWidget } from '../map-frame/map-frame-widget';
 import { QuestQueueBarWidget } from '../quest-queue-bar/quest-queue-bar-widget';
 import { RateLimitsStackWidget } from '../rate-limits-stack/rate-limits-stack-widget';
-import { ToolingDropdownWidget } from '../tooling-dropdown/tooling-dropdown-widget';
 
 const TRANSITION_DURATION = '0.4s';
 const TRANSITION_EASING = 'ease-out';
@@ -116,20 +115,6 @@ export const AppWidget = (): React.JSX.Element => {
           transition,
         }}
       />
-
-      {!isQuestRoute && (
-        <div
-          data-testid="APP_TOOLING_SLOT"
-          style={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            zIndex: 1000,
-          }}
-        >
-          <ToolingDropdownWidget />
-        </div>
-      )}
     </div>
   );
 };

@@ -122,8 +122,8 @@ describe('QuestQueueBarWidget', () => {
       const proxy = QuestQueueBarWidgetProxy();
       const head = QuestQueueEntryStub({
         questId: 'q-open',
-        questTitle: 'Smoketest: Signals',
-        guildSlug: 'smoketests-guild' as never,
+        questTitle: 'Quest: Signals',
+        guildSlug: 'open-guild' as never,
         activeSessionId: SessionIdStub({ value: 'sess-open' }),
       });
       proxy.setupEntries({ entries: [head] });
@@ -138,7 +138,7 @@ describe('QuestQueueBarWidget', () => {
 
       const openLink = await findByTestId('QUEST_QUEUE_BAR_OPEN_LINK');
 
-      expect(openLink.getAttribute('href')).toBe('/smoketests-guild/quest/q-open');
+      expect(openLink.getAttribute('href')).toBe('/open-guild/quest/q-open');
     });
 
     it('VALID: {head without activeSessionId} => OPEN link still targets the quest', async () => {

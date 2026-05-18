@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 
+import { fileNameContract } from '../file-name/file-name-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
@@ -26,6 +27,8 @@ export const workItemContract = z.object({
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),
   maxAttempts: z.number().int().positive().brand<'MaxAttempts'>().default(1),
+  retryCount: z.number().int().nonnegative().brand<'FailCount'>().default(0),
+  lastWardRunId: fileNameContract.optional(),
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),

@@ -253,6 +253,7 @@ export const orchestrationLoopLayerBroker = async ({
 
   const signalResult = await handleSignalLayerBroker({
     signal: result.signal,
+    questId,
     workItemId: completedAgent.workItemId,
     workTracker,
     role: workUnit.role,

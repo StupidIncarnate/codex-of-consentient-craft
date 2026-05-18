@@ -1,15 +1,16 @@
 /**
- * PURPOSE: Renders the unified quest chat surface for both `/:guildSlug/quest` (no questId — new-chat) and `/:guildSlug/quest/:questId` (live workspace). Owns the URL replace-navigate after first-message quest creation so the same component instance survives the param transition and local first-message state is preserved.
+ * PURPOSE: Renders the quest workspace for `/:guildSlug/quest` (no questId — placeholder pointing at `/dumpster-create`) and `/:guildSlug/quest/:questId` (live workspace with chat + spec/execution panels).
  *
  * USAGE:
  * <QuestChatContentLayerWidget questId={questId} guildId={guildId} guildSlug={guildSlug} />
- * // questId === null → new-chat surface (ChatPanel + "Awaiting…"). Once first message creates the quest, the widget replace-navigates to the live URL; same instance keeps rendering with the new questId, binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase).
+ * // questId === null → placeholder banner instructing the user to run `/dumpster-create` in their Claude session. Quest creation happens via the ChaosWhisperer slash command, not the web UI.
+ * // questId set → live workspace. The binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase). Execution view shows a `/dumpster-launch` banner.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-import { Box, Text } from '@mantine/core';
+import { Box, Stack, Text } from '@mantine/core';
 
 import type {
   ChatEntry,
@@ -20,7 +21,6 @@ import type {
   UrlSlug,
   UserInput,
 } from '@dungeonmaster/shared/contracts';
-import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
   isUserPausedQuestStatusGuard,
@@ -32,18 +32,23 @@ import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/tran
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
-import { questNewBroker } from '../../brokers/quest/new/quest-new-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
-import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
+import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
+import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
 import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
+
+const NO_QUEST_BANNER_MESSAGE = displayLabelContract.parse(
+  'Quests are created in your Claude session. Run this slash command to start a spec conversation:',
+);
+const DUMPSTER_CREATE_COMMAND = displayLabelContract.parse('/dumpster-create');
 
 const SUBMIT_FOLLOWUP_MESSAGE =
   "I've modified the quest spec. Please review my changes." as UserInput;
@@ -58,10 +63,19 @@ export interface QuestChatContentLayerWidgetProps {
 
 export const QuestChatContentLayerWidget = ({
   questId,
-  guildId,
   guildSlug,
 }: QuestChatContentLayerWidgetProps): React.JSX.Element => {
-  const navigate = useNavigate();
+  // `?chat=hidden` suppresses the ChatPanel sub-tree while leaving the chat
+  // binding subscribed (it's called below at this layer, above the panel).
+  // Only the exact string `hidden` triggers — any other value renders normally.
+  // Used by /dumpster-create so the user's terminal session owns the chat
+  // surface while the web UI continues to render spec/execution panels.
+  const location = useLocation();
+  const chatHidden = new URLSearchParams(location.search).get('chat') === 'hidden';
+
+  // Calls below are unconditional so the hooks rule stays satisfied even when
+  // questId is null. The binding tolerates a null questId by returning an
+  // inert state (empty entries, no streaming, no subscription).
   const {
     quest,
     entriesBySession,
@@ -72,46 +86,13 @@ export const QuestChatContentLayerWidget = ({
     stopChat,
   } = useQuestChatBinding({ questId });
 
-  // Local state for the first-message flow: the user's first message lives
-  // here until the binding's replay catches up. Without this, the message
-  // would vanish during the questId param transition because the binding
-  // boots fresh entries on each questId change. Subsequent messages go
-  // through binding.sendMessage and live entirely in binding state.
-  const [localEntries, setLocalEntries] = useState<ChatEntry[]>([]);
-  // `submitting` covers the period from "user clicks send on the new-chat
-  // surface" until the binding shows any activity for this quest. The
-  // orchestrator emits chat-history-complete on subscription before live
-  // chat-output, which would otherwise leave the input button reading "play"
-  // between quest-modified and the first streaming entry. Hand-off happens
-  // when the binding either reports streaming OR has accumulated any entries
-  // — either signals the binding has taken ownership. We can't key solely on
-  // the rising edge of `isStreaming` because chat-output and chat-history-
-  // complete can land in the same React commit (mocked Claude in e2e), which
-  // would collapse the rising edge to false→false and leave submitting stuck.
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (submitting && (isStreaming || entriesBySession.size > 0)) {
-      setSubmitting(false);
-    }
-  }, [submitting, isStreaming, entriesBySession]);
-
-  // Synthetic user entries (from sendMessage/submitClarifyAnswers) live under
-  // SYNTHETIC_SESSION_KEY in the binding; agent entries live under the live
-  // sessionId bucket. Per-bucket sort alone respects Map insertion order across
-  // sessions, which pushes the user answer to the end whenever it was inserted
-  // after the agent's bucket already exists. Sort GLOBALLY by timestamp here so
-  // streaming matches the replay path (which lands every entry in the same bucket).
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];
     for (const list of entriesBySession.values()) {
       all.push(...list);
     }
-    const localFiltered = localEntries.filter(
-      (entry) => !hasEquivalentChatEntryGuard({ entry, among: all }),
-    );
-    return sortChatEntriesByTimestampTransformer({ entries: [...localFiltered, ...all] });
-  }, [entriesBySession, localEntries]);
+    return sortChatEntriesByTimestampTransformer({ entries: all });
+  }, [entriesBySession]);
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
@@ -144,66 +125,40 @@ export const QuestChatContentLayerWidget = ({
     prevQuestStatusRef.current = currentStatus;
   }, [quest?.status]);
 
-  const handleStop = useCallback((): void => {
-    // Clear submitting alongside the binding's stopChat so the UI returns to the
-    // SEND state even if no chat-output ever arrived to flip isStreaming. Without
-    // this, on a first-message STOP that fires before any assistant output,
-    // submitting stays true forever and the input keeps showing STOP.
-    setSubmitting(false);
-    stopChat();
-  }, [stopChat]);
-
-  const handleSend = useCallback(
-    ({ message }: { message: UserInput }): void => {
-      if (questId !== null) {
-        // Normal path — binding handles user message, resume-if-paused, POST.
-        sendMessage({ message });
-        return;
-      }
-      // First-message path — create the quest, then replace-navigate so the
-      // SAME component instance keeps rendering with questId set. The binding
-      // resubscribes via its useEffect on questId; localEntries keeps the
-      // user message visible during the gap until replay catches up.
-      if (submitting) return;
-      const userEntry = chatEntryContract.parse({
-        role: 'user',
-        content: message,
-        uuid: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-      });
-      setLocalEntries((prev) => [...prev, userEntry]);
-      setSubmitting(true);
-      questNewBroker({ guildId, message })
-        .then(({ questId: newQuestId }) => {
-          const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
-          if (result instanceof Promise) {
-            result.catch((navError: unknown) => {
-              globalThis.console.error('[quest-chat] new-chat navigate failed', navError);
-            });
-          }
-        })
-        .catch((err: unknown) => {
-          setSubmitting(false);
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          const errorEntry = chatEntryContract.parse({
-            role: 'system',
-            type: 'error',
-            content: errorMessage,
-            uuid: crypto.randomUUID(),
-            timestamp: new Date().toISOString(),
-          });
-          setLocalEntries((prev) => [...prev, errorEntry]);
-        });
-    },
-    [questId, sendMessage, submitting, guildId, guildSlug, navigate],
-  );
-
   const { colors } = emberDepthsThemeStatics;
 
-  // No quest yet — either we're on the new-chat URL (questId null) or the
-  // questId is set but replay hasn't delivered the quest object. Render the
-  // dual-panel chat surface; the chat panel shows localEntries + any binding
-  // entries that have already arrived; the right side shows "Awaiting…".
+  // No questId in the URL — render the placeholder banner pointing at
+  // `/dumpster-create`. Quest creation is owned by the user's Claude
+  // session via the ChaosWhisperer slash command, not the web UI.
+  if (questId === null) {
+    return (
+      <Box
+        data-testid="QUEST_CHAT"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          padding: 16,
+        }}
+      >
+        <Stack gap="md" data-testid="QUEST_CHAT_NO_QUEST_PLACEHOLDER">
+          <DumpsterCommandBannerWidget
+            message={NO_QUEST_BANNER_MESSAGE}
+            command={DUMPSTER_CREATE_COMMAND}
+          />
+          <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
+            The spec conversation runs in your Claude session. Once the quest is created, this page
+            will open to its spec view automatically.
+          </Text>
+        </Stack>
+      </Box>
+    );
+  }
+
+  // questId is set but replay hasn't delivered the quest object yet —
+  // render an awaiting surface with the chat panel still mounted so live
+  // chat-output entries appear as they arrive.
   if (quest === null) {
     return (
       <Box
@@ -215,22 +170,28 @@ export const QuestChatContentLayerWidget = ({
           minHeight: 0,
         }}
       >
-        <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <ChatPanelWidget
-            entries={flattenedEntries}
-            isStreaming={submitting || isStreaming}
-            onSendMessage={handleSend}
-            onStopChat={handleStop}
-          />
-        </Box>
-        <div
-          data-testid="QUEST_CHAT_DIVIDER"
-          style={{
-            width: 1,
-            backgroundColor: colors.border,
-            alignSelf: 'stretch',
-          }}
-        />
+        {chatHidden ? null : (
+          <>
+            <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <ChatPanelWidget
+                entries={flattenedEntries}
+                isStreaming={isStreaming}
+                onSendMessage={({ message }): void => {
+                  sendMessage({ message });
+                }}
+                onStopChat={stopChat}
+              />
+            </Box>
+            <div
+              data-testid="QUEST_CHAT_DIVIDER"
+              style={{
+                width: 1,
+                backgroundColor: colors.border,
+                alignSelf: 'stretch',
+              }}
+            />
+          </>
+        )}
         <Box
           data-testid="QUEST_CHAT_ACTIVITY"
           style={{
@@ -288,15 +249,6 @@ export const QuestChatContentLayerWidget = ({
         }).catch((modifyError: unknown) => {
           globalThis.console.error('[quest-chat] keep chatting failed', modifyError);
         });
-      }}
-      onNewQuest={(): void => {
-        setApprovedModalOpen(false);
-        const result = navigate(`/${guildSlug}/quest`);
-        if (result instanceof Promise) {
-          result.catch((navError: unknown) => {
-            globalThis.console.error('[quest-chat] new quest navigate failed', navError);
-          });
-        }
       }}
     />
   );
@@ -414,14 +366,18 @@ export const QuestChatContentLayerWidget = ({
         minHeight: 0,
       }}
     >
-      <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <ChatPanelWidget
-          entries={flattenedEntries}
-          isStreaming={submitting || isStreaming}
-          onSendMessage={handleSend}
-          onStopChat={handleStop}
-        />
-      </Box>
+      {chatHidden ? null : (
+        <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <ChatPanelWidget
+            entries={flattenedEntries}
+            isStreaming={isStreaming}
+            onSendMessage={({ message }): void => {
+              sendMessage({ message });
+            }}
+            onStopChat={stopChat}
+          />
+        </Box>
+      )}
       <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {specPanel}
       </Box>

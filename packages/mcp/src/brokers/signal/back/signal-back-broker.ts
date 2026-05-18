@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Validates and returns signal data for agent-to-CLI communication
+ * PURPOSE: Validates and returns signal data for agent-to-CLI communication.
+ * Requires explicit { questId, workItemId, signal, summary? } from the caller.
+ * Routing on these ids replaces the legacy process-state inference path.
  *
  * USAGE:
- * const result = signalBackBroker({ input: { signal: 'complete', stepId: '...', summary: '...' } });
- * // Returns { success: true, signal: { signal: 'complete', stepId: '...', summary: '...' } }
+ * const result = signalBackBroker({ input: { questId, workItemId, signal: 'complete', summary: '...' } });
+ * // Returns { success: true, signal: { questId, workItemId, signal: 'complete', summary: '...' } }
  */
 
 import { signalBackInputContract } from '../../../contracts/signal-back-input/signal-back-input-contract';

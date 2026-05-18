@@ -19,7 +19,7 @@ the system as a whole by checking quest.json state transitions.
 
 ```
 packages/orchestrator/src/statics/
-  chaoswhisperer-prompt/chaoswhisperer-prompt-statics.ts
+  dumpster-create-prompt/dumpster-create-prompt-statics.ts
   glyphsmith-prompt/glyphsmith-prompt-statics.ts
   pathseeker-prompt/pathseeker-prompt-statics.ts
   codeweaver-prompt/codeweaver-prompt-statics.ts

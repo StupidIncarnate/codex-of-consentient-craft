@@ -32,9 +32,15 @@ import type {
   QuestListItem,
   QuestQueueEntry,
   QuestStatus,
+  QuestWorkItemId,
   RateLimitsSnapshot,
   SessionId,
+  UrlSlug,
 } from '@dungeonmaster/shared/contracts';
+
+import type { NextStep } from '../contracts/next-step/next-step-contract';
+import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
+import type { QuestRunWardResult } from '../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
@@ -229,8 +235,20 @@ export const StartOrchestrator = {
   }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
 
   // Agent prompt methods
-  getAgentPrompt: ({ agent }: { agent: string }): AgentPromptResult =>
-    AgentPromptFlow.get({ agent }),
+  getAgentPrompt: async ({
+    agent,
+    questId,
+    workItemId,
+  }: {
+    agent: string;
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+  }): Promise<AgentPromptResult> =>
+    AgentPromptFlow.get({
+      agent,
+      questId,
+      workItemId,
+    }),
 
   // Recovery methods
   recoverActiveQuests: async (): Promise<QuestId[]> => StartupRecoveryFlow(),
@@ -253,4 +271,58 @@ export const StartOrchestrator = {
 
   // Rate limits
   getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),
+
+  // MCP-driven create-quest (anonymous from ChaosWhisperer at /dumpster-create startup)
+  createQuestForMcp: async (): Promise<{ questId: QuestId; guildSlug: UrlSlug }> =>
+    QuestFlow.mcpCreate(),
+
+  // MCP-driven get-next-step (/dumpster-launch dispatch loop)
+  getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),
+
+  // MCP-driven run-ward (synchronous ward run + persist)
+  runWard: async ({
+    questId,
+    workItemId,
+    mode,
+  }: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    mode: 'changed' | 'full';
+  }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId, mode }),
+
+  // MCP-driven signal-back post-processing — fires the post-walk hook when a
+  // pathseeker-walk work item signals complete so the downstream codeweaver chain
+  // is generated. No-op for every other role + signal combination.
+  handleSignalBack: async ({
+    questId,
+    workItemId,
+    signal,
+  }: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    signal: 'complete' | 'failed' | 'failed-replan';
+  }): Promise<AdapterResult> => QuestFlow.handleSignalBack({ questId, workItemId, signal }),
+
+  // MCP-driven get-server-config (slash commands resolve baseUrl + port)
+  getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),
+
+  // Reverse lookup: workItemId -> QuestId (or null when no quest owns it). Used by the
+  // HTTP server's chat-output broadcaster to stamp questId on outgoing WS payloads.
+  findQuestByWorkItemId: async ({
+    workItemId,
+  }: {
+    workItemId: QuestWorkItemId;
+  }): Promise<QuestId | null> => QuestFlow.findByWorkItemId({ workItemId }),
+
+  // Start the /dumpster-launch JSONL watcher against the announced parent session.
+  // Called by the HTTP server's monitor-session-watch reactor when a new
+  // `active-monitor-session.json` parentSessionId is observed.
+  startMonitorWatcher: async ({
+    parentSessionId,
+    projectDir,
+  }: {
+    parentSessionId: string;
+    projectDir: string;
+  }): Promise<{ stop: () => void }> =>
+    QuestFlow.startMonitorWatcher({ parentSessionId, projectDir }),
 };

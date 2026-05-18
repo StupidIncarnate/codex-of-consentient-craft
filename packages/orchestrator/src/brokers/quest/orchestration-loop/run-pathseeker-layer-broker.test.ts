@@ -20,7 +20,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { SlotIndexStub } from '../../../contracts/slot-index/slot-index.stub';
-import { pathseekerPromptStatics } from '../../../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { pathseekerWalkStatics } from '../../../statics/pathseeker-walk/pathseeker-walk-statics';
 import { runPathseekerLayerBroker } from './run-pathseeker-layer-broker';
 import { runPathseekerLayerBrokerProxy } from './run-pathseeker-layer-broker.proxy';
 
@@ -412,10 +412,7 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
-        pathseekerPromptStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          'Quest ID: test-resume-quest',
-        ),
+        pathseekerWalkStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: test-resume-quest'),
         '--output-format',
         'stream-json',
         '--verbose',
@@ -463,10 +460,7 @@ describe('runPathseekerLayerBroker', () => {
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
-        pathseekerPromptStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          'Quest ID: test-resume-quest',
-        ),
+        pathseekerWalkStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: test-resume-quest'),
         '--output-format',
         'stream-json',
         '--verbose',

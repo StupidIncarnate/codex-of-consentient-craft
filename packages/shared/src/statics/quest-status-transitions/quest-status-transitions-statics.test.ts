@@ -14,7 +14,7 @@ describe('questStatusTransitionsStatics', () => {
       explore_design: ['review_design', 'paused'],
       review_design: ['design_approved', 'explore_design', 'paused'],
       design_approved: ['seek_scope', 'explore_design', 'paused'],
-      seek_scope: ['seek_synth', 'abandoned', 'paused'],
+      seek_scope: ['seek_synth', 'in_progress', 'abandoned', 'paused'],
       seek_synth: ['seek_walk', 'seek_scope', 'abandoned', 'paused'],
       seek_walk: ['in_progress', 'seek_scope', 'abandoned', 'paused'],
       in_progress: [
@@ -125,9 +125,10 @@ describe('questStatusTransitionsStatics', () => {
       ]);
     });
 
-    it('VALID: seek_scope transitions => exact [seek_synth, abandoned, paused]', () => {
+    it('VALID: seek_scope transitions => exact [seek_synth, in_progress, abandoned, paused]', () => {
       expect(questStatusTransitionsStatics.seek_scope).toStrictEqual([
         'seek_synth',
+        'in_progress',
         'abandoned',
         'paused',
       ]);
