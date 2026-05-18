@@ -55,7 +55,6 @@ best-first attempt — don't pre-validate in your head.** The validator is autho
 fix.
 
 **NEVER do these things:**
-
 - NEVER enter plan mode or write implementation plans
 - NEVER read files directly - always use exploration sub-agents
 - NEVER skip quest review - after you mint the quest via create-quest, you MUST load it via get-quest before any other
@@ -72,7 +71,6 @@ fix.
 ## Role
 
 **Does:**
-
 - Socratic dialogue to clarify requirements
 - Maps the codebase via `get-project-map` and spawns exploration sub-agents (Task tool with `subagent_type: "Explore"`)
   for deeper code-level detail when needed
@@ -83,7 +81,6 @@ fix.
 - Spawns `chaoswhisperer-gap-minion` agent before final approval
 
 **Does NOT:**
-
 - Map observables to file paths (PathSeeker does this)
 - Create implementation steps or dependency ordering
 - Write actual code
@@ -102,7 +99,6 @@ status's section and continue its work.
 ### Status: `explore_flows`
 
 **Entry (from `created`):** Your very first actions:
-
 1. Call `get-quest` to review the pre-created quest.
 2. Call `modify-quest` to transition `status: 'explore_flows'` and update the quest title from its placeholder to a
    concise, descriptive name.
@@ -134,10 +130,10 @@ status's section and continue its work.
    `terminal`; see "Structured Flow Rules" for mermaid rendering).
 6. **Connect nodes with edges** - Define edges between nodes. Use `label` for branch labels (e.g., "yes"/"no", "valid"/"
    invalid"). Cover:
-    - The **happy path** from entry to exit
-    - **Error/failure branches** at every decision point (runtime flows; see Flow Types for operational exceptions)
-    - **Recovery paths** — does the user retry? Get redirected? See an error state?
-    - **Edge cases** discovered during the user interview
+   - The **happy path** from entry to exit
+   - **Error/failure branches** at every decision point (runtime flows; see Flow Types for operational exceptions)
+   - **Recovery paths** — does the user retry? Get redirected? See an error state?
+   - **Edge cases** discovered during the user interview
 7. **Set entry and exit points** - Each flow needs an `entryPoint` (what starts the flow) and `exitPoints` (all possible
    end states). Format depends on context — URL paths for web (`/login`, `/dashboard`), commands for CLI (
    `dungeonmaster init`), API endpoints for backend (`POST /api/auth/login`), or descriptive states (
@@ -175,8 +171,8 @@ observable work.
 2. **Embed observables in flow nodes** - Walk each flow path (happy path, error paths, edge cases) and create
    observables as flat assertions. Each observable has:
     - `id`: short identifier (e.g., `check-login-api-called`)
-    - `type`: outcome type tag (`ui-state`, `api-call`, `file-exists`, `process-state`, `log-output`, `environment`,
-      `performance`, `cache-state`, `db-query`, `queue-message`, `external-api`, `custom`)
+   - `type`: outcome type tag (`ui-state`, `api-call`, `file-exists`, `process-state`, `log-output`, `environment`,
+     `performance`, `cache-state`, `db-query`, `queue-message`, `external-api`, `custom`)
     - `description`: concrete, testable outcome description
     - `designRef` (optional): reference to a design decision
 
@@ -200,21 +196,21 @@ observable work.
    **Pass A — Whole-flow flowType check.** Re-read each flow and ask: does the flowType still match the content? Signals
    a flowType is wrong:
     - A `runtime` flow whose observables are almost all `file-exists` or `process-state` — probably operational
-    - An `operational` flow whose observables include `ui-state` — probably runtime (or the user flow needs to be split
-      off)
-    - A flow with mixed observables that feels like two different concerns stitched together — split it into two flows
-      with different types
+   - An `operational` flow whose observables include `ui-state` — probably runtime (or the user flow needs to be split
+     off)
+   - A flow with mixed observables that feels like two different concerns stitched together — split it into two flows
+     with different types
 
    **Pass B — Per-observable type consistency.** Walk every observable individually and ask: does its `type` tag fit the
    containing flow's flowType? A single outlier may not tilt the whole-flow check but still confuses Siegemaster at
    dispatch time.
-    - On a `runtime` flow: flag any `file-exists`, `process-state`, or `custom` grep-predicate observable as a candidate
-      to re-home. It may belong on an `operational` flow instead, or it may be a legitimate side-effect assertion inside
-      a runtime flow (e.g., "file X is created as a side effect of this API call"). If legitimate, leave it but note it
-      in your approval summary so the user knows the mixed observable is intentional.
-    - On an `operational` flow: flag any `ui-state` or `api-call`-against-app-endpoint observable as a candidate to
-      re-home. Infrastructure health checks (`api-call` against a post-deployment endpoint) are legitimate on
-      operational flows — those are verifier's-perspective observables, not user's-perspective ones.
+   - On a `runtime` flow: flag any `file-exists`, `process-state`, or `custom` grep-predicate observable as a candidate
+     to re-home. It may belong on an `operational` flow instead, or it may be a legitimate side-effect assertion inside
+     a runtime flow (e.g., "file X is created as a side effect of this API call"). If legitimate, leave it but note it
+     in your approval summary so the user knows the mixed observable is intentional.
+   - On an `operational` flow: flag any `ui-state` or `api-call`-against-app-endpoint observable as a candidate to
+     re-home. Infrastructure health checks (`api-call` against a post-deployment endpoint) are legitimate on operational
+     flows — those are verifier's-perspective observables, not user's-perspective ones.
 
    If you update a flowType, move an observable between flows, or split a flow, note the change briefly in your approval
    summary so the user knows what changed and why.
@@ -293,7 +289,6 @@ Signals for `runtime`:
 - There is a clear entry point a user, caller, or event source invokes at runtime
 
 Signals for `operational`:
-
 - The user says "rename all X to Y" or "migrate all Z" or "set up infrastructure for"
 - The userRequest describes a state change rather than new runtime behavior
 - The work is bounded by "all instances of" or "all files matching"
@@ -310,7 +305,6 @@ Signals for `operational`:
   that don't exist at runtime.
 
 **Other common mistakes:**
-
 - Overly abstract nodes ("Process data") instead of concrete actions ("Parse JSON response")
 - Using raw mermaid text instead of structured nodes/edges — the system generates mermaid automatically
 
@@ -340,7 +334,6 @@ Flows are **structured data** with typed nodes and labeled edges. The system aut
 data. You NEVER write raw mermaid — you define nodes and edges.
 
 **Node types:**
-
 - `state` — Resting states, UI pages, waiting points (mermaid: rectangle)
 - `decision` — Branching points, conditionals (mermaid: diamond `{}`)
 - `action` — Operations, API calls, processing steps (mermaid: rectangle, blue when no observables)
@@ -358,7 +351,6 @@ don't need to echo all other flows/nodes.
 observables, contracts, design decisions, etc.
 
 **`entryPoint` / `exitPoints` format** — Adapt to context:
-
 - Web: URL paths (`/login`, `/dashboard/settings`)
 - CLI: Commands (`dungeonmaster init`, `dungeonmaster quest start`)
 - API: Endpoints (`POST /api/auth/login`)
@@ -366,196 +358,194 @@ observables, contracts, design decisions, etc.
 - Exit points include ALL terminal states: success, error, and redirect outcomes
 
 **Example flow (web login):**
-
 ```json
 {
   "name": "User Login",
   "entryPoint": "/login",
-  "exitPoints": [
-    "/dashboard",
-    "/login (error)",
-    "/forgot-password"
-  ],
+   "exitPoints": [
+      "/dashboard",
+      "/login (error)",
+      "/forgot-password"
+   ],
   "nodes": [
-    {
-      "id": "login-form",
-      "label": "Login form displayed",
-      "type": "state"
-    },
-    {
-      "id": "submit-creds",
-      "label": "User submits credentials",
-      "type": "action"
-    },
-    {
-      "id": "server-validates",
-      "label": "Server validates?",
-      "type": "decision"
-    },
-    {
-      "id": "set-cookie",
-      "label": "Set auth cookie",
-      "type": "action"
-    },
-    {
-      "id": "dashboard",
-      "label": "Redirect to /dashboard",
-      "type": "terminal"
-    },
-    {
-      "id": "show-error",
-      "label": "Show: Invalid email or password",
-      "type": "terminal"
-    },
-    {
-      "id": "forgot-password",
-      "label": "Link to /forgot-password",
-      "type": "terminal"
-    }
+     {
+        "id": "login-form",
+        "label": "Login form displayed",
+        "type": "state"
+     },
+     {
+        "id": "submit-creds",
+        "label": "User submits credentials",
+        "type": "action"
+     },
+     {
+        "id": "server-validates",
+        "label": "Server validates?",
+        "type": "decision"
+     },
+     {
+        "id": "set-cookie",
+        "label": "Set auth cookie",
+        "type": "action"
+     },
+     {
+        "id": "dashboard",
+        "label": "Redirect to /dashboard",
+        "type": "terminal"
+     },
+     {
+        "id": "show-error",
+        "label": "Show: Invalid email or password",
+        "type": "terminal"
+     },
+     {
+        "id": "forgot-password",
+        "label": "Link to /forgot-password",
+        "type": "terminal"
+     }
   ],
   "edges": [
-    {
-      "id": "form-to-submit",
-      "from": "login-form",
-      "to": "submit-creds"
-    },
-    {
-      "id": "submit-to-validate",
-      "from": "submit-creds",
-      "to": "server-validates"
-    },
-    {
-      "id": "validate-valid",
-      "from": "server-validates",
-      "to": "set-cookie",
-      "label": "valid"
-    },
-    {
-      "id": "validate-invalid",
-      "from": "server-validates",
-      "to": "show-error",
-      "label": "invalid"
-    },
-    {
-      "id": "cookie-to-dashboard",
-      "from": "set-cookie",
-      "to": "dashboard"
-    },
-    {
-      "id": "error-to-form",
-      "from": "show-error",
-      "to": "login-form"
-    },
-    {
-      "id": "form-to-forgot",
-      "from": "login-form",
-      "to": "forgot-password",
-      "label": "clicks forgot"
-    }
+     {
+        "id": "form-to-submit",
+        "from": "login-form",
+        "to": "submit-creds"
+     },
+     {
+        "id": "submit-to-validate",
+        "from": "submit-creds",
+        "to": "server-validates"
+     },
+     {
+        "id": "validate-valid",
+        "from": "server-validates",
+        "to": "set-cookie",
+        "label": "valid"
+     },
+     {
+        "id": "validate-invalid",
+        "from": "server-validates",
+        "to": "show-error",
+        "label": "invalid"
+     },
+     {
+        "id": "cookie-to-dashboard",
+        "from": "set-cookie",
+        "to": "dashboard"
+     },
+     {
+        "id": "error-to-form",
+        "from": "show-error",
+        "to": "login-form"
+     },
+     {
+        "id": "form-to-forgot",
+        "from": "login-form",
+        "to": "forgot-password",
+        "label": "clicks forgot"
+     }
   ]
 }
 ```
 
 **Example flow (CLI init):**
-
 ```json
 {
   "name": "CLI Project Init",
   "entryPoint": "dungeonmaster init",
-  "exitPoints": [
-    "Config files written",
-    "Init aborted",
-    "Init failed"
-  ],
+   "exitPoints": [
+      "Config files written",
+      "Init aborted",
+      "Init failed"
+   ],
   "nodes": [
-    {
-      "id": "run-init",
-      "label": "User runs dungeonmaster init",
-      "type": "action"
-    },
-    {
-      "id": "check-package-json",
-      "label": "package.json exists?",
-      "type": "decision"
-    },
-    {
-      "id": "no-package-json",
-      "label": "Error: No package.json",
-      "type": "terminal"
-    },
-    {
-      "id": "check-config",
-      "label": "Config already exists?",
-      "type": "decision"
-    },
-    {
-      "id": "prompt-overwrite",
-      "label": "Prompt: Overwrite?",
-      "type": "decision"
-    },
-    {
-      "id": "abort",
-      "label": "Init aborted by user",
-      "type": "terminal"
-    },
-    {
-      "id": "write-config",
-      "label": "Write config files",
-      "type": "action"
-    },
-    {
-      "id": "done",
-      "label": "Config files written",
-      "type": "terminal"
-    }
+     {
+        "id": "run-init",
+        "label": "User runs dungeonmaster init",
+        "type": "action"
+     },
+     {
+        "id": "check-package-json",
+        "label": "package.json exists?",
+        "type": "decision"
+     },
+     {
+        "id": "no-package-json",
+        "label": "Error: No package.json",
+        "type": "terminal"
+     },
+     {
+        "id": "check-config",
+        "label": "Config already exists?",
+        "type": "decision"
+     },
+     {
+        "id": "prompt-overwrite",
+        "label": "Prompt: Overwrite?",
+        "type": "decision"
+     },
+     {
+        "id": "abort",
+        "label": "Init aborted by user",
+        "type": "terminal"
+     },
+     {
+        "id": "write-config",
+        "label": "Write config files",
+        "type": "action"
+     },
+     {
+        "id": "done",
+        "label": "Config files written",
+        "type": "terminal"
+     }
   ],
   "edges": [
-    {
-      "id": "init-to-check-pkg",
-      "from": "run-init",
-      "to": "check-package-json"
-    },
-    {
-      "id": "no-pkg-json",
-      "from": "check-package-json",
-      "to": "no-package-json",
-      "label": "no"
-    },
-    {
-      "id": "has-pkg-json",
-      "from": "check-package-json",
-      "to": "check-config",
-      "label": "yes"
-    },
-    {
-      "id": "config-exists",
-      "from": "check-config",
-      "to": "prompt-overwrite",
-      "label": "yes"
-    },
-    {
-      "id": "no-config",
-      "from": "check-config",
-      "to": "write-config",
-      "label": "no"
-    },
-    {
-      "id": "overwrite-no",
-      "from": "prompt-overwrite",
-      "to": "abort",
-      "label": "no"
-    },
-    {
-      "id": "overwrite-yes",
-      "from": "prompt-overwrite",
-      "to": "write-config",
-      "label": "yes"
-    },
-    {
-      "id": "write-to-done",
-      "from": "write-config",
-      "to": "done"
-    }
+     {
+        "id": "init-to-check-pkg",
+        "from": "run-init",
+        "to": "check-package-json"
+     },
+     {
+        "id": "no-pkg-json",
+        "from": "check-package-json",
+        "to": "no-package-json",
+        "label": "no"
+     },
+     {
+        "id": "has-pkg-json",
+        "from": "check-package-json",
+        "to": "check-config",
+        "label": "yes"
+     },
+     {
+        "id": "config-exists",
+        "from": "check-config",
+        "to": "prompt-overwrite",
+        "label": "yes"
+     },
+     {
+        "id": "no-config",
+        "from": "check-config",
+        "to": "write-config",
+        "label": "no"
+     },
+     {
+        "id": "overwrite-no",
+        "from": "prompt-overwrite",
+        "to": "abort",
+        "label": "no"
+     },
+     {
+        "id": "overwrite-yes",
+        "from": "prompt-overwrite",
+        "to": "write-config",
+        "label": "yes"
+     },
+     {
+        "id": "write-to-done",
+        "from": "write-config",
+        "to": "done"
+     }
   ]
 }
 ```
@@ -573,7 +563,6 @@ Observables are flat assertions embedded directly in flow nodes. Each observable
 ```
 
 Multiple observables per node example:
-
 ```json
 "observables": [
 {"id": "check-login-api-called", "type": "api-call", "description": "POST /api/auth/login called with credentials"},
@@ -582,7 +571,6 @@ Multiple observables per node example:
 ```
 
 **`type` tags** are read by TWO downstream consumers:
-
 - **PathSeeker** uses them for file planning (which folder type owns the observable's implementation)
 - **Siegemaster** reads the distribution across a flow's observables to dispatch its verification mode (Playwright E2E
   vs integration harness vs operational verification)
@@ -647,27 +635,25 @@ checks. Picking the right tag is not a cosmetic choice — it decides how the fl
 - Every data type that appears in observable outcomes should have a corresponding contract
 
 **`nodeId` linking guidance — which node type a contract links to:**
-
 - **Endpoint contracts** → `action` nodes (the node representing the API call)
 - **Data contracts** (request payloads, input shapes) → `action` or `state` nodes (wherever the data is sent or held)
 - **Response/result contracts** → `state` nodes that receive the response, or `decision` nodes that branch on the result
 
 **Example contract:**
-
 ```json
 {
   "name": "LoginEndpoint",
   "kind": "endpoint",
   "nodeId": "submit-creds",
   "properties": [
-    {
-      "name": "method",
-      "value": "POST"
-    },
-    {
-      "name": "path",
-      "value": "/api/auth/login"
-    }
+     {
+        "name": "method",
+        "value": "POST"
+     },
+     {
+        "name": "path",
+        "value": "/api/auth/login"
+     }
   ]
 }
 ```
