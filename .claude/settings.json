@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts discover"
+            "command": "dungeonmaster-session-snippet discover"
           }
         ]
       },
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts searchStrategy"
+            "command": "dungeonmaster-session-snippet searchStrategy"
           }
         ]
       },
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts folderTypes"
+            "command": "dungeonmaster-session-snippet folderTypes"
           }
         ]
       },
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts modifyingCodeGuidance"
+            "command": "dungeonmaster-session-snippet modifyingCodeGuidance"
           }
         ]
       },
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts ward"
+            "command": "dungeonmaster-session-snippet ward"
           }
         ]
       },
@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts packages"
+            "command": "dungeonmaster-session-snippet packages"
           }
         ]
       }
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-pre-edit-hook.ts"
+            "command": "dungeonmaster-pre-edit-lint"
           }
         ]
       },
@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-pre-bash-hook.ts"
+            "command": "dungeonmaster-pre-bash"
           }
         ]
       },
@@ -78,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-pre-search-hook.ts"
+            "command": "dungeonmaster-pre-search"
           }
         ]
       }
@@ -88,7 +88,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts discover"
+            "command": "dungeonmaster-session-snippet discover"
           }
         ]
       },
@@ -96,7 +96,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts searchStrategy"
+            "command": "dungeonmaster-session-snippet searchStrategy"
           }
         ]
       },
@@ -104,7 +104,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts folderTypes"
+            "command": "dungeonmaster-session-snippet folderTypes"
           }
         ]
       },
@@ -112,7 +112,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts modifyingCodeGuidance"
+            "command": "dungeonmaster-session-snippet modifyingCodeGuidance"
           }
         ]
       },
@@ -120,7 +120,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts ward"
+            "command": "dungeonmaster-session-snippet ward"
           }
         ]
       },
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-session-snippet-hook.ts packages"
+            "command": "dungeonmaster-session-snippet packages"
           }
         ]
       }
@@ -139,7 +139,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx $CLAUDE_PROJECT_DIR/packages/hooks/src/startup/start-worktree-create-hook.ts"
+            "command": "dungeonmaster-worktree-create"
           }
         ]
       }
