@@ -16,7 +16,7 @@ describe('MonitorSessionAnnounceResponder', () => {
     expect(writeCount).toBe(1);
   });
 
-  it('EMPTY: {CLAUDE_CODE_SESSION_ID unset} => skips writing', async () => {
+  it('EMPTY: {CLAUDE_CODE_SESSION_ID unset, no jsonl on disk} => skips writing', async () => {
     const proxy = MonitorSessionAnnounceResponderProxy();
     Reflect.deleteProperty(process.env, 'CLAUDE_CODE_SESSION_ID');
 
@@ -24,5 +24,17 @@ describe('MonitorSessionAnnounceResponder', () => {
 
     expect(result).toStrictEqual({ success: true });
     expect(proxy.getAllWrittenFiles()).toStrictEqual([]);
+  });
+
+  it('VALID: {CLAUDE_CODE_SESSION_ID unset, resolver finds jsonl} => writes one announce file', async () => {
+    const proxy = MonitorSessionAnnounceResponderProxy();
+    Reflect.deleteProperty(process.env, 'CLAUDE_CODE_SESSION_ID');
+    proxy.setupResolvedSessionId({ sessionId: 'fallback-session' });
+
+    const result = await proxy.callResponder();
+    const writeCount = proxy.getAllWrittenFiles().length;
+
+    expect(result).toStrictEqual({ success: true });
+    expect(writeCount).toBe(1);
   });
 });

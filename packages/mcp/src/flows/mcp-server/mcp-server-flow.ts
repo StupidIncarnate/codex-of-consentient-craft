@@ -17,6 +17,7 @@ import {
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
+import { MonitorSessionAnnounceResponder } from '../../responders/monitor-session/announce/monitor-session-announce-responder';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 
 export const McpServerFlow = async ({
@@ -33,6 +34,8 @@ export const McpServerFlow = async ({
 
   const handlerMap = new Map(registrations.map((reg) => [reg.name, reg.handler]));
 
+  let announcedOnFirstCall = false;
+
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: registrations.map((reg) => ({
       name: reg.name,
@@ -42,6 +45,17 @@ export const McpServerFlow = async ({
   }));
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
+    // First-tool-call announce: by the time any tool fires, Claude Code has written the
+    // user prompt line to its session JSONL, so the filesystem-based session resolver in
+    // MonitorSessionAnnounceResponder can find the parent session. Startup-time announce
+    // (in StartMcpServer) is best-effort but unreliable because the JSONL may not exist
+    // yet when stdio MCP children boot — and CLAUDE_CODE_SESSION_ID is not set on those
+    // children — so we retry here once per process.
+    if (!announcedOnFirstCall) {
+      announcedOnFirstCall = true;
+      await MonitorSessionAnnounceResponder();
+    }
+
     const handler = handlerMap.get(request.params.name as never);
     if (!handler) {
       throw new Error(`Unknown tool: ${request.params.name}`);
