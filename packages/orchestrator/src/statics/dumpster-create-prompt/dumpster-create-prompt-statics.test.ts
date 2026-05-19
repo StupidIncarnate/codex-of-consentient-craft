@@ -63,6 +63,15 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
+  it('VALID: prompt template => instructs passing the user request verbatim as the userRequest arg to create-quest', () => {
+    const needle = "passing the user's original request verbatim as the `userRequest` argument";
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
   it('VALID: prompt template => instructs opening the web UI spec view with chat hidden after quest creation', () => {
     const needle = '?chat=hidden';
     const { template } = dumpsterCreatePromptStatics.prompt;

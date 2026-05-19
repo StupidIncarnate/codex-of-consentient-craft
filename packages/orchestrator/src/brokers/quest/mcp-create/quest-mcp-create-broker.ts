@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Thin wrapper for the MCP `create-quest` tool — looks up the registered guild whose path matches the current working directory (the MCP server's cwd, inherited from the Claude Code session that ran `/dumpster-create` in a specific repo), seeds a placeholder quest via questUserAddBroker against that guild, and returns `{questId, guildSlug}` so the slash command can route the browser at the spec view. ChaosWhisperer fills in title and userRequest later via modify-quest.
+ * PURPOSE: Thin wrapper for the MCP `create-quest` tool — looks up the registered guild whose path matches the current working directory (the MCP server's cwd, inherited from the Claude Code session that ran `/dumpster-create` in a specific repo), seeds a quest with the supplied userRequest via questUserAddBroker against that guild, and returns `{questId, guildSlug}` so the slash command can route the browser at the spec view. ChaosWhisperer fills in the real title later via modify-quest.
  *
  * USAGE:
- * const { questId, guildSlug } = await questMcpCreateBroker();
+ * const { questId, guildSlug } = await questMcpCreateBroker({ userRequest });
  * // Returns: the newly-created quest's id + its guild's urlSlug
  *
  * WHEN-TO-USE: Wired in by the MCP `create-quest` tool dispatch. ChaosWhisperer in
@@ -14,7 +14,7 @@
 
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
-import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { addQuestInputContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
@@ -22,10 +22,12 @@ import { stripTrailingSlashTransformer } from '../../../transformers/strip-trail
 import { questUserAddBroker } from '../user-add/quest-user-add-broker';
 
 const PLACEHOLDER_TITLE = 'New Quest';
-const PLACEHOLDER_USER_REQUEST =
-  'Placeholder request — ChaosWhisperer will fill this in via modify-quest';
 
-export const questMcpCreateBroker = async (): Promise<{
+export const questMcpCreateBroker = async ({
+  userRequest,
+}: {
+  userRequest: AddQuestInput['userRequest'];
+}): Promise<{
   questId: QuestId;
   guildSlug: UrlSlug;
 }> => {
@@ -44,7 +46,7 @@ export const questMcpCreateBroker = async (): Promise<{
 
   const input = addQuestInputContract.parse({
     title: PLACEHOLDER_TITLE,
-    userRequest: PLACEHOLDER_USER_REQUEST,
+    userRequest,
   });
 
   const result = await questUserAddBroker({ input, guildId: matchingGuild.id });

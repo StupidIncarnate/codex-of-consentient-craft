@@ -14,6 +14,7 @@
 
 import type {
   AdapterResult,
+  AddQuestInput,
   AddQuestResult,
   AgentPromptResult,
   DirectoryEntry,
@@ -272,9 +273,12 @@ export const StartOrchestrator = {
   // Rate limits
   getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),
 
-  // MCP-driven create-quest (anonymous from ChaosWhisperer at /dumpster-create startup)
-  createQuestForMcp: async (): Promise<{ questId: QuestId; guildSlug: UrlSlug }> =>
-    QuestFlow.mcpCreate(),
+  // MCP-driven create-quest (ChaosWhisperer at /dumpster-create startup)
+  createQuestForMcp: async ({
+    userRequest,
+  }: {
+    userRequest: AddQuestInput['userRequest'];
+  }): Promise<{ questId: QuestId; guildSlug: UrlSlug }> => QuestFlow.mcpCreate({ userRequest }),
 
   // MCP-driven get-next-step (/dumpster-launch dispatch loop)
   getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),

@@ -88,7 +88,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'create-quest' as never,
     description:
-      'Creates a new anonymous quest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id.' as never,
+      'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.' as never,
     inputSchema: createQuestSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'create-quest' as never, args }),
   },

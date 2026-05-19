@@ -52,7 +52,7 @@ import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-d
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
 import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
-import { filterParentSourceEntriesTransformer } from '../../../transformers/filter-parent-source-entries/filter-parent-source-entries-transformer';
+import { monitorSessionFilterChatOutputTransformer } from '../../../transformers/monitor-session-filter-chat-output/monitor-session-filter-chat-output-transformer';
 import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
@@ -527,27 +527,22 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           return;
         }
 
-        // Filter parent-source dispatcher chatter from chat-output entries. Subagent
-        // entries pass through unchanged. Session-source entries drop unless they're a
-        // Task/Agent tool_use (recorded into monitorTaskToolUseIds) or its matching
-        // user.tool_result. If the entire batch is filtered out, skip the broadcast.
-        let effectivePayload = payload;
+        // Filter parent-source dispatcher chatter from chat-output entries — but ONLY
+        // for the /dumpster-launch monitor session (chatProcessId prefix `proc-monitor-`).
+        // Legacy chat-spawn-broker, replay paths, and orchestration-loop agents emit
+        // session-source text/user-message entries that ARE the user-facing content.
+        let effectivePayload: Record<PropertyKey, unknown> = payload as Record<
+          PropertyKey,
+          unknown
+        >;
         if (type === 'chat-output') {
-          const originalEntries = parseChatOutputEntriesTransformer({
+          const filterResult = monitorSessionFilterChatOutputTransformer({
             payload: payload as Record<PropertyKey, unknown>,
+            payloadChatProcessId,
+            monitorTaskToolUseIds,
           });
-          if (originalEntries.length > 0) {
-            const filtered = filterParentSourceEntriesTransformer({
-              entries: originalEntries,
-              taskToolUseIds: monitorTaskToolUseIds,
-            });
-            if (filtered.length === 0) {
-              return;
-            }
-            if (filtered.length !== originalEntries.length) {
-              effectivePayload = { ...payload, entries: filtered };
-            }
-          }
+          if (filterResult === null) return;
+          effectivePayload = filterResult.payload;
         }
 
         // Resolve questId via workItemId lookup when the payload carries a workItemId but
@@ -588,7 +583,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           type === 'chat-output'
         ) {
           const entriesForScan = parseChatOutputEntriesTransformer({
-            payload: effectivePayload as Record<PropertyKey, unknown>,
+            payload: effectivePayload,
           });
           const extracted = chatEntriesExtractQuestIdTransformer({ entries: entriesForScan });
           if (extracted === undefined) {

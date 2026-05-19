@@ -299,10 +299,10 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'create-quest') {
-    createQuestInputContract.parse(args);
+    const { userRequest } = createQuestInputContract.parse(args);
 
     try {
-      const { questId, guildSlug } = await orchestratorCreateQuestAdapter();
+      const { questId, guildSlug } = await orchestratorCreateQuestAdapter({ userRequest });
       const payload = createQuestOutputContract.parse({ questId, guildSlug });
 
       return {

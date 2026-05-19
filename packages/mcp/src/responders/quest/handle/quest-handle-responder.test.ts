@@ -760,7 +760,7 @@ describe('QuestHandleResponder', () => {
   });
 
   describe('create-quest', () => {
-    it('VALID: {} => returns { questId, guildSlug } JSON', async () => {
+    it('VALID: {userRequest} => returns { questId, guildSlug } JSON', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guildSlug = UrlSlugStub({ value: 'my-guild' });
@@ -768,7 +768,7 @@ describe('QuestHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'create-quest' }),
-        args: {},
+        args: { userRequest: 'Build the login flow' },
       });
 
       expect(result).toStrictEqual({
@@ -787,7 +787,7 @@ describe('QuestHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'create-quest' }),
-        args: {},
+        args: { userRequest: 'Build the login flow' },
       });
 
       expect(result).toStrictEqual({

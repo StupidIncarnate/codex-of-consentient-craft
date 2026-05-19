@@ -8,7 +8,7 @@
  * const fullQuest = await QuestFlow.load({ questId });
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
- * const created = await QuestFlow.mcpCreate();
+ * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
  * const wardResult = await QuestFlow.runWard({ questId, workItemId, mode });
  * const config = QuestFlow.getServerConfig();
@@ -46,6 +46,7 @@ type LoadResult = Awaited<ReturnType<typeof QuestLoadResponder>>;
 type ModifyParams = Parameters<typeof QuestModifyResponder>[0];
 type ModifyResult = Awaited<ReturnType<typeof QuestModifyResponder>>;
 
+type McpCreateParams = Parameters<typeof QuestMcpCreateResponder>[0];
 type McpCreateResult = Awaited<ReturnType<typeof QuestMcpCreateResponder>>;
 
 type GetNextStepResult = Awaited<ReturnType<typeof QuestGetNextStepResponder>>;
@@ -84,7 +85,8 @@ export const QuestFlow = {
   modify: async ({ questId, input }: ModifyParams): Promise<ModifyResult> =>
     QuestModifyResponder({ questId, input }),
 
-  mcpCreate: async (): Promise<McpCreateResult> => QuestMcpCreateResponder(),
+  mcpCreate: async ({ userRequest }: McpCreateParams): Promise<McpCreateResult> =>
+    QuestMcpCreateResponder({ userRequest }),
 
   getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 

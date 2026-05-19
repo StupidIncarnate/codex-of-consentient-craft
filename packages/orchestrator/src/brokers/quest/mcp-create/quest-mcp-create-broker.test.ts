@@ -1,7 +1,14 @@
-import { GuildIdStub, GuildListItemStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  AddQuestInputStub,
+  GuildIdStub,
+  GuildListItemStub,
+  QuestIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { questMcpCreateBroker } from './quest-mcp-create-broker';
 import { questMcpCreateBrokerProxy } from './quest-mcp-create-broker.proxy';
+
+const { userRequest } = AddQuestInputStub();
 
 describe('questMcpCreateBroker', () => {
   describe('cwd matches a registered guild', () => {
@@ -17,7 +24,7 @@ describe('questMcpCreateBroker', () => {
       });
       proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild', guild, questId });
 
-      const result = await questMcpCreateBroker();
+      const result = await questMcpCreateBroker({ userRequest });
 
       expect(result).toStrictEqual({
         questId,
@@ -37,7 +44,7 @@ describe('questMcpCreateBroker', () => {
       });
       proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild/', guild, questId });
 
-      const result = await questMcpCreateBroker();
+      const result = await questMcpCreateBroker({ userRequest });
 
       expect(result).toStrictEqual({
         questId,
@@ -75,7 +82,7 @@ describe('questMcpCreateBroker', () => {
         questId,
       });
 
-      const result = await questMcpCreateBroker();
+      const result = await questMcpCreateBroker({ userRequest });
 
       expect(result).toStrictEqual({
         questId,
@@ -95,7 +102,7 @@ describe('questMcpCreateBroker', () => {
       });
       proxy.setupMatchingGuild({ cwd: '/home/dev/another-guild', guild, questId });
 
-      const result = await questMcpCreateBroker();
+      const result = await questMcpCreateBroker({ userRequest });
 
       expect(result).toStrictEqual({
         questId,
@@ -119,7 +126,7 @@ describe('questMcpCreateBroker', () => {
         guilds: [other],
       });
 
-      await expect(questMcpCreateBroker()).rejects.toThrow(
+      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(
         /No guild registered for current directory: \/home\/dev\/unregistered-repo\. Run `dungeonmaster init` in this repo first\./u,
       );
     });
@@ -128,7 +135,7 @@ describe('questMcpCreateBroker', () => {
       const proxy = questMcpCreateBrokerProxy();
       proxy.setupEmptyGuildList({ cwd: '/home/dev/some-repo' });
 
-      await expect(questMcpCreateBroker()).rejects.toThrow(
+      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(
         /No guild registered for current directory: \/home\/dev\/some-repo\. Run `dungeonmaster init` in this repo first\./u,
       );
     });
@@ -144,7 +151,7 @@ describe('questMcpCreateBroker', () => {
       });
       proxy.setupAddFailure({ cwd: '/home/dev/guild', guild, error: 'persist failed' });
 
-      await expect(questMcpCreateBroker()).rejects.toThrow(/persist failed/u);
+      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(/persist failed/u);
     });
   });
 });

@@ -7,5 +7,6 @@ export const CreateQuestInputStub = ({
   ...props
 }: StubArgument<CreateQuestInput> = {}): CreateQuestInput =>
   createQuestInputContract.parse({
+    userRequest: 'Build the login flow',
     ...props,
   });
