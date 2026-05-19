@@ -21,9 +21,14 @@
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
 import { toolNameContract, type ToolName } from '../../contracts/tool-name/tool-name-contract';
+import { dispatcherMcpToolsStatics } from '../../statics/dispatcher-mcp-tools/dispatcher-mcp-tools-statics';
 
 const TASK_TOOL_USE_NAME = toolNameContract.parse('Task');
 const AGENT_TOOL_USE_NAME = toolNameContract.parse('Agent');
+const MCP_TOOL_PREFIX = 'mcp__';
+const DISPATCHER_MCP_TOOL_NAMES = new Set(
+  dispatcherMcpToolsStatics.names.map((name) => toolNameContract.parse(name)),
+);
 
 export const filterParentSourceEntriesTransformer = ({
   entries,
@@ -41,7 +46,20 @@ export const filterParentSourceEntriesTransformer = ({
 
     if (entry.role === 'assistant' && entry.type === 'tool_use') {
       const { toolName } = entry;
+      const isMcpTool = String(toolName).startsWith(MCP_TOOL_PREFIX);
+      const isDispatcherMcp = DISPATCHER_MCP_TOOL_NAMES.has(toolName);
       if (toolName === TASK_TOOL_USE_NAME || toolName === AGENT_TOOL_USE_NAME) {
+        if (entry.toolUseId !== undefined) {
+          taskToolUseIds.add(toolNameContract.parse(String(entry.toolUseId)));
+        }
+        surviving.push(entry);
+      } else if (isMcpTool && !isDispatcherMcp) {
+        // ChaosWhisperer in /dumpster-create runs inside the user's Claude Code session
+        // (same JSONL the watcher tails) and IS the speaker, not a dispatcher. Its MCP
+        // tool_uses (mcp__dungeonmaster__create-quest, mcp__dungeonmaster__ask-user-question,
+        // etc.) carry the spec-conversation content the web spec panel needs to render the
+        // clarify widget. Pass them through. Track their toolUseIds so the matching
+        // user.tool_result lines also survive.
         if (entry.toolUseId !== undefined) {
           taskToolUseIds.add(toolNameContract.parse(String(entry.toolUseId)));
         }
