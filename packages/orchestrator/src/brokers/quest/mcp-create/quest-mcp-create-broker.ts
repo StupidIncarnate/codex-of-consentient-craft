@@ -14,7 +14,7 @@
 
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
-import type { AddQuestInput, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, QuestId, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { addQuestInputContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
@@ -25,8 +25,10 @@ const PLACEHOLDER_TITLE = 'New Quest';
 
 export const questMcpCreateBroker = async ({
   userRequest,
+  sessionId,
 }: {
   userRequest: AddQuestInput['userRequest'];
+  sessionId?: SessionId;
 }): Promise<{
   questId: QuestId;
   guildSlug: UrlSlug;
@@ -49,7 +51,11 @@ export const questMcpCreateBroker = async ({
     userRequest,
   });
 
-  const result = await questUserAddBroker({ input, guildId: matchingGuild.id });
+  const result = await questUserAddBroker({
+    input,
+    guildId: matchingGuild.id,
+    ...(sessionId !== undefined && { sessionId }),
+  });
   if (!result.success || !result.questId) {
     throw new Error(`Failed to create quest: ${result.error ?? 'unknown error'}`);
   }

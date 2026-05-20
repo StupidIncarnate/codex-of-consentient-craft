@@ -12,6 +12,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 import { QuestChatResponder } from '../../responders/quest/chat/quest-chat-responder';
 import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clarify-responder';
+import { QuestFindBySessionResponder } from '../../responders/quest/find-by-session/quest-find-by-session-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestNewResponder } from '../../responders/quest/new/quest-new-responder';
@@ -40,6 +41,13 @@ export const QuestFlow = (): Hono => {
 
   app.get(apiRoutesStatics.quests.queue, async (c) => {
     const result = await QuestsQueueResponder();
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.quests.bySession, async (c) => {
+    const result = await QuestFindBySessionResponder({
+      params: { sessionId: c.req.param('sessionId') },
+    });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

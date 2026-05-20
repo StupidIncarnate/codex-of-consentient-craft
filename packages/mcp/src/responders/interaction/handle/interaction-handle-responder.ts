@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles interaction MCP tool calls (signal-back, ask-user-question, get-agent-prompt)
+ * PURPOSE: Handles interaction MCP tool calls (signal-back, get-agent-prompt)
  *
  * USAGE:
  * const result = await InteractionHandleResponder({ tool: ToolNameStub({ value: 'signal-back' }), args: { signal: 'complete' } });
@@ -7,7 +7,6 @@
  */
 
 import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broker';
-import { askUserQuestionBroker } from '../../../brokers/ask/user-question/ask-user-question-broker';
 import { orchestratorGetAgentPromptAdapter } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter';
 import { orchestratorHandleSignalBackAdapter } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter';
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
@@ -48,14 +47,6 @@ export const InteractionHandleResponder = async ({
           text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
         },
       ],
-    };
-  }
-
-  if (tool === 'ask-user-question') {
-    const result = askUserQuestionBroker({ input: args });
-
-    return {
-      content: [{ type: 'text', text: contentTextContract.parse(result) }],
     };
   }
 

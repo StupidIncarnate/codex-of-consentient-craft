@@ -7,7 +7,9 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
  */
 
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { orchestratorCreateQuestAdapterProxy } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.proxy';
+import { claudeCodeSessionResolveBrokerProxy } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker.proxy';
 import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
@@ -71,6 +73,13 @@ export const QuestHandleResponderProxy = (): {
   getLastModifyInput: () => unknown;
   getLastGetPlanningNotesInput: () => unknown;
 } => {
+  // create-quest resolves sessionId using processCwdAdapter + claudeCodeSessionResolveBroker;
+  // initialize these proxies so the mocks are registered for every test.
+  processCwdAdapterProxy();
+  const sessionResolveProxy = claudeCodeSessionResolveBrokerProxy();
+  // Default: session dir is missing so resolve returns undefined (session unstamped).
+  sessionResolveProxy.setupSessionsDirMissing();
+
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
   const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
   const startQuestProxy = orchestratorStartQuestAdapterProxy();

@@ -11,7 +11,7 @@
 import { claudeSettingsContract } from '../../contracts/claude-settings/claude-settings-contract';
 import type {
   PreToolUseHook,
-  // PostToolUseHook,
+  PostToolUseHook,
   SessionStartHook,
   WorktreeCreateHook,
 } from '../../contracts/claude-settings/claude-settings-contract';
@@ -19,7 +19,7 @@ import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
 export const dungeonmasterHooksCreatorTransformer = (): {
   PreToolUse: PreToolUseHook[];
-  // PostToolUse: PostToolUseHook[];
+  PostToolUse: PostToolUseHook[];
   SessionStart: SessionStartHook[];
   SubagentStart: SessionStartHook[];
   WorktreeCreate: WorktreeCreateHook[];
@@ -41,12 +41,12 @@ export const dungeonmasterHooksCreatorTransformer = (): {
           hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
         },
       ],
-      // PostToolUse: [
-      //   {
-      //     matcher: 'Write|Edit|MultiEdit',
-      //     hooks: [{ type: 'command', command: 'dungeonmaster-post-edit-lint' }],
-      //   },
-      // ],
+      PostToolUse: [
+        {
+          matcher: 'AskUserQuestion',
+          hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+        },
+      ],
       SessionStart: [
         ...Object.keys(sessionSnippetStatics).map((key) => ({
           hooks: [{ type: 'command', command: `dungeonmaster-session-snippet ${key}` }],
@@ -67,7 +67,7 @@ export const dungeonmasterHooksCreatorTransformer = (): {
 
   return {
     PreToolUse: parsed.hooks?.PreToolUse ?? [],
-    // PostToolUse: parsed.hooks?.PostToolUse ?? [],
+    PostToolUse: parsed.hooks?.PostToolUse ?? [],
     SessionStart: parsed.hooks?.SessionStart ?? [],
     SubagentStart: parsed.hooks?.SubagentStart ?? [],
     WorktreeCreate: parsed.hooks?.WorktreeCreate ?? [],

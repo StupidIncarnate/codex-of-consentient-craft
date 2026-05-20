@@ -1,5 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath, WorkItem } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questCreateBroker } from '../create/quest-create-broker';
@@ -17,6 +17,7 @@ const DEFAULT_QUEST_FOLDER_PATH = FilePathStub({
 export const questUserAddBrokerProxy = (): {
   setupQuestCreation: (params: { questFilePath: FilePath; questFolderPath: FilePath }) => void;
   setupCreateFailure: (params: { error: Error }) => void;
+  getLastInitialWorkItems: () => readonly WorkItem[];
 } => {
   questCreateBrokerProxy();
 
@@ -39,6 +40,11 @@ export const questUserAddBrokerProxy = (): {
     },
     setupCreateFailure: ({ error }: { error: Error }): void => {
       createMock.mockRejectedValueOnce(error);
+    },
+    getLastInitialWorkItems: (): readonly WorkItem[] => {
+      const { calls } = createMock.mock;
+      const lastCall = calls[calls.length - 1];
+      return lastCall?.[0]?.initialWorkItems ?? [];
     },
   };
 };

@@ -17,6 +17,7 @@ import { ExecResultStub } from '../../../src/contracts/exec-result/exec-result.s
 type HookName =
   | 'start-pre-bash-hook'
   | 'start-post-edit-hook'
+  | 'start-post-ask-question-hook'
   | 'start-pre-edit-hook'
   | 'start-pre-search-hook'
   | 'start-session-snippet-hook'

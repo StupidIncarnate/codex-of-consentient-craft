@@ -46,30 +46,6 @@ describe('InteractionHandleResponder', () => {
     });
   });
 
-  describe('ask-user-question', () => {
-    it('VALID: {questions} => returns instruction text', async () => {
-      const proxy = InteractionHandleResponderProxy();
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'ask-user-question' }),
-        args: {
-          questions: [
-            {
-              question: 'Which option?',
-              header: 'Choice',
-              options: [{ label: 'A', description: 'Option A' }],
-              multiSelect: false,
-            },
-          ],
-        },
-      });
-
-      expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
-      });
-    });
-  });
-
   describe('get-agent-prompt', () => {
     it('VALID: {agent, questId, workItemId} => returns augmented prompt from adapter', async () => {
       const proxy = InteractionHandleResponderProxy();

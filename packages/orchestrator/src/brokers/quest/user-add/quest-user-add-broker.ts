@@ -16,16 +16,23 @@ import {
   questIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AddQuestInput, AddQuestResult, GuildId } from '@dungeonmaster/shared/contracts';
+import type {
+  AddQuestInput,
+  AddQuestResult,
+  GuildId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 import { questCreateBroker } from '../create/quest-create-broker';
 
 export const questUserAddBroker = async ({
   input,
   guildId,
+  sessionId,
 }: {
   input: AddQuestInput;
   guildId: GuildId;
+  sessionId?: SessionId;
 }): Promise<AddQuestResult> => {
   try {
     const questId = questIdContract.parse(crypto.randomUUID());
@@ -38,6 +45,7 @@ export const questUserAddBroker = async ({
       createdAt: new Date().toISOString(),
       dependsOn: [],
       maxAttempts: 1,
+      ...(sessionId !== undefined && { sessionId }),
     });
 
     const { questFilePath } = await questCreateBroker({

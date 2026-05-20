@@ -1,4 +1,4 @@
-import { QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, SessionIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
 
 import { CreateQuestInputStub } from '../../../contracts/create-quest-input/create-quest-input.stub';
 import { orchestratorCreateQuestAdapter } from './orchestrator-create-quest-adapter';
@@ -15,6 +15,20 @@ describe('orchestratorCreateQuestAdapter', () => {
       proxy.returns({ questId, guildSlug });
 
       const result = await orchestratorCreateQuestAdapter({ userRequest });
+
+      expect(result).toStrictEqual({ questId, guildSlug });
+    });
+
+    it('VALID: {userRequest, sessionId} => forwards sessionId to orchestrator', async () => {
+      const proxy = orchestratorCreateQuestAdapterProxy();
+      const questId = QuestIdStub({ value: 'cccccccc-3333-4444-9555-666666666666' });
+      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      const sessionId = SessionIdStub({ value: 'dddddddd-4444-4555-9666-777777777777' });
+      const { userRequest } = CreateQuestInputStub();
+
+      proxy.returns({ questId, guildSlug });
+
+      const result = await orchestratorCreateQuestAdapter({ userRequest, sessionId });
 
       expect(result).toStrictEqual({ questId, guildSlug });
     });

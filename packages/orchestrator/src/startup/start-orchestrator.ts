@@ -10,6 +10,7 @@
  * const got = await StartOrchestrator.getQuest({questId: 'add-auth'});
  * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}});
  * const recovered = await StartOrchestrator.recoverActiveQuests();
+ * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
 import type {
@@ -276,9 +277,12 @@ export const StartOrchestrator = {
   // MCP-driven create-quest (ChaosWhisperer at /dumpster-create startup)
   createQuestForMcp: async ({
     userRequest,
+    sessionId,
   }: {
     userRequest: AddQuestInput['userRequest'];
-  }): Promise<{ questId: QuestId; guildSlug: UrlSlug }> => QuestFlow.mcpCreate({ userRequest }),
+    sessionId?: SessionId;
+  }): Promise<{ questId: QuestId; guildSlug: UrlSlug }> =>
+    QuestFlow.mcpCreate({ userRequest, ...(sessionId !== undefined && { sessionId }) }),
 
   // MCP-driven get-next-step (/dumpster-launch dispatch loop)
   getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),
@@ -309,6 +313,12 @@ export const StartOrchestrator = {
 
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)
   getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),
+
+  // Reverse lookup: sessionId -> QuestId (or null when no quest's chaoswhisperer workItem
+  // has this sessionId). Used by the HTTP server's GET /api/quests/by-session/:sessionId
+  // endpoint so the PostToolUse hook can find the quest to PATCH design decisions onto.
+  findQuestBySessionId: async ({ sessionId }: { sessionId: SessionId }): Promise<QuestId | null> =>
+    QuestFlow.findBySessionId({ sessionId }),
 
   // Reverse lookup: workItemId -> QuestId (or null when no quest owns it). Used by the
   // HTTP server's chat-output broadcaster to stamp questId on outgoing WS payloads.

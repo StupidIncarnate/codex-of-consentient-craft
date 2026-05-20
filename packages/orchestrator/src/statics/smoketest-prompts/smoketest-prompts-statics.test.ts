@@ -25,15 +25,11 @@ describe('smoketestPromptsStatics', () => {
     );
   });
 
-  it('VALID: {ask-user-question probe} => skip-call prompt refuses to call ask-user-question', () => {
-    expect(
-      smoketestPromptsStatics['ask-user-question' as keyof typeof smoketestPromptsStatics],
-    ).toBe(
-      'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "summary": "mcp-ask-user-question-probe-ok (deferred: calling ask-user-question would block the smoketest)" }. Do not call ask-user-question and do not output anything else.',
-    );
-  });
-
   it('VALID: {start-quest} => skip-from-suite produces no probe prompt', () => {
     expect(Reflect.has(smoketestPromptsStatics, 'start-quest')).toBe(false);
+  });
+
+  it('VALID: {ask-user-question} => decommissioned tool produces no probe prompt', () => {
+    expect(Reflect.has(smoketestPromptsStatics, 'ask-user-question')).toBe(false);
   });
 });

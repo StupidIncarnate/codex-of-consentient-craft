@@ -20,6 +20,12 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
           },
         ],
+        PostToolUse: [
+          {
+            matcher: 'AskUserQuestion',
+            hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+          },
+        ],
         SessionStart: [
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
@@ -136,6 +142,18 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
       expect(result.WorktreeCreate[0]?.hooks[0]?.command).toBe('dungeonmaster-worktree-create');
+    });
+
+    it('VALID: includes PostToolUse AskUserQuestion matcher => returns correct matcher', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.PostToolUse[0]?.matcher).toBe('AskUserQuestion');
+    });
+
+    it('VALID: includes dungeonmaster-post-ask-question command => returns correct command', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.PostToolUse[0]?.hooks[0]?.command).toBe('dungeonmaster-post-ask-question');
     });
   });
 });

@@ -52,16 +52,18 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
-          SessionStart: [
+          PostToolUse: [
             {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
             },
+          ],
+          SessionStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
                 {
@@ -70,23 +72,15 @@ describe('start-install integration', () => {
                 },
               ],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
-            },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
                 {
@@ -95,17 +89,11 @@ describe('start-install integration', () => {
                 },
               ],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
-            },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           WorktreeCreate: [
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
           ],
         },
       });
@@ -162,16 +150,18 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
-          SessionStart: [
+          PostToolUse: [
             {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
             },
+          ],
+          SessionStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
                 {
@@ -180,23 +170,15 @@ describe('start-install integration', () => {
                 },
               ],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
-            },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
                 {
@@ -205,25 +187,19 @@ describe('start-install integration', () => {
                 },
               ],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
-            },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           WorktreeCreate: [
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
           ],
         },
       });
     });
 
-    it('VALID: {context: settings already has dungeonmaster hooks} => skips installation', async () => {
+    it('VALID: {context: settings already has prior dungeonmaster hooks} => prior entries stripped, freshly-generated set re-appended including new hook types', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'skip-hooks' }),
+        baseName: BaseNameStub({ value: 'reinstall-hooks' }),
       });
 
       testbed.writeFile({
@@ -248,13 +224,83 @@ describe('start-install integration', () => {
         },
       });
 
+      const settingsContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+      });
+
       testbed.cleanup();
 
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/hooks',
         success: true,
-        action: 'skipped',
-        message: 'Hooks already configured',
+        action: 'merged',
+        message: 'Merged hooks into existing settings',
+      });
+
+      const parsed = JSON.parse(settingsContent!) as Record<PropertyKey, unknown>;
+
+      // Prior solo dungeonmaster-pre-edit-lint entry stripped; freshly-generated set re-appended
+      // INCLUDING the new PostToolUse hook that wasn't in the prior settings — proves additive re-install.
+      expect(parsed).toStrictEqual({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+            {
+              matcher: 'Grep|Glob|Search|Find',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
+          ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
+          SessionStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+          ],
+          SubagentStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+          ],
+          WorktreeCreate: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
+          ],
+        },
       });
     });
 
@@ -318,17 +364,19 @@ describe('start-install integration', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
           SessionStart: [
             { hooks: [{ command: 'existing-session-hook' }] },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
                 {
@@ -337,23 +385,15 @@ describe('start-install integration', () => {
                 },
               ],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
-            },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           SubagentStart: [
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
             {
               hooks: [
                 {
@@ -362,17 +402,11 @@ describe('start-install integration', () => {
                 },
               ],
             },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }],
-            },
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
           ],
           WorktreeCreate: [
-            {
-              hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
-            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
           ],
         },
       });

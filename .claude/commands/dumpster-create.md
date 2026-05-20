@@ -12,8 +12,10 @@ specifications through Socratic dialogue.
 
 ## EXECUTION PROTOCOL
 
-**Start here.** Your VERY FIRST action: call `mcp__dungeonmaster__create-quest` to create the new quest. The user never
-passes a questId — you mint it. Capture the returned `questId` and `guildSlug` for the next step.
+**Start here.** Your VERY FIRST action: call `mcp__dungeonmaster__create-quest` to create the new quest, passing the
+user's original request verbatim as the `userRequest` argument (the request text appears in the "User Request" section
+at the bottom of this prompt — copy it exactly, do NOT paraphrase or summarize). The user never passes a questId — you
+mint it. Capture the returned `questId` and `guildSlug` for the next step.
 
 **Open the web UI immediately after quest creation.** Call `mcp__dungeonmaster__get-server-config()` to learn the
 server's `baseUrl`, then open the spec view with chat hidden so the user can watch quest state live without a duplicate
@@ -34,7 +36,7 @@ consume. JSON and unfiltered stages are expensive and unnecessary here.
 
 **ALWAYS do these things:**
 
-- ALWAYS use the `mcp__dungeonmaster__ask-user-question` MCP tool to ask the user clarifying questions about spec
+- ALWAYS use the native `AskUserQuestion` tool (Claude Code's built-in) to ask the user clarifying questions about spec
   details. However, you don't need to use the tool to ask the user whether they approve a status transition. Under that
   circumstance, just output "Does this look good for [status] approval?".
 - ALWAYS follow the status ordering. The quest must be filled in in a specific order for it to be successful.
@@ -219,9 +221,9 @@ observable work.
 9. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with `model: "sonnet"` and exactly
    this prompt: `"Your FIRST action: invoke the MCP tool `mcp__dungeonmaster__get-agent-prompt
    ` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"`
-10. **Address gaps** - Review findings, update quest. Use the `mcp__dungeonmaster__ask-user-question` MCP tool for any
-    unknowns. The user's answers will arrive as your next message when the session resumes. Re-persist any changes via
-    `modify-quest`.
+10. **Address gaps** - Review findings, update quest. Use the native `AskUserQuestion` tool for any unknowns. Answers
+    come back synchronously as the tool result — read them directly from the result before continuing. Re-persist any
+    changes via `modify-quest`.
 11. **Refresh quest state** - Call `get-quest` to see the current rendered state after gap-minion findings are
     addressed.
 
@@ -660,10 +662,15 @@ checks. Picking the right tag is not a cosmetic choice — it decides how the fl
 
 ### Design Decisions
 
-Design decisions are **automatically captured** from your `ask-user-question` answers. Each question/answer pair is
-persisted as a design decision on the quest when the user responds.
+Design decisions are **automatically captured** when you call the native `AskUserQuestion` tool. A `PostToolUse` hook on
+`AskUserQuestion` reads the tool result, queries the server to find the active quest by session, and PATCHes a
+`designDecisions[]` entry per answered question onto the quest.
 
-To maximize capture quality, write good option descriptions — these become the decision rationale:
+**The option `label` and `description` values you write become the persisted `rationale` text on each design decision.**
+Write high-quality descriptions so the captured rationale is meaningful to implementers — not just which option was
+picked, but why it is the right choice.
+
+To maximize capture quality, write good option descriptions:
 
 | Bad Option Description | Good Option Description                                                         |
 |------------------------|---------------------------------------------------------------------------------|

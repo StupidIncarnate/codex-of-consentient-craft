@@ -41,6 +41,12 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
@@ -144,6 +150,12 @@ describe('InstallCreateSettingsResponder', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
@@ -205,7 +217,7 @@ describe('InstallCreateSettingsResponder', () => {
   });
 
   describe('dungeonmaster hooks already present', () => {
-    it('VALID: {settings already has dungeonmaster hooks} => skips installation', async () => {
+    it('VALID: {settings already has prior dungeonmaster hooks} => prior entries stripped, freshly-generated set re-appended including new hook types', async () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
@@ -232,8 +244,75 @@ describe('InstallCreateSettingsResponder', () => {
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/hooks',
         success: true,
-        action: 'skipped',
-        message: 'Hooks already configured',
+        action: 'merged',
+        message: 'Merged hooks into existing settings',
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
+
+      // The prior solo dungeonmaster-pre-edit-lint entry is stripped and the full freshly-generated
+      // set is re-appended — INCLUDING the new PostToolUse hook that the prior settings didn't have.
+      // Proves additive re-install for new hook types.
+      expect(written).toStrictEqual({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit|MultiEdit',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
+            },
+            {
+              matcher: 'Bash',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-bash' }],
+            },
+            {
+              matcher: 'Grep|Glob|Search|Find',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
+          ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
+          SessionStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+          ],
+          SubagentStart: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet folderTypes' }] },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet modifyingCodeGuidance',
+                },
+              ],
+            },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet ward' }] },
+            { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }] },
+          ],
+          WorktreeCreate: [
+            { hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }] },
+          ],
+        },
       });
     });
   });
@@ -288,6 +367,12 @@ describe('InstallCreateSettingsResponder', () => {
             {
               matcher: 'Grep|Glob|Search|Find',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
+            },
+          ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
             },
           ],
           SessionStart: [

@@ -47,6 +47,12 @@ describe('InstallFlow', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-search' }],
             },
           ],
+          PostToolUse: [
+            {
+              matcher: 'AskUserQuestion',
+              hooks: [{ type: 'command', command: 'dungeonmaster-post-ask-question' }],
+            },
+          ],
           SessionStart: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],

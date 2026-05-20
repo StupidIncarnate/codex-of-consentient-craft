@@ -6,8 +6,10 @@
  * // Returns ToolResponse with quest data
  */
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
+import { claudeCodeSessionResolveBroker } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker';
 import { orchestratorCreateQuestAdapter } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter';
 import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
@@ -302,7 +304,13 @@ export const QuestHandleResponder = async ({
     const { userRequest } = createQuestInputContract.parse(args);
 
     try {
-      const { questId, guildSlug } = await orchestratorCreateQuestAdapter({ userRequest });
+      const cwd = processCwdAdapter();
+      const projectDir = absoluteFilePathContract.parse(String(cwd));
+      const resolved = await claudeCodeSessionResolveBroker({ projectDir });
+      const { questId, guildSlug } = await orchestratorCreateQuestAdapter({
+        userRequest,
+        ...(resolved !== undefined && { sessionId: resolved.sessionId }),
+      });
       const payload = createQuestOutputContract.parse({ questId, guildSlug });
 
       return {

@@ -15,6 +15,7 @@
  */
 
 import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
+import { QuestFindBySessionIdResponder } from '../../responders/quest/find-by-session-id/quest-find-by-session-id-responder';
 import { QuestFindByWorkItemIdResponder } from '../../responders/quest/find-by-work-item-id/quest-find-by-work-item-id-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/quest-get-next-step-responder';
@@ -59,6 +60,9 @@ type HandleSignalBackResult = Awaited<ReturnType<typeof QuestHandleSignalBackRes
 
 type GetServerConfigResult = ReturnType<typeof QuestGetServerConfigResponder>;
 
+type FindBySessionIdParams = Parameters<typeof QuestFindBySessionIdResponder>[0];
+type FindBySessionIdResult = Awaited<ReturnType<typeof QuestFindBySessionIdResponder>>;
+
 type FindByWorkItemIdParams = Parameters<typeof QuestFindByWorkItemIdResponder>[0];
 type FindByWorkItemIdResult = Awaited<ReturnType<typeof QuestFindByWorkItemIdResponder>>;
 
@@ -85,8 +89,8 @@ export const QuestFlow = {
   modify: async ({ questId, input }: ModifyParams): Promise<ModifyResult> =>
     QuestModifyResponder({ questId, input }),
 
-  mcpCreate: async ({ userRequest }: McpCreateParams): Promise<McpCreateResult> =>
-    QuestMcpCreateResponder({ userRequest }),
+  mcpCreate: async ({ userRequest, sessionId }: McpCreateParams): Promise<McpCreateResult> =>
+    QuestMcpCreateResponder({ userRequest, ...(sessionId !== undefined && { sessionId }) }),
 
   getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 
@@ -101,6 +105,9 @@ export const QuestFlow = {
     QuestHandleSignalBackResponder({ questId, workItemId, signal }),
 
   getServerConfig: (): GetServerConfigResult => QuestGetServerConfigResponder(),
+
+  findBySessionId: async ({ sessionId }: FindBySessionIdParams): Promise<FindBySessionIdResult> =>
+    QuestFindBySessionIdResponder({ sessionId }),
 
   findByWorkItemId: async ({
     workItemId,

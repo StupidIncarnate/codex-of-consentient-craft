@@ -98,4 +98,41 @@ describe('dumpsterCreatePromptStatics', () => {
 
     expect(foundSlice).toBe(needle);
   });
+
+  it('VALID: prompt template => uses native AskUserQuestion tool, not the MCP ask-user-question tool', () => {
+    const { template } = dumpsterCreatePromptStatics.prompt;
+
+    expect(template.indexOf('mcp__dungeonmaster__ask-user-question')).toBe(-1);
+    expect(template.indexOf('AskUserQuestion')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => instructs reading AskUserQuestion answers synchronously from the tool result', () => {
+    const needle =
+      'Answers come back synchronously as the tool result — read them directly from the result before continuing.';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => explains that a PostToolUse hook on AskUserQuestion captures design decisions', () => {
+    const needle =
+      'A `PostToolUse` hook on `AskUserQuestion` reads the tool result, queries the server to find the active quest by session, and PATCHes a `designDecisions[]` entry per answered question onto the quest.';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => explains that option label and description become the persisted rationale text', () => {
+    const needle =
+      'The option `label` and `description` values you write become the persisted `rationale` text on each design decision.';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
 });

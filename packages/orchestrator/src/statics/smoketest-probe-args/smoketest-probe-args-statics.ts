@@ -12,7 +12,7 @@
  * MODES:
  * - `call`            — the probe invokes the tool with `args`. If the tool errors, the probe signals `failed` with `<tool>-tool-error`. Otherwise it signals `complete` with `summary`.
  * - `signal-only`     — the probe skips the tool call and just signals complete (used for `signal-back` itself).
- * - `skip-call`       — the probe deliberately does NOT call the tool (used for `ask-user-question`, which would block the harness).
+ * - `skip-call`       — the probe deliberately does NOT call the tool.
  * - `skip-from-suite` — the tool is registered globally but is NOT exercised by the MCP smoketest suite (e.g. `start-quest`, whose semantics are covered by the orchestration suite). The prompt builder and case catalog filter these out.
  *
  * PLACEHOLDERS in `args`:
@@ -85,12 +85,6 @@ export const smoketestProbeArgsStatics = {
     mode: 'call',
     args: {},
     summary: 'mcp-list-guilds-probe-ok',
-  },
-  'ask-user-question': {
-    mode: 'skip-call',
-    summary:
-      'mcp-ask-user-question-probe-ok (deferred: calling ask-user-question would block the smoketest)',
-    note: 'Do not call ask-user-question and do not output anything else.',
   },
   'get-agent-prompt': {
     mode: 'call',

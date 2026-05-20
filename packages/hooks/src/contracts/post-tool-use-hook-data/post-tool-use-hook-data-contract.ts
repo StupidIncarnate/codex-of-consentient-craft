@@ -3,10 +3,11 @@
  *
  * USAGE:
  * const hookData = postToolUseHookDataContract.parse(data);
- * // Returns validated PostToolUseHookData with tool_name, tool_input, optional tool_response
+ * // Returns validated PostToolUseHookData with tool_name, tool_input, optional tool_response.
+ * // tool_input is kept as unknown so any tool's input shape passes — downstream code parses
+ * // the specific shape it needs (e.g. askUserQuestionContract, toolInputContract).
  */
 import { z } from 'zod';
-import { toolInputContract } from '../tool-input/tool-input-contract';
 import { toolResponseContract } from '../tool-response/tool-response-contract';
 
 export const postToolUseHookDataContract = z.object({
@@ -15,7 +16,7 @@ export const postToolUseHookDataContract = z.object({
   cwd: z.string().min(1).brand<'Cwd'>(),
   hook_event_name: z.literal('PostToolUse'),
   tool_name: z.string().min(1).brand<'ToolName'>(),
-  tool_input: toolInputContract,
+  tool_input: z.unknown(),
   tool_response: toolResponseContract.optional(),
 });
 
