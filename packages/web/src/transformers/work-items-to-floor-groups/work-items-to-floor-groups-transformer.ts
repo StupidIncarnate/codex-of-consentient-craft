@@ -56,6 +56,10 @@ export const workItemsToFloorGroupsTransformer = ({
     return a.createdAt.localeCompare(b.createdAt);
   });
 
+  const entranceFloorNames = new Set(
+    executionFloorConfigStatics.floors.filter((f) => f.type === 'entrance').map((f) => f.name),
+  );
+
   const groupKeys: FloorGroupKey[] = [];
   const groupMap = new Map<FloorGroupKey, { floorName: FloorName; items: WorkItem[] }>();
 
@@ -68,7 +72,16 @@ export const workItemsToFloorGroupsTransformer = ({
             executionFloorConfigStatics.floors.find((f) => f.role === item.role)?.name ??
               item.role.toUpperCase(),
           );
-    const key = floorGroupKeyContract.parse(`${String(depth)}:${floorName}`);
+    const isEntrance = entranceFloorNames.has(
+      floorName as (typeof executionFloorConfigStatics.floors)[0]['name'],
+    );
+
+    const lastKey = groupKeys.length > 0 ? groupKeys[groupKeys.length - 1] : undefined;
+    const lastGroup = lastKey === undefined ? undefined : groupMap.get(lastKey);
+    const key =
+      isEntrance && lastKey !== undefined && lastGroup?.floorName === floorName
+        ? lastKey
+        : floorGroupKeyContract.parse(`${String(depth)}:${floorName}`);
 
     const existing = groupMap.get(key);
     if (existing) {
@@ -78,10 +91,6 @@ export const workItemsToFloorGroupsTransformer = ({
       groupMap.set(key, { floorName, items: [item] });
     }
   }
-
-  const entranceFloorNames = new Set(
-    executionFloorConfigStatics.floors.filter((f) => f.type === 'entrance').map((f) => f.name),
-  );
 
   let floorCounter = 0;
   const groups: FloorGroup[] = [];

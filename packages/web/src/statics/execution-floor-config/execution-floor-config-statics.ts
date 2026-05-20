@@ -10,7 +10,14 @@ export const executionFloorConfigStatics = {
   floors: [
     { name: 'HOMEBASE', role: 'chaoswhisperer', type: 'entrance' },
     { name: 'HOMEBASE', role: 'glyphsmith', type: 'entrance' },
-    { name: 'ENTRANCE: CARTOGRAPHY', role: 'pathseeker', type: 'entrance' },
+    { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-surface', type: 'entrance' },
+    { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-dedup', type: 'entrance' },
+    {
+      name: 'ENTRANCE: MAPPING DUMPSTER',
+      role: 'pathseeker-assertion-correctness',
+      type: 'entrance',
+    },
+    { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-walk', type: 'entrance' },
     { name: 'FORGE', role: 'codeweaver', type: 'floor' },
     { name: 'MINI BOSS', role: 'ward', wardPosition: 'first', type: 'floor' },
     { name: 'INFIRMARY', role: 'spiritmender', type: 'floor' },

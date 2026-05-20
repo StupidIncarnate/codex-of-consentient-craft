@@ -4,7 +4,7 @@ import { workItemsToFloorGroupsTransformer } from './work-items-to-floor-groups-
 
 describe('workItemsToFloorGroupsTransformer', () => {
   describe('happy path', () => {
-    it('VALID: {linear chain chaos→pathseeker→codeweaver→ward→siege→lawbringer→ward} => correct order and numbering', () => {
+    it('VALID: {linear chain chaos→pathseeker-surface→codeweaver→ward→siege→lawbringer→ward} => correct order and numbering', () => {
       const chaos = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
         role: 'chaoswhisperer',
@@ -14,7 +14,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const pathseeker = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [chaos.id],
         createdAt: '2024-01-15T10:01:00.000Z',
@@ -62,7 +62,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       expect(floorNames).toStrictEqual([
         'HOMEBASE',
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
         'FORGE',
         'MINI BOSS',
         'ARENA',
@@ -81,7 +81,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const pathseeker = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [chaos.id],
         createdAt: '2024-01-15T10:01:00.000Z',
@@ -135,7 +135,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
     it('VALID: {parallel codeweavers at same depth} => one FORGE floor', () => {
       const pathseeker = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [],
         createdAt: '2024-01-15T10:00:00.000Z',
@@ -164,10 +164,10 @@ describe('workItemsToFloorGroupsTransformer', () => {
   });
 
   describe('same role at different depths', () => {
-    it('VALID: {pathseeker at depth 0 and pathseeker at depth 3} => separate floors', () => {
+    it('VALID: {pathseeker-surface at depth 0 and pathseeker-surface at depth 3} => separate entrance floors', () => {
       const ps1 = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [],
         createdAt: '2024-01-15T10:00:00.000Z',
@@ -188,7 +188,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const ps2 = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000004',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'pending',
         dependsOn: [siege.id],
         createdAt: '2024-01-15T10:03:00.000Z',
@@ -196,9 +196,11 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const result = workItemsToFloorGroupsTransformer({ workItems: [ps1, cw, siege, ps2] });
 
-      const cartographyGroups = result.filter((g) => g.floorName === 'ENTRANCE: CARTOGRAPHY');
+      const mappingDumpsterGroups = result.filter(
+        (g) => g.floorName === 'ENTRANCE: MAPPING DUMPSTER',
+      );
 
-      expect(cartographyGroups.map((g) => g.workItems)).toStrictEqual([[ps1], [ps2]]);
+      expect(mappingDumpsterGroups.map((g) => g.workItems)).toStrictEqual([[ps1], [ps2]]);
     });
   });
 
@@ -283,10 +285,10 @@ describe('workItemsToFloorGroupsTransformer', () => {
   });
 
   describe('pathseeker entrance', () => {
-    it('VALID: {pathseeker} => ENTRANCE: CARTOGRAPHY with no floor number', () => {
+    it('VALID: {pathseeker-surface} => ENTRANCE: MAPPING DUMPSTER with no floor number', () => {
       const ps = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [],
         createdAt: '2024-01-15T10:00:00.000Z',
@@ -294,7 +296,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       const result = workItemsToFloorGroupsTransformer({ workItems: [ps] });
 
-      expect(result[0]!.floorName).toBe('ENTRANCE: CARTOGRAPHY');
+      expect(result[0]!.floorName).toBe('ENTRANCE: MAPPING DUMPSTER');
       expect(result[0]!.floorNumber).toBe(null);
     });
   });
@@ -501,7 +503,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
     it('VALID: {siege fails, skipped items hidden, new chain} => sequential numbering across display', () => {
       const ps1 = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [],
         createdAt: '2024-01-15T10:00:00.000Z',
@@ -543,7 +545,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const ps2 = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000007',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'pending',
         dependsOn: [siege1.id],
         createdAt: '2024-01-15T10:05:00.000Z',
@@ -560,16 +562,16 @@ describe('workItemsToFloorGroupsTransformer', () => {
         .filter((wi) => wi.status === 'skipped');
 
       expect(skippedInOutput).toStrictEqual([]);
-      expect(result[result.length - 1]!.floorName).toBe('ENTRANCE: CARTOGRAPHY');
+      expect(result[result.length - 1]!.floorName).toBe('ENTRANCE: MAPPING DUMPSTER');
       expect(result[result.length - 1]!.workItems[0]!.id).toBe(ps2.id);
     });
   });
 
   describe('codeweaver fails in slot manager', () => {
-    it('VALID: {codeweaver fails, pathseeker replan visible} => pathseeker after codeweaver', () => {
+    it('VALID: {codeweaver fails, pathseeker-surface replan visible} => pathseeker-surface after codeweaver', () => {
       const ps1 = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [],
         createdAt: '2024-01-15T10:00:00.000Z',
@@ -583,7 +585,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const ps2 = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000003',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'in_progress',
         dependsOn: [cw.id],
         createdAt: '2024-01-15T10:02:00.000Z',
@@ -592,14 +594,16 @@ describe('workItemsToFloorGroupsTransformer', () => {
       const result = workItemsToFloorGroupsTransformer({ workItems: [ps1, cw, ps2] });
 
       const forgeIdx = result.findIndex((g) => g.floorName === 'FORGE');
-      const cartographyGroups = result.filter((g) => g.floorName === 'ENTRANCE: CARTOGRAPHY');
+      const mappingDumpsterGroups = result.filter(
+        (g) => g.floorName === 'ENTRANCE: MAPPING DUMPSTER',
+      );
 
-      expect(cartographyGroups.map((g) => g.workItems)).toStrictEqual([[ps1], [ps2]]);
-      expect(cartographyGroups[1]!.workItems[0]!.dependsOn).toStrictEqual([cw.id]);
+      expect(mappingDumpsterGroups.map((g) => g.workItems)).toStrictEqual([[ps1], [ps2]]);
+      expect(mappingDumpsterGroups[1]!.workItems[0]!.dependsOn).toStrictEqual([cw.id]);
 
-      const lastCartoIdx = result.lastIndexOf(cartographyGroups[1]!);
+      const lastMappingDumpsterIdx = result.lastIndexOf(mappingDumpsterGroups[1]!);
 
-      expect(lastCartoIdx).toBeGreaterThan(forgeIdx);
+      expect(lastMappingDumpsterIdx).toBeGreaterThan(forgeIdx);
     });
   });
 
@@ -639,7 +643,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
   });
 
   describe('depth-0 ordering', () => {
-    it('VALID: {chaos and pathseeker both at depth 0} => chaos before pathseeker by config order', () => {
+    it('VALID: {chaos and pathseeker-surface both at depth 0} => chaos before pathseeker-surface by config order', () => {
       const chaos = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
         role: 'chaoswhisperer',
@@ -649,7 +653,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const ps = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [],
         createdAt: '2024-01-15T10:00:00.000Z',
@@ -658,7 +662,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       const result = workItemsToFloorGroupsTransformer({ workItems: [ps, chaos] });
 
       expect(result[0]!.floorName).toBe('HOMEBASE');
-      expect(result[1]!.floorName).toBe('ENTRANCE: CARTOGRAPHY');
+      expect(result[1]!.floorName).toBe('ENTRANCE: MAPPING DUMPSTER');
     });
   });
 
@@ -696,7 +700,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
       });
       const ps = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'pathseeker',
+        role: 'pathseeker-surface',
         status: 'complete',
         dependsOn: [chaos.id],
         createdAt: '2024-01-15T10:01:00.000Z',
@@ -712,11 +716,179 @@ describe('workItemsToFloorGroupsTransformer', () => {
           workItems: [chaos],
         },
         {
-          key: '1:ENTRANCE: CARTOGRAPHY',
-          floorName: 'ENTRANCE: CARTOGRAPHY',
+          key: '1:ENTRANCE: MAPPING DUMPSTER',
+          floorName: 'ENTRANCE: MAPPING DUMPSTER',
           floorNumber: null,
           workItems: [ps],
         },
+      ]);
+    });
+  });
+
+  describe('pathseeker entrance collapse', () => {
+    it('VALID: {chaos + 4 pathseeker-* split roles at depths 0/1/2/2/3} => one ENTRANCE: MAPPING DUMPSTER group with all 4 items in topological order', () => {
+      const chaos = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const psSurface = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'pathseeker-surface',
+        status: 'pending',
+        dependsOn: [chaos.id],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const psDedup = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000003',
+        role: 'pathseeker-dedup',
+        status: 'pending',
+        dependsOn: [psSurface.id],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const psAssertionCorrectness = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000004',
+        role: 'pathseeker-assertion-correctness',
+        status: 'pending',
+        dependsOn: [psSurface.id],
+        createdAt: '2024-01-15T10:02:01.000Z',
+      });
+      const psWalk = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000005',
+        role: 'pathseeker-walk',
+        status: 'pending',
+        dependsOn: [psDedup.id, psAssertionCorrectness.id],
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+
+      const result = workItemsToFloorGroupsTransformer({
+        workItems: [chaos, psSurface, psDedup, psAssertionCorrectness, psWalk],
+      });
+
+      const mappingDumpsterGroups = result.filter(
+        (g) => g.floorName === 'ENTRANCE: MAPPING DUMPSTER',
+      );
+
+      expect(mappingDumpsterGroups.map((g) => g.workItems)).toStrictEqual([
+        [psSurface, psDedup, psAssertionCorrectness, psWalk],
+      ]);
+      expect(mappingDumpsterGroups[0]!.floorNumber).toBe(null);
+    });
+
+    it('VALID: {pathseeker phase 1 complete + forge + ward + pathseeker phase 2 re-summon} => two distinct ENTRANCE: MAPPING DUMPSTER groups with FORGE/MINI BOSS between them', () => {
+      const chaos = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const ps1Surface = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'pathseeker-surface',
+        status: 'complete',
+        dependsOn: [chaos.id],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const ps1Dedup = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000003',
+        role: 'pathseeker-dedup',
+        status: 'complete',
+        dependsOn: [ps1Surface.id],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const ps1AssertionCorrectness = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000004',
+        role: 'pathseeker-assertion-correctness',
+        status: 'complete',
+        dependsOn: [ps1Surface.id],
+        createdAt: '2024-01-15T10:02:01.000Z',
+      });
+      const ps1Walk = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000005',
+        role: 'pathseeker-walk',
+        status: 'complete',
+        dependsOn: [ps1Dedup.id, ps1AssertionCorrectness.id],
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+      const cw = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000006',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [ps1Walk.id],
+        createdAt: '2024-01-15T10:04:00.000Z',
+      });
+      const ward = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000007',
+        role: 'ward',
+        status: 'failed',
+        dependsOn: [cw.id],
+        createdAt: '2024-01-15T10:05:00.000Z',
+      });
+      const ps2Surface = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000008',
+        role: 'pathseeker-surface',
+        status: 'pending',
+        dependsOn: [ward.id],
+        createdAt: '2024-01-15T10:06:00.000Z',
+      });
+      const ps2Dedup = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000009',
+        role: 'pathseeker-dedup',
+        status: 'pending',
+        dependsOn: [ps2Surface.id],
+        createdAt: '2024-01-15T10:07:00.000Z',
+      });
+      const ps2AssertionCorrectness = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-00000000000a',
+        role: 'pathseeker-assertion-correctness',
+        status: 'pending',
+        dependsOn: [ps2Surface.id],
+        createdAt: '2024-01-15T10:07:01.000Z',
+      });
+      const ps2Walk = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-00000000000b',
+        role: 'pathseeker-walk',
+        status: 'pending',
+        dependsOn: [ps2Dedup.id, ps2AssertionCorrectness.id],
+        createdAt: '2024-01-15T10:08:00.000Z',
+      });
+
+      const result = workItemsToFloorGroupsTransformer({
+        workItems: [
+          chaos,
+          ps1Surface,
+          ps1Dedup,
+          ps1AssertionCorrectness,
+          ps1Walk,
+          cw,
+          ward,
+          ps2Surface,
+          ps2Dedup,
+          ps2AssertionCorrectness,
+          ps2Walk,
+        ],
+      });
+
+      const floorNames = result.map((g) => g.floorName);
+
+      expect(floorNames).toStrictEqual([
+        'HOMEBASE',
+        'ENTRANCE: MAPPING DUMPSTER',
+        'FORGE',
+        'MINI BOSS',
+        'ENTRANCE: MAPPING DUMPSTER',
+      ]);
+
+      const mappingDumpsterGroups = result.filter(
+        (g) => g.floorName === 'ENTRANCE: MAPPING DUMPSTER',
+      );
+
+      expect(mappingDumpsterGroups.map((g) => g.workItems)).toStrictEqual([
+        [ps1Surface, ps1Dedup, ps1AssertionCorrectness, ps1Walk],
+        [ps2Surface, ps2Dedup, ps2AssertionCorrectness, ps2Walk],
       ]);
     });
   });

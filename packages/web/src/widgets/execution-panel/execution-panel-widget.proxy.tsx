@@ -28,7 +28,6 @@ export const ExecutionPanelWidgetProxy = (): {
   clickAbandon: () => Promise<void>;
   clickConfirmAbandon: () => Promise<void>;
   clickCancelAbandon: () => Promise<void>;
-  hasPlanningText: () => boolean;
   hasStreamingBar: () => boolean;
   getExecutionMessages: () => HTMLElement[];
   hasPauseButton: () => boolean;
@@ -110,7 +109,6 @@ export const ExecutionPanelWidgetProxy = (): {
     clickCancelAbandon: async (): Promise<void> => {
       await clickAbandonBarButton({ label: 'CANCEL' });
     },
-    hasPlanningText: (): boolean => screen.queryByTestId('execution-panel-planning-text') !== null,
     hasStreamingBar: (): boolean => screen.queryByTestId('streaming-bar-layer-widget') !== null,
     getExecutionMessages: (): HTMLElement[] => screen.queryAllByTestId('CHAT_MESSAGE'),
     hasPauseButton: (): boolean => screen.queryByTestId('EXECUTION_PAUSE_BUTTON') !== null,

@@ -12,23 +12,62 @@ describe('roleToConfigIndexTransformer', () => {
       expect(result).toBe(0);
     });
 
-    it('VALID: {role: codeweaver} => returns 3 (fourth in config)', () => {
+    it('VALID: {role: glyphsmith} => returns 1', () => {
       const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'codeweaver' }),
+        role: ExecutionRoleStub({ value: 'glyphsmith' }),
+      });
+
+      expect(result).toBe(1);
+    });
+
+    it('VALID: {role: pathseeker-surface} => returns 2', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'pathseeker-surface' }),
+      });
+
+      expect(result).toBe(2);
+    });
+
+    it('VALID: {role: pathseeker-dedup} => returns 3', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'pathseeker-dedup' }),
       });
 
       expect(result).toBe(3);
     });
 
-    it('VALID: {role: pathseeker} => returns index after glyphsmith', () => {
-      const chaosIdx = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'chaoswhisperer' }),
+    it('VALID: {role: pathseeker-assertion-correctness} => returns 4', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'pathseeker-assertion-correctness' }),
       });
-      const psIdx = roleToConfigIndexTransformer({
+
+      expect(result).toBe(4);
+    });
+
+    it('VALID: {role: pathseeker-walk} => returns 5', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'pathseeker-walk' }),
+      });
+
+      expect(result).toBe(5);
+    });
+
+    it('VALID: {role: codeweaver} => returns 6', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'codeweaver' }),
+      });
+
+      expect(result).toBe(6);
+    });
+  });
+
+  describe('legacy fallback', () => {
+    it('VALID: {role: pathseeker (legacy, not in config)} => returns floors.length sentinel', () => {
+      const result = roleToConfigIndexTransformer({
         role: ExecutionRoleStub({ value: 'pathseeker' }),
       });
 
-      expect(psIdx).toBeGreaterThan(chaosIdx);
+      expect(result).toBe(13);
     });
   });
 });
