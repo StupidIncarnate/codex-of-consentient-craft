@@ -47,6 +47,11 @@ export const MonitorSessionWatchResponder = (): { stop: () => void } => {
         return;
       }
 
+      // The writer's open(O_TRUNC) and write() are separate syscalls; inotify fires
+      // IN_MODIFY on each. Reading between them yields ''. Wait for the post-write
+      // event with real bytes.
+      if (contents === '') return;
+
       const raw = ((): unknown => {
         try {
           return JSON.parse(contents) as unknown;

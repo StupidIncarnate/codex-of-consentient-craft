@@ -1,5 +1,6 @@
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { fsWatchFileAdapterProxy } from '../../../adapters/fs/watch-file/fs-watch-file-adapter.proxy';
 import { orchestratorStartMonitorWatcherAdapterProxy } from '../../../adapters/orchestrator/start-monitor-watcher/orchestrator-start-monitor-watcher-adapter.proxy';
@@ -7,6 +8,7 @@ import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/pro
 
 export const MonitorSessionWatchResponderProxy = (): {
   setupHomePath: () => void;
+  enableDevLogs: () => void;
   setupFilePresent: (params: { contents: string }) => void;
   setupFileAbsent: () => void;
   triggerChangeWithContents: (params: { contents: string }) => void;
@@ -15,14 +17,12 @@ export const MonitorSessionWatchResponderProxy = (): {
   startMonitorWatcherResolves: () => void;
   startMonitorWatcherThrows: (params: { error: Error }) => void;
   wasStopCalled: () => boolean;
+  getDevLogOutput: () => SpyOnHandle;
 } => {
   const homePathProxy = dungeonmasterHomeFindBrokerProxy();
   const fsWatchProxy = fsWatchFileAdapterProxy();
   const orchAdapterProxy = orchestratorStartMonitorWatcherAdapterProxy();
-  // dev-log adapter is fire-and-forget; just instantiate the proxy so jest doesn't write
-  // to real stdout during tests. enforce-proxy-child-creation requires us to import the
-  // proxy whenever the implementation imports the adapter.
-  processDevLogAdapterProxy();
+  const devLogProxy = processDevLogAdapterProxy();
 
   return {
     setupHomePath: (): void => {
@@ -30,6 +30,9 @@ export const MonitorSessionWatchResponderProxy = (): {
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
       });
+    },
+    enableDevLogs: (): void => {
+      devLogProxy.enableVerbose();
     },
     setupFilePresent: ({ contents }: { contents: string }): void => {
       fsWatchProxy.setupFilePresent({ contents });
@@ -53,5 +56,6 @@ export const MonitorSessionWatchResponderProxy = (): {
       orchAdapterProxy.throws({ error });
     },
     wasStopCalled: (): boolean => orchAdapterProxy.wasStopCalled(),
+    getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
   };
 };

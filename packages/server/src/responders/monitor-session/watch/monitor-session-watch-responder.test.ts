@@ -138,5 +138,21 @@ describe('MonitorSessionWatchResponder', () => {
 
       expect(stopFlag).toBe(false);
     });
+
+    it('EMPTY: {file contents are "" (mid-write inotify race)} => silent skip, no log, no watcher', async () => {
+      const proxy = MonitorSessionWatchResponderProxy();
+      proxy.setupHomePath();
+      proxy.enableDevLogs();
+      proxy.setupFilePresent({ contents: '' });
+
+      const handle = MonitorSessionWatchResponder();
+      await waitForMicrotask();
+      const stopFlag = proxy.wasStopCalled();
+      const devLogSpy = proxy.getDevLogOutput();
+      handle.stop();
+
+      expect(stopFlag).toBe(false);
+      expect(devLogSpy.mock.calls).toStrictEqual([]);
+    });
   });
 });
