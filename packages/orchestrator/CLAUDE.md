@@ -386,8 +386,12 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 - **Dynamic insertion**: retries, spiritmender, fix chains — append items with correct `dependsOn`. The
   `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream codeweaver /
   ward / siegemaster / lawbringer / blightwarden chain.
-- **Session tracking**: `sessionId` on each work item — captured by `get-agent-prompt` from the MCP transport metadata
-  of the calling Task-spawned sub-agent
+- **Session tracking**: `sessionId` on each work item — for chat roles, captured from the spawned Claude's first
+  stream-json init line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
+  `/dumpster-launch`, captured by the JSONL watcher: `start-subagent-tail-layer-broker` extracts the embedded
+  `workItemId` + `questId` from the sub-agent's first user-text line (Claude CLI passes `Task.input.prompt` verbatim)
+  and fires `onSessionIdLearned`; `quest-monitor-watcher-start-broker` stamps the sub-agent's realAgentId as
+  `workItem.sessionId` via `questModifyBroker`.
 - **Ward**: only non-agent item (`spawnerType: 'command'`); driven by the `run-ward` MCP tool which blocks until ward
   exits and persists the result onto the work item
 
@@ -598,8 +602,11 @@ Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The di
 surface (`/dumpster-launch`'s Task() invocations) hands each sub-agent a stub prompt that
 says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions
 exactly." The MCP responder interpolates work-item-specific context (scope, package, steps,
-file paths) into the returned prompt and persists the calling session id onto
-`quest.workItems[workItemId].sessionId`.
+file paths) into the returned prompt. The calling session id is NOT persisted from the MCP
+side — MCP stdio carries no per-call session metadata. Instead, the JSONL watcher fires
+`onSessionIdLearned` when each sub-agent's first user-text line lands (the parent's
+verbatim `Task.input.prompt` embedding `workItemId`), and the watcher-start broker stamps
+the sub-agent's realAgentId as `quest.workItems[workItemId].sessionId`.
 
 | Agent                            | Dispatched By                                     | Purpose                                                                                                                           |
 |----------------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|

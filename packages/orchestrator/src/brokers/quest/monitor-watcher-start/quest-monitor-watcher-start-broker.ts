@@ -28,6 +28,7 @@ import {
   sessionIdContract,
   type ChatEntry,
   type FilePath,
+  type ModifyQuestInput,
   type OrchestrationEventType,
   type ProcessId,
   type QuestId,
@@ -39,6 +40,7 @@ import {
   type IsoTimestamp,
 } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 
+import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
 import { questOrphanResetBroker } from '../orphan-reset/quest-orphan-reset-broker';
 
@@ -124,6 +126,21 @@ export const questMonitorWatcherStartBroker = async ({
           entries,
           ...(questId === null ? {} : { questId }),
         },
+      });
+    },
+    // Fires once per Task-dispatched sub-agent when its first user-text line lands
+    // carrying the orchestrator's taskPrompt. Persisting the realAgentId as the work
+    // item's `sessionId` lets the per-work-item history panel resolve which
+    // `subagents/agent-<id>.jsonl` to replay. Mirrors the chaos-spawn pattern at
+    // packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts (onSessionId).
+    onSessionIdLearned: ({ questId, workItemId, sessionId: learnedSessionId }) => {
+      questModifyBroker({
+        input: {
+          questId,
+          workItems: [{ id: workItemId, sessionId: learnedSessionId }],
+        } as ModifyQuestInput,
+      }).catch((error: unknown) => {
+        process.stderr.write(`[monitor-watcher] session-id stamp failed: ${String(error)}\n`);
       });
     },
   });

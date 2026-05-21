@@ -25,7 +25,13 @@ import {
   adapterResultContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, ChatEntry, GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  AgentId,
+  ChatEntry,
+  GuildId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -53,10 +59,17 @@ import { guildGetBroker } from '../../guild/get/guild-get-broker';
 
 export const chatHistoryReplayBroker = async ({
   sessionId,
+  agentId: filterAgentId,
   guildId,
   onEntries,
 }: {
   sessionId: SessionId;
+  // When set, replay only the named sub-agent's JSONL — used by the per-work-item
+  // execution-panel replay. The main session JSONL is still read for the pre-scan that
+  // builds the realAgentId→toolUseId map, but its lines are NOT emitted. Without this
+  // param the broker emits both main session and every subagent file (the chat-replay
+  // session-view path).
+  agentId?: AgentId;
   guildId: GuildId;
   onEntries: (params: { entries: ChatEntry[] }) => void;
 }): Promise<AdapterResult> => {
@@ -94,7 +107,13 @@ export const chatHistoryReplayBroker = async ({
   // for the file rather than ENOENT immediately — without this, live broadcasts shipped
   // before subscribe are lost AND replay misses the unwritten JSONL, so nothing reaches
   // the client.
-  const sessionLines = await chatReplayJsonlReadBroker({ filePath: jsonlPath });
+  //
+  // Per-work-item replay (`filterAgentId` set) only cares about a single sub-agent's
+  // JSONL — the main session file is irrelevant. Skipping the read avoids the
+  // ENOENT-retry budget when the parent's `<sessionId>.jsonl` was never written (a Task
+  // sub-agent under /dumpster-launch can outlive its parent, and seeded tests omit it).
+  const sessionLines =
+    filterAgentId === undefined ? await chatReplayJsonlReadBroker({ filePath: jsonlPath }) : [];
 
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
 
@@ -115,7 +134,14 @@ export const chatHistoryReplayBroker = async ({
         }),
       })),
     );
-    subagentFiles.push(...results);
+    // Per-work-item replay scopes to a single sub-agent: keep only the matching file.
+    // Without the filter, every sub-agent under the parent session would surface under
+    // this work item's replay channel.
+    const scoped =
+      filterAgentId === undefined
+        ? results
+        : results.filter((f) => String(f.agentId) === String(filterAgentId));
+    subagentFiles.push(...scoped);
   } catch {
     // subagents directory may not exist
   }
@@ -134,16 +160,23 @@ export const chatHistoryReplayBroker = async ({
 
   let globalIndex = 0;
 
-  for (const line of sessionLines) {
-    const parsed = claudeLineNormalizeBroker({ rawLine: line });
-    const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
-    taggedLines.push({
-      parsed,
-      source: sessionSource,
-      timestamp,
-      index: arrayIndexContract.parse(globalIndex),
-    });
-    globalIndex += 1;
+  // For per-work-item replay (filterAgentId set) the parent session JSONL is irrelevant
+  // — we want ONLY the sub-agent's own entries. Skip taggedLines emission for the parent
+  // here; the pre-scan below still reads `sessionLines` to populate the realAgentId→
+  // toolUseId reverse map so the surviving sub-agent entries get their parent_tool_use_id
+  // stamped correctly.
+  if (filterAgentId === undefined) {
+    for (const line of sessionLines) {
+      const parsed = claudeLineNormalizeBroker({ rawLine: line });
+      const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
+      taggedLines.push({
+        parsed,
+        source: sessionSource,
+        timestamp,
+        index: arrayIndexContract.parse(globalIndex),
+      });
+      globalIndex += 1;
+    }
   }
 
   for (const subagentFile of subagentFiles) {

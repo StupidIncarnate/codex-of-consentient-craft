@@ -17,11 +17,14 @@
 import {
   absoluteFilePathContract,
   adapterResultContract,
+  sessionIdContract,
   type AdapterResult,
   type ChatEntry,
   type FilePath,
   type ProcessId,
   type QuestId,
+  type QuestWorkItemId,
+  type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
@@ -30,6 +33,7 @@ import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tai
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
+import { taskPromptIdsExtractorTransformer } from '../../../transformers/task-prompt-ids-extractor/task-prompt-ids-extractor-transformer';
 
 export const startSubagentTailLayerBroker = ({
   agentId,
@@ -38,6 +42,7 @@ export const startSubagentTailLayerBroker = ({
   chatProcessId,
   activeQuestIdGetter,
   emit,
+  onSessionIdLearned,
   subagentHandles,
 }: {
   agentId: AgentId;
@@ -49,6 +54,17 @@ export const startSubagentTailLayerBroker = ({
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: QuestId | null;
+  }) => void;
+  // Fires once when the sub-agent's first user-text line lands — that line carries
+  // the parent's `Task.input.prompt` verbatim, which embeds `workItemId: "<uuid>"` and
+  // `questId: "<uuid>"`. The realAgentId (= filename, = `agentId` param) is the
+  // per-sub-agent unique identifier and is what gets stamped onto
+  // `quest.workItems[workItemId].sessionId` so per-work-item history replay can find
+  // the matching `subagents/agent-<sessionId>.jsonl`.
+  onSessionIdLearned?: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    sessionId: SessionId;
   }) => void;
   subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
 }): AdapterResult => {
@@ -64,6 +80,8 @@ export const startSubagentTailLayerBroker = ({
   );
   const subagentSource = chatLineSourceContract.parse('subagent');
 
+  let sessionIdReported = false;
+
   const handle = fsWatchTailAdapter({
     filePath: subagentJsonlPath,
     onLine: ({ line }) => {
@@ -76,6 +94,18 @@ export const startSubagentTailLayerBroker = ({
       for (const output of outputs) {
         if (output.type === 'entries' && output.entries.length > 0) {
           emit({ chatProcessId, entries: output.entries, questId: activeQuestIdGetter() });
+        }
+      }
+
+      if (!sessionIdReported && onSessionIdLearned !== undefined) {
+        const ids = taskPromptIdsExtractorTransformer({ parsed });
+        if (ids !== null) {
+          sessionIdReported = true;
+          onSessionIdLearned({
+            questId: ids.questId,
+            workItemId: ids.workItemId,
+            sessionId: sessionIdContract.parse(String(agentId)),
+          });
         }
       }
     },

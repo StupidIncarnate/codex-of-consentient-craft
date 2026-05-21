@@ -4,12 +4,13 @@
  * quest.json. Every caller is a Task()-dispatched sub-agent under `/dumpster-launch`, so
  * questId and workItemId are always supplied.
  *
- * Session id capture (per plan/piped-dancing-boole.md "Session id capture mechanism"):
- *   v1 uses Fallback B (defer-to-line-emit). MCP stdio transport does NOT expose a per-call session
- *   id to handlers (interactionFlow forwards only {args}), so this broker does NOT persist
- *   sessionId onto quest.workItems[workItemId] up front. ChatEntry → quest routing is reconstructed
- *   on the fly by chatLineProcessTransformer's parent_tool_use_id correlation. Revisit if a future
- *   Claude Code version surfaces transport metadata.
+ * Session id capture: this broker does NOT persist sessionId itself — MCP stdio carries
+ * no per-call session metadata. The capture happens in the JSONL watcher: when each
+ * Task-dispatched sub-agent's first user-text line lands (Claude CLI passes the parent's
+ * Task.input.prompt verbatim), `start-subagent-tail-layer-broker` extracts the embedded
+ * `workItemId: "<uuid>"` + `questId: "<uuid>"` and fires `onSessionIdLearned` with the
+ * sub-agent's realAgentId as the sessionId. `quest-monitor-watcher-start-broker` wires
+ * that hook to `questModifyBroker`, stamping `quest.workItems[workItemId].sessionId`.
  *
  * USAGE:
  * const augmented = await agentPromptGetBroker({ agent: 'codeweaver', questId, workItemId });

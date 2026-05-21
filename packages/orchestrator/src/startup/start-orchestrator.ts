@@ -17,6 +17,7 @@ import type {
   AdapterResult,
   AddQuestInput,
   AddQuestResult,
+  AgentId,
   AgentPromptResult,
   DirectoryEntry,
   GetQuestResult,
@@ -216,14 +217,21 @@ export const StartOrchestrator = {
 
   replayChatHistory: async ({
     sessionId,
+    agentId,
     guildId,
     chatProcessId,
   }: {
     sessionId: SessionId;
+    agentId?: AgentId;
     guildId: GuildId;
     chatProcessId?: ProcessId;
   }): Promise<AdapterResult> =>
-    ChatReplayFlow({ sessionId, guildId, ...(chatProcessId && { chatProcessId }) }),
+    ChatReplayFlow({
+      sessionId,
+      guildId,
+      ...(agentId && { agentId }),
+      ...(chatProcessId && { chatProcessId }),
+    }),
 
   // Design chat methods
   startDesignChat: async ({

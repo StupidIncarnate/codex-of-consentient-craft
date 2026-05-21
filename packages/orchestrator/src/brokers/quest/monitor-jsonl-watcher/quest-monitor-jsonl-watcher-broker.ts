@@ -23,6 +23,8 @@ import {
   type ChatEntry,
   type ProcessId,
   type QuestId,
+  type QuestWorkItemId,
+  type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
@@ -42,6 +44,7 @@ export const questMonitorJsonlWatcherBroker = ({
   activeQuestIdGetter,
   chatProcessId,
   emit,
+  onSessionIdLearned,
 }: {
   monitorSession: ActiveMonitorSession;
   activeQuestIdGetter: () => QuestId | null;
@@ -50,6 +53,15 @@ export const questMonitorJsonlWatcherBroker = ({
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: QuestId | null;
+  }) => void;
+  // Forwarded to every sub-agent tail this broker starts — fires once per sub-agent
+  // when the first user-text line carrying the orchestrator's taskPrompt lands. The
+  // caller wires this to `questModifyBroker` so the realAgentId is persisted as the
+  // matching work item's `sessionId` for downstream history replay.
+  onSessionIdLearned?: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    sessionId: SessionId;
   }) => void;
 }): { stop: () => void } => {
   // ONE processor instance is shared across the main JSONL tail AND every sub-agent JSONL
@@ -86,6 +98,7 @@ export const questMonitorJsonlWatcherBroker = ({
         chatProcessId,
         activeQuestIdGetter,
         emit,
+        ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
         subagentHandles,
       });
     }
@@ -124,6 +137,7 @@ export const questMonitorJsonlWatcherBroker = ({
           chatProcessId,
           activeQuestIdGetter,
           emit,
+          ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
           subagentHandles,
         });
       }

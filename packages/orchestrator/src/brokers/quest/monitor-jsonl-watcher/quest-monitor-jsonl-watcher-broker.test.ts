@@ -3,6 +3,8 @@ import {
   FilePathStub,
   ProcessIdStub,
   QuestIdStub,
+  QuestWorkItemIdStub,
+  SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
@@ -307,6 +309,65 @@ describe('questMonitorJsonlWatcherBroker', () => {
             },
           ],
           questId: activeQuestId,
+        },
+      ]);
+    });
+  });
+
+  describe('onSessionIdLearned forwarding', () => {
+    it('VALID: {pre-existing subagent JSONL + first user-text line embeds taskPrompt} => callback fires with {questId, workItemId, sessionId=agentId}', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const projectDir = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj',
+      });
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-forward' });
+      const activeQuestId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
+      });
+      const realAgentId = 'acd35f7b7763e33e8';
+
+      const promptText = `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pathseeker-surface",\n  workItemId: "${String(
+        workItemId,
+      )}",\n  questId: "${String(activeQuestId)}"\n}) and follow its instructions exactly.`;
+      const promptJson = JSON.stringify(promptText);
+
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })],
+      });
+      proxy.setupLines({
+        lines: [
+          `{"type":"user","uuid":"sub-first","timestamp":"2026-05-13T10:00:00.000Z","message":{"role":"user","content":${promptJson}}}`,
+        ],
+      });
+      proxy.setupLines({ lines: [] });
+
+      const learned: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (): void => {
+          // entries emit ignored in this scope
+        },
+        onSessionIdLearned: (call) => {
+          learned.push(call);
+        },
+      });
+
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(learned).toStrictEqual([
+        {
+          questId: activeQuestId,
+          workItemId,
+          sessionId: SessionIdStub({ value: realAgentId }),
         },
       ]);
     });

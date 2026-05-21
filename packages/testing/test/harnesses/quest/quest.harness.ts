@@ -60,6 +60,7 @@ export const questHarness = ({
       id: string;
       role: string;
       sessionId?: string;
+      agentId?: string;
       status?: string;
       spawnerType?: string;
       dependsOn?: string[];
@@ -135,6 +136,7 @@ export const questHarness = ({
       id: string;
       role: string;
       sessionId?: string;
+      agentId?: string;
       status?: string;
       spawnerType?: string;
       dependsOn?: string[];
@@ -171,6 +173,7 @@ export const questHarness = ({
         status: wi.status ?? 'complete',
         spawnerType: wi.spawnerType ?? 'agent',
         ...(wi.sessionId === undefined ? {} : { sessionId: wi.sessionId }),
+        ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
         createdAt:
           wi.createdAt ?? new Date(Date.now() + index * CREATED_AT_INTERVAL_MS).toISOString(),
         relatedDataItems: wi.relatedDataItems ?? [],

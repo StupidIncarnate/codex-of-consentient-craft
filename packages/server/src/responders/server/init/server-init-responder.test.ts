@@ -1,5 +1,6 @@
 import {
   AbsoluteFilePathStub,
+  AgentIdStub,
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
@@ -201,6 +202,57 @@ describe('ServerInitResponder', () => {
         ],
         completeCallCount: 1,
       });
+    });
+  });
+
+  describe('websocket onMessage subscribe-quest agentId forwarding', () => {
+    it('VALID: {workItem carries agentId} => forwards both sessionId and agentId to replay adapter', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-with-agent-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
+      });
+      const sessionId = SessionIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402' });
+      const agentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({
+        id: questId,
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'pathseeker-surface',
+            sessionId,
+            agentId,
+          }),
+        ],
+      });
+      proxy.setupLoadQuestSuccess({ quest });
+      proxy.setupFindQuestPathSuccess({
+        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        guildId,
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(proxy.getReplayChatHistoryCalls()).toStrictEqual([
+        {
+          sessionId,
+          agentId,
+          guildId,
+          chatProcessId: `quest-replay-${questId}-${workItemId}-${sessionId}`,
+        },
+      ]);
     });
   });
 

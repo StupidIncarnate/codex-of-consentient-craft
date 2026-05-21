@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 
+import { agentIdContract } from '../agent-id/agent-id-contract';
 import { fileNameContract } from '../file-name/file-name-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
@@ -23,6 +24,12 @@ export const workItemContract = z.object({
   status: workItemStatusContract,
   spawnerType: spawnerTypeContract,
   sessionId: sessionIdContract.optional(),
+  // Set when the work item is a Task-dispatched sub-agent under /dumpster-launch — value is
+  // Claude CLI's realAgentId (the filename in `<sessionId>/subagents/agent-<agentId>.jsonl`).
+  // Combined with `sessionId` (parent /dumpster-launch session) it locates the exact JSONL
+  // file the replay should read. Absent for chat roles (chaoswhisperer, glyphsmith) whose
+  // `sessionId` already points at a top-level `<sessionId>.jsonl`.
+  agentId: agentIdContract.optional(),
   relatedDataItems: z.array(relatedDataItemContract).default([]),
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),

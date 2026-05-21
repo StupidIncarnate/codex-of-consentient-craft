@@ -1,4 +1,5 @@
 import {
+  AgentIdStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   FileNameStub,
@@ -998,6 +999,77 @@ describe('chatHistoryReplayBroker', () => {
             agentId: taskToolUseId,
             uuid: 'inflight-subagent-text-line-uuid:0',
             timestamp: '2025-01-01T00:00:03.000Z',
+          },
+        ],
+      ]);
+    });
+
+    it('VALID: {agentId param} => emits ONLY the matching sub-agent JSONL; other sub-agents skipped', async () => {
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const matchingAgentId = 'acd35f7b7763e33e8';
+      const otherAgentId = 'b00000000000other';
+
+      const matchingSubLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'MATCHING_SUBAGENT_OUTPUT' }],
+          },
+        }),
+        uuid: 'matching-sub-line-uuid',
+        timestamp: '2025-01-01T00:00:02.000Z',
+      });
+
+      const otherSubLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: 'OTHER_SUBAGENT_OUTPUT' }],
+          },
+        }),
+        uuid: 'other-sub-line-uuid',
+        timestamp: '2025-01-01T00:00:03.000Z',
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      // Main JSONL read is skipped when agentId is supplied — do NOT queue main content,
+      // otherwise the first subagent read pops that off the shared FIFO mock instead of
+      // its own content.
+      proxy.setupSubagentDir({
+        files: [
+          FileNameStub({ value: `agent-${matchingAgentId}.jsonl` }),
+          FileNameStub({ value: `agent-${otherAgentId}.jsonl` }),
+        ],
+      });
+      proxy.setupSubagentFile({ content: matchingSubLine });
+      proxy.setupSubagentFile({ content: otherSubLine });
+
+      const batches: unknown[] = [];
+
+      await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: matchingAgentId }),
+        guildId,
+        onEntries: ({ entries }) => {
+          batches.push(entries);
+        },
+      });
+
+      expect(batches).toStrictEqual([
+        [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'MATCHING_SUBAGENT_OUTPUT',
+            source: 'subagent',
+            agentId: matchingAgentId,
+            uuid: 'matching-sub-line-uuid:0',
+            timestamp: '2025-01-01T00:00:02.000Z',
           },
         ],
       ]);

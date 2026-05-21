@@ -264,6 +264,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                         replayClientByChatProcessId.set(taggedId, subWs);
                         await orchestratorReplayChatHistoryAdapter({
                           sessionId: wi.sessionId,
+                          ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                           guildId: subGuildId,
                           chatProcessId: taggedId,
                         }).catch(() => {
@@ -401,6 +402,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                       );
                       await orchestratorReplayChatHistoryAdapter({
                         sessionId: wi.sessionId,
+                        ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                         guildId: replayGuildId,
                         chatProcessId: taggedId,
                       }).catch(() => {
