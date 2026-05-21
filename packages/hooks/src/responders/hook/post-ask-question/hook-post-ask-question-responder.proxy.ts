@@ -8,9 +8,11 @@
  * // ... call responder ...
  * proxy.getPatchedBody();
  */
-import { portResolveBrokerProxy, fetchGetAdapterProxy } from '@dungeonmaster/shared/testing';
-import { fetchPatchAdapterProxy } from '../../../adapters/fetch/patch/fetch-patch-adapter.proxy';
+import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
+import { fetchGetWithStatusAdapterProxy } from '../../../adapters/fetch/get-with-status/fetch-get-with-status-adapter.proxy';
+import { fetchPatchAdapterProxy } from '../../../adapters/fetch/patch/fetch-patch-adapter.proxy';
 
 const DEFAULT_NOW_MS = 0;
 
@@ -32,7 +34,9 @@ const buildResponse = ({
 export const HookPostAskQuestionResponderProxy = (): {
   setupHappyPath: (params: { questId: unknown }) => void;
   setupQuestNotFound: () => void;
-  setupNetworkError: (params: { error: Error }) => void;
+  setupServerUnreachable: () => void;
+  setupServer5xx: (params: { status: number; bodyText: string }) => void;
+  setupInvalidResponseShape: () => void;
   setupPatchFails: (params: { error: Error }) => void;
   getPatchedBody: () => unknown;
   getPatchUrl: () => unknown;
@@ -43,7 +47,7 @@ export const HookPostAskQuestionResponderProxy = (): {
 
   // Child proxies required by enforce-proxy-child-creation; instantiated before the direct
   // spy so the direct spy registration below wins and controls both fetch calls.
-  fetchGetAdapterProxy();
+  fetchGetWithStatusAdapterProxy();
   fetchPatchAdapterProxy();
 
   const fetchHandle = registerSpyOn({ object: globalThis, method: 'fetch' });
@@ -63,12 +67,26 @@ export const HookPostAskQuestionResponderProxy = (): {
     },
     setupQuestNotFound: (): void => {
       fetchHandle.mockResolvedValueOnce(
-        buildResponse({ ok: false, status: 404, bodyText: 'Not found' }),
+        buildResponse({
+          ok: false,
+          status: 404,
+          bodyText: JSON.stringify({ error: 'No quest found for session' }),
+        }),
       );
     },
-    setupNetworkError: ({ error }: { error: Error }): void => {
+    setupServerUnreachable: (): void => {
+      fetchHandle.mockRejectedValueOnce(new TypeError('fetch failed'));
+    },
+    setupServer5xx: ({ status, bodyText }: { status: number; bodyText: string }): void => {
+      fetchHandle.mockResolvedValueOnce(buildResponse({ ok: false, status, bodyText }));
+    },
+    setupInvalidResponseShape: (): void => {
       fetchHandle.mockResolvedValueOnce(
-        buildResponse({ ok: false, status: 500, bodyText: error.message }),
+        buildResponse({
+          ok: true,
+          status: 200,
+          bodyText: JSON.stringify({ wrongField: 'no questId here' }),
+        }),
       );
     },
     setupPatchFails: ({ error }: { error: Error }): void => {

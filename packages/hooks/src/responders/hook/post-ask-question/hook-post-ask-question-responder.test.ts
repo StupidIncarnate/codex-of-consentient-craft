@@ -196,8 +196,8 @@ describe('HookPostAskQuestionResponder', () => {
     });
   });
 
-  describe('quest not found (404)', () => {
-    it('ERROR: {session not matched by server} => returns exitCode 1 and no PATCH', async () => {
+  describe('not a Chaos session (404)', () => {
+    it('VALID: {server returns 404 for session} => silent no-op exitCode 0 and no PATCH', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setupQuestNotFound();
 
@@ -215,19 +215,15 @@ describe('HookPostAskQuestionResponder', () => {
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
-      expect(result).toStrictEqual({
-        stdout: '',
-        stderr: 'quest lookup failed (see stderr above)',
-        exitCode: 2,
-      });
+      expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
       expect(proxy.getPatchedBody()).toBe(undefined);
     });
   });
 
-  describe('network error on GET', () => {
-    it('ERROR: {server down during lookup} => returns exitCode 1 and no PATCH', async () => {
+  describe('server unreachable (connection-level failure)', () => {
+    it('VALID: {fetch throws TypeError} => silent no-op exitCode 0 and no PATCH', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupNetworkError({ error: new Error('ECONNREFUSED') });
+      proxy.setupServerUnreachable();
 
       const questionInput = AskUserQuestionStub();
 
@@ -243,9 +239,64 @@ describe('HookPostAskQuestionResponder', () => {
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
+      expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
+      expect(proxy.getPatchedBody()).toBe(undefined);
+    });
+  });
+
+  describe('server 5xx on lookup', () => {
+    it('ERROR: {server returns 500} => returns exitCode 2 with status-based stderr and no PATCH', async () => {
+      const proxy = HookPostAskQuestionResponderProxy();
+      proxy.setupServer5xx({ status: 500, bodyText: '{"error":"Boom"}' });
+
+      const questionInput = AskUserQuestionStub();
+
+      const stub = PostToolUseHookStub({
+        tool_name: 'AskUserQuestion' as never,
+        tool_input: questionInput as never,
+        tool_response: {
+          questions: questionInput.questions,
+          answers: { 'Which option do you prefer?': 'Option A' },
+        } as never,
+        session_id: 'session-broken-server' as never,
+      });
+
+      const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
+
       expect(result).toStrictEqual({
         stdout: '',
-        stderr: 'quest lookup failed (see stderr above)',
+        stderr:
+          'quest lookup failed at http://dungeonmaster.localhost:3737/api/quests/by-session/session-broken-server: status 500',
+        exitCode: 2,
+      });
+      expect(proxy.getPatchedBody()).toBe(undefined);
+    });
+  });
+
+  describe('lookup returns malformed JSON shape', () => {
+    it('ERROR: {200 with missing questId field} => returns exitCode 2 with Zod-shape stderr', async () => {
+      const proxy = HookPostAskQuestionResponderProxy();
+      proxy.setupInvalidResponseShape();
+
+      const questionInput = AskUserQuestionStub();
+
+      const stub = PostToolUseHookStub({
+        tool_name: 'AskUserQuestion' as never,
+        tool_input: questionInput as never,
+        tool_response: {
+          questions: questionInput.questions,
+          answers: { 'Which option do you prefer?': 'Option A' },
+        } as never,
+        session_id: 'session-bad-shape' as never,
+      });
+
+      const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
+
+      expect(result).toStrictEqual({
+        stdout: '',
+        stderr: expect.stringMatching(
+          /^quest lookup at http:\/\/dungeonmaster\.localhost:3737\/api\/quests\/by-session\/session-bad-shape returned invalid shape: .+$/su,
+        ),
         exitCode: 2,
       });
       expect(proxy.getPatchedBody()).toBe(undefined);
@@ -253,7 +304,7 @@ describe('HookPostAskQuestionResponder', () => {
   });
 
   describe('PATCH fails', () => {
-    it('ERROR: {PATCH network error} => returns exitCode 1 with PATCH failure message', async () => {
+    it('ERROR: {PATCH network error} => returns exitCode 2 with PATCH failure message', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setupPatchFails({ error: new Error('connection reset') });
 

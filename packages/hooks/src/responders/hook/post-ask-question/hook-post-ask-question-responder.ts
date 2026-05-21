@@ -1,18 +1,22 @@
 /**
  * PURPOSE: Handles PostToolUse hook events for the native AskUserQuestion tool — resolves the
- * quest by session_id and PATCHes a DesignDecision per answered question onto it. On any real
- * failure (server down, 404, PATCH error, missing tool_response), exits 2 so Claude sees the
- * stderr and can react — silent failure would leave ChaosWhisperer's spec-building flow
- * thinking design decisions are persisted when they aren't.
+ * quest by session_id and PATCHes a DesignDecision per answered question onto it. The hook
+ * is installed globally, so it fires for every Claude Code session on the machine. To avoid
+ * interrupting non-Chaos sessions, two outcomes silently no-op (exit 0): (a) the server
+ * returns 404 — sessionId is not a Chaos quest's chaoswhisperer workItem; (b) the GET fails
+ * at the connection layer — no dungeonmaster server is running here, so this can't be Chaos
+ * (Chaos sub-agents only run while the orchestrator+server are alive together). Exit 2
+ * (blocking) is reserved for confirmed-Chaos sessions where persistence broke: 5xx on
+ * lookup, malformed response shape, or PATCH failure — silent failure would leave
+ * ChaosWhisperer's spec-building flow thinking decisions are persisted when they aren't.
  *
  * USAGE:
  * const result = await HookPostAskQuestionResponder({ inputData: rawHookJson });
- * // Returns ExecResult with stdout/stderr/exitCode — 0 on success, 2 on real failure
+ * // Returns ExecResult with stdout/stderr/exitCode — 0 on success or non-Chaos no-op, 2 on real failure
  */
 
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
-import { fetchGetAdapter } from '@dungeonmaster/shared/adapters';
 import { askUserQuestionResponseContract } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -20,12 +24,11 @@ import {
   type ExecResult,
 } from '../../../contracts/exec-result/exec-result-contract';
 import { postToolUseHookDataContract } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data-contract';
-import {
-  questBySessionResponseContract,
-  type QuestBySessionResponse,
-} from '../../../contracts/quest-by-session-response/quest-by-session-response-contract';
+import { questBySessionResponseContract } from '../../../contracts/quest-by-session-response/quest-by-session-response-contract';
+import { fetchGetWithStatusAdapter } from '../../../adapters/fetch/get-with-status/fetch-get-with-status-adapter';
 import { fetchPatchAdapter } from '../../../adapters/fetch/patch/fetch-patch-adapter';
 import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
+import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { askQuestionToDesignDecisionsTransformer } from '../../../transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer';
 
 export const HookPostAskQuestionResponder = async ({
@@ -52,9 +55,6 @@ export const HookPostAskQuestionResponder = async ({
     return okResult;
   }
 
-  // Claude Code's AskUserQuestion PostToolUse payload nests the answers map under tool_response.answers
-  // (and mirrors it under tool_input.answers). The shared askUserQuestionResponseContract validates
-  // the full {questions, answers} shape so we get typed access instead of casts.
   const responseParsed = askUserQuestionResponseContract.safeParse(hookData.tool_response);
   if (!responseParsed.success) {
     process.stderr.write(
@@ -71,25 +71,41 @@ export const HookPostAskQuestionResponder = async ({
   const port = portResolveBroker();
   const baseUrl = `http://${environmentStatics.hostname}:${String(port)}`;
   const sessionId = String(hookData.session_id);
+  const url = `${baseUrl}/api/quests/by-session/${sessionId}`;
 
-  const sessionFetch: QuestBySessionResponse | null = await fetchGetAdapter<unknown>({
-    url: `${baseUrl}/api/quests/by-session/${sessionId}`,
-  })
-    .then((raw) => questBySessionResponseContract.parse(raw))
-    .catch((error: unknown) => {
-      const cause = error instanceof Error ? error.message : String(error);
-      const url = `${baseUrl}/api/quests/by-session/${sessionId}`;
-      process.stderr.write(`[post-ask-question] quest lookup failed at ${url}: ${cause}\n`);
-      return null;
-    });
-  if (sessionFetch === null) {
+  // Connection-level failure (server not running) is silent no-op — this session is not
+  // Chaos. Chaos sub-agents only run while the orchestrator+server are alive together.
+  const lookupResult = await fetchGetWithStatusAdapter({ url }).catch((): null => null);
+  if (lookupResult === null) {
+    return okResult;
+  }
+
+  if (lookupResult.status === httpStatusStatics.notFound) {
+    // Server says no Chaos quest matches this session — generic Claude session. Silent no-op.
+    return okResult;
+  }
+
+  if (!lookupResult.ok) {
+    const message = `quest lookup failed at ${url}: status ${String(lookupResult.status)}`;
+    process.stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
-      stderr: 'quest lookup failed (see stderr above)',
+      stderr: message,
       exitCode: hookExitCodeStatics.blockingFailure,
     });
   }
-  const { questId } = sessionFetch;
+
+  const sessionParsed = questBySessionResponseContract.safeParse(lookupResult.body);
+  if (!sessionParsed.success) {
+    const message = `quest lookup at ${url} returned invalid shape: ${sessionParsed.error.message}`;
+    process.stderr.write(`[post-ask-question] ${message}\n`);
+    return execResultContract.parse({
+      stdout: '',
+      stderr: message,
+      exitCode: hookExitCodeStatics.blockingFailure,
+    });
+  }
+  const { questId } = sessionParsed.data;
 
   const designDecisions = askQuestionToDesignDecisionsTransformer({
     toolInput: hookData.tool_input,
