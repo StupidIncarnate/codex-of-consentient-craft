@@ -20,6 +20,7 @@
 import {
   absoluteFilePathContract,
   fileNameContract,
+  sessionIdContract,
   type ChatEntry,
   type ProcessId,
   type QuestId,
@@ -49,10 +50,16 @@ export const questMonitorJsonlWatcherBroker = ({
   monitorSession: ActiveMonitorSession;
   activeQuestIdGetter: () => QuestId | null;
   chatProcessId: ProcessId;
+  // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
+  // buckets them under the same key that `wi.sessionId` resolves to via
+  // chat-replay-responder + the MCP get-agent-prompt stamp. Main-session tail emits
+  // (the parent /dumpster-launch dispatcher) omit `sessionId` — those frames are
+  // dispatcher chatter, not per-row content.
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: QuestId | null;
+    sessionId?: SessionId;
   }) => void;
   // Forwarded to every sub-agent tail this broker starts — fires once per sub-agent
   // when the first user-text line carrying the orchestrator's taskPrompt lands. The
@@ -82,7 +89,18 @@ export const questMonitorJsonlWatcherBroker = ({
   const sessionFilePathAbsolute = absoluteFilePathContract.parse(
     String(monitorSession.sessionFilePath),
   );
-  const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute })}/subagents`;
+  const sessionFileNoSuffix = stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute });
+  const subagentsDir = `${sessionFileNoSuffix}/subagents`;
+  // The parent /dumpster-launch session UUID — the basename of the session JSONL minus
+  // `.jsonl`. Forwarded to every sub-agent tail so each emit carries `sessionId:
+  // parentSessionId`, matching what `wi.sessionId` is stamped to by the MCP
+  // get-agent-prompt handler (interaction-handle-responder) and what chat-replay-responder
+  // emits on the replay path. Keeps the web binding's bucket key in lockstep across
+  // streaming + replay.
+  const lastSlash = sessionFileNoSuffix.lastIndexOf('/');
+  const parentSessionId = sessionIdContract.parse(
+    lastSlash === -1 ? sessionFileNoSuffix : sessionFileNoSuffix.slice(lastSlash + 1),
+  );
   try {
     const files = fsReaddirAdapter({ dirPath: subagentsDir });
     for (const file of files) {
@@ -94,6 +112,7 @@ export const questMonitorJsonlWatcherBroker = ({
       startSubagentTailLayerBroker({
         agentId,
         sessionFilePath: monitorSession.sessionFilePath,
+        parentSessionId,
         processor,
         chatProcessId,
         activeQuestIdGetter,
@@ -133,6 +152,7 @@ export const questMonitorJsonlWatcherBroker = ({
         startSubagentTailLayerBroker({
           agentId: output.agentId,
           sessionFilePath: monitorSession.sessionFilePath,
+          parentSessionId,
           processor,
           chatProcessId,
           activeQuestIdGetter,

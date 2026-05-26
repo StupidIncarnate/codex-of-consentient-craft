@@ -32,6 +32,7 @@ import {
   type OrchestrationEventType,
   type ProcessId,
   type QuestId,
+  type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -113,10 +114,12 @@ export const questMonitorWatcherStartBroker = async ({
       chatProcessId: emittedChatProcessId,
       entries,
       questId,
+      sessionId: emittedSessionId,
     }: {
       chatProcessId: ProcessId;
       entries: ChatEntry[];
       questId: QuestId | null;
+      sessionId?: SessionId;
     }): void => {
       emit({
         type: 'chat-output',
@@ -125,19 +128,31 @@ export const questMonitorWatcherStartBroker = async ({
           chatProcessId: emittedChatProcessId,
           entries,
           ...(questId === null ? {} : { questId }),
+          ...(emittedSessionId === undefined ? {} : { sessionId: emittedSessionId }),
         },
       });
     },
     // Fires once per Task-dispatched sub-agent when its first user-text line lands
-    // carrying the orchestrator's taskPrompt. Persisting the realAgentId as the work
-    // item's `sessionId` lets the per-work-item history panel resolve which
+    // carrying the orchestrator's taskPrompt. The JSONL appearing is the proof the
+    // sub-agent is actually running, so this is also the pending→in_progress
+    // transition point: without it the work item would stay `pending` until
+    // signal-back flips it straight to a terminal status. `startedAt` is fresh on
+    // every fire so retry attempts get a new timestamp. Persisting the realAgentId
+    // as `sessionId` lets the per-work-item history panel resolve which
     // `subagents/agent-<id>.jsonl` to replay. Mirrors the chaos-spawn pattern at
     // packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts (onSessionId).
     onSessionIdLearned: ({ questId, workItemId, sessionId: learnedSessionId }) => {
       questModifyBroker({
         input: {
           questId,
-          workItems: [{ id: workItemId, sessionId: learnedSessionId }],
+          workItems: [
+            {
+              id: workItemId,
+              sessionId: learnedSessionId,
+              status: 'in_progress',
+              startedAt: new Date().toISOString(),
+            },
+          ],
         } as ModifyQuestInput,
       }).catch((error: unknown) => {
         process.stderr.write(`[monitor-watcher] session-id stamp failed: ${String(error)}\n`);

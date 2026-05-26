@@ -38,6 +38,7 @@ import { taskPromptIdsExtractorTransformer } from '../../../transformers/task-pr
 export const startSubagentTailLayerBroker = ({
   agentId,
   sessionFilePath,
+  parentSessionId,
   processor,
   chatProcessId,
   activeQuestIdGetter,
@@ -47,6 +48,13 @@ export const startSubagentTailLayerBroker = ({
 }: {
   agentId: AgentId;
   sessionFilePath: FilePath;
+  // The /dumpster-launch parent's session UUID. Stamped on every emit as `sessionId`
+  // so the web binding buckets each sub-agent's entries under the same key that
+  // chat-replay-responder uses on the replay path (and that get-agent-prompt's
+  // modify-quest stamp uses for `wi.sessionId`). Without it, live frames land in
+  // the binding's SYNTHETIC_SESSION_KEY bucket and the execution row's
+  // `sessionEntries.get(wi.sessionId)` lookup returns [] until the user refreshes.
+  parentSessionId: SessionId;
   processor: ChatLineProcessor;
   chatProcessId: ProcessId;
   activeQuestIdGetter: () => QuestId | null;
@@ -54,6 +62,7 @@ export const startSubagentTailLayerBroker = ({
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: QuestId | null;
+    sessionId: SessionId;
   }) => void;
   // Fires once when the sub-agent's first user-text line lands — that line carries
   // the parent's `Task.input.prompt` verbatim, which embeds `workItemId: "<uuid>"` and
@@ -93,7 +102,12 @@ export const startSubagentTailLayerBroker = ({
       });
       for (const output of outputs) {
         if (output.type === 'entries' && output.entries.length > 0) {
-          emit({ chatProcessId, entries: output.entries, questId: activeQuestIdGetter() });
+          emit({
+            chatProcessId,
+            entries: output.entries,
+            questId: activeQuestIdGetter(),
+            sessionId: parentSessionId,
+          });
         }
       }
 

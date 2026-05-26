@@ -22,13 +22,14 @@ const flushImmediate = async (): Promise<void> =>
   });
 
 describe('startSubagentTailLayerBroker', () => {
-  it('VALID: {subagent JSONL line emitted} => emit fires with chatProcessId, entries (source=subagent), and active questId', async () => {
+  it('VALID: {subagent JSONL line emitted} => emit fires with chatProcessId, entries (source=subagent), active questId, and sessionId=parentSessionId', async () => {
     const proxy = startSubagentTailLayerBrokerProxy();
     const sessionFilePath = FilePathStub({
       value: '/home/user/.claude/projects/-home-user-proj/sess.jsonl',
     });
     const chatProcessId = ProcessIdStub({ value: 'layer-proc-1' });
     const agentId = AgentIdStub({ value: 'layer-agent-1' });
+    const parentSessionId = SessionIdStub({ value: 'layer-parent-sess' });
     const activeQuestId = QuestIdStub({ value: 'layer-quest-1' });
     const processor = chatLineProcessTransformer();
     const handles = new Map<
@@ -47,6 +48,7 @@ describe('startSubagentTailLayerBroker', () => {
     startSubagentTailLayerBroker({
       agentId,
       sessionFilePath,
+      parentSessionId,
       processor,
       chatProcessId,
       activeQuestIdGetter: () => activeQuestId,
@@ -74,6 +76,7 @@ describe('startSubagentTailLayerBroker', () => {
           },
         ],
         questId: activeQuestId,
+        sessionId: parentSessionId,
       },
     ]);
   });
@@ -95,6 +98,7 @@ describe('startSubagentTailLayerBroker', () => {
       });
       const chatProcessId = ProcessIdStub({ value: 'sid-proc-1' });
       const agentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
+      const parentSessionId = SessionIdStub({ value: 'sid-parent-sess' });
       const activeQuestId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
       const workItemId = QuestWorkItemIdStub({
         value: '875c3364-2d64-4606-b9e3-25dd365c7792',
@@ -124,6 +128,7 @@ describe('startSubagentTailLayerBroker', () => {
       startSubagentTailLayerBroker({
         agentId,
         sessionFilePath,
+        parentSessionId,
         processor,
         chatProcessId,
         activeQuestIdGetter: () => activeQuestId,
@@ -155,6 +160,7 @@ describe('startSubagentTailLayerBroker', () => {
       });
       const chatProcessId = ProcessIdStub({ value: 'sid-proc-2' });
       const agentId = AgentIdStub({ value: 'no-ids-agent' });
+      const parentSessionId = SessionIdStub({ value: 'sid-parent-no-ids' });
       const activeQuestId = QuestIdStub({ value: 'no-ids-quest' });
       const processor = chatLineProcessTransformer();
       const handles = new Map<
@@ -173,6 +179,7 @@ describe('startSubagentTailLayerBroker', () => {
       startSubagentTailLayerBroker({
         agentId,
         sessionFilePath,
+        parentSessionId,
         processor,
         chatProcessId,
         activeQuestIdGetter: () => activeQuestId,
@@ -198,6 +205,7 @@ describe('startSubagentTailLayerBroker', () => {
       });
       const chatProcessId = ProcessIdStub({ value: 'sid-proc-3' });
       const agentId = AgentIdStub({ value: 'no-callback-agent' });
+      const parentSessionId = SessionIdStub({ value: 'sid-parent-no-callback' });
       const activeQuestId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
       const workItemId = QuestWorkItemIdStub({
         value: '875c3364-2d64-4606-b9e3-25dd365c7792',
@@ -220,6 +228,7 @@ describe('startSubagentTailLayerBroker', () => {
       startSubagentTailLayerBroker({
         agentId,
         sessionFilePath,
+        parentSessionId,
         processor,
         chatProcessId,
         activeQuestIdGetter: () => activeQuestId,
@@ -243,6 +252,7 @@ describe('startSubagentTailLayerBroker', () => {
     });
     const chatProcessId = ProcessIdStub({ value: 'layer-proc-2' });
     const agentId = AgentIdStub({ value: 'layer-agent-2' });
+    const parentSessionId = SessionIdStub({ value: 'layer-parent-sess-2' });
     const activeQuestId = QuestIdStub({ value: 'layer-quest-2' });
     const processor = chatLineProcessTransformer();
     const handles = new Map<
@@ -262,6 +272,7 @@ describe('startSubagentTailLayerBroker', () => {
     startSubagentTailLayerBroker({
       agentId,
       sessionFilePath,
+      parentSessionId,
       processor,
       chatProcessId,
       activeQuestIdGetter: () => activeQuestId,

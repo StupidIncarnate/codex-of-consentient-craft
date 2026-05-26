@@ -309,6 +309,11 @@ describe('questMonitorJsonlWatcherBroker', () => {
             },
           ],
           questId: activeQuestId,
+          // Parent session UUID derived from `monitorSession.sessionFilePath`'s basename
+          // (abc-123.jsonl → abc-123). Stamped on every sub-agent emit so the web binding
+          // buckets streaming frames under the same key chat-replay-responder uses and
+          // get-agent-prompt's modify-quest stamps onto `wi.sessionId`.
+          sessionId: SessionIdStub({ value: 'abc-123' }),
         },
       ]);
     });
