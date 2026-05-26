@@ -11,7 +11,7 @@
  * stop();
  */
 
-import { watch, createReadStream, statSync } from 'fs';
+import { watch, createReadStream, statSync, existsSync } from 'fs';
 import { createInterface } from 'readline';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -59,9 +59,6 @@ export const fsWatchTailAdapter = ({
   // post-exit fallback: stdout already streamed lines up to this file size, and we want
   // to catch background-agent task-notifications that Claude CLI appends later without
   // re-emitting anything that already went through stdout.
-  const initialPosition = startPosition === 'end' ? statSync(filePath).size : 0;
-  const state = { position: initialPosition, reading: false, stopped: false };
-
   // The synthetic-emit drain is async (createReadStream + readline). We expose its
   // completion as a promise so chat-start-responder.onComplete can await every drain
   // before emitting chat-complete on the wire — without that await, queued readline
@@ -73,6 +70,27 @@ export const fsWatchTailAdapter = ({
   const initialDrain = new Promise<void>((resolve) => {
     resolveInitialDrainRef.current = resolve;
   });
+
+  // fs.watch + statSync throw synchronously when the path is missing — most commonly an
+  // orphan sub-agent reference in the main JSONL (a historical `tool_use_result.agentId`
+  // line whose `subagents/agent-<id>.jsonl` was removed off-disk). Check first via
+  // existsSync and surface the error through onError instead of letting fs.watch crash
+  // the process. There's a tiny TOCTOU window between this check and the fs.watch call,
+  // but the live-orphan case we care about has the file missing for seconds-to-minutes,
+  // so there's no realistic race.
+  if (!existsSync(filePath)) {
+    onError({ error: new Error(`ENOENT: file does not exist: ${String(filePath)}`) });
+    resolveInitialDrainRef.current?.();
+    return {
+      stop: (): void => {
+        // No watcher was created; nothing to tear down.
+      },
+      initialDrain,
+    };
+  }
+
+  const initialPosition = startPosition === 'end' ? statSync(filePath).size : 0;
+  const state = { position: initialPosition, reading: false, stopped: false };
 
   const watcher = watch(filePath, () => {
     if (state.reading || state.stopped) {
