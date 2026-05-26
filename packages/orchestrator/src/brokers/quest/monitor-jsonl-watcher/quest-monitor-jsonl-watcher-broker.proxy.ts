@@ -1,9 +1,10 @@
 import type { FileName } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
+import { timerSetIntervalAdapterProxy } from '../../../adapters/timer/set-interval/timer-set-interval-adapter.proxy';
 
+import { scanSubagentsDirLayerBrokerProxy } from './scan-subagents-dir-layer-broker.proxy';
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
 
 export const questMonitorJsonlWatcherBrokerProxy = (): {
@@ -12,28 +13,33 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   setupSubagentDirFiles: (params: { files: readonly FileName[] }) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerChange: () => void;
+  triggerPollTick: () => void;
 } => {
   claudeLineNormalizeBrokerProxy();
-  const readdirProxy = fsReaddirAdapterProxy();
-  // `startSubagentTailLayerBrokerProxy()` and `fsWatchTailAdapterProxy()` both end up
-  // registering against the same registerMock callerPath (`fs-watch-tail-adapter`). The
-  // LAST mockImplementation call wins on jest's mock — so the parent's direct
-  // `fsWatchTailAdapterProxy()` (below) takes ownership of the queue + watch callbacks
-  // for every `fsWatchTailAdapter` invocation in this test, including the ones the layer
-  // broker makes for sub-agent tails. The layer proxy is still instantiated to satisfy
-  // `enforce-proxy-child-creation` (the parent broker imports `startSubagentTailLayerBroker`).
+  // `startSubagentTailLayerBrokerProxy()`, `scanSubagentsDirLayerBrokerProxy()`, and
+  // `fsWatchTailAdapterProxy()` all end up registering against the same registerMock
+  // callerPath for `fsWatchTailAdapter`. The LAST mockImplementation call wins on jest's
+  // mock — so the parent's direct `fsWatchTailAdapterProxy()` (below) takes ownership of
+  // the queue + watch callbacks for every `fsWatchTailAdapter` invocation in this test,
+  // including the ones the layer brokers make for sub-agent tails. The layer proxies are
+  // still instantiated to satisfy `enforce-proxy-child-creation` (the parent broker
+  // imports the layers directly). `scanLayerProxy` is captured so the parent's
+  // `setupSubagentDir*` helpers can forward into its semantic methods — the parent broker
+  // no longer calls `fsReaddirAdapter` directly (the layer broker owns that path).
   startSubagentTailLayerBrokerProxy();
+  const scanLayerProxy = scanSubagentsDirLayerBrokerProxy();
   const tailProxy = fsWatchTailAdapterProxy();
+  const intervalProxy = timerSetIntervalAdapterProxy();
 
   return {
     setupSubagentDirEmpty: (): void => {
-      readdirProxy.returns({ files: [] });
+      scanLayerProxy.setupSubagentDirFiles({ files: [] });
     },
     setupSubagentDirMissing: ({ error }: { error: Error }): void => {
-      readdirProxy.throws({ error });
+      scanLayerProxy.setupSubagentDirMissing({ error });
     },
     setupSubagentDirFiles: ({ files }: { files: readonly FileName[] }): void => {
-      readdirProxy.returns({ files: [...files] });
+      scanLayerProxy.setupSubagentDirFiles({ files });
     },
     // Lines are dispensed FIFO across every watcher this broker creates. Watchers are
     // registered in this order: each pre-existing subagent JSONL (in `fsReaddirAdapter`
@@ -46,6 +52,13 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
     },
     triggerChange: (): void => {
       tailProxy.triggerChange();
+    },
+    // Fires the periodic poll-rescan registered with `timerSetIntervalAdapter`. The
+    // broker uses this poll to discover sub-agent JSONL files that appear AFTER the
+    // initial readdir scan but BEFORE the parent emits the user.tool_result line that
+    // produces the `agent-detected` signal (mid-flight sub-agent dispatch).
+    triggerPollTick: (): void => {
+      intervalProxy.triggerTick();
     },
   };
 };

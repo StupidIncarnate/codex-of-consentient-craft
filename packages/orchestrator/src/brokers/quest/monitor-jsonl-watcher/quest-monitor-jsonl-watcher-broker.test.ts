@@ -254,6 +254,74 @@ describe('questMonitorJsonlWatcherBroker', () => {
   });
 
   describe('subagent JSONL tails', () => {
+    it('VALID: {new agent-<id>.jsonl appears AFTER watcher start, before parent emits agent-detected} => poll-rescan tick starts sub-agent tail and emits its lines', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const projectDir = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj',
+      });
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-late' });
+      const activeQuestId = QuestIdStub({ value: 'quest-late-sub' });
+
+      // Initial readdir during watcher startup: subagents/ is empty (sub-agent hasn't
+      // started yet). Then the poll tick's readdir returns the late-appearing file.
+      proxy.setupSubagentDirEmpty();
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-late-1.jsonl' })],
+      });
+      // Main JSONL tail's initial drain: empty.
+      proxy.setupLines({ lines: [] });
+      // Sub-agent tail's first drain (started by the poll tick): one assistant-text line.
+      proxy.setupLines({
+        lines: [
+          '{"type":"assistant","uuid":"sub-late-1","timestamp":"2026-05-13T10:00:10.000Z","message":{"content":[{"type":"text","text":"late from sub"}]}}',
+        ],
+      });
+
+      const emitted: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+      });
+
+      // Fire the periodic poll-rescan registered with `timerSetIntervalAdapter`. The
+      // broker should: rescan subagents/, see the new `agent-late-1.jsonl` file, start
+      // a `fsWatchTailAdapter` on it. The synthetic-change emit from the adapter does
+      // not fire the mocked watch callback, so the test fires `triggerChange()` below
+      // to drain both watchers in registration order (main first → empty, subagent
+      // second → late-1 line).
+      proxy.triggerPollTick();
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'late from sub',
+              source: 'subagent',
+              agentId: 'late-1',
+              uuid: 'sub-late-1:0',
+              timestamp: '2026-05-13T10:00:10.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+      ]);
+    });
+
     it('VALID: {pre-existing agent-<id>.jsonl in subagents/} => sub-agent tail starts and emits its lines tagged with active questId', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
       const projectDir = FilePathStub({

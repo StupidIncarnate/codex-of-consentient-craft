@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Tails the registered monitor session's main JSONL plus every `subagents/agent-*.jsonl` sibling under `<projectDir>/subagents/`, feeds each line through the existing `chatLineProcessTransformer`, and emits the resulting ChatEntry batches via a caller-supplied `emit` callback. New sub-agent files that appear post-start are picked up via the processor's `agent-detected` outputs — every parent-line user tool_result registering a realAgentId triggers a fresh per-file tail.
+ * PURPOSE: Tails the registered monitor session's main JSONL plus every `subagents/agent-*.jsonl` sibling under `<projectDir>/subagents/`, feeds each line through the existing `chatLineProcessTransformer`, and emits the resulting ChatEntry batches via a caller-supplied `emit` callback. New sub-agent files that appear post-start are picked up via two paths: a 1s poll re-scan of the subagents directory (covers mid-flight Task() dispatches whose parent `user.tool_result` line has not landed yet) and the processor's `agent-detected` outputs (covers Task completion, where the parent line that registers the realAgentId is also when the processor learns the toolUseId↔realAgentId pair).
  *
  * USAGE:
  * const handle = questMonitorJsonlWatcherBroker({
@@ -19,7 +19,6 @@
 
 import {
   absoluteFilePathContract,
-  fileNameContract,
   sessionIdContract,
   type ChatEntry,
   type ProcessId,
@@ -29,16 +28,24 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
+import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
 import type { ActiveMonitorSession } from '../../../contracts/active-monitor-session/active-monitor-session-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
-import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
+import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
+
+// How often the broker re-scans `<sessionFilePath without .jsonl>/subagents/` for newly-
+// created `agent-*.jsonl` files. The `agent-detected` signal from the processor only fires
+// when the parent's `user.tool_result` line is observed (i.e. Task completion). Without
+// this poll, sub-agent JSONLs written DURING a mid-flight Task have no live tail watching
+// them and their content is invisible to the web until the user refreshes (replay path).
+// 1000ms keeps the live-streaming feel without spamming the filesystem.
+const SUBAGENT_DIR_POLL_INTERVAL_MS = 1000;
 
 export const questMonitorJsonlWatcherBroker = ({
   monitorSession,
@@ -84,8 +91,9 @@ export const questMonitorJsonlWatcherBroker = ({
   // Initial scan of existing sub-agent JSONL files under
   // `<sessionFilePath without .jsonl>/subagents/`. This is the same layout the replay
   // broker reads — Claude CLI keys sub-agent files by the parent session's path. Files
-  // matching `agent-*.jsonl` get a tail each. Missing directory is non-fatal: new
-  // sub-agents trigger `agent-detected` on the main tail and start their own tails.
+  // matching `agent-*.jsonl` get a tail each. Missing directory is non-fatal: the poll
+  // tick below retries every second, and `agent-detected` from the main tail is a third
+  // path that covers the Task-completion window.
   const sessionFilePathAbsolute = absoluteFilePathContract.parse(
     String(monitorSession.sessionFilePath),
   );
@@ -101,30 +109,32 @@ export const questMonitorJsonlWatcherBroker = ({
   const parentSessionId = sessionIdContract.parse(
     lastSlash === -1 ? sessionFileNoSuffix : sessionFileNoSuffix.slice(lastSlash + 1),
   );
-  try {
-    const files = fsReaddirAdapter({ dirPath: subagentsDir });
-    for (const file of files) {
-      if (!String(file).startsWith('agent-')) continue;
-      if (!String(file).endsWith('.jsonl')) continue;
-      const agentId = stripAgentFilenamePrefixTransformer({
-        fileName: fileNameContract.parse(file),
-      });
-      startSubagentTailLayerBroker({
-        agentId,
-        sessionFilePath: monitorSession.sessionFilePath,
-        parentSessionId,
-        processor,
-        chatProcessId,
-        activeQuestIdGetter,
-        emit,
-        ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
-        subagentHandles,
-      });
-    }
-  } catch {
-    // subagents/ may not exist yet — agent-detected outputs from the main tail will create
-    // per-file tails as new sub-agents come online.
-  }
+  const scanArgs = {
+    subagentsDir,
+    sessionFilePath: monitorSession.sessionFilePath,
+    parentSessionId,
+    processor,
+    chatProcessId,
+    activeQuestIdGetter,
+    emit,
+    ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
+    subagentHandles,
+  };
+
+  scanSubagentsDirLayerBroker(scanArgs);
+
+  // Periodic re-scan so sub-agent JSONL files created AFTER startup get a tail before the
+  // parent's `user.tool_result` line fires `agent-detected`. Real-world flow: /dumpster-launch
+  // Task()s pathseeker-surface; Claude CLI starts writing `subagents/agent-<id>.jsonl`
+  // immediately; the completion `user.tool_result` only lands minutes later. Without this
+  // poll, the sub-agent's live activity is invisible to the web until the user refreshes
+  // (replay path reads the full JSONL from disk).
+  const pollHandle = timerSetIntervalAdapter({
+    callback: (): void => {
+      scanSubagentsDirLayerBroker(scanArgs);
+    },
+    intervalMs: SUBAGENT_DIR_POLL_INTERVAL_MS,
+  });
 
   // Tail the main session JSONL from the beginning. Unlike `chat-main-session-tail-broker`
   // (which uses startPosition: 'end' because stdout streaming already emitted everything),
@@ -169,6 +179,7 @@ export const questMonitorJsonlWatcherBroker = ({
 
   return {
     stop: (): void => {
+      pollHandle.stop();
       mainHandle.stop();
       for (const handle of subagentHandles.values()) {
         handle.stop();
