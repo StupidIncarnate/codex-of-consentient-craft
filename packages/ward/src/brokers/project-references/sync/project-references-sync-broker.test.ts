@@ -165,7 +165,7 @@ describe('projectReferencesSyncBroker()', () => {
         writtenPaths: [],
         eligibleCount: 0,
         eligibleProjectPaths: ['/repo/packages/pkg-a', '/repo/packages/pkg-b'],
-        cycle: ['@dm/pkg-a', '@dm/pkg-b'],
+        cycle: ['@dm/pkg-a', '@dm/pkg-b', '@dm/pkg-a'],
       });
       expect(proxy.captureWrites()).toStrictEqual([]);
     });

@@ -8,6 +8,7 @@
  */
 
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';
+import { dependencyGraphFindCyclePathTransformer } from '../dependency-graph-find-cycle-path/dependency-graph-find-cycle-path-transformer';
 
 type PackageJsonName = NonNullable<PackageJson['name']>;
 
@@ -64,7 +65,24 @@ export const dependencyGraphTopologicalOrderTransformer = ({
     return { order, cycle: null };
   }
 
-  const cycle = [...inDegree.entries()].filter(([, degree]) => degree > 0).map(([node]) => node);
+  const residual = new Set(
+    [...inDegree.entries()].filter(([, degree]) => degree > 0).map(([node]) => node),
+  );
 
-  return { order: null, cycle };
+  const visited = new Set<PackageJsonName>();
+  for (const start of residual) {
+    const found = dependencyGraphFindCyclePathTransformer({
+      adjacency,
+      residual,
+      node: start,
+      path: [],
+      pathIndex: new Map(),
+      visited,
+    });
+    if (found !== null) {
+      return { order: null, cycle: found };
+    }
+  }
+
+  return { order: null, cycle: [...residual] };
 };

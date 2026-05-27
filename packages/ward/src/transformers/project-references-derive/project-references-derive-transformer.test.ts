@@ -182,7 +182,7 @@ describe('projectReferencesDeriveTransformer', () => {
       expect(result).toStrictEqual({
         perPackage: new Map(),
         root: [],
-        cycle: [nameA, nameB],
+        cycle: [nameA, nameB, nameA],
       });
     });
   });

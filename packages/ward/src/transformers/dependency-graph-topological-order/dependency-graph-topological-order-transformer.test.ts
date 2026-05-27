@@ -62,7 +62,7 @@ describe('dependencyGraphTopologicalOrderTransformer', () => {
   });
 
   describe('cycle detection', () => {
-    it('INVALID: {a depends on b, b depends on a} => returns cycle, no order', () => {
+    it('INVALID: {a depends on b, b depends on a} => returns closed cycle path [a, b, a]', () => {
       const pkgA = pkg('@pkg/a');
       const pkgB = pkg('@pkg/b');
       const adjacency = new Map([
@@ -72,18 +72,35 @@ describe('dependencyGraphTopologicalOrderTransformer', () => {
 
       const result = dependencyGraphTopologicalOrderTransformer({ adjacency });
 
-      expect(result).toStrictEqual({ order: null, cycle: [pkgA, pkgB] });
+      expect(result).toStrictEqual({ order: null, cycle: [pkgA, pkgB, pkgA] });
     });
   });
 
   describe('self-loop', () => {
-    it('INVALID: {a depends on itself} => returns cycle containing a', () => {
+    it('INVALID: {a depends on itself} => returns closed cycle path [a, a]', () => {
       const pkgA = pkg('@pkg/a');
       const adjacency = new Map([[pkgA, [pkgA]]]);
 
       const result = dependencyGraphTopologicalOrderTransformer({ adjacency });
 
-      expect(result).toStrictEqual({ order: null, cycle: [pkgA] });
+      expect(result).toStrictEqual({ order: null, cycle: [pkgA, pkgA] });
+    });
+  });
+
+  describe('cycle with non-cycle dependent', () => {
+    it('INVALID: {a<->b cycle, c depends on a} => cycle excludes c (downstream-of-cycle, not in cycle)', () => {
+      const pkgA = pkg('@pkg/a');
+      const pkgB = pkg('@pkg/b');
+      const pkgC = pkg('@pkg/c');
+      const adjacency = new Map([
+        [pkgA, [pkgB]],
+        [pkgB, [pkgA]],
+        [pkgC, [pkgA]],
+      ]);
+
+      const result = dependencyGraphTopologicalOrderTransformer({ adjacency });
+
+      expect(result).toStrictEqual({ order: null, cycle: [pkgA, pkgB, pkgA] });
     });
   });
 
