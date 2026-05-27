@@ -6,6 +6,9 @@
     "declarationMap": true,
     "declaration": true,
     "noEmit": false,
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "typeRoots": [
       "../../node_modules/@types",
       "../../@types"

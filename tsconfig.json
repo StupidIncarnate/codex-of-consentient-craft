@@ -1,12 +1,12 @@
 {
-  "extends": "./packages/eslint-plugin/configs/tsconfig.json",
   "compilerOptions": {
+    "composite": false,
+    "noEmit": true,
     "target": "ES2022",
     "module": "commonjs",
     "lib": [
       "ES2022"
     ],
-    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,17 +19,43 @@
       "./@types"
     ]
   },
-  "ts-node": {
-    "transpileOnly": true,
-    "compilerOptions": {
-      "module": "commonjs"
+  "references": [
+    {
+      "path": "./packages/testing"
+    },
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./packages/config"
+    },
+    {
+      "path": "./packages/eslint-plugin"
+    },
+    {
+      "path": "./packages/hooks"
+    },
+    {
+      "path": "./packages/tooling"
+    },
+    {
+      "path": "./packages/ward"
+    },
+    {
+      "path": "./packages/orchestrator"
+    },
+    {
+      "path": "./packages/local-eslint"
+    },
+    {
+      "path": "./packages/mcp"
+    },
+    {
+      "path": "./packages/server"
+    },
+    {
+      "path": "./packages/cli"
     }
-  },
-  "include": [
-    "tests/**/*",
-    "packages/*/src/**/*",
-    "packages/*/bin/**/*",
-    "packages/*/tests/**/*"
   ],
   "exclude": [
     "node_modules",
@@ -39,5 +65,13 @@
     "tests/tmp/**/*",
     "jest.*.js",
     "v1/**/*"
-  ]
+  ],
+  "extends": "./packages/eslint-plugin/configs/tsconfig.json",
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "files": []
 }

@@ -49,6 +49,11 @@ export const checkCommandsStatics = {
     args: ['--noEmit', '--listFiles'],
     discoverPatterns: typecheckDiscoverPatterns,
   },
+  typecheckRefs: {
+    bin: 'tsc',
+    args: ['-b', '--listFiles'],
+    discoverPatterns: typecheckDiscoverPatterns,
+  },
   unit: {
     bin: 'jest',
     args: [

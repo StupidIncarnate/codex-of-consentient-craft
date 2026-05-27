@@ -15,6 +15,7 @@ import {
 import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
 import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';
 import { WardRawResponder } from '../../responders/ward/raw/ward-raw-responder';
+import { WardRefsResponder } from '../../responders/ward/refs/ward-refs-responder';
 
 const COMMAND_ARG_INDEX = 2;
 
@@ -22,6 +23,8 @@ const COMMANDS = {
   run: 'run',
   detail: 'detail',
   raw: 'raw',
+  refsSync: 'refs:sync',
+  refsCheck: 'refs:check',
 } as const;
 
 export const WardFlow = async ({
@@ -54,7 +57,17 @@ export const WardFlow = async ({
     return result;
   }
 
+  if (command === COMMANDS.refsSync) {
+    await WardRefsResponder({ args, rootPath, mode: 'sync' });
+    return result;
+  }
+
+  if (command === COMMANDS.refsCheck) {
+    await WardRefsResponder({ args, rootPath, mode: 'check' });
+    return result;
+  }
+
   process.stderr.write(`Unknown command: ${command}\n`);
-  process.stderr.write('Available commands: run, detail, raw\n');
+  process.stderr.write('Available commands: run, detail, raw, refs:sync, refs:check\n');
   return result;
 };

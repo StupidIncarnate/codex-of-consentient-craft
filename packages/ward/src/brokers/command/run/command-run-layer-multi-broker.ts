@@ -17,6 +17,7 @@ import {
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
+import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
@@ -36,10 +37,12 @@ export const commandRunLayerMultiBroker = async ({
   config,
   projectFolders,
   rootPath,
+  preComputedTypecheck,
 }: {
   config: WardConfig;
   projectFolders: ProjectFolder[];
   rootPath: AbsoluteFilePath;
+  preComputedTypecheck?: Map<ProjectFolder['path'], ProjectResult>;
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
@@ -76,7 +79,19 @@ export const commandRunLayerMultiBroker = async ({
     handler: async (folder) => {
       const spawnArgs = wardSpawnCommandStatics.baseArgs.map(String);
 
-      if (config.only) {
+      const hasPreComputedTypecheck = preComputedTypecheck?.has(folder.path) === true;
+
+      const effectiveCheckTypes = hasPreComputedTypecheck
+        ? checkTypes.filter((t) => t !== 'typecheck')
+        : checkTypes;
+
+      if (hasPreComputedTypecheck && effectiveCheckTypes.length === 0) {
+        return null;
+      }
+
+      if (hasPreComputedTypecheck) {
+        spawnArgs.push('--only', effectiveCheckTypes.join(','));
+      } else if (config.only) {
         spawnArgs.push('--only', config.only.join(','));
       }
 
@@ -125,6 +140,7 @@ export const commandRunLayerMultiBroker = async ({
   });
 
   const allChecksByType = new Map<CheckType, CheckResult[]>();
+  const preComputedTypecheckProjectResults: ProjectResult[] = [];
 
   for (const checkType of checkTypes) {
     allChecksByType.set(checkType, []);
@@ -142,13 +158,23 @@ export const commandRunLayerMultiBroker = async ({
     }
   }
 
+  if (preComputedTypecheck !== undefined) {
+    for (const folder of projectFolders) {
+      const pre = preComputedTypecheck.get(folder.path);
+      if (pre !== undefined) {
+        preComputedTypecheckProjectResults.push(pre);
+      }
+    }
+  }
+
   const checks = checkTypes.map((checkType) => {
     const bucket = allChecksByType.get(checkType) ?? [];
     const projectResults = bucket.flatMap((c) => c.projectResults);
+    const extraResults = checkType === 'typecheck' ? preComputedTypecheckProjectResults : [];
     const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
     return checkResultBuildTransformer({
       checkType,
-      projectResults,
+      projectResults: [...projectResults, ...extraResults],
       durationMs: durationMsContract.parse(aggregatedDurationMs),
     });
   });

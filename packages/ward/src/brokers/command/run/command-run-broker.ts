@@ -9,7 +9,10 @@
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
+import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
+import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
+import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
 import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
 import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
@@ -17,7 +20,10 @@ import { commandRunLayerMultiBroker } from './command-run-layer-multi-broker';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
 import { gitDiffFilesBroker } from '../../git/diff-files/git-diff-files-broker';
 import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
+import { isProjectReferencesModeGuard } from '../../../guards/is-project-references-mode/is-project-references-mode-guard';
 import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
+import { projectReferencesSyncBroker } from '../../project-references/sync/project-references-sync-broker';
+import { checkRunTypecheckRefsBroker } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker';
 
 export const commandRunBroker = async ({
   config,
@@ -44,6 +50,52 @@ export const commandRunBroker = async ({
 
   const workspaces = await workspaceDiscoverBroker({ rootPath });
 
+  const checkTypes = resolvedConfig.only ?? [...allCheckTypesStatics];
+  const wantsTypecheck = checkTypes.includes('typecheck');
+
+  const preComputedTypecheck: Map<ProjectFolder['path'], ProjectResult> | undefined =
+    workspaces !== null && wantsTypecheck
+      ? await (async (): Promise<Map<ProjectFolder['path'], ProjectResult> | undefined> => {
+          const syncResult = await projectReferencesSyncBroker({
+            rootPath,
+            projectFolders: workspaces,
+          });
+
+          if (syncResult.status === 'cycle') {
+            const cycleStr = syncResult.cycle?.join(' -> ') ?? '';
+            process.stderr.write(
+              `\nWARNING: project references cycle detected (${cycleStr}). Falling back to per-package typecheck.\n`,
+            );
+            return undefined;
+          }
+
+          if (
+            !isProjectReferencesModeGuard({
+              rootHasWorkspaces: true,
+              eligibleWorkspaceCount: Number(syncResult.eligibleCount),
+            })
+          ) {
+            return undefined;
+          }
+
+          if (syncResult.status === 'synced') {
+            process.stderr.write(
+              `ward: synced project references in ${String(syncResult.writtenPaths.length)} tsconfig(s)\n`,
+            );
+          }
+
+          const eligibleSet = new Set(syncResult.eligibleProjectPaths.map(String));
+          const eligibleFolders = workspaces.filter((folder) =>
+            eligibleSet.has(String(folder.path)),
+          );
+
+          return checkRunTypecheckRefsBroker({
+            rootPath,
+            projectFolders: eligibleFolders,
+          });
+        })()
+      : undefined;
+
   const wardResult =
     workspaces === null
       ? await (async () => {
@@ -54,6 +106,7 @@ export const commandRunBroker = async ({
           config: resolvedConfig,
           projectFolders: workspaces,
           rootPath,
+          ...(preComputedTypecheck === undefined ? {} : { preComputedTypecheck }),
         });
 
   process.stderr.write('\r\x1b[K\n');

@@ -61,12 +61,16 @@ export const eslintLintRunTargetedBroker = async ({
     const absolutePath = pathResolveAdapter({ paths: [cwd, filePath] });
     let results = await eslint.lintText(content, { filePath: absolutePath });
 
-    // If we get a TypeScript project parsing error, try again without project reference
+    // If we get any TypeScript project parsing error, try again without project reference.
+    // This catches both:
+    //   1. "TSConfig does not include this file" (file outside project include)
+    //   2. Project-references errors (parser fails to load referenced projects)
     const hasProjectError =
       results[0]?.messages.some(
         (msg) =>
-          msg.message.includes('parserOptions.project') &&
-          msg.message.includes('TSConfig does not include this file'),
+          msg.message.includes('parserOptions.project') ||
+          msg.message.includes('TSConfig does not include this file') ||
+          msg.message.includes('project references'),
       ) ?? false;
 
     if (hasProjectError) {
