@@ -13,6 +13,7 @@ import { fileNameContract } from '../file-name/file-name-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
+import { sliceNameContract } from '../slice-name/slice-name-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
@@ -42,6 +43,11 @@ export const workItemContract = z.object({
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),
+  // Links a pathseeker-surface work item to its assigned slice on
+  // `quest.planningNotes.scopeClassification.slices[]`. Stamped at insertion by
+  // `questBuildPathseekerGraphBroker`; read by `agentPromptGetBroker` when
+  // building `$ARGUMENTS` so the agent receives its slice's `{name, packages, flowIds}`.
+  sliceName: sliceNameContract.optional(),
   wardMode: z.enum(['changed', 'full']).optional(),
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),

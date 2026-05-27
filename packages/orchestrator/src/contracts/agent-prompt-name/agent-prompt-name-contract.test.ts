@@ -42,6 +42,46 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('pathseeker-walk');
   });
 
+  it('VALID: {value: "codeweaver"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'codeweaver' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('codeweaver');
+  });
+
+  it('VALID: {value: "lawbringer"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'lawbringer' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('lawbringer');
+  });
+
+  it('VALID: {value: "spiritmender"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'spiritmender' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('spiritmender');
+  });
+
+  it('VALID: {value: "siegemaster"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'siegemaster' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('siegemaster');
+  });
+
+  it('VALID: {value: "blightwarden"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'blightwarden' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('blightwarden');
+  });
+
   it('VALID: {value: "blightwarden-security-minion"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'blightwarden-security-minion' });
 

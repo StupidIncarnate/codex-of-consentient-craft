@@ -65,6 +65,13 @@ export const questOrphanResetBroker = async (): Promise<OrphanResetResult> => {
         workItems: orphanedItems.map((wi) => ({
           id: wi.id,
           status: 'pending' as const,
+          // Clear per-run identity. Stale realAgentId/parentSessionId stamped from a
+          // prior /dumpster-launch attempt is misleading once the item is pending again;
+          // the next dispatch's get-agent-prompt call re-stamps fresh values. Null is the
+          // documented clear marker on workItemForUpsertContract.
+          sessionId: null,
+          agentId: null,
+          startedAt: null,
         })),
       });
 

@@ -109,6 +109,8 @@ describe('InteractionHandleResponder', () => {
             id: workItemId,
             sessionId: parentSessionId,
             agentId: realAgentId,
+            status: 'in_progress',
+            startedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
           },
         ],
       });

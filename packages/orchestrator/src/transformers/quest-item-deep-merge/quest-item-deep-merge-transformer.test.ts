@@ -1,10 +1,16 @@
 import {
+  AgentIdStub,
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  QuestWorkItemIdStub,
+  SessionIdStub,
+  WorkItemForUpsertStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { questItemDeepMergeTransformer } from './quest-item-deep-merge-transformer';
 
 type Flow = ReturnType<typeof FlowStub>;
@@ -225,6 +231,57 @@ describe('questItemDeepMergeTransformer', () => {
       const { edges } = result as Flow;
 
       expect(edges).toStrictEqual([updatedEdge]);
+    });
+  });
+
+  describe('null-as-clear (scalar field removal)', () => {
+    it('VALID: {update sets sessionId to null} => removes sessionId from merged work item', () => {
+      const id = QuestWorkItemIdStub({ value: '11111111-1111-1111-1111-111111111111' });
+      const existing = WorkItemStub({
+        id,
+        status: 'in_progress',
+        sessionId: SessionIdStub({ value: 'sess-1' }),
+      });
+      const update = WorkItemForUpsertStub({
+        id,
+        sessionId: null,
+        status: 'pending',
+      });
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const { sessionId: _droppedSessionId, ...withoutSessionId } = existing;
+
+      expect(result).toStrictEqual({ ...withoutSessionId, status: 'pending' });
+    });
+
+    it('VALID: {update clears sessionId, agentId, and startedAt} => removes all three fields', () => {
+      const id = QuestWorkItemIdStub({ value: '22222222-2222-2222-2222-222222222222' });
+      const existing = WorkItemStub({
+        id,
+        status: 'in_progress',
+        sessionId: SessionIdStub({ value: 'sess-2' }),
+        agentId: AgentIdStub({ value: 'agent-2' }),
+        startedAt: IsoTimestampStub({ value: '2026-01-01T00:00:00.000Z' }),
+      });
+      const update = WorkItemForUpsertStub({
+        id,
+        sessionId: null,
+        agentId: null,
+        startedAt: null,
+        status: 'pending',
+      });
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const {
+        sessionId: _droppedSessionId,
+        agentId: _droppedAgentId,
+        startedAt: _droppedStartedAt,
+        ...withoutClearedFields
+      } = existing;
+
+      expect(result).toStrictEqual({ ...withoutClearedFields, status: 'pending' });
     });
   });
 });

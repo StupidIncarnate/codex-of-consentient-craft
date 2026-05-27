@@ -7,6 +7,7 @@
  *
  * MERGE SEMANTICS:
  * - Scalar fields: overwrite with update value
+ * - Scalar fields explicitly set to `null`: removed from the merged result (clear semantics)
  * - Array fields containing items with `id`: recurse via questArrayUpsertTransformer
  * - Array fields without `id` items: replace entirely
  */
@@ -30,6 +31,11 @@ export const questItemDeepMergeTransformer = ({
       update[key] === undefined ||
       (Array.isArray(update[key]) && (update[key] as unknown[]).length === 0)
     ) {
+      continue;
+    }
+
+    if (update[key] === null) {
+      Reflect.deleteProperty(merged, key);
       continue;
     }
 

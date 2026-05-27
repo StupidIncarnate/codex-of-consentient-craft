@@ -23,7 +23,6 @@ import {
   type ChatEntry,
   type ProcessId,
   type QuestId,
-  type QuestWorkItemId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
@@ -52,7 +51,7 @@ export const questMonitorJsonlWatcherBroker = ({
   activeQuestIdGetter,
   chatProcessId,
   emit,
-  onSessionIdLearned,
+  isAgentIdActive,
 }: {
   monitorSession: ActiveMonitorSession;
   activeQuestIdGetter: () => QuestId | null;
@@ -68,16 +67,12 @@ export const questMonitorJsonlWatcherBroker = ({
     questId: QuestId | null;
     sessionId?: SessionId;
   }) => void;
-  // Forwarded to every sub-agent tail this broker starts — fires once per sub-agent
-  // when the first user-text line carrying the orchestrator's taskPrompt lands. The
-  // caller wires this to `questModifyBroker` so the realAgentId is persisted as the
-  // matching work item's `sessionId` for downstream history replay.
-  onSessionIdLearned?: (params: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-    sessionId: SessionId;
-  }) => void;
-}): { stop: () => void } => {
+  // Predicate driving the quest-driven subscription: returns true only when the
+  // agentId corresponds to an in-progress work item stamped via get-agent-prompt.
+  // Stale subagent JSONLs left on disk from prior /dumpster-launch runs return
+  // false and are never tailed.
+  isAgentIdActive: (params: { agentId: AgentId }) => boolean;
+}): { stop: () => void; pruneStaleTails: () => void } => {
   // ONE processor instance is shared across the main JSONL tail AND every sub-agent JSONL
   // tail this broker spawns, mirroring the architecture invariant documented in
   // packages/orchestrator/CLAUDE.md. The processor's realAgentId↔toolUseId reverse map
@@ -117,7 +112,7 @@ export const questMonitorJsonlWatcherBroker = ({
     chatProcessId,
     activeQuestIdGetter,
     emit,
-    ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
+    isAgentIdActive,
     subagentHandles,
   };
 
@@ -157,8 +152,11 @@ export const questMonitorJsonlWatcherBroker = ({
           continue;
         }
         // `agent-detected` — the processor learned a new realAgentId↔toolUseId mapping
-        // from a user tool_result. Start tailing the sub-agent JSONL Claude CLI is writing
-        // for it. Idempotent via the handles-map membership check in the layer broker.
+        // from a user tool_result. Start tailing only if the agentId is recorded on
+        // a current in-progress work item; stale leftovers are skipped.
+        if (!isAgentIdActive({ agentId: output.agentId })) {
+          continue;
+        }
         startSubagentTailLayerBroker({
           agentId: output.agentId,
           sessionFilePath: monitorSession.sessionFilePath,
@@ -167,7 +165,6 @@ export const questMonitorJsonlWatcherBroker = ({
           chatProcessId,
           activeQuestIdGetter,
           emit,
-          ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
           subagentHandles,
         });
       }
@@ -185,6 +182,18 @@ export const questMonitorJsonlWatcherBroker = ({
         handle.stop();
       }
       subagentHandles.clear();
+    },
+    // Stops any tail whose agentId is no longer in the active set. Caller invokes
+    // this after refreshing the active-agentId state in response to a quest-modified
+    // outbox event — when a work item transitions to a terminal status, the
+    // corresponding tail can release its fs handle.
+    pruneStaleTails: (): void => {
+      for (const [agentId, handle] of subagentHandles) {
+        if (!isAgentIdActive({ agentId })) {
+          handle.stop();
+          subagentHandles.delete(agentId);
+        }
+      }
     },
   };
 };

@@ -2,17 +2,15 @@ import {
   FileNameStub,
   FilePathStub,
   QuestIdStub,
-  QuestWorkItemIdStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import type { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 import { questMonitorWatcherStartBroker } from './quest-monitor-watcher-start-broker';
 import { questMonitorWatcherStartBrokerProxy } from './quest-monitor-watcher-start-broker.proxy';
 
 type EmitParam = Parameters<Parameters<typeof questMonitorWatcherStartBroker>[0]['emit']>[0];
-
-const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
 
 const flushImmediate = async (): Promise<void> =>
   new Promise((resolve) => {
@@ -124,62 +122,6 @@ describe('questMonitorWatcherStartBroker', () => {
       expect(monitorSession.isRegistered()).toBe(false);
     });
 
-    it('VALID: {subagent JSONL first line carries taskPrompt with ids} => questModifyBroker stamps sessionId=realAgentId + status=in_progress + fresh startedAt onto matching work item', async () => {
-      const proxy = questMonitorWatcherStartBrokerProxy();
-      proxy.setupHomeDir({ path: '/home/user' });
-
-      const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
-      const workItemId = QuestWorkItemIdStub({
-        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
-      });
-      const realAgentId = 'acd35f7b7763e33e8';
-
-      const promptText = `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pathseeker-surface",\n  workItemId: "${String(
-        workItemId,
-      )}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly.`;
-      const promptJson = JSON.stringify(promptText);
-
-      proxy.setupSubagentDirFiles({
-        files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })],
-      });
-      proxy.setupLines({
-        lines: [
-          `{"type":"user","uuid":"sub-first","timestamp":"2026-05-13T10:00:00.000Z","message":{"role":"user","content":${promptJson}}}`,
-        ],
-      });
-      proxy.setupLines({ lines: [] });
-
-      const monitorSession = makeMonitorSession();
-
-      await questMonitorWatcherStartBroker({
-        parentSessionId: '44444444-4444-4444-4444-444444444444',
-        projectDir: '/home/user/p',
-        monitorSession,
-        emit: (): void => {
-          // no-op for this scope
-        },
-      });
-
-      proxy.triggerChange();
-      await flushImmediate();
-
-      expect(proxy.getQuestModifyCalls()).toStrictEqual([
-        {
-          input: {
-            questId,
-            workItems: [
-              {
-                id: workItemId,
-                sessionId: SessionIdStub({ value: realAgentId }),
-                status: 'in_progress',
-                startedAt: expect.stringMatching(ISO_TIMESTAMP_RE),
-              },
-            ],
-          },
-        },
-      ]);
-    });
-
     it('VALID: {register sequence} => clear happens before register', async () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
@@ -208,6 +150,13 @@ describe('questMonitorWatcherStartBroker', () => {
 
       proxy.setupSubagentDirFiles({
         files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })],
+      });
+      // The quest-driven watcher only tails subagent JSONLs whose agentId matches an
+      // in-progress work item in quest.json. Seed an active quest carrying the
+      // realAgentId so the predicate admits this file.
+      proxy.setupActiveQuest({
+        questId: QuestIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
+        agentIds: [AgentIdStub({ value: realAgentId })],
       });
       // Sub-agent tail reads first (FIFO across watchers — sub-agent tails register before
       // the main tail). Queue an assistant-text line for the sub-agent and an empty batch

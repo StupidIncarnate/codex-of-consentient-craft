@@ -65,16 +65,15 @@ export const InteractionHandleResponder = async ({
       );
     }
 
-    // Stamp the calling sub-agent's identity onto the work item: `sessionId` becomes the
-    // parent /dumpster-launch session UUID, and `agentId` becomes the realAgentId Claude
-    // CLI assigned to this Task. The resolve scans
-    // `<parent-session>/subagents/agent-*.jsonl` for the file whose first user-text line
-    // embeds this workItemId verbatim — Claude CLI passes the parent's `Task.input.prompt`
-    // byte-for-byte as the sub-agent's first content, and the orchestrator's taskPrompt
-    // embeds `workItemId: "<uuid>"` literally. Best-effort: any resolution failure (no
-    // subagents dir yet, parent session not resolvable, modify-quest reject) is logged
-    // and skipped — the get-agent-prompt response still flows so the sub-agent never
-    // blocks on session bookkeeping.
+    // Stamp the calling sub-agent's identity AND flip status to in_progress.
+    // The MCP call itself is direct proof the sub-agent is alive — file presence
+    // alone (the prior bug surface) cannot prove liveness because Claude CLI never
+    // deletes subagent JSONLs. `sessionId` is the parent /dumpster-launch session
+    // UUID and `agentId` is the realAgentId Claude CLI assigned to this Task; the
+    // resolve scans `<parent-session>/subagents/agent-*.jsonl` for the file whose
+    // first user-text line embeds this workItemId verbatim. Best-effort: any
+    // resolution failure (no subagents dir, parent not resolvable, modify-quest
+    // reject) is logged and skipped so the prompt response still flows.
     try {
       const cwd = processCwdAdapter();
       const projectDir = absoluteFilePathContract.parse(String(cwd));
@@ -95,6 +94,8 @@ export const InteractionHandleResponder = async ({
                   id: parsed.data.workItemId,
                   sessionId: parent.sessionId,
                   agentId: realAgentId,
+                  status: 'in_progress',
+                  startedAt: new Date().toISOString(),
                 },
               ],
             } as ModifyQuestInput,

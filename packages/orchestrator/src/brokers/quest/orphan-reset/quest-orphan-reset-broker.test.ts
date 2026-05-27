@@ -1,12 +1,15 @@
 import {
+  AgentIdStub,
   GuildIdStub,
   GuildListItemStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 import { questOrphanResetBroker } from './quest-orphan-reset-broker';
 import { questOrphanResetBrokerProxy } from './quest-orphan-reset-broker.proxy';
 
@@ -90,6 +93,51 @@ describe('questOrphanResetBroker', () => {
       const result = await questOrphanResetBroker();
 
       expect(result).toStrictEqual({ orphansReset: 2 });
+    });
+  });
+
+  describe('clears stale per-run identity', () => {
+    it('VALID: {in_progress work item carries sessionId+agentId+startedAt} => orphan reset writes quest.json with those fields removed', async () => {
+      const proxy = questOrphanResetBrokerProxy();
+      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000005' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-clear-fields' });
+      const workItemId = QuestWorkItemIdStub({ value: '99999999-9999-9999-9999-000000000001' });
+      const orphan = WorkItemStub({
+        id: workItemId,
+        status: 'in_progress',
+        sessionId: SessionIdStub({ value: 'a552a01482d154100' }),
+        agentId: AgentIdStub({ value: 'a552a01482d154100' }),
+        startedAt: IsoTimestampStub({ value: '2026-05-26T18:25:47.328Z' }),
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [orphan],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupModifyForQuest({ quest });
+
+      await questOrphanResetBroker();
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const [persistedWorkItem] = persistedQuest.workItems;
+
+      const {
+        sessionId: _droppedSessionId,
+        agentId: _droppedAgentId,
+        startedAt: _droppedStartedAt,
+        status: _replacedStatus,
+        ...orphanWithoutClearedFields
+      } = orphan;
+
+      expect(persistedWorkItem).toStrictEqual({
+        ...orphanWithoutClearedFields,
+        status: 'pending',
+      });
     });
   });
 

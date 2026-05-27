@@ -1,4 +1,5 @@
 import type { GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';
@@ -16,6 +17,8 @@ export const questOrphanResetBrokerProxy = (): {
     questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];
   }) => void;
   setupModifyForQuest: (params: { quest: Quest }) => void;
+  getAllPersistedContents: () => readonly unknown[];
+  getLastPersistedQuest: () => Quest;
 } => {
   const guildListProxy = guildListBrokerProxy();
   const questListProxy = questListBrokerProxy();
@@ -42,6 +45,12 @@ export const questOrphanResetBrokerProxy = (): {
     },
     setupModifyForQuest: ({ quest }: { quest: Quest }): void => {
       modifyProxy.setupQuestFound({ quest });
+    },
+    getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
+    getLastPersistedQuest: (): Quest => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      const last = persisted[persisted.length - 1];
+      return questContract.parse(JSON.parse(String(last)));
     },
   };
 };

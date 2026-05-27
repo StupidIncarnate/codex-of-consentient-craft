@@ -83,6 +83,30 @@ describe('workUnitContract', () => {
         }),
       ).toThrow(/too_small/u);
     });
+
+    it('VALID: {role: pathseeker, slice: {name, packages, flowIds}} => parses with slice', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = workUnitContract.parse({
+        role: 'pathseeker',
+        questId,
+        slice: {
+          name: 'orchestrator',
+          packages: ['orchestrator'],
+          flowIds: ['login-flow', 'logout-flow'],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        role: 'pathseeker',
+        questId,
+        slice: {
+          name: 'orchestrator',
+          packages: ['orchestrator'],
+          flowIds: ['login-flow', 'logout-flow'],
+        },
+      });
+    });
   });
 
   describe('codeweaver work unit', () => {

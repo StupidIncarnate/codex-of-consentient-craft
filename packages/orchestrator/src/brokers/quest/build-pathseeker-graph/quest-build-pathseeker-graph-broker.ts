@@ -54,7 +54,7 @@ export const questBuildPathseekerGraphBroker = ({
           flowIds,
         }));
 
-  const surfaceItems: WorkItem[] = slices.map(() =>
+  const surfaceItems: WorkItem[] = slices.map((slice) =>
     workItemContract.parse({
       id: questWorkItemIdContract.parse(crypto.randomUUID()),
       role: 'pathseeker-surface',
@@ -63,6 +63,7 @@ export const questBuildPathseekerGraphBroker = ({
       dependsOn: priorWorkItemIds,
       maxAttempts: 3,
       createdAt: now,
+      sliceName: slice.name,
     }),
   );
 

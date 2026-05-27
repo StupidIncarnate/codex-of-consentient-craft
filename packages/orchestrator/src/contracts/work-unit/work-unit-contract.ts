@@ -12,11 +12,14 @@ import {
   designDecisionContract,
   errorMessageContract,
   flowContract,
+  flowNodeIdContract,
   flowObservableContract,
   folderTypeContract,
+  packageNameContract,
   planningScopeClassificationContract,
   questContractEntryContract,
   questIdContract,
+  sliceNameContract,
   stepFileReferenceContract,
   stepIdContract,
 } from '@dungeonmaster/shared/contracts';
@@ -27,10 +30,17 @@ const smoketestOverrideField = {
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
 };
 
+const sliceContract = z.object({
+  name: sliceNameContract,
+  packages: z.array(packageNameContract),
+  flowIds: z.array(flowNodeIdContract),
+});
+
 const pathseekerWorkUnitContract = z.object({
   role: z.literal('pathseeker'),
   questId: questIdContract,
   failureContext: z.string().min(1).brand<'FailureContext'>().optional(),
+  slice: sliceContract.optional(),
   ...smoketestOverrideField,
 });
 

@@ -28,7 +28,6 @@ import {
   sessionIdContract,
   type ChatEntry,
   type FilePath,
-  type ModifyQuestInput,
   type OrchestrationEventType,
   type ProcessId,
   type QuestId,
@@ -36,14 +35,18 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
+import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import {
   isoTimestampContract,
   type IsoTimestamp,
 } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 
-import { questModifyBroker } from '../modify/quest-modify-broker';
+import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
+
+const ACTIVE_AGENT_IDS_REFRESH_INTERVAL_MS = 1000;
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
 import { questOrphanResetBroker } from '../orphan-reset/quest-orphan-reset-broker';
+import { refreshActiveAgentIdsLayerBroker } from './refresh-active-agent-ids-layer-broker';
 
 export const questMonitorWatcherStartBroker = async ({
   parentSessionId,
@@ -76,6 +79,14 @@ export const questMonitorWatcherStartBroker = async ({
   // died mid-flight, in_progress work items still carry the old session's metadata and
   // get-next-step would skip them; resetting back to pending is what restores dispatch.
   await questOrphanResetBroker();
+
+  // Quest-driven subscription state: per-quest sets of agentIds currently stamped on
+  // in-progress work items. The watcher only tails subagent JSONLs whose agentId is in
+  // one of these sets — stale leftover files from prior /dumpster-launch runs never
+  // match (their work items are now either pending or terminal, with agentId cleared
+  // or pointing to a different file). Populated on startup, refreshed every poll tick.
+  const activeAgentIdsByQuest = new Map<QuestId, Set<AgentId>>();
+  await refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest });
 
   const homeDir = osUserHomedirAdapter();
   const projectPath = absoluteFilePathContract.parse(projectDir);
@@ -132,38 +143,40 @@ export const questMonitorWatcherStartBroker = async ({
         },
       });
     },
-    // Fires once per Task-dispatched sub-agent when its first user-text line lands
-    // carrying the orchestrator's taskPrompt. The JSONL appearing is the proof the
-    // sub-agent is actually running, so this is also the pending→in_progress
-    // transition point: without it the work item would stay `pending` until
-    // signal-back flips it straight to a terminal status. `startedAt` is fresh on
-    // every fire so retry attempts get a new timestamp. Persisting the realAgentId
-    // as `sessionId` lets the per-work-item history panel resolve which
-    // `subagents/agent-<id>.jsonl` to replay. Mirrors the chaos-spawn pattern at
-    // packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts (onSessionId).
-    onSessionIdLearned: ({ questId, workItemId, sessionId: learnedSessionId }) => {
-      questModifyBroker({
-        input: {
-          questId,
-          workItems: [
-            {
-              id: workItemId,
-              sessionId: learnedSessionId,
-              status: 'in_progress',
-              startedAt: new Date().toISOString(),
-            },
-          ],
-        } as ModifyQuestInput,
-      }).catch((error: unknown) => {
-        process.stderr.write(`[monitor-watcher] session-id stamp failed: ${String(error)}\n`);
-      });
+    isAgentIdActive: ({ agentId }: { agentId: AgentId }): boolean => {
+      for (const set of activeAgentIdsByQuest.values()) {
+        if (set.has(agentId)) return true;
+      }
+      return false;
     },
+  });
+
+  // Periodic refresh keeps the active-agentId set current. Once per second, walk every
+  // active quest and rebuild the per-quest agentId Map, then prune tails whose agentId
+  // left the set (work item reached terminal). New agentIds added by get-agent-prompt
+  // become visible on the very next tick, in time for the JSONL watcher's own poll to
+  // start tailing the matching subagent JSONL.
+  const refreshHandle = timerSetIntervalAdapter({
+    callback: (): void => {
+      refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest })
+        .then((): void => {
+          watcherHandle.pruneStaleTails();
+        })
+        .catch((error: unknown): void => {
+          process.stderr.write(
+            `[monitor-watcher] active-agent-id refresh failed: ${String(error)}\n`,
+          );
+        });
+    },
+    intervalMs: ACTIVE_AGENT_IDS_REFRESH_INTERVAL_MS,
   });
 
   return {
     stop: (): void => {
+      refreshHandle.stop();
       watcherHandle.stop();
       monitorSession.clear();
+      activeAgentIdsByQuest.clear();
     },
   };
 };

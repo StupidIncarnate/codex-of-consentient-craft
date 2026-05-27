@@ -261,6 +261,20 @@ export const workUnitToArgumentsTransformer = ({
     case 'pathseeker': {
       const pathParts: ContentText[] = [contentTextContract.parse(`Quest ID: ${workUnit.questId}`)];
 
+      if (workUnit.slice !== undefined) {
+        pathParts.push(contentTextContract.parse(`Slice: ${String(workUnit.slice.name)}`));
+        pathParts.push(
+          contentTextContract.parse(
+            `Packages: ${workUnit.slice.packages.map((pkg) => String(pkg)).join(', ')}`,
+          ),
+        );
+        pathParts.push(
+          contentTextContract.parse(
+            `Flow IDs: ${workUnit.slice.flowIds.map((flowId) => String(flowId)).join(', ')}`,
+          ),
+        );
+      }
+
       if (workUnit.failureContext !== undefined) {
         pathParts.push(contentTextContract.parse(`\nFAILURE CONTEXT:\n${workUnit.failureContext}`));
       }

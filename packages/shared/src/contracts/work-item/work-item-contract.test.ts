@@ -145,6 +145,29 @@ describe('workItemContract', () => {
       });
     });
 
+    it('VALID: pathseeker-surface with sliceName => parses successfully', () => {
+      const item = WorkItemStub({
+        role: 'pathseeker-surface',
+        sliceName: 'orchestrator',
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'pathseeker-surface',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+        sliceName: 'orchestrator',
+      });
+    });
+
     it('VALID: without optional arrays => defaults to empty arrays', () => {
       const result = workItemContract.parse({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -300,6 +323,19 @@ describe('workItemContract', () => {
           agentId: '',
         });
       }).toThrow(/too_small|String must contain at least 1/u);
+    });
+
+    it('INVALID: {invalid sliceName format} => throws validation error', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'pathseeker-surface',
+          status: 'pending',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          sliceName: 'NotKebab',
+        });
+      }).toThrow(/Invalid/u);
     });
 
     it('INVALID: {unknown actualSignal} => throws validation error', () => {

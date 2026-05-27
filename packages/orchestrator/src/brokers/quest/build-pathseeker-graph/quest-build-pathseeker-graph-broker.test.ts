@@ -73,6 +73,22 @@ describe('questBuildPathseekerGraphBroker', () => {
       expect(walk?.dependsOn).toStrictEqual([dedup?.id, assertion?.id]);
     });
 
+    it('VALID: {packagesAffected: ["orchestrator"]} => surface item carries sliceName="orchestrator"', () => {
+      const proxy = questBuildPathseekerGraphBrokerProxy();
+      proxy.setupUuidQueue({ uuids: SINGLE_UUIDS });
+
+      const result = questBuildPathseekerGraphBroker({
+        packagesAffected: [PackageNameStub({ value: 'orchestrator' })],
+        flowIds: [],
+        priorWorkItemIds: [PRIOR_ID],
+        now: NOW,
+      });
+
+      const [surface] = result.workItems;
+
+      expect(surface?.sliceName).toBe('orchestrator');
+    });
+
     it('VALID: {packagesAffected: ["orchestrator"]} => one slice named "orchestrator" with that package', () => {
       const proxy = questBuildPathseekerGraphBrokerProxy();
       proxy.setupUuidQueue({ uuids: SINGLE_UUIDS });
@@ -140,6 +156,26 @@ describe('questBuildPathseekerGraphBroker', () => {
       expect(dedup?.dependsOn).toStrictEqual(surfaceIds);
       expect(assertion?.dependsOn).toStrictEqual(surfaceIds);
       expect(walk?.dependsOn).toStrictEqual([dedup?.id, assertion?.id]);
+    });
+
+    it('VALID: {packagesAffected: ["orchestrator","web"]} => each surface item carries the matching sliceName', () => {
+      const proxy = questBuildPathseekerGraphBrokerProxy();
+      proxy.setupUuidQueue({ uuids: MULTI_UUIDS });
+
+      const result = questBuildPathseekerGraphBroker({
+        packagesAffected: [
+          PackageNameStub({ value: 'orchestrator' }),
+          PackageNameStub({ value: 'web' }),
+        ],
+        flowIds: [],
+        priorWorkItemIds: [PRIOR_ID],
+        now: NOW,
+      });
+
+      const [surfaceA, surfaceB] = result.workItems;
+
+      expect(surfaceA?.sliceName).toBe('orchestrator');
+      expect(surfaceB?.sliceName).toBe('web');
     });
 
     it('VALID: {packagesAffected: ["orchestrator","web"]} => emits one slice per package', () => {

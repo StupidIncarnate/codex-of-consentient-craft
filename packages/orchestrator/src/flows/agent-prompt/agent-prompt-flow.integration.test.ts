@@ -13,7 +13,6 @@ import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-
 import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
 import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
-import { workItemContextBlockTransformer } from '../../transformers/work-item-context-block/work-item-context-block-transformer';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
@@ -25,7 +24,7 @@ describe('AgentPromptFlow', () => {
   const seeder = questSeedHarness();
 
   describe('valid agent names', () => {
-    it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => returns full prompt with work-item context block appended', async () => {
+    it('VALID: {agent: chaoswhisperer-gap-minion, questId, workItemId} => returns substituted prompt with Quest ID + Work Item ID', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-chaos' }),
       });
@@ -34,7 +33,6 @@ describe('AgentPromptFlow', () => {
       const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver' });
       const quest = QuestStub({ workItems: [workItem] });
       seeder.seed({ tempDir: testbed.guildPath, quest });
-      const expectedBlock = workItemContextBlockTransformer({ quest, workItem });
 
       const result = await AgentPromptFlow.get({
         agent: 'chaoswhisperer-gap-minion',
@@ -45,14 +43,16 @@ describe('AgentPromptFlow', () => {
       env.restore();
       testbed.cleanup();
 
+      const expectedArgs = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItemId)}`;
+
       expect(result).toStrictEqual({
         name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
-        prompt: `${chaoswhispererGapMinionStatics.prompt.template}${expectedBlock}`,
+        prompt: chaoswhispererGapMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
 
-    it('VALID: {agent: pathseeker-surface, questId, workItemId} => returns full prompt with work-item context block appended', async () => {
+    it('VALID: {agent: pathseeker-surface, questId, workItemId, no sliceName} => returns substituted prompt with Quest ID only', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-surface' }),
       });
@@ -61,7 +61,6 @@ describe('AgentPromptFlow', () => {
       const workItem = WorkItemStub({ id: workItemId, role: 'pathseeker-surface' });
       const quest = QuestStub({ workItems: [workItem] });
       seeder.seed({ tempDir: testbed.guildPath, quest });
-      const expectedBlock = workItemContextBlockTransformer({ quest, workItem });
 
       const result = await AgentPromptFlow.get({
         agent: 'pathseeker-surface',
@@ -75,11 +74,14 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-surface',
         model: 'sonnet',
-        prompt: `${pathseekerSurfaceStatics.prompt.template}${expectedBlock}`,
+        prompt: pathseekerSurfaceStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(quest.id)}`,
+        ),
       });
     });
 
-    it('VALID: {agent: pathseeker-dedup, questId, workItemId} => returns full prompt with work-item context block appended', async () => {
+    it('VALID: {agent: pathseeker-dedup, questId, workItemId} => returns substituted prompt with Quest ID', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-dedup' }),
       });
@@ -88,7 +90,6 @@ describe('AgentPromptFlow', () => {
       const workItem = WorkItemStub({ id: workItemId, role: 'pathseeker-dedup' });
       const quest = QuestStub({ workItems: [workItem] });
       seeder.seed({ tempDir: testbed.guildPath, quest });
-      const expectedBlock = workItemContextBlockTransformer({ quest, workItem });
 
       const result = await AgentPromptFlow.get({
         agent: 'pathseeker-dedup',
@@ -102,11 +103,14 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-dedup',
         model: 'sonnet',
-        prompt: `${pathseekerDedupStatics.prompt.template}${expectedBlock}`,
+        prompt: pathseekerDedupStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(quest.id)}`,
+        ),
       });
     });
 
-    it('VALID: {agent: pathseeker-assertion-correctness, questId, workItemId} => returns full prompt with work-item context block appended', async () => {
+    it('VALID: {agent: pathseeker-assertion-correctness, questId, workItemId} => returns substituted prompt with Quest ID', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-assertion' }),
       });
@@ -118,7 +122,6 @@ describe('AgentPromptFlow', () => {
       });
       const quest = QuestStub({ workItems: [workItem] });
       seeder.seed({ tempDir: testbed.guildPath, quest });
-      const expectedBlock = workItemContextBlockTransformer({ quest, workItem });
 
       const result = await AgentPromptFlow.get({
         agent: 'pathseeker-assertion-correctness',
@@ -132,11 +135,14 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-assertion-correctness',
         model: 'sonnet',
-        prompt: `${pathseekerAssertionCorrectnessStatics.prompt.template}${expectedBlock}`,
+        prompt: pathseekerAssertionCorrectnessStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(quest.id)}`,
+        ),
       });
     });
 
-    it('VALID: {agent: pathseeker-walk, questId, workItemId} => returns full prompt with work-item context block appended', async () => {
+    it('VALID: {agent: pathseeker-walk, questId, workItemId} => returns substituted prompt with Quest ID', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'agent-prompt-flow-walk' }),
       });
@@ -145,7 +151,6 @@ describe('AgentPromptFlow', () => {
       const workItem = WorkItemStub({ id: workItemId, role: 'pathseeker-walk' });
       const quest = QuestStub({ workItems: [workItem] });
       seeder.seed({ tempDir: testbed.guildPath, quest });
-      const expectedBlock = workItemContextBlockTransformer({ quest, workItem });
 
       const result = await AgentPromptFlow.get({
         agent: 'pathseeker-walk',
@@ -159,7 +164,10 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-walk',
         model: 'sonnet',
-        prompt: `${pathseekerWalkStatics.prompt.template}${expectedBlock}`,
+        prompt: pathseekerWalkStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(quest.id)}`,
+        ),
       });
     });
   });

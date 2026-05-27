@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory, then calls `startSubagentTailLayerBroker` for every `agent-*.jsonl` file present. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). The layer broker's idempotency contract means re-invoking this on every poll tick is safe.
+ * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory, then calls `startSubagentTailLayerBroker` for every `agent-*.jsonl` file whose agentId is currently active per the supplied `isAgentIdActive` predicate. Stale subagent JSONLs left on disk from prior /dumpster-launch runs are skipped — they no longer match an in-progress work item's stamped agentId, so live-tailing them would burn fs handles and re-emit dead chat. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). Idempotent: re-invoking on every poll tick is safe.
  *
  * USAGE:
  * scanSubagentsDirLayerBroker({
@@ -10,7 +10,7 @@
  *   chatProcessId,
  *   activeQuestIdGetter,
  *   emit,
- *   onSessionIdLearned,
+ *   isAgentIdActive,
  *   subagentHandles,
  * });
  * // Returns AdapterResult { success: true }
@@ -24,7 +24,6 @@ import {
   type FilePath,
   type ProcessId,
   type QuestId,
-  type QuestWorkItemId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 
@@ -44,7 +43,7 @@ export const scanSubagentsDirLayerBroker = ({
   chatProcessId,
   activeQuestIdGetter,
   emit,
-  onSessionIdLearned,
+  isAgentIdActive,
   subagentHandles,
 }: {
   subagentsDir: string;
@@ -59,11 +58,10 @@ export const scanSubagentsDirLayerBroker = ({
     questId: QuestId | null;
     sessionId: SessionId;
   }) => void;
-  onSessionIdLearned?: (params: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-    sessionId: SessionId;
-  }) => void;
+  // Returns true iff a file's agentId matches an in-progress work item stamped via
+  // get-agent-prompt. Files without a current match are skipped. Stale leftover JSONLs
+  // from prior /dumpster-launch runs are never tailed.
+  isAgentIdActive: (params: { agentId: AgentId }) => boolean;
   subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
 }): AdapterResult => {
   try {
@@ -74,6 +72,7 @@ export const scanSubagentsDirLayerBroker = ({
       const agentId = stripAgentFilenamePrefixTransformer({
         fileName: fileNameContract.parse(file),
       });
+      if (!isAgentIdActive({ agentId })) continue;
       startSubagentTailLayerBroker({
         agentId,
         sessionFilePath,
@@ -82,7 +81,6 @@ export const scanSubagentsDirLayerBroker = ({
         chatProcessId,
         activeQuestIdGetter,
         emit,
-        ...(onSessionIdLearned === undefined ? {} : { onSessionIdLearned }),
         subagentHandles,
       });
     }

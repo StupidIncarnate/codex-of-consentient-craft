@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Resolves an agent name to its prompt data and appends a "Work item context"
- * block listing questId, workItemId, role, and any packagesAffected / wardMode info from
- * quest.json. Every caller is a Task()-dispatched sub-agent under `/dumpster-launch`, so
- * questId and workItemId are always supplied.
+ * PURPOSE: Resolves an agent name to its fully-substituted prompt for a Task-dispatched
+ * sub-agent under `/dumpster-launch`. Loads the quest + the calling sub-agent's work item,
+ * then delegates to `workItemToPromptTransformer` which builds a role-specific WorkUnit from
+ * `workItem.relatedDataItems` and substitutes `$ARGUMENTS` in the prompt template.
  *
  * Session id capture: this broker does NOT persist sessionId itself — MCP stdio carries
  * no per-call session metadata. The capture happens in the JSONL watcher: when each
@@ -13,8 +13,8 @@
  * that hook to `questModifyBroker`, stamping `quest.workItems[workItemId].sessionId`.
  *
  * USAGE:
- * const augmented = await agentPromptGetBroker({ agent: 'codeweaver', questId, workItemId });
- * // Returns AgentPromptResult whose `prompt` has the work-item context block appended
+ * const result = await agentPromptGetBroker({ agent: 'codeweaver', questId, workItemId });
+ * // Returns AgentPromptResult whose `prompt` has $ARGUMENTS substituted with role-specific context
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -29,7 +29,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentNameToPromptTransformer } from '../../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
-import { workItemContextBlockTransformer } from '../../../transformers/work-item-context-block/work-item-context-block-transformer';
+import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 
@@ -56,11 +56,11 @@ export const agentPromptGetBroker = async ({
     throw new Error(`agentPromptGetBroker: workItem ${workItemId} not found on quest ${questId}`);
   }
 
-  const contextBlock = workItemContextBlockTransformer({ quest, workItem });
+  const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName: parsedAgent });
 
   return agentPromptResultContract.parse({
     name: base.name,
     model: base.model,
-    prompt: `${base.prompt}${contextBlock}`,
+    prompt,
   });
 };
