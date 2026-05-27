@@ -4,8 +4,15 @@
  * for the file whose first line embeds the supplied workItemId (Claude CLI writes
  * `Task.input.prompt` verbatim as the sub-agent's first user-text line, and the orchestrator's
  * dispatch taskPrompt embeds `workItemId: "<uuid>"` literally). The match is byte-stable —
- * each subagent file is unique per dispatch — so the realAgentId returned is the unique
- * per-sub-agent identifier the work item should store as its `sessionId`.
+ * each subagent file is unique per dispatch — and the returned realAgentId is what the
+ * work item stores in its `agentId` field (the parent's session UUID is stored separately
+ * in `sessionId`).
+ *
+ * **Fallback path only.** Depends on the upstream `claudeCodeSessionResolveBroker` having
+ * picked the correct parentSessionId via mtime, which races under cross-session activity.
+ * The primary deterministic path for sub-agent identification is
+ * `claudeCodeSubagentFindByToolUseIdBroker` (matches against `_meta.claudecode/toolUseId`).
+ * This broker is kept for older Claude Code clients that don't populate `_meta`.
  *
  * USAGE:
  * const realAgentId = await claudeCodeSubagentFindByWorkItemIdBroker({

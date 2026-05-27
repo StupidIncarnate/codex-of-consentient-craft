@@ -49,8 +49,7 @@ export const McpServerFlow = async ({
     // user prompt line to its session JSONL, so the filesystem-based session resolver in
     // MonitorSessionAnnounceResponder can find the parent session. Startup-time announce
     // (in StartMcpServer) is best-effort but unreliable because the JSONL may not exist
-    // yet when stdio MCP children boot — and CLAUDE_CODE_SESSION_ID is not set on those
-    // children — so we retry here once per process.
+    // yet when stdio MCP children boot, so we retry here once per process.
     if (!announcedOnFirstCall) {
       announcedOnFirstCall = true;
       await MonitorSessionAnnounceResponder();
@@ -60,7 +59,13 @@ export const McpServerFlow = async ({
     if (!handler) {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }
-    return handler({ args: (request.params.arguments ?? {}) as never });
+    // `params._meta` is a loose record. Claude Code surfaces `claudecode/toolUseId` here
+    // on every call, which identifies the calling sub-agent's parent `Task()` tool use.
+    // Handlers that don't need it ignore the param.
+    return handler({
+      args: (request.params.arguments ?? {}) as never,
+      ...(request.params._meta !== undefined && { meta: request.params._meta as never }),
+    });
   });
 
   const transport = new StdioServerTransport();

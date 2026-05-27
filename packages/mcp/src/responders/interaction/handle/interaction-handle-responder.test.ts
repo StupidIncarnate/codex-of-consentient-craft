@@ -116,6 +116,146 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
+    it('VALID: {_meta.claudecode/toolUseId + registered monitor session + matching meta.json} => stamps via deterministic toolUseId path, skips mtime fallback', async () => {
+      const proxy = InteractionHandleResponderProxy();
+      const expectedResult = AgentPromptResultStub({
+        name: 'pathseeker-dedup',
+        prompt: 'You are pathseeker-dedup.',
+      });
+      proxy.setupAgentPromptReturns({ result: expectedResult });
+
+      const questId = QuestIdStub({ value: '3df2f4be-20b8-4517-8f08-69d570db7421' });
+      const workItemId = QuestWorkItemIdStub({
+        value: 'c6afab8f-ebdd-4e23-99cd-ea9aa67a5026',
+      });
+      const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
+      const projectDir = '/home/user/.claude/projects/-home-user-proj';
+      const realAgentId = 'ad0775d7695b4d4eb';
+      const toolUseId = 'toolu_01KfM8kWZATagwS33eTq5fZS';
+
+      proxy.setupRegisteredMonitorSession({ sessionId: parentSessionId, projectDir });
+      proxy.setupToolUseIdMatch({
+        files: [`agent-${realAgentId}.meta.json`],
+        matchFilename: `agent-${realAgentId}.meta.json`,
+        matchMetaContents: JSON.stringify({
+          agentType: 'general-purpose',
+          description: 'pathseeker-dedup dispatch',
+          toolUseId,
+        }),
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        args: { agent: 'pathseeker-dedup', questId, workItemId },
+        meta: { 'claudecode/toolUseId': toolUseId, progressToken: 3 },
+      });
+
+      expect(proxy.getLastModifyQuestInput()).toStrictEqual({
+        questId,
+        workItems: [
+          {
+            id: workItemId,
+            sessionId: parentSessionId,
+            agentId: realAgentId,
+            status: 'in_progress',
+            startedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
+          },
+        ],
+      });
+    });
+
+    it('VALID: {meta absent} => falls back to mtime+workItemId path and still stamps', async () => {
+      const proxy = InteractionHandleResponderProxy();
+      const expectedResult = AgentPromptResultStub({
+        name: 'pathseeker-surface',
+        prompt: 'You are pathseeker-surface.',
+      });
+      proxy.setupAgentPromptReturns({ result: expectedResult });
+
+      const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
+      });
+      const parentSessionId = '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402';
+      const realAgentId = 'acd35f7b7763e33e8';
+
+      proxy.setupParentSession({
+        homedir: '/home/user',
+        cwd: '/home/user/proj',
+        sessionEntries: [{ name: `${parentSessionId}.jsonl`, mtimeMs: 1000 }],
+      });
+      proxy.setupSubagentMatch({
+        files: [`agent-${realAgentId}.jsonl`],
+        matchFilename: `agent-${realAgentId}.jsonl`,
+        matchFirstLine: `{"type":"user","message":{"role":"user","content":"workItemId: \\"${String(workItemId)}\\""}}`,
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        args: { agent: 'pathseeker-surface', questId, workItemId },
+      });
+
+      expect(proxy.getLastModifyQuestInput()).toStrictEqual({
+        questId,
+        workItems: [
+          {
+            id: workItemId,
+            sessionId: parentSessionId,
+            agentId: realAgentId,
+            status: 'in_progress',
+            startedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
+          },
+        ],
+      });
+    });
+
+    it('VALID: {monitorSession unregistered + meta has toolUseId} => falls back to mtime+workItemId path', async () => {
+      const proxy = InteractionHandleResponderProxy();
+      const expectedResult = AgentPromptResultStub({
+        name: 'pathseeker-surface',
+        prompt: 'You are pathseeker-surface.',
+      });
+      proxy.setupAgentPromptReturns({ result: expectedResult });
+
+      const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
+      });
+      const parentSessionId = '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402';
+      const realAgentId = 'acd35f7b7763e33e8';
+
+      // No setupRegisteredMonitorSession — adapter returns null by default → fallback runs.
+      proxy.setupParentSession({
+        homedir: '/home/user',
+        cwd: '/home/user/proj',
+        sessionEntries: [{ name: `${parentSessionId}.jsonl`, mtimeMs: 1000 }],
+      });
+      proxy.setupSubagentMatch({
+        files: [`agent-${realAgentId}.jsonl`],
+        matchFilename: `agent-${realAgentId}.jsonl`,
+        matchFirstLine: `{"type":"user","message":{"role":"user","content":"workItemId: \\"${String(workItemId)}\\""}}`,
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        args: { agent: 'pathseeker-surface', questId, workItemId },
+        meta: { 'claudecode/toolUseId': 'toolu_01KfM8kWZATagwS33eTq5fZS' },
+      });
+
+      expect(proxy.getLastModifyQuestInput()).toStrictEqual({
+        questId,
+        workItems: [
+          {
+            id: workItemId,
+            sessionId: parentSessionId,
+            agentId: realAgentId,
+            status: 'in_progress',
+            startedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
+          },
+        ],
+      });
+    });
+
     it('VALID: {no matching subagent file} => skips stamp, still returns prompt', async () => {
       const proxy = InteractionHandleResponderProxy();
       const expectedResult = AgentPromptResultStub({

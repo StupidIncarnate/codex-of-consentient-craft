@@ -26,6 +26,7 @@ import { QuestListResponder } from '../../responders/quest/list/quest-list-respo
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest-mcp-create-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
+import { QuestMonitorSessionGetResponder } from '../../responders/quest/monitor-session-get/quest-monitor-session-get-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
 import { QuestRunWardResponder } from '../../responders/quest/run-ward/quest-run-ward-responder';
 
@@ -68,6 +69,8 @@ type FindByWorkItemIdResult = Awaited<ReturnType<typeof QuestFindByWorkItemIdRes
 
 type StartMonitorWatcherParams = Parameters<typeof QuestMonitorWatcherStartResponder>[0];
 type StartMonitorWatcherResult = Awaited<ReturnType<typeof QuestMonitorWatcherStartResponder>>;
+
+type GetMonitorSessionResult = ReturnType<typeof QuestMonitorSessionGetResponder>;
 
 export const QuestFlow = {
   add: async ({ title, userRequest, guildId }: AddParams): Promise<AddResult> =>
@@ -119,4 +122,6 @@ export const QuestFlow = {
     projectDir,
   }: StartMonitorWatcherParams): Promise<StartMonitorWatcherResult> =>
     QuestMonitorWatcherStartResponder({ parentSessionId, projectDir }),
+
+  getMonitorSession: (): GetMonitorSessionResult => QuestMonitorSessionGetResponder(),
 };

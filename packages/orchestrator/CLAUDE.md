@@ -386,12 +386,15 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 - **Dynamic insertion**: retries, spiritmender, fix chains — append items with correct `dependsOn`. The
   `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream codeweaver /
   ward / siegemaster / lawbringer / blightwarden chain.
-- **Session tracking**: `sessionId` on each work item — for chat roles, captured from the spawned Claude's first
-  stream-json init line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
-  `/dumpster-launch`, captured by the JSONL watcher: `start-subagent-tail-layer-broker` extracts the embedded
-  `workItemId` + `questId` from the sub-agent's first user-text line (Claude CLI passes `Task.input.prompt` verbatim)
-  and fires `onSessionIdLearned`; `quest-monitor-watcher-start-broker` stamps the sub-agent's realAgentId as
-  `workItem.sessionId` via `questModifyBroker`.
+- **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
+  (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat
+  roles (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init
+  line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
+  `/dumpster-launch`, both fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the MCP
+  responder reads `request.params._meta.claudecode/toolUseId` (Claude Code surfaces it on every call), looks up
+  the matching `subagents/agent-<realAgentId>.meta.json` sidecar via `claudeCodeSubagentFindByToolUseIdBroker`,
+  and stamps `{sessionId: parentUUID, agentId: realAgentId}` via `modify-quest`. The toolUseId path is
+  deterministic regardless of how many sub-agents call in parallel against the same MCP child.
 - **Ward**: only non-agent item (`spawnerType: 'command'`); driven by the `run-ward` MCP tool which blocks until ward
   exits and persists the result onto the work item
 
@@ -602,11 +605,12 @@ Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The di
 surface (`/dumpster-launch`'s Task() invocations) hands each sub-agent a stub prompt that
 says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions
 exactly." The MCP responder interpolates work-item-specific context (scope, package, steps,
-file paths) into the returned prompt. The calling session id is NOT persisted from the MCP
-side — MCP stdio carries no per-call session metadata. Instead, the JSONL watcher fires
-`onSessionIdLearned` when each sub-agent's first user-text line lands (the parent's
-verbatim `Task.input.prompt` embedding `workItemId`), and the watcher-start broker stamps
-the sub-agent's realAgentId as `quest.workItems[workItemId].sessionId`.
+file paths) into the returned prompt and stamps `workItem.sessionId` (parent UUID) +
+`workItem.agentId` (sub-agent realAgentId) from MCP request metadata: Claude Code surfaces
+`request.params._meta.claudecode/toolUseId` on every MCP call, which the responder pairs
+with the registered monitor-session and the `agent-<realAgentId>.meta.json` sidecar to
+deterministically identify the calling sub-agent — race-free even when N sub-agents call
+in parallel against the same MCP stdio child.
 
 | Agent                            | Dispatched By                                     | Purpose                                                                                                                           |
 |----------------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|

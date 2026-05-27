@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Announces the parent Claude Code session at MCP server startup by writing `<DUNGEONMASTER_HOME>/active-monitor-session.json`. The HTTP server reactor watches that file and starts the JSONL watcher against the announced session
+ * PURPOSE: Announces the parent Claude Code session at MCP server startup by writing
+ * `<DUNGEONMASTER_HOME>/active-monitor-session.json`. The HTTP server reactor watches that
+ * file and starts the JSONL watcher against the announced session.
  *
  * USAGE:
  * await monitorSessionAnnounceBroker({
@@ -12,9 +14,12 @@
  * // { success: true } no-op when parentSessionId is undefined (MCP invoked outside
  * // Claude Code context — e.g. integration tests or direct-call clients).
  *
- * WHY: Sub-agents launched via Task() inherit the parent's CLAUDE_CODE_SESSION_ID env var,
- *   so they cannot self-identify. The MCP server spawned by Claude Code does see the
- *   parent's id at boot and is the only process that can announce it server-side.
+ * WHY: This is a one-shot startup announce keyed off whichever sessionId the caller
+ *   resolves (env var if Claude Code populates it, mtime fallback otherwise — see
+ *   `MonitorSessionAnnounceResponder`). It identifies the PARENT (dispatcher) session
+ *   at server start. Per-call sub-agent identification (separate concern, see
+ *   `claudeCodeSubagentFindByToolUseIdBroker`) uses `request.params._meta.claudecode/toolUseId`
+ *   instead, which Claude Code surfaces on every MCP call regardless of env shape.
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';

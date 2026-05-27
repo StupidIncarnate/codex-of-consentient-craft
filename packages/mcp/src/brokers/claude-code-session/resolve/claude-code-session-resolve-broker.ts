@@ -1,5 +1,21 @@
 /**
- * PURPOSE: Resolves the parent Claude Code session id by listing `~/.claude/projects/<encoded-cwd>/*.jsonl` and returning the basename of the most-recently-modified file. Used by MonitorSessionAnnounceResponder as a fallback when process.env.CLAUDE_CODE_SESSION_ID is unset — Claude Code does not currently set that env var on MCP stdio children, so the filesystem-based heuristic is the only way to discover which JSONL the parent session is writing to.
+ * PURPOSE: Resolves a parent Claude Code session id by listing
+ * `~/.claude/projects/<encoded-cwd>/*.jsonl` and returning the basename of the
+ * most-recently-modified file. **Fallback path only.** Reliable at MCP boot (when the
+ * dispatcher session is the only one actively writing in this cwd) but races against any
+ * other Claude session in the same project cwd once /dumpster-launch is idle waiting on
+ * Task() results — that competing session's writes can win the mtime contest and this
+ * broker then returns the WRONG sessionId.
+ *
+ * Primary deterministic source for per-call sub-agent identification:
+ * `claudeCodeSubagentFindByToolUseIdBroker`, which keys off
+ * `request.params._meta.claudecode/toolUseId` and the registered monitor-session — no
+ * mtime races. Callers that have access to a per-call toolUseId should prefer that.
+ *
+ * Surviving consumers of this resolver (boot-time + foreground-only paths where the mtime
+ * race doesn't apply): MonitorSessionAnnounceResponder, QuestHandleResponder's create-quest
+ * path, and the InteractionHandleResponder fallback for older Claude Code clients lacking
+ * `_meta` plumbing.
  *
  * USAGE:
  * const result = await claudeCodeSessionResolveBroker({ projectDir });

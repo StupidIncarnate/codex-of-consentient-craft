@@ -1,5 +1,21 @@
 /**
- * PURPOSE: Responder for the MCP monitor-session announce. Resolves the parent Claude Code session id from process.env.CLAUDE_CODE_SESSION_ID first; falls back to scanning `~/.claude/projects/<encoded-cwd>/*.jsonl` for the most-recently-modified file when the env var is unset (Claude Code does not currently set CLAUDE_CODE_SESSION_ID on stdio MCP children). Writes the result to `<DUNGEONMASTER_HOME>/active-monitor-session.json` so the HTTP server reactor can start its JSONL tail.
+ * PURPOSE: Responder for the MCP monitor-session announce. Resolves the parent Claude Code
+ * session id, then writes the result to `<DUNGEONMASTER_HOME>/active-monitor-session.json`
+ * so the HTTP server reactor can start its JSONL tail.
+ *
+ * Resolution strategy:
+ *   1. `process.env.CLAUDE_CODE_SESSION_ID` if set. (Currently DORMANT — Claude Code does
+ *      not populate this on stdio MCP children today. Kept for forward-compatibility in case
+ *      that changes; integration tests still exercise it by setting the env var explicitly.)
+ *   2. Otherwise, mtime scan via `claudeCodeSessionResolveBroker` — picks the most-recently-
+ *      modified `*.jsonl` in `~/.claude/projects/<encoded-cwd>/`. Reliable at MCP boot because
+ *      the dispatcher session is the only Claude session writing to its own JSONL at that
+ *      moment, but degrades under cross-session activity later (see that broker's PURPOSE).
+ *
+ * This responder fires once per MCP process (at first tool call, see mcp-server-flow.ts).
+ * Per-call sub-agent identification — a separate concern — uses
+ * `request.params._meta.claudecode/toolUseId` via
+ * `claudeCodeSubagentFindByToolUseIdBroker`, which is race-free regardless of env shape.
  *
  * USAGE:
  * await MonitorSessionAnnounceResponder();

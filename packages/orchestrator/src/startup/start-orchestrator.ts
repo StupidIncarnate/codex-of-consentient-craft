@@ -20,6 +20,7 @@ import type {
   AgentId,
   AgentPromptResult,
   DirectoryEntry,
+  FilePath,
   GetQuestResult,
   Guild,
   GuildId,
@@ -347,4 +348,11 @@ export const StartOrchestrator = {
     projectDir: string;
   }): Promise<{ stop: () => void }> =>
     QuestFlow.startMonitorWatcher({ parentSessionId, projectDir }),
+
+  // Returns the currently-registered /dumpster-launch monitor session for the MCP layer.
+  // Used by `get-agent-prompt` to deterministically identify the parent session of a
+  // sub-agent caller without re-running the brittle mtime-based session resolver.
+  // Returns null when no /dumpster-launch session has been announced + registered yet.
+  getRegisteredMonitorSession: (): { sessionId: SessionId; projectDir: FilePath } | null =>
+    QuestFlow.getMonitorSession(),
 };
