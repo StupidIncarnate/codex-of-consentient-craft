@@ -1,8 +1,4 @@
 import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
-import {
-  claudeMockHarness,
-  SimpleTextResponseStub,
-} from '../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
@@ -11,12 +7,7 @@ import { questHarness } from '../../test/harnesses/quest/quest.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-ws-update';
 const PANEL_TIMEOUT = 5_000;
-const CHAT_TIMEOUT = 5_000;
 
-const claudeMock = wireHarnessLifecycle({
-  harness: claudeMockHarness({ guildPath: GUILD_PATH }),
-  testObj: test,
-});
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),
@@ -174,95 +165,11 @@ test.describe('Quest WS Update', () => {
     await expect(page.getByText('Live WS Flow')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 
-  test('VALID: spec panel appears when quest is linked mid-chat via quest-session-linked WS event', async ({
-    page,
-    request,
-  }) => {
-    const guild = await guildHarness({ request }).createGuild({
-      name: 'Quest Link Race Guild',
-      path: GUILD_PATH,
-    });
-
-    const urlSlug = String(guild.urlSlug ?? guild.name)
-      .toLowerCase()
-      .replace(/\s+/gu, '-');
-
-    // Queue a Claude response for the new-quest flow.
-    // The sessionId must be unique; the fake CLI writes a JSONL file using it.
-    const sessionId = `e2e-session-link-race-${Date.now()}`;
-    claudeMock.queueResponse({
-      response: SimpleTextResponseStub({ sessionId, text: 'Quest created successfully' }),
-    });
-
-    // Navigate to the guild quest page WITHOUT a questId — this is the new-chat surface.
-    // Under quest-id routing, /:guildSlug/quest is the entry point for starting a new
-    // conversation; /:guildSlug/session (no id) no longer exists.
-    const guildsResponsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/guilds') && r.status() === 200,
-    );
-    await page.goto(`/${urlSlug}/quest`);
-    await guildsResponsePromise;
-
-    // Initially there's no quest, so we should see the awaiting placeholder
-    await expect(page.getByText('Awaiting quest activity...')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
-
-    // Send a message — this triggers POST /api/guilds/:guildId/quests (questNewBroker) which:
-    // 1. Creates a quest via questUserAddBroker (empty, no flows)
-    // 2. Spawns fake CLI
-    // 3. Returns { questId, chatProcessId } in HTTP response
-    // 4. Page navigates to /:guildSlug/quest/:questId (replace)
-    // useQuestChatBinding subscribes via WS and receives quest-modified with current state
-    await page.getByTestId('CHAT_INPUT').fill('Build a login feature');
-    await page.getByTestId('SEND_BUTTON').click();
-
-    // Wait for the chat response to stream through (confirms fake CLI ran and page navigated
-    // to the live workspace where chat-output WS events are received)
-    await expect(page.getByText('Quest created successfully')).toBeVisible({
-      timeout: CHAT_TIMEOUT,
-    });
-
-    // The server created a quest during the chat flow. Find it via the API
-    // so we can PATCH it with flows.
-    const guildId = String(guild.id);
-    const questsResponse = await request.get(`/api/quests?guildId=${guildId}`);
-    const quests = await questsResponse.json();
-    const [createdQuest] = quests;
-    const questId = String(createdQuest.id);
-
-    // PATCH the quest to add a flow and advance status — this triggers quest-modified WS broadcast.
-    // The client subscribed to the questId via useQuestChatBinding on navigate, so it receives the
-    // outbox-driven quest-modified event and the spec panel updates.
-    // The transition to explore_flows must run first because the per-status input
-    // allowlist gate runs against the current status before mutations apply, and
-    // the freshly-created quest sits at 'created' which only allows title + status.
-    await request.patch(`/api/quests/${questId}`, {
-      data: { status: 'explore_flows' },
-    });
-    await request.patch(`/api/quests/${questId}`, {
-      data: {
-        flows: [
-          {
-            id: 'race-condition-flow',
-            name: 'Race Condition Flow',
-            flowType: 'runtime',
-            entryPoint: 'Start',
-            exitPoints: ['End'],
-            nodes: [],
-            edges: [],
-          },
-        ],
-      },
-    });
-
-    // The page navigated to /:guildSlug/quest/:questId after quest creation, so
-    // QuestLiveWorkspaceLayerWidget is mounted and shows QUEST_SPEC_PANEL for non-execution
-    // phases. The quest-modified WS events deliver the flow added above.
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-    await expect(page.getByText('Awaiting quest activity...')).not.toBeVisible();
-    await expect(page.getByText('Race Condition Flow')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
-  });
+  // The legacy "spec panel appears when quest is linked mid-chat via
+  // quest-session-linked WS event" test was retired in the `/dumpster-create`
+  // pivot. It drove chat through the no-questId route's CHAT_INPUT to trigger
+  // POST /api/guilds/:guildId/quests (questNewBroker), which Step 16 sidelined.
+  // Quest creation is now owned by the user's Claude session via
+  // /dumpster-create; the no-questId route renders the
+  // QUEST_CHAT_NO_QUEST_PLACEHOLDER banner instead of a CHAT_INPUT.
 });

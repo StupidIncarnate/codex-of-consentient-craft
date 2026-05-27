@@ -11,6 +11,38 @@ describe('agentRoleContract', () => {
       expect(result).toBe('pathseeker');
     });
 
+    it('VALID: pathseeker-surface => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'pathseeker-surface' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-surface');
+    });
+
+    it('VALID: pathseeker-dedup => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'pathseeker-dedup' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-dedup');
+    });
+
+    it('VALID: pathseeker-assertion-correctness => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'pathseeker-assertion-correctness' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-assertion-correctness');
+    });
+
+    it('VALID: pathseeker-walk => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'pathseeker-walk' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('pathseeker-walk');
+    });
+
     it('VALID: codeweaver => parses successfully', () => {
       const role = AgentRoleStub({ value: 'codeweaver' });
 

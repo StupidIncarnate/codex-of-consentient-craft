@@ -497,8 +497,10 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
     1. **UI switches to the execution panel automatically.** The WebSocket `quest-modified` event drives this — no
        manual reload, no URL change, no second click. Within a few seconds of the Begin Quest click, the layout
        must swap from the observables approval / spec view to the execution panel (tab "EXECUTION | QUEST SPEC",
-       HOMEBASE section with work items like `[CHAOSWHISPERER] Chaoswhisperer DONE` and
-       `[PATHSEEKER] Planning steps... RUNNING`, `data-testid="execution-panel-widget"` visible). Screenshot to
+       HOMEBASE section with work items like `[CHAOSWHISPERER] Chaoswhisperer DONE`, and an
+       `ENTRANCE: MAPPING DUMPSTER` section containing the four pathseeker-* rows
+       (`[PATHSEEKER-SURFACE]`, `[PATHSEEKER-DEDUP]`, `[PATHSEEKER-ASSERTION-CORRECTNESS]`,
+       `[PATHSEEKER-WALK]`), `data-testid="execution-panel-widget"` visible). Screenshot to
        confirm.
     2. Status → `seek_scope` (or further). PathSeeker work item dispatched by orchestration loop.
 

@@ -112,7 +112,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000010',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
@@ -418,58 +418,76 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('pathseeker planning row', () => {
-    it('VALID: {quest with no steps and pathseeker sessionEntries} => synthetic planning row sources from pathseeker workItem session', () => {
+  describe('pathseeker entrance collapse', () => {
+    it('VALID: {planning quest with 4 pathseeker-* workItems at depths 0/1/2/2/3} => single ENTRANCE: MAPPING DUMPSTER floor with chaoswhisperer + 4 pathseeker rows', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'session-pathseeker-1' });
-      const entry = AssistantTextChatEntryStub({ content: 'Analyzing quest requirements...' });
-      const sessionEntries = new Map([[sessionId, [entry]]]);
       const quest: Quest = QuestStub({
         status: 'in_progress',
         steps: [],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000099',
-            role: 'pathseeker',
-            status: 'in_progress',
-            sessionId,
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'pathseeker-surface',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'pathseeker-dedup',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000002'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'pathseeker-assertion-correctness',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000002'],
+            createdAt: '2024-01-15T10:02:01.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000005',
+            role: 'pathseeker-walk',
+            status: 'pending',
+            dependsOn: [
+              'a0000000-0000-0000-0000-000000000003',
+              'a0000000-0000-0000-0000-000000000004',
+            ],
+            createdAt: '2024-01-15T10:03:00.000Z',
           }),
         ],
       });
 
       mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      expect(proxy.hasPlanningText()).toBe(true);
-      expect(proxy.hasStreamingBar()).toBe(true);
-
-      const stepRows = proxy.getStepRows();
-
-      expect(stepRows.length).toBeGreaterThanOrEqual(1);
-
-      // The synthetic planning row's expanded body should surface the pathseeker
-      // workItem's session entries (live or replayed — both arrive on the same key).
-      const messages = proxy.getExecutionMessages();
-
-      expect(messages.length).toBeGreaterThanOrEqual(1);
-      expect(messages.some((m) => m.textContent?.includes('Analyzing quest requirements'))).toBe(
-        true,
-      );
-    });
-
-    it('VALID: {quest with no steps} => renders planning text', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
-
-      mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.hasPlanningText()).toBe(true);
-      expect(screen.getByTestId('execution-panel-planning-text').textContent).toBe(
-        'Steps will appear once cartography is complete...',
-      );
+      const floorHeaders = proxy.getFloorHeaders();
+
+      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
+        'floor-header-layer-widget',
+        'floor-header-layer-widget',
+      ]);
+      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
+
+      const roleBadges = screen.queryAllByTestId('execution-row-role-badge');
+
+      expect(roleBadges.map((b) => b.textContent)).toStrictEqual([
+        '[CHAOSWHISPERER]',
+        '[PATHSEEKER-SURFACE]',
+        '[PATHSEEKER-DEDUP]',
+        '[PATHSEEKER-ASSERTION-CORRECTNESS]',
+        '[PATHSEEKER-WALK]',
+      ]);
     });
   });
 
@@ -485,7 +503,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000099',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
@@ -519,7 +537,7 @@ describe('ExecutionPanelWidget', () => {
       // First row should be pathseeker (no #1 since it's the only item in its group)
       const firstRowText = stepRows[0]?.textContent;
 
-      expect(firstRowText).toMatch(/^\u25B801\[PATHSEEKER\]Pathseeker(?! #)DONE$/u);
+      expect(firstRowText).toMatch(/^\u25B801\[PATHSEEKER-SURFACE\]Pathseeker-surface(?! #)DONE$/u);
     });
   });
 
@@ -605,8 +623,6 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.hasPlanningText()).toBe(false);
-
       const stepRows = proxy.getStepRows();
 
       expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
@@ -660,13 +676,12 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.hasPlanningText()).toBe(false);
       expect(proxy.getStepRows().map((r) => r.getAttribute('data-testid'))).toStrictEqual([
         'execution-row-layer-widget',
       ]);
     });
 
-    it('VALID: {complete quest with no work items and no steps} => renders no planning text and no step rows', () => {
+    it('VALID: {complete quest with no work items and no steps} => renders no step rows', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'complete',
@@ -678,7 +693,6 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(proxy.hasPlanningText()).toBe(false);
       expect(proxy.getStepRows()).toStrictEqual([]);
     });
   });
@@ -723,7 +737,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
         ],
@@ -740,7 +754,7 @@ describe('ExecutionPanelWidget', () => {
         'floor-header-layer-widget',
       ]);
       expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: CARTOGRAPHY──+$/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
     });
 
     it('VALID: {steps with ward and codeweaver roles} => renders FORGE and MINI BOSS floors', () => {
@@ -793,12 +807,12 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
         ],
@@ -813,7 +827,7 @@ describe('ExecutionPanelWidget', () => {
       expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
         'floor-header-layer-widget',
       ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──ENTRANCE: CARTOGRAPHY──+$/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
 
       const stepRows = proxy.getStepRows();
 
@@ -869,7 +883,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
@@ -879,7 +893,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
@@ -900,7 +914,7 @@ describe('ExecutionPanelWidget', () => {
         'floor-header-layer-widget',
         'floor-header-layer-widget',
       ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──ENTRANCE: CARTOGRAPHY──+$/u);
+      expect(floorHeaders[0]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
       expect(floorHeaders[1]?.textContent).toMatch(/^──FLOOR \d+: MINI BOSS──+$/u);
 
       const stepRows = proxy.getStepRows();
@@ -953,7 +967,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
             dependsOn: ['a0000000-0000-0000-0000-000000000001'],
             createdAt: '2024-01-15T10:01:00.000Z',
@@ -980,7 +994,7 @@ describe('ExecutionPanelWidget', () => {
 
       expect(getFloorNames()).toStrictEqual([
         'HOMEBASE',
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
         'FLOOR 1: FORGE',
         'FLOOR 2: MINI BOSS',
       ]);
@@ -994,7 +1008,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000010',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
@@ -1040,7 +1054,7 @@ describe('ExecutionPanelWidget', () => {
       mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
 
       expect(getFloorNames()).toStrictEqual([
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
         'FLOOR 1: FORGE',
         'FLOOR 2: MINI BOSS',
         'FLOOR 3: INFIRMARY',
@@ -1056,7 +1070,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000030',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
@@ -1080,7 +1094,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000033',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'pending',
             dependsOn: ['a0000000-0000-0000-0000-000000000032'],
             insertedBy: 'a0000000-0000-0000-0000-000000000032' as ReturnType<
@@ -1094,10 +1108,10 @@ describe('ExecutionPanelWidget', () => {
       mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
 
       expect(getFloorNames()).toStrictEqual([
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
         'FLOOR 1: FORGE',
         'FLOOR 2: MINI BOSS',
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
       ]);
     });
 
@@ -1145,7 +1159,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000045',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'pending',
             dependsOn: ['a0000000-0000-0000-0000-000000000042'],
             insertedBy: 'a0000000-0000-0000-0000-000000000042' as ReturnType<
@@ -1162,7 +1176,7 @@ describe('ExecutionPanelWidget', () => {
         'FLOOR 1: FORGE',
         'FLOOR 2: MINI BOSS',
         'FLOOR 3: ARENA',
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
       ]);
     });
 
@@ -1259,7 +1273,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000063',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'pending',
             dependsOn: ['a0000000-0000-0000-0000-000000000062'],
             insertedBy: 'a0000000-0000-0000-0000-000000000062' as ReturnType<
@@ -1276,11 +1290,11 @@ describe('ExecutionPanelWidget', () => {
         'FLOOR 1: FORGE',
         'FLOOR 2: MINI BOSS',
         'FLOOR 3: INFIRMARY',
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
       ]);
     });
 
-    it('VALID: {pathseeker retry after ward exhaustion} => two CARTOGRAPHY entrances at different depths', () => {
+    it('VALID: {pathseeker-surface retry after ward exhaustion} => two ENTRANCE: MAPPING DUMPSTER entrances with consecutive replan attempts merged into the second', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -1288,7 +1302,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000070',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
             dependsOn: [],
             createdAt: '2024-01-15T10:00:00.000Z',
@@ -1312,7 +1326,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000073',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'failed',
             dependsOn: ['a0000000-0000-0000-0000-000000000072'],
             insertedBy: 'a0000000-0000-0000-0000-000000000072' as ReturnType<
@@ -1324,7 +1338,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000074',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'in_progress',
             dependsOn: ['a0000000-0000-0000-0000-000000000073'],
             insertedBy: 'a0000000-0000-0000-0000-000000000073' as ReturnType<
@@ -1340,11 +1354,10 @@ describe('ExecutionPanelWidget', () => {
       mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
 
       expect(getFloorNames()).toStrictEqual([
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
         'FLOOR 1: FORGE',
         'FLOOR 2: MINI BOSS',
-        'ENTRANCE: CARTOGRAPHY',
-        'ENTRANCE: CARTOGRAPHY',
+        'ENTRANCE: MAPPING DUMPSTER',
       ]);
     });
 
@@ -1639,7 +1652,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'failed',
             errorMessage: 'Could not plan steps',
           }),
@@ -1661,7 +1674,9 @@ describe('ExecutionPanelWidget', () => {
 
       const plannedRowText = plannedRow.textContent;
 
-      expect(plannedRowText).toMatch(/^\u25B801\[PATHSEEKER\]Pathseeker(?! #)FAILED$/u);
+      expect(plannedRowText).toMatch(
+        /^\u25B801\[PATHSEEKER-SURFACE\]Pathseeker-surface(?! #)FAILED$/u,
+      );
     });
 
     it('VALID: {pathseeker work item with sessionId} => planned row shows session entries on expand', async () => {
@@ -1675,7 +1690,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
             sessionId,
           }),
@@ -1700,7 +1715,7 @@ describe('ExecutionPanelWidget', () => {
       const messages = proxy.getExecutionMessages();
 
       expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
-      expect(messages[0]?.textContent).toBe('PATHSEEKERMapping dependency graph...');
+      expect(messages[0]?.textContent).toBe('PATHSEEKER-SURFACEMapping dependency graph...');
     });
   });
 
@@ -1977,7 +1992,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'pending',
             dependsOn: ['a0000000-0000-0000-0000-000000000001'],
           }),
@@ -2139,7 +2154,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
@@ -2163,7 +2178,7 @@ describe('ExecutionPanelWidget', () => {
         'floor-header-layer-widget',
       ]);
       expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: CARTOGRAPHY──+$/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
       expect(floorHeaders[2]?.textContent).toMatch(/^──FLOOR \d+: FORGE──+$/u);
 
       const stepRows = proxy.getStepRows();
@@ -2189,7 +2204,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'complete',
           }),
           WorkItemStub({
@@ -2220,7 +2235,7 @@ describe('ExecutionPanelWidget', () => {
         'floor-header-layer-widget',
       ]);
       expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: CARTOGRAPHY──+$/u);
+      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
       expect(floorHeaders[2]?.textContent).toMatch(/^──FLOOR \d+: FORGE──+$/u);
       expect(floorHeaders[3]?.textContent).toMatch(/^──FLOOR \d+: INFIRMARY──+$/u);
     });
@@ -2265,7 +2280,7 @@ describe('ExecutionPanelWidget', () => {
       expect(messages[0]?.textContent).toBe('CHAOSWHISPERERDefining quest spec...');
     });
 
-    it('VALID: {planning quest with chaoswhisperer work item} => renders chaoswhisperer floor during planning', () => {
+    it('VALID: {planning quest with chaoswhisperer and pathseeker-surface} => renders HOMEBASE and ENTRANCE: MAPPING DUMPSTER floors with both work items', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
@@ -2278,7 +2293,7 @@ describe('ExecutionPanelWidget', () => {
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker',
+            role: 'pathseeker-surface',
             status: 'in_progress',
           }),
         ],
@@ -2292,14 +2307,19 @@ describe('ExecutionPanelWidget', () => {
 
       expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
         'floor-header-layer-widget',
+        'floor-header-layer-widget',
       ]);
       expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
+      expect(floorHeaders[1]?.textContent).toMatch(
+        /^──ENTRANCE: MAPPING DUMPSTER──+Concurrent: 1\/1$/u,
+      );
 
-      expect(proxy.hasPlanningText()).toBe(true);
+      const roleBadges = screen.queryAllByTestId('execution-row-role-badge');
 
-      const stepRows = proxy.getStepRows();
-
-      expect(stepRows.some((row) => row.textContent?.includes('CHAOSWHISPERER'))).toBe(true);
+      expect(roleBadges.map((b) => b.textContent)).toStrictEqual([
+        '[CHAOSWHISPERER]',
+        '[PATHSEEKER-SURFACE]',
+      ]);
     });
   });
 
@@ -2522,6 +2542,67 @@ describe('ExecutionPanelWidget', () => {
 
       // emberDepthsThemeStatics.colors.danger = '#ef4444' → rgb(239, 68, 68) in JSDOM
       expect(banner.style.color).toBe('rgb(239, 68, 68)');
+    });
+  });
+
+  describe('/dumpster-launch banner', () => {
+    it('VALID: {status: in_progress} => renders /dumpster-launch banner above the status bar', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasDumpsterLaunchBanner()).toBe(true);
+      expect(proxy.getDumpsterLaunchBannerCommand()).toBe('/dumpster-launch');
+    });
+
+    it('VALID: {status: approved} => renders /dumpster-launch banner (pre-execution but non-terminal)', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'approved' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasDumpsterLaunchBanner()).toBe(true);
+      expect(proxy.getDumpsterLaunchBannerCommand()).toBe('/dumpster-launch');
+    });
+
+    it('VALID: {status: complete} => does NOT render /dumpster-launch banner (terminal)', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
+    });
+
+    it('VALID: {status: abandoned} => does NOT render /dumpster-launch banner (terminal)', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'abandoned' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
+    });
+
+    it('VALID: {status: in_progress, QUEST SPEC tab} => does NOT render /dumpster-launch banner (banner lives under execution tab only)', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      await proxy.clickTab({ tabId: 'spec' });
+
+      expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
     });
   });
 });

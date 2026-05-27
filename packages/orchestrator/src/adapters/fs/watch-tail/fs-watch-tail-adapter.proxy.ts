@@ -1,4 +1,4 @@
-import { watch, createReadStream, statSync, type FSWatcher } from 'fs';
+import { watch, createReadStream, statSync, existsSync, type FSWatcher } from 'fs';
 import { createInterface } from 'readline';
 import { EventEmitter } from 'events';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -12,6 +12,7 @@ export const fsWatchTailAdapterProxy = (): {
   setupLines: (params: { lines: readonly string[] }) => void;
   setupStreamError: (params: { error: Error }) => void;
   setupStatError: (params: { error: Error }) => void;
+  setupFileMissing: () => void;
   setupExistingFileWithContent: () => void;
   lastStartPositionWasFromFileEnd: () => boolean;
   lastStartPositionWasZero: () => boolean;
@@ -19,7 +20,11 @@ export const fsWatchTailAdapterProxy = (): {
   const mockWatch: MockHandle = registerMock({ fn: watch });
   const mockCreateReadStream: MockHandle = registerMock({ fn: createReadStream });
   const mockStatSync: MockHandle = registerMock({ fn: statSync });
+  const mockExistsSync: MockHandle = registerMock({ fn: existsSync });
   const mockCreateInterface: MockHandle = registerMock({ fn: createInterface });
+
+  // Default: file always exists. Tests opt into the missing-file path via setupFileMissing.
+  mockExistsSync.mockReturnValue(true);
 
   const watchEmitter = Object.assign(new EventEmitter(), {
     close: jest.fn(),
@@ -95,6 +100,10 @@ export const fsWatchTailAdapterProxy = (): {
       mockStatSync.mockImplementationOnce(() => {
         throw error;
       });
+    },
+
+    setupFileMissing: (): void => {
+      mockExistsSync.mockReturnValueOnce(false);
     },
 
     setupExistingFileWithContent: (): void => {

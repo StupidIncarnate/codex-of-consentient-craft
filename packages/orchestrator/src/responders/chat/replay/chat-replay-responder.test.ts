@@ -1,5 +1,7 @@
 import {
+  AgentIdStub,
   ProcessIdStub,
+  QuestWorkItemIdStub,
   SessionIdStub,
   GuildIdStub,
   GuildConfigStub,
@@ -170,6 +172,74 @@ describe('ChatReplayResponder', () => {
           chatProcessId,
           workItemId: linkedWorkItem.id,
           role: 'chaoswhisperer',
+        },
+      });
+    });
+  });
+
+  describe('agentId-scoped lookup', () => {
+    it('VALID: {agentId param + two workItems sharing sessionId} => links to the workItem whose agentId matches', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-agent-scope' });
+      const guild = GuildStub({ id: guildId });
+
+      // Two pathseeker-surface work items under the same /dumpster-launch parent
+      // session — they share sessionId. The agentId param is what disambiguates them.
+      const matchingAgentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
+      const otherAgentId = AgentIdStub({ value: 'bbb000000other000' });
+      const matchingWorkItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: '875c3364-2d64-4606-b9e3-25dd365c7792' }),
+        role: 'pathseeker-surface',
+        sessionId,
+        agentId: matchingAgentId,
+      });
+      const otherWorkItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'cccccccc-2d64-4606-b9e3-25dd365c7792' }),
+        role: 'pathseeker-surface',
+        sessionId,
+        agentId: otherAgentId,
+      });
+      const quest = QuestStub({ workItems: [otherWorkItem, matchingWorkItem] });
+
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectories({ files: [FileNameStub({ value: quest.folder })] });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({ value: `${questsPath}/${quest.folder}/quest.json` }),
+      });
+      proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        homeDir: '/home/testuser',
+      });
+      proxy.setupMainSession({ content: '' });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, agentId: matchingAgentId, guildId, chatProcessId });
+
+      const events = eventCapture.getEmittedEvents();
+      const linkEvent = events.find((e) => e.type === 'quest-session-linked');
+
+      expect(linkEvent).toStrictEqual({
+        type: 'quest-session-linked',
+        processId: chatProcessId,
+        payload: {
+          questId: quest.id,
+          chatProcessId,
+          // The agentId filter must steer the lookup to matchingWorkItem (not otherWorkItem
+          // even though both have the same sessionId).
+          workItemId: matchingWorkItem.id,
+          role: 'pathseeker-surface',
         },
       });
     });

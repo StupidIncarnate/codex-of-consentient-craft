@@ -1,4 +1,9 @@
-import { AddQuestInputStub, FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  AddQuestInputStub,
+  FilePathStub,
+  GuildIdStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { questUserAddBroker } from './quest-user-add-broker';
 import { questUserAddBrokerProxy } from './quest-user-add-broker.proxy';
@@ -33,6 +38,31 @@ describe('questUserAddBroker', () => {
       chaoswhispererWorkItemId: expect.stringMatching(UUID_PATTERN),
     });
     expect(result.questFolder).toBe(result.questId);
+  });
+
+  it('VALID: {input, guildId, sessionId} => stamps sessionId on the chaoswhisperer seed work item', async () => {
+    const brokerProxy = questUserAddBrokerProxy();
+    const guildId = GuildIdStub();
+    const sessionId = SessionIdStub({ value: 'aaaaaaaa-1111-4222-9333-aaaaaaaaaaaa' });
+
+    await questUserAddBroker({ input: AddQuestInputStub(), guildId, sessionId });
+
+    const [chaosItem] = brokerProxy.getLastInitialWorkItems();
+
+    expect(chaosItem?.role).toBe('chaoswhisperer');
+    expect(chaosItem?.sessionId).toBe(sessionId);
+  });
+
+  it('VALID: {input, guildId, no sessionId} => chaoswhisperer work item has no sessionId field', async () => {
+    const brokerProxy = questUserAddBrokerProxy();
+    const guildId = GuildIdStub();
+
+    await questUserAddBroker({ input: AddQuestInputStub(), guildId });
+
+    const [chaosItem] = brokerProxy.getLastInitialWorkItems();
+
+    expect(chaosItem?.role).toBe('chaoswhisperer');
+    expect(chaosItem?.sessionId).toBe(undefined);
   });
 
   it('ERROR: {questCreateBroker throws} => returns failure result with error message', async () => {

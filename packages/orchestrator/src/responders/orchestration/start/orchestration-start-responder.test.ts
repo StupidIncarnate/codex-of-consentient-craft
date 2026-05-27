@@ -1,12 +1,21 @@
 import {
-  QuestStub,
+  PackageNameStub,
   QuestIdStub,
+  QuestStub,
   QuestWorkItemIdStub,
+  WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { OrchestrationStartResponderProxy } from './orchestration-start-responder.proxy';
+
+const NEW_PATHSEEKER_ROLES = [
+  WorkItemRoleStub({ value: 'pathseeker-surface' }),
+  WorkItemRoleStub({ value: 'pathseeker-dedup' }),
+  WorkItemRoleStub({ value: 'pathseeker-assertion-correctness' }),
+  WorkItemRoleStub({ value: 'pathseeker-walk' }),
+] as const;
 
 describe('OrchestrationStartResponder', () => {
   describe('quest validation', () => {
@@ -82,8 +91,8 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
-  describe('always transitions to seek_scope on start', () => {
-    it('VALID: {approved quest} => persisted status is seek_scope', async () => {
+  describe('final transition lands on in_progress', () => {
+    it('VALID: {approved quest} => first persisted status is seek_scope (carries workItems hop)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
@@ -92,12 +101,12 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
+      const firstPersistedQuest = proxy.getPersistedQuestAt({ index: 0 });
 
-      expect(persistedQuest.status).toBe('seek_scope');
+      expect(firstPersistedQuest.status).toBe('seek_scope');
     });
 
-    it('VALID: {design_approved quest} => persisted status is seek_scope', async () => {
+    it('VALID: {design_approved quest} => first persisted status is seek_scope (carries workItems hop)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'design_approved' });
@@ -106,63 +115,12 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
+      const firstPersistedQuest = proxy.getPersistedQuestAt({ index: 0 });
 
-      expect(persistedQuest.status).toBe('seek_scope');
-    });
-  });
-
-  describe('pathseeker work item creation', () => {
-    it('VALID: {approved quest with completed chaos} => persists pathseeker with correct identity', async () => {
-      questExecutionQueueState.clear();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-
-      expect(pathseekerItems[0]?.id).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-      expect(pathseekerItems[0]?.role).toBe('pathseeker');
-      expect(pathseekerItems[0]?.status).toBe('pending');
-      expect(pathseekerItems[0]?.spawnerType).toBe('agent');
+      expect(firstPersistedQuest.status).toBe('seek_scope');
     });
 
-    it('VALID: {approved quest with completed chaos} => persists pathseeker with correct config', async () => {
-      questExecutionQueueState.clear();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-      const [pathseeker] = pathseekerItems;
-
-      expect(pathseeker?.dependsOn).toStrictEqual([chaosId]);
-      expect(pathseeker?.maxAttempts).toBe(3);
-    });
-
-    it('VALID: {approved quest with no work items} => persists pathseeker with empty dependsOn', async () => {
+    it('VALID: {approved quest} => last persisted status is in_progress (so /dumpster-launch picks it up)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
@@ -171,13 +129,162 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const persistedContents = proxy.getAllPersistedContents();
+      const lastPersistedQuest = proxy.getPersistedQuestAt({
+        index: persistedContents.length - 1,
+      });
 
-      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([]);
+      expect(lastPersistedQuest.status).toBe('in_progress');
     });
 
-    it('VALID: {quest already has pathseeker} => does not create duplicate pathseeker', async () => {
+    it('VALID: {design_approved quest} => last persisted status is in_progress (so /dumpster-launch picks it up)', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'design_approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedContents = proxy.getAllPersistedContents();
+      const lastPersistedQuest = proxy.getPersistedQuestAt({
+        index: persistedContents.length - 1,
+      });
+
+      expect(lastPersistedQuest.status).toBe('in_progress');
+    });
+  });
+
+  describe('pathseeker graph creation (four-tier graph)', () => {
+    it('VALID: {approved quest with packagesAffected=["orchestrator"]} => persists 1 surface + 1 dedup + 1 assertion + 1 walk', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        packagesAffected: [PackageNameStub({ value: 'orchestrator' })],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const newPathseekerRoles = persistedQuest.workItems
+        .map((wi) => wi.role)
+        .filter((role) => NEW_PATHSEEKER_ROLES.includes(role));
+
+      expect(newPathseekerRoles).toStrictEqual([
+        'pathseeker-surface',
+        'pathseeker-dedup',
+        'pathseeker-assertion-correctness',
+        'pathseeker-walk',
+      ]);
+    });
+
+    it('VALID: {approved quest with packagesAffected=["a","b"]} => persists 2 surface + 1 dedup + 1 assertion + 1 walk', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        packagesAffected: [
+          PackageNameStub({ value: 'orchestrator' }),
+          PackageNameStub({ value: 'web' }),
+        ],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const newPathseekerRoles = persistedQuest.workItems
+        .map((wi) => wi.role)
+        .filter((role) => NEW_PATHSEEKER_ROLES.includes(role));
+
+      expect(newPathseekerRoles).toStrictEqual([
+        'pathseeker-surface',
+        'pathseeker-surface',
+        'pathseeker-dedup',
+        'pathseeker-assertion-correctness',
+        'pathseeker-walk',
+      ]);
+    });
+
+    it('VALID: {approved quest with empty packagesAffected} => default-slice plan still emits the 4-item graph', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const newPathseekerRoles = persistedQuest.workItems
+        .map((wi) => wi.role)
+        .filter((role) => NEW_PATHSEEKER_ROLES.includes(role));
+
+      expect(newPathseekerRoles).toStrictEqual([
+        'pathseeker-surface',
+        'pathseeker-dedup',
+        'pathseeker-assertion-correctness',
+        'pathseeker-walk',
+      ]);
+    });
+
+    it('VALID: {approved quest with packagesAffected=["orchestrator"]} => walk depends on dedup AND assertion ids', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        packagesAffected: [PackageNameStub({ value: 'orchestrator' })],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const newPathseekerItems = persistedQuest.workItems.filter((wi) =>
+        NEW_PATHSEEKER_ROLES.includes(wi.role),
+      );
+      const dedup = newPathseekerItems.find((wi) => wi.role === 'pathseeker-dedup');
+      const assertion = newPathseekerItems.find(
+        (wi) => wi.role === 'pathseeker-assertion-correctness',
+      );
+      const walk = newPathseekerItems.find((wi) => wi.role === 'pathseeker-walk');
+
+      expect(walk?.dependsOn).toStrictEqual([dedup?.id, assertion?.id]);
+    });
+
+    it('VALID: {quest already has pathseeker-walk} => does not insert another graph', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const existingWalk = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
+        role: 'pathseeker-walk',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'approved',
+        workItems: [existingWalk],
+      });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const walkItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker-walk');
+
+      expect(walkItems).toStrictEqual([existingWalk]);
+    });
+
+    it('VALID: {quest already has legacy pathseeker work item} => does not insert another graph', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const existingPathseeker = WorkItemStub({
@@ -195,13 +302,15 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const surfaceItems = persistedQuest.workItems.filter(
+        (wi) => wi.role === 'pathseeker-surface',
+      );
 
-      expect(pathseekerItems[0]?.id).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+      expect(surfaceItems).toStrictEqual([]);
     });
 
-    it('ERROR: {pathseeker insert fails} => throws pathseeker creation error', async () => {
+    it('ERROR: {modify-quest fails on the work-items insertion} => throws start error', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
@@ -210,38 +319,26 @@ describe('OrchestrationStartResponder', () => {
 
       await expect(proxy.callResponder({ questId })).rejects.toThrow(/Failed to start quest/u);
     });
+  });
 
-    it('VALID: {approved quest with chaos and glyphsmith complete} => pathseeker depends on both', async () => {
+  describe('scopeClassification persistence', () => {
+    it('VALID: {approved quest with packagesAffected=["orchestrator","web"]} => responder completes without throwing (scopeClassification persist runs as a follow-up modify-quest; full persistence is covered by integration tests)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const glyphItem = WorkItemStub({
-        id: glyphId,
-        role: 'glyphsmith',
-        status: 'complete',
-        createdAt: '2024-01-15T11:00:00.000Z',
-      });
       const quest = QuestStub({
         id: questId,
         status: 'approved',
-        workItems: [chaosItem, glyphItem],
+        packagesAffected: [
+          PackageNameStub({ value: 'orchestrator' }),
+          PackageNameStub({ value: 'web' }),
+        ],
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupQuestApproved({ quest });
 
-      await proxy.callResponder({ questId });
+      const result = await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-
-      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId, glyphId]);
+      expect(result).toBe('proc-f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 
@@ -262,7 +359,7 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
       const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
 
       expect(chaosItems[0]?.status).toBe('complete');
@@ -287,7 +384,7 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
       const glyphItems = persistedQuest.workItems.filter((wi) => wi.role === 'glyphsmith');
 
       expect(glyphItems[0]?.status).toBe('complete');
@@ -296,65 +393,33 @@ describe('OrchestrationStartResponder', () => {
       );
     });
 
-    it('VALID: {approved quest with pending chaos and glyph} => both promoted, pathseeker depends on both', async () => {
+    it('VALID: {approved quest with pending chaos} => every new surface item depends on chaos id', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const glyphId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
       const chaosItem = WorkItemStub({
         id: chaosId,
         role: 'chaoswhisperer',
         status: 'pending',
         createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const glyphItem = WorkItemStub({
-        id: glyphId,
-        role: 'glyphsmith',
-        status: 'pending',
-        createdAt: '2024-01-15T11:00:00.000Z',
       });
       const quest = QuestStub({
         id: questId,
         status: 'approved',
-        workItems: [chaosItem, glyphItem],
+        packagesAffected: [PackageNameStub({ value: 'orchestrator' })],
+        workItems: [chaosItem],
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupQuestApproved({ quest });
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
-      const glyphItems = persistedQuest.workItems.filter((wi) => wi.role === 'glyphsmith');
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const surfaceItems = persistedQuest.workItems.filter(
+        (wi) => wi.role === 'pathseeker-surface',
+      );
 
-      expect(chaosItems[0]?.status).toBe('complete');
-      expect(glyphItems[0]?.status).toBe('complete');
-      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId, glyphId]);
-    });
-
-    it('VALID: {approved quest with already-complete chaos} => chaos stays complete, pathseeker depends on it', async () => {
-      questExecutionQueueState.clear();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-
-      expect(chaosItems[0]?.status).toBe('complete');
-      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
+      expect(surfaceItems[0]?.dependsOn).toStrictEqual([chaosId]);
     });
 
     it('VALID: {approved quest with failed chaos} => failed chaos NOT promoted', async () => {
@@ -373,58 +438,10 @@ describe('OrchestrationStartResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
       const chaosItems = persistedQuest.workItems.filter((wi) => wi.role === 'chaoswhisperer');
 
       expect(chaosItems[0]?.status).toBe('failed');
-    });
-  });
-
-  describe('sequential modify atomicity (H-1 root cause)', () => {
-    it('VALID: {approved quest with chaos complete} => final persisted quest status is seek_scope', async () => {
-      questExecutionQueueState.clear();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-
-      expect(persistedQuest.status).toBe('seek_scope');
-    });
-
-    it('VALID: {approved quest with chaos complete} => final persisted quest has pathseeker with seek_scope status context', async () => {
-      questExecutionQueueState.clear();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const chaosItem = WorkItemStub({
-        id: chaosId,
-        role: 'chaoswhisperer',
-        status: 'complete',
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-      const quest = QuestStub({ id: questId, status: 'approved', workItems: [chaosItem] });
-      const proxy = OrchestrationStartResponderProxy();
-      proxy.setupQuestApproved({ quest });
-
-      await proxy.callResponder({ questId });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const pathseekerItems = persistedQuest.workItems.filter((wi) => wi.role === 'pathseeker');
-
-      expect(persistedQuest.status).toBe('seek_scope');
-      expect(pathseekerItems[0]?.role).toBe('pathseeker');
-      expect(pathseekerItems[0]?.status).toBe('pending');
-      expect(pathseekerItems[0]?.dependsOn).toStrictEqual([chaosId]);
     });
   });
 

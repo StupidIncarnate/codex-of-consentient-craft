@@ -43,11 +43,17 @@ import type {
   QuestWorkItemId,
   WsMessage,
 } from '@dungeonmaster/shared/contracts';
+
+import { orchestratorFindQuestByWorkItemIdAdapter } from '../../../adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
+import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { designProcessState } from '../../../state/design-process/design-process-state';
+import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
+import { monitorSessionFilterChatOutputTransformer } from '../../../transformers/monitor-session-filter-chat-output/monitor-session-filter-chat-output-transformer';
+import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
 
@@ -258,6 +264,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                         replayClientByChatProcessId.set(taggedId, subWs);
                         await orchestratorReplayChatHistoryAdapter({
                           sessionId: wi.sessionId,
+                          ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                           guildId: subGuildId,
                           chatProcessId: taggedId,
                         }).catch(() => {
@@ -395,6 +402,7 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
                       );
                       await orchestratorReplayChatHistoryAdapter({
                         sessionId: wi.sessionId,
+                        ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                         guildId: replayGuildId,
                         chatProcessId: taggedId,
                       }).catch(() => {
@@ -473,6 +481,24 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
     payload: Record<PropertyKey, unknown>;
   }[] = [];
 
+  // Parent /dumpster-launch session is a dispatcher, not a speaker. Track Task tool_use
+  // ids we've seen on session-source entries so the matching user.tool_result entries
+  // (whose `toolName` field carries the original tool_use_id under the converged wire
+  // shape) can pass through; everything else session-sourced is dropped.
+  const monitorTaskToolUseIds = new Set<ToolName>();
+
+  // Cache of workItemId → questId resolved via the orchestrator. The first chat-output
+  // emit for a given workItemId may broadcast without questId (lookup pending); subsequent
+  // emits stamp it from this map. Hits last for the server process lifetime.
+  const workItemQuestIdCache = new Map<QuestWorkItemId, QuestId>();
+
+  // Per-chatProcessId latched questId. The /dumpster-create monitor-session path emits
+  // chat-output with no workItemId — ChaosWhisperer runs inside the user's own Claude Code
+  // session, not a Task-dispatched sub-agent. To route those emits to the right per-quest
+  // subscriber we scan tool_use inputs / tool_result content for an embedded questId and
+  // latch it per chatProcessId so subsequent emits inherit it.
+  const monitorChatQuestIdCache = new Map<ProcessId, QuestId>();
+
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
     if (type === 'quest-modified') continue;
@@ -483,7 +509,9 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
       handler: ({ processId, payload }) => {
         const parsedPayload = chatOutputPayloadContract.safeParse(payload);
         const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
-        const payloadQuestId = parsedPayload.success ? parsedPayload.data.questId : undefined;
+        const originalPayloadQuestId = parsedPayload.success
+          ? parsedPayload.data.questId
+          : undefined;
         const payloadChatProcessId = parsedPayload.success
           ? parsedPayload.data.chatProcessId
           : undefined;
@@ -501,9 +529,83 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           return;
         }
 
+        // Filter parent-source dispatcher chatter from chat-output entries — but ONLY
+        // for the /dumpster-launch monitor session (chatProcessId prefix `proc-monitor-`).
+        // Legacy chat-spawn-broker, replay paths, and orchestration-loop agents emit
+        // session-source text/user-message entries that ARE the user-facing content.
+        let effectivePayload: Record<PropertyKey, unknown> = payload as Record<
+          PropertyKey,
+          unknown
+        >;
+        if (type === 'chat-output') {
+          const filterResult = monitorSessionFilterChatOutputTransformer({
+            payload: payload as Record<PropertyKey, unknown>,
+            payloadChatProcessId,
+            monitorTaskToolUseIds,
+          });
+          if (filterResult === null) return;
+          effectivePayload = filterResult.payload;
+        }
+
+        // Resolve questId via workItemId lookup when the payload carries a workItemId but
+        // no questId — used by the /dumpster-launch monitor session's emits, where the
+        // active-quest singleton is gone. Cache hits stamp synchronously; cache misses
+        // broadcast without questId and trigger a background lookup that populates the
+        // cache for the next emit.
+        let resolvedQuestId = originalPayloadQuestId;
+        if (
+          resolvedQuestId === undefined &&
+          payloadWorkItemId !== undefined &&
+          type === 'chat-output'
+        ) {
+          const cached = workItemQuestIdCache.get(payloadWorkItemId);
+          if (cached === undefined) {
+            orchestratorFindQuestByWorkItemIdAdapter({ workItemId: payloadWorkItemId })
+              .then((looked) => {
+                if (looked !== null) workItemQuestIdCache.set(payloadWorkItemId, looked);
+              })
+              .catch((error: unknown) => {
+                processDevLogAdapter({
+                  message: `workItemId→questId lookup failed for ${payloadWorkItemId}: ${String(error)}`,
+                });
+              });
+          } else {
+            resolvedQuestId = cached;
+            effectivePayload = { ...effectivePayload, questId: cached };
+          }
+        }
+
+        // Monitor-session chat-output has neither questId nor workItemId. Scan its entries
+        // for an embedded questId reference (e.g. modify-quest tool_use inputs) and latch
+        // it per chatProcessId so future emits from the same session inherit it.
+        if (
+          resolvedQuestId === undefined &&
+          payloadWorkItemId === undefined &&
+          payloadChatProcessId !== undefined &&
+          type === 'chat-output'
+        ) {
+          const entriesForScan = parseChatOutputEntriesTransformer({
+            payload: effectivePayload,
+          });
+          const extracted = chatEntriesExtractQuestIdTransformer({ entries: entriesForScan });
+          if (extracted === undefined) {
+            const cached = monitorChatQuestIdCache.get(payloadChatProcessId);
+            if (cached !== undefined) {
+              resolvedQuestId = cached;
+              effectivePayload = { ...effectivePayload, questId: cached };
+            }
+          } else {
+            monitorChatQuestIdCache.set(payloadChatProcessId, extracted);
+            resolvedQuestId = extracted;
+            effectivePayload = { ...effectivePayload, questId: extracted };
+          }
+        }
+
+        const payloadQuestId = resolvedQuestId;
+
         const envelope = wsMessageContract.parse({
           type,
-          payload: { ...payload, processId },
+          payload: { ...effectivePayload, processId },
           timestamp: isoTimestampContract.parse(new Date().toISOString()),
         });
 
@@ -514,6 +616,29 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
           // already-delivered clients so a client somehow on both paths is not double-sent.
           const serializedQuestMsg = JSON.stringify(envelope);
           const delivered = new Set<WsClient>();
+
+          // Monitor-session chat-output fallback: when no questId could be derived (no
+          // workItemId on the payload AND no questId latched from prior entries), fan
+          // the chat-output out to every currently-subscribed client. ChaosWhisperer in
+          // the /dumpster-create flow runs inside the user's Claude Code session — its
+          // tool_uses have no work item and the watcher tails from 'end' after server
+          // restart so the questId latch may be cold. Without this fallback the events
+          // never reach the web. The web-side binding filters chat-output entries by
+          // questId-match-or-null and only renders the ones meant for its current view.
+          // We do NOT return after this — the readonly-replay direct-send path below
+          // still needs to fire for replay clients that subscribed via replay-history,
+          // and `delivered` dedupes any client that was reached both ways.
+          if (payloadQuestId === undefined && type === 'chat-output') {
+            for (const client of clientSubscriptions.keys()) {
+              try {
+                client.send(serializedQuestMsg);
+                delivered.add(client);
+              } catch {
+                clientSubscriptions.delete(client);
+                clients.delete(client);
+              }
+            }
+          }
 
           if (payloadQuestId) {
             for (const [client, subs] of clientSubscriptions) {

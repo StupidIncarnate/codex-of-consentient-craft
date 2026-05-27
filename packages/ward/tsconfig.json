@@ -1,17 +1,31 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
     "rootDir": ".",
     "outDir": "./dist",
     "declarationMap": true,
     "declaration": true,
-    "noEmit": false,
-    "typeRoots": ["../../node_modules/@types", "../../@types"]
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../@types"
+    ]
   },
+  "references": [
+    {
+      "path": "../shared"
+    },
+    {
+      "path": "../testing"
+    }
+  ],
   "include": [
     "src/**/*",
     "test/**/*",
     "bin/**/*",
     "*.ts"
-  ]
+  ],
+  "extends": "../../tsconfig.json"
 }

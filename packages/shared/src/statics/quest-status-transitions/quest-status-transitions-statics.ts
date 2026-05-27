@@ -18,7 +18,7 @@ export const questStatusTransitionsStatics = {
   explore_design: ['review_design', 'paused'],
   review_design: ['design_approved', 'explore_design', 'paused'],
   design_approved: ['seek_scope', 'explore_design', 'paused'],
-  seek_scope: ['seek_synth', 'abandoned', 'paused'],
+  seek_scope: ['seek_synth', 'in_progress', 'abandoned', 'paused'],
   seek_synth: ['seek_walk', 'seek_scope', 'abandoned', 'paused'],
   seek_walk: ['in_progress', 'seek_scope', 'abandoned', 'paused'],
   in_progress: [

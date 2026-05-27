@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
+import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
 import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
@@ -46,6 +47,12 @@ export const questContract = z.object({
     .array(toolingRequirementContract)
     .default([])
     .describe('NPM packages needed for implementation that are not already in the project'),
+  packagesAffected: z
+    .array(packageNameContract)
+    .default([])
+    .describe(
+      'Monorepo packages that this quest will touch. Drives slice generation for pathseeker-surface work items.',
+    ),
   contracts: z
     .array(questContractEntryContract)
     .default([])

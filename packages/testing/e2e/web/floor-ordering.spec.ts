@@ -102,7 +102,7 @@ test.describe('Floor Ordering', () => {
         },
         {
           id: crypto.randomUUID(),
-          role: 'pathseeker',
+          role: 'pathseeker-surface',
           sessionId: mainSessionId,
           dependsOn: [],
           createdAt: '2024-01-15T10:01:00.000Z',
@@ -136,7 +136,7 @@ test.describe('Floor Ordering', () => {
 
     expect(floorTexts).toStrictEqual([
       'HOMEBASE',
-      'ENTRANCE: CARTOGRAPHY',
+      'ENTRANCE: MAPPING DUMPSTER',
       'FLOOR 1: FORGE',
       'FLOOR 2: MINI BOSS',
     ]);
@@ -144,7 +144,9 @@ test.describe('Floor Ordering', () => {
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 0 })).toStrictEqual([
       '[CHAOSWHISPERER]',
     ]);
-    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 1 })).toStrictEqual(['[PATHSEEKER]']);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 1 })).toStrictEqual([
+      '[PATHSEEKER-SURFACE]',
+    ]);
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 2 })).toStrictEqual(['[CODEWEAVER]']);
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[WARD]']);
   });
@@ -249,7 +251,7 @@ test.describe('Floor Ordering', () => {
     ]);
   });
 
-  test('ERROR: siegemaster fail → pathseeker replan: CARTOGRAPHY after ARENA, skipped items hidden', async ({
+  test('ERROR: siegemaster fail → pathseeker-surface replan: ENTRANCE: MAPPING DUMPSTER after ARENA, skipped items hidden', async ({
     page,
     request,
   }) => {
@@ -333,7 +335,7 @@ test.describe('Floor Ordering', () => {
         },
         {
           id: crypto.randomUUID(),
-          role: 'pathseeker',
+          role: 'pathseeker-surface',
           sessionId: mainSessionId,
           status: 'complete',
           dependsOn: [siegeId],
@@ -357,10 +359,12 @@ test.describe('Floor Ordering', () => {
       'FLOOR 1: FORGE',
       'FLOOR 2: MINI BOSS',
       'FLOOR 3: ARENA',
-      'ENTRANCE: CARTOGRAPHY',
+      'ENTRANCE: MAPPING DUMPSTER',
     ]);
 
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[SIEGEMASTER]']);
-    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 4 })).toStrictEqual(['[PATHSEEKER]']);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 4 })).toStrictEqual([
+      '[PATHSEEKER-SURFACE]',
+    ]);
   });
 });

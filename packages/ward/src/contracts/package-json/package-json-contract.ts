@@ -12,6 +12,15 @@ export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>().optional(),
     workspaces: z.array(z.string().brand<'PackageJsonWorkspace'>()).optional(),
+    dependencies: z
+      .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
+      .optional(),
+    devDependencies: z
+      .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
+      .optional(),
+    peerDependencies: z
+      .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
+      .optional(),
   })
   .passthrough();
 

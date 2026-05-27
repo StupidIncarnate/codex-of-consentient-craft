@@ -13,6 +13,8 @@ describe('signalBackResultContract', () => {
       expect(result).toStrictEqual({
         success: true,
         signal: {
+          questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+          workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
           signal: 'complete',
           summary: 'Done',
         },
@@ -31,6 +33,8 @@ describe('signalBackResultContract', () => {
       expect(result).toStrictEqual({
         success: true,
         signal: {
+          questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+          workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
           signal: 'failed',
           summary: 'Tests failing in user-fetch-broker',
         },
@@ -48,6 +52,8 @@ describe('signalBackResultContract', () => {
       expect(result).toStrictEqual({
         success: false,
         signal: {
+          questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+          workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
           signal: 'complete',
           summary: 'Done',
         },
@@ -62,6 +68,8 @@ describe('signalBackResultContract', () => {
       expect(result).toStrictEqual({
         success: true,
         signal: {
+          questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+          workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
           signal: 'complete',
           summary: 'Step completed successfully',
         },

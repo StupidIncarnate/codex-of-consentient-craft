@@ -19,7 +19,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {seek_scope quest with in-progress pathseeker workItem} => synthetic Planning steps row shows replayed pathseeker text on reload', async ({
+  test('VALID: {seek_scope quest with in-progress pathseeker-surface workItem} => its execution row shows replayed pathseeker text on reload', async ({
     page,
     request,
   }) => {
@@ -52,6 +52,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
+    const pathseekerWorkItemId = 'e2e00000-0000-4000-8000-000000000011';
     quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
@@ -65,8 +66,8 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
           status: 'complete',
         },
         {
-          id: 'e2e00000-0000-4000-8000-000000000011',
-          role: 'pathseeker',
+          id: pathseekerWorkItemId,
+          role: 'pathseeker-surface',
           sessionId: pathseekerSessionId,
           status: 'in_progress',
         },
@@ -80,14 +81,18 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // The synthetic "Planning steps..." pathseeker row in the planning branch must
-    // surface the in-progress pathseeker workItem's replayed assistant text — not
-    // just render a streaming bar with no body. Streaming and replay paths converge
-    // on the same workItem.sessionId, so this row must source from sessionEntries,
-    // not slotEntries (which is only stamped during live emission).
-    await expect(executionPanel.getByText('Planning steps...')).toBeVisible({
-      timeout: PANEL_TIMEOUT,
-    });
+    // The actual pathseeker-surface workItem row (no longer a synthetic
+    // "Planning steps..." row) must surface the in-progress workItem's replayed
+    // assistant text. Streaming and replay paths converge on the same
+    // workItem.sessionId, so this row sources from sessionEntries — both paths
+    // populate the same key.
+    const pathseekerRoleBadge = executionPanel
+      .getByTestId('execution-row-role-badge')
+      .filter({ hasText: '[PATHSEEKER-SURFACE]' });
+
+    await expect(pathseekerRoleBadge).toHaveCount(1, { timeout: PANEL_TIMEOUT });
+    await expect(pathseekerRoleBadge).toHaveText('[PATHSEEKER-SURFACE]');
+
     await expect(executionPanel.getByText(pathseekerText)).toBeVisible({
       timeout: REPLAY_TEXT_TIMEOUT,
     });

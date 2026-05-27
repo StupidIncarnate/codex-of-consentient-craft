@@ -81,3 +81,16 @@ export type SubagentStartHook = z.infer<typeof subagentStartHookContract>;
 export type HookMatcher = z.infer<typeof hookMatcherContract>;
 export type PermissionsConfig = z.infer<typeof permissionsConfigContract>;
 export type PermissionString = z.infer<typeof permissionStringContract>;
+
+/**
+ * Union of every hook-list entry kind dungeonmaster writes into a settings.json hook array
+ * (PreToolUse, PostToolUse, SessionStart, SubagentStart, WorktreeCreate). Used by the
+ * upsert transformer and the dungeonmaster-ownership guard so they can operate on any of
+ * these list shapes without re-declaring an ad-hoc structural type.
+ */
+export type SettingsHookListEntry =
+  | PreToolUseHook
+  | PostToolUseHook
+  | SessionStartHook
+  | SubagentStartHook
+  | WorktreeCreateHook;

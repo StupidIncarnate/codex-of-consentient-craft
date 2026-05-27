@@ -1,6 +1,5 @@
 import type { PostToolUseHookData } from './post-tool-use-hook-data-contract';
 import { postToolUseHookDataContract } from './post-tool-use-hook-data-contract';
-import { writeToolInputContract } from '../write-tool-input/write-tool-input-contract';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 export const PostToolUseHookStub = ({
@@ -12,9 +11,6 @@ export const PostToolUseHookStub = ({
     cwd: '/tmp/stub-cwd',
     hook_event_name: 'PostToolUse',
     tool_name: 'Write',
-    tool_input: writeToolInputContract.parse({
-      file_path: '/test/file.ts',
-      content: '',
-    }),
+    tool_input: { file_path: '/test/file.ts', content: '' },
     ...props,
   });

@@ -39,9 +39,19 @@ export type { QuestSection } from './contracts/quest-section/quest-section-contr
 export { agentPromptResultContract } from '@dungeonmaster/shared/contracts';
 export type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 
+// MCP-driven result contracts — exported for the MCP package's adapters
+export { nextStepContract } from './contracts/next-step/next-step-contract';
+export type { NextStep } from './contracts/next-step/next-step-contract';
+export { questRunWardResultContract } from './contracts/quest-run-ward-result/quest-run-ward-result-contract';
+export type { QuestRunWardResult } from './contracts/quest-run-ward-result/quest-run-ward-result-contract';
+export { questGetServerConfigResultContract } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
+export type { QuestGetServerConfigResult } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
+export { spawnInstructionContract } from './contracts/spawn-instruction/spawn-instruction-contract';
+export type { SpawnInstruction } from './contracts/spawn-instruction/spawn-instruction-contract';
+
 // Prompt statics - re-exported for CLI package
-export { chaoswhispererPromptStatics } from './statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
-export { pathseekerPromptStatics } from './statics/pathseeker-prompt/pathseeker-prompt-statics';
+export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
+export { pathseekerWalkStatics } from './statics/pathseeker-walk/pathseeker-walk-statics';
 export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
 export { lawbringerPromptStatics } from './statics/lawbringer-prompt/lawbringer-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';

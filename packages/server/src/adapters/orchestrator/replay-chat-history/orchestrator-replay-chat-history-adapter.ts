@@ -7,18 +7,31 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { AdapterResult, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  AgentId,
+  GuildId,
+  ProcessId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 export const orchestratorReplayChatHistoryAdapter = async ({
   sessionId,
+  agentId,
   guildId,
   chatProcessId,
 }: {
   sessionId: SessionId;
+  agentId?: AgentId;
   guildId: GuildId;
   chatProcessId: ProcessId;
 }): Promise<AdapterResult> => {
-  await StartOrchestrator.replayChatHistory({ sessionId, guildId, chatProcessId });
+  await StartOrchestrator.replayChatHistory({
+    sessionId,
+    ...(agentId && { agentId }),
+    guildId,
+    chatProcessId,
+  });
 
   return { success: true as const };
 };

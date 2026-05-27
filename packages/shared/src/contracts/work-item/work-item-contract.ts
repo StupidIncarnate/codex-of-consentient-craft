@@ -8,9 +8,12 @@
 
 import { z } from 'zod';
 
+import { agentIdContract } from '../agent-id/agent-id-contract';
+import { fileNameContract } from '../file-name/file-name-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
+import { sliceNameContract } from '../slice-name/slice-name-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
@@ -22,16 +25,29 @@ export const workItemContract = z.object({
   status: workItemStatusContract,
   spawnerType: spawnerTypeContract,
   sessionId: sessionIdContract.optional(),
+  // Set when the work item is a Task-dispatched sub-agent under /dumpster-launch — value is
+  // Claude CLI's realAgentId (the filename in `<sessionId>/subagents/agent-<agentId>.jsonl`).
+  // Combined with `sessionId` (parent /dumpster-launch session) it locates the exact JSONL
+  // file the replay should read. Absent for chat roles (chaoswhisperer, glyphsmith) whose
+  // `sessionId` already points at a top-level `<sessionId>.jsonl`.
+  agentId: agentIdContract.optional(),
   relatedDataItems: z.array(relatedDataItemContract).default([]),
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),
   maxAttempts: z.number().int().positive().brand<'MaxAttempts'>().default(1),
+  retryCount: z.number().int().nonnegative().brand<'FailCount'>().default(0),
+  lastWardRunId: fileNameContract.optional(),
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   startedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),
+  // Links a pathseeker-surface work item to its assigned slice on
+  // `quest.planningNotes.scopeClassification.slices[]`. Stamped at insertion by
+  // `questBuildPathseekerGraphBroker`; read by `agentPromptGetBroker` when
+  // building `$ARGUMENTS` so the agent receives its slice's `{name, packages, flowIds}`.
+  sliceName: sliceNameContract.optional(),
   wardMode: z.enum(['changed', 'full']).optional(),
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),

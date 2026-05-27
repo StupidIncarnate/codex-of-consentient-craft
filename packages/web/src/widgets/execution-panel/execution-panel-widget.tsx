@@ -8,7 +8,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Box, Group, Stack, UnstyledButton } from '@mantine/core';
 
 import type {
   Quest,
@@ -24,6 +24,7 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
+import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
@@ -44,12 +45,18 @@ import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/trans
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
+import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
+
+const DUMPSTER_LAUNCH_BANNER_MESSAGE = displayLabelContract.parse(
+  "Run this in your Claude session — it'll pick this quest up on its next pass.",
+);
+const DUMPSTER_LAUNCH_COMMAND = displayLabelContract.parse('/dumpster-launch');
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
@@ -150,22 +157,6 @@ export const ExecutionPanelWidget = ({
     [quest.workItems, hasWorkItemsOnly],
   );
 
-  // The synthetic "Planning steps..." pathseeker row in the planning branch
-  // surfaces the same entries whether they arrived via live streaming or
-  // subscribe-quest replay. We source from the most recent pathseeker
-  // workItem's sessionEntries — replay never stamps slotIndex, so a
-  // slotEntries-keyed lookup goes dark on reload while sessionEntries[wi.sessionId]
-  // is populated by both paths identically.
-  const planningPathseekerEntries = useMemo<ChatEntry[]>(() => {
-    const pathseekerWorkItems = quest.workItems.filter(
-      (wi) => wi.role === 'pathseeker' && wi.sessionId !== undefined,
-    );
-    if (pathseekerWorkItems.length === 0) return [];
-    const mostRecent = pathseekerWorkItems[pathseekerWorkItems.length - 1];
-    if (mostRecent?.sessionId === undefined) return [];
-    return sessionEntries.get(mostRecent.sessionId) ?? [];
-  }, [quest.workItems, sessionEntries]);
-
   const groupActiveCounts = new Map<(typeof floorGroups)[0], SlotCount>();
   const groupTotalCounts = new Map<(typeof floorGroups)[0], SlotCount>();
   for (const group of floorGroups) {
@@ -219,6 +210,12 @@ export const ExecutionPanelWidget = ({
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
+          {isTerminalQuestStatusGuard({ status: quest.status }) ? null : (
+            <DumpsterCommandBannerWidget
+              message={DUMPSTER_LAUNCH_BANNER_MESSAGE}
+              command={DUMPSTER_LAUNCH_COMMAND}
+            />
+          )}
           {isTerminalQuestStatusGuard({ status: quest.status }) ? (
             <Box
               data-testid="execution-panel-terminal-banner"
@@ -250,92 +247,56 @@ export const ExecutionPanelWidget = ({
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px' }}
           >
-            {isPlanning ? (
-              <>
-                {floorGroups
-                  .filter((group) =>
-                    group.workItems.every(
-                      (wi) =>
-                        wi.role !== 'pathseeker' &&
-                        !wi.relatedDataItems.some((ref) => ref.startsWith(STEPS_PREFIX)),
-                    ),
-                  )
-                  .map((group) => (
-                    <Box key={`planning-nonstep-${group.floorName}-${String(group.floorNumber)}`}>
-                      <FloorHeaderLayerWidget
-                        floorNumber={group.floorNumber}
-                        name={group.floorName}
-                        {...(groupActiveCounts.has(group)
-                          ? {
-                              concurrent: {
-                                active: groupActiveCounts.get(group) ?? slotCountContract.parse(0),
-                                max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
-                              },
-                            }
-                          : {})}
-                      />
-                      {group.workItems.map((wi, wiIndex) => {
-                        const wiEntries = wi.sessionId
-                          ? (sessionEntries.get(wi.sessionId) ?? [])
-                          : [];
-                        const wiDepLabels = wi.dependsOn
-                          .map((depId) => workItemIdToLabel.get(depId) ?? depId)
-                          .filter((label) => label.length > 0);
-                        return (
-                          <ExecutionRowLayerWidget
-                            key={wi.id}
-                            order={(wiIndex + 1) as StepOrder}
-                            name={
-                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
-                            }
-                            role={wi.role as unknown as ExecutionRole}
-                            status={wi.status as unknown as ExecutionStepStatus}
-                            files={[] as DisplayFilePath[]}
-                            dependsOn={wiDepLabels as unknown as DependencyLabel[]}
-                            isAdhoc={wi.insertedBy !== undefined}
-                            entries={wiEntries}
-                            attempt={wi.attempt}
-                            maxAttempts={wi.maxAttempts}
-                            startedAt={wi.startedAt}
-                            completedAt={wi.completedAt}
-                            {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                            {...(wi.summary ? { summary: wi.summary } : {})}
-                            {...(wi.smoketestExpectedSignal
-                              ? { expectedSignal: wi.smoketestExpectedSignal }
-                              : {})}
-                            {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
-                            {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
-                            {...(guildSlug ? { guildSlug } : {})}
-                          />
-                        );
-                      })}
-                    </Box>
-                  ))}
-                <ExecutionRowLayerWidget
-                  order={'--' as unknown as StepOrder}
-                  name={'Planning steps...' as StepName}
-                  role={'pathseeker' as ExecutionRole}
-                  status={'in_progress' as ExecutionStepStatus}
-                  files={[] as DisplayFilePath[]}
-                  dependsOn={[] as DependencyLabel[]}
-                  isAdhoc={false}
-                  entries={planningPathseekerEntries}
-                  isStreaming={true}
-                />
-                <Text
-                  ff="monospace"
-                  data-testid="execution-panel-planning-text"
-                  style={{
-                    fontSize: 10,
-                    color: colors['text-dim'],
-                    textAlign: 'center',
-                    padding: '16px 0',
-                  }}
-                >
-                  Steps will appear once cartography is complete...
-                </Text>
-              </>
-            ) : null}
+            {isPlanning
+              ? floorGroups.map((group) => (
+                  <Box key={`planning-${group.key}`}>
+                    <FloorHeaderLayerWidget
+                      floorNumber={group.floorNumber}
+                      name={group.floorName}
+                      {...(groupActiveCounts.has(group)
+                        ? {
+                            concurrent: {
+                              active: groupActiveCounts.get(group) ?? slotCountContract.parse(0),
+                              max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
+                            },
+                          }
+                        : {})}
+                    />
+                    {group.workItems.map((wi, wiIndex) => {
+                      const wiEntries = wi.sessionId
+                        ? (sessionEntries.get(wi.sessionId) ?? [])
+                        : [];
+                      const wiDepLabels = wi.dependsOn
+                        .map((depId) => workItemIdToLabel.get(depId) ?? depId)
+                        .filter((label) => label.length > 0);
+                      return (
+                        <ExecutionRowLayerWidget
+                          key={wi.id}
+                          order={(wiIndex + 1) as StepOrder}
+                          name={
+                            `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
+                          }
+                          role={wi.role as unknown as ExecutionRole}
+                          status={wi.status as unknown as ExecutionStepStatus}
+                          files={[] as DisplayFilePath[]}
+                          dependsOn={wiDepLabels as unknown as DependencyLabel[]}
+                          isAdhoc={wi.insertedBy !== undefined}
+                          entries={wiEntries}
+                          attempt={wi.attempt}
+                          maxAttempts={wi.maxAttempts}
+                          startedAt={wi.startedAt}
+                          completedAt={wi.completedAt}
+                          {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                          {...(wi.summary ? { summary: wi.summary } : {})}
+                          {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
+                          {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
+                          {...(guildSlug ? { guildSlug } : {})}
+                        />
+                      );
+                    })}
+                  </Box>
+                ))
+              : null}
             {hasWorkItemsOnly
               ? floorGroups.map((group) => (
                   <Box key={`${group.floorName}-${String(group.floorNumber)}`}>
@@ -378,9 +339,6 @@ export const ExecutionPanelWidget = ({
                           completedAt={wi.completedAt}
                           {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                           {...(wi.summary ? { summary: wi.summary } : {})}
-                          {...(wi.smoketestExpectedSignal
-                            ? { expectedSignal: wi.smoketestExpectedSignal }
-                            : {})}
                           {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                           {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
                           {...(guildSlug ? { guildSlug } : {})}
@@ -449,9 +407,6 @@ export const ExecutionPanelWidget = ({
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
-                            {...(wi.smoketestExpectedSignal
-                              ? { expectedSignal: wi.smoketestExpectedSignal }
-                              : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
                             {...(guildSlug ? { guildSlug } : {})}
@@ -524,9 +479,6 @@ export const ExecutionPanelWidget = ({
                             {...(wi.summary ? { summary: wi.summary } : {})}
                             {...(resolvedWardResults.length > 0
                               ? { wardResults: resolvedWardResults }
-                              : {})}
-                            {...(wi.smoketestExpectedSignal
-                              ? { expectedSignal: wi.smoketestExpectedSignal }
                               : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}

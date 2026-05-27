@@ -1,6 +1,8 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
+import { projectReferencesSyncBrokerProxy } from '../../project-references/sync/project-references-sync-broker.proxy';
+import { checkRunTypecheckRefsBrokerProxy } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker.proxy';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
 import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
 import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
@@ -20,6 +22,8 @@ export const commandRunBrokerProxy = (): {
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   gitDiffFilesBrokerProxy();
+  projectReferencesSyncBrokerProxy();
+  checkRunTypecheckRefsBrokerProxy();
   const folderProxy = commandRunLayerFolderBrokerProxy();
   const singleProxy = commandRunLayerSingleBrokerProxy();
   const multiProxy = commandRunLayerMultiBrokerProxy();

@@ -1,5 +1,6 @@
 import {
   AbsoluteFilePathStub,
+  AgentIdStub,
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
@@ -204,6 +205,57 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('websocket onMessage subscribe-quest agentId forwarding', () => {
+    it('VALID: {workItem carries agentId} => forwards both sessionId and agentId to replay adapter', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-with-agent-1' });
+      const workItemId = QuestWorkItemIdStub({
+        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
+      });
+      const sessionId = SessionIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402' });
+      const agentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({
+        id: questId,
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'pathseeker-surface',
+            sessionId,
+            agentId,
+          }),
+        ],
+      });
+      proxy.setupLoadQuestSuccess({ quest });
+      proxy.setupFindQuestPathSuccess({
+        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        guildId,
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(proxy.getReplayChatHistoryCalls()).toStrictEqual([
+        {
+          sessionId,
+          agentId,
+          guildId,
+          chatProcessId: `quest-replay-${questId}-${workItemId}-${sessionId}`,
+        },
+      ]);
+    });
+  });
+
   describe('websocket onMessage subscribe-quest completed quest', () => {
     it('VALID: {subscribe-quest for completed quest} => first send is quest-modified with the quest', async () => {
       const proxy = ServerInitResponderProxy();
@@ -360,6 +412,56 @@ describe('ServerInitResponder', () => {
       const bGotIt = sendB.mock.calls.some((c) => String(c[0]).includes('"text":"X-only"'));
 
       expect({ aGotIt, bGotIt }).toStrictEqual({ aGotIt: true, bGotIt: false });
+    });
+
+    it('VALID: {chat-output payload carries questId} => envelope sent to subscribed client preserves questId field', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questIdX = QuestIdStub({ value: 'quest-envelope-X' });
+      proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdX, workItems: [] }) });
+      proxy.callResponder();
+
+      const sendA = jest.fn();
+      const clientA = WsClientStub({ send: sendA });
+      proxy.simulateConnection({ client: clientA });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
+        ws: clientA,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendA.mockClear();
+
+      const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
+      handler!({
+        processId: ProcessIdStub({ value: 'p-envelope' }),
+        payload: { questId: questIdX, chatProcessId: 'cp-envelope', entries: [] },
+      });
+
+      const envelopeFrames = sendA.mock.calls
+        .map((c) => JSON.parse(String(c[0])) as Record<PropertyKey, unknown>)
+        .filter((m) => {
+          const p = m.payload as Record<PropertyKey, unknown> | undefined;
+          return p?.chatProcessId === 'cp-envelope';
+        });
+
+      const summary = envelopeFrames.map((frame) => ({
+        type: frame.type,
+        payloadQuestId: (frame.payload as Record<PropertyKey, unknown>).questId,
+        payloadChatProcessId: (frame.payload as Record<PropertyKey, unknown>).chatProcessId,
+        payloadProcessId: (frame.payload as Record<PropertyKey, unknown>).processId,
+      }));
+
+      expect(summary).toStrictEqual([
+        {
+          type: 'chat-output',
+          payloadQuestId: questIdX,
+          payloadChatProcessId: 'cp-envelope',
+          payloadProcessId: 'p-envelope',
+        },
+      ]);
     });
   });
 

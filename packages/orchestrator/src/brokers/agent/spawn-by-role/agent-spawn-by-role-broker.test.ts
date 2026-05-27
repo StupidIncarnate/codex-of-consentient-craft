@@ -87,7 +87,9 @@ describe('agentSpawnByRoleBroker', () => {
       const [, prompt] = spawnedArgs;
 
       expect(String(prompt)).toMatch(/^Quest ID: add-auth$/mu);
-      expect(String(prompt)).toMatch(/^### Status: `seek_scope`$/mu);
+      // pathseeker-walk-statics no longer branches on seek_* statuses; assert the
+      // architect-review section header instead.
+      expect(String(prompt)).toMatch(/^## The Architect-Review Walk$/mu);
     });
 
     it('VALID: {siegemaster workUnit} => resolves siegemaster prompt template', async () => {

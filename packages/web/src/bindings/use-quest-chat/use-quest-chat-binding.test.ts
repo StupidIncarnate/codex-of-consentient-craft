@@ -168,6 +168,43 @@ describe('useQuestChatBinding', () => {
         stopChat: expect.any(Function),
       });
     });
+
+    it('EDGE: {chat-output without questId on payload} => is ignored', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-anchor' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                workItemId: QuestWorkItemIdStub(),
+                chatProcessId: ProcessIdStub({ value: 'proc-orphan' }),
+                entries: [{ role: 'assistant', type: 'text', content: 'orphan' }],
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entriesBySession: new Map(),
+        slotEntries: new Map(),
+        quest: null,
+        pendingClarification: null,
+        isStreaming: false,
+        sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
   });
 
   describe('quest-modified handling', () => {

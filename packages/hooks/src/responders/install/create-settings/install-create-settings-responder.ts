@@ -1,9 +1,10 @@
 /**
- * PURPOSE: Creates or merges dungeonmaster hooks into .claude/settings.json for a target project
+ * PURPOSE: Creates or merges dungeonmaster hooks into .claude/settings.json for a target project.
+ * Re-runs are idempotent and additive: any prior dungeonmaster-* hook entries are stripped before the freshly-generated set is appended, so newly-added hook types (e.g. a new PostToolUse) land on every subsequent `dungeonmaster init` without manual cleanup.
  *
  * USAGE:
  * const result = await InstallCreateSettingsResponder({ context });
- * // Creates settings.json with hooks, merges into existing, or skips if already configured
+ * // 'created' on fresh project, 'merged' on existing settings (preserves third-party entries).
  */
 
 import {
@@ -19,6 +20,7 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
+import { upsertDungeonmasterHookListTransformer } from '../../../transformers/upsert-dungeonmaster-hook-list/upsert-dungeonmaster-hook-list-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/hooks';
 const JSON_INDENT_SPACES = 2;
@@ -36,45 +38,41 @@ export const InstallCreateSettingsResponder = async ({
     ],
   });
 
-  let existingSettings: ClaudeSettings | null = null;
-
-  try {
-    const contents = await fsReadFileAdapter({ filePath: settingsPath });
-    existingSettings = JSON.parse(contents) as ClaudeSettings;
-  } catch {
-    // File doesn't exist or is invalid JSON - will create new settings
-  }
-
-  // Check if dungeonmaster hooks are already configured
-  if (existingSettings) {
-    const settingsStr = JSON.stringify(existingSettings);
-    if (settingsStr.includes('dungeonmaster')) {
-      return {
-        packageName: packageNameContract.parse(PACKAGE_NAME),
-        success: true,
-        action: 'skipped',
-        message: installMessageContract.parse('Hooks already configured'),
-      };
-    }
-  }
+  const existingSettings: ClaudeSettings | null = await fsReadFileAdapter({
+    filePath: settingsPath,
+  })
+    .then((contents) => JSON.parse(contents) as ClaudeSettings)
+    .catch(() => null);
 
   const dungeonmasterHooks = dungeonmasterHooksCreatorTransformer();
 
-  // Merge into existing settings or create new
   if (existingSettings) {
-    const existingPreToolUse = existingSettings.hooks?.PreToolUse ?? [];
-    const existingSessionStart = existingSettings.hooks?.SessionStart ?? [];
-    const existingSubagentStart = existingSettings.hooks?.SubagentStart ?? [];
-    const existingWorktreeCreate = existingSettings.hooks?.WorktreeCreate ?? [];
+    const existingHooks = existingSettings.hooks ?? {};
 
     const mergedSettings: ClaudeSettings = {
       ...existingSettings,
       hooks: {
-        ...existingSettings.hooks,
-        PreToolUse: [...existingPreToolUse, ...dungeonmasterHooks.PreToolUse],
-        SessionStart: [...existingSessionStart, ...dungeonmasterHooks.SessionStart],
-        SubagentStart: [...existingSubagentStart, ...dungeonmasterHooks.SubagentStart],
-        WorktreeCreate: [...existingWorktreeCreate, ...dungeonmasterHooks.WorktreeCreate],
+        ...existingHooks,
+        PreToolUse: upsertDungeonmasterHookListTransformer({
+          existing: existingHooks.PreToolUse ?? [],
+          fresh: dungeonmasterHooks.PreToolUse,
+        }),
+        PostToolUse: upsertDungeonmasterHookListTransformer({
+          existing: existingHooks.PostToolUse ?? [],
+          fresh: dungeonmasterHooks.PostToolUse,
+        }),
+        SessionStart: upsertDungeonmasterHookListTransformer({
+          existing: existingHooks.SessionStart ?? [],
+          fresh: dungeonmasterHooks.SessionStart,
+        }),
+        SubagentStart: upsertDungeonmasterHookListTransformer({
+          existing: existingHooks.SubagentStart ?? [],
+          fresh: dungeonmasterHooks.SubagentStart,
+        }),
+        WorktreeCreate: upsertDungeonmasterHookListTransformer({
+          existing: existingHooks.WorktreeCreate ?? [],
+          fresh: dungeonmasterHooks.WorktreeCreate,
+        }),
       },
     };
 
@@ -92,7 +90,6 @@ export const InstallCreateSettingsResponder = async ({
     };
   }
 
-  // Create new settings file
   const newSettings: ClaudeSettings = {
     hooks: dungeonmasterHooks,
   };

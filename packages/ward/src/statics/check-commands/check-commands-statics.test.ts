@@ -28,6 +28,11 @@ describe('checkCommandsStatics', () => {
         args: ['--noEmit', '--listFiles'],
         discoverPatterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
       },
+      typecheckRefs: {
+        bin: 'tsc',
+        args: ['-b', '--listFiles'],
+        discoverPatterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
+      },
       unit: {
         bin: 'jest',
         args: [

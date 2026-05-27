@@ -11,8 +11,8 @@
  * `mcpToolsStatics.tools.names` × `smoketestProbeArgsStatics`. Adding or removing a tool in
  * `mcpToolsStatics.tools.names` auto-extends/shrinks the probe prompt bank — the only other change
  * required is adding the matching entry in `smoketestProbeArgsStatics` (pinned by a colocated test).
- * Tools flagged with `mode: 'skip-from-suite'` (e.g. `start-quest`) are filtered out and produce no
- * probe prompt — exercising them is the orchestration suite's job.
+ * Tools flagged with `mode: 'skip-from-suite'` are filtered out and produce no probe prompt —
+ * exercising them is the orchestration suite's job.
  *
  * PLACEHOLDERS: Some probe args contain literal `{{questId}}` / `{{guildId}}` / `{{processId}}`
  * strings. These are substituted with live ids at enqueue time
@@ -39,10 +39,6 @@ const probePromptEntries = mcpToolsStatics.tools.names.flatMap((toolName) => {
   const spec = smoketestProbeArgsStatics[toolName];
   if (spec.mode === 'skip-from-suite') {
     return [];
-  }
-  if (spec.mode === 'skip-call') {
-    const prompt = `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. ${spec.note}`;
-    return [[toolName, prompt] as const];
   }
   if (spec.mode === 'signal-only') {
     const prompt = `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;

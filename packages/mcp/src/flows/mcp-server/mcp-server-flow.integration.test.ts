@@ -488,59 +488,6 @@ describe('McpServerFlow', () => {
     });
   });
 
-  describe('tools/call with ask-user-question', () => {
-    it('VALID: {questions array with single question} => returns instruction text', async () => {
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 9001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'ask-user-question',
-          arguments: {
-            questions: [
-              {
-                question: 'Which DB?',
-                header: 'Database',
-                options: [
-                  { label: 'Postgres', description: 'Relational' },
-                  { label: 'Mongo', description: 'Document' },
-                ],
-                multiSelect: false,
-              },
-            ],
-          },
-        },
-      });
-
-      const response = await client.sendRequest(request);
-
-      expect(response.error).toBe(undefined);
-
-      const result = ToolCallResultStub(response.result as never);
-
-      expect(result.content[0]?.type).toBe('text');
-      expect(result.content[0]?.text).toBe(
-        "Questions sent to user. Their answers will arrive as your next user message. Do NOT continue generating \u2014 wait for the session to resume with the user's response.",
-      );
-    });
-
-    it('ERROR: {empty questions array} => returns error', async () => {
-      const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 9002 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
-        params: {
-          name: 'ask-user-question',
-          arguments: {
-            questions: [],
-          },
-        },
-      });
-
-      const response = await client.sendRequest(request);
-
-      expect(response.error?.message).toMatch(/^\[$/mu);
-    });
-  });
-
   describe('content size cap', () => {
     // Tools whose response is NOT bounded by the 50KB cap. When a new tool is
     // added to mcpToolsStatics.tools.names it is automatically size-checked,
@@ -556,14 +503,16 @@ describe('McpServerFlow', () => {
       'get-quest-status',
       'get-quest-planning-notes',
       'get-agent-prompt',
+      'run-ward',
       // Mutating actions, not reference content
       'modify-quest',
       'start-quest',
       'signal-back',
-      'ask-user-question',
-      // Dynamic listings whose size scales with user data
+      'create-quest',
+      // Dynamic listings / state-driven returns whose size scales with user data
       'list-quests',
       'list-guilds',
+      'get-next-step',
     ] as const;
 
     const sizeCappedTools = mcpToolsStatics.tools.names.filter(

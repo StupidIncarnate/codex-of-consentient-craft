@@ -48,7 +48,10 @@ test.describe('Quest Approved Modal', () => {
     });
     await expect(page.getByText('Begin Quest')).toBeVisible();
     await expect(page.getByText('Keep Chatting')).toBeVisible();
-    await expect(page.getByText('Start a new Quest')).toBeVisible();
+    // The "Start a new Quest" button was removed by Step 15 of the `/dumpster-create`
+    // pivot — new quests are created via the slash command in the user's Claude
+    // session, not via a web button. Modal now renders only Begin/Keep buttons.
+    await expect(page.getByText('Start a new Quest')).toHaveCount(0);
   });
 
   test('VALID: modal does not appear when quest transitions to design_approved status via WS', async ({
@@ -163,37 +166,6 @@ test.describe('Quest Approved Modal', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
   });
 
-  test('VALID: clicking Start a new Quest navigates to /:guildSlug/quest', async ({
-    page,
-    request,
-  }) => {
-    const sessionId = `e2e-new-quest-${Date.now()}`;
-    const { questId, urlSlug, quests } = await modalHarness.setupTest({
-      request,
-      guildName: 'New Quest Guild',
-      sessionId,
-      status: 'review_observables',
-    });
-
-    const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
-
-    await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
-
-    await quests.patchQuestStatus({ questId, status: 'approved' });
-
-    await expect(page.getByText('Shall we go dumpster diving for some code?')).toBeVisible({
-      timeout: MODAL_TIMEOUT,
-    });
-
-    await page.getByText('Start a new Quest').click();
-
-    // Should navigate to the guild new-chat page (no questId — first message creates a new quest)
-    await page.waitForURL(`**/${urlSlug}/quest`, { timeout: REQUEST_TIMEOUT });
-
-    expect(page.url()).toMatch(new RegExp(`/${urlSlug}/quest$`, 'u'));
-  });
-
   test('VALID: modal does not appear for non-approved status transitions', async ({
     page,
     request,
@@ -220,10 +192,7 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('VALID: Begin Quest transitions quest into PathSeeker pipeline (seek_scope)', async ({
-    page,
-    request,
-  }) => {
+  test('VALID: Begin Quest transitions quest into in_progress', async ({ page, request }) => {
     const sessionId = `e2e-execution-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
@@ -250,12 +219,11 @@ test.describe('Quest Approved Modal', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
-    // The full pipeline (seek_scope → seek_synth → seek_walk → in_progress)
-    // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
-    // drive these transitions, so the execution panel (gated by isExecutionPhaseGuard)
-    // only activates at in_progress and beyond. Full pipeline validation lives in
-    // Phase C manual verification.
+    // start-quest transitions approved → in_progress directly so /dumpster-launch
+    // picks the quest up on its next pass. The seek_* statuses are dead enum values
+    // under the dispatch-loop model; the responder briefly passes through seek_scope
+    // internally to satisfy the planningNotes allowlist, but the final persisted
+    // status is always in_progress.
     await expect
       .poll(
         async () => {
@@ -268,6 +236,6 @@ test.describe('Quest Approved Modal', () => {
         },
         { timeout: PANEL_TIMEOUT },
       )
-      .toBe('seek_scope');
+      .toBe('in_progress');
   });
 });

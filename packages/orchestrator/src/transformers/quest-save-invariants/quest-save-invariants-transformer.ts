@@ -5,14 +5,18 @@
  * questSaveInvariantsTransformer({quest});
  * // Returns VerifyQuestCheck[] containing only the failed invariants. Empty array means quest passes.
  *
- * questSaveInvariantsTransformer({quest, nextStatus: 'in_progress'});
+ * questSaveInvariantsTransformer({quest, currentStatus: 'seek_walk', nextStatus: 'in_progress'});
  * // ALSO runs the 'completeness' scope (whole-quest coverage checks: step contract
  * // references resolve, new contracts have creating step, observables are satisfied).
- * // Completeness checks fire ONLY at the seek_walk → in_progress transition; during
- * // earlier seek_synth slice-by-slice commits the plan is half-assembled and these
- * // checks would reject legitimate intermediate writes. The merged failed-check array
- * // mirrors the existing single-array contract — callers do not need to know which
- * // scope produced which failure.
+ * // Completeness checks fire ONLY at the legacy seek_walk → in_progress transition.
+ * // Under the `/dumpster-launch` flow, the `approved → in_progress` start-quest hop is
+ * // performed BEFORE pathseeker-walk runs (steps/contracts/observables are populated by
+ * // the `pathseeker-walk` work item, not by the status transition), so the completeness
+ * // scope must NOT fire on that transition. Instead, `questPostWalkHookBroker` invokes
+ * // the completeness scope explicitly after `pathseeker-walk` completes (see
+ * // `packages/orchestrator/src/brokers/quest/post-walk-hook/quest-post-walk-hook-broker.ts`).
+ * // The merged failed-check array mirrors the existing single-array contract — callers
+ * // do not need to know which scope produced which failure.
  */
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -23,14 +27,16 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const questSaveInvariantsTransformer = ({
   quest,
+  currentStatus,
   nextStatus,
 }: {
   quest: Quest;
+  currentStatus?: QuestStatus;
   nextStatus?: QuestStatus;
 }): VerifyQuestCheck[] => {
   const invariantChecks = questValidateSpecTransformer({ quest, scope: 'invariants' });
   const completenessChecks =
-    nextStatus === 'in_progress'
+    currentStatus === 'seek_walk' && nextStatus === 'in_progress'
       ? questValidateSpecTransformer({ quest, scope: 'completeness' })
       : [];
   return [...invariantChecks, ...completenessChecks].filter((check) => !check.passed);

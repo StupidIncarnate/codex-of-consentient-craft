@@ -1,10 +1,9 @@
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-abandon-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
-import { questNewBrokerProxy } from '../../brokers/quest/new/quest-new-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
@@ -18,6 +17,7 @@ import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 // doesn't directly import.
 const setupAutoScrollContainer = autoScrollProxyImpl;
 const setupChatEntryList = chatEntryListProxyImpl;
+import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
@@ -29,8 +29,6 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupPause: () => void;
-  setupQuestNew: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
-  setupQuestNewError: () => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
@@ -42,7 +40,6 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getPauseRequestCount: () => RequestCount;
 } => {
   const binding = useQuestChatBindingProxy();
-  const questNew = questNewBrokerProxy();
   const chatPanel = ChatPanelWidgetProxy();
   questAbandonBrokerProxy();
   questModifyBrokerProxy();
@@ -52,6 +49,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupAutoScrollContainer();
   setupChatEntryList();
   ExecutionPanelWidgetProxy();
+  DumpsterCommandBannerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
   QuestApprovedModalWidgetProxy();
   QuestSpecPanelWidgetProxy();
@@ -70,12 +68,6 @@ export const QuestChatContentLayerWidgetProxy = (): {
     },
     setupPause: () => {
       binding.setupPause();
-    },
-    setupQuestNew: ({ questId, chatProcessId }) => {
-      questNew.setupNew({ questId, chatProcessId });
-    },
-    setupQuestNewError: () => {
-      questNew.setupError();
     },
     setupTimestamps: ({ timestamps }) => {
       binding.setupTimestamps({ timestamps });

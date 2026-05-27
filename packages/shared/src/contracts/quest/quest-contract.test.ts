@@ -25,6 +25,7 @@ describe('questContract', () => {
         designDecisions: [],
         steps: [],
         toolingRequirements: [],
+        packagesAffected: [],
         contracts: [],
         flows: [],
         needsDesign: false,
@@ -53,6 +54,7 @@ describe('questContract', () => {
         designDecisions: [],
         steps: [],
         toolingRequirements: [],
+        packagesAffected: [],
         contracts: [],
         flows: [],
         needsDesign: false,
@@ -81,6 +83,7 @@ describe('questContract', () => {
         designDecisions: [],
         steps: [],
         toolingRequirements: [],
+        packagesAffected: [],
         contracts: [],
         flows: [],
         needsDesign: false,
@@ -168,6 +171,7 @@ describe('questContract', () => {
         designDecisions: [],
         steps: [],
         toolingRequirements: [],
+        packagesAffected: [],
         contracts: [],
         flows: [],
         needsDesign: true,
@@ -362,6 +366,34 @@ describe('questContract', () => {
       });
 
       expect(result.questSource).toBe(undefined);
+    });
+
+    it('VALID: quest with packagesAffected => parses successfully', () => {
+      const quest = QuestStub({
+        packagesAffected: ['@dungeonmaster/shared', '@dungeonmaster/web'],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.packagesAffected).toStrictEqual([
+        '@dungeonmaster/shared',
+        '@dungeonmaster/web',
+      ]);
+    });
+
+    it('VALID: quest without packagesAffected field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.packagesAffected).toStrictEqual([]);
     });
 
     it('VALID: quest with smoketestResults => parses successfully', () => {

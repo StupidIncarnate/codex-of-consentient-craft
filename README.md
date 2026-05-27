@@ -67,39 +67,54 @@ and delegating to specialized AI agents. Think of it as a party system for your 
 
 ### The Fellowship
 
-- **🎯 Dungeonmaster** - The party leader who orchestrates your quests
-- **🗺️ Pathseeker** - Maps dependencies and discovers the optimal implementation path
-- **🧵️ Codeweaver** - Weaves elegant implementations and tests
-- **⚖️ Lawbringer** - Ensures code quality and standards compliance
-- **🏰 Siegemaster** - Analyzes test completeness and identifies gaps
-- **✨ Spiritmender** - Heals build errors and failed tests
+- **ChaosWhisperer** - Runs the spec conversation in `/dumpster-create`; interviews you,
+  authors flows and observables, gathers `packagesAffected[]`, and gates on your approval
+- **Pathseeker** - Dispatched as four work-item roles (`pathseeker-surface`,
+  `pathseeker-dedup`, `pathseeker-assertion-correctness`, `pathseeker-walk`) that author
+  steps + contracts and walk every flow entry→exit to catch structural issues
+- **Codeweaver** - Weaves elegant implementations and tests
+- **Lawbringer** - Ensures code quality and standards compliance
+- **Siegemaster** - Analyzes test completeness and identifies gaps
+- **Spiritmender** - Heals build errors and failed tests
 
 ## Usage
 
-### Start Your Next Quest
-```
-/dungeonmaster
-```
-Works through your quest backlog automatically.
+Two slash commands run in your interactive Claude Code session. Neither takes any
+arguments. The dungeonmaster server is the MCP-driven state machine; your own session is
+the orchestrator.
 
-### Check Quest Status  
+### Create a quest
 ```
-/dungeonmaster list
+/dumpster-create
 ```
-See all your quests and progress.
 
-### Create or Start Specific Quest
-```
-/dungeonmaster fix user login timeout
-```
-Creates a new quest or continues existing one.
+Runs ChaosWhisperer in your session. It creates a new quest as its first action, opens
+the spec view in the web UI (chat panel hidden), and walks you through flows, observables,
+contracts, and `packagesAffected[]` to the approval gate.
 
-### Direct Agent Commands
+### Launch the dispatch loop
 ```
-/quest:codeweaver implement UserService
-/quest:spiritmender fix failing tests
-/quest:pathseeker analyze auth system
+/dumpster-launch
 ```
+
+Long-lived dispatch loop in your session, across ALL approved quests in FIFO order.
+
+1. Registers its session with the server via `register-monitor-session` so the web UI can
+   stream live chat from your session's JSONL files.
+2. Loops forever: calls `get-next-step()` (no args) → on `spawn-agents` dispatches the
+   returned agents in parallel via `Task()` and awaits → on `run-ward` calls the
+   `run-ward` MCP tool and waits → on `idle` immediately re-calls.
+
+Run `/dumpster-launch` once and let it work. Quests reach `complete` and the loop
+advances to the next FIFO entry without intervention.
+
+### Quest execution flow
+
+After ChaosWhisperer's spec is approved, click "Start Quest" in the web UI. The execute
+view shows a banner reminding you to run `/dumpster-launch` if you don't already have one
+going. The server is stateless — `quest.json` plus file-watched session JSONLs are the
+single source of truth — so dispatch resumes wherever it left off if you kill and restart
+the launch session.
 
 ## Configuration
 
@@ -154,17 +169,18 @@ dungeonmaster/
 ## Examples
 
 ### Fix a Bug
-```
-/dungeonmaster fix TypeError in user service
-```
 
-Dungeonmaster will create a bug fix quest and orchestrate the fix.
+Run `/dumpster-create` in your Claude session. ChaosWhisperer will create the quest, open
+the spec view in the web UI, and walk you through scoping the fix. Approve at the gate;
+click "Start Quest" in the web UI; let your already-running `/dumpster-launch` pick it up
+on its next pass.
 
 ### Add a Feature
-```
-/dungeonmaster add user avatar upload
-```
-Creates a feature quest with proper discovery and implementation phases.
+
+Same flow. The spec phase elicits flows, observables, contracts, and `packagesAffected[]`
+before approval; `/dumpster-launch` then dispatches the four-tier pathseeker pipeline,
+followed by the codeweaver / ward / siegemaster / lawbringer chain that
+`stepsToWorkItemsTransformer` generates after `pathseeker-walk` commits its findings.
 
 ## For Monorepos
 

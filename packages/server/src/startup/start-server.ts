@@ -14,12 +14,19 @@ import { ProcessFlow } from '../flows/process/process-flow';
 import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
+import { MonitorSessionFlow } from '../flows/monitor-session/monitor-session-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { ServerFlow } from '../flows/server/server-flow';
 import { ToolingFlow } from '../flows/tooling/tooling-flow';
 
-export const StartServer = (): AdapterResult =>
-  ServerFlow({
+export const StartServer = (): AdapterResult => {
+  // Start the /dumpster-launch monitor-session file watcher BEFORE the HTTP server begins
+  // listening. The MCP server may have already written `<DUNGEONMASTER_HOME>/active-monitor-session.json`
+  // during its own startup; firing this watcher early ensures the JSONL tail is in place
+  // before any web client connects looking for streaming chat output.
+  MonitorSessionFlow.bootstrap();
+
+  return ServerFlow({
     subApps: [
       GuildFlow(),
       QuestFlow(),
@@ -32,3 +39,4 @@ export const StartServer = (): AdapterResult =>
       RateLimitsFlow(),
     ],
   });
+};

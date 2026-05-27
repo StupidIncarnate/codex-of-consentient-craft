@@ -18,7 +18,7 @@ test.describe('Quest Start Pipeline', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to seek_scope', async ({
+  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to in_progress', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -69,11 +69,13 @@ test.describe('Quest Start Pipeline', () => {
 
     const questData = await questResponse.json();
 
-    // start-quest transitions approved → seek_scope (entry into PathSeeker pipeline).
-    // The full pipeline (seek_scope → seek_synth → seek_walk → in_progress)
-    // requires a real Claude subprocess; in the e2e environment the fake CLI doesn't
-    // drive these transitions, so we only assert the initial transition here.
-    expect(questData.quest.status).toBe('seek_scope');
+    // start-quest transitions approved → in_progress directly so that
+    // questGetNextStepBroker (driven by /dumpster-launch) picks the quest up
+    // on its next pass. The seek_* statuses are dead enum values under the
+    // dispatch-loop model — the responder briefly passes through seek_scope
+    // internally to satisfy the per-status planningNotes allowlist, but the
+    // final persisted status is always in_progress.
+    expect(questData.quest.status).toBe('in_progress');
   });
 
   test('VALID: POST /api/quests/:questId/start launches pipeline (process is registered)', async ({

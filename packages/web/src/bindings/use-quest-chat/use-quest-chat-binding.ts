@@ -37,8 +37,10 @@ import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
+import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import { replaceEpochChatEntryTimestampTransformer } from '../../transformers/replace-epoch-chat-entry-timestamp/replace-epoch-chat-entry-timestamp-transformer';
 import { upsertChatEntriesByUuidTransformer } from '../../transformers/upsert-chat-entries-by-uuid/upsert-chat-entries-by-uuid-transformer';
 
@@ -98,7 +100,10 @@ export const useQuestChatBinding = ({
 
     const chatOutputSub = rxjsFilterAdapter({
       source: webSocketChannelState.chatOutput$(),
-      predicate: (p) => p.questId === questIdRef.current,
+      // Accept payloads tagged with the current questId, AND payloads with no questId
+      // at all (the /dumpster-create monitor-session path emits chat-output without a
+      // questId or workItemId — see server-init-responder's fallback broadcast).
+      predicate: (p) => p.questId === questIdRef.current || p.questId === undefined,
     }).subscribe((payload): void => {
       const activeQuestId = questIdRef.current;
       if (!activeQuestId) return;
@@ -195,6 +200,25 @@ export const useQuestChatBinding = ({
       }
     };
   }, [questId]);
+
+  // Reconcile pendingClarification from accumulated chat entries. The WS
+  // clarification-request event only fires from the legacy chat-spawn-broker path; the
+  // /dumpster-create flow tails the user's own Claude Code session JSONL via
+  // quest-monitor-jsonl-watcher-broker which emits chat-output only. Scanning the entries
+  // for an unanswered ask-user-question tool_use bridges that gap so the clarify panel
+  // surfaces in both flows.
+  useEffect(() => {
+    let nextPending: { questions: AskUserQuestionItem[] } | null = null;
+    for (const entries of entriesBySession.values()) {
+      if (!hasPendingQuestionGuard({ entries })) continue;
+      const extracted = extractAskUserQuestionTransformer({ entries });
+      if (extracted !== null) {
+        nextPending = { questions: extracted.questions };
+        break;
+      }
+    }
+    setPendingClarification(nextPending);
+  }, [entriesBySession]);
 
   const sendMessage = useCallback(
     ({ message }: { message: UserInput }): void => {

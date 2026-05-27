@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Validates a quest is startable, promotes chat work items, inserts a pathseeker, transitions the quest to seek_scope, then enqueues it on the cross-guild quest execution queue. Returns a synthetic processId for backwards compatibility with callers.
+ * PURPOSE: Validates a quest is startable, promotes chat work items, inserts the four-tier pathseeker work-item graph (surface × N → dedup + assertion-correctness → walk) built from `quest.packagesAffected[]`, persists scopeClassification.slices[] into planningNotes, transitions the quest from approved through seek_scope to in_progress (so /dumpster-launch's questGetNextStepBroker picks it up), then enqueues it. Returns a synthetic processId for backwards compatibility with callers.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
@@ -11,10 +11,12 @@ import {
   questQueueEntryContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
+import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { questBuildPathseekerGraphBroker } from '../../../brokers/quest/build-pathseeker-graph/quest-build-pathseeker-graph-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -27,6 +29,14 @@ import {
   isStartableQuestStatusGuard,
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
+
+const PATHSEEKER_ROLES: ReadonlySet<WorkItemRole> = new Set<WorkItemRole>([
+  'pathseeker',
+  'pathseeker-surface',
+  'pathseeker-dedup',
+  'pathseeker-assertion-correctness',
+  'pathseeker-walk',
+]);
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -53,7 +63,7 @@ export const OrchestrationStartResponder = async ({
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
-  const hasPathseeker = quest.workItems.some((wi) => wi.role === 'pathseeker');
+  const hasPathseekerGraph = quest.workItems.some((wi) => PATHSEEKER_ROLES.has(wi.role));
 
   // Mark any non-complete chaoswhisperer/glyphsmith work items as complete.
   // The spec phase is done by the time the user clicks "Begin Quest", but the
@@ -76,23 +86,34 @@ export const OrchestrationStartResponder = async ({
     .filter((wi) => wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith')
     .map((wi) => wi.id);
 
-  const pathseekerItem = hasPathseeker
+  const now = isoTimestampContract.parse(new Date().toISOString());
+
+  const pathseekerGraph = hasPathseekerGraph
     ? undefined
-    : workItemContract.parse({
-        id: crypto.randomUUID(),
-        role: 'pathseeker',
-        status: 'pending',
-        spawnerType: 'agent',
-        dependsOn: chatItemIds,
-        maxAttempts: 3,
-        createdAt: new Date().toISOString(),
+    : questBuildPathseekerGraphBroker({
+        packagesAffected: quest.packagesAffected,
+        flowIds: [],
+        priorWorkItemIds: chatItemIds,
+        now,
       });
 
-  const workItemsToUpdate = [
-    ...promotedChatItems,
-    ...(pathseekerItem === undefined ? [] : [pathseekerItem]),
-  ];
+  const newPathseekerWorkItems = pathseekerGraph?.workItems ?? [];
 
+  const workItemsToUpdate = [...promotedChatItems, ...newPathseekerWorkItems];
+
+  // Transition the quest in three stages so each modify call lands within an allowlist
+  // window that permits the fields it writes:
+  //   1. approved → seek_scope, carrying workItems (server-only field that bypasses the
+  //      input-allowlist gate). The `approved` allowlist forbids `planningNotes`, and the
+  //      transitions allowlist routes startable statuses through `seek_scope`, so this
+  //      hop is required to unlock the planningNotes write below.
+  //   2. (when a fresh pathseeker graph was built) modify in `seek_scope` to persist
+  //      `planningNotes.scopeClassification` — `seek_scope` is the only status whose
+  //      input allowlist accepts that sub-field.
+  //   3. seek_scope → in_progress so questGetNextStepBroker (driven by /dumpster-launch)
+  //      picks the quest up on its next pass. The `seek_*` quest statuses are dead enum
+  //      values under the dispatch-loop model (see plan: "Quest status enum impact");
+  //      the final assigned status must be in_progress for the queue to advance.
   const modifyInput = modifyQuestInputContract.parse({
     questId,
     status: 'seek_scope',
@@ -103,6 +124,39 @@ export const OrchestrationStartResponder = async ({
 
   if (!modifyResult.success) {
     throw new Error(`Failed to start quest: ${modifyResult.error}`);
+  }
+
+  if (pathseekerGraph !== undefined) {
+    const planningNotesResult = await questModifyBroker({
+      input: modifyQuestInputContract.parse({
+        questId,
+        planningNotes: {
+          scopeClassification: {
+            size: pathseekerGraph.slices.length > 1 ? 'medium' : 'small',
+            slicing: `Auto-generated from quest.packagesAffected (${pathseekerGraph.slices.length} slice(s))`,
+            slices: pathseekerGraph.slices,
+            rationale:
+              'Slices derived 1:1 from quest.packagesAffected by orchestration-start-responder.',
+            classifiedAt: now,
+          },
+        },
+      }),
+    });
+
+    if (!planningNotesResult.success) {
+      throw new Error(`Failed to start quest: ${planningNotesResult.error}`);
+    }
+  }
+
+  const promoteResult = await questModifyBroker({
+    input: modifyQuestInputContract.parse({
+      questId,
+      status: 'in_progress',
+    }),
+  });
+
+  if (!promoteResult.success) {
+    throw new Error(`Failed to start quest: ${promoteResult.error}`);
   }
 
   const { guildId } = await questFindQuestPathBroker({ questId });

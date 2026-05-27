@@ -25,6 +25,7 @@ registerModuleMock({
       addGuild: jest.fn(),
       addQuest: jest.fn(),
       browseDirectories: jest.fn(),
+      findQuestByWorkItemId: jest.fn(),
       getGuild: jest.fn(),
       getQuest: jest.fn(),
       getQuestStatus: jest.fn(),
@@ -56,6 +57,7 @@ registerModuleMock({
 });
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { orchestratorFindQuestByWorkItemIdAdapterProxy } from '../../../adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter.proxy';
 import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { honoServeAdapterProxy } from '../../../adapters/hono/serve/hono-serve-adapter.proxy';
@@ -114,6 +116,10 @@ export const ServerInitResponderProxy = (): {
   locationsWardResultsPathFindBrokerProxy();
   fsReadFileAdapterProxy();
   const findQuestPathProxy = orchestratorFindQuestPathAdapterProxy();
+  // Instantiated to satisfy enforce-proxy-child-creation; the broadcaster calls
+  // orchestratorFindQuestByWorkItemIdAdapter from its chat-output handler, so the proxy
+  // must wire up a mock even when individual tests don't exercise the lookup.
+  orchestratorFindQuestByWorkItemIdAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
   questWaitForSessionStampBrokerProxy();
   designProcessStateProxy();

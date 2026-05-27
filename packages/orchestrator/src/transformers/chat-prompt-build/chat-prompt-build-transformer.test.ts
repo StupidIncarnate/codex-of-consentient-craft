@@ -1,5 +1,5 @@
 import { QuestIdStub, SessionIdStub, WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
-import { chaoswhispererPromptStatics } from '../../statics/chaoswhisperer-prompt/chaoswhisperer-prompt-statics';
+import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 import { chatPromptBuildTransformer } from './chat-prompt-build-transformer';
 import { chatPromptBuildTransformerProxy } from './chat-prompt-build-transformer.proxy';
@@ -17,9 +17,9 @@ describe('chatPromptBuildTransformer', () => {
         questId,
       });
 
-      const expected = chaoswhispererPromptStatics.prompt.template
-        .replace(chaoswhispererPromptStatics.prompt.placeholders.arguments, 'Build auth')
-        .replace(chaoswhispererPromptStatics.prompt.placeholders.questId, 'abc-123');
+      const expected = dumpsterCreatePromptStatics.prompt.template
+        .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, 'Build auth')
+        .replace(dumpsterCreatePromptStatics.prompt.placeholders.questId, 'abc-123');
 
       expect(result).toBe(expected);
     });
@@ -49,8 +49,8 @@ describe('chatPromptBuildTransformer', () => {
         questId: null,
       });
 
-      const expected = chaoswhispererPromptStatics.prompt.template.replace(
-        chaoswhispererPromptStatics.prompt.placeholders.arguments,
+      const expected = dumpsterCreatePromptStatics.prompt.template.replace(
+        dumpsterCreatePromptStatics.prompt.placeholders.arguments,
         'Build auth',
       );
 

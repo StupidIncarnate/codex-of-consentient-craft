@@ -1,5 +1,5 @@
 import { act, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GuildIdStub, ProcessIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -7,18 +7,13 @@ import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-rend
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 import { QuestChatContentLayerWidgetProxy } from './quest-chat-content-layer-widget.proxy';
 
-const LocationProbe = (): React.JSX.Element => {
-  const loc = useLocation();
-  return <div data-testid="LOCATION_PATHNAME">{loc.pathname}</div>;
-};
-
 describe('QuestChatContentLayerWidget', () => {
-  describe('new-chat surface (questId null)', () => {
-    it('VALID: {questId null} => renders chat panel + awaiting activity divider', async () => {
+  describe('no-questId placeholder surface', () => {
+    it('VALID: {questId null} => renders the /dumpster-create placeholder banner', () => {
       QuestChatContentLayerWidgetProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
 
-      const { findByTestId, queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId } = mantineRenderAdapter({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -30,70 +25,33 @@ describe('QuestChatContentLayerWidget', () => {
         ),
       });
 
-      await findByTestId('CHAT_PANEL');
-
-      expect(queryByTestId('CHAT_PANEL')?.getAttribute('data-testid')).toBe('CHAT_PANEL');
-      expect(queryByTestId('QUEST_CHAT_DIVIDER')?.getAttribute('data-testid')).toBe(
-        'QUEST_CHAT_DIVIDER',
+      expect(queryByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')?.getAttribute('data-testid')).toBe(
+        'QUEST_CHAT_NO_QUEST_PLACEHOLDER',
       );
-      expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
-        'QUEST_CHAT_ACTIVITY',
+      expect(queryByTestId('DUMPSTER_COMMAND_BANNER_COMMAND')?.textContent).toBe(
+        '/dumpster-create',
       );
     });
 
-    it('VALID: {first message sent} => POSTs questNew and replace-navigates to /:guildSlug/quest/:questId', async () => {
-      const proxy = QuestChatContentLayerWidgetProxy();
-      const guildId = GuildIdStub({ value: 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff' });
-      proxy.setupQuestNew({
-        questId: 'new-q-99' as never,
-        chatProcessId: 'proc-99' as never,
-      });
+    it('VALID: {questId null} => does NOT mount the chat panel, divider, or activity column (Create-Quest entry point moved to /dumpster-create)', () => {
+      QuestChatContentLayerWidgetProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
 
-      const { findByTestId, getByTestId } = mantineRenderAdapter({
+      const { queryByTestId } = mantineRenderAdapter({
         ui: (
-          <MemoryRouter initialEntries={['/test-guild/quest']}>
-            <Routes>
-              <Route
-                path="/test-guild/quest"
-                element={
-                  <>
-                    <QuestChatContentLayerWidget
-                      questId={null}
-                      guildId={guildId}
-                      guildSlug={'test-guild' as never}
-                    />
-                    <LocationProbe />
-                  </>
-                }
-              />
-              <Route
-                path="/test-guild/quest/:questId"
-                element={
-                  <>
-                    <QuestChatContentLayerWidget
-                      questId={'new-q-99' as never}
-                      guildId={guildId}
-                      guildSlug={'test-guild' as never}
-                    />
-                    <LocationProbe />
-                  </>
-                }
-              />
-            </Routes>
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
           </MemoryRouter>
         ),
       });
 
-      await findByTestId('CHAT_PANEL');
-
-      await proxy.typeMessage({ text: 'hello' });
-      await proxy.clickSend();
-
-      await waitFor(() => {
-        expect(getByTestId('LOCATION_PATHNAME').textContent).toBe('/test-guild/quest/new-q-99');
-      });
-
-      expect(getByTestId('LOCATION_PATHNAME').textContent).toBe('/test-guild/quest/new-q-99');
+      expect(queryByTestId('CHAT_PANEL')).toBe(null);
+      expect(queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
+      expect(queryByTestId('QUEST_CHAT_ACTIVITY')).toBe(null);
     });
   });
 
@@ -264,6 +222,120 @@ describe('QuestChatContentLayerWidget', () => {
       });
 
       expect(proxy.getClarifyRequestCount()).toBe(1);
+    });
+
+    it('VALID: {?chat=hidden, quest at review_flows} => CHAT_PANEL not in DOM, binding still subscribed (spec panel renders from WS quest-modified)', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      const guildId = GuildIdStub({ value: '11111111-2222-3333-4444-555555555555' });
+      const quest = QuestStub({ id: 'q-hidden', status: 'review_flows' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/q-hidden?chat=hidden']}>
+            <Routes>
+              <Route
+                path="/test-guild/quest/:questId"
+                element={
+                  <QuestChatContentLayerWidget
+                    questId={'q-hidden' as never}
+                    guildId={guildId}
+                    guildSlug={'test-guild' as never}
+                  />
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      // Binding subscribed and produced the quest: spec panel mounts.
+      await findByTestId('QUEST_SPEC_PANEL');
+
+      // Chat panel sub-tree suppressed.
+      expect(queryByTestId('CHAT_PANEL')).toBe(null);
+    });
+
+    it('VALID: {?chat=hidden, no quest yet (loading)} => CHAT_PANEL not in DOM, awaiting activity column still renders', () => {
+      QuestChatContentLayerWidgetProxy();
+      const guildId = GuildIdStub({ value: '22222222-3333-4444-5555-666666666666' });
+
+      const { queryByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/q-loading?chat=hidden']}>
+            <Routes>
+              <Route
+                path="/test-guild/quest/:questId"
+                element={
+                  <QuestChatContentLayerWidget
+                    questId={'q-loading' as never}
+                    guildId={guildId}
+                    guildSlug={'test-guild' as never}
+                  />
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      expect(queryByTestId('CHAT_PANEL')).toBe(null);
+      expect(queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
+      expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
+        'QUEST_CHAT_ACTIVITY',
+      );
+    });
+
+    it('VALID: {?chat=visible, quest at review_flows} => CHAT_PANEL still in DOM (only exact `hidden` triggers)', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      const guildId = GuildIdStub({ value: '33333333-4444-5555-6666-777777777777' });
+      const quest = QuestStub({ id: 'q-visible', status: 'review_flows' });
+
+      const { queryByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter initialEntries={['/test-guild/quest/q-visible?chat=visible']}>
+            <Routes>
+              <Route
+                path="/test-guild/quest/:questId"
+                element={
+                  <QuestChatContentLayerWidget
+                    questId={'q-visible' as never}
+                    guildId={guildId}
+                    guildSlug={'test-guild' as never}
+                  />
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('CHAT_PANEL')?.getAttribute('data-testid')).toBe('CHAT_PANEL');
+      });
+
+      expect(queryByTestId('CHAT_PANEL')?.getAttribute('data-testid')).toBe('CHAT_PANEL');
     });
 
     it('VALID: {clarify answered between two agent batches with different sessionIds} => user answer renders BETWEEN earlier and later agent messages (cross-session timestamp order)', async () => {

@@ -53,5 +53,6 @@ export const statusLiteralStatics = {
     '\\.e2e\\.test\\.tsx$',
     '\\.harness\\.ts$',
     '/statics/[^/]*-prompt[^/]*/',
+    '/statics/pathseeker-[^/]+/',
   ],
 } as const;

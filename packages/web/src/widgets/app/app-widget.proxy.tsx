@@ -23,7 +23,6 @@ import { QuestChatWidgetProxy } from '../quest-chat/quest-chat-widget.proxy';
 import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-widget.proxy';
 import { RateLimitsStackWidgetProxy } from '../rate-limits-stack/rate-limits-stack-widget.proxy';
 import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
-import { ToolingDropdownWidgetProxy } from '../tooling-dropdown/tooling-dropdown-widget.proxy';
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
@@ -62,7 +61,6 @@ export const AppWidgetProxy = (): {
   clickLogoLink: () => Promise<void>;
   isLogoLinkVisible: () => boolean;
   isQuestQueueBarVisible: () => boolean;
-  isSmoketestDrawerMounted: () => boolean;
   clearStorage: () => void;
 } => {
   LogoWidgetProxy();
@@ -72,7 +70,6 @@ export const AppWidgetProxy = (): {
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
   RateLimitsStackWidgetProxy();
-  ToolingDropdownWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -135,8 +132,6 @@ export const AppWidgetProxy = (): {
     },
     isLogoLinkVisible: (): boolean => screen.queryByTestId('LOGO_LINK') !== null,
     isQuestQueueBarVisible: (): boolean => screen.queryByTestId('QUEST_QUEUE_BAR') !== null,
-    isSmoketestDrawerMounted: (): boolean =>
-      screen.queryByTestId('SMOKETEST_DRAWER_CONTENT') !== null,
     clearStorage: (): void => {
       homeProxy.clearStorage();
     },

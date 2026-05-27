@@ -282,6 +282,34 @@ describe('fsWatchTailAdapter', () => {
       expect(onError).toHaveBeenCalledTimes(0);
     });
 
+    it('ERROR: {file missing at setup time} => existsSync short-circuits, onError called with ENOENT, no throw to caller', () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/missing.jsonl' });
+      const onLine = jest.fn();
+      const onError = jest.fn();
+
+      // Real-world trigger: main session JSONL has a historical `user.tool_result` line whose
+      // `tool_use_result.agentId` references a sub-agent file that was deleted/moved off disk
+      // (orphan reference). Without the existsSync guard, fs.watch would throw ENOENT
+      // synchronously and propagate out of the broker's onLine to exit the process.
+      proxy.setupFileMissing();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError,
+      });
+
+      // stop() must be safe to call even though no watcher was ever created.
+      handle.stop();
+
+      expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenNthCalledWith(1, {
+        error: new Error('ENOENT: file does not exist: /tmp/missing.jsonl'),
+      });
+      expect(onLine).toHaveBeenCalledTimes(0);
+    });
+
     it('ERROR: stream error after stop => onError not called', async () => {
       const proxy = fsWatchTailAdapterProxy();
       const filePath = AbsoluteFilePathStub({ value: '/tmp/test.jsonl' });

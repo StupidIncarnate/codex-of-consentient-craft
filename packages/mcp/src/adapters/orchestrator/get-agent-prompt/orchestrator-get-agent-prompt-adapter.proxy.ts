@@ -18,16 +18,14 @@ export const orchestratorGetAgentPromptAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getAgentPrompt });
 
-  handle.mockReturnValue(AgentPromptResultStub());
+  handle.mockResolvedValue(AgentPromptResultStub());
 
   return {
     returns: ({ result }: { result: AgentPromptResult }): void => {
-      handle.mockReturnValueOnce(result);
+      handle.mockResolvedValueOnce(result);
     },
     throws: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(() => {
-        throw error;
-      });
+      handle.mockImplementationOnce(async () => Promise.reject(error));
     },
   };
 };

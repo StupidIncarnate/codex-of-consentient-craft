@@ -723,6 +723,23 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toBe('Quest ID: my-quest');
     });
+
+    it('VALID: {pathseeker with slice} => returns quest ID and slice details', () => {
+      const workUnit = PathseekerWorkUnitStub({
+        questId: QuestIdStub({ value: 'my-quest' }),
+        slice: {
+          name: 'orchestrator' as never,
+          packages: ['orchestrator' as never],
+          flowIds: ['login-flow' as never, 'logout-flow' as never],
+        },
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Quest ID: my-quest\nSlice: orchestrator\nPackages: orchestrator\nFlow IDs: login-flow, logout-flow',
+      );
+    });
   });
 
   describe('blightwarden role', () => {

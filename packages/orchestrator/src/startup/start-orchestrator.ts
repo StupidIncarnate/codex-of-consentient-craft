@@ -10,13 +10,17 @@
  * const got = await StartOrchestrator.getQuest({questId: 'add-auth'});
  * const modified = await StartOrchestrator.modifyQuest({questId: 'add-auth', input: {...}});
  * const recovered = await StartOrchestrator.recoverActiveQuests();
+ * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
 import type {
   AdapterResult,
+  AddQuestInput,
   AddQuestResult,
+  AgentId,
   AgentPromptResult,
   DirectoryEntry,
+  FilePath,
   GetQuestResult,
   Guild,
   GuildId,
@@ -32,9 +36,15 @@ import type {
   QuestListItem,
   QuestQueueEntry,
   QuestStatus,
+  QuestWorkItemId,
   RateLimitsSnapshot,
   SessionId,
+  UrlSlug,
 } from '@dungeonmaster/shared/contracts';
+
+import type { NextStep } from '../contracts/next-step/next-step-contract';
+import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
+import type { QuestRunWardResult } from '../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
 import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
@@ -208,14 +218,21 @@ export const StartOrchestrator = {
 
   replayChatHistory: async ({
     sessionId,
+    agentId,
     guildId,
     chatProcessId,
   }: {
     sessionId: SessionId;
+    agentId?: AgentId;
     guildId: GuildId;
     chatProcessId?: ProcessId;
   }): Promise<AdapterResult> =>
-    ChatReplayFlow({ sessionId, guildId, ...(chatProcessId && { chatProcessId }) }),
+    ChatReplayFlow({
+      sessionId,
+      guildId,
+      ...(agentId && { agentId }),
+      ...(chatProcessId && { chatProcessId }),
+    }),
 
   // Design chat methods
   startDesignChat: async ({
@@ -229,8 +246,20 @@ export const StartOrchestrator = {
   }): Promise<{ chatProcessId: ProcessId }> => DesignChatStartFlow({ questId, guildId, message }),
 
   // Agent prompt methods
-  getAgentPrompt: ({ agent }: { agent: string }): AgentPromptResult =>
-    AgentPromptFlow.get({ agent }),
+  getAgentPrompt: async ({
+    agent,
+    questId,
+    workItemId,
+  }: {
+    agent: string;
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+  }): Promise<AgentPromptResult> =>
+    AgentPromptFlow.get({
+      agent,
+      questId,
+      workItemId,
+    }),
 
   // Recovery methods
   recoverActiveQuests: async (): Promise<QuestId[]> => StartupRecoveryFlow(),
@@ -253,4 +282,77 @@ export const StartOrchestrator = {
 
   // Rate limits
   getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),
+
+  // MCP-driven create-quest (ChaosWhisperer at /dumpster-create startup)
+  createQuestForMcp: async ({
+    userRequest,
+    sessionId,
+  }: {
+    userRequest: AddQuestInput['userRequest'];
+    sessionId?: SessionId;
+  }): Promise<{ questId: QuestId; guildSlug: UrlSlug }> =>
+    QuestFlow.mcpCreate({ userRequest, ...(sessionId !== undefined && { sessionId }) }),
+
+  // MCP-driven get-next-step (/dumpster-launch dispatch loop)
+  getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),
+
+  // MCP-driven run-ward (synchronous ward run + persist)
+  runWard: async ({
+    questId,
+    workItemId,
+    mode,
+  }: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    mode: 'changed' | 'full';
+  }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId, mode }),
+
+  // MCP-driven signal-back post-processing — fires the post-walk hook when a
+  // pathseeker-walk work item signals complete so the downstream codeweaver chain
+  // is generated. No-op for every other role + signal combination.
+  handleSignalBack: async ({
+    questId,
+    workItemId,
+    signal,
+  }: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    signal: 'complete' | 'failed' | 'failed-replan';
+  }): Promise<AdapterResult> => QuestFlow.handleSignalBack({ questId, workItemId, signal }),
+
+  // MCP-driven get-server-config (slash commands resolve baseUrl + port)
+  getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),
+
+  // Reverse lookup: sessionId -> QuestId (or null when no quest's chaoswhisperer workItem
+  // has this sessionId). Used by the HTTP server's GET /api/quests/by-session/:sessionId
+  // endpoint so the PostToolUse hook can find the quest to PATCH design decisions onto.
+  findQuestBySessionId: async ({ sessionId }: { sessionId: SessionId }): Promise<QuestId | null> =>
+    QuestFlow.findBySessionId({ sessionId }),
+
+  // Reverse lookup: workItemId -> QuestId (or null when no quest owns it). Used by the
+  // HTTP server's chat-output broadcaster to stamp questId on outgoing WS payloads.
+  findQuestByWorkItemId: async ({
+    workItemId,
+  }: {
+    workItemId: QuestWorkItemId;
+  }): Promise<QuestId | null> => QuestFlow.findByWorkItemId({ workItemId }),
+
+  // Start the /dumpster-launch JSONL watcher against the announced parent session.
+  // Called by the HTTP server's monitor-session-watch reactor when a new
+  // `active-monitor-session.json` parentSessionId is observed.
+  startMonitorWatcher: async ({
+    parentSessionId,
+    projectDir,
+  }: {
+    parentSessionId: string;
+    projectDir: string;
+  }): Promise<{ stop: () => void }> =>
+    QuestFlow.startMonitorWatcher({ parentSessionId, projectDir }),
+
+  // Returns the currently-registered /dumpster-launch monitor session for the MCP layer.
+  // Used by `get-agent-prompt` to deterministically identify the parent session of a
+  // sub-agent caller without re-running the brittle mtime-based session resolver.
+  // Returns null when no /dumpster-launch session has been announced + registered yet.
+  getRegisteredMonitorSession: (): { sessionId: SessionId; projectDir: FilePath } | null =>
+    QuestFlow.getMonitorSession(),
 };

@@ -1160,8 +1160,8 @@ describe('ExecutionRowLayerWidget', () => {
     });
   });
 
-  describe('signal mismatch rendering', () => {
-    it('VALID: {failed, expectedSignal+actualSignal} => renders both signal lines', async () => {
+  describe('signal rendering', () => {
+    it('VALID: {actualSignal=failed} => renders actual signal line', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1169,7 +1169,6 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'failed' })}
-            expectedSignal={'complete'}
             actualSignal={'failed'}
           />
         ),
@@ -1178,14 +1177,12 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      const expectedEl = screen.getByTestId('execution-row-expected-signal');
       const actualEl = screen.getByTestId('execution-row-actual-signal');
 
-      expect(expectedEl.textContent).toBe('Expected signal: complete');
       expect(actualEl.textContent).toBe('Actual signal: failed');
     });
 
-    it('VALID: {failed, only expectedSignal} => renders expected with em-dash actual', async () => {
+    it('VALID: {failed status, actualSignal} => signal text is rendered in danger color', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
@@ -1193,30 +1190,6 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'failed' })}
-            expectedSignal={'complete'}
-          />
-        ),
-      });
-
-      const header = screen.getByTestId('execution-row-header');
-      await userEvent.click(header);
-
-      const expectedEl = screen.getByTestId('execution-row-expected-signal');
-      const actualEl = screen.getByTestId('execution-row-actual-signal');
-
-      expect(expectedEl.textContent).toBe('Expected signal: complete');
-      expect(actualEl.textContent).toBe('Actual signal: —');
-    });
-
-    it('VALID: {failed status} => signal text is rendered in danger color', async () => {
-      ExecutionRowLayerWidgetProxy();
-
-      mantineRenderAdapter({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
-            expectedSignal={'complete'}
             actualSignal={'failed'}
           />
         ),
@@ -1225,12 +1198,12 @@ describe('ExecutionRowLayerWidget', () => {
       const header = screen.getByTestId('execution-row-header');
       await userEvent.click(header);
 
-      const expectedEl = screen.getByTestId('execution-row-expected-signal');
+      const actualEl = screen.getByTestId('execution-row-actual-signal');
 
-      expect(expectedEl.style.color).toBe('rgb(239, 68, 68)');
+      expect(actualEl.style.color).toBe('rgb(239, 68, 68)');
     });
 
-    it('EMPTY: {neither expectedSignal nor actualSignal} => does not render signal block', async () => {
+    it('EMPTY: {no actualSignal} => does not render signal block', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({

@@ -280,15 +280,21 @@ export const questModifyBroker = async ({
           }
         }
 
-        // Tier 3: save-time invariants (POST-mutation; runs on every call). When the
-        // input transitions the quest INTO 'in_progress', the invariants set ALSO
-        // includes the 'completeness' scope (whole-quest coverage checks: step
-        // contract refs resolve, new contracts have creating step, observables
-        // satisfied). Those completeness checks fire premature during the
-        // slice-by-slice seek_synth commits — they only make sense once the plan
-        // is fully assembled, which is the moment of transition to 'in_progress'.
+        // Tier 3: save-time invariants (POST-mutation; runs on every call). The
+        // 'completeness' scope (whole-quest coverage checks: step contract refs
+        // resolve, new contracts have creating step, observables satisfied) is
+        // gated to the LEGACY `seek_walk → in_progress` transition only. Under the
+        // `/dumpster-launch` flow, the start-quest hop transitions a quest
+        // `approved → in_progress` BEFORE the `pathseeker-walk` work item runs, so
+        // steps/contracts/observables are still empty at transition time. Running
+        // completeness there would reject every Begin Quest. Instead,
+        // `questPostWalkHookBroker` invokes the completeness scope explicitly when
+        // `pathseeker-walk` completes (after `stepsToWorkItemsTransformer` has
+        // hydrated the downstream chain). Any quest.json still mid-flight in the
+        // legacy `seek_walk` status remains correctly gated by the same check.
         const invariantFailures = questSaveInvariantsTransformer({
           quest,
+          currentStatus: loadedQuest.status,
           ...(validated.status === undefined ? {} : { nextStatus: validated.status }),
         });
         if (invariantFailures.length > 0) {

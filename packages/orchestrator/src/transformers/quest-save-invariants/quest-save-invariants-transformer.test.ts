@@ -32,10 +32,10 @@ describe('questSaveInvariantsTransformer', () => {
     ]);
   });
 
-  it('VALID: {nextStatus omitted, quest with unsatisfied observable} => returns empty array (completeness skipped)', () => {
-    // The 'completeness' scope only fires when nextStatus === 'in_progress'. With
-    // nextStatus omitted, an unsatisfied observable does NOT trigger a failure here
-    // — minions can commit slice-by-slice during seek_synth without rejection.
+  it('VALID: {currentStatus and nextStatus omitted, quest with unsatisfied observable} => returns empty array (completeness skipped)', () => {
+    // The 'completeness' scope only fires at the legacy seek_walk → in_progress
+    // boundary. With both statuses omitted, an unsatisfied observable does NOT trigger
+    // a failure here.
     const observable = FlowObservableStub({ id: 'login-redirects-to-dashboard' as never });
     const node = FlowNodeStub({ id: 'login-page' as never, observables: [observable] });
     const quest = QuestStub({
@@ -47,14 +47,18 @@ describe('questSaveInvariantsTransformer', () => {
     expect(failures).toStrictEqual([]);
   });
 
-  it('INVALID: {nextStatus: in_progress, quest with unsatisfied observable} => returns the completeness failure', () => {
+  it('INVALID: {currentStatus: seek_walk, nextStatus: in_progress, quest with unsatisfied observable} => returns the completeness failure', () => {
     const observable = FlowObservableStub({ id: 'login-redirects-to-dashboard' as never });
     const node = FlowNodeStub({ id: 'login-page' as never, observables: [observable] });
     const quest = QuestStub({
       flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
     });
 
-    const failures = questSaveInvariantsTransformer({ quest, nextStatus: 'in_progress' });
+    const failures = questSaveInvariantsTransformer({
+      quest,
+      currentStatus: 'seek_walk',
+      nextStatus: 'in_progress',
+    });
 
     expect(failures).toStrictEqual([
       {
@@ -66,14 +70,38 @@ describe('questSaveInvariantsTransformer', () => {
     ]);
   });
 
-  it('VALID: {nextStatus: seek_synth, quest with unsatisfied observable} => returns empty array (completeness only fires on in_progress)', () => {
+  it('VALID: {currentStatus: approved, nextStatus: in_progress, quest with unsatisfied observable} => returns empty array (completeness only fires on seek_walk → in_progress)', () => {
+    // Under the /dumpster-launch flow the start-quest hop transitions approved → in_progress
+    // before pathseeker-walk runs (steps/contracts/observables are populated later by the
+    // pathseeker-walk work item). Completeness MUST NOT fire on this transition —
+    // the post-walk hook invokes it explicitly after the plan is assembled.
     const observable = FlowObservableStub({ id: 'login-redirects-to-dashboard' as never });
     const node = FlowNodeStub({ id: 'login-page' as never, observables: [observable] });
     const quest = QuestStub({
       flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
     });
 
-    const failures = questSaveInvariantsTransformer({ quest, nextStatus: 'seek_synth' });
+    const failures = questSaveInvariantsTransformer({
+      quest,
+      currentStatus: 'approved',
+      nextStatus: 'in_progress',
+    });
+
+    expect(failures).toStrictEqual([]);
+  });
+
+  it('VALID: {currentStatus: seek_walk, nextStatus: seek_synth, quest with unsatisfied observable} => returns empty array (completeness only fires when nextStatus is in_progress)', () => {
+    const observable = FlowObservableStub({ id: 'login-redirects-to-dashboard' as never });
+    const node = FlowNodeStub({ id: 'login-page' as never, observables: [observable] });
+    const quest = QuestStub({
+      flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
+    });
+
+    const failures = questSaveInvariantsTransformer({
+      quest,
+      currentStatus: 'seek_walk',
+      nextStatus: 'seek_synth',
+    });
 
     expect(failures).toStrictEqual([]);
   });

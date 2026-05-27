@@ -53,7 +53,6 @@ export interface ExecutionRowLayerWidgetProps {
   inputContracts?: ContractName[];
   outputContracts?: ContractName[];
   wardResults?: WardResult[];
-  expectedSignal?: WorkItem['smoketestExpectedSignal'];
   actualSignal?: WorkItem['actualSignal'];
 }
 
@@ -109,7 +108,6 @@ export const ExecutionRowLayerWidget = ({
   inputContracts,
   outputContracts,
   wardResults,
-  expectedSignal,
   actualSignal,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
@@ -384,24 +382,11 @@ export const ExecutionRowLayerWidget = ({
               Outputs: {outputContracts.join(', ')}
             </Text>
           ) : null}
-          {expectedSignal || actualSignal ? (
+          {actualSignal ? (
             <Box
               data-testid="execution-row-signals"
               style={{ marginBottom: EXPANDED_DETAIL_MARGIN_BOTTOM }}
             >
-              <Text
-                ff="monospace"
-                data-testid="execution-row-expected-signal"
-                style={{
-                  fontSize: EXPANDED_DETAIL_FONT_SIZE,
-                  color:
-                    status === ('failed' as ExecutionStepStatus)
-                      ? colors.danger
-                      : colors['text-dim'],
-                }}
-              >
-                Expected signal: {expectedSignal ?? '—'}
-              </Text>
               <Text
                 ff="monospace"
                 data-testid="execution-row-actual-signal"
@@ -413,7 +398,7 @@ export const ExecutionRowLayerWidget = ({
                       : colors['text-dim'],
                 }}
               >
-                Actual signal: {actualSignal ?? '—'}
+                Actual signal: {actualSignal}
               </Text>
             </Box>
           ) : null}
