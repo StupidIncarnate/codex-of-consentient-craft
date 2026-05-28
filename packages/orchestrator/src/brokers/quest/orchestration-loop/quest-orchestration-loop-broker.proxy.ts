@@ -11,13 +11,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
-import { runBlightwardenLayerBrokerProxy } from './run-blightwarden-layer-broker.proxy';
 import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
-import { runCodeweaverLayerBrokerProxy } from './run-codeweaver-layer-broker.proxy';
-import { runLawbringerLayerBrokerProxy } from './run-lawbringer-layer-broker.proxy';
-import { runSiegemasterLayerBrokerProxy } from './run-siegemaster-layer-broker.proxy';
-import { runSpiritmenderLayerBrokerProxy } from './run-spiritmender-layer-broker.proxy';
-import { runWardLayerBrokerProxy } from './run-ward-layer-broker.proxy';
 
 type QuestParam = ReturnType<typeof QuestStub>;
 
@@ -46,17 +40,12 @@ export const questOrchestrationLoopBrokerProxy = (): {
   const modifyProxy = questModifyBrokerProxy();
   const configProxy = dungeonmasterConfigResolveAdapterProxy();
   configProxy.setupConfigResolved({ config: configProxy.makeRealConfig() });
-  // Layer-broker children must be instantiated so enforce-proxy-child-creation
-  // is satisfied even though the parent no longer dispatches through them — the
-  // orchestration loop's role-specific dispatch table moved to
-  // `quest-get-next-step-broker` under the `/dumpster-launch` model.
-  runBlightwardenLayerBrokerProxy();
+  // Chat layer is the only remaining role-specific dispatch in the loop —
+  // chaoswhisperer / glyphsmith still flow through the legacy spawn surface.
+  // Every execution role (codeweaver, ward, siegemaster, lawbringer,
+  // blightwarden, spiritmender, pathseeker) is dispatched by /dumpster-launch
+  // via the MCP `get-next-step` tool now.
   runChatLayerBrokerProxy();
-  runCodeweaverLayerBrokerProxy();
-  runLawbringerLayerBrokerProxy();
-  runSiegemasterLayerBrokerProxy();
-  runSpiritmenderLayerBrokerProxy();
-  runWardLayerBrokerProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
     '2024-01-15T10:00:00.000Z',

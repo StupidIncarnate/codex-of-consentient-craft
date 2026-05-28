@@ -31,25 +31,18 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
-import { slotCountToSlotOperationsTransformer } from '../../../transformers/slot-count-to-slot-operations/slot-count-to-slot-operations-transformer';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
-import { runBlightwardenLayerBroker } from './run-blightwarden-layer-broker';
 import { runChatLayerBroker } from './run-chat-layer-broker';
-import { runCodeweaverLayerBroker } from './run-codeweaver-layer-broker';
-import { runLawbringerLayerBroker } from './run-lawbringer-layer-broker';
-import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';
-import { runSpiritmenderLayerBroker } from './run-spiritmender-layer-broker';
-import { runWardLayerBroker } from './run-ward-layer-broker';
 
-// NOTE: `runPathseekerLayerBroker` is intentionally NOT imported here. Pathseeker dispatch
-// moves under the `/dumpster-launch` model: `get-next-step` returns the four pathseeker-*
-// roles (surface × N → dedup + assertion-correctness → walk) directly, and the post-walk
-// hook (questPostWalkHookBroker) fires from `QuestHandleSignalBackResponder` when a
-// pathseeker-walk work item signals complete. The orchestration loop no longer spawns
-// pathseekers itself, so the legacy role is silently dropped here.
+// NOTE: every execution-role layer broker (pathseeker, codeweaver, ward, siegemaster,
+// lawbringer, blightwarden, spiritmender) is intentionally NOT imported here. Those
+// roles are dispatched by `/dumpster-launch` via the MCP `get-next-step` tool under
+// the new model. The orchestration loop only retains the chat-role dispatch
+// (chaoswhisperer / glyphsmith) for legacy chat surfaces; every other role drops
+// through this loop as a no-op.
 
 const DEFAULT_SLOT_COUNT = 3;
 
@@ -117,8 +110,6 @@ export const questOrchestrationLoopBroker = async ({
             };
           }
         })();
-
-  const slotOperations = slotCountToSlotOperationsTransformer({ slotCount });
 
   // 1. Load quest
   const input = getQuestInputContract.parse({ questId });
@@ -281,80 +272,16 @@ export const questOrchestrationLoopBroker = async ({
         ...(userMessage === undefined ? {} : { userMessage }),
         onAgentEntry,
       });
-    } else if (
-      roleName === 'pathseeker' ||
-      roleName === 'pathseeker-surface' ||
-      roleName === 'pathseeker-dedup' ||
-      roleName === 'pathseeker-assertion-correctness' ||
-      roleName === 'pathseeker-walk'
-    ) {
-      // Pathseeker dispatch retired — handled via `get-next-step` MCP tool under the
-      // `/dumpster-launch` model. The orchestration loop no longer spawns pathseekers.
-      // Drop through so the loop just recurses; the work item stays `in_progress` (set
-      // above) until the external dispatcher signals back, which fires the post-walk
-      // hook for `pathseeker-walk` via `QuestHandleSignalBackResponder`.
-      return result;
-    } else if (roleName === 'codeweaver') {
-      await runCodeweaverLayerBroker({
-        questId,
-        workItems: roleItems,
-        startPath,
-        guildId,
-        slotCount,
-        slotOperations,
-        onAgentEntry,
-        abortSignal,
-      });
-    } else if (roleName === 'ward') {
-      await runWardLayerBroker({
-        questId,
-        workItem: firstItem,
-        startPath,
-        guildId,
-        onAgentEntry,
-        abortSignal,
-      });
-    } else if (roleName === 'siegemaster') {
-      await runSiegemasterLayerBroker({
-        questId,
-        workItem: firstItem,
-        startPath,
-        guildId,
-        onAgentEntry,
-        abortSignal,
-      });
-    } else if (roleName === 'lawbringer') {
-      await runLawbringerLayerBroker({
-        questId,
-        workItems: roleItems,
-        startPath,
-        guildId,
-        slotCount,
-        slotOperations,
-        onAgentEntry,
-        abortSignal,
-      });
-    } else if (roleName === 'blightwarden') {
-      await runBlightwardenLayerBroker({
-        questId,
-        workItem: firstItem,
-        startPath,
-        guildId,
-        onAgentEntry,
-        abortSignal,
-      });
     } else {
-      // roleName === 'spiritmender' (exhaustive via WorkItemRole enum)
-      await runSpiritmenderLayerBroker({
-        questId,
-        workItems: roleItems,
-        startPath,
-        guildId,
-        slotCount,
-        slotOperations,
-        onAgentEntry,
-        abortSignal,
-      });
+      // Execution-role dispatch retired — pathseeker, codeweaver, ward, siegemaster,
+      // lawbringer, blightwarden, and spiritmender are all driven by /dumpster-launch
+      // via the MCP `get-next-step` tool. The orchestration loop no longer spawns them.
+      // Drop through; the work item stays `in_progress` (set above) until the external
+      // dispatcher signals back. Orphan items from runs that hit the legacy loop are
+      // reset to `pending` by `register-monitor-session` on the next `/dumpster-launch`
+      // startup. WorkItemRole is exhaustive: chat roles handled in the chaoswhisperer/
+      // glyphsmith branch above; every remaining role lands here.
+      return result;
     }
   } catch (error: unknown) {
     // On unhandled error: mark all in_progress items as failed to prevent zombies

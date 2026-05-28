@@ -152,7 +152,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     expect(lines.some((l) => l === '# server [http-backend]')).toBe(false);
   });
 
-  it('VALID: {real monorepo} => orchestrator section inlines runSiegemasterLayerBroker under orchestration-loop', async () => {
+  it('VALID: {real monorepo} => orchestrator section inlines runChatLayerBroker under orchestration-loop', async () => {
     const cwd = String(processCwdAdapter());
     const projectRoot = AbsoluteFilePathStub({
       value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
@@ -164,7 +164,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     });
     const lines = String(result).split('\n');
 
-    expect(lines.some((l) => l.endsWith('→ runSiegemasterLayerBroker'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ runChatLayerBroker'))).toBe(true);
   });
 
   it('VALID: {real monorepo} => mcp section does NOT include phantom from-string imports inside testing-patterns markdown', async () => {

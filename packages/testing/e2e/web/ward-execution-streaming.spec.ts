@@ -23,7 +23,11 @@ const sessions = wireHarnessLifecycle({
   testObj: test,
 });
 
-test.describe('Ward Execution Streaming', () => {
+// Skipped: these tests exercise the legacy in-process ward dispatch via the orchestration
+// loop's `runWardLayerBroker`. That dispatch was retired in favor of the MCP `run-ward`
+// tool driven by /dumpster-launch — POST /api/quests/:id/start no longer spawns ward.
+// Re-enable (or rewrite) once an e2e harness exists for the `/dumpster-launch` MCP flow.
+test.describe.skip('Ward Execution Streaming', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
   });
