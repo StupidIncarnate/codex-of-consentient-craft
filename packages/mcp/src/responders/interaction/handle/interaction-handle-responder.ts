@@ -68,13 +68,12 @@ export const InteractionHandleResponder = async ({
     // itself is direct proof the sub-agent is alive — file presence alone cannot prove
     // liveness because Claude CLI never deletes subagent JSONLs. `sessionId` is the parent
     // /dumpster-launch session UUID and `agentId` is the realAgentId Claude CLI assigned
-    // to this Task. The layer responder prefers `_meta.claudecode/toolUseId` (deterministic)
-    // and falls back to mtime+workItemId scan for older Claude Code clients. Best-effort:
-    // any resolution failure is logged and skipped so the prompt response still flows.
+    // to this Task. The layer responder uses `_meta.claudecode/toolUseId` paired with a
+    // cross-session sidecar scan — deterministic, no mtime races. Best-effort: any
+    // resolution failure is logged and skipped so the prompt response still flows.
     try {
       const identity = await ResolveSubagentIdentityLayerResponder({
         ...(meta !== undefined && { meta }),
-        workItemId: parsed.data.workItemId,
       });
       if (identity !== undefined) {
         await orchestratorModifyQuestAdapter({

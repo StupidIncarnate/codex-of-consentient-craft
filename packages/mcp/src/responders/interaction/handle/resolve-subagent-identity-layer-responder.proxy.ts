@@ -1,94 +1,65 @@
-import { FilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import {
+  dungeonmasterHomeFindBrokerProxy,
+  processCwdAdapterProxy,
+} from '@dungeonmaster/shared/testing';
 
-import { claudeCodeSessionResolveBrokerProxy } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker.proxy';
-import { claudeCodeSubagentFindByToolUseIdBrokerProxy } from '../../../brokers/claude-code-subagent/find-by-tool-use-id/claude-code-subagent-find-by-tool-use-id-broker.proxy';
-import { claudeCodeSubagentFindByWorkItemIdBrokerProxy } from '../../../brokers/claude-code-subagent/find-by-work-item-id/claude-code-subagent-find-by-work-item-id-broker.proxy';
-import { orchestratorGetMonitorSessionAdapterProxy } from '../../../adapters/orchestrator/get-monitor-session/orchestrator-get-monitor-session-adapter.proxy';
+import { claudeCodeParentSessionFindByToolUseIdBrokerProxy } from '../../../brokers/claude-code-parent-session/find-by-tool-use-id/claude-code-parent-session-find-by-tool-use-id-broker.proxy';
+import { monitorSessionAnnounceBrokerProxy } from '../../../brokers/monitor-session/announce/monitor-session-announce-broker.proxy';
+import { announcedParentSessionStateProxy } from '../../../state/announced-parent-session/announced-parent-session-state.proxy';
 
 export const ResolveSubagentIdentityLayerResponderProxy = (): {
-  setupParentSession: (params: {
-    homedir: string;
-    cwd: string;
-    sessionEntries: readonly { name: string; mtimeMs: number }[];
-  }) => void;
-  setupSubagentMatch: (params: {
-    files: readonly string[];
-    matchFilename: string;
-    matchFirstLine: string;
-  }) => void;
-  setupSubagentDirMissing: () => void;
-  setupRegisteredMonitorSession: (params: { sessionId: string; projectDir: string }) => void;
-  setupToolUseIdMatch: (params: {
-    files: readonly string[];
-    matchFilename: string;
-    matchMetaContents: string;
-  }) => void;
+  setupCleanState: () => void;
+  setupCwd: (params: { path: string }) => void;
+  setupHomeDir: (params: { path: string }) => void;
+  setupDungeonmasterHome: (params: { homeDir: string; homePath: string }) => void;
+  enqueueSessionsDir: (params: { entries: readonly string[] }) => void;
+  enqueueSessionsDirMissing: () => void;
+  enqueueSubagentsDir: (params: { entries: readonly string[] }) => void;
+  enqueueSubagentsDirMissing: () => void;
+  enqueueMetaFileContents: (params: { contents: string }) => void;
+  getAnnounceWrites: () => readonly { path: unknown; content: unknown }[];
 } => {
   const cwdProxy = processCwdAdapterProxy();
-  const sessionProxy = claudeCodeSessionResolveBrokerProxy();
-  const subagentProxy = claudeCodeSubagentFindByWorkItemIdBrokerProxy();
-  const toolUseIdProxy = claudeCodeSubagentFindByToolUseIdBrokerProxy();
-  const monitorSessionProxy = orchestratorGetMonitorSessionAdapterProxy();
+  const findProxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
+  const homeProxy = dungeonmasterHomeFindBrokerProxy();
+  const announceProxy = monitorSessionAnnounceBrokerProxy();
+  const stateProxy = announcedParentSessionStateProxy();
 
   return {
-    setupParentSession: ({
-      homedir,
-      cwd,
-      sessionEntries,
+    // Tests share module state — call this in each test to reset the announce latch
+    // before exercising the responder.
+    setupCleanState: stateProxy.setupCleared,
+    setupCwd: ({ path }: { path: string }): void => {
+      cwdProxy.returns({ path });
+    },
+    setupHomeDir: ({ path }: { path: string }): void => {
+      findProxy.setupHomeDir({ path });
+    },
+    setupDungeonmasterHome: ({
+      homeDir,
+      homePath,
     }: {
-      homedir: string;
-      cwd: string;
-      sessionEntries: readonly { name: string; mtimeMs: number }[];
+      homeDir: string;
+      homePath: string;
     }): void => {
-      cwdProxy.returns({ path: cwd });
-      sessionProxy.setupHomedir({ homedir });
-      sessionProxy.setupSessionsDir({ entries: sessionEntries });
-      subagentProxy.setupHomeDir({ path: homedir });
+      homeProxy.setupHomePath({ homeDir, homePath: FilePathStub({ value: homePath }) });
     },
-    setupSubagentMatch: ({
-      files,
-      matchFilename,
-      matchFirstLine,
-    }: {
-      files: readonly string[];
-      matchFilename: string;
-      matchFirstLine: string;
-    }): void => {
-      subagentProxy.setupSubagentDirFiles({ files });
-      subagentProxy.setupFileContents({ filename: matchFilename, firstLine: matchFirstLine });
+    enqueueSessionsDir: ({ entries }: { entries: readonly string[] }): void => {
+      findProxy.enqueueReaddir({ entries });
     },
-    setupSubagentDirMissing: (): void => {
-      subagentProxy.setupSubagentDirMissing();
+    enqueueSessionsDirMissing: (): void => {
+      findProxy.enqueueReaddirMissing();
     },
-    setupRegisteredMonitorSession: ({
-      sessionId,
-      projectDir,
-    }: {
-      sessionId: string;
-      projectDir: string;
-    }): void => {
-      monitorSessionProxy.returns({
-        session: {
-          sessionId: SessionIdStub({ value: sessionId }),
-          projectDir: FilePathStub({ value: projectDir }),
-        },
-      });
+    enqueueSubagentsDir: ({ entries }: { entries: readonly string[] }): void => {
+      findProxy.enqueueReaddir({ entries });
     },
-    setupToolUseIdMatch: ({
-      files,
-      matchFilename,
-      matchMetaContents,
-    }: {
-      files: readonly string[];
-      matchFilename: string;
-      matchMetaContents: string;
-    }): void => {
-      toolUseIdProxy.setupSubagentDirFiles({ files });
-      toolUseIdProxy.setupMetaFileContents({
-        filename: matchFilename,
-        contents: matchMetaContents,
-      });
+    enqueueSubagentsDirMissing: (): void => {
+      findProxy.enqueueReaddirMissing();
     },
+    enqueueMetaFileContents: ({ contents }: { contents: string }): void => {
+      findProxy.enqueueReadFile({ contents });
+    },
+    getAnnounceWrites: announceProxy.getAllWrittenFiles,
   };
 };

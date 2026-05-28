@@ -18,23 +18,15 @@ import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-i
 export const InteractionHandleResponderProxy = (): {
   callResponder: typeof InteractionHandleResponder;
   setupAgentPromptReturns: (params: { result: AgentPromptResult }) => void;
-  setupParentSession: (params: {
-    homedir: string;
-    cwd: string;
-    sessionEntries: readonly { name: string; mtimeMs: number }[];
-  }) => void;
-  setupSubagentMatch: (params: {
-    files: readonly string[];
-    matchFilename: string;
-    matchFirstLine: string;
-  }) => void;
-  setupSubagentDirMissing: () => void;
-  setupRegisteredMonitorSession: (params: { sessionId: string; projectDir: string }) => void;
-  setupToolUseIdMatch: (params: {
-    files: readonly string[];
-    matchFilename: string;
-    matchMetaContents: string;
-  }) => void;
+  setupCleanState: () => void;
+  setupCwd: (params: { path: string }) => void;
+  setupHomeDir: (params: { path: string }) => void;
+  setupDungeonmasterHome: (params: { homeDir: string; homePath: string }) => void;
+  enqueueSessionsDir: (params: { entries: readonly string[] }) => void;
+  enqueueSessionsDirMissing: () => void;
+  enqueueSubagentsDir: (params: { entries: readonly string[] }) => void;
+  enqueueSubagentsDirMissing: () => void;
+  enqueueMetaFileContents: (params: { contents: string }) => void;
   getLastModifyQuestInput: () => unknown;
 } => {
   signalBackBrokerProxy();
@@ -42,22 +34,21 @@ export const InteractionHandleResponderProxy = (): {
   orchestratorHandleSignalBackAdapterProxy();
   const modifyProxy = orchestratorModifyQuestAdapterProxy();
   const layerProxy = ResolveSubagentIdentityLayerResponderProxy();
-  // Tests that don't opt into `setupParentSession` get the underlying fs mock's default
-  // empty-array readdir response — that resolves the parent session to `undefined`, which
-  // short-circuits the fallback stamp path in the layer responder. The toolUseId path is
-  // gated on `meta` AND a registered monitor session — by default monitor-session returns
-  // null, so tests that don't opt into `setupRegisteredMonitorSession` skip that path.
 
   return {
     callResponder: InteractionHandleResponder,
     setupAgentPromptReturns: ({ result }: { result: AgentPromptResult }): void => {
       agentPromptProxy.returns({ result });
     },
-    setupParentSession: layerProxy.setupParentSession,
-    setupSubagentMatch: layerProxy.setupSubagentMatch,
-    setupSubagentDirMissing: layerProxy.setupSubagentDirMissing,
-    setupRegisteredMonitorSession: layerProxy.setupRegisteredMonitorSession,
-    setupToolUseIdMatch: layerProxy.setupToolUseIdMatch,
+    setupCleanState: layerProxy.setupCleanState,
+    setupCwd: layerProxy.setupCwd,
+    setupHomeDir: layerProxy.setupHomeDir,
+    setupDungeonmasterHome: layerProxy.setupDungeonmasterHome,
+    enqueueSessionsDir: layerProxy.enqueueSessionsDir,
+    enqueueSessionsDirMissing: layerProxy.enqueueSessionsDirMissing,
+    enqueueSubagentsDir: layerProxy.enqueueSubagentsDir,
+    enqueueSubagentsDirMissing: layerProxy.enqueueSubagentsDirMissing,
+    enqueueMetaFileContents: layerProxy.enqueueMetaFileContents,
     getLastModifyQuestInput: (): unknown => modifyProxy.getLastCalledInput(),
   };
 };

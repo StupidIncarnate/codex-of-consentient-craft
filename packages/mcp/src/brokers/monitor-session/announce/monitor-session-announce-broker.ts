@@ -1,25 +1,25 @@
 /**
- * PURPOSE: Announces the parent Claude Code session at MCP server startup by writing
- * `<DUNGEONMASTER_HOME>/active-monitor-session.json`. The HTTP server reactor watches that
- * file and starts the JSONL watcher against the announced session.
+ * PURPOSE: Writes `<DUNGEONMASTER_HOME>/active-monitor-session.json` so the HTTP server's
+ * MonitorSessionWatchResponder reactor starts (or restarts) its JSONL watcher against the
+ * named parent Claude Code session.
  *
  * USAGE:
  * await monitorSessionAnnounceBroker({
- *   parentSessionId: process.env.CLAUDE_CODE_SESSION_ID,
+ *   parentSessionId: 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671',
  *   projectDir: process.cwd(),
  *   nowIso: new Date().toISOString(),
  *   homeDir: '/home/user/.dungeonmaster',
  * });
  * // Returns: AdapterResult — { success: true } when the announce file is written, or
- * // { success: true } no-op when parentSessionId is undefined (MCP invoked outside
- * // Claude Code context — e.g. integration tests or direct-call clients).
+ * // { success: true } no-op when parentSessionId is undefined.
  *
- * WHY: This is a one-shot startup announce keyed off whichever sessionId the caller
- *   resolves (env var if Claude Code populates it, mtime fallback otherwise — see
- *   `MonitorSessionAnnounceResponder`). It identifies the PARENT (dispatcher) session
- *   at server start. Per-call sub-agent identification (separate concern, see
- *   `claudeCodeSubagentFindByToolUseIdBroker`) uses `request.params._meta.claudecode/toolUseId`
- *   instead, which Claude Code surfaces on every MCP call regardless of env shape.
+ * WHEN-TO-USE: From ResolveSubagentIdentityLayerResponder on the first successful
+ *   sub-agent identity resolution per MCP process. The toolUseId-based scan
+ *   (claudeCodeParentSessionFindByToolUseIdBroker) has already proved which session is
+ *   the legitimate /dumpster-launch parent — the announce is just persistence for the
+ *   cross-process file-watcher.
+ * WHEN-NOT-TO-USE: At MCP boot. Boot-time announce is gone — it raced against unrelated
+ *   Claude sessions in the same cwd via mtime resolution and hijacked the watcher.
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';

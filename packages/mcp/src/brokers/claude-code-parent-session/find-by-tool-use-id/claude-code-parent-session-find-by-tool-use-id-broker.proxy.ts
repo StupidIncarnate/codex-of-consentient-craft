@@ -5,11 +5,15 @@ import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-f
 import { fsReaddirIfExistsAdapterProxy } from '../../../adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter.proxy';
 import { FolderNameStub } from '../../../contracts/folder-name/folder-name.stub';
 
-export const claudeCodeSubagentFindByToolUseIdBrokerProxy = (): {
+// Both readdir and readFile mocks are FIFO queues (mockResolvedValueOnce). Setup order
+// must match the broker's call order: readdir is called once for the top-level sessions
+// dir, then once per discovered sessionId for its `<sessionId>/subagents/` dir; readFile
+// is called per `agent-*.meta.json` candidate within each subagents dir.
+export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
   setupHomeDir: (params: { path: string }) => void;
-  setupSubagentDirFiles: (params: { files: readonly string[] }) => void;
-  setupSubagentDirMissing: () => void;
-  setupMetaFileContents: (params: { filename: string; contents: string }) => void;
+  enqueueReaddir: (params: { entries: readonly string[] }) => void;
+  enqueueReaddirMissing: () => void;
+  enqueueReadFile: (params: { contents: string }) => void;
 } => {
   const homedirProxy = osUserHomedirAdapterProxy();
   const readdirProxy = fsReaddirIfExistsAdapterProxy();
@@ -19,23 +23,17 @@ export const claudeCodeSubagentFindByToolUseIdBrokerProxy = (): {
     setupHomeDir: ({ path }: { path: string }): void => {
       homedirProxy.returns({ path });
     },
-    setupSubagentDirFiles: ({ files }: { files: readonly string[] }): void => {
+    enqueueReaddir: ({ entries }: { entries: readonly string[] }): void => {
       readdirProxy.returns({
-        entries: files.map((f) => FolderNameStub({ value: f })),
+        entries: entries.map((entry) => FolderNameStub({ value: entry })),
       });
     },
-    setupSubagentDirMissing: (): void => {
+    enqueueReaddirMissing: (): void => {
       readdirProxy.returnsUndefined();
     },
-    setupMetaFileContents: ({
-      filename,
-      contents,
-    }: {
-      filename: string;
-      contents: string;
-    }): void => {
+    enqueueReadFile: ({ contents }: { contents: string }): void => {
       readFileProxy.returns({
-        filepath: PathSegmentStub({ value: filename }),
+        filepath: PathSegmentStub({ value: '/unused' }),
         contents: FileContentsStub({ value: contents }),
       });
     },

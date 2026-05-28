@@ -1,21 +1,26 @@
-import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
-
 import { ResolveSubagentIdentityLayerResponder } from './resolve-subagent-identity-layer-responder';
 import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-identity-layer-responder.proxy';
 
+const ACTIVE_MONITOR_SESSION_PATH = '/home/user/.dungeonmaster/active-monitor-session.json';
+
 describe('ResolveSubagentIdentityLayerResponder', () => {
-  it('VALID: {meta has claudecode/toolUseId + monitorSession registered + matching meta.json} => returns identity from toolUseId path', async () => {
+  it('VALID: {meta has toolUseId + cross-session scan finds match} => returns identity AND writes active-monitor-session.json', async () => {
     const proxy = ResolveSubagentIdentityLayerResponderProxy();
+    proxy.setupCleanState();
     const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
-    const projectDir = '/home/user/.claude/projects/-home-user-proj';
     const realAgentId = 'ad0775d7695b4d4eb';
     const toolUseId = 'toolu_01KfM8kWZATagwS33eTq5fZS';
 
-    proxy.setupRegisteredMonitorSession({ sessionId: parentSessionId, projectDir });
-    proxy.setupToolUseIdMatch({
-      files: [`agent-${realAgentId}.meta.json`],
-      matchFilename: `agent-${realAgentId}.meta.json`,
-      matchMetaContents: JSON.stringify({
+    proxy.setupCwd({ path: '/home/user/proj' });
+    proxy.setupHomeDir({ path: '/home/user' });
+    proxy.setupDungeonmasterHome({
+      homeDir: '/home/user',
+      homePath: '/home/user/.dungeonmaster',
+    });
+    proxy.enqueueSessionsDir({ entries: [`${parentSessionId}.jsonl`] });
+    proxy.enqueueSubagentsDir({ entries: [`agent-${realAgentId}.meta.json`] });
+    proxy.enqueueMetaFileContents({
+      contents: JSON.stringify({
         agentType: 'general-purpose',
         description: 'pathseeker-dedup dispatch',
         toolUseId,
@@ -24,101 +29,114 @@ describe('ResolveSubagentIdentityLayerResponder', () => {
 
     const result = await ResolveSubagentIdentityLayerResponder({
       meta: { 'claudecode/toolUseId': toolUseId, progressToken: 3 },
-      workItemId: QuestWorkItemIdStub({ value: 'c6afab8f-ebdd-4e23-99cd-ea9aa67a5026' }),
     });
 
     expect(result).toStrictEqual({
       sessionId: parentSessionId,
       agentId: realAgentId,
     });
+
+    // The first resolution in this process must write active-monitor-session.json so the
+    // HTTP server reactor starts the JSONL watcher on the parent session. Content carries
+    // a generated timestamp — assert path only via toStrictEqual on the mapped array.
+    const writePaths = proxy.getAnnounceWrites().map((w) => w.path);
+
+    expect(writePaths).toStrictEqual([ACTIVE_MONITOR_SESSION_PATH]);
   });
 
-  it('VALID: {meta absent} => falls back to mtime+workItemId path', async () => {
+  it('EMPTY: {meta has no claudecode/toolUseId} => returns undefined, no announce', async () => {
     const proxy = ResolveSubagentIdentityLayerResponderProxy();
-    const parentSessionId = '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402';
-    const realAgentId = 'acd35f7b7763e33e8';
-    const workItemId = QuestWorkItemIdStub({ value: '875c3364-2d64-4606-b9e3-25dd365c7792' });
+    proxy.setupCleanState();
 
-    proxy.setupParentSession({
-      homedir: '/home/user',
-      cwd: '/home/user/proj',
-      sessionEntries: [{ name: `${parentSessionId}.jsonl`, mtimeMs: 1000 }],
-    });
-    proxy.setupSubagentMatch({
-      files: [`agent-${realAgentId}.jsonl`],
-      matchFilename: `agent-${realAgentId}.jsonl`,
-      matchFirstLine: `{"type":"user","message":{"role":"user","content":"workItemId: \\"${String(workItemId)}\\""}}`,
-    });
+    const result = await ResolveSubagentIdentityLayerResponder({ meta: { progressToken: 3 } });
 
-    const result = await ResolveSubagentIdentityLayerResponder({ workItemId });
-
-    expect(result).toStrictEqual({
-      sessionId: parentSessionId,
-      agentId: realAgentId,
-    });
+    expect(result).toBe(undefined);
+    expect(proxy.getAnnounceWrites()).toStrictEqual([]);
   });
 
-  it('VALID: {meta has toolUseId but monitorSession unregistered} => falls back to mtime+workItemId path', async () => {
+  it('EMPTY: {meta absent} => returns undefined, no announce', async () => {
     const proxy = ResolveSubagentIdentityLayerResponderProxy();
-    const parentSessionId = '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402';
-    const realAgentId = 'acd35f7b7763e33e8';
-    const workItemId = QuestWorkItemIdStub({ value: '875c3364-2d64-4606-b9e3-25dd365c7792' });
+    proxy.setupCleanState();
 
-    // No setupRegisteredMonitorSession — adapter returns null by default → toolUseId path
-    // short-circuits to the fallback.
-    proxy.setupParentSession({
-      homedir: '/home/user',
-      cwd: '/home/user/proj',
-      sessionEntries: [{ name: `${parentSessionId}.jsonl`, mtimeMs: 1000 }],
+    const result = await ResolveSubagentIdentityLayerResponder({});
+
+    expect(result).toBe(undefined);
+    expect(proxy.getAnnounceWrites()).toStrictEqual([]);
+  });
+
+  it('EMPTY: {cross-session scan finds no match} => returns undefined, no announce', async () => {
+    const proxy = ResolveSubagentIdentityLayerResponderProxy();
+    proxy.setupCleanState();
+
+    proxy.setupCwd({ path: '/home/user/proj' });
+    proxy.setupHomeDir({ path: '/home/user' });
+    proxy.setupDungeonmasterHome({
+      homeDir: '/home/user',
+      homePath: '/home/user/.dungeonmaster',
     });
-    proxy.setupSubagentMatch({
-      files: [`agent-${realAgentId}.jsonl`],
-      matchFilename: `agent-${realAgentId}.jsonl`,
-      matchFirstLine: `{"type":"user","message":{"role":"user","content":"workItemId: \\"${String(workItemId)}\\""}}`,
-    });
+    proxy.enqueueSessionsDirMissing();
 
     const result = await ResolveSubagentIdentityLayerResponder({
       meta: { 'claudecode/toolUseId': 'toolu_01KfM8kWZATagwS33eTq5fZS' },
-      workItemId,
+    });
+
+    expect(result).toBe(undefined);
+    expect(proxy.getAnnounceWrites()).toStrictEqual([]);
+  });
+
+  it('VALID: {second call with same parent session} => returns identity, does NOT re-announce', async () => {
+    const proxy = ResolveSubagentIdentityLayerResponderProxy();
+    proxy.setupCleanState();
+    const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
+    const realAgentId = 'ad0775d7695b4d4eb';
+    const toolUseIdFirst = 'toolu_01KfM8kWZATagwS33eTq5fZS';
+    const toolUseIdSecond = 'toolu_01ANOTHER_ToolUseId_99999';
+
+    proxy.setupCwd({ path: '/home/user/proj' });
+    proxy.setupHomeDir({ path: '/home/user' });
+    proxy.setupDungeonmasterHome({
+      homeDir: '/home/user',
+      homePath: '/home/user/.dungeonmaster',
+    });
+    // First call setup
+    proxy.enqueueSessionsDir({ entries: [`${parentSessionId}.jsonl`] });
+    proxy.enqueueSubagentsDir({ entries: [`agent-${realAgentId}.meta.json`] });
+    proxy.enqueueMetaFileContents({
+      contents: JSON.stringify({
+        agentType: 'general-purpose',
+        description: 'first dispatch',
+        toolUseId: toolUseIdFirst,
+      }),
+    });
+
+    await ResolveSubagentIdentityLayerResponder({
+      meta: { 'claudecode/toolUseId': toolUseIdFirst },
+    });
+
+    // Second call setup — different sub-agent, same parent session
+    const secondAgentId = 'beefcafe1234567890';
+    proxy.enqueueSessionsDir({ entries: [`${parentSessionId}.jsonl`] });
+    proxy.enqueueSubagentsDir({ entries: [`agent-${secondAgentId}.meta.json`] });
+    proxy.enqueueMetaFileContents({
+      contents: JSON.stringify({
+        agentType: 'general-purpose',
+        description: 'second dispatch',
+        toolUseId: toolUseIdSecond,
+      }),
+    });
+
+    const result = await ResolveSubagentIdentityLayerResponder({
+      meta: { 'claudecode/toolUseId': toolUseIdSecond },
     });
 
     expect(result).toStrictEqual({
       sessionId: parentSessionId,
-      agentId: realAgentId,
-    });
-  });
-
-  it('EMPTY: {meta absent AND no parent session resolvable} => returns undefined', async () => {
-    const proxy = ResolveSubagentIdentityLayerResponderProxy();
-
-    proxy.setupParentSession({
-      homedir: '/home/user',
-      cwd: '/home/user/proj',
-      sessionEntries: [],
+      agentId: secondAgentId,
     });
 
-    const result = await ResolveSubagentIdentityLayerResponder({
-      workItemId: QuestWorkItemIdStub({ value: '875c3364-2d64-4606-b9e3-25dd365c7792' }),
-    });
+    // Only ONE announce write total — the second call short-circuits via the latch.
+    const writePaths = proxy.getAnnounceWrites().map((w) => w.path);
 
-    expect(result).toBe(undefined);
-  });
-
-  it('EMPTY: {meta absent AND parent session resolved BUT no matching subagent file} => returns undefined', async () => {
-    const proxy = ResolveSubagentIdentityLayerResponderProxy();
-    const parentSessionId = '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402';
-
-    proxy.setupParentSession({
-      homedir: '/home/user',
-      cwd: '/home/user/proj',
-      sessionEntries: [{ name: `${parentSessionId}.jsonl`, mtimeMs: 1000 }],
-    });
-    proxy.setupSubagentDirMissing();
-
-    const result = await ResolveSubagentIdentityLayerResponder({
-      workItemId: QuestWorkItemIdStub({ value: '875c3364-2d64-4606-b9e3-25dd365c7792' }),
-    });
-
-    expect(result).toBe(undefined);
+    expect(writePaths).toStrictEqual([ACTIVE_MONITOR_SESSION_PATH]);
   });
 });

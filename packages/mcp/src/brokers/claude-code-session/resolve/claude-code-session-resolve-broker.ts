@@ -1,21 +1,20 @@
 /**
  * PURPOSE: Resolves a parent Claude Code session id by listing
  * `~/.claude/projects/<encoded-cwd>/*.jsonl` and returning the basename of the
- * most-recently-modified file. **Fallback path only.** Reliable at MCP boot (when the
- * dispatcher session is the only one actively writing in this cwd) but races against any
- * other Claude session in the same project cwd once /dumpster-launch is idle waiting on
- * Task() results — that competing session's writes can win the mtime contest and this
- * broker then returns the WRONG sessionId.
+ * most-recently-modified file. **Legacy fallback — only safe when the caller is the user's
+ * own foreground Claude session at the exact moment they invoke an MCP tool.** Races
+ * against any other Claude session in the same project cwd whose JSONL was written more
+ * recently.
  *
- * Primary deterministic source for per-call sub-agent identification:
- * `claudeCodeSubagentFindByToolUseIdBroker`, which keys off
- * `request.params._meta.claudecode/toolUseId` and the registered monitor-session — no
- * mtime races. Callers that have access to a per-call toolUseId should prefer that.
+ * Primary deterministic alternative for per-call sub-agent identification:
+ * `claudeCodeParentSessionFindByToolUseIdBroker`, which keys off
+ * `request.params._meta.claudecode/toolUseId` and a cross-session sidecar scan — no
+ * mtime, no races, no prior monitor-session registration needed.
  *
- * Surviving consumers of this resolver (boot-time + foreground-only paths where the mtime
- * race doesn't apply): MonitorSessionAnnounceResponder, QuestHandleResponder's create-quest
- * path, and the InteractionHandleResponder fallback for older Claude Code clients lacking
- * `_meta` plumbing.
+ * Sole surviving consumer of this resolver is QuestHandleResponder's create-quest path:
+ * ChaosWhisperer in /dumpster-create has no parent Task() toolUseId because it runs
+ * inline in the user's session, so we read mtime in that narrow window where the user
+ * just typed the slash command and their JSONL is necessarily the newest.
  *
  * USAGE:
  * const result = await claudeCodeSessionResolveBroker({ projectDir });
