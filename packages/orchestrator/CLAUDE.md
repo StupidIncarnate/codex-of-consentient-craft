@@ -258,20 +258,23 @@ invokes). Do NOT move any of this to the web:
 
 ### Tail lifecycle
 
-The `quest-monitor-jsonl-watcher-broker` owns the lifecycle of both tails it starts when
-`/dumpster-launch` calls `register-monitor-session`:
+The `quest-monitor-jsonl-watcher-broker` owns the lifecycle of both tails it starts for
+each active parent session. The watcher reactor lives in
+`packages/server/src/responders/quest-driven-watchers/bootstrap/` on the HTTP server. It
+maintains a `Map<SessionId, WatcherHandle>` keyed on the union of `workItems[].sessionId`
+across all active quests, reconciles on every quest-modified outbox event (and via a 3s
+fallback poll for direct quest.json writes), and starts/stops `questMonitorWatcherStartBroker`
+instances to match. Multiple watcher instances coexist — one per active parent session.
 
 - `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
   Pass `'beginning'` for sub-agent tails — they must drain the JSONL Claude already wrote
   while the parent blocked on the Task tool. Pass `'end'` for the parent
-  `/dumpster-launch` session tail — only NEW appends from the moment of registration
+  `/dumpster-launch` session tail — only NEW appends from the moment the watcher starts
   forward should emit.
 - The watcher captures `sessionId` from the first system/init line it sees and starts the
   parent tail at `'end'`. As `Task`-dispatched agents create their own
   `subagents/agent-<id>.jsonl` files, `chatSubagentTailBroker` instances spin up against
   each one at `'beginning'`.
-- `register-monitor-session` enforces single-launcher semantics (one live launch session
-  per server); on teardown, every tail handle is stopped in one composition.
 
 The legacy `chat-start-responder` still composes its own tail lifecycle for the surviving
 spawn paths, with the same `fsWatchTailAdapter` semantics.
@@ -350,7 +353,6 @@ Web UI "Start Quest" button ──► server orchestration-start-responder
   │
   ▼
 User runs /dumpster-launch (long-lived dispatch loop in their session)
-  │   Registers session via mcp__dungeonmaster__register-monitor-session
   │   Loop: get-next-step() → Task() / run-ward() → await → repeat
   │
   ├─ pathseeker-surface ──── N parallel via Task() (one per affected package)
@@ -391,10 +393,13 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
   roles (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init
   line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
   `/dumpster-launch`, both fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the MCP
-  responder reads `request.params._meta.claudecode/toolUseId` (Claude Code surfaces it on every call), looks up
-  the matching `subagents/agent-<realAgentId>.meta.json` sidecar via `claudeCodeSubagentFindByToolUseIdBroker`,
-  and stamps `{sessionId: parentUUID, agentId: realAgentId}` via `modify-quest`. The toolUseId path is
-  deterministic regardless of how many sub-agents call in parallel against the same MCP child.
+  responder reads `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP call
+  (NOT the parent Task() dispatch id) — and passes it to `claudeCodeParentSessionFindByToolUseIdBroker`, which
+  scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an assistant line
+  whose `tool_use.id` matches. The matching JSONL's basename yields `realAgentId`; its containing session dir
+  yields `parentSessionId`. The broker retries on miss (~3 s budget) to absorb the Claude-Code-dispatches-MCP-call-
+  before-flushing-JSONL race. Result is stamped via `modify-quest`, deterministic across any number of parallel
+  Claude sessions in the same cwd.
 - **Ward**: only non-agent item (`spawnerType: 'command'`); driven by the `run-ward` MCP tool which blocks until ward
   exits and persists the result onto the work item
 
@@ -607,10 +612,11 @@ says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instr
 exactly." The MCP responder interpolates work-item-specific context (scope, package, steps,
 file paths) into the returned prompt and stamps `workItem.sessionId` (parent UUID) +
 `workItem.agentId` (sub-agent realAgentId) from MCP request metadata: Claude Code surfaces
-`request.params._meta.claudecode/toolUseId` on every MCP call, which the responder pairs
-with the registered monitor-session and the `agent-<realAgentId>.meta.json` sidecar to
-deterministically identify the calling sub-agent — race-free even when N sub-agents call
-in parallel against the same MCP stdio child.
+`request.params._meta.claudecode/toolUseId` on every MCP call (the toolUseId of the
+sub-agent's OWN MCP call, not the parent Task() dispatch id). The responder scans every
+session's `subagents/agent-*.jsonl` file for an assistant line whose `tool_use.id`
+matches — deterministically identifying the calling sub-agent race-free even when N
+sub-agents call in parallel against the same MCP stdio child.
 
 | Agent                            | Dispatched By                                     | Purpose                                                                                                                           |
 |----------------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|

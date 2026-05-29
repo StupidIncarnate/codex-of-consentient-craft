@@ -278,8 +278,9 @@ export const questOrchestrationLoopBroker = async ({
       // via the MCP `get-next-step` tool. The orchestration loop no longer spawns them.
       // Drop through; the work item stays `in_progress` (set above) until the external
       // dispatcher signals back. Orphan items from runs that hit the legacy loop are
-      // reset to `pending` by `register-monitor-session` on the next `/dumpster-launch`
-      // startup. WorkItemRole is exhaustive: chat roles handled in the chaoswhisperer/
+      // reset to `pending` by `questOrphanResetBroker` (invoked by the quest-driven
+      // watcher's `questMonitorWatcherStartBroker` on the next observed sessionId).
+      // WorkItemRole is exhaustive: chat roles handled in the chaoswhisperer/
       // glyphsmith branch above; every remaining role lands here.
       return result;
     }

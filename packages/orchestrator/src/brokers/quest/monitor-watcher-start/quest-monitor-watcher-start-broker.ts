@@ -1,23 +1,21 @@
 /**
- * PURPOSE: Starts the /dumpster-launch JSONL watcher against the announced parent session — encodes the JSONL path from projectDir + parentSessionId, runs orphan-reset, registers the session via the caller-supplied monitorSession facade, then tails the parent + subagent JSONLs via questMonitorJsonlWatcherBroker. Returns a handle the caller stops when the session changes or is removed.
+ * PURPOSE: Starts the JSONL watcher against a parent Claude Code session — encodes the JSONL path from projectDir + parentSessionId, runs orphan-reset on the first call per server lifetime, then tails the parent + subagent JSONLs via questMonitorJsonlWatcherBroker. Returns a handle the caller stops when the session is no longer referenced by any active workItem.
  *
  * USAGE:
  * const handle = await questMonitorWatcherStartBroker({
  *   parentSessionId,
  *   projectDir,
- *   monitorSession: monitorSessionState,
  *   emit: ({ type, processId, payload }) => orchestrationEventsState.emit({ type, processId, payload }),
  * });
- * // handle.stop() — tears down the tail and clears monitorSession
+ * // handle.stop() — tears down the tail
  *
- * WHY monitorSession + emit are parameters: brokers cannot import from state/ or event-bus
- * modules. The responder (server-side) supplies the real `monitorSessionState` methods and
- * `orchestrationEventsState.emit`; tests inject stubs.
+ * WHY emit is a parameter: brokers cannot import from event-bus modules. The responder
+ * (server-side) supplies the real `orchestrationEventsState.emit`; tests inject stubs.
  *
- * WHEN-TO-USE: From the HTTP server's monitor-session-watch reactor when a new
- *   `active-monitor-session.json` parentSessionId is observed.
- * WHEN-NOT-TO-USE: Anywhere needing the watcher mid-flight without orphan-reset — call
- *   `questMonitorJsonlWatcherBroker` directly instead.
+ * WHEN-TO-USE: From the quest-driven watcher reactor on the HTTP server when a fresh
+ *   `sessionId` is observed on an in-progress workItem in any active quest.
+ * WHEN-NOT-TO-USE: Anywhere expecting single-launcher semantics — multiple instances of
+ *   this watcher coexist (one per active parent session in the quest graph).
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
@@ -27,7 +25,6 @@ import {
   processIdContract,
   sessionIdContract,
   type ChatEntry,
-  type FilePath,
   type OrchestrationEventType,
   type ProcessId,
   type QuestId,
@@ -36,10 +33,6 @@ import {
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
-import {
-  isoTimestampContract,
-  type IsoTimestamp,
-} from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 
 import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
 
@@ -51,46 +44,33 @@ import { refreshActiveAgentIdsLayerBroker } from './refresh-active-agent-ids-lay
 export const questMonitorWatcherStartBroker = async ({
   parentSessionId,
   projectDir,
-  monitorSession,
   emit,
 }: {
   parentSessionId: string;
   projectDir: string;
-  monitorSession: {
-    clear: () => void;
-    register: (params: {
-      projectDir: FilePath;
-      sessionFilePath: FilePath;
-      registeredAt: IsoTimestamp;
-    }) => void;
-    get: () => {
-      projectDir: FilePath;
-      sessionFilePath: FilePath;
-      registeredAt: IsoTimestamp;
-    } | null;
-  };
   emit: (params: {
     type: OrchestrationEventType;
     processId: ProcessId;
     payload: Record<string, unknown>;
   }) => void;
 }): Promise<{ stop: () => void }> => {
-  // Re-run the orphan reset every time a new session is announced. If the prior launcher
-  // died mid-flight, in_progress work items still carry the old session's metadata and
-  // get-next-step would skip them; resetting back to pending is what restores dispatch.
-  await questOrphanResetBroker();
-
-  // Quest-driven subscription state: per-quest sets of agentIds currently stamped on
-  // in-progress work items. The watcher only tails subagent JSONLs whose agentId is in
-  // one of these sets — stale leftover files from prior /dumpster-launch runs never
-  // match (their work items are now either pending or terminal, with agentId cleared
-  // or pointing to a different file). Populated on startup, refreshed every poll tick.
-  const activeAgentIdsByQuest = new Map<QuestId, Set<AgentId>>();
-  await refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest });
-
   const homeDir = osUserHomedirAdapter();
   const projectPath = absoluteFilePathContract.parse(projectDir);
   const sessionId = sessionIdContract.parse(parentSessionId);
+
+  // Orphan reset re-runs whenever a parent session is observed — if the prior launcher
+  // died mid-flight, in_progress work items still carry the old session's metadata and
+  // get-next-step would skip them. We pass `excludeSessionId: sessionId` so the very
+  // workItem that triggered this watcher (stamped with parentSessionId by get-agent-prompt
+  // moments ago) is preserved — otherwise the reactor falls into a stamp → start → reset
+  // → stop oscillation on every dispatch.
+  await questOrphanResetBroker({ excludeSessionId: sessionId });
+
+  // Quest-driven subscription state: per-quest sets of agentIds currently stamped on
+  // in-progress work items. The watcher only tails subagent JSONLs whose agentId is in
+  // one of these sets — stale leftover files from prior runs never match.
+  const activeAgentIdsByQuest = new Map<QuestId, Set<AgentId>>();
+  await refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest });
 
   const sessionFilePath = claudeProjectPathEncoderTransformer({
     homeDir,
@@ -98,27 +78,10 @@ export const questMonitorWatcherStartBroker = async ({
     sessionId,
   });
 
-  // Record the session in the caller's monitorSession facade. The reactor owns the
-  // single-launcher semantics (it stops the prior watcher BEFORE starting this one) so
-  // we don't enforce single-launcher here — clear THEN register.
-  monitorSession.clear();
-  monitorSession.register({
-    projectDir: filePathContract.parse(projectDir),
-    sessionFilePath: filePathContract.parse(String(sessionFilePath)),
-    registeredAt: isoTimestampContract.parse(new Date().toISOString()),
-  });
-
-  const registered = monitorSession.get();
-  if (registered === null) {
-    // monitorSession.register parses through activeMonitorSessionContract; reaching null
-    // means the contract rejected the input. Surface the failure to the caller.
-    throw new Error('Failed to register monitor session — register returned null');
-  }
-
   const chatProcessId: ProcessId = processIdContract.parse(`proc-monitor-${parentSessionId}`);
 
   const watcherHandle = questMonitorJsonlWatcherBroker({
-    monitorSession: registered,
+    sessionFilePath: filePathContract.parse(String(sessionFilePath)),
     activeQuestIdGetter: (): QuestId | null => null,
     chatProcessId,
     emit: ({
@@ -175,7 +138,6 @@ export const questMonitorWatcherStartBroker = async ({
     stop: (): void => {
       refreshHandle.stop();
       watcherHandle.stop();
-      monitorSession.clear();
       activeAgentIdsByQuest.clear();
     },
   };

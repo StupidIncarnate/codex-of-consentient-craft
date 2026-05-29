@@ -10,7 +10,7 @@ What's available to a tool handler when Claude Code invokes an MCP tool over std
 
 | Source | Available? | Notes |
 |---|---|---|
-| `request.params._meta.claudecode/toolUseId` | **Yes — per call.** | The parent's `Task()` tool-use id that originated the call. Unique per Task() dispatch, race-free across parallel sub-agents under the same MCP child. Use this to identify the caller. Surfaced via the `meta` param in `ToolHandler`. |
+| `request.params._meta.claudecode/toolUseId` | **Yes — per call.** | The toolUseId of the **sub-agent's own MCP call** (NOT the parent's Task() dispatch id — those are distinct, verified empirically). Unique per MCP call. Surfaced via the `meta` param in `ToolHandler`. |
 | `request.params._meta.progressToken` | Yes — per call. | MCP standard; opaque token for out-of-band progress notifications. |
 | `extra.sessionId` (MCP SDK `RequestHandlerExtra.sessionId`) | **No.** | Unset for stdio transport. Don't rely on it. |
 | `extra._meta` | Yes — mirrors `request.params._meta`. | Either is fine. |
@@ -31,19 +31,19 @@ stamps work-item `sessionId`/`agentId`):
 
 1. Read `meta?.['claudecode/toolUseId']` from the handler params (after widening
    `ToolHandler` to accept `meta`).
-2. Read the dispatcher's registered monitor session via `orchestratorGetMonitorSessionAdapter()`
-   → `{ sessionId, projectDir }` or null.
-3. Pass both to `claudeCodeSubagentFindByToolUseIdBroker` — it scans
-   `<sessionsDir>/<parentSessionId>/subagents/agent-*.meta.json` for the file whose
-   `toolUseId` field matches, then returns the realAgentId sliced from the filename.
+2. Pass it to `claudeCodeParentSessionFindByToolUseIdBroker({projectDir, toolUseId})`
+   (in `packages/mcp/src/brokers/claude-code-parent-session/find-by-tool-use-id/`). It
+   scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl`
+   file for an assistant line whose `tool_use.id` matches. The matching file's basename
+   yields `realAgentId`; the containing session dir yields `parentSessionId`.
+3. The broker retries on miss (up to ~1 s total) to absorb the race where Claude Code
+   dispatches the MCP call before flushing the sub-agent's `tool_use` line to disk.
+4. Returns `{parentSessionId, realAgentId}` — deterministic across any number of
+   parallel Claude sessions in the same cwd.
 
-Each Task() dispatch writes its own `agent-<realAgentId>.meta.json` sidecar at spawn time
-(before the sub-agent's first MCP call), so the file is always present. Shape:
-`{"agentType":"general-purpose","description":"...","toolUseId":"toolu_..."}`.
-
-The legacy mtime-based parent-session resolver (`claudeCodeSessionResolveBroker`) is a
-fallback only — it races against any other active Claude session in the same project cwd.
-See that broker's PURPOSE for the failure mode.
+The sibling `agent-<realAgentId>.meta.json` sidecar does exist (Claude Code writes it at
+Task() spawn time with the **parent's** Task() tool-use-id), but its toolUseId field does
+NOT match `_meta.claudecode/toolUseId` and so cannot be used for this resolution.
 
 ## Troubleshooting: MCP Tools Not Available
 

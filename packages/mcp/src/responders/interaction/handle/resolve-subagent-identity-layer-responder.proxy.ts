@@ -1,49 +1,25 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import {
-  dungeonmasterHomeFindBrokerProxy,
-  processCwdAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { claudeCodeParentSessionFindByToolUseIdBrokerProxy } from '../../../brokers/claude-code-parent-session/find-by-tool-use-id/claude-code-parent-session-find-by-tool-use-id-broker.proxy';
-import { monitorSessionAnnounceBrokerProxy } from '../../../brokers/monitor-session/announce/monitor-session-announce-broker.proxy';
-import { announcedParentSessionStateProxy } from '../../../state/announced-parent-session/announced-parent-session-state.proxy';
 
 export const ResolveSubagentIdentityLayerResponderProxy = (): {
-  setupCleanState: () => void;
   setupCwd: (params: { path: string }) => void;
   setupHomeDir: (params: { path: string }) => void;
-  setupDungeonmasterHome: (params: { homeDir: string; homePath: string }) => void;
   enqueueSessionsDir: (params: { entries: readonly string[] }) => void;
   enqueueSessionsDirMissing: () => void;
   enqueueSubagentsDir: (params: { entries: readonly string[] }) => void;
   enqueueSubagentsDirMissing: () => void;
   enqueueMetaFileContents: (params: { contents: string }) => void;
-  getAnnounceWrites: () => readonly { path: unknown; content: unknown }[];
 } => {
   const cwdProxy = processCwdAdapterProxy();
   const findProxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
-  const homeProxy = dungeonmasterHomeFindBrokerProxy();
-  const announceProxy = monitorSessionAnnounceBrokerProxy();
-  const stateProxy = announcedParentSessionStateProxy();
 
   return {
-    // Tests share module state — call this in each test to reset the announce latch
-    // before exercising the responder.
-    setupCleanState: stateProxy.setupCleared,
     setupCwd: ({ path }: { path: string }): void => {
       cwdProxy.returns({ path });
     },
     setupHomeDir: ({ path }: { path: string }): void => {
       findProxy.setupHomeDir({ path });
-    },
-    setupDungeonmasterHome: ({
-      homeDir,
-      homePath,
-    }: {
-      homeDir: string;
-      homePath: string;
-    }): void => {
-      homeProxy.setupHomePath({ homeDir, homePath: FilePathStub({ value: homePath }) });
     },
     enqueueSessionsDir: ({ entries }: { entries: readonly string[] }): void => {
       findProxy.enqueueReaddir({ entries });
@@ -60,6 +36,5 @@ export const ResolveSubagentIdentityLayerResponderProxy = (): {
     enqueueMetaFileContents: ({ contents }: { contents: string }): void => {
       findProxy.enqueueReadFile({ contents });
     },
-    getAnnounceWrites: announceProxy.getAllWrittenFiles,
   };
 };

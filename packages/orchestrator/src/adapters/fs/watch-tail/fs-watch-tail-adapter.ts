@@ -90,10 +90,26 @@ export const fsWatchTailAdapter = ({
   }
 
   const initialPosition = startPosition === 'end' ? statSync(filePath).size : 0;
-  const state = { position: initialPosition, reading: false, stopped: false };
+  const state = {
+    position: initialPosition,
+    reading: false,
+    stopped: false,
+    // Set when an inotify `change` event fires while a drain is already in flight. The
+    // current drain's settle handler (close/error) re-issues a synthetic change so the
+    // newly-appended bytes get read. Without this, late events are silently dropped.
+    pendingDrain: false,
+  };
 
   const watcher = watch(filePath, () => {
-    if (state.reading || state.stopped) {
+    if (state.stopped) {
+      return;
+    }
+    if (state.reading) {
+      // Drain in progress — record that a fresh change arrived so the current drain's
+      // 'close' handler can re-trigger after it finishes. Without this, kernel-fired
+      // inotify events that land while `state.reading` is true would be silently
+      // dropped, masking real appends as a watcher-not-firing symptom.
+      state.pendingDrain = true;
       return;
     }
 
@@ -118,6 +134,10 @@ export const fsWatchTailAdapter = ({
         onError({ error: rlError });
       }
       resolveInitialDrainRef.current?.();
+      if (state.pendingDrain && !state.stopped) {
+        state.pendingDrain = false;
+        watcher.emit('change', 'rename', filePath);
+      }
     });
 
     rl.on('close', () => {
@@ -130,6 +150,10 @@ export const fsWatchTailAdapter = ({
       }
       state.reading = false;
       resolveInitialDrainRef.current?.();
+      if (state.pendingDrain && !state.stopped) {
+        state.pendingDrain = false;
+        watcher.emit('change', 'rename', filePath);
+      }
     });
 
     stream.on('error', (streamError) => {
@@ -138,6 +162,10 @@ export const fsWatchTailAdapter = ({
         onError({ error: streamError });
       }
       resolveInitialDrainRef.current?.();
+      if (state.pendingDrain && !state.stopped) {
+        state.pendingDrain = false;
+        watcher.emit('change', 'rename', filePath);
+      }
     });
   });
 

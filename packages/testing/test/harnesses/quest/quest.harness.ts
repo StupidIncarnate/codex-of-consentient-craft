@@ -6,7 +6,8 @@
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
  * quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { writeFileSync } from 'fs';
+import { appendFileSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
 
@@ -222,6 +223,18 @@ export const questHarness = ({
     };
 
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+
+    // Append a quest-modified event to the outbox so the HTTP server's quest-driven
+    // watcher reactor reconciles immediately, just like questPersistBroker does in
+    // production. Without this, the reactor depends on its 3s fallback poll to notice
+    // the new workItem.sessionId stamp — racing the LIVE_MARKER assertion's 10s
+    // visibility timeout in quest-streaming-subagent-execution-rows.spec.ts.
+    // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json
+    // walk up four levels to reach DUNGEONMASTER_HOME, then append `event-outbox.jsonl`.
+    const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
+    const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
+    const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
+    appendFileSync(outboxPath, outboxLine);
   };
 
   const patchQuestStatus = async ({

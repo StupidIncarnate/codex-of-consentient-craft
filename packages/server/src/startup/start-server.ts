@@ -14,17 +14,17 @@ import { ProcessFlow } from '../flows/process/process-flow';
 import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
-import { MonitorSessionFlow } from '../flows/monitor-session/monitor-session-flow';
+import { QuestDrivenWatchersFlow } from '../flows/quest-driven-watchers/quest-driven-watchers-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { ServerFlow } from '../flows/server/server-flow';
 import { ToolingFlow } from '../flows/tooling/tooling-flow';
 
 export const StartServer = (): AdapterResult => {
-  // Start the /dumpster-launch monitor-session file watcher BEFORE the HTTP server begins
-  // listening. The MCP server may have already written `<DUNGEONMASTER_HOME>/active-monitor-session.json`
-  // during its own startup; firing this watcher early ensures the JSONL tail is in place
-  // before any web client connects looking for streaming chat output.
-  MonitorSessionFlow.bootstrap();
+  // Start the quest-driven JSONL watcher reactor BEFORE the HTTP server begins listening.
+  // It tails one JSONL per distinct sessionId stamped onto an in-progress workItem across
+  // all active quests, reconciling on every quest-modified outbox event. Source of truth
+  // is the on-disk quest files — no global "monitor session" file is consulted.
+  QuestDrivenWatchersFlow.bootstrap();
 
   return ServerFlow({
     subApps: [

@@ -1,12 +1,6 @@
-import {
-  FileNameStub,
-  FilePathStub,
-  QuestIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileNameStub, QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
-import type { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 import { questMonitorWatcherStartBroker } from './quest-monitor-watcher-start-broker';
 import { questMonitorWatcherStartBrokerProxy } from './quest-monitor-watcher-start-broker.proxy';
 
@@ -17,126 +11,31 @@ const flushImmediate = async (): Promise<void> =>
     setImmediate(resolve);
   });
 
-type IsoTimestamp = ReturnType<typeof IsoTimestampStub>;
-type FilePath = ReturnType<typeof FilePathStub>;
-type CallEvent = 'clear' | 'register';
-
-const makeMonitorSession = (): {
-  isRegistered: () => boolean;
-  clear: () => void;
-  register: (params: {
-    projectDir: FilePath;
-    sessionFilePath: FilePath;
-    registeredAt: IsoTimestamp;
-  }) => void;
-  get: () => {
-    projectDir: FilePath;
-    sessionFilePath: FilePath;
-    registeredAt: IsoTimestamp;
-  } | null;
-  callOrder: () => readonly CallEvent[];
-} => {
-  let registered: {
-    projectDir: FilePath;
-    sessionFilePath: FilePath;
-    registeredAt: IsoTimestamp;
-  } | null = null;
-  const order: CallEvent[] = [];
-
-  return {
-    isRegistered: (): boolean => registered !== null,
-    clear: (): void => {
-      registered = null;
-      order.push('clear');
-    },
-    register: ({
-      projectDir,
-      sessionFilePath,
-      registeredAt,
-    }: {
-      projectDir: FilePath;
-      sessionFilePath: FilePath;
-      registeredAt: IsoTimestamp;
-    }): void => {
-      registered = { projectDir, sessionFilePath, registeredAt };
-      order.push('register');
-    },
-    get: (): {
-      projectDir: FilePath;
-      sessionFilePath: FilePath;
-      registeredAt: IsoTimestamp;
-    } | null => registered,
-    callOrder: (): readonly CallEvent[] => order,
-  };
-};
-
 describe('questMonitorWatcherStartBroker', () => {
   describe('start + stop lifecycle', () => {
-    it('VALID: {parentSessionId, projectDir} => registers monitor session and returns handle', async () => {
+    it('VALID: {parentSessionId, projectDir} => returns a handle whose stop is idempotent', async () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
-      const monitorSession = makeMonitorSession();
 
       const handle = await questMonitorWatcherStartBroker({
         parentSessionId: '11111111-1111-1111-1111-111111111111',
         projectDir: '/home/user/my-project',
-        monitorSession,
         emit: (): void => {
-          // no-op — emit recording covered by JSONL watcher tests
+          // no-op — emit recording covered by per-output assertions below
         },
       });
 
-      const registered = monitorSession.get();
+      // stop() must be idempotent — the quest-driven reactor calls it during reconcile
+      // and again on shutdown, so a second invocation must not throw.
+      let threw = false;
+      try {
+        handle.stop();
+        handle.stop();
+      } catch {
+        threw = true;
+      }
 
-      expect(registered?.projectDir).toBe(FilePathStub({ value: '/home/user/my-project' }));
-      expect(registered?.sessionFilePath).toBe(
-        FilePathStub({
-          value:
-            '/home/user/.claude/projects/-home-user-my-project/11111111-1111-1111-1111-111111111111.jsonl',
-        }),
-      );
-
-      handle.stop();
-
-      expect(monitorSession.isRegistered()).toBe(false);
-    });
-
-    it('VALID: {stop()} => clears monitor session', async () => {
-      const proxy = questMonitorWatcherStartBrokerProxy();
-      proxy.setupHomeDir({ path: '/home/user' });
-      const monitorSession = makeMonitorSession();
-
-      const handle = await questMonitorWatcherStartBroker({
-        parentSessionId: '22222222-2222-2222-2222-222222222222',
-        projectDir: '/home/user/p',
-        monitorSession,
-        emit: (): void => {
-          // no-op for this test
-        },
-      });
-
-      expect(monitorSession.isRegistered()).toBe(true);
-
-      handle.stop();
-
-      expect(monitorSession.isRegistered()).toBe(false);
-    });
-
-    it('VALID: {register sequence} => clear happens before register', async () => {
-      const proxy = questMonitorWatcherStartBrokerProxy();
-      proxy.setupHomeDir({ path: '/home/user' });
-      const monitorSession = makeMonitorSession();
-
-      await questMonitorWatcherStartBroker({
-        parentSessionId: '33333333-3333-3333-3333-333333333333',
-        projectDir: '/home/user/p',
-        monitorSession,
-        emit: (): void => {
-          // no-op
-        },
-      });
-
-      expect(monitorSession.callOrder()).toStrictEqual(['clear', 'register']);
+      expect(threw).toBe(false);
     });
   });
 
@@ -151,16 +50,10 @@ describe('questMonitorWatcherStartBroker', () => {
       proxy.setupSubagentDirFiles({
         files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })],
       });
-      // The quest-driven watcher only tails subagent JSONLs whose agentId matches an
-      // in-progress work item in quest.json. Seed an active quest carrying the
-      // realAgentId so the predicate admits this file.
       proxy.setupActiveQuest({
         questId: QuestIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
         agentIds: [AgentIdStub({ value: realAgentId })],
       });
-      // Sub-agent tail reads first (FIFO across watchers — sub-agent tails register before
-      // the main tail). Queue an assistant-text line for the sub-agent and an empty batch
-      // for the main tail so the trigger fires both watchers' callbacks cleanly.
       proxy.setupLines({
         lines: [
           '{"type":"assistant","uuid":"sub-agent-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"streamed sub-agent text"}]}}',
@@ -168,13 +61,11 @@ describe('questMonitorWatcherStartBroker', () => {
       });
       proxy.setupLines({ lines: [] });
 
-      const monitorSession = makeMonitorSession();
       const emitted: EmitParam[] = [];
 
       await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
-        monitorSession,
         emit: (call) => {
           emitted.push(call);
         },
@@ -212,7 +103,6 @@ describe('questMonitorWatcherStartBroker', () => {
 
       const parentSessionId = '66666666-6666-6666-6666-666666666666';
 
-      // No sub-agent files — only the main JSONL tail runs.
       proxy.setupSubagentDirFiles({ files: [] });
       proxy.setupLines({
         lines: [
@@ -220,13 +110,11 @@ describe('questMonitorWatcherStartBroker', () => {
         ],
       });
 
-      const monitorSession = makeMonitorSession();
       const emitted: EmitParam[] = [];
 
       await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
-        monitorSession,
         emit: (call) => {
           emitted.push(call);
         },
@@ -235,9 +123,6 @@ describe('questMonitorWatcherStartBroker', () => {
       proxy.triggerChange();
       await flushImmediate();
 
-      // Main-session frames don't bucket per work-item row, so the payload must NOT
-      // carry `sessionId` — including it would route every dispatcher line into one
-      // of the execution rows whose wi.sessionId equals the parent session id.
       expect(emitted).toStrictEqual([
         {
           type: 'chat-output',

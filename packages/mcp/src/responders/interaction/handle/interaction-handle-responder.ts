@@ -69,8 +69,9 @@ export const InteractionHandleResponder = async ({
     // liveness because Claude CLI never deletes subagent JSONLs. `sessionId` is the parent
     // /dumpster-launch session UUID and `agentId` is the realAgentId Claude CLI assigned
     // to this Task. The layer responder uses `_meta.claudecode/toolUseId` paired with a
-    // cross-session sidecar scan — deterministic, no mtime races. Best-effort: any
-    // resolution failure is logged and skipped so the prompt response still flows.
+    // cross-session JSONL scan for a matching tool_use.id — deterministic, no mtime
+    // races. Best-effort: any resolution failure is logged and skipped so the prompt
+    // response still flows.
     try {
       const identity = await ResolveSubagentIdentityLayerResponder({
         ...(meta !== undefined && { meta }),

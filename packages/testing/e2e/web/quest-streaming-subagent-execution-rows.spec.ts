@@ -3,7 +3,6 @@ import { test, expect, wireHarnessLifecycle } from '@dungeonmaster/testing/e2e';
 
 import { environmentHarness } from '../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../test/harnesses/guild/guild.harness';
-import { monitorSessionHarness } from '../../test/harnesses/monitor-session/monitor-session.harness';
 import { navigationHarness } from '../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../test/harnesses/session/session.harness';
@@ -15,8 +14,6 @@ const REPLAY_TEXT_TIMEOUT = 10_000;
 
 const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
-const monitorSession = monitorSessionHarness();
-wireHarnessLifecycle({ harness: monitorSession, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<agentId>.jsonl` appends', () => {
@@ -127,11 +124,10 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
       ],
     });
 
-    // Programmatic call equivalent to monitor-session-announce-broker — write the
-    // <DUNGEONMASTER_HOME>/active-monitor-session.json file. The server's
-    // monitor-session-watch responder fs-watches this file, sees the appearance, and
-    // starts quest-monitor-jsonl-watcher-broker against parentSessionId.
-    monitorSession.announce({ parentSessionId, projectDir: GUILD_PATH });
+    // The quest-driven watcher reactor picks up parentSessionId from the workItem
+    // stamped above via either a quest-modified outbox event (production path through
+    // questPersistBroker) or its periodic fallback reconcile (catches direct file writes
+    // like writeQuestFile above). No explicit announce is required.
 
     const urlSlug = guilds.extractUrlSlug({ guild });
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });

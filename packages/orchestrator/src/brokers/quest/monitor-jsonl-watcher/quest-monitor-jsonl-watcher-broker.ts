@@ -21,6 +21,7 @@ import {
   absoluteFilePathContract,
   sessionIdContract,
   type ChatEntry,
+  type FilePath,
   type ProcessId,
   type QuestId,
   type SessionId,
@@ -29,7 +30,6 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
-import type { ActiveMonitorSession } from '../../../contracts/active-monitor-session/active-monitor-session-contract';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
@@ -47,13 +47,13 @@ import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker
 const SUBAGENT_DIR_POLL_INTERVAL_MS = 1000;
 
 export const questMonitorJsonlWatcherBroker = ({
-  monitorSession,
+  sessionFilePath,
   activeQuestIdGetter,
   chatProcessId,
   emit,
   isAgentIdActive,
 }: {
-  monitorSession: ActiveMonitorSession;
+  sessionFilePath: FilePath;
   activeQuestIdGetter: () => QuestId | null;
   chatProcessId: ProcessId;
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
@@ -89,9 +89,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // matching `agent-*.jsonl` get a tail each. Missing directory is non-fatal: the poll
   // tick below retries every second, and `agent-detected` from the main tail is a third
   // path that covers the Task-completion window.
-  const sessionFilePathAbsolute = absoluteFilePathContract.parse(
-    String(monitorSession.sessionFilePath),
-  );
+  const sessionFilePathAbsolute = absoluteFilePathContract.parse(String(sessionFilePath));
   const sessionFileNoSuffix = stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute });
   const subagentsDir = `${sessionFileNoSuffix}/subagents`;
   // The parent /dumpster-launch session UUID — the basename of the session JSONL minus
@@ -106,7 +104,7 @@ export const questMonitorJsonlWatcherBroker = ({
   );
   const scanArgs = {
     subagentsDir,
-    sessionFilePath: monitorSession.sessionFilePath,
+    sessionFilePath,
     parentSessionId,
     processor,
     chatProcessId,
@@ -135,7 +133,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // (which uses startPosition: 'end' because stdout streaming already emitted everything),
   // the monitor's main JSONL has never been streamed anywhere — every line is new to the
   // web UI from the moment /dumpster-launch registers.
-  const mainJsonlPath = absoluteFilePathContract.parse(String(monitorSession.sessionFilePath));
+  const mainJsonlPath = absoluteFilePathContract.parse(String(sessionFilePath));
   const mainHandle = fsWatchTailAdapter({
     filePath: mainJsonlPath,
     onLine: ({ line }) => {
@@ -159,7 +157,7 @@ export const questMonitorJsonlWatcherBroker = ({
         }
         startSubagentTailLayerBroker({
           agentId: output.agentId,
-          sessionFilePath: monitorSession.sessionFilePath,
+          sessionFilePath,
           parentSessionId,
           processor,
           chatProcessId,

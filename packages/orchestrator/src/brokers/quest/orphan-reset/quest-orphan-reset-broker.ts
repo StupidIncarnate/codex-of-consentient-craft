@@ -1,23 +1,30 @@
 /**
- * PURPOSE: Resets orphaned in_progress work items across every startable/in-progress quest by mutating them back to pending. Called when a fresh /dumpster-launch monitor session is announced and the prior launcher's in-flight work items must be re-dispatched
+ * PURPOSE: Resets orphaned in_progress work items across every startable/in-progress quest by mutating them back to pending so the next dispatch re-runs them.
  *
  * USAGE:
- * const result = await questOrphanResetBroker();
+ * const result = await questOrphanResetBroker({ excludeSessionId: 'abc-123' });
  * // Returns: { orphansReset: OrphansResetCount } — total work items reset across all guilds/quests
  *
- * WHEN-TO-USE: From the HTTP server's monitor-session-watch reactor whenever a new
- *   `active-monitor-session.json` parentSessionId is observed. The prior /dumpster-launch
- *   may have died mid-flight, leaving `in_progress` work items that need to drop back to
- *   `pending` so the new launcher's `get-next-step` re-dispatches them.
+ * WHEN-TO-USE: From `questMonitorWatcherStartBroker` whenever the quest-driven watcher
+ *   reactor first observes a parent sessionId on an active workItem. The prior
+ *   /dumpster-launch may have died mid-flight, leaving `in_progress` items that need to
+ *   drop back to `pending` so the new launcher's `get-next-step` re-dispatches them.
+ *   Idempotent: subsequent calls find nothing to reset.
  * WHEN-NOT-TO-USE: From any per-quest path — this walks every guild every call. For a
  *   single-quest reset prefer `quest-pause-broker` / `quest-resume-broker`.
+ *
+ * SAFETY: Pass `excludeSessionId` to preserve workItems stamped against a known-live
+ *   parent session. The quest-driven watcher invokes this with the sessionId that just
+ *   triggered the watcher start, so the stamp that opened the door isn't immediately
+ *   wiped by the reset that walks through it. Without the exclusion the reactor falls
+ *   into a stamp → start → reset → stop oscillation.
  */
 
-import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { modifyQuestInputContract, type SessionId } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
-  isActivelyExecutingQuestStatusGuard,
   isActiveWorkItemStatusGuard,
+  isAnyAgentRunningQuestStatusGuard,
   isStartableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
@@ -29,7 +36,11 @@ import { guildListBroker } from '../../guild/list/guild-list-broker';
 import { questListBroker } from '../list/quest-list-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
-export const questOrphanResetBroker = async (): Promise<OrphanResetResult> => {
+export const questOrphanResetBroker = async ({
+  excludeSessionId,
+}: {
+  excludeSessionId?: SessionId;
+} = {}): Promise<OrphanResetResult> => {
   const guilds = await guildListBroker();
 
   const perGuildQuests = await Promise.all(
@@ -41,7 +52,7 @@ export const questOrphanResetBroker = async (): Promise<OrphanResetResult> => {
           return quests.filter(
             (quest: Quest) =>
               isStartableQuestStatusGuard({ status: quest.status }) ||
-              isActivelyExecutingQuestStatusGuard({ status: quest.status }),
+              isAnyAgentRunningQuestStatusGuard({ status: quest.status }),
           );
         } catch {
           return [] as Quest[];
@@ -53,9 +64,11 @@ export const questOrphanResetBroker = async (): Promise<OrphanResetResult> => {
 
   const orphanedTotals = await Promise.all(
     registrableQuests.map(async (quest) => {
-      const orphanedItems = quest.workItems.filter((wi) =>
-        isActiveWorkItemStatusGuard({ status: wi.status }),
-      );
+      const orphanedItems = quest.workItems.filter((wi) => {
+        if (!isActiveWorkItemStatusGuard({ status: wi.status })) return false;
+        if (excludeSessionId !== undefined && wi.sessionId === excludeSessionId) return false;
+        return true;
+      });
       if (orphanedItems.length === 0) {
         return 0;
       }

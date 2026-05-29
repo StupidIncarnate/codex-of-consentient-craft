@@ -49,7 +49,6 @@ describe('InteractionHandleResponder', () => {
   describe('get-agent-prompt', () => {
     it('VALID: {agent, questId, workItemId} => returns augmented prompt from adapter', async () => {
       const proxy = InteractionHandleResponderProxy();
-      proxy.setupCleanState();
       const expectedResult = AgentPromptResultStub({
         name: 'codeweaver',
         prompt: 'You are codeweaver.\n\n---\n\n## Work item context\n\n- questId: add-auth',
@@ -70,9 +69,8 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    it('VALID: {_meta.claudecode/toolUseId + matching meta.json sidecar in any session dir} => stamps work item via toolUseId scan', async () => {
+    it('VALID: {_meta.claudecode/toolUseId + matching tool_use line in sub-agent JSONL} => stamps work item via JSONL scan', async () => {
       const proxy = InteractionHandleResponderProxy();
-      proxy.setupCleanState();
       const expectedResult = AgentPromptResultStub({
         name: 'pathseeker-dedup',
         prompt: 'You are pathseeker-dedup.',
@@ -85,21 +83,26 @@ describe('InteractionHandleResponder', () => {
       });
       const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
       const realAgentId = 'ad0775d7695b4d4eb';
-      const toolUseId = 'toolu_01KfM8kWZATagwS33eTq5fZS';
+      const toolUseId = 'toolu_011pw36EFwmLorR7MdaSDEQG';
 
       proxy.setupCwd({ path: '/home/user/proj' });
       proxy.setupHomeDir({ path: '/home/user' });
-      proxy.setupDungeonmasterHome({
-        homeDir: '/home/user',
-        homePath: '/home/user/.dungeonmaster',
-      });
       proxy.enqueueSessionsDir({ entries: [`${parentSessionId}.jsonl`] });
-      proxy.enqueueSubagentsDir({ entries: [`agent-${realAgentId}.meta.json`] });
+      proxy.enqueueSubagentsDir({ entries: [`agent-${realAgentId}.jsonl`] });
       proxy.enqueueMetaFileContents({
         contents: JSON.stringify({
-          agentType: 'general-purpose',
-          description: 'pathseeker-dedup dispatch',
-          toolUseId,
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: toolUseId,
+                name: 'mcp__dungeonmaster__get-agent-prompt',
+                input: {},
+              },
+            ],
+          },
         }),
       });
 
@@ -125,7 +128,6 @@ describe('InteractionHandleResponder', () => {
 
     it('VALID: {meta absent} => skips work item stamp, still returns prompt', async () => {
       const proxy = InteractionHandleResponderProxy();
-      proxy.setupCleanState();
       const expectedResult = AgentPromptResultStub({
         name: 'pathseeker-surface',
         prompt: 'You are pathseeker-surface.',
@@ -148,9 +150,8 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    it('VALID: {meta has toolUseId but no matching sidecar anywhere} => skips work item stamp, still returns prompt', async () => {
+    it('VALID: {meta has toolUseId but no matching JSONL anywhere} => skips work item stamp, still returns prompt', async () => {
       const proxy = InteractionHandleResponderProxy();
-      proxy.setupCleanState();
       const expectedResult = AgentPromptResultStub({
         name: 'pathseeker-surface',
         prompt: 'You are pathseeker-surface.',
@@ -164,11 +165,8 @@ describe('InteractionHandleResponder', () => {
 
       proxy.setupCwd({ path: '/home/user/proj' });
       proxy.setupHomeDir({ path: '/home/user' });
-      proxy.setupDungeonmasterHome({
-        homeDir: '/home/user',
-        homePath: '/home/user/.dungeonmaster',
-      });
       proxy.enqueueSessionsDirMissing();
+      // (No setupDungeonmasterHome — no announce happens in this flow)
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-agent-prompt' }),

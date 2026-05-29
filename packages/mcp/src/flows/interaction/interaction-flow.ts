@@ -27,15 +27,23 @@ export const InteractionFlow = (): ToolRegistration[] => [
     description:
       'Signals the CLI with step completion status, progress, or blocking conditions' as never,
     inputSchema: signalBackSchema as never,
-    handler: async ({ args }): Promise<ToolResponse> =>
-      InteractionHandleResponder({ tool: 'signal-back' as never, args }),
+    handler: async ({ args, meta }): Promise<ToolResponse> =>
+      InteractionHandleResponder({
+        tool: 'signal-back' as never,
+        args,
+        ...(meta !== undefined && { meta }),
+      }),
   },
   {
     name: 'get-agent-prompt' as never,
     description:
       'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.' as never,
     inputSchema: getAgentPromptSchema as never,
-    handler: async ({ args }): Promise<ToolResponse> =>
-      InteractionHandleResponder({ tool: 'get-agent-prompt' as never, args }),
+    handler: async ({ args, meta }): Promise<ToolResponse> =>
+      InteractionHandleResponder({
+        tool: 'get-agent-prompt' as never,
+        args,
+        ...(meta !== undefined && { meta }),
+      }),
   },
 ];

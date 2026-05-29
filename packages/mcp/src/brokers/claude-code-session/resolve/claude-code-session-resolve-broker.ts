@@ -8,8 +8,9 @@
  *
  * Primary deterministic alternative for per-call sub-agent identification:
  * `claudeCodeParentSessionFindByToolUseIdBroker`, which keys off
- * `request.params._meta.claudecode/toolUseId` and a cross-session sidecar scan — no
- * mtime, no races, no prior monitor-session registration needed.
+ * `request.params._meta.claudecode/toolUseId` and a cross-session scan of
+ * `subagents/agent-*.jsonl` for a matching `tool_use.id` — no mtime, no races, no prior
+ * monitor-session registration needed.
  *
  * Sole surviving consumer of this resolver is QuestHandleResponder's create-quest path:
  * ChaosWhisperer in /dumpster-create has no parent Task() toolUseId because it runs

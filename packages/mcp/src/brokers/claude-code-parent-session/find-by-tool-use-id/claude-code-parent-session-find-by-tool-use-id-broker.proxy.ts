@@ -8,7 +8,7 @@ import { FolderNameStub } from '../../../contracts/folder-name/folder-name.stub'
 // Both readdir and readFile mocks are FIFO queues (mockResolvedValueOnce). Setup order
 // must match the broker's call order: readdir is called once for the top-level sessions
 // dir, then once per discovered sessionId for its `<sessionId>/subagents/` dir; readFile
-// is called per `agent-*.meta.json` candidate within each subagents dir.
+// is called per `agent-*.jsonl` candidate within each subagents dir.
 export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
   setupHomeDir: (params: { path: string }) => void;
   enqueueReaddir: (params: { entries: readonly string[] }) => void;

@@ -18,10 +18,8 @@ import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-i
 export const InteractionHandleResponderProxy = (): {
   callResponder: typeof InteractionHandleResponder;
   setupAgentPromptReturns: (params: { result: AgentPromptResult }) => void;
-  setupCleanState: () => void;
   setupCwd: (params: { path: string }) => void;
   setupHomeDir: (params: { path: string }) => void;
-  setupDungeonmasterHome: (params: { homeDir: string; homePath: string }) => void;
   enqueueSessionsDir: (params: { entries: readonly string[] }) => void;
   enqueueSessionsDirMissing: () => void;
   enqueueSubagentsDir: (params: { entries: readonly string[] }) => void;
@@ -40,10 +38,8 @@ export const InteractionHandleResponderProxy = (): {
     setupAgentPromptReturns: ({ result }: { result: AgentPromptResult }): void => {
       agentPromptProxy.returns({ result });
     },
-    setupCleanState: layerProxy.setupCleanState,
     setupCwd: layerProxy.setupCwd,
     setupHomeDir: layerProxy.setupHomeDir,
-    setupDungeonmasterHome: layerProxy.setupDungeonmasterHome,
     enqueueSessionsDir: layerProxy.enqueueSessionsDir,
     enqueueSessionsDirMissing: layerProxy.enqueueSessionsDirMissing,
     enqueueSubagentsDir: layerProxy.enqueueSubagentsDir,

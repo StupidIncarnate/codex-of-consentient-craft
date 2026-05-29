@@ -6,8 +6,6 @@ import {
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
-
 import { questMonitorJsonlWatcherBroker } from './quest-monitor-jsonl-watcher-broker';
 import { questMonitorJsonlWatcherBrokerProxy } from './quest-monitor-jsonl-watcher-broker.proxy';
 
@@ -22,13 +20,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
   describe('main JSONL tail', () => {
     it('VALID: {assistant text line on main JSONL, active quest set} => emits tagged ChatEntry with active questId', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-1' });
       const activeQuestId = QuestIdStub({ value: 'add-auth' });
 
@@ -42,7 +36,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
         emit: (call) => {
@@ -74,13 +68,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {activeQuestIdGetter returns null} => emits ChatEntry with questId: null', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-2' });
 
       proxy.setupSubagentDirEmpty();
@@ -93,7 +83,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => null,
         chatProcessId,
         emit: (call) => {
@@ -125,13 +115,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {two emissions with different active quest between them} => each batch tagged with the questId at its emit time', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-flip' });
       const questA = QuestIdStub({ value: 'quest-a' });
       const questB = QuestIdStub({ value: 'quest-b' });
@@ -148,7 +134,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => activeQuest,
         chatProcessId,
         emit: (call) => {
@@ -205,13 +191,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('EMPTY: {subagents directory missing (ENOENT)} => watcher still starts, main JSONL emissions work', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/no-subdir-session.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-no-subdir' });
       const activeQuestId = QuestIdStub({ value: 'no-subdir-quest' });
 
@@ -225,7 +207,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
         emit: (call) => {
@@ -259,13 +241,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
   describe('subagent JSONL tails', () => {
     it('VALID: {new agent-<id>.jsonl appears AFTER watcher start, before parent emits agent-detected} => poll-rescan tick starts sub-agent tail and emits its lines', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-late' });
       const activeQuestId = QuestIdStub({ value: 'quest-late-sub' });
 
@@ -287,7 +265,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
         emit: (call) => {
@@ -328,13 +306,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
     it('VALID: {pre-existing agent-<id>.jsonl in subagents/} => sub-agent tail starts and emits its lines tagged with active questId', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-sub' });
       const activeQuestId = QuestIdStub({ value: 'quest-with-sub' });
 
@@ -355,7 +329,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
         emit: (call) => {
@@ -395,13 +369,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
   describe('stop()', () => {
     it('VALID: {stop called} => subsequent change events emit nothing', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
-      const projectDir = FilePathStub({
-        value: '/home/user/.claude/projects/-home-user-proj',
-      });
       const sessionFilePath = FilePathStub({
         value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
       });
-      const registeredAt = IsoTimestampStub({ value: '2026-05-13T10:00:00.000Z' });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-stop' });
       const activeQuestId = QuestIdStub({ value: 'stop-quest' });
 
@@ -410,7 +380,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const emitted: unknown[] = [];
 
       const handle = questMonitorJsonlWatcherBroker({
-        monitorSession: { projectDir, sessionFilePath, registeredAt },
+        sessionFilePath,
         activeQuestIdGetter: () => activeQuestId,
         chatProcessId,
         emit: (call) => {

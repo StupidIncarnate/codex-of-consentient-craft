@@ -1,13 +1,15 @@
 /**
- * PURPOSE: Responder that wires questMonitorWatcherStartBroker to monitorSessionState and orchestrationEventsState — the broker can't import state/ directly, so this is the seam. Called from StartOrchestrator.startMonitorWatcher when the HTTP server reactor observes a new active-monitor-session.json
+ * PURPOSE: Responder that wires questMonitorWatcherStartBroker to orchestrationEventsState
+ * — the broker can't import state/ directly, so this is the seam. Called from
+ * StartOrchestrator.startMonitorWatcher by the server's quest-driven watcher reactor when
+ * a new parent sessionId is observed on an in-progress workItem.
  *
  * USAGE:
  * const handle = await QuestMonitorWatcherStartResponder({ parentSessionId, projectDir });
- * // handle.stop() — tears down the tail and clears monitorSessionState
+ * // handle.stop() — tears down the tail
  */
 
 import { questMonitorWatcherStartBroker } from '../../../brokers/quest/monitor-watcher-start/quest-monitor-watcher-start-broker';
-import { monitorSessionState } from '../../../state/monitor-session/monitor-session-state';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 
 export const QuestMonitorWatcherStartResponder = async ({
@@ -20,7 +22,6 @@ export const QuestMonitorWatcherStartResponder = async ({
   questMonitorWatcherStartBroker({
     parentSessionId,
     projectDir,
-    monitorSession: monitorSessionState,
     emit: ({ type, processId, payload }): void => {
       orchestrationEventsState.emit({ type, processId, payload });
     },

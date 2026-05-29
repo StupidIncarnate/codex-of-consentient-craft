@@ -11,6 +11,5 @@ export const dispatcherMcpToolsStatics = {
     'mcp__dungeonmaster__get-next-step',
     'mcp__dungeonmaster__run-ward',
     'mcp__dungeonmaster__signal-back',
-    'mcp__dungeonmaster__register-monitor-session',
   ] as const,
 } as const;

@@ -5,11 +5,9 @@ import { claudeCodeParentSessionFindByToolUseIdBroker } from './claude-code-pare
 import { claudeCodeParentSessionFindByToolUseIdBrokerProxy } from './claude-code-parent-session-find-by-tool-use-id-broker.proxy';
 
 describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
-  it('VALID: {one session has matching meta sidecar} => returns its parentSessionId + realAgentId', async () => {
+  it('VALID: {sub-agent JSONL contains the toolUseId in a tool_use line} => returns its parentSessionId + realAgentId', async () => {
     const proxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
     proxy.setupHomeDir({ path: '/home/user' });
-    // Top-level readdir of sessions dir — three sessions present, one of them dispatched
-    // a Task() sub-agent whose toolUseId we are looking for.
     proxy.enqueueReaddir({
       entries: [
         'c2f964f7-31b7-4ac6-88f7-e7a985d8c671.jsonl',
@@ -17,26 +15,34 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
         '87654321-dddd-eeee-ffff-aaaaaaaaaaaa.jsonl',
       ],
     });
-    // First session: empty subagents dir.
     proxy.enqueueReaddir({ entries: [] });
-    // Second session: has the matching meta sidecar.
     proxy.enqueueReaddir({
-      entries: ['agent-ad0775d7695b4d4eb.meta.json', 'agent-ad0775d7695b4d4eb.jsonl'],
+      entries: ['agent-ad0775d7695b4d4eb.jsonl'],
     });
-    // Third session: empty subagents dir.
     proxy.enqueueReaddir({ entries: [] });
-    // The matching meta.json read.
     proxy.enqueueReadFile({
       contents: JSON.stringify({
-        agentType: 'general-purpose',
-        description: 'pathseeker-dedup dispatch',
-        toolUseId: 'toolu_01KfM8kWZATagwS33eTq5fZS',
+        agentId: 'ad0775d7695b4d4eb',
+        isSidechain: true,
+        parentUuid: 'parent-uuid',
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_011pw36EFwmLorR7MdaSDEQG',
+              name: 'mcp__dungeonmaster__get-agent-prompt',
+              input: {},
+            },
+          ],
+        },
       }),
     });
 
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: '/home/user/proj' }),
-      toolUseId: ToolUseIdStub({ value: 'toolu_01KfM8kWZATagwS33eTq5fZS' }),
+      toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
     });
 
     expect(result).toStrictEqual({
@@ -52,30 +58,39 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
 
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: '/home/user/proj' }),
-      toolUseId: ToolUseIdStub({ value: 'toolu_01KfM8kWZATagwS33eTq5fZS' }),
+      toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
     });
 
     expect(result).toBe(undefined);
   });
 
-  it('EMPTY: {no session has matching meta sidecar} => returns undefined', async () => {
+  it('EMPTY: {no sub-agent JSONL contains the toolUseId} => returns undefined', async () => {
     const proxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
     proxy.setupHomeDir({ path: '/home/user' });
     proxy.enqueueReaddir({
       entries: ['c2f964f7-31b7-4ac6-88f7-e7a985d8c671.jsonl'],
     });
-    proxy.enqueueReaddir({ entries: ['agent-other.meta.json'] });
+    proxy.enqueueReaddir({ entries: ['agent-other.jsonl'] });
     proxy.enqueueReadFile({
       contents: JSON.stringify({
-        agentType: 'general-purpose',
-        description: 'unrelated',
-        toolUseId: 'toolu_DIFFERENT_TOOL_USE_ID',
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_DIFFERENT_TOOL_USE_ID',
+              name: 'mcp__dungeonmaster__get-agent-prompt',
+              input: {},
+            },
+          ],
+        },
       }),
     });
 
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: '/home/user/proj' }),
-      toolUseId: ToolUseIdStub({ value: 'toolu_01KfM8kWZATagwS33eTq5fZS' }),
+      toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
     });
 
     expect(result).toBe(undefined);
@@ -91,18 +106,27 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
       ],
     });
     proxy.enqueueReaddirMissing();
-    proxy.enqueueReaddir({ entries: ['agent-ad0775d7695b4d4eb.meta.json'] });
+    proxy.enqueueReaddir({ entries: ['agent-ad0775d7695b4d4eb.jsonl'] });
     proxy.enqueueReadFile({
       contents: JSON.stringify({
-        agentType: 'general-purpose',
-        description: 'pathseeker-dedup dispatch',
-        toolUseId: 'toolu_01KfM8kWZATagwS33eTq5fZS',
+        type: 'assistant',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_011pw36EFwmLorR7MdaSDEQG',
+              name: 'mcp__dungeonmaster__get-agent-prompt',
+              input: {},
+            },
+          ],
+        },
       }),
     });
 
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: '/home/user/proj' }),
-      toolUseId: ToolUseIdStub({ value: 'toolu_01KfM8kWZATagwS33eTq5fZS' }),
+      toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
     });
 
     expect(result).toStrictEqual({
@@ -111,20 +135,21 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
     });
   });
 
-  it('EMPTY: {malformed meta.json on disk} => skipped, no match', async () => {
+  it('EMPTY: {malformed JSONL content} => skipped, no match', async () => {
     const proxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
     proxy.setupHomeDir({ path: '/home/user' });
     proxy.enqueueReaddir({
       entries: ['c2f964f7-31b7-4ac6-88f7-e7a985d8c671.jsonl'],
     });
-    proxy.enqueueReaddir({ entries: ['agent-malformed.meta.json'] });
+    proxy.enqueueReaddir({ entries: ['agent-malformed.jsonl'] });
+    // Pre-filter passes (line contains the substring tokens) but JSON.parse fails.
     proxy.enqueueReadFile({
-      contents: '{ not valid json',
+      contents: `{ "type":"tool_use","id":"toolu_011pw36EFwmLorR7MdaSDEQG" not valid json`,
     });
 
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: '/home/user/proj' }),
-      toolUseId: ToolUseIdStub({ value: 'toolu_01KfM8kWZATagwS33eTq5fZS' }),
+      toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
     });
 
     expect(result).toBe(undefined);

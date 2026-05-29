@@ -1,11 +1,9 @@
-import { monitorSessionState } from '../../../state/monitor-session/monitor-session-state';
 import { QuestMonitorWatcherStartResponder } from './quest-monitor-watcher-start-responder';
 import { QuestMonitorWatcherStartResponderProxy } from './quest-monitor-watcher-start-responder.proxy';
 
 describe('QuestMonitorWatcherStartResponder', () => {
   describe('start + stop lifecycle', () => {
-    it('VALID: {parentSessionId, projectDir} => registers and returns handle', async () => {
-      monitorSessionState.clear();
+    it('VALID: {parentSessionId, projectDir} => returns handle whose stop is idempotent', async () => {
       const proxy = QuestMonitorWatcherStartResponderProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
@@ -14,11 +12,17 @@ describe('QuestMonitorWatcherStartResponder', () => {
         projectDir: '/home/user/proj',
       });
 
-      expect(monitorSessionState.isRegistered()).toBe(true);
+      // The quest-driven reactor calls stop() during reconcile when a sessionId drops
+      // out of the active set, then again on server shutdown. Both must be safe.
+      let threw = false;
+      try {
+        handle.stop();
+        handle.stop();
+      } catch {
+        threw = true;
+      }
 
-      handle.stop();
-
-      expect(monitorSessionState.isRegistered()).toBe(false);
+      expect(threw).toBe(false);
     });
   });
 });

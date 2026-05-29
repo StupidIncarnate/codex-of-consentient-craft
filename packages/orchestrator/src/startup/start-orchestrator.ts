@@ -336,9 +336,9 @@ export const StartOrchestrator = {
     workItemId: QuestWorkItemId;
   }): Promise<QuestId | null> => QuestFlow.findByWorkItemId({ workItemId }),
 
-  // Start the /dumpster-launch JSONL watcher against the announced parent session.
-  // Called by the HTTP server's monitor-session-watch reactor when a new
-  // `active-monitor-session.json` parentSessionId is observed.
+  // Start a JSONL watcher against a parent Claude Code session whose id is stamped on
+  // an in-progress workItem. Called by the server's quest-driven watcher reactor for
+  // each distinct sessionId in the active workItem set; multiple instances coexist.
   startMonitorWatcher: async ({
     parentSessionId,
     projectDir,

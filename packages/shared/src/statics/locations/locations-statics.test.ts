@@ -30,7 +30,6 @@ describe('locationsStatics', () => {
         rateLimitsSnapshot: 'rate-limits.json',
         rateLimitsSnapshotTmp: 'rate-limits.json.tmp',
         rateLimitsHistory: 'rate-limits-history.jsonl',
-        activeMonitorSession: 'active-monitor-session.json',
       },
       guild: {
         questsDir: 'quests',

@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Adapter for StartOrchestrator.startMonitorWatcher that wraps the orchestrator package — kicks off the JSONL file-tail + orphan-reset for a newly-announced /dumpster-launch monitor session
+ * PURPOSE: Adapter for StartOrchestrator.startMonitorWatcher that wraps the orchestrator package — kicks off the JSONL file-tail + orphan-reset for a parent Claude Code session whose id is stamped on an in-progress workItem.
  *
  * USAGE:
  * const handle = await orchestratorStartMonitorWatcherAdapter({
  *   parentSessionId: 'abc-123',
  *   projectDir: '/home/user/my-project',
  * });
- * // handle.stop() — tears down the tail and clears monitor-session state
+ * // handle.stop() — tears down the tail
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
