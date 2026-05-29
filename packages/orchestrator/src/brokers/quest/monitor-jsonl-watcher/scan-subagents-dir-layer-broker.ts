@@ -24,6 +24,7 @@ import {
   type FilePath,
   type ProcessId,
   type QuestId,
+  type QuestWorkItemId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 
@@ -42,6 +43,7 @@ export const scanSubagentsDirLayerBroker = ({
   processor,
   chatProcessId,
   activeQuestIdGetter,
+  workItemIdForAgent,
   emit,
   isAgentIdActive,
   subagentHandles,
@@ -52,11 +54,15 @@ export const scanSubagentsDirLayerBroker = ({
   processor: ChatLineProcessor;
   chatProcessId: ProcessId;
   activeQuestIdGetter: () => QuestId | null;
+  // Forwarded to each sub-agent tail so its emits carry the owning `workItemId`. Optional:
+  // omitted by layer tests.
+  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null;
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: QuestId | null;
     sessionId: SessionId;
+    workItemId?: QuestWorkItemId;
   }) => void;
   // Returns true iff a file's agentId matches an in-progress work item stamped via
   // get-agent-prompt. Files without a current match are skipped. Stale leftover JSONLs
@@ -80,6 +86,7 @@ export const scanSubagentsDirLayerBroker = ({
         processor,
         chatProcessId,
         activeQuestIdGetter,
+        ...(workItemIdForAgent === undefined ? {} : { workItemIdForAgent }),
         emit,
         subagentHandles,
       });

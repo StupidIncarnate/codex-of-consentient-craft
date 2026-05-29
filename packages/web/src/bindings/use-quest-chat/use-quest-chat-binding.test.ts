@@ -29,6 +29,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
@@ -118,9 +119,22 @@ describe('useQuestChatBinding', () => {
           timestamp: entryTs,
         },
       ]);
+      // The same entry is also bucketed by workItemId so the execution panel can scope it
+      // to its own row (sibling sub-agents share one parent sessionId).
+      const expectedWorkItemMap = new Map();
+      expectedWorkItemMap.set(QuestWorkItemIdStub(), [
+        {
+          role: 'assistant',
+          type: 'text',
+          content: 'hello',
+          uuid: entryUuid,
+          timestamp: entryTs,
+        },
+      ]);
 
       expect(result.current).toStrictEqual({
         entriesBySession: expectedMap,
+        entriesByWorkItem: expectedWorkItemMap,
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
@@ -159,6 +173,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
@@ -196,6 +211,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
@@ -232,6 +248,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest,
         pendingClarification: null,
@@ -268,6 +285,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
@@ -395,6 +413,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: expectedMap,
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,
@@ -677,6 +696,7 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
         pendingClarification: null,

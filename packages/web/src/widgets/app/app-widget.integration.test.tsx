@@ -96,6 +96,7 @@ describe('shared websocket connection', () => {
 
     expect(chatResult.current).toStrictEqual({
       entriesBySession: new Map(),
+      entriesByWorkItem: new Map(),
       slotEntries: new Map(),
       quest: null,
       pendingClarification: null,

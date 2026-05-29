@@ -24,6 +24,7 @@ import {
   type FilePath,
   type ProcessId,
   type QuestId,
+  type QuestWorkItemId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
@@ -50,11 +51,17 @@ export const questMonitorJsonlWatcherBroker = ({
   sessionFilePath,
   activeQuestIdGetter,
   chatProcessId,
+  workItemIdForAgent,
   emit,
   isAgentIdActive,
 }: {
   sessionFilePath: FilePath;
   activeQuestIdGetter: () => QuestId | null;
+  // Resolves the owning work item id for a sub-agent's realAgentId. Forwarded to each
+  // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript
+  // to its own execution row instead of the merged parent-session bucket. Optional:
+  // omitted by tests.
+  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null;
   chatProcessId: ProcessId;
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
   // buckets them under the same key that `wi.sessionId` resolves to via
@@ -66,6 +73,7 @@ export const questMonitorJsonlWatcherBroker = ({
     entries: ChatEntry[];
     questId: QuestId | null;
     sessionId?: SessionId;
+    workItemId?: QuestWorkItemId;
   }) => void;
   // Predicate driving the quest-driven subscription: returns true only when the
   // agentId corresponds to an in-progress work item stamped via get-agent-prompt.
@@ -109,6 +117,7 @@ export const questMonitorJsonlWatcherBroker = ({
     processor,
     chatProcessId,
     activeQuestIdGetter,
+    ...(workItemIdForAgent === undefined ? {} : { workItemIdForAgent }),
     emit,
     isAgentIdActive,
     subagentHandles,
@@ -162,6 +171,7 @@ export const questMonitorJsonlWatcherBroker = ({
           processor,
           chatProcessId,
           activeQuestIdGetter,
+          ...(workItemIdForAgent === undefined ? {} : { workItemIdForAgent }),
           emit,
           subagentHandles,
         });

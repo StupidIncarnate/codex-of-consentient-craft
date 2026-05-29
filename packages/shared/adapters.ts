@@ -15,6 +15,7 @@ export * from './src/adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
 
 // Path Adapters
+export * from './src/adapters/path/basename/path-basename-adapter';
 export * from './src/adapters/path/dirname/path-dirname-adapter';
 export * from './src/adapters/path/join/path-join-adapter';
 

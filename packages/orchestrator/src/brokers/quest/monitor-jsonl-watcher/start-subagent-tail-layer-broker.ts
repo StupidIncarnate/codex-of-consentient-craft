@@ -22,6 +22,7 @@ import {
   type FilePath,
   type ProcessId,
   type QuestId,
+  type QuestWorkItemId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
@@ -39,6 +40,7 @@ export const startSubagentTailLayerBroker = ({
   processor,
   chatProcessId,
   activeQuestIdGetter,
+  workItemIdForAgent,
   emit,
   subagentHandles,
 }: {
@@ -54,11 +56,17 @@ export const startSubagentTailLayerBroker = ({
   processor: ChatLineProcessor;
   chatProcessId: ProcessId;
   activeQuestIdGetter: () => QuestId | null;
+  // Resolves this sub-agent's owning work item id from its realAgentId. Stamped on every
+  // emit as `workItemId` so the web routes the transcript to its own execution row rather
+  // than the merged parent-session bucket. Optional: omitted by layer tests; returns null
+  // when no active work item currently carries this agentId.
+  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null;
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: QuestId | null;
     sessionId: SessionId;
+    workItemId?: QuestWorkItemId;
   }) => void;
   subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
 }): AdapterResult => {
@@ -83,6 +91,7 @@ export const startSubagentTailLayerBroker = ({
         source: subagentSource,
         agentId,
       });
+      const workItemId = workItemIdForAgent?.({ agentId }) ?? null;
       for (const output of outputs) {
         if (output.type === 'entries' && output.entries.length > 0) {
           emit({
@@ -90,6 +99,7 @@ export const startSubagentTailLayerBroker = ({
             entries: output.entries,
             questId: activeQuestIdGetter(),
             sessionId: parentSessionId,
+            ...(workItemId === null ? {} : { workItemId }),
           });
         }
       }

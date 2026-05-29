@@ -13,6 +13,7 @@ import { Box, Group, Stack, UnstyledButton } from '@mantine/core';
 import type {
   Quest,
   QuestStatus,
+  QuestWorkItemId,
   SessionId,
   StepId,
   UrlSlug,
@@ -61,6 +62,11 @@ const DUMPSTER_LAUNCH_COMMAND = displayLabelContract.parse('/dumpster-launch');
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
   sessionEntries?: Map<SessionId, ChatEntry[]>;
+  // Transcript entries keyed by workItemId. Preferred over sessionEntries for scoping a
+  // row: sibling Task-dispatched sub-agents share one parent sessionId, so sessionEntries
+  // alone hands every row the merged union. Falls back to the sessionId bucket for rows
+  // whose entries arrived without a workItemId.
+  workItemEntries?: Map<QuestWorkItemId, ChatEntry[]>;
   guildSlug?: UrlSlug;
   onStatusChange?: (params: { status: QuestStatus }) => void;
   onPause?: () => void;
@@ -86,6 +92,7 @@ const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-conten
 export const ExecutionPanelWidget = ({
   quest,
   sessionEntries = new Map(),
+  workItemEntries = new Map(),
   guildSlug,
   onStatusChange,
   onPause,
@@ -263,9 +270,10 @@ export const ExecutionPanelWidget = ({
                         : {})}
                     />
                     {group.workItems.map((wi, wiIndex) => {
-                      const wiEntries = wi.sessionId
-                        ? (sessionEntries.get(wi.sessionId) ?? [])
-                        : [];
+                      const wiEntries =
+                        workItemEntries.get(wi.id) ??
+                        (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
+                        [];
                       const wiDepLabels = wi.dependsOn
                         .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                         .filter((label) => label.length > 0);
@@ -313,9 +321,10 @@ export const ExecutionPanelWidget = ({
                         : {})}
                     />
                     {group.workItems.map((wi, wiIndex) => {
-                      const wiEntries = wi.sessionId
-                        ? (sessionEntries.get(wi.sessionId) ?? [])
-                        : [];
+                      const wiEntries =
+                        workItemEntries.get(wi.id) ??
+                        (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
+                        [];
                       const wiDepLabels = wi.dependsOn
                         .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                         .filter((label) => label.length > 0);
@@ -382,9 +391,10 @@ export const ExecutionPanelWidget = ({
                           : {})}
                       />
                       {nonStepItems.map((wi, wiIndex) => {
-                        const wiEntries = wi.sessionId
-                          ? (sessionEntries.get(wi.sessionId) ?? [])
-                          : [];
+                        const wiEntries =
+                          workItemEntries.get(wi.id) ??
+                          (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
+                          [];
                         const wiDepLabels = wi.dependsOn
                           .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                           .filter((label) => label.length > 0);
@@ -422,9 +432,10 @@ export const ExecutionPanelWidget = ({
                           : undefined;
                         const step = stepId ? stepsById.get(stepId) : undefined;
                         const wiStatus = wi.status as ExecutionStepStatus;
-                        const stepEntries = wi.sessionId
-                          ? (sessionEntries.get(wi.sessionId) ?? [])
-                          : [];
+                        const stepEntries =
+                          workItemEntries.get(wi.id) ??
+                          (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
+                          [];
                         const wardRefs = wi.relatedDataItems.filter((ref) =>
                           ref.startsWith('wardResults/'),
                         );

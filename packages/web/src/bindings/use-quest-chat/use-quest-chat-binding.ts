@@ -20,6 +20,7 @@ import type {
   ChatEntryUuid,
   Quest,
   QuestId,
+  QuestWorkItemId,
   SessionId,
   UserInput,
 } from '@dungeonmaster/shared/contracts';
@@ -52,6 +53,7 @@ export const useQuestChatBinding = ({
   questId: QuestId | null;
 }): {
   entriesBySession: Map<SessionId, ChatEntry[]>;
+  entriesByWorkItem: Map<QuestWorkItemId, ChatEntry[]>;
   slotEntries: Map<SlotIndex, ChatEntry[]>;
   quest: Quest | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
@@ -66,6 +68,13 @@ export const useQuestChatBinding = ({
   const [entriesBySessionInternal, setEntriesBySessionInternal] = useState<
     Map<SessionId, Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
+  // Parallel bucket keyed by workItemId. Sibling Task-dispatched sub-agents share one
+  // parent sessionId, so the sessionId bucket alone can't tell two codeweaver rows apart;
+  // the execution panel reads this map (keyed by wi.id) to scope each row's transcript.
+  // Only populated for emits that carry workItemId (replay + live sub-agent tails).
+  const [entriesByWorkItemInternal, setEntriesByWorkItemInternal] = useState<
+    Map<QuestWorkItemId, Map<ChatEntryUuid, ChatEntry>>
+  >(new Map());
   const [slotEntriesInternal, setSlotEntriesInternal] = useState<
     Map<SlotIndex, Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
@@ -78,6 +87,10 @@ export const useQuestChatBinding = ({
   const entriesBySession = useMemo(
     () => deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal }),
     [entriesBySessionInternal],
+  );
+  const entriesByWorkItem = useMemo(
+    () => deriveSortedChatEntriesMapTransformer({ source: entriesByWorkItemInternal }),
+    [entriesByWorkItemInternal],
   );
   const slotEntries = useMemo(
     () => deriveSortedChatEntriesMapTransformer({ source: slotEntriesInternal }),
@@ -151,6 +164,13 @@ export const useQuestChatBinding = ({
       setEntriesBySessionInternal((prev) =>
         upsertChatEntriesByUuidTransformer({ prev, key: sessionKey, newEntries: validEntries }),
       );
+
+      const workItemKey = payload.workItemId;
+      if (workItemKey !== undefined) {
+        setEntriesByWorkItemInternal((prev) =>
+          upsertChatEntriesByUuidTransformer({ prev, key: workItemKey, newEntries: validEntries }),
+        );
+      }
 
       const slotIndexParsed = slotIndexContract.safeParse(payload.slotIndex);
       if (slotIndexParsed.success) {
@@ -337,6 +357,7 @@ export const useQuestChatBinding = ({
 
   return {
     entriesBySession,
+    entriesByWorkItem,
     slotEntries,
     quest,
     pendingClarification,

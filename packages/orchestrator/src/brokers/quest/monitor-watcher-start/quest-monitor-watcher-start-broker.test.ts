@@ -1,4 +1,9 @@
-import { FileNameStub, QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  FileNameStub,
+  QuestIdStub,
+  SessionIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import { questMonitorWatcherStartBroker } from './quest-monitor-watcher-start-broker';
@@ -92,6 +97,10 @@ describe('questMonitorWatcherStartBroker', () => {
               },
             ],
             sessionId: SessionIdStub({ value: parentSessionId }),
+            // The watcher resolves the sub-agent's owning work item from the active quest's
+            // agentId→workItemId map and stamps it so the web routes the transcript to this
+            // row. setupActiveQuest builds the work item via WorkItemStub (default id).
+            workItemId: WorkItemStub().id,
           },
         },
       ]);

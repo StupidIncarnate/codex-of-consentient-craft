@@ -28,6 +28,7 @@ import {
   type OrchestrationEventType,
   type ProcessId,
   type QuestId,
+  type QuestWorkItemId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
@@ -70,7 +71,12 @@ export const questMonitorWatcherStartBroker = async ({
   // in-progress work items. The watcher only tails subagent JSONLs whose agentId is in
   // one of these sets — stale leftover files from prior runs never match.
   const activeAgentIdsByQuest = new Map<QuestId, Set<AgentId>>();
-  await refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest });
+  // Reverse map rebuilt in lockstep with `activeAgentIdsByQuest` on every refresh: each
+  // active sub-agent's realAgentId → its work item id. The watcher reads it to stamp
+  // `workItemId` on each sub-agent chat-output emit so the web routes the transcript to
+  // its own execution row (sibling sub-agents share the parent sessionId).
+  const agentIdToWorkItemId = new Map<AgentId, QuestWorkItemId>();
+  await refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest, agentIdToWorkItemId });
 
   const sessionFilePath = claudeProjectPathEncoderTransformer({
     homeDir,
@@ -84,16 +90,20 @@ export const questMonitorWatcherStartBroker = async ({
     sessionFilePath: filePathContract.parse(String(sessionFilePath)),
     activeQuestIdGetter: (): QuestId | null => null,
     chatProcessId,
+    workItemIdForAgent: ({ agentId }: { agentId: AgentId }): QuestWorkItemId | null =>
+      agentIdToWorkItemId.get(agentId) ?? null,
     emit: ({
       chatProcessId: emittedChatProcessId,
       entries,
       questId,
       sessionId: emittedSessionId,
+      workItemId: emittedWorkItemId,
     }: {
       chatProcessId: ProcessId;
       entries: ChatEntry[];
       questId: QuestId | null;
       sessionId?: SessionId;
+      workItemId?: QuestWorkItemId;
     }): void => {
       emit({
         type: 'chat-output',
@@ -103,6 +113,7 @@ export const questMonitorWatcherStartBroker = async ({
           entries,
           ...(questId === null ? {} : { questId }),
           ...(emittedSessionId === undefined ? {} : { sessionId: emittedSessionId }),
+          ...(emittedWorkItemId === undefined ? {} : { workItemId: emittedWorkItemId }),
         },
       });
     },
@@ -121,7 +132,7 @@ export const questMonitorWatcherStartBroker = async ({
   // start tailing the matching subagent JSONL.
   const refreshHandle = timerSetIntervalAdapter({
     callback: (): void => {
-      refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest })
+      refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest, agentIdToWorkItemId })
         .then((): void => {
           watcherHandle.pruneStaleTails();
         })

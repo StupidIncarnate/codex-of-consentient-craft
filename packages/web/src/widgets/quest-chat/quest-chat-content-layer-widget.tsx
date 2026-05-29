@@ -79,6 +79,7 @@ export const QuestChatContentLayerWidget = ({
   const {
     quest,
     entriesBySession,
+    entriesByWorkItem,
     isStreaming,
     pendingClarification,
     sendMessage,
@@ -309,6 +310,7 @@ export const QuestChatContentLayerWidget = ({
           <ExecutionPanelWidget
             quest={quest}
             sessionEntries={entriesBySession}
+            workItemEntries={entriesByWorkItem}
             guildSlug={guildSlug}
             onStatusChange={({ status }): void => {
               if (isUserPausedQuestStatusGuard({ status: quest.status })) {

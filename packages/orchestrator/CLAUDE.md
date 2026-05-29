@@ -357,18 +357,17 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │
   ├─ pathseeker-surface ──── N parallel via Task() (one per affected package)
   ├─ pathseeker-dedup + pathseeker-assertion-correctness ──── 2 parallel via Task()
-  ├─ pathseeker-walk ─────── single Task(), triggers stepsToWorkItemsTransformer post-success
+  ├─ pathseeker-walk ─────── single Task(); on complete the signal-back handler fires the post-walk hook
   │     │
-  │     ▼   (downstream chain auto-generated from walkFindings)
-  ├─ Codeweaver ──── one Task() per work item; chunked by `agents.batchGroups`, capped at `defaultMaxStepsPerChunkStatics.value`
-  │     └─ PathSeeker on failure (drain + skip + replan)
-  ├─ Ward ────────── mcp__dungeonmaster__run-ward({mode: 'changed' | 'full'}); spawnerType: 'command'
-  │     └─ Spiritmender on failure (targeted code fix)
-  ├─ Siegemaster ─── integration tests for observables
-  │     └─ Creates fix chain: codeweaver-fix → ward-rerun → siege-recheck
-  ├─ Lawbringer ──── one Task() per work item; same chunking as codeweaver
-  │     └─ Spiritmender on failure (targeted code fix)
+  │     ▼   (post-walk hook runs stepsToWorkItemsTransformer over authored steps + flows)
+  ├─ Codeweaver ──── one Task() per chunk; chunked by `agents.batchGroups`, capped at `defaultMaxStepsPerChunkStatics.value`
+  ├─ Ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
+  ├─ Siegemaster ─── one Task() per flow, chained (at most one at a time); integration/E2E tests for observables
+  ├─ Lawbringer ──── one Task() per chunk; same chunking as codeweaver
+  ├─ Blightwarden ── single Task(); whole-diff cross-cutting audit
+  ├─ Ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
   │
+  │   (no recovery items are auto-created on failure — see "Failure handling (current path)")
   ▼
 Complete ──► /dumpster-launch's next get-next-step() picks up the next FIFO quest in the queue
 ```
@@ -385,9 +384,10 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 - **Concurrency**: intrinsic — `pathseeker-surface` items (siblings via `dependsOn: []`) return as one `spawn-agents`
   batch; `pathseeker-dedup` + `pathseeker-assertion-correctness` return as one batch; everything else returns one agent
   per response. `slotManagerStatics` slot caps stay configured but are not consulted by `get-next-step`.
-- **Dynamic insertion**: retries, spiritmender, fix chains — append items with correct `dependsOn`. The
-  `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream codeweaver /
-  ward / siegemaster / lawbringer / blightwarden chain.
+- **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The one live use is the
+  `pathseeker-walk` post-completion hook, which calls `stepsToWorkItemsTransformer` to generate the downstream
+  codeweaver / ward / siegemaster / lawbringer / blightwarden chain. Recovery insertions (retries, spiritmenders, fix
+  chains) would use the same mechanism but are not currently wired — see "Failure handling (current path)".
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
   (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat
   roles (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init
@@ -489,18 +489,24 @@ Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=s
 
 ## Agent Roles
 
-| Role                             | Dispatched By                                                       | Signals          | On Failure        | MCP Tools (modify-quest)                                               |
-|----------------------------------|---------------------------------------------------------------------|------------------|-------------------|------------------------------------------------------------------------|
-| ChaosWhisperer                   | `/dumpster-create`                                                  | N/A (spec)       | N/A               | full spec surface (flows, observables, contracts, packagesAffected, …) |
-| Glyphsmith                       | startDesignChat                                                     | N/A (design)     | N/A               | status                                                                 |
-| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel, one per slice)           | complete, failed | Bubble to user    | planningNotes (surface slice), steps (slice), contracts (slice)        |
-| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)                       | complete, failed | Bubble to user    | steps, contracts (in-package + cross-slice dedup)                      |
-| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)                       | complete, failed | Bubble to user    | steps (assertion correctness)                                          |
-| pathseeker-walk                  | `/dumpster-launch` via Task() (after dedup + assertion-correctness) | complete, failed | Bubble to user    | planningNotes.walkFindings, steps (exploratory)                        |
-| Codeweaver                       | `/dumpster-launch` via Task()                                       | complete, failed | → pathseeker      | none                                                                   |
-| Spiritmender                     | `/dumpster-launch` via Task()                                       | complete, failed | → pathseeker      | none                                                                   |
-| Siegemaster                      | `/dumpster-launch` via Task()                                       | complete, failed | Creates fix chain | none                                                                   |
-| Lawbringer                       | `/dumpster-launch` via Task()                                       | complete, failed | → Spiritmender    | none                                                                   |
+On failure, every execution role's work item is simply marked `failed` (no recovery item is created on
+the live path — see "Failure handling (current path)"). Because `failed` satisfies `dependsOn`, the
+chain runs past it; the quest then derives `complete`/`blocked`/`in_progress` from work-item states.
+
+| Role                             | Dispatched By                                                       | Signals                         | MCP Tools (modify-quest)                                               |
+|----------------------------------|---------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
+| ChaosWhisperer                   | `/dumpster-create`                                                  | N/A (spec)                      | full spec surface (flows, observables, contracts, packagesAffected, …) |
+| Glyphsmith                       | startDesignChat                                                     | N/A (design)                    | status                                                                 |
+| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel, one per slice)           | complete, failed                | planningNotes (surface slice), steps (slice), contracts (slice)        |
+| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)                       | complete, failed                | steps, contracts (in-package + cross-slice dedup)                      |
+| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)                       | complete, failed                | steps (assertion correctness)                                          |
+| pathseeker-walk                  | `/dumpster-launch` via Task() (after dedup + assertion-correctness) | complete, failed                | planningNotes.walkFindings, steps (exploratory)                        |
+| Codeweaver                       | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
+| Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                | terminal set by exit code       | none (server writes wardResults + item status)                         |
+| Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained)               | complete, failed                | none                                                                   |
+| Lawbringer                       | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
+| Blightwarden                     | `/dumpster-launch` via Task()                                       | complete, failed-replan, failed | none                                                                   |
+| Spiritmender                     | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
 
 ### PathSeeker work-item graph
 
@@ -533,47 +539,47 @@ via the `get-quest-planning-notes` MCP tool.
 
 ## Signal System
 
-Agents communicate via `signal-back` MCP tool. Two signals only:
+Agents report via the `signal-back` MCP tool. The live handler is
+`quest-handle-signal-back-responder.ts`, which does exactly two things:
 
-- **`complete`** — work done, release slot, dispatch next ready item
-- **`failed`** — work failed, trigger failure routing
+1. Marks the named work item terminal — `complete` for signal `complete`, `failed` for signal `failed`
+   **or** `failed-replan` — and stamps `completedAt`.
+2. If the item is `pathseeker-walk` AND the signal is `complete`, fires `questPostWalkHookBroker` to
+   generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
 
-### Failure Routing Map
+### Failure handling (current path)
 
-```
-codeweaver   → pathseeker    (drain + skip + replan)
-lawbringer   → spiritmender  (targeted code fix)
-spiritmender → pathseeker    (drain + skip + replan)
-siegemaster  → fix chain     (codeweaver-fix → ward-rerun → siege-recheck)
-pathseeker   → bubble to user (terminal — quest blocks)
-```
+There is no failure-recovery routing wired into the `/dumpster-launch` flow. A `failed` signal just
+marks the item `failed`; `run-ward` marks a non-zero ward `failed` and persists the result (it
+explicitly delegates retry/recovery away — `quest-run-ward-broker.ts`). No recovery work items
+(spiritmenders, ward-retries, siege fix chains, pathseeker replans) are created anywhere on the live
+path. `failed-replan` is recorded as a plain `failed`.
 
-Followup depth is limited to prevent infinite retry loops.
+A `failed` item **satisfies** its dependents (`satisfiesDependencyWorkItemStatusGuard` =
+`{complete, failed}`), so the chain runs past a failure rather than halting. Quest status is then
+derived by `workItemsToQuestStatusTransformer`:
 
-### Drain + Skip Model
+- every item terminal AND none `failed` → `complete`
+- any item `in_progress` → `in_progress`
+- pending items remain AND each depends on a `failed` id → `blocked`
+- otherwise unchanged (a `failed` item with nothing pending leaves the quest `in_progress` — the stuck
+  state)
 
-When a non-PathSeeker agent fails inside the slot manager, the orchestration loop:
+`skipped` is terminal and non-failure, but does NOT satisfy `dependsOn` — a `skipped` dep blocks its
+dependents permanently.
 
-1. **Drain** — calls `workTracker.skipAllPending()`, marking all pending items as `skipped`
-2. **Spawn** — creates a recovery work unit (pathseeker or spiritmender) and starts it immediately
-3. **Finish** — already-running agents continue to completion (they're `started`, not `pending`)
-
-Once all agents finish and the recovery agent completes, the quest either succeeds (all items
-complete/skipped) or reaches a new failure which repeats the cycle (depth-limited).
-
-`skipped` is a terminal status like `failed` but does NOT count as a failure — it means the item was
-intentionally bypassed. Skipped deps do NOT satisfy `dependsOn` (the dependent item would be blocked,
-but in practice it's also skipped by the drain).
-
-**Siegemaster** does NOT use drain+skip. It handles failure by inserting a fix chain (codeweaver-fix →
-ward-rerun → siege-recheck) directly into the quest's work items.
+> The per-role recovery apparatus (drain+skip, batched spiritmenders, ward-retry items, the siege fix
+> chain `codeweaver-fix → ward-rerun → siege-recheck`, pathseeker replans) lives only in the
+> unreferenced `run-*-layer-broker` / `slot-manager/` / `questOrchestrationLoopBroker` code. When
+> recovery returns it will hang off the `signal-back` handler and the `run-ward` broker — the two
+> places that currently set terminal status.
 
 ### MCP Sanitization
 
 The MCP `modify-quest` tool strips server-only fields before passing to the orchestrator:
 
-- `workItems` — server-only, managed by orchestration loop
-- `wardResults` — server-only, written by ward layer broker
+- `workItems` — server-only, managed by the `signal-back` handler + post-walk hook
+- `wardResults` — server-only, written by `quest-run-ward-broker`
 
 ## Quest Event Notification (Two-Tier Model)
 
