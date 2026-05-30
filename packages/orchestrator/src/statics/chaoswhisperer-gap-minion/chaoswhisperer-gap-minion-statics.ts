@@ -78,9 +78,15 @@ Use the \`get-quest\` MCP tool with \`stage: "spec"\` and the provided quest ID.
 
 This fetches flows (with structured nodes, edges, and inline observables), designDecisions, contracts, and toolingRequirements - excluding \`steps\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
 
-### Step 2: Get Project Map
+### Step 2: Get Project Map & Standards
 
 Identify the package(s) the quest's flows + observables touch (look at \`flows[].nodes\`, \`accompanyingFiles\`, observable types). Then call \`get-project-map({ packages: [...] })\` with those names to load just those connection-graph slices. You'll need this when verifying spec claims against the codebase in later steps.
+
+Also load the two project-standards tools — you are reviewing a spec, not writing code, so you need architecture and testing context but NOT syntax rules:
+- \`get-architecture\` — folder types, layer model, import rules. Anchors your judgment when you verify \`existing\` contract claims and check whether an observable's described behavior is architecturally coherent.
+- \`get-testing-patterns\` — assertion rules, test structure, proxy/stub conventions. You use this to judge observable testability: an observable a Siegemaster could not turn into a concrete assertion is a finding.
+
+Do NOT call \`get-syntax-rules\` — file naming and export conventions are implementation concerns outside spec review.
 
 ### Step 3: Review Flows (Semantic)
 

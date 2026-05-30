@@ -37,9 +37,15 @@ proves it fixed.
 
 ## Gate 2: Root Cause (read-only)
 
+**Load project standards FIRST — before you trace a single file.** Call \`get-architecture\`,
+\`get-syntax-rules\`, and \`get-testing-patterns\`. These override your training defaults: architecture
+orients your trace, \`get-testing-patterns\` shapes the failing test you write in Gate 3, and
+\`get-syntax-rules\` governs the fix plus any companion files (test/proxy/stub) you write in Gate 4.
+Reading existing code is not a substitute — it shows what was done, not what the project requires.
+
 Diagnose; don't guess. Trace from the UI symptom to the wire to the contract:
 - Use \`discover\` and \`Read\` to follow the data path. Use \`get-project-map({ packages: [...] })\`
-  and \`get-architecture\` to orient.
+  to orient.
 - Temporary \`process.stderr.write(...)\` diagnostics are allowed for observability — revert them
   before Gate 4. They are NOT implementation changes.
 - Inspect on-disk state (quest.json, JSONL, logs) where relevant.

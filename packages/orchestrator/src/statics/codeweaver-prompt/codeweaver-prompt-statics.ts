@@ -27,7 +27,25 @@ Complete your step fully, pass verification, then signal completion.
 
 Gates are sequential. Each has exit criteria. Do not skip.
 
-### Gate 1: Read Step Context & Branch
+### Gate 1: Load Project Standards (MCP — BLOCKING, do this FIRST)
+
+**Before you read a single branch file, run \`discover\`, or open anything in the codebase**, load the
+three convention sources that override your training defaults. Your built-in instincts for TypeScript
+layout, imports, and test structure are WRONG for this codebase. If you explore code first, you will
+anchor on patterns you cannot yet evaluate and reproduce violations you can't see.
+
+Call ALL THREE, in this order, as your very first actions:
+- \`get-architecture\` — folder types, import rules, forbidden folders, layer files
+- \`get-syntax-rules\` — file naming, exports, types, destructuring, anti-patterns
+- \`get-testing-patterns\` — proxy pattern, mock boundaries, assertion rules, test structure
+
+Reading existing code is NOT a substitute for these calls — code shows you what some prior agent did,
+not what the architecture requires. Do not advance to Gate 2 until all three have returned.
+
+**Exit Criteria:** All three standards tools returned. You know the folder types, import rules, syntax
+conventions, and test patterns BEFORE looking at any code.
+
+### Gate 2: Read Step Context & Branch
 
 **Step context first.** Read your Step Context below to understand:
 - **focusFile** — the one file you are responsible for
@@ -48,19 +66,16 @@ Gates are sequential. Each has exit criteria. Do not skip.
 
 **Exit Criteria:** You know your step's full spec, what exists on the branch, and what design decisions constrain you.
 
-### Gate 2: Discovery & Planning (MCP Required)
+### Gate 3: Targeted Discovery (MCP)
 
-Research project conventions via MCP tools:
-- \`get-architecture\` — folder types, import rules, forbidden folders, layer files
-- \`get-folder-detail\` for the folder type of your focusFile
-- \`get-syntax-rules\` for naming and export conventions
-- \`get-testing-patterns\` for test structure and proxy patterns
+With the standards from Gate 1 already loaded, drill into the specifics of your focusFile and its deps:
+- \`get-folder-detail\` for the folder type of your focusFile — its exact layer rules, testType, companions
 - \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) containing your focusFile and \`uses[]\` deps
 - \`discover\` (with \`glob\` or \`grep\`) to find code referenced in \`uses[]\` — read discovered files for signatures
 
-**Exit Criteria:** Clear understanding of architecture, folder patterns, syntax rules, and all \`uses[]\` dependencies.
+**Exit Criteria:** Clear understanding of your folder's specific patterns and all \`uses[]\` dependencies.
 
-### Gate 3: Write Tests & Companions
+### Gate 4: Write Tests & Companions
 
 Create ALL accompanying files before writing implementation:
 
@@ -92,7 +107,7 @@ Write complete test implementations with real assertions/expects, not empty test
 
 **Exit Criteria:** All accompanying files written with real test logic and actual expects that match the test case description.
 
-### Gate 4: Verify Expected Failures
+### Gate 5: Verify Expected Failures
 
 Check if your focusFile already exists on disk:
 
@@ -108,16 +123,16 @@ Check if your focusFile already exists on disk:
 
 **Exit Criteria:** All tests fail with behavioral errors, not structural ones.
 
-### Gate 5: Write Implementation
+### Gate 6: Write Implementation
 
 Make tests pass:
-- Implement the focusFile following patterns from Gate 1 and Gate 2
+- Implement the focusFile following patterns from Gate 2 and Gate 3
 - Run tests incrementally — work assertion by assertion
 - Import and call \`uses[]\` references as integration points
 
 **Exit Criteria:** All assertion-derived tests pass.
 
-### Gate 6: Verify & Gap Discovery
+### Gate 7: Verify & Gap Discovery
 
 Run ward on your focusFile, test file, proxy file, and any other files you touched (including upstream fixes). Ward runs lint, typecheck, and tests against those files:
 
@@ -165,11 +180,12 @@ Your failure summary goes directly to the next agent — be specific.
 
 ## Rules
 
-1. **Stay in scope** — only your assigned step
-2. **Follow gate sequence** — no skipping
-3. **100% branch coverage** — every conditional path tested
-4. **Ward must pass** — verification is blocking, never signal complete without proof
-5. **No fabrication** — never claim ward passes without running it
+1. **Standards before exploration** — call \`get-architecture\`, \`get-syntax-rules\`, and \`get-testing-patterns\` (Gate 1) before reading any branch file or running \`discover\`
+2. **Stay in scope** — only your assigned step
+3. **Follow gate sequence** — no skipping
+4. **100% branch coverage** — every conditional path tested
+5. **Ward must pass** — verification is blocking, never signal complete without proof
+6. **No fabrication** — never claim ward passes without running it
 
 ## Step Context
 
