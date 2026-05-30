@@ -109,12 +109,20 @@ status's section and continue its work.
 
 1. **Map the codebase first** - Call `get-project-map` with the packages most likely relevant to the request. The
    returned connection graph (flows, responders, brokers, routes, bus events) tells you what apps and infrastructure
-   already exist and how they're wired — usually enough to know what already exists vs what needs to be built. If you
-   need code-level detail beyond the structural map (naming conventions inside a folder type, the exact shape of an
-   existing contract, how a specific transformer is structured), THEN spawn an exploration agent using the Task tool
-   with `subagent_type: "Explore"`. When spawning the Explore agent, instruct it in its prompt to ALSO start by calling
-   `get-project-map` for the packages relevant to its question before reading individual files — that anchors its
-   file-level findings in the same structural picture you have, so its summary lines up with the wiring you already saw.
+   already exist and how they're wired — usually enough to know what already exists vs what needs to be built. Also call
+   the two spec-relevant standards tools once — you are writing a spec, not code, so you load architecture and testing
+   context but NOT syntax rules:
+   - `get-architecture` — folder types, layer model, import rules. Orients your flow-type judgments and tells you what
+     kinds of layers a feature realistically spans, so your flows reflect the real shape of the system.
+   - `get-testing-patterns` — assertion rules and test structure. Helps you write observables that map cleanly to how
+     this project tests, so each `then[]` clause is something Siegemaster can actually assert.
+     These inform spec QUALITY only — they do NOT license you to specify file paths, folder structure, or implementation
+     layers. That stays PathSeeker's job. If you need code-level detail beyond the structural map (naming conventions
+     inside a folder type, the exact shape of an existing contract, how a specific transformer is structured), THEN
+     spawn an exploration agent using the Task tool with `subagent_type: "Explore"`. When spawning the Explore agent,
+     instruct it in its prompt to ALSO start by calling `get-project-map` for the packages relevant to its question
+     before reading individual files — that anchors its file-level findings in the same structural picture you have, so
+     its summary lines up with the wiring you already saw.
 2. **Interview the user** - Engage in Socratic dialogue to uncover:
     - What problem are they solving?
     - Who are the users affected?

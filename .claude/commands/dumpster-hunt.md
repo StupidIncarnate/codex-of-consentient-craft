@@ -23,24 +23,26 @@ in the "User Request" section at the bottom of this prompt — copy it exactly) 
 `questType: 'bug-hunt'` so the quest seeds the PestEater pipeline at Start. The user never passes a
 questId — you mint it. Capture the returned `questId` and `guildSlug`.
 
-**Open the web UI immediately after quest creation.** Call `mcp__dungeonmaster__get-server-config()`
-to learn the server's `baseUrl`, then open the spec view with chat hidden:
-`<baseUrl>/<guildSlug>/quest/<questId>?chat=hidden`. Open it via Bash:
-`xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true`. Do this exactly once.
-
-**Then load the quest.** Call `get-quest` with the `questId` you minted (`stage: 'spec'`,
+**Load the quest.** Call `get-quest` with the `questId` you minted (`stage: 'spec'`,
 `format: 'text'`). The quest begins at status `created`. You drive it through the status lifecycle
 below via `modify-quest`.
 
-**ALWAYS:**
+**Load standards.** Call the two spec-relevant standards tools once — you capture a bug as a spec,
+not as code, so you load architecture and testing context but NOT syntax rules:
 
+- `get-architecture` — folder types and layer model. Orients the `flowType` choice for the
+  reproduction path and helps you name the right `packagesAffected[]`.
+- `get-testing-patterns` — assertion rules and test structure. Helps you phrase the expected-behavior
+  observable so PestEater can turn its `then[]` directly into a failing test.
+  Do NOT call `get-syntax-rules` — implementation conventions are PestEater's concern after Start.
+
+**ALWAYS:**
 - Use the native `AskUserQuestion` tool to clarify the symptom, the reproduction steps, and what
   the user expected to see instead. Capture answers as designDecisions automatically.
 - Follow the status ordering. `modify-quest` validates per-status; submit best-first and let the
   validator tell you what to fix.
 
 **NEVER:**
-
 - NEVER fix the bug or write implementation code — that is PestEater's job after Start.
 - NEVER read files directly — use exploration sub-agents (Task tool, `subagent_type: "Explore"`)
   if you need to confirm where the bug surfaces.
@@ -58,7 +60,6 @@ below via `modify-quest`.
 `status: 'explore_flows'` and set a concise bug-describing title.
 
 **Work:** Capture the **reproduction path** as ONE flow:
-
 - Nodes trace how the user triggers the bug (entry point → the action → the node where the wrong
   thing is observed). Keep it minimal — the path to the symptom, not the whole app.
 - Use `flowType: 'runtime'` for UI/streaming bugs (the common case); `operational` for
@@ -79,7 +80,6 @@ The user reviews the repro path and clicks APPROVE. Do not set `flows_approved` 
 
 **Work:** On the node where the bug is observed, embed ONE observable capturing the
 **user-visible invariant** that is currently broken — phrased as what SHOULD happen, not the bug:
-
 - `given`: the precondition (the repro state).
 - `when`: the action that triggers the symptom.
 - `then[]`: the expected outcome the user says is missing/wrong, each clause typed
