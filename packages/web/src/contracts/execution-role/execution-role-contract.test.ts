@@ -26,6 +26,12 @@ describe('executionRoleContract', () => {
 
       expect(result).toBe('blightwarden');
     });
+
+    it('VALID: {value: "pesteater"} => parses pesteater role', () => {
+      const result = executionRoleContract.parse('pesteater');
+
+      expect(result).toBe('pesteater');
+    });
   });
 
   describe('invalid inputs', () => {

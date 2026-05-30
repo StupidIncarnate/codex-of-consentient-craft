@@ -18,6 +18,7 @@ import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbrin
 import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
 import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
+import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 
@@ -192,6 +193,28 @@ describe('workItemToPromptTransformer', () => {
         lawbringerPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
+
+    it('VALID: {agent: lawbringer, empty relatedDataItems} => whole-diff mode (bug-hunt)', () => {
+      const workItem = WorkItemStub({ role: 'lawbringer', relatedDataItems: [] });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        questType: 'bug-hunt',
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'lawbringer' }),
+      });
+
+      const expectedArgs =
+        'Review Mode: whole-diff\nReview the entire branch diff: run `git diff main...HEAD --name-only`, then read and review every changed non-test file alongside its test.\nQuest ID: my-quest';
+
+      expect(result.prompt).toBe(
+        lawbringerPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
   });
 
   describe('spiritmender', () => {
@@ -311,6 +334,30 @@ describe('workItemToPromptTransformer', () => {
 
       expect(result.prompt).toBe(
         blightwardenSecurityMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+  });
+
+  describe('pesteater', () => {
+    it('VALID: {agent: pesteater} => substitutes Quest ID + Work Item ID (reads quest itself, no steps)', () => {
+      const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'pesteater', relatedDataItems: [] });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        questType: 'bug-hunt',
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'pesteater' }),
+      });
+
+      const expectedArgs = 'Quest ID: my-quest\nWork Item ID: cccccccc-1111-4222-9333-444444444444';
+
+      expect(result.prompt).toBe(
+        pesteaterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
   });

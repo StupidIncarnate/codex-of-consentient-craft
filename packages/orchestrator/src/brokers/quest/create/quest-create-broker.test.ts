@@ -44,6 +44,7 @@ describe('questCreateBroker', () => {
       folder: 'add-auth-quest',
       title: 'Add Auth',
       status: 'created',
+      questType: 'feature',
       userRequest: 'User wants authentication',
       designDecisions: [],
       steps: [],
@@ -86,6 +87,62 @@ describe('questCreateBroker', () => {
     const { questSource } = writtenQuest;
 
     expect(questSource).toBe('smoketest-mcp');
+  });
+
+  it('VALID: {input: {questType: "bug-hunt"}} => persists questType onto the written quest', async () => {
+    const brokerProxy = questCreateBrokerProxy();
+    const questId = QuestIdStub({ value: 'bug-hunt-quest' });
+    const guildId = GuildIdStub();
+    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+    const questFolderPath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/bug-hunt-quest',
+    });
+    const questFilePath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/bug-hunt-quest/quest.json',
+    });
+
+    brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
+
+    const input = AddQuestInputStub({
+      title: 'Fix Bug',
+      userRequest: 'The tool result is not rendering',
+      questType: 'bug-hunt',
+    });
+
+    await questCreateBroker({ questId, guildId, input });
+
+    const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
+      brokerProxy.getWrittenContent() as never,
+    );
+    const { questType } = writtenQuest;
+
+    expect(questType).toBe('bug-hunt');
+  });
+
+  it('VALID: {input without questType} => written quest defaults questType to feature', async () => {
+    const brokerProxy = questCreateBrokerProxy();
+    const questId = QuestIdStub({ value: 'feature-quest' });
+    const guildId = GuildIdStub();
+    const questsFolderPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
+    const questFolderPath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/feature-quest',
+    });
+    const questFilePath = FilePathStub({
+      value: '/project/.dungeonmaster-quests/feature-quest/quest.json',
+    });
+
+    brokerProxy.setupQuestCreation({ questsFolderPath, questFolderPath, questFilePath });
+
+    const input = AddQuestInputStub({ title: 'Add Auth', userRequest: 'User wants auth' });
+
+    await questCreateBroker({ questId, guildId, input });
+
+    const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
+      brokerProxy.getWrittenContent() as never,
+    );
+    const { questType } = writtenQuest;
+
+    expect(questType).toBe('feature');
   });
 
   it('VALID: {input without questSource} => written quest omits questSource field', async () => {

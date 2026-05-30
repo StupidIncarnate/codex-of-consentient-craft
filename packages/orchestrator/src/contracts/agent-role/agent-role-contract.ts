@@ -22,6 +22,7 @@ export const agentRoleContract = z.enum([
   'lawbringer',
   'siegemaster',
   'blightwarden',
+  'pesteater',
 ]);
 
 export type AgentRole = z.infer<typeof agentRoleContract>;

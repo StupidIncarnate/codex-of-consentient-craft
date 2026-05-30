@@ -14,7 +14,13 @@
 
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
-import type { AddQuestInput, QuestId, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type {
+  AddQuestInput,
+  QuestId,
+  QuestType,
+  SessionId,
+  UrlSlug,
+} from '@dungeonmaster/shared/contracts';
 import { addQuestInputContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
@@ -25,9 +31,11 @@ const PLACEHOLDER_TITLE = 'New Quest';
 
 export const questMcpCreateBroker = async ({
   userRequest,
+  questType,
   sessionId,
 }: {
   userRequest: AddQuestInput['userRequest'];
+  questType?: QuestType;
   sessionId?: SessionId;
 }): Promise<{
   questId: QuestId;
@@ -49,6 +57,7 @@ export const questMcpCreateBroker = async ({
   const input = addQuestInputContract.parse({
     title: PLACEHOLDER_TITLE,
     userRequest,
+    ...(questType !== undefined && { questType }),
   });
 
   const result = await questUserAddBroker({

@@ -445,6 +445,57 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
+  describe('bug-hunt quest graph creation', () => {
+    it('VALID: {approved bug-hunt quest} => persists pesteater → ward → lawbringer → blightwarden → ward', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'fix-bug' });
+      const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const roles = persistedQuest.workItems.map((wi) => wi.role);
+
+      expect(roles).toStrictEqual(['pesteater', 'ward', 'lawbringer', 'blightwarden', 'ward']);
+    });
+
+    it('VALID: {approved bug-hunt quest} => seeds no pathseeker work items', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'fix-bug' });
+      const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
+      const pathseekerItems = persistedQuest.workItems.filter((wi) =>
+        NEW_PATHSEEKER_ROLES.includes(wi.role),
+      );
+
+      expect(pathseekerItems).toStrictEqual([]);
+    });
+
+    it('VALID: {approved bug-hunt quest} => last persisted status is in_progress', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'fix-bug' });
+      const quest = QuestStub({ id: questId, status: 'approved', questType: 'bug-hunt' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persistedContents = proxy.getAllPersistedContents();
+      const lastPersistedQuest = proxy.getPersistedQuestAt({
+        index: persistedContents.length - 1,
+      });
+
+      expect(lastPersistedQuest.status).toBe('in_progress');
+    });
+  });
+
   describe('queue enqueue behavior', () => {
     it('VALID: {approved quest} => enqueues exactly one queue entry with questId, guildId, title', async () => {
       questExecutionQueueState.clear();

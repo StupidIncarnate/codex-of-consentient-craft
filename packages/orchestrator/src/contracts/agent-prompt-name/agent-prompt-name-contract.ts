@@ -24,6 +24,7 @@ export const agentPromptNameContract = z.enum([
   'blightwarden-perf-minion',
   'blightwarden-integrity-minion',
   'blightwarden-dead-code-minion',
+  'pesteater',
 ]);
 
 export type AgentPromptName = z.infer<typeof agentPromptNameContract>;

@@ -11,11 +11,16 @@ import {
   questQueueEntryContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
-import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
+import type { ProcessId, QuestId, WorkItem, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import {
+  questStatusMetadataStatics,
+  questTypeRegistryStatics,
+} from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import type { PathseekerGraph } from '../../../contracts/pathseeker-graph/pathseeker-graph-contract';
+import { questBuildBugHuntGraphBroker } from '../../../brokers/quest/build-bug-hunt-graph/quest-build-bug-hunt-graph-broker';
 import { questBuildPathseekerGraphBroker } from '../../../brokers/quest/build-pathseeker-graph/quest-build-pathseeker-graph-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -63,7 +68,14 @@ export const OrchestrationStartResponder = async ({
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
-  const hasPathseekerGraph = quest.workItems.some((wi) => PATHSEEKER_ROLES.has(wi.role));
+  // The quest type selects which work-item graph seeds at Start. The registry holds the
+  // discriminator (data); the builder choice lives here (the responder may import brokers).
+  const { startGraphKind } = questTypeRegistryStatics[quest.questType];
+
+  const hasExistingGraph =
+    startGraphKind === 'bug-hunt'
+      ? quest.workItems.some((wi) => wi.role === 'pesteater')
+      : quest.workItems.some((wi) => PATHSEEKER_ROLES.has(wi.role));
 
   // Mark any non-complete chaoswhisperer/glyphsmith work items as complete.
   // The spec phase is done by the time the user clicks "Begin Quest", but the
@@ -88,18 +100,27 @@ export const OrchestrationStartResponder = async ({
 
   const now = isoTimestampContract.parse(new Date().toISOString());
 
-  const pathseekerGraph = hasPathseekerGraph
-    ? undefined
-    : questBuildPathseekerGraphBroker({
-        packagesAffected: quest.packagesAffected,
-        flowIds: [],
-        priorWorkItemIds: chatItemIds,
-        now,
-      });
+  // Feature quests seed the PathSeeker graph (and later persist scopeClassification). Bug-hunt
+  // quests seed the full pesteater → ward → lawbringer → blightwarden → ward chain at once —
+  // there is no PathSeeker, so pathseekerGraph stays undefined and the scopeClassification write
+  // below is skipped.
+  const pathseekerGraph: PathseekerGraph | undefined =
+    hasExistingGraph || startGraphKind === 'bug-hunt'
+      ? undefined
+      : questBuildPathseekerGraphBroker({
+          packagesAffected: quest.packagesAffected,
+          flowIds: [],
+          priorWorkItemIds: chatItemIds,
+          now,
+        });
 
-  const newPathseekerWorkItems = pathseekerGraph?.workItems ?? [];
+  const newExecutionWorkItems: WorkItem[] = hasExistingGraph
+    ? []
+    : startGraphKind === 'bug-hunt'
+      ? questBuildBugHuntGraphBroker({ priorWorkItemIds: chatItemIds, now })
+      : (pathseekerGraph?.workItems ?? []);
 
-  const workItemsToUpdate = [...promotedChatItems, ...newPathseekerWorkItems];
+  const workItemsToUpdate = [...promotedChatItems, ...newExecutionWorkItems];
 
   // Transition the quest in three stages so each modify call lands within an allowlist
   // window that permits the fields it writes:

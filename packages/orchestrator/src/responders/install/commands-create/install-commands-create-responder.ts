@@ -1,7 +1,8 @@
 /**
- * PURPOSE: Writes the `/dumpster-create` and `/dumpster-launch` slash command markdown files into
- * `<targetProjectRoot>/.claude/commands/`. Creates the directory if missing; overwrites existing
- * files (idempotent). Drives the user-facing entry points for the Dumpster orchestration loop.
+ * PURPOSE: Writes the `/dumpster-create`, `/dumpster-hunt`, and `/dumpster-launch` slash command
+ * markdown files into `<targetProjectRoot>/.claude/commands/`. Creates the directory if missing;
+ * overwrites existing files (idempotent). Drives the user-facing entry points for the Dumpster
+ * orchestration loop (feature spec intake, bug-hunt intake, and the dispatch loop).
  *
  * USAGE:
  * const result = await InstallCommandsCreateResponder({ context });
@@ -40,6 +41,9 @@ export const InstallCommandsCreateResponder = async ({
   const createPath = filePathContract.parse(
     pathJoinAdapter({ paths: [commandsDir, slashCommandsStatics.dumpsterCreate.fileName] }),
   );
+  const huntPath = filePathContract.parse(
+    pathJoinAdapter({ paths: [commandsDir, slashCommandsStatics.dumpsterHunt.fileName] }),
+  );
   const launchPath = filePathContract.parse(
     pathJoinAdapter({ paths: [commandsDir, slashCommandsStatics.dumpsterLaunch.fileName] }),
   );
@@ -47,6 +51,10 @@ export const InstallCommandsCreateResponder = async ({
   await fsWriteFileAdapter({
     filePath: createPath,
     contents: fileContentsContract.parse(slashCommandsStatics.dumpsterCreate.body),
+  });
+  await fsWriteFileAdapter({
+    filePath: huntPath,
+    contents: fileContentsContract.parse(slashCommandsStatics.dumpsterHunt.body),
   });
   await fsWriteFileAdapter({
     filePath: launchPath,
@@ -58,7 +66,7 @@ export const InstallCommandsCreateResponder = async ({
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-launch.md',
+      'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md',
     ),
   };
 };

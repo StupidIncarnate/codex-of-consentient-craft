@@ -197,6 +197,7 @@ describe('buildWorkUnitForRoleTransformer', () => {
 
       expect(result).toStrictEqual({
         role: 'lawbringer',
+        reviewMode: 'per-steps',
         filePaths: ['/src/brokers/user/user-broker.ts', '/src/brokers/index.ts'],
         folderTypes: ['brokers'],
         stepBoundaries: [

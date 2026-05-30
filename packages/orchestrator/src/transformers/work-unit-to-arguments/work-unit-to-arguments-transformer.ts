@@ -194,6 +194,20 @@ export const workUnitToArgumentsTransformer = ({
 
     case 'lawbringer': {
       const { filePaths: lawbringerPaths, stepBoundaries, folderTypes: lawFolderTypes } = workUnit;
+
+      if (workUnit.reviewMode === 'whole-diff') {
+        const wholeDiffParts: ContentText[] = [
+          contentTextContract.parse('Review Mode: whole-diff'),
+          contentTextContract.parse(
+            'Review the entire branch diff: run `git diff main...HEAD --name-only`, then read and review every changed non-test file alongside its test.',
+          ),
+        ];
+        if (workUnit.questId !== undefined) {
+          wholeDiffParts.push(contentTextContract.parse(`Quest ID: ${workUnit.questId}`));
+        }
+        return contentTextContract.parse(wholeDiffParts.join('\n'));
+      }
+
       const totalPairs = stepBoundaries.length;
       const isMultiPair = totalPairs > 1;
 

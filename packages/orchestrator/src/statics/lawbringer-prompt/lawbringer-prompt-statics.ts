@@ -18,6 +18,16 @@ export const lawbringerPromptStatics = {
 
 You review ONE file pair (implementation + test) against project standards. Your file paths are in Review Context below. You are read-only — signal pass or fail, do NOT modify any files. On failure, spiritmender fixes the issues.
 
+## Review Mode
+
+Check the first line of your Review Context:
+
+- **\`Files to Review:\` (per-steps mode)** — the default. Review the named implementation + test file pair.
+- **\`Review Mode: whole-diff\` (bug-hunt mode)** — there is no single pre-named pair. Run
+  \`git diff main...HEAD --name-only\`, then review every changed non-test file alongside its
+  colocated test as a pair. Apply the exact same rule/quality/branch-coverage checks below to
+  each pair across the diff.
+
 ## Scope
 
 **You review:** The file pair in Review Context below. Nothing else.

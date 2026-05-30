@@ -487,6 +487,25 @@ Three consumers read different parts:
 
 Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=spec-obs` to get observables without flow structure.
 
+## Quest Types
+
+A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). `questTypeRegistryStatics`
+(`@dungeonmaster/shared/statics`) is the single source of truth per type — its intake slash command,
+create-time seed role, Start-Quest `startGraphKind`, and role set. `orchestration-start-responder`
+switches on `startGraphKind` to seed the matching work-item graph:
+
+- **`feature`** (`/dumpster-create`): `questBuildPathseekerGraphBroker` seeds the PathSeeker graph; the
+  post-walk hook then generates the `codeweaver → ward → siegemaster → lawbringer → blightwarden → ward`
+  chain.
+- **`bug-hunt`** (`/dumpster-hunt`): `questBuildBugHuntGraphBroker` hand-seeds the WHOLE chain at Start
+  (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden
+  → ward(full)`. Bug-hunt reuses the flow/observable spec lifecycle — the reproduction path is a flow,
+  the expected behavior an observable PestEater turns into a failing test.
+
+Each type owns its COMPLETE work-item flow; PathSeeker's four-tier graph is the *feature* type's
+planning sub-stage, not universal. Adding a type = one `questTypeRegistryStatics` entry + a graph
+builder + the type added to `questTypeContract`.
+
 ## Agent Roles
 
 On failure, every execution role's work item is simply marked `failed` (no recovery item is created on
@@ -504,9 +523,10 @@ chain runs past it; the quest then derives `complete`/`blocked`/`in_progress` fr
 | Codeweaver                       | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
 | Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                | terminal set by exit code       | none (server writes wardResults + item status)                         |
 | Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained)               | complete, failed                | none                                                                   |
-| Lawbringer                       | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
+| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)        | complete, failed                | none                                                                   |
 | Blightwarden                     | `/dumpster-launch` via Task()                                       | complete, failed-replan, failed | none                                                                   |
 | Spiritmender                     | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
+| PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)  | complete, failed                | none                                                                   |
 
 ### PathSeeker work-item graph
 
@@ -602,13 +622,14 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 
 ## Quest Kickoff Surfaces
 
-| Surface                                | Purpose                                                                                                                                                                |
-|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/dumpster-create` slash command       | Primary entry point. Runs ChaosWhisperer in the user's Claude session; ChaosWhisperer creates the new quest via MCP as its first action.                               |
-| `/dumpster-launch` slash command       | Primary entry point. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → Task() / `run-ward` → await → repeat across all approved quests. |
-| MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer inside `/dumpster-create`).                                                                                        |
-| MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — `/dumpster-launch` picks the quest up on its next pass).                              |
-| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything.                                       |
+| Surface                                | Purpose                                                                                                                                                                   |
+|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/dumpster-create` slash command       | Primary entry point (feature). Runs ChaosWhisperer in the user's Claude session; creates the new quest via MCP as its first action.                                       |
+| `/dumpster-hunt` slash command         | Primary entry point (bug-hunt). Runs the BugHunt intake; first action is `create-quest` with `questType: 'bug-hunt'`, then captures the repro flow + expected observable. |
+| `/dumpster-launch` slash command       | Primary entry point. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → Task() / `run-ward` → await → repeat across all approved quests.    |
+| MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer/BugHunt). Accepts optional `questType` so `/dumpster-hunt` births a `bug-hunt` quest.                                 |
+| MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — `/dumpster-launch` picks the quest up on its next pass).                                 |
+| Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything.                                          |
 
 ## Agents (MCP-Delivered)
 
@@ -624,10 +645,11 @@ session's `subagents/agent-*.jsonl` file for an assistant line whose `tool_use.i
 matches — deterministically identifying the calling sub-agent race-free even when N
 sub-agents call in parallel against the same MCP stdio child.
 
-| Agent                            | Dispatched By                                     | Purpose                                                                                                                           |
-|----------------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| chaoswhisperer-gap-minion        | ChaosWhisperer (inside `/dumpster-create`)        | Validate spec completeness before execution                                                                                       |
-| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel)        | Slice-scoped step + contract authoring; writes `quest.steps[]` and `quest.contracts[]` for its slice                              |
-| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)     | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`                                                         |
-| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)     | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`              |
-| pathseeker-walk                  | `/dumpster-launch` via Task() (after corrections) | Full architect-review walk: trace every flow entry→exit, patch structural issues, author exploratory steps, commit `walkFindings` |
+| Agent                            | Dispatched By                                     | Purpose                                                                                                                                                    |
+|----------------------------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| chaoswhisperer-gap-minion        | ChaosWhisperer (inside `/dumpster-create`)        | Validate spec completeness before execution                                                                                                                |
+| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel)        | Slice-scoped step + contract authoring; writes `quest.steps[]` and `quest.contracts[]` for its slice                                                       |
+| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)     | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`                                                                                  |
+| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)     | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`                                       |
+| pathseeker-walk                  | `/dumpster-launch` via Task() (after corrections) | Full architect-review walk: trace every flow entry→exit, patch structural issues, author exploratory steps, commit `walkFindings`                          |
+| pesteater                        | `/dumpster-launch` via Task() (bug-hunt front)    | Single TDD bug-fix agent: root-cause → write the failing test FIRST → fix → verify via ward. Reads the bug report from the quest; no `modify-quest` writes |

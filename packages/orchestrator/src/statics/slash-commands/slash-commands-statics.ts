@@ -18,9 +18,15 @@
  */
 
 import { dumpsterCreatePromptStatics } from '../dumpster-create-prompt/dumpster-create-prompt-statics';
+import { dumpsterHuntPromptStatics } from '../dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 
 const DUMPSTER_CREATE_FRONTMATTER = `---
 description: Run a Dumpster spec conversation (ChaosWhisperer)
+allowed-tools: mcp__dungeonmaster__*, Bash, Read, Glob, Grep, Edit, Write, Task
+---`;
+
+const DUMPSTER_HUNT_FRONTMATTER = `---
+description: Run a Dumpster bug-hunt intake (BugHunt)
 allowed-tools: mcp__dungeonmaster__*, Bash, Read, Glob, Grep, Edit, Write, Task
 ---`;
 
@@ -28,6 +34,10 @@ export const slashCommandsStatics = {
   dumpsterCreate: {
     fileName: 'dumpster-create.md',
     body: `${DUMPSTER_CREATE_FRONTMATTER}\n\n${dumpsterCreatePromptStatics.prompt.template}\n`,
+  },
+  dumpsterHunt: {
+    fileName: 'dumpster-hunt.md',
+    body: `${DUMPSTER_HUNT_FRONTMATTER}\n\n${dumpsterHuntPromptStatics.prompt.template}\n`,
   },
   dumpsterLaunch: {
     fileName: 'dumpster-launch.md',

@@ -20,6 +20,27 @@ describe('createQuestInputContract', () => {
     );
   });
 
+  it('VALID: {userRequest, questType: "bug-hunt"} => parses with questType', () => {
+    const result = createQuestInputContract.parse({
+      userRequest: 'The tool result is not rendering',
+      questType: 'bug-hunt',
+    });
+
+    expect(result).toStrictEqual({
+      userRequest: 'The tool result is not rendering',
+      questType: 'bug-hunt',
+    });
+  });
+
+  it('INVALID: {userRequest, questType: "bogus"} => throws Invalid enum value', () => {
+    expect(() =>
+      createQuestInputContract.parse({
+        userRequest: 'valid',
+        questType: 'bogus',
+      } as never),
+    ).toThrow(/Invalid enum value/u);
+  });
+
   it('INVALID: {userRequest, questId: "anything"} => throws Unrecognized key error', () => {
     expect(() =>
       createQuestInputContract.parse({

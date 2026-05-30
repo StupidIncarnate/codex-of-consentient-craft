@@ -21,6 +21,7 @@ describe('questContract', () => {
         folder: '001-add-auth',
         title: 'Add Authentication',
         status: 'in_progress',
+        questType: 'feature',
         createdAt: '2024-01-15T10:00:00.000Z',
         designDecisions: [],
         steps: [],
@@ -49,6 +50,7 @@ describe('questContract', () => {
         folder: '001-add-auth',
         title: 'Add Authentication',
         status: 'complete',
+        questType: 'feature',
         createdAt: '2024-01-15T10:00:00.000Z',
         completedAt: '2024-01-16T10:00:00.000Z',
         designDecisions: [],
@@ -78,6 +80,7 @@ describe('questContract', () => {
         folder: '001-add-auth',
         title: 'Add Authentication',
         status: 'abandoned',
+        questType: 'feature',
         createdAt: '2024-01-15T10:00:00.000Z',
         abandonReason: 'Requirements changed',
         designDecisions: [],
@@ -176,6 +179,7 @@ describe('questContract', () => {
         flows: [],
         needsDesign: true,
         designPort: 5173,
+        questType: 'feature',
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
@@ -418,6 +422,29 @@ describe('questContract', () => {
       });
 
       expect(result.smoketestResults).toBe(undefined);
+    });
+
+    it('VALID: quest with questType bug-hunt => parses successfully', () => {
+      const quest = QuestStub({ questType: 'bug-hunt' });
+
+      const result = questContract.parse(quest);
+
+      expect(result.questType).toBe('bug-hunt');
+    });
+
+    it('VALID: quest without questType field => backward compat defaults to feature', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.questType).toBe('feature');
     });
   });
 

@@ -59,6 +59,14 @@ describe('roleToConfigIndexTransformer', () => {
 
       expect(result).toBe(6);
     });
+
+    it('VALID: {role: pesteater} => returns 7 (EXTERMINATION floor, after codeweaver)', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'pesteater' }),
+      });
+
+      expect(result).toBe(7);
+    });
   });
 
   describe('legacy fallback', () => {
@@ -67,7 +75,7 @@ describe('roleToConfigIndexTransformer', () => {
         role: ExecutionRoleStub({ value: 'pathseeker' }),
       });
 
-      expect(result).toBe(13);
+      expect(result).toBe(14);
     });
   });
 });

@@ -14,22 +14,46 @@ control flow.
 ## The model in one paragraph
 
 The orchestrator does **not** spawn agents. The **MCP server is the state machine**; the user's own
-Claude session is the execution engine. The user runs two slash commands. `/dumpster-create` runs a
-spec conversation (ChaosWhisperer) that builds a validated quest. `/dumpster-launch` is a brainless
-dispatch loop: it calls `get-next-step()`, dispatches whatever the server tells it to (`Task()` for
-agents, the `run-ward` MCP tool for ward), awaits, and repeats. All "what runs next" decisions live
-server-side in `quest.workItems[]` and the `get-next-step` broker. The orchestrator watches the JSONL
-files the user's session writes to disk — there is no orchestrator-spawned Claude process.
+Claude session is the execution engine. The user runs a spec-conversation slash command
+(`/dumpster-create` for a feature, `/dumpster-hunt` for a bug) that builds a validated quest, then
+`/dumpster-launch` — a brainless dispatch loop: it calls `get-next-step()`, dispatches whatever the
+server tells it to (`Task()` for agents, the `run-ward` MCP tool for ward), awaits, and repeats. All
+"what runs next" decisions live server-side in `quest.workItems[]` and the `get-next-step` broker.
+The orchestrator watches the JSONL files the user's session writes to disk — there is no
+orchestrator-spawned Claude process.
+
+---
+
+## Quest types
+
+A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`).
+`questTypeRegistryStatics` (`@dungeonmaster/shared/statics`) is the single source of truth per type:
+its intake slash command, the create-time seed role, the Start-Quest graph kind, and the role set.
+**Each type owns its COMPLETE work-item flow** — PathSeeker's four-tier graph is just the *feature*
+type's planning sub-stage, not a universal stage.
+
+| Type       | Intake                              | Start-Quest graph                                                                                                                                    |
+|------------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `feature`  | `/dumpster-create` (ChaosWhisperer) | PathSeeker graph → post-walk chain: `codeweaver → ward → siegemaster[per flow] → lawbringer → blightwarden → ward`                                   |
+| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | full chain hand-seeded at Start (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden → ward(full)` |
+
+`orchestration-start-responder` reads `registry[quest.questType].startGraphKind` and seeds the
+matching graph (`questBuildPathseekerGraphBroker` vs `questBuildBugHuntGraphBroker`). Bug-hunt reuses
+the same flow/observable spec lifecycle (the reproduction path is a flow, the expected behavior is an
+observable that **PestEater** turns into a failing test). The rest of this doc describes the
+`feature` flow in full; `bug-hunt` is the same dispatch machinery over a shorter, hand-seeded graph,
+and its `lawbringer` runs in **whole-diff mode** (reviews `git diff main...HEAD`, no per-step refs).
 
 ---
 
 ## Entry points
 
-| Surface                          | Role               | What it is                                                                                                                                                                                              |
-|----------------------------------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/dumpster-create` slash command | **ChaosWhisperer** | Interactive spec-writing conversation. First action: `create-quest`. Walks the status lifecycle through two approval gates.                                                                             |
-| `/dumpster-launch` slash command | **The dispatcher** | Long-lived loop across ALL approved quests: `get-next-step()` → `Task()` / `run-ward()` → await → repeat. Never decides anything.                                                                       |
-| Web UI "Start Quest" button      | —                  | Calls `orchestration-start-responder`, which flips quest status to `in_progress` and seeds the PathSeeker work-item graph. **Spawns nothing** — `/dumpster-launch` picks the quest up on its next scan. |
+| Surface                          | Role               | What it is                                                                                                                                                                                                                                                                   |
+|----------------------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/dumpster-create` slash command | **ChaosWhisperer** | Interactive feature spec-writing conversation. First action: `create-quest`. Walks the status lifecycle through two approval gates.                                                                                                                                          |
+| `/dumpster-hunt` slash command   | **BugHunt**        | Interactive bug-report intake (`questType: 'bug-hunt'`). Captures the reproduction path as a flow + the expected behavior as an observable, through the same two approval gates.                                                                                             |
+| `/dumpster-launch` slash command | **The dispatcher** | Long-lived loop across ALL approved quests: `get-next-step()` → `Task()` / `run-ward()` → await → repeat. Never decides anything.                                                                                                                                            |
+| Web UI "Start Quest" button      | —                  | Calls `orchestration-start-responder`, which flips quest status to `in_progress` and seeds the **type-appropriate** work-item graph (PathSeeker for feature, the PestEater chain for bug-hunt). **Spawns nothing** — `/dumpster-launch` picks the quest up on its next scan. |
 
 `/dumpster-launch`'s entire contract (`.claude/commands/dumpster-launch.md`):
 
@@ -110,7 +134,7 @@ All execution is driven by `quest.workItems[]`. Each item is a generic container
 
 - `role` — `pathseeker-surface` / `pathseeker-dedup` / `pathseeker-assertion-correctness` /
   `pathseeker-walk` / `codeweaver` / `ward` / `siegemaster` / `lawbringer` / `blightwarden` /
-  `spiritmender`.
+  `spiritmender` / `pesteater` (bug-hunt front).
 - `status` — `pending` → `in_progress` → terminal (`complete` / `failed` / `skipped`).
 - `dependsOn[]` — the **sole** ordering mechanism. There are no hardcoded role sequences.
 - `spawnerType` — `agent` (dispatched via `Task()`) or `command` (ward, run via the `run-ward` MCP tool).
@@ -237,14 +261,15 @@ roles — `/dumpster-launch` hands each `Task()` a stub that says "call `get-age
 workItemId, questId})` and follow it." The MCP responder interpolates work-item context into the
 returned prompt and stamps `sessionId` + `agentId` onto the work item.
 
-| Role             | Receives                                                                    | Produces / verifies                                                                                                                                                                                  | Signal                                           |
-|------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| **Codeweaver**   | One step chunk: assertions, instructions, focusFile, contracts, observables | Six gates: read context → discover standards → write tests first → confirm they fail behaviorally → implement → verify via ward + manual 100% branch-coverage audit                                  | `complete` / `failed`                            |
-| **Ward**         | `mode` (`changed`/`full`)                                                   | Runs `dungeonmaster-ward run [--changed]` as a shell command. Exit 0 → `complete`, non-zero → `failed`. Only non-agent role                                                                          | (terminal status set by exit code, not a signal) |
-| **Siegemaster**  | One flow: nodes, edges, observables, entry/exit                             | Picks verification mode from observable-type distribution — Playwright E2E (runtime/UI), integration harness (API/CLI/queue), or ward+grep+adversarial (operational); writes real verification tests | `complete` / `failed`                            |
-| **Lawbringer**   | One step chunk (file pairs)                                                 | Read-only review: logic / error-handling / security + manual test branch-coverage walk; runs ward                                                                                                    | `complete` / `failed`                            |
-| **Blightwarden** | The whole diff + quest context                                              | Whole-diff cross-cutting audit (security, dedup, perf, integrity, dead-code via parallel minions); fixes mechanical issues inline, routes semantic findings out                                      | `complete` / `failed-replan` / `failed`          |
-| **Spiritmender** | Error context: affected files, errors, verification command                 | Targeted error resolution without weakening tests / `any` / disabling lint; re-runs the verification command after each fix                                                                          | `complete` / `failed`                            |
+| Role             | Receives                                                                                            | Produces / verifies                                                                                                                                                                                  | Signal                                           |
+|------------------|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| **Codeweaver**   | One step chunk: assertions, instructions, focusFile, contracts, observables                         | Six gates: read context → discover standards → write tests first → confirm they fail behaviorally → implement → verify via ward + manual 100% branch-coverage audit                                  | `complete` / `failed`                            |
+| **Ward**         | `mode` (`changed`/`full`)                                                                           | Runs `dungeonmaster-ward run [--changed]` as a shell command. Exit 0 → `complete`, non-zero → `failed`. Only non-agent role                                                                          | (terminal status set by exit code, not a signal) |
+| **Siegemaster**  | One flow: nodes, edges, observables, entry/exit                                                     | Picks verification mode from observable-type distribution — Playwright E2E (runtime/UI), integration harness (API/CLI/queue), or ward+grep+adversarial (operational); writes real verification tests | `complete` / `failed`                            |
+| **Lawbringer**   | One step chunk (file pairs); OR, in **whole-diff mode** (bug-hunt), just `questId` and no step refs | Read-only review: logic / error-handling / security + manual test branch-coverage walk; runs ward. Whole-diff mode reviews every changed file in `git diff main...HEAD` instead of a named pair      | `complete` / `failed`                            |
+| **Blightwarden** | The whole diff + quest context                                                                      | Whole-diff cross-cutting audit (security, dedup, perf, integrity, dead-code via parallel minions); fixes mechanical issues inline, routes semantic findings out                                      | `complete` / `failed-replan` / `failed`          |
+| **PestEater**    | The bug report (reads the quest itself: `userRequest`, repro flow, expected observable)             | Bug Hunt's single TDD agent: root-cause → write the failing test FIRST and watch it fail → fix → verify via ward. Front of the bug-hunt chain                                                        | `complete` / `failed`                            |
+| **Spiritmender** | Error context: affected files, errors, verification command                                         | Targeted error resolution without weakening tests / `any` / disabling lint; re-runs the verification command after each fix                                                                          | `complete` / `failed`                            |
 
 Chat roles (spec phase), for completeness:
 

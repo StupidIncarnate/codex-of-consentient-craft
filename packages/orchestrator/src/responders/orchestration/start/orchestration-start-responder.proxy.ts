@@ -11,6 +11,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
+import { questBuildBugHuntGraphBrokerProxy } from '../../../brokers/quest/build-bug-hunt-graph/quest-build-bug-hunt-graph-broker.proxy';
 import { questBuildPathseekerGraphBrokerProxy } from '../../../brokers/quest/build-pathseeker-graph/quest-build-pathseeker-graph-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
@@ -35,9 +36,11 @@ export const OrchestrationStartResponderProxy = (): {
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-  // The build-pathseeker-graph broker is invoked transitively via the responder; mount its
-  // proxy so the enforce-proxy-child-creation lint sees the import edge.
+  // The graph-builder brokers are invoked transitively via the responder (pathseeker for feature
+  // quests, bug-hunt for bug-hunt quests); mount both proxies so the enforce-proxy-child-creation
+  // lint sees the import edges.
   questBuildPathseekerGraphBrokerProxy();
+  questBuildBugHuntGraphBrokerProxy();
   const queueProxy = questExecutionQueueStateProxy();
   queueProxy.setupEmpty();
   const processesProxy = orchestrationProcessesStateProxy();
@@ -151,8 +154,12 @@ export const OrchestrationStartResponderProxy = (): {
           wi.role === 'pathseeker-assertion-correctness' ||
           wi.role === 'pathseeker-walk',
       );
+      // The middle modify-quest call writes planningNotes.scopeClassification — it runs ONLY for
+      // a fresh feature pathseeker graph. Bug-hunt quests (and quests with an existing graph) skip
+      // it, so queue one fewer read or a leftover bleeds into the guild config read downstream.
+      const skipsScopeClassificationWrite = hasExistingPathseeker || quest.questType === 'bug-hunt';
       modifyProxy.setupQuestFound({ quest });
-      if (!hasExistingPathseeker) {
+      if (!skipsScopeClassificationWrite) {
         modifyProxy.setupQuestFound({ quest: seekScopeQuest });
       }
       // Third call: seek_scope → in_progress promote — loads see seek_scope on disk.

@@ -26,6 +26,9 @@ export const workItemRoleContract = z.enum([
   'siegemaster',
   'lawbringer',
   'blightwarden',
+  /** Bug Hunt quest type: a single TDD agent that investigates the bug, writes a failing test
+   * first, then fixes it. Front of the bug-hunt work-item flow. */
+  'pesteater',
 ]);
 
 export type WorkItemRole = z.infer<typeof workItemRoleContract>;

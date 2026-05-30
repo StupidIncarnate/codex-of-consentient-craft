@@ -82,5 +82,13 @@ describe('roleToPromptTemplateTransformer', () => {
 
       expect(result.length).toBeGreaterThan(0);
     });
+
+    it('VALID: {role: pesteater} => returns pesteater prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'pesteater' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
   });
 });

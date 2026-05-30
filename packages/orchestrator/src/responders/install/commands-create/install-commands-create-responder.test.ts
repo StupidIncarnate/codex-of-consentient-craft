@@ -19,7 +19,7 @@ describe('InstallCommandsCreateResponder', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-launch.md',
+          'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md',
       });
     });
   });
@@ -40,7 +40,7 @@ describe('InstallCommandsCreateResponder', () => {
   });
 
   describe('file writes', () => {
-    it('VALID: {context} => writes dumpster-create.md and dumpster-launch.md with verbatim statics bodies', async () => {
+    it('VALID: {context} => writes dumpster-create.md, dumpster-hunt.md, and dumpster-launch.md with verbatim statics bodies', async () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       await proxy.callResponder({
@@ -54,6 +54,10 @@ describe('InstallCommandsCreateResponder', () => {
         {
           path: '/project/.claude/commands/dumpster-create.md',
           content: slashCommandsStatics.dumpsterCreate.body,
+        },
+        {
+          path: '/project/.claude/commands/dumpster-hunt.md',
+          content: slashCommandsStatics.dumpsterHunt.body,
         },
         {
           path: '/project/.claude/commands/dumpster-launch.md',

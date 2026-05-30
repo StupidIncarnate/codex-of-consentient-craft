@@ -122,6 +122,14 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('blightwarden-dead-code-minion');
   });
 
+  it('VALID: {value: "pesteater"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'pesteater' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('pesteater');
+  });
+
   it('VALID: {default stub} => parses with default value', () => {
     const name = AgentPromptNameStub();
 

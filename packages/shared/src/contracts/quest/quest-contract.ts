@@ -20,6 +20,7 @@ import { planningWalkFindingsContract } from '../planning-walk-findings/planning
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { questTypeContract } from '../quest-type/quest-type-contract';
 import { smoketestCaseResultContract } from '../smoketest-case-result/smoketest-case-result-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
@@ -30,6 +31,11 @@ export const questContract = z.object({
   folder: z.string().min(1).brand<'QuestFolder'>(),
   title: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
+  questType: questTypeContract
+    .default('feature')
+    .describe(
+      'Which pipeline this quest follows. Defaults to feature for back-compat with existing quest.json files written before quest types existed.',
+    ),
   createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
   updatedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
   completedAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),

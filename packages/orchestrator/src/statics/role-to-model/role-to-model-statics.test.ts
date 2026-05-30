@@ -15,6 +15,7 @@ describe('roleToModelStatics', () => {
       spiritmender: 'sonnet',
       lawbringer: 'sonnet',
       blightwarden: 'sonnet',
+      pesteater: 'opus',
     });
   });
 });

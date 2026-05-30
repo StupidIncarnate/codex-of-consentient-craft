@@ -89,8 +89,16 @@ export const QuestFlow = {
   modify: async ({ questId, input }: ModifyParams): Promise<ModifyResult> =>
     QuestModifyResponder({ questId, input }),
 
-  mcpCreate: async ({ userRequest, sessionId }: McpCreateParams): Promise<McpCreateResult> =>
-    QuestMcpCreateResponder({ userRequest, ...(sessionId !== undefined && { sessionId }) }),
+  mcpCreate: async ({
+    userRequest,
+    questType,
+    sessionId,
+  }: McpCreateParams): Promise<McpCreateResult> =>
+    QuestMcpCreateResponder({
+      userRequest,
+      ...(questType !== undefined && { questType }),
+      ...(sessionId !== undefined && { sessionId }),
+    }),
 
   getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 

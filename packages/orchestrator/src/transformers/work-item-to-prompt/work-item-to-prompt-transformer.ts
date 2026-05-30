@@ -61,6 +61,17 @@ export const workItemToPromptTransformer = ({
     };
   }
 
+  // Bug Hunt: PestEater owns its work item (so it routes through the role path) but reads the
+  // bug report from the quest itself — it has no steps/flows refs to resolve into a WorkUnit.
+  // Substitute only Quest ID + Work Item ID, like the minion path.
+  if (workItem.role === 'pesteater') {
+    const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
+    const pesteaterArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
+    return {
+      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', pesteaterArguments)),
+    };
+  }
+
   // Role path: agent has its own work item with matching role; build a WorkUnit from the
   // work item's relatedDataItems + the quest's accumulated context.
   const workUnit: WorkUnit = ((): WorkUnit => {
@@ -89,9 +100,13 @@ export const workItemToPromptTransformer = ({
 
     if (workItem.role === 'lawbringer') {
       if (workItem.relatedDataItems.length === 0) {
-        throw new Error(
-          `workItemToPromptTransformer: lawbringer work item ${String(workItem.id)} has no relatedDataItems`,
-        );
+        // Bug-hunt lawbringer: no per-step refs to resolve — review the whole branch diff.
+        return workUnitContract.parse({
+          role: 'lawbringer',
+          reviewMode: 'whole-diff',
+          questId: quest.id,
+          ...overrideField,
+        });
       }
       const steps = workItem.relatedDataItems.map((ref) => {
         const resolved = resolveRelatedDataItemTransformer({ ref, quest });

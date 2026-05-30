@@ -35,6 +35,7 @@ import type {
   QuestListItem,
   QuestQueueEntry,
   QuestStatus,
+  QuestType,
   QuestWorkItemId,
   RateLimitsSnapshot,
   SessionId,
@@ -282,15 +283,22 @@ export const StartOrchestrator = {
   // Rate limits
   getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),
 
-  // MCP-driven create-quest (ChaosWhisperer at /dumpster-create startup)
+  // MCP-driven create-quest (ChaosWhisperer at /dumpster-create startup,
+  // BugHunt at /dumpster-hunt startup which passes questType: 'bug-hunt')
   createQuestForMcp: async ({
     userRequest,
+    questType,
     sessionId,
   }: {
     userRequest: AddQuestInput['userRequest'];
+    questType?: QuestType;
     sessionId?: SessionId;
   }): Promise<{ questId: QuestId; guildSlug: UrlSlug }> =>
-    QuestFlow.mcpCreate({ userRequest, ...(sessionId !== undefined && { sessionId }) }),
+    QuestFlow.mcpCreate({
+      userRequest,
+      ...(questType !== undefined && { questType }),
+      ...(sessionId !== undefined && { sessionId }),
+    }),
 
   // MCP-driven get-next-step (/dumpster-launch dispatch loop)
   getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),

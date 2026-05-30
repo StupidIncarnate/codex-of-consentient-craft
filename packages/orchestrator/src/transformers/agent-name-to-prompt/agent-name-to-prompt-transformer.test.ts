@@ -8,6 +8,7 @@ import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-se
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
+import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
 import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
@@ -194,6 +195,18 @@ describe('agentNameToPromptTransformer', () => {
       name: 'blightwarden-dead-code-minion',
       model: 'sonnet',
       prompt: blightwardenDeadCodeMinionStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "pesteater"} => returns pesteater prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'pesteater' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'pesteater',
+      model: 'opus',
+      prompt: pesteaterPromptStatics.prompt.template,
     });
   });
 });

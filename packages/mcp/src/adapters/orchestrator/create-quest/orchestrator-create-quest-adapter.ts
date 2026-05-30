@@ -9,14 +9,16 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { QuestId, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestType, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { CreateQuestInput } from '../../../contracts/create-quest-input/create-quest-input-contract';
 
 export const orchestratorCreateQuestAdapter = async ({
   userRequest,
+  questType,
   sessionId,
 }: {
   userRequest: CreateQuestInput['userRequest'];
+  questType?: QuestType;
   sessionId?: SessionId;
 }): Promise<{
   questId: QuestId;
@@ -24,5 +26,6 @@ export const orchestratorCreateQuestAdapter = async ({
 }> =>
   StartOrchestrator.createQuestForMcp({
     userRequest,
+    ...(questType !== undefined && { questType }),
     ...(sessionId !== undefined && { sessionId }),
   });

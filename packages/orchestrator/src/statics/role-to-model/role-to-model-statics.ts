@@ -19,4 +19,5 @@ export const roleToModelStatics = {
   spiritmender: 'sonnet',
   lawbringer: 'sonnet',
   blightwarden: 'sonnet',
+  pesteater: 'opus',
 } as const;

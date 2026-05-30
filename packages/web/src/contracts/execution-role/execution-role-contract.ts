@@ -22,6 +22,7 @@ export const executionRoleContract = z.enum([
   'siegemaster',
   'lawbringer',
   'blightwarden',
+  'pesteater',
 ]);
 
 export type ExecutionRole = z.infer<typeof executionRoleContract>;

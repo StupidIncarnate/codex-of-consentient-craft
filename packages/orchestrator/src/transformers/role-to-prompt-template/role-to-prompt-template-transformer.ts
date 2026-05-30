@@ -12,6 +12,7 @@ import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
+import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
 import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
@@ -41,6 +42,8 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
       return contentTextContract.parse(spiritmenderPromptStatics.prompt.template);
     case 'blightwarden':
       return contentTextContract.parse(blightwardenPromptStatics.prompt.template);
+    case 'pesteater':
+      return contentTextContract.parse(pesteaterPromptStatics.prompt.template);
     default: {
       const exhaustiveCheck: never = role;
       throw new Error(`Unknown role: ${String(exhaustiveCheck)}`);

@@ -781,6 +781,27 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('VALID: {userRequest, questType: "bug-hunt"} => returns { questId, guildSlug } JSON', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      proxy.setupCreateQuestReturns({ questId, guildSlug });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-quest' }),
+        args: { userRequest: 'The tool result is not rendering', questType: 'bug-hunt' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ questId, guildSlug }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
     it('ERROR: {adapter throws} => returns error response', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupCreateQuestThrows({ error: new Error('No guild available') });

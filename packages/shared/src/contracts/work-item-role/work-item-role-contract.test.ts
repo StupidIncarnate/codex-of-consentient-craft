@@ -107,6 +107,14 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('blightwarden');
     });
 
+    it('VALID: pesteater => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'pesteater' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('pesteater');
+    });
+
     it('VALID: {default} => defaults to codeweaver', () => {
       const role = WorkItemRoleStub();
 

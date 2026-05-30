@@ -6,6 +6,7 @@
  * // Returns: validated CreateQuestInput with the user's original request text
  */
 import { z } from 'zod';
+import { questTypeContract } from '@dungeonmaster/shared/contracts';
 
 export const createQuestInputContract = z
   .object({
@@ -14,6 +15,11 @@ export const createQuestInputContract = z
       .min(1)
       .describe('The original user request that initiated this quest')
       .brand<'UserRequest'>(),
+    questType: questTypeContract
+      .optional()
+      .describe(
+        "Which pipeline this quest follows. Omit for the default feature pipeline; set to 'bug-hunt' (the /dumpster-hunt intake) to seed the PestEater regression pipeline.",
+      ),
   })
   .strict();
 

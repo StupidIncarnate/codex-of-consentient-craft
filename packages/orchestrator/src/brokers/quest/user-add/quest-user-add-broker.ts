@@ -21,7 +21,9 @@ import type {
   AddQuestResult,
   GuildId,
   SessionId,
+  WorkItem,
 } from '@dungeonmaster/shared/contracts';
+import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { questCreateBroker } from '../create/quest-create-broker';
 
@@ -37,32 +39,43 @@ export const questUserAddBroker = async ({
   try {
     const questId = questIdContract.parse(crypto.randomUUID());
 
-    const initialWorkItem = workItemContract.parse({
-      id: crypto.randomUUID(),
-      role: 'chaoswhisperer',
-      status: 'pending',
-      spawnerType: 'agent',
-      createdAt: new Date().toISOString(),
-      dependsOn: [],
-      maxAttempts: 1,
-      ...(sessionId !== undefined && { sessionId }),
-    });
+    // The create-time seed role is quest-type specific: feature seeds a chaoswhisperer chat item;
+    // bug-hunt seeds nothing (its execution graph is seeded at Start Quest). Null = no seed.
+    const { initialWorkItemRole } = questTypeRegistryStatics[input.questType ?? 'feature'];
+
+    const initialWorkItems: WorkItem[] =
+      initialWorkItemRole === null
+        ? []
+        : [
+            workItemContract.parse({
+              id: crypto.randomUUID(),
+              role: initialWorkItemRole,
+              status: 'pending',
+              spawnerType: 'agent',
+              createdAt: new Date().toISOString(),
+              dependsOn: [],
+              maxAttempts: 1,
+              ...(sessionId !== undefined && { sessionId }),
+            }),
+          ];
 
     const { questFilePath } = await questCreateBroker({
       questId,
       guildId,
       input,
-      initialWorkItems: [initialWorkItem],
+      initialWorkItems,
     });
+
+    const [seededItem] = initialWorkItems;
 
     return addQuestResultContract.parse({
       success: true,
       questId,
       questFolder: questId,
       filePath: questFilePath,
-      // Surface the chaoswhisperer work item id so chatSpawnBroker can hand it to the
+      // Surface the seed chat work item id (feature only) so chatSpawnBroker can hand it to the
       // launcher as `questWorkItemId` (addressability key) without re-fetching the quest.
-      chaoswhispererWorkItemId: initialWorkItem.id,
+      ...(seededItem === undefined ? {} : { chaoswhispererWorkItemId: seededItem.id }),
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

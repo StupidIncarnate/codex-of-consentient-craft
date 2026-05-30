@@ -69,6 +69,7 @@ export const questCreateBroker = async ({
     wardResults: [],
     planningNotes: { surfaceReports: [], blightReports: [] },
     ...(input.questSource === undefined ? {} : { questSource: input.questSource }),
+    ...(input.questType === undefined ? {} : { questType: input.questType }),
   });
 
   const questFilePath = filePathContract.parse(

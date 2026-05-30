@@ -81,9 +81,13 @@ const lawbringerStepBoundaryContract = z.object({
 
 const lawbringerWorkUnitContract = z.object({
   role: z.literal('lawbringer'),
-  filePaths: z.array(stepFilePathContract),
+  // 'per-steps' (feature quests): review the file pairs named by stepBoundaries.
+  // 'whole-diff' (bug-hunt quests): no per-step refs — review the entire branch diff.
+  reviewMode: z.enum(['per-steps', 'whole-diff']).default('per-steps'),
+  filePaths: z.array(stepFilePathContract).default([]),
   folderTypes: z.array(folderTypeContract).default([]),
-  stepBoundaries: z.array(lawbringerStepBoundaryContract).min(1),
+  stepBoundaries: z.array(lawbringerStepBoundaryContract).default([]),
+  questId: questIdContract.optional(),
   ...smoketestOverrideField,
 });
 

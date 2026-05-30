@@ -8,6 +8,7 @@
 import { z } from 'zod';
 
 import { questSourceContract } from '../quest-source/quest-source-contract';
+import { questTypeContract } from '../quest-type/quest-type-contract';
 
 export const addQuestInputContract = z
   .object({
@@ -21,6 +22,11 @@ export const addQuestInputContract = z
       .optional()
       .describe(
         'Optional tag for how this quest was created (real user vs smoketest suite). Persisted onto the quest.',
+      ),
+    questType: questTypeContract
+      .optional()
+      .describe(
+        'Which pipeline this quest follows. Omitted defaults to feature on the quest contract. Set to bug-hunt by the /dumpster-hunt intake.',
       ),
   })
   .brand<'AddQuestInput'>();

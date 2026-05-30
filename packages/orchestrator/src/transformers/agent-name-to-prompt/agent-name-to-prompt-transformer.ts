@@ -17,6 +17,7 @@ import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-se
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
+import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
 import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
@@ -89,6 +90,12 @@ export const agentNameToPromptTransformer = ({
         name: 'blightwarden',
         model: 'sonnet',
         prompt: blightwardenPromptStatics.prompt.template,
+      });
+    case 'pesteater':
+      return agentPromptResultContract.parse({
+        name: 'pesteater',
+        model: 'opus',
+        prompt: pesteaterPromptStatics.prompt.template,
       });
     case 'blightwarden-security-minion':
       return agentPromptResultContract.parse({

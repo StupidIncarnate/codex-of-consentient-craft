@@ -1,4 +1,7 @@
+import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+
 import { dumpsterCreatePromptStatics } from '../dumpster-create-prompt/dumpster-create-prompt-statics';
+import { dumpsterHuntPromptStatics } from '../dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 import { slashCommandsStatics } from './slash-commands-statics';
 
 describe('slashCommandsStatics', () => {
@@ -96,6 +99,47 @@ describe('slashCommandsStatics', () => {
       const { body } = slashCommandsStatics.dumpsterCreate;
 
       expect(body.indexOf(removedNeedle)).toBe(-1);
+    });
+  });
+
+  describe('dumpsterHunt', () => {
+    it('VALID: dumpsterHunt.fileName => is dumpster-hunt.md', () => {
+      expect(slashCommandsStatics.dumpsterHunt.fileName).toBe('dumpster-hunt.md');
+    });
+
+    it('VALID: dumpsterHunt.fileName => matches the registry intake filename for bug-hunt', () => {
+      expect(slashCommandsStatics.dumpsterHunt.fileName).toBe(
+        questTypeRegistryStatics['bug-hunt'].intakeSlashCommandFileName,
+      );
+    });
+
+    it('VALID: dumpsterHunt.body => starts with YAML frontmatter delimiter', () => {
+      expect(slashCommandsStatics.dumpsterHunt.body.slice(0, 4)).toBe('---\n');
+    });
+
+    it('VALID: dumpsterHunt.body => declares BugHunt as the intake description', () => {
+      const needle = 'description: Run a Dumpster bug-hunt intake (BugHunt)';
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const foundIndex = body.indexOf(needle);
+
+      expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: dumpsterHunt.body => embeds the dumpster-hunt prompt template verbatim', () => {
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = body.indexOf(template);
+
+      expect(foundIndex).toBeGreaterThan(0);
+      expect(body.slice(foundIndex, foundIndex + template.length)).toBe(template);
+    });
+
+    it('VALID: dumpsterHunt.body => instructs create-quest with questType bug-hunt', () => {
+      const needle = "questType: 'bug-hunt'";
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const foundIndex = body.indexOf(needle);
+
+      expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
     });
   });
 

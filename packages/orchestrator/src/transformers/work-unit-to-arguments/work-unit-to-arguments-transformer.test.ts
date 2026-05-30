@@ -594,6 +594,19 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toBe('Files to Review:');
     });
+
+    it('VALID: {lawbringer reviewMode whole-diff} => returns whole-diff instructions + Quest ID', () => {
+      const workUnit = LawbringerWorkUnitStub({
+        reviewMode: 'whole-diff',
+        questId: QuestIdStub({ value: 'fix-bug' }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        'Review Mode: whole-diff\nReview the entire branch diff: run `git diff main...HEAD --name-only`, then read and review every changed non-test file alongside its test.\nQuest ID: fix-bug',
+      );
+    });
   });
 
   describe('spiritmender role', () => {

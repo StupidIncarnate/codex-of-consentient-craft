@@ -90,6 +90,26 @@ describe('questMcpCreateBroker', () => {
       });
     });
 
+    it('VALID: {userRequest, questType: "bug-hunt"} => returns { questId, guildSlug }', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'My Guild' as never,
+        path: '/home/dev/my-guild' as never,
+        urlSlug: 'my-guild' as never,
+        valid: true,
+      });
+      proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild', guild, questId });
+
+      const result = await questMcpCreateBroker({ userRequest, questType: 'bug-hunt' });
+
+      expect(result).toStrictEqual({
+        questId,
+        guildSlug: 'my-guild',
+      });
+    });
+
     it('VALID: {matching guild has no urlSlug} => derives slug from guild name', async () => {
       const proxy = questMcpCreateBrokerProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });

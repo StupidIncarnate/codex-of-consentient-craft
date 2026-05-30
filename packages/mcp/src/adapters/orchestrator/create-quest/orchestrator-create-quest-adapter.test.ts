@@ -32,6 +32,19 @@ describe('orchestratorCreateQuestAdapter', () => {
 
       expect(result).toStrictEqual({ questId, guildSlug });
     });
+
+    it('VALID: {userRequest, questType: "bug-hunt"} => forwards questType to orchestrator', async () => {
+      const proxy = orchestratorCreateQuestAdapterProxy();
+      const questId = QuestIdStub({ value: 'cccccccc-3333-4444-9555-666666666666' });
+      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      const { userRequest } = CreateQuestInputStub();
+
+      proxy.returns({ questId, guildSlug });
+
+      const result = await orchestratorCreateQuestAdapter({ userRequest, questType: 'bug-hunt' });
+
+      expect(result).toStrictEqual({ questId, guildSlug });
+    });
   });
 
   describe('error cases', () => {

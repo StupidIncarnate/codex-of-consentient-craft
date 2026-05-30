@@ -301,7 +301,7 @@ export const QuestHandleResponder = async ({
   }
 
   if (tool === 'create-quest') {
-    const { userRequest } = createQuestInputContract.parse(args);
+    const { userRequest, questType } = createQuestInputContract.parse(args);
 
     try {
       const cwd = processCwdAdapter();
@@ -309,6 +309,7 @@ export const QuestHandleResponder = async ({
       const resolved = await claudeCodeSessionResolveBroker({ projectDir });
       const { questId, guildSlug } = await orchestratorCreateQuestAdapter({
         userRequest,
+        ...(questType !== undefined && { questType }),
         ...(resolved !== undefined && { sessionId: resolved.sessionId }),
       });
       const payload = createQuestOutputContract.parse({ questId, guildSlug });

@@ -292,7 +292,7 @@ describe('workUnitContract', () => {
   });
 
   describe('lawbringer work unit', () => {
-    it('VALID: {role: lawbringer, filePaths, folderTypes, stepBoundaries} => parses successfully', () => {
+    it('VALID: {role: lawbringer, filePaths, folderTypes, stepBoundaries} => parses with default reviewMode per-steps', () => {
       const step = DependencyStepStub();
       const filePaths = [AbsoluteFilePathStub({ value: '/src/broker.ts' })];
 
@@ -305,6 +305,7 @@ describe('workUnitContract', () => {
 
       expect(result).toStrictEqual({
         role: 'lawbringer',
+        reviewMode: 'per-steps',
         filePaths,
         folderTypes: ['brokers'],
         stepBoundaries: [{ stepId: step.id, filePaths }],
@@ -316,6 +317,7 @@ describe('workUnitContract', () => {
 
       expect(stub).toStrictEqual({
         role: 'lawbringer',
+        reviewMode: 'per-steps',
         filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
         folderTypes: ['brokers'],
         stepBoundaries: [
@@ -338,9 +340,29 @@ describe('workUnitContract', () => {
 
       expect(result).toStrictEqual({
         role: 'lawbringer',
+        reviewMode: 'per-steps',
         filePaths: [],
         folderTypes: [],
         stepBoundaries: [{ stepId: step.id, filePaths: [] }],
+      });
+    });
+
+    it('VALID: {role: lawbringer, reviewMode: whole-diff, questId} => parses with empty boundaries (bug-hunt)', () => {
+      const questId = QuestIdStub({ value: 'fix-bug' });
+
+      const result = workUnitContract.parse({
+        role: 'lawbringer',
+        reviewMode: 'whole-diff',
+        questId,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'lawbringer',
+        reviewMode: 'whole-diff',
+        questId,
+        filePaths: [],
+        folderTypes: [],
+        stepBoundaries: [],
       });
     });
   });
@@ -522,13 +544,13 @@ describe('workUnitContract', () => {
       ).toThrow(/Invalid discriminator value/u);
     });
 
-    it('INVALID: {lawbringer fields with codeweaver steps} => throws validation error', () => {
+    it('INVALID: {lawbringer with unknown reviewMode} => throws validation error', () => {
       expect(() =>
         workUnitContract.parse({
           role: 'lawbringer',
-          steps: [DependencyStepStub()],
+          reviewMode: 'bogus',
         } as never),
-      ).toThrow(/required/iu);
+      ).toThrow(/Invalid enum value/u);
     });
   });
 });

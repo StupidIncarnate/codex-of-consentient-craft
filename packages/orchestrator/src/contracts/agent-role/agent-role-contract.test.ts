@@ -82,6 +82,14 @@ describe('agentRoleContract', () => {
 
       expect(result).toBe('blightwarden');
     });
+
+    it('VALID: pesteater => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'pesteater' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('pesteater');
+    });
   });
 
   describe('stub defaults', () => {

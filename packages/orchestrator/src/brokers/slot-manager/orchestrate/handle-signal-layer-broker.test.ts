@@ -176,6 +176,32 @@ describe('handleSignalLayerBroker', () => {
     });
   });
 
+  describe('failed signal - pesteater', () => {
+    it('VALID: {signal: failed, role: pesteater} => bubbles to user (no slot-manager recovery)', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({ signal: 'failed', summary: 'Cannot reproduce' as never });
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        questId,
+        workItemId,
+        workTracker,
+        role: 'pesteater',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'bubble_to_user',
+        summary: 'Cannot reproduce',
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('failed signal - pathseeker', () => {
     it('VALID: {signal: failed, role: pathseeker} => bubbles to user', async () => {
       handleSignalLayerBrokerProxy();

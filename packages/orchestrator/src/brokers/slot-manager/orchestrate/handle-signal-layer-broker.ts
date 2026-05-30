@@ -41,6 +41,9 @@ const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
   'pathseeker-assertion-correctness': null,
   'pathseeker-walk': null,
   blightwarden: 'pathseeker',
+  // PestEater dispatches via the MCP `/dumpster-launch` path and never enters the slot-manager
+  // loop; its failures bubble to the user (terminal), matching the pathseeker-* variants.
+  pesteater: null,
 };
 
 type HandleSignalResult =

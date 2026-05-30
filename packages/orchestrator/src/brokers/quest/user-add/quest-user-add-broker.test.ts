@@ -65,6 +65,35 @@ describe('questUserAddBroker', () => {
     expect(chaosItem?.sessionId).toBe(undefined);
   });
 
+  it('VALID: {input.questType: "bug-hunt"} => seeds no work item and omits chaoswhispererWorkItemId', async () => {
+    const brokerProxy = questUserAddBrokerProxy();
+    const guildId = GuildIdStub();
+    const questFilePath = FilePathStub({
+      value: '/home/testuser/.dungeonmaster/guilds/g/quests/q/quest.json',
+    });
+    const questFolderPath = FilePathStub({
+      value: '/home/testuser/.dungeonmaster/guilds/g/quests/q',
+    });
+
+    brokerProxy.setupQuestCreation({ questFilePath, questFolderPath });
+
+    const input = AddQuestInputStub({
+      title: 'Fix Bug',
+      userRequest: 'The tool result is not rendering',
+      questType: 'bug-hunt',
+    });
+
+    const result = await questUserAddBroker({ input, guildId });
+
+    expect(result).toStrictEqual({
+      success: true,
+      questId: expect.stringMatching(UUID_PATTERN),
+      questFolder: expect.stringMatching(UUID_PATTERN),
+      filePath: questFilePath,
+    });
+    expect(brokerProxy.getLastInitialWorkItems()).toStrictEqual([]);
+  });
+
   it('ERROR: {questCreateBroker throws} => returns failure result with error message', async () => {
     const brokerProxy = questUserAddBrokerProxy();
     const guildId = GuildIdStub();

@@ -20,6 +20,9 @@ describe('InstallFlow', () => {
       const createContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.claude/commands/dumpster-create.md' }),
       });
+      const huntContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-hunt.md' }),
+      });
       const launchContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.claude/commands/dumpster-launch.md' }),
       });
@@ -31,10 +34,11 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-launch.md',
+          'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md',
       });
 
       expect(createContent).toBe(slashCommandsStatics.dumpsterCreate.body);
+      expect(huntContent).toBe(slashCommandsStatics.dumpsterHunt.body);
       expect(launchContent).toBe(slashCommandsStatics.dumpsterLaunch.body);
     });
   });

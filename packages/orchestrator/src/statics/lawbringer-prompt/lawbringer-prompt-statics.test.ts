@@ -18,6 +18,10 @@ describe('lawbringerPromptStatics', () => {
     );
   });
 
+  it('VALID: prompt template => documents the whole-diff bug-hunt review mode', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^## Review Mode$/mu);
+  });
+
   it('VALID: prompt template => does not reference removed verify-minion roles', () => {
     const { template } = lawbringerPromptStatics.prompt;
 

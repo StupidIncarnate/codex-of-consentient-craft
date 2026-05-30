@@ -15,6 +15,7 @@ describe('executionFloorConfigStatics', () => {
         },
         { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-walk', type: 'entrance' },
         { name: 'FORGE', role: 'codeweaver', type: 'floor' },
+        { name: 'EXTERMINATION', role: 'pesteater', type: 'floor' },
         { name: 'MINI BOSS', role: 'ward', wardPosition: 'first', type: 'floor' },
         { name: 'INFIRMARY', role: 'spiritmender', type: 'floor' },
         { name: 'ARENA', role: 'siegemaster', type: 'floor' },

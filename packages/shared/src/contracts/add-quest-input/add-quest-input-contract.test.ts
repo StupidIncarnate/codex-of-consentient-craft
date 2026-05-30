@@ -46,4 +46,28 @@ describe('addQuestInputContract', () => {
       }),
     ).toThrow(/Invalid enum value/u);
   });
+
+  it('VALID: {questType: "bug-hunt"} => parses with questType', () => {
+    const result = AddQuestInputStub({
+      title: 'Fix Bug',
+      userRequest: 'The tool result is not rendering',
+      questType: 'bug-hunt',
+    });
+
+    expect(result).toStrictEqual({
+      title: 'Fix Bug',
+      userRequest: 'The tool result is not rendering',
+      questType: 'bug-hunt',
+    });
+  });
+
+  it('INVALID: {questType: "bogus"} => throws', () => {
+    expect(() =>
+      addQuestInputContract.parse({
+        title: 'Test Quest',
+        userRequest: 'User wants to test the quest system',
+        questType: 'bogus',
+      }),
+    ).toThrow(/Invalid enum value/u);
+  });
 });
