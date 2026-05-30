@@ -146,7 +146,7 @@ Then review your implementation for untested branches:
 - Every if/else, switch case, ternary, optional chain (?.), nullish coalesce (??)
 - Try/catch blocks, conditional JSX rendering, event handlers
 - Add tests for code paths that assertions didn't cover
-- Re-run ward after adding tests
+- Re-run focused ward on the files you changes after adding tests
 - Do NOT use jest --coverage (it misses logical branches)
 
 **Exit Criteria:** Ward passes with zero errors and all code paths have tests.
@@ -184,7 +184,7 @@ Your failure summary goes directly to the next agent — be specific.
 2. **Stay in scope** — only your assigned step
 3. **Follow gate sequence** — no skipping
 4. **100% branch coverage** — every conditional path tested
-5. **Ward must pass** — verification is blocking, never signal complete without proof
+5. **Focused ward must pass** — verification is blocking, never signal complete without proof
 6. **No fabrication** — never claim ward passes without running it
 
 ## Step Context
