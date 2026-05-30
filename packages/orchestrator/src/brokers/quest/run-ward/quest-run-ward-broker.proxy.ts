@@ -52,6 +52,9 @@ export const questRunWardBrokerProxy = (): {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
   getPersistedLastWardRunId: (params: { workItemId: QuestWorkItemId }) => FileName | undefined;
+  getPersistedWorkItemRelatedDataItems: (params: {
+    workItemId: QuestWorkItemId;
+  }) => WorkItem['relatedDataItems'] | undefined;
   getPersistedWardModes: () => readonly ('changed' | 'full' | undefined)[];
   getPersistedWardResultExitCode: () => ExitCode | undefined;
   getSpawnedArgs: () => unknown;
@@ -215,6 +218,13 @@ export const questRunWardBrokerProxy = (): {
     }: {
       workItemId: QuestWorkItemId;
     }): FileName | undefined => findWorkItemInLatestQuest({ workItemId })?.lastWardRunId,
+
+    getPersistedWorkItemRelatedDataItems: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): WorkItem['relatedDataItems'] | undefined =>
+      findWorkItemInLatestQuest({ workItemId })?.relatedDataItems,
 
     getPersistedWardModes: (): readonly ('changed' | 'full' | undefined)[] => {
       const quests = parseAllPersistedQuests();

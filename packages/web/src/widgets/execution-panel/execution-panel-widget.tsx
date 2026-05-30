@@ -398,6 +398,18 @@ export const ExecutionPanelWidget = ({
                         const wiDepLabels = wi.dependsOn
                           .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                           .filter((label) => label.length > 0);
+                        const wiWardRefs = wi.relatedDataItems.filter((ref) =>
+                          ref.startsWith('wardResults/'),
+                        );
+                        const wiWardResults = wiWardRefs
+                          .map((ref) =>
+                            wardResultsById.get(
+                              ref.slice(
+                                WARD_RESULTS_PREFIX_LENGTH,
+                              ) as (typeof quest.wardResults)[0]['id'],
+                            ),
+                          )
+                          .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
                         return (
                           <ExecutionRowLayerWidget
                             key={wi.id}
@@ -417,6 +429,9 @@ export const ExecutionPanelWidget = ({
                             completedAt={wi.completedAt}
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
+                            {...(wiWardResults.length > 0
+                              ? { wardResults: wiWardResults, questId: quest.id }
+                              : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
                             {...(guildSlug ? { guildSlug } : {})}
@@ -489,7 +504,7 @@ export const ExecutionPanelWidget = ({
                             {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
                             {...(wi.summary ? { summary: wi.summary } : {})}
                             {...(resolvedWardResults.length > 0
-                              ? { wardResults: resolvedWardResults }
+                              ? { wardResults: resolvedWardResults, questId: quest.id }
                               : {})}
                             {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
                             {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}

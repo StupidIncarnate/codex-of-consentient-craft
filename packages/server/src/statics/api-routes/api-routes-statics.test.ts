@@ -19,6 +19,7 @@ describe('apiRoutesStatics', () => {
         resume: '/api/quests/:questId/resume',
         abandon: '/api/quests/:questId/abandon',
         delete: '/api/quests/:questId',
+        wardDetail: '/api/quests/:questId/ward-results/:wardResultId',
       },
       process: {
         status: '/api/process/:processId',

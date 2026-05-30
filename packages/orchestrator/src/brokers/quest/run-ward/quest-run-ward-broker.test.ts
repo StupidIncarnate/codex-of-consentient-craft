@@ -173,6 +173,12 @@ describe('questRunWardBroker', () => {
       expect(proxy.getPersistedWorkItemStatus({ workItemId })).toBe('failed');
       expect(proxy.getPersistedLastWardRunId({ workItemId })).toBe(runId);
       expect(proxy.getPersistedWardResultExitCode()).toBe(ExitCodeStub({ value: 1 }));
+      // The wardResult must be linked back to the work item via relatedDataItems —
+      // the execution panel resolves a row's ward results ONLY through this ref. Without
+      // it the [WARD] row shows "ward_failed" but never the exit code / detail.
+      expect(proxy.getPersistedWorkItemRelatedDataItems({ workItemId })).toStrictEqual([
+        `wardResults/${proxy.getFixedWardResultId()}`,
+      ]);
     });
   });
 

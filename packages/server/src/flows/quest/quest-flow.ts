@@ -24,6 +24,7 @@ import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-re
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
 import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
+import { QuestWardDetailResponder } from '../../responders/quest/ward-detail/quest-ward-detail-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
 export const QuestFlow = (): Hono => {
@@ -55,6 +56,16 @@ export const QuestFlow = (): Hono => {
     const result = await QuestGetResponder({
       params: { questId: c.req.param('questId') },
       query: { stage: c.req.query('stage') },
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.quests.wardDetail, async (c) => {
+    const result = await QuestWardDetailResponder({
+      params: {
+        questId: c.req.param('questId'),
+        wardResultId: c.req.param('wardResultId'),
+      },
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

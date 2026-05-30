@@ -123,6 +123,10 @@ export const questRunWardBroker = async ({
           id: workItemId,
           status,
           completedAt,
+          // Link the wardResult back to the work item — the execution panel resolves a row's
+          // ward results ONLY through relatedDataItems `wardResults/<id>` refs. Without this the
+          // [WARD] row renders status + error but never the exit code / detail breakdown.
+          relatedDataItems: [`wardResults/${wardResult.id}`],
           ...(lastWardRunId === undefined ? {} : { lastWardRunId }),
           ...(status === 'failed' ? { errorMessage: 'ward_failed' } : {}),
         },

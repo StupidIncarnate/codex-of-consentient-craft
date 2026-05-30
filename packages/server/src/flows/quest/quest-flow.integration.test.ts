@@ -30,6 +30,18 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('GET /api/quests/:questId/ward-results/:wardResultId', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestWardDetailResponder and returns 404', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+      const wardResultId = '22222222-2222-4222-8222-222222222222';
+
+      const response = await app.request(`/api/quests/${questId}/ward-results/${wardResultId}`);
+
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe('PATCH /api/quests/:questId', () => {
     it('VALID: {questId, body} => delegates to QuestModifyResponder and returns response', async () => {
       const app = QuestFlow();

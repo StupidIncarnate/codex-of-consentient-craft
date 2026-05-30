@@ -33,6 +33,19 @@ describe('wardOutputToRunIdTransformer', () => {
 
       expect(result).toBe('1700000000000-dead');
     });
+
+    it('VALID: {run line with trailing duration suffix} => returns run ID without the suffix', () => {
+      // Real ward CLI appends a total-duration suffix to the run line, e.g.
+      // `run: 1780108054226-a080  (80.7s)` (see ward resultToSummaryTransformer). The run ID
+      // must be extracted without the `  (80.7s)` tail so `ward detail <runId>` resolves it.
+      const output = ErrorMessageStub({
+        value: 'run: 1780108054226-a080  (80.7s)\nlint:      FAIL  1 packages',
+      });
+
+      const result = wardOutputToRunIdTransformer({ output });
+
+      expect(result).toBe('1780108054226-a080');
+    });
   });
 
   describe('output without run ID line', () => {

@@ -12,7 +12,10 @@ import {
   type FileName,
 } from '@dungeonmaster/shared/contracts';
 
-const RUN_ID_REGEX = /^run: (.+)$/mu;
+// Capture only the `<timestamp>-<hex>` run id. The line may carry a trailing total-duration
+// suffix (`run: 1780108054226-a080  (80.7s)`) appended by ward's resultToSummaryTransformer;
+// the suffix must not bleed into the captured id or `ward detail <runId>` fails to resolve it.
+const RUN_ID_REGEX = /^run: (\d+-[a-f0-9]+)/mu;
 
 export const wardOutputToRunIdTransformer = ({
   output,

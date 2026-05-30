@@ -1900,6 +1900,44 @@ describe('ExecutionPanelWidget', () => {
 
       expect(wardResultEl.textContent).toBe('Ward exit code: 1 (changed)');
     });
+
+    it('VALID: {ward work item with NO step ref, only wardResults ref} => shows ward exit code', async () => {
+      // Real ward work items carry no `steps/` ref — only `wardResults/<id>`. They render
+      // through the panel's non-stepped branch, which must still resolve + pass wardResults.
+      ExecutionPanelWidgetProxy();
+      const wardResult = WardResultStub({
+        id: 'b0000000-0000-0000-0000-000000000002',
+        exitCode: 1,
+        wardMode: 'changed',
+      });
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Build broker' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'ward',
+            status: 'failed',
+            relatedDataItems: ['wardResults/b0000000-0000-0000-0000-000000000002'],
+          }),
+        ],
+        wardResults: [wardResult],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const wardRowHeader = screen
+        .getAllByTestId('execution-row-layer-widget')[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(wardRowHeader);
+
+      expect(screen.getByTestId('execution-row-ward-result').textContent).toBe(
+        'Ward exit code: 1 (changed)',
+      );
+    });
   });
 
   describe('retry badge', () => {

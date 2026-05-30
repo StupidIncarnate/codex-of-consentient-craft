@@ -11,6 +11,7 @@ describe('webConfigStatics', () => {
           quests: '/api/quests',
           questsQueue: '/api/quests/queue',
           questById: '/api/quests/:questId',
+          questWardDetail: '/api/quests/:questId/ward-results/:wardResultId',
           guildSessions: '/api/guilds/:guildId/sessions',
           sessionChatHistory: '/api/sessions/:sessionId/chat/history',
           questNew: '/api/guilds/:guildId/quests',

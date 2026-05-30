@@ -13,6 +13,7 @@ import type {
   ContractName,
   ErrorMessage,
   ObservableId,
+  QuestId,
   WardResult,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
@@ -31,6 +32,7 @@ import { durationDisplayTransformer } from '../../transformers/duration-display/
 import { executionRowSubtitleTransformer } from '../../transformers/execution-row-subtitle/execution-row-subtitle-transformer';
 import { ChatEntryListWidget } from '../chat-entry-list/chat-entry-list-widget';
 import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
+import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
   order: StepOrder;
@@ -54,6 +56,7 @@ export interface ExecutionRowLayerWidgetProps {
   outputContracts?: ContractName[];
   wardResults?: WardResult[];
   actualSignal?: WorkItem['actualSignal'];
+  questId?: QuestId;
 }
 
 const EXPANDABLE_STATUSES: ExecutionStepStatus[] = [
@@ -109,6 +112,7 @@ export const ExecutionRowLayerWidget = ({
   outputContracts,
   wardResults,
   actualSignal,
+  questId,
 }: ExecutionRowLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const hasEntries = entries !== undefined && entries.length > 0;
@@ -442,6 +446,9 @@ export const ExecutionRowLayerWidget = ({
                     Ward exit code: {String(wr.exitCode)}
                     {wr.wardMode ? ` (${wr.wardMode})` : ''}
                   </Text>
+                  {questId === undefined ? null : (
+                    <WardResultDetailLayerWidget questId={questId} wardResult={wr} />
+                  )}
                 </Box>
               ))
             : null}
