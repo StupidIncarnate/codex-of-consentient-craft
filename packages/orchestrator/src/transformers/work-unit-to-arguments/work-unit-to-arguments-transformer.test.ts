@@ -523,6 +523,46 @@ describe('workUnitToArgumentsTransformer', () => {
       );
     });
 
+    it('VALID: {siegemaster runtime with devServerUrl AND devCommand} => renders both Dev Server URL and Dev Command lines', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [],
+          edges: [],
+        }),
+        devServerUrl: 'http://localhost:3737' as never,
+        devCommand: 'npm run dev' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nDev Server URL: http://localhost:3737\nDev Command: npm run dev\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+
+    it('VALID: {siegemaster operational with no dev server} => omits both Dev Server URL and Dev Command lines', () => {
+      const workUnit = SiegemasterWorkUnitStub({
+        questId: QuestIdStub({ value: 'quest-1' }),
+        flow: FlowStub({
+          name: 'Deploy Flow',
+          flowType: 'operational',
+          entryPoint: 'npm run deploy',
+          nodes: [],
+          edges: [],
+        }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: quest-1\nFlow: Deploy Flow\n  flowType: operational\n  entryPoint: npm run deploy\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+
     it('VALID: {siegemaster fully populated: nodes + observables + edges + design decisions + devServerUrl} => renders full block in canonical order', () => {
       const workUnit = SiegemasterWorkUnitStub({
         questId: QuestIdStub({ value: 'quest-1' }),
@@ -687,6 +727,27 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toBe(
         '## Instructions\nFix the build.\n\nFiles:\n  - /src/broken.ts\nErrors:\n  - Build failed\nVerification Command: npm run build',
+      );
+    });
+
+    it('VALID: {spiritmender batch: multiple filePaths + errors + verificationCommand + contextInstructions} => renders all four sections', () => {
+      const workUnit = SpiritmenderWorkUnitStub({
+        filePaths: [
+          AbsoluteFilePathStub({ value: '/src/broker.ts' }),
+          AbsoluteFilePathStub({ value: '/src/transformer.ts' }),
+        ],
+        errors: [
+          ErrorMessageStub({ value: 'Missing return type on broker' }),
+          ErrorMessageStub({ value: 'Unused import in transformer' }),
+        ],
+        verificationCommand: 'npm run ward -- -- /src/broker.ts /src/transformer.ts' as never,
+        contextInstructions: '## Ward Failure\nFix the lint and typecheck errors.' as never,
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        '## Ward Failure\nFix the lint and typecheck errors.\n\nFiles:\n  - /src/broker.ts\n  - /src/transformer.ts\nErrors:\n  - Missing return type on broker\n  - Unused import in transformer\nVerification Command: npm run ward -- -- /src/broker.ts /src/transformer.ts',
       );
     });
 

@@ -12,6 +12,24 @@ type PersistedQuest = ReturnType<typeof QuestStub>;
 
 const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
 
+// The per-role routing table's BLOCK set: every agent role this responder routes to BLOCK on
+// a `failed` signal. `lawbringer` is excluded (RECOVER path, covered separately); `ward` is
+// excluded (command role, terminal status set by run-ward, never reaches this responder); chat
+// roles (`chaoswhisperer`/`glyphsmith`) and the deprecated `pathseeker` never signal-back.
+// WorkItemRole value-import is banned in test files, so the routing-table subset is enumerated
+// explicitly — adding a new agent role to the routing table requires adding it here too.
+const BLOCK_ROLES = [
+  'codeweaver',
+  'siegemaster',
+  'spiritmender',
+  'blightwarden',
+  'pathseeker-surface',
+  'pathseeker-dedup',
+  'pathseeker-assertion-correctness',
+  'pathseeker-walk',
+  'pesteater',
+] as const;
+
 const parseLatestPersisted = (persisted: readonly unknown[]): PersistedQuest => {
   const raw = persisted[persisted.length - 1];
   const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -176,10 +194,20 @@ describe('QuestHandleSignalBackResponder', () => {
   });
 
   describe('pathseeker-walk post-walk hook', () => {
-    it('VALID: {role: pathseeker-walk, signal: complete} => transitions to complete AND invokes post-walk hook', async () => {
+    it('VALID: {role: pathseeker-walk, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/blightwarden/final-ward chain)', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      // The hook's stepsToWorkItemsTransformer mints one UUID per generated item; queue distinct
+      // ids so the persisted chain has unique sibling ids (empty steps/flows => ward + blightwarden
+      // + final-ward = 3 items).
+      proxy.setupWalkHookUuids({
+        uuids: [
+          'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b',
+          'd2d3d4d5-e6e7-4f8a-9b1c-2d3e4f5a6b7c',
+          'e3e4e5e6-f7f8-4a9b-8c1d-3e4f5a6b7c8d',
+        ],
+      });
       const walkItem = WorkItemStub({
         id: walkId,
         role: 'pathseeker-walk',
@@ -202,10 +230,14 @@ describe('QuestHandleSignalBackResponder', () => {
 
       expect(result).toStrictEqual({ success: true });
 
+      // The LAST persisted write is the hook's modify call — proves the hook fired. It carries
+      // the generated downstream chain (the only writer of ward/blightwarden items here).
       const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-      const persistedWalk = persistedQuest.workItems.find((wi) => wi.id === walkId);
+      const generatedRoles = persistedQuest.workItems
+        .filter((wi) => wi.id !== walkId)
+        .map((wi) => wi.role);
 
-      expect(persistedWalk?.status).toBe('complete');
+      expect(generatedRoles).toStrictEqual(['ward', 'blightwarden', 'ward']);
     });
 
     it('VALID: {role: pathseeker-walk, signal: failed} => transitions to failed, does NOT invoke post-walk hook', async () => {
@@ -236,6 +268,77 @@ describe('QuestHandleSignalBackResponder', () => {
       const persistedWalk = persistedQuest.workItems.find((wi) => wi.id === walkId);
 
       expect(persistedWalk?.status).toBe('failed');
+    });
+  });
+
+  describe('failed-role BLOCK routing', () => {
+    it.each(BLOCK_ROLES)(
+      'VALID: {role: %s, signal: failed} => quest status blocked AND every pending item skipped',
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
+        const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+        const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+        const failedItem = WorkItemStub({ id: failedId, role, status: 'in_progress' });
+        const pendingItem = WorkItemStub({
+          id: pendingId,
+          role: 'lawbringer',
+          status: 'pending',
+          dependsOn: [failedId],
+        });
+        const quest = QuestStub({
+          id: questId,
+          status: 'in_progress',
+          workItems: [failedItem, pendingItem],
+        });
+        proxy.setupQuestBlockPassthrough({ quest });
+
+        await QuestHandleSignalBackResponder({ questId, workItemId: failedId, signal: 'failed' });
+
+        const persistedQuest = proxy.getLastPersistedQuest();
+
+        expect(persistedQuest.status).toBe('blocked');
+        expect(persistedQuest.workItems.find((wi) => wi.id === failedId)?.status).toBe('failed');
+        expect(persistedQuest.workItems.find((wi) => wi.id === pendingId)?.status).toBe('skipped');
+      },
+    );
+
+    it('VALID: {role: blightwarden, signal: failed-replan} => routed to BLOCK (treated as failed): quest blocked + pending skipped', async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+      const blightItem = WorkItemStub({
+        id: failedId,
+        role: 'blightwarden',
+        status: 'in_progress',
+      });
+      const pendingItem = WorkItemStub({
+        id: pendingId,
+        role: 'ward',
+        status: 'pending',
+        spawnerType: 'command',
+        dependsOn: [failedId],
+        wardMode: 'full',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [blightItem, pendingItem],
+      });
+      proxy.setupQuestBlockPassthrough({ quest });
+
+      await QuestHandleSignalBackResponder({
+        questId,
+        workItemId: failedId,
+        signal: 'failed-replan',
+      });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+
+      expect(persistedQuest.status).toBe('blocked');
+      expect(persistedQuest.workItems.find((wi) => wi.id === failedId)?.status).toBe('failed');
+      expect(persistedQuest.workItems.find((wi) => wi.id === pendingId)?.status).toBe('skipped');
     });
   });
 

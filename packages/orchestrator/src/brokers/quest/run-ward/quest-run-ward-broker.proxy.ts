@@ -36,17 +36,49 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
+import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-on-failure-broker.proxy';
+import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
+import { questSpliceFixerBrokerProxy } from '../splice-fixer/quest-splice-fixer-broker.proxy';
 
 type QuestInput = ReturnType<typeof QuestStub>;
 
 const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
+// A realistic ward-detail blob with one lint error so wardDetailToSpiritmenderBatchesTransformer
+// produces a non-empty batch (one file, one error) on the ward failure recovery path.
+const WARD_FAIL_DETAIL_JSON = JSON.stringify({
+  checks: [
+    {
+      checkType: 'lint',
+      projectResults: [
+        {
+          errors: [
+            {
+              filePath: '/project/src/broken.ts',
+              line: 12,
+              column: 4,
+              message: 'Unexpected any',
+              rule: 'no-explicit-any',
+            },
+          ],
+          testFailures: [],
+        },
+      ],
+    },
+  ],
+});
+
 export const questRunWardBrokerProxy = (): {
   setupWardPass: (params: { quest: QuestInput; runId: FileName }) => void;
   setupWardFail: (params: { quest: QuestInput; exitCode: ExitCode; runId: FileName }) => void;
+  setupWardFailExhausted: (params: {
+    quest: QuestInput;
+    exitCode: ExitCode;
+    runId: FileName;
+  }) => void;
   setupWardCrash: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
   getPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
@@ -57,6 +89,8 @@ export const questRunWardBrokerProxy = (): {
   }) => WorkItem['relatedDataItems'] | undefined;
   getPersistedWardModes: () => readonly ('changed' | 'full' | undefined)[];
   getPersistedWardResultExitCode: () => ExitCode | undefined;
+  getFinalPersistedWorkItems: () => readonly WorkItem[];
+  getFinalPersistedQuestStatus: () => Quest['status'] | undefined;
   getSpawnedArgs: () => unknown;
   getFixedWardResultId: () => WardResult['id'];
 } => {
@@ -69,6 +103,9 @@ export const questRunWardBrokerProxy = (): {
   const extraPathJoin = pathJoinAdapterProxy();
   const findProxy = questFindQuestPathBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
+  const getProxy = questGetBrokerProxy();
+  const blockProxy = questBlockOnFailureBrokerProxy();
+  const spliceProxy = questSpliceFixerBrokerProxy();
   const detailProxy = wardDetailBrokerProxy();
   const spawnProxy = childProcessSpawnStreamLinesAdapterProxy();
   const cwdProxy = processCwdAdapterProxy();
@@ -77,6 +114,10 @@ export const questRunWardBrokerProxy = (): {
   const WARD_RESULTS_PATH = FilePathStub({ value: '/home/testuser/ward-results' });
   const WARD_RESULT_FILE_PATH = FilePathStub({
     value: '/home/testuser/ward-results/result.json',
+  });
+  const BATCHES_DIR_PATH = FilePathStub({ value: '/home/testuser/spiritmender-batches' });
+  const BATCH_FILE_PATH = FilePathStub({
+    value: '/home/testuser/spiritmender-batches/batch.json',
   });
 
   const queueWardPersistPathJoins = (): void => {
@@ -87,9 +128,32 @@ export const questRunWardBrokerProxy = (): {
     extraPathJoin.returns({ result: WARD_RESULT_FILE_PATH });
   };
 
+  const queueBatchPathJoins = ({ batchCount }: { batchCount: number }): void => {
+    // On the ward failure recovery path the broker inlines pathJoin for the batches dir +
+    // one per spiritmender batch file.
+    extraPathJoin.returns({ result: BATCHES_DIR_PATH });
+    Array.from({ length: batchCount }).forEach(() => {
+      extraPathJoin.returns({ result: BATCH_FILE_PATH });
+    });
+  };
+
   // Pin crypto.randomUUID + Date.prototype.toISOString so result objects are deterministic.
+  // The FIRST randomUUID call is the wardResultId (preserved as FIXED_WARD_RESULT_UUID so the
+  // happy-path tests keep matching getFixedWardResultId()); every subsequent call (spiritmender
+  // ids, ward-retry id) gets a distinct valid UUID so the recovery splice produces non-colliding
+  // ids whose exact dependency wiring the tests can assert.
+  const uuidCounter = { value: 0 };
+  const uuidSuffixWidth = 2;
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
-  uuidSpy.mockReturnValue(FIXED_WARD_RESULT_UUID as ReturnType<typeof crypto.randomUUID>);
+  uuidSpy.mockImplementation(((): ReturnType<typeof crypto.randomUUID> => {
+    const index = uuidCounter.value;
+    uuidCounter.value += 1;
+    const value =
+      index === 0
+        ? FIXED_WARD_RESULT_UUID
+        : `f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0${String(index).padStart(uuidSuffixWidth, '0')}`;
+    return value as ReturnType<typeof crypto.randomUUID>;
+  }) as typeof crypto.randomUUID);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(FIXED_TIMESTAMP);
 
   const setupFindQuestPathForBroker = ({ quest }: { quest: QuestInput }): void => {
@@ -139,6 +203,26 @@ export const questRunWardBrokerProxy = (): {
         return questContract.parse(parsed);
       });
 
+  // The authoritative post-recovery quest is whatever the recovery broker persisted last:
+  //  - RECOVER path → questSpliceFixerBroker (real) persists the spliced + rewired workItems.
+  //  - EXHAUSTION path → questBlockOnFailureBroker (real, passthrough) persists blocked status +
+  //    skipped items.
+  // Both run the real questModifyBroker whose only mocked boundary is questPersistBroker, so the
+  // persisted quest.json content is the true outcome. Prefer the splice write; fall back to block.
+  const resolveFinalRecoveryQuest = (): Quest | undefined => {
+    const spliced = spliceProxy.getPersistedQuests();
+    const lastSpliced = spliced[spliced.length - 1];
+    if (lastSpliced !== undefined) {
+      return lastSpliced;
+    }
+    const blockContents = blockProxy.getAllPersistedContents();
+    const lastBlock = blockContents[blockContents.length - 1];
+    if (typeof lastBlock !== 'string') {
+      return undefined;
+    }
+    return questContract.parse(JSON.parse(lastBlock));
+  };
+
   const findWorkItemInLatestQuest = ({
     workItemId,
   }: {
@@ -185,14 +269,57 @@ export const questRunWardBrokerProxy = (): {
     }): void => {
       setupFindQuestPathForBroker({ quest });
       queueWardPersistPathJoins();
+      // 3-4. questModifyBroker × 2 (wardResults + work-item terminal)
       modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+      // 5. questGetBroker — load quest for failure routing (retry budget + blightwarden check)
+      getProxy.setupQuestFound({ quest });
+      // 6. spiritmender batch sidecar writes (one batch from WARD_FAIL_DETAIL_JSON)
+      queueBatchPathJoins({ batchCount: 1 });
+      // 7. questSpliceFixerBroker → questWorkItemInsertBroker → questModifyBroker (real splice)
+      spliceProxy.setupQuestModify({ quest });
+      // Exhausted-retry routing instead splices nothing and blocks — questBlockOnFailureBroker
+      // is module-mocked to resolve { blocked: true } so that path needs no extra queueing.
+      blockProxy.setupBlocked();
 
       spawnProxy.setupSuccess({
         exitCode,
         stdoutLines: [`run: ${runId}`, 'lint: FAIL'],
       });
-      detailProxy.setupSuccess({ output: '{"checks":[]}' });
+      // Inject a realistic ward-detail blob so the batch transformer produces a non-empty
+      // batch (the broker's recovery path then splices a spiritmender + ward retry).
+      detailProxy.setupSuccess({ output: WARD_FAIL_DETAIL_JSON });
+    },
+
+    setupWardFailExhausted: ({
+      quest,
+      exitCode,
+      runId,
+    }: {
+      quest: QuestInput;
+      exitCode: ExitCode;
+      runId: FileName;
+    }): void => {
+      // Same prefix as setupWardFail up to the failure-routing fork. The ward item here is on its
+      // last attempt (attempt >= maxAttempts - 1), so the broker routes to questBlockOnFailureBroker
+      // instead of splicing. Run the REAL block broker (passthrough) so the test can assert the
+      // actual blocked status + skipped pending items it persists.
+      setupFindQuestPathForBroker({ quest });
+      queueWardPersistPathJoins();
+      // 3-4. questModifyBroker × 2 (wardResults + work-item terminal)
+      modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      // 5. questGetBroker — load quest for failure routing (retry budget check)
+      getProxy.setupQuestFound({ quest });
+      // 6. questBlockOnFailureBroker (real): its own questGetBroker load + questModifyBroker persist.
+      blockProxy.setupPassthrough();
+      blockProxy.setupQuestFound({ quest });
+
+      spawnProxy.setupSuccess({
+        exitCode,
+        stdoutLines: [`run: ${runId}`, 'lint: FAIL'],
+      });
+      detailProxy.setupSuccess({ output: WARD_FAIL_DETAIL_JSON });
     },
 
     setupWardCrash: ({ quest, exitCode }: { quest: QuestInput; exitCode: ExitCode }): void => {
@@ -239,6 +366,14 @@ export const questRunWardBrokerProxy = (): {
       const found = reversed.find((q) => q.wardResults.length > 0);
       return found?.wardResults[found.wardResults.length - 1]?.exitCode;
     },
+
+    getFinalPersistedWorkItems: (): readonly WorkItem[] => {
+      const recovered = resolveFinalRecoveryQuest();
+      return recovered ? recovered.workItems : [];
+    },
+
+    getFinalPersistedQuestStatus: (): Quest['status'] | undefined =>
+      resolveFinalRecoveryQuest()?.status,
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
 

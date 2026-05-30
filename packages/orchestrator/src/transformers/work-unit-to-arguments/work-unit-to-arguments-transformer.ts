@@ -133,7 +133,13 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'siegemaster': {
-      const { questId: siegeQuestId, relatedDesignDecisions, flow, devServerUrl } = workUnit;
+      const {
+        questId: siegeQuestId,
+        relatedDesignDecisions,
+        flow,
+        devServerUrl,
+        devCommand,
+      } = workUnit;
       const siegeParts: ContentText[] = [
         contentTextContract.parse(`Quest ID: ${siegeQuestId}`),
         contentTextContract.parse(`Flow: ${flow.name}`),
@@ -181,6 +187,10 @@ export const workUnitToArgumentsTransformer = ({
 
       if (devServerUrl !== undefined) {
         siegeParts.push(contentTextContract.parse(`Dev Server URL: ${devServerUrl}`));
+      }
+
+      if (devCommand !== undefined) {
+        siegeParts.push(contentTextContract.parse(`Dev Command: ${devCommand}`));
       }
 
       siegeParts.push(contentTextContract.parse(''));

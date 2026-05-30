@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer helper for questGetNextStepBroker — picks the work-items to bundle into a single spawn-agents response. Returns all pathseeker-surface items together, both pathseeker-corrections items together when both ready, otherwise the single oldest ready item. Ward items are handled by the parent broker before this runs.
+ * PURPOSE: Layer helper for questGetNextStepBroker — picks the work-items to bundle into a single spawn-agents response. Returns all pathseeker-surface items together, all spiritmender items together (parallel recovery dispatch), both pathseeker-corrections items together when both ready, otherwise the single oldest ready item. Ward items are handled by the parent broker before this runs.
  *
  * USAGE:
  * const batch = selectBatchLayerBroker({ ready });
@@ -13,6 +13,12 @@ export const selectBatchLayerBroker = ({ ready }: { ready: WorkItem[] }): WorkIt
   const surfaceItems = ready.filter((item) => item.role === 'pathseeker-surface');
   if (surfaceItems.length > 0) {
     return surfaceItems;
+  }
+
+  // Spiritmender — every ready spiritmender batches together (parallel recovery dispatch).
+  const spiritmenderItems = ready.filter((item) => item.role === 'spiritmender');
+  if (spiritmenderItems.length > 0) {
+    return spiritmenderItems;
   }
 
   // Pathseeker-corrections — dedup + assertion-correctness when both are ready simultaneously.

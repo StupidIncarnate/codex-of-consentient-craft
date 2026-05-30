@@ -6,6 +6,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const questWorkItemInsertBrokerProxy = (): {
   setupQuestModify: (params: { quest: Quest }) => void;
+  getPersistedQuests: () => readonly unknown[];
 } => {
   const modifyProxy = questModifyBrokerProxy();
 
@@ -13,5 +14,7 @@ export const questWorkItemInsertBrokerProxy = (): {
     setupQuestModify: ({ quest }: { quest: Quest }): void => {
       modifyProxy.setupQuestFound({ quest });
     },
+
+    getPersistedQuests: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
   };
 };

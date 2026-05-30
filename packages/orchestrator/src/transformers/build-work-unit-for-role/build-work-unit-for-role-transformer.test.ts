@@ -1,12 +1,15 @@
 import {
   DependencyStepStub,
+  ErrorMessageStub,
   FlowStub,
   FlowNodeStub,
   FlowObservableStub,
   QuestContractEntryStub,
   QuestStub,
+  StepFileReferenceStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
 import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
 import { buildWorkUnitForRoleTransformer } from './build-work-unit-for-role-transformer';
 import { buildWorkUnitForRoleTransformerProxy } from './build-work-unit-for-role-transformer.proxy';
@@ -148,6 +151,45 @@ describe('buildWorkUnitForRoleTransformer', () => {
       });
     });
 
+    it('VALID: {role: siegemaster, flow, quest, devCommand, devServerUrl} => returns SiegemasterWorkUnit with both devCommand and devServerUrl', () => {
+      buildWorkUnitForRoleTransformerProxy();
+
+      const flow = FlowStub({
+        id: 'checkout-flow',
+        name: 'Checkout Flow',
+        nodes: [
+          FlowNodeStub({
+            id: 'cart-page',
+            observables: [FlowObservableStub()],
+          }),
+        ],
+      });
+
+      const quest = QuestStub({
+        flows: [flow],
+      });
+
+      const devServerUrl = DevServerUrlStub({ value: 'http://localhost:4700' });
+      const devCommand = DevCommandStub({ value: 'npm run dev' });
+
+      const result = buildWorkUnitForRoleTransformer({
+        role: 'siegemaster',
+        flow,
+        quest,
+        devServerUrl,
+        devCommand,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'siegemaster',
+        questId: quest.id,
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
+        devServerUrl,
+        devCommand,
+      });
+    });
+
     it('VALID: {role: siegemaster, flow, quest, no devServerUrl} => returns SiegemasterWorkUnit without devServerUrl', () => {
       buildWorkUnitForRoleTransformerProxy();
 
@@ -227,6 +269,38 @@ describe('buildWorkUnitForRoleTransformer', () => {
       expect(result).toStrictEqual({
         role: 'spiritmender',
         filePaths: ['/src/guards/auth/auth-guard.ts', '/src/guards/index.ts'],
+      });
+    });
+
+    it('VALID: {role: spiritmender, filePaths/errors/verificationCommand/contextInstructions batch} => returns SpiritmenderWorkUnit populated with all four fields', () => {
+      buildWorkUnitForRoleTransformerProxy();
+
+      const { path: filePathA } = StepFileReferenceStub({
+        path: '/src/brokers/auth/auth-broker.ts',
+      });
+      const { path: filePathB } = StepFileReferenceStub({ path: '/src/brokers/auth/index.ts' });
+      const errorA = ErrorMessageStub({ value: 'TS2339: property foo does not exist' });
+      const errorB = ErrorMessageStub({ value: 'no-unused-vars: bar is defined but never used' });
+
+      const result = buildWorkUnitForRoleTransformer({
+        role: 'spiritmender',
+        filePaths: [filePathA, filePathB],
+        errors: [errorA, errorB],
+        verificationCommand:
+          'npm run ward -- -- /src/brokers/auth/auth-broker.ts /src/brokers/auth/index.ts' as never,
+        contextInstructions: '## Instructions\nFix ward failures in the listed files.' as never,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'spiritmender',
+        filePaths: ['/src/brokers/auth/auth-broker.ts', '/src/brokers/auth/index.ts'],
+        errors: [
+          'TS2339: property foo does not exist',
+          'no-unused-vars: bar is defined but never used',
+        ],
+        verificationCommand:
+          'npm run ward -- -- /src/brokers/auth/auth-broker.ts /src/brokers/auth/index.ts',
+        contextInstructions: '## Instructions\nFix ward failures in the listed files.',
       });
     });
   });

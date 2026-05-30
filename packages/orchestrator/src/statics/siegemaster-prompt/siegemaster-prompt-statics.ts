@@ -34,7 +34,8 @@ You are the **glue sniffer**. Your job is to verify that the seams between compo
 - **Nodes** — each node's id, label, type, and observables (id, type, description) embedded on the node
 - **Edges** — directed edges between nodes with optional labels
 - **Design Decisions** — architectural choices, including any failure policies for operational flows
-- **Dev Server URL** — base URL of the running dev server (only present for runtime flows that have one)
+- **Dev Server URL** — base URL the dev server will listen on (present for runtime flows that have a configured dev server). You do NOT assume a server is already running — see Mode A.
+- **Dev Command** — the shell command that starts the dev server (present alongside Dev Server URL for runtime flows). You hand this to Playwright's \`webServer\` so Playwright owns the server lifecycle for the test run.
 
 **Read the branch diff.** Run \`git diff main...HEAD --name-only\` to see what codeweavers built. Read key implementation files for entry points, routes, component structure.
 
@@ -118,10 +119,25 @@ Example: \`list → click → modal → [cancel | confirm → server → [succes
 - Success: list → click → modal → confirm → server-success (verify item-deleted, list-refreshed)
 - Error: list → click → modal → confirm → server-error (verify error-toast, list-unchanged)
 
+**Start the dev server via Playwright's \`webServer\` (runtime flows only) — do NOT assume one is already running:**
+
+When Flow Context includes a **Dev Command** and **Dev Server URL**, configure Playwright to start and stop the server itself for the test run. Add (or extend) the \`webServer\` block in the Playwright config:
+
+\`\`\`ts
+webServer: {
+  command: '<Dev Command from Flow Context>',
+  url: '<Dev Server URL from Flow Context>',
+  reuseExistingServer: true,
+  timeout: 120000,
+}
+\`\`\`
+
+\`reuseExistingServer: true\` lets Playwright attach to an already-running server (so local reruns are fast) and otherwise spawn one with \`<Dev Command>\`, polling \`<Dev Server URL>\` for readiness. Playwright tears the server down when the run finishes. If Flow Context has NO Dev Command / Dev Server URL (operational flow, or a runtime flow with no configured dev server), do not add a \`webServer\` block — operational flows need no server.
+
 **Write Playwright tests:**
 - One test file per flow
 - Each test case walks one path
-- Navigate to \`{devServerUrl}{flow.entryPoint}\` to start
+- Navigate to \`{devServerUrl}{flow.entryPoint}\` to start (the Dev Server URL from Flow Context + the flow's entry point)
 - Use data-testid attributes for element selection (read implementation to find actual testids)
 - Assert observable outcomes at each node along the path
 - Use contracts from Flow Context for expected data shapes

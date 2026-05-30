@@ -280,28 +280,32 @@ Chat roles (spec phase), for completeness:
 
 ---
 
-## Signals & current failure semantics
+## Signals & failure semantics
 
 Agents report via the `signal-back` MCP tool. The live handler is
-`quest-handle-signal-back-responder.ts`, and it does exactly two things:
+`quest-handle-signal-back-responder.ts`, and it:
 
 1. Marks the named work item terminal: `complete` for signal `complete`; `failed` for signal `failed`
    **or** `failed-replan`. Stamps `completedAt`.
 2. If the item is `pathseeker-walk` **and** the signal is `complete`, fires the post-walk hook to
    generate the downstream chain.
+3. On a `failed` / `failed-replan` signal, routes by the failing item's `role` (see the failure table
+   under "Invariants" → "Failure recovery & blocking"): `lawbringer` recovers; every other agent role
+   blocks the quest.
 
-That is the entire failure path. **No recovery work items are created anywhere in the live
-`/dumpster-launch` flow:**
+Terminal-failure routing lives in the two places that set terminal status:
 
-- The `run-ward` broker (`quest-run-ward-broker.ts`) marks the ward item `complete`/`failed`, persists
-  the ward result, and explicitly delegates retry/recovery away (it does **not** create spiritmenders
-  or a ward-retry item).
-- `failed-replan` from Blightwarden is recorded as a plain `failed` — no replan item is inserted.
-- A `failed` item still **satisfies** its dependents (see the status table), so the chain continues to
-  run past a failure rather than halting at it.
+- **`run-ward` broker (`quest-run-ward-broker.ts`)** routes a non-zero ward exit: with retry budget
+  remaining it splices a spiritmender batch + a ward-retry (`questSpliceFixerBroker`) and rewires
+  downstream onto the retry; with retries exhausted it blocks the quest (`questBlockOnFailureBroker`).
+- **`signal-back` handler** routes agent failures: `lawbringer` splices spiritmender(s) + a
+  lawbringer-retry; `codeweaver` / `siegemaster` / `spiritmender` / `blightwarden` / `pathseeker-*` /
+  `pesteater` block the quest. `failed-replan` from Blightwarden is treated as `failed`, then routed by
+  the same table (→ BLOCK).
 
-Because `failed` satisfies dependents, a single failed item does not by itself stop the chain or block
-the quest — it propagates through to terminal states, and quest status is then derived:
+A blocked quest sets status `blocked` and marks every still-`pending` item `skipped`. A recovered
+quest stays `in_progress` and dispatches the spliced fixers on the next `get-next-step`. Quest status
+is otherwise derived:
 
 ### Quest status derivation (`workItemsToQuestStatusTransformer`)
 
@@ -316,12 +320,11 @@ Evaluated whenever work items change, against the current status:
 5. Else → **unchanged** (e.g. all items terminal but one is `failed` and nothing is pending → the quest
    stays `in_progress`: terminal-but-not-complete, the "stuck" state).
 
-> **Greenfield note.** The elaborate per-role recovery apparatus from the previous in-process
-> orchestration model — batched spiritmenders on ward failure, ward-retry items, the siege fix chain
-> (`codeweaver-fix → ward-rerun → siege-recheck`), and pathseeker replans on drain+skip — is **not
-> wired into the current path**. Those layer brokers (`run-*-layer-broker`, the `slot-manager/` tree,
-> `questOrchestrationLoopBroker`) are unreferenced. When recovery routing returns, it will hang off the
-> `signal-back` handler and the `run-ward` broker — the two places that currently set terminal status.
+> **Note.** Recovery routing hangs off the two terminal-status setters — the `signal-back` handler and
+> the `run-ward` broker. Recoverable failures (ward with budget, lawbringer) splice a spiritmender
+> batch + a retry via `questSpliceFixerBroker`; failures that would have routed to a pathseeker replan
+> in the previous in-process model instead BLOCK the quest (`questBlockOnFailureBroker`) — the
+> orchestrator does not auto-replan.
 
 ---
 
@@ -358,6 +361,38 @@ These hold under the current model and are the right things to assert in integra
 - **STATUS-3 — Terminal-but-failed with nothing pending → stays `in_progress`** (not `blocked`).
 - **STATUS-4 — Pre-execution / pathseeker-running statuses are never forced** to `blocked`/`in_progress`
   by the derivation.
+
+### Failure recovery & blocking
+
+Terminal-failure routing is driven by the failing item's `role`. Recoverable failures splice fixer
+items + a retry into `quest.workItems[]`; all other failures block the quest. The per-role table:
+
+| Failing item                                | Behavior                                                                   |
+|---------------------------------------------|----------------------------------------------------------------------------|
+| `ward` (retry budget remains)               | **RECOVER** — splice spiritmender(s) + ward-retry, rewire downstream       |
+| `ward` (retries exhausted)                  | **BLOCK**                                                                  |
+| `lawbringer`                                | **RECOVER** — splice spiritmender(s) + lawbringer-retry, rewire downstream |
+| `codeweaver`                                | **BLOCK**                                                                  |
+| `siegemaster`                               | **BLOCK**                                                                  |
+| `spiritmender`                              | **BLOCK**                                                                  |
+| `blightwarden` (`failed` / `failed-replan`) | **BLOCK**                                                                  |
+| `pathseeker-*`                              | **BLOCK**                                                                  |
+| `pesteater`                                 | **BLOCK**                                                                  |
+
+- **REC-1 — Ward failure splices spiritmenders + retry.** A `ward` item that fails with retry budget
+  remaining (`attempt < maxAttempts - 1`) splices one or more `spiritmender` items plus a `ward`-retry
+  item (same `wardMode`, `attempt + 1`) into `quest.workItems[]`. The quest stays `in_progress`.
+- **REC-2 — The spliced retry rewires downstream dependents.** The fixer splice rewires every
+  downstream dependent off the failed item onto the retry item via
+  `replacementMapping: [{ oldId: failedWorkItemId, newId: retryItem.id }]`, so siege/downstream items
+  depend on the retry rather than the original failure.
+- **BLK-1 — Pathseeker-routed failures block + skip pending.** A failure that routes to block
+  (`codeweaver` / `siegemaster` / `spiritmender` / `blightwarden` / `pathseeker-*` / `pesteater`, and
+  `ward` when retries are exhausted) sets quest status `blocked` and marks every still-`pending` item
+  `skipped`, so nothing dispatches on the broken state.
+- **BLK-2 — A `blocked` quest is not dispatched.** `loadActiveQuestsLayerBroker` filters on
+  `isActivelyExecutingQuestStatusGuard` (`== in_progress`), so a `blocked` quest is not scanned by
+  `get-next-step` and dispatch halts.
 
 ### Contract integrity
 

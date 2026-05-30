@@ -22,8 +22,12 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
+import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
+
+import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
+import type { SpiritmenderWorkUnit } from '../../contracts/work-unit/work-unit-contract';
 import type { WorkUnit } from '../../contracts/work-unit/work-unit-contract';
 import { workUnitContract } from '../../contracts/work-unit/work-unit-contract';
 import { pathToFolderTypeTransformer } from '../path-to-folder-type/path-to-folder-type-transformer';
@@ -31,6 +35,8 @@ import { stepToFilePathsTransformer } from '../step-to-file-paths/step-to-file-p
 import { stepToQuestContextTransformer } from '../step-to-quest-context/step-to-quest-context-transformer';
 
 type StepFilePath = StepFileReference['path'];
+type VerificationCommand = NonNullable<SpiritmenderWorkUnit['verificationCommand']>;
+type ContextInstructions = NonNullable<SpiritmenderWorkUnit['contextInstructions']>;
 
 type BuildWorkUnitForRoleInput =
   | {
@@ -44,10 +50,21 @@ type BuildWorkUnitForRoleInput =
       flow: Flow;
       quest: Quest;
       devServerUrl?: DevServerUrl;
+      devCommand?: DevCommand;
       smoketestPromptOverride?: PromptText;
     }
   | { role: 'lawbringer'; steps: DependencyStep[]; smoketestPromptOverride?: PromptText }
+  // Spiritmender accepts EITHER a single step (the step-derived recovery path) OR a
+  // pre-built batch (sidecar-derived recovery path supplied by agentPromptGetBroker).
   | { role: 'spiritmender'; step: DependencyStep; smoketestPromptOverride?: PromptText }
+  | {
+      role: 'spiritmender';
+      filePaths: StepFilePath[];
+      errors?: ErrorMessage[];
+      verificationCommand?: VerificationCommand;
+      contextInstructions?: ContextInstructions;
+      smoketestPromptOverride?: PromptText;
+    }
   | { role: 'blightwarden'; quest: Quest; smoketestPromptOverride?: PromptText };
 
 export const buildWorkUnitForRoleTransformer = ({
@@ -125,7 +142,7 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'siegemaster': {
-      const { flow, quest, devServerUrl } = params;
+      const { flow, quest, devServerUrl, devCommand } = params;
 
       return workUnitContract.parse({
         role: 'siegemaster',
@@ -133,6 +150,7 @@ export const buildWorkUnitForRoleTransformer = ({
         flow,
         relatedDesignDecisions: quest.designDecisions,
         ...(devServerUrl === undefined ? {} : { devServerUrl }),
+        ...(devCommand === undefined ? {} : { devCommand }),
         ...overrideField,
       });
     }
@@ -181,6 +199,22 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'spiritmender': {
+      // Batch-input variant (recovery spiritmenders): the caller (agentPromptGetBroker) read the
+      // sidecar and supplies filePaths/errors/verificationCommand/contextInstructions directly.
+      if ('filePaths' in params) {
+        const { filePaths, errors, verificationCommand, contextInstructions } = params;
+
+        return workUnitContract.parse({
+          role: 'spiritmender',
+          filePaths,
+          ...(errors === undefined ? {} : { errors }),
+          ...(verificationCommand === undefined ? {} : { verificationCommand }),
+          ...(contextInstructions === undefined ? {} : { contextInstructions }),
+          ...overrideField,
+        });
+      }
+
+      // Step-derived variant: build the file list from a single step's references.
       const { step } = params;
       const filePaths = stepToFilePathsTransformer({ step });
 

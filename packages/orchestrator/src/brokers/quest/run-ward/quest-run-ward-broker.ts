@@ -22,26 +22,37 @@ import {
 } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
+  errorMessageContract,
   exitCodeContract,
   fileContentsContract,
   fileNameContract,
   filePathContract,
+  getQuestInputContract,
   wardResultContract,
+  workItemContract,
   type QuestId,
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
+import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questRunWardResultContract } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 import type { QuestRunWardResult } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
+import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
+import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
+import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { questSpliceFixerBroker } from '../splice-fixer/quest-splice-fixer-broker';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
+const SPIRITMENDER_BATCHES_DIR = 'spiritmender-batches';
 
 export const questRunWardBroker = async ({
   questId,
@@ -137,6 +148,117 @@ export const questRunWardBroker = async ({
     throw new Error(
       `Failed to persist ward work item update for quest ${questId}: ${workItemModifyResult.error ?? 'unknown'}`,
     );
+  }
+
+  // Ward passed — nothing to recover. The MCP response is built below unchanged.
+  if (exitCode !== 0) {
+    // Ward failed — route recovery. Load the quest fresh so we can read the failed ward work
+    // item's retry budget + wardMode and detect a prior Blightwarden pass.
+    const questInput = getQuestInputContract.parse({ questId });
+    const failureGetResult = await questGetBroker({ input: questInput });
+
+    if (failureGetResult.success && failureGetResult.quest !== undefined) {
+      const { quest } = failureGetResult;
+      const wardWorkItem = quest.workItems.find((item) => item.id === workItemId);
+
+      if (wardWorkItem !== undefined) {
+        if (wardWorkItem.attempt >= wardWorkItem.maxAttempts - 1) {
+          // Retries exhausted — block the quest (drain pending items, set status blocked).
+          await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+        } else {
+          // Retry budget remains — splice batched spiritmenders + a ward retry.
+          const batches = detailJson
+            ? wardDetailToSpiritmenderBatchesTransformer({
+                detailJson: errorMessageContract.parse(detailJson),
+                batchSize: slotManagerStatics.ward.spiritmenderBatchSize,
+              })
+            : [];
+
+          // Pick the context preamble: post-Blightwarden warning if Blightwarden already ran,
+          // else the default ward-failure preamble.
+          const blightwardenRan = quest.workItems.some(
+            (item) =>
+              item.role === 'blightwarden' &&
+              isCompleteWorkItemStatusGuard({ status: item.status }),
+          );
+          const contextInstructions = blightwardenRan
+            ? spiritmenderContextStatics.postBlightwardenFailure.instructions
+            : spiritmenderContextStatics.wardFailure.instructions;
+
+          // Build one spiritmender work item per batch, keyed so its sidecar matches.
+          const createdAt = new Date().toISOString();
+          const spiritmenderItems = batches.map(() =>
+            workItemContract.parse({
+              id: crypto.randomUUID(),
+              role: 'spiritmender',
+              status: 'pending',
+              spawnerType: 'agent',
+              dependsOn: [workItemId],
+              maxAttempts: 1,
+              createdAt,
+              insertedBy: workItemId,
+            }),
+          );
+
+          // Write the sidecar batch file for each spiritmender. PATH + SHAPE are a pinned
+          // contract shared with agentPromptGetBroker (reader) and the lawbringer signal-back
+          // writer. Resolve <questDir> the same way the ward-results dir is resolved above.
+          if (spiritmenderItems.length > 0) {
+            const batchesDir = pathJoinAdapter({
+              paths: [questPath, SPIRITMENDER_BATCHES_DIR],
+            });
+            await fsMkdirAdapter({ filepath: batchesDir });
+
+            await Promise.all(
+              spiritmenderItems.map(async (spiritmenderItem, index) => {
+                const batch = batches[index];
+                const filePaths = batch ? batch.filePaths : [];
+                const errors = batch ? batch.errors : [];
+                const batchFilePath = filePathContract.parse(
+                  pathJoinAdapter({
+                    paths: [batchesDir, `${String(spiritmenderItem.id)}.json`],
+                  }),
+                );
+                const verificationCommand = `npm run ward -- -- ${filePaths.join(' ')}`;
+                const batchContents = JSON.stringify({
+                  filePaths,
+                  errors,
+                  verificationCommand,
+                  contextInstructions,
+                });
+
+                return fsWriteFileAdapter({
+                  filePath: batchFilePath,
+                  contents: fileContentsContract.parse(batchContents),
+                });
+              }),
+            );
+          }
+
+          // One ward-retry item depending on all spiritmenders, same wardMode as the failed ward.
+          const wardRetryItem = workItemContract.parse({
+            id: crypto.randomUUID(),
+            role: 'ward',
+            status: 'pending',
+            spawnerType: 'command',
+            dependsOn: spiritmenderItems.map((item) => item.id),
+            attempt: wardWorkItem.attempt + 1,
+            maxAttempts: wardWorkItem.maxAttempts,
+            createdAt,
+            insertedBy: workItemId,
+            ...(wardWorkItem.wardMode ? { wardMode: wardWorkItem.wardMode } : {}),
+          });
+
+          await questSpliceFixerBroker({
+            questId,
+            quest,
+            failedWorkItemId: workItemId,
+            fixerItems: spiritmenderItems,
+            retryItem: wardRetryItem,
+          });
+        }
+      }
+    }
   }
 
   return questRunWardResultContract.parse({

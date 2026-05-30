@@ -22,12 +22,19 @@ import {
   contentTextContract,
   workItemRoleContract,
   type ContentText,
+  type ErrorMessage,
   type Quest,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import { workUnitContract, type WorkUnit } from '../../contracts/work-unit/work-unit-contract';
+import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
+import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
+import {
+  workUnitContract,
+  type SpiritmenderWorkUnit,
+  type WorkUnit,
+} from '../../contracts/work-unit/work-unit-contract';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { buildWorkUnitForRoleTransformer } from '../build-work-unit-for-role/build-work-unit-for-role-transformer';
 import { resolveRelatedDataItemTransformer } from '../resolve-related-data-item/resolve-related-data-item-transformer';
@@ -38,10 +45,27 @@ export const workItemToPromptTransformer = ({
   quest,
   workItem,
   agentName,
+  spiritmenderBatch,
+  siegeDevServer,
 }: {
   quest: Quest;
   workItem: WorkItem;
   agentName: string;
+  // Batch-based recovery spiritmenders carry NO steps/<id> relatedDataItem — the broker reads
+  // their sidecar and passes the parsed batch in. When present, the spiritmender WorkUnit is
+  // built from this instead of from a step reference. The transformer itself reads no files.
+  spiritmenderBatch?: {
+    filePaths: SpiritmenderWorkUnit['filePaths'];
+    errors?: ErrorMessage[];
+    verificationCommand?: NonNullable<SpiritmenderWorkUnit['verificationCommand']>;
+    contextInstructions?: NonNullable<SpiritmenderWorkUnit['contextInstructions']>;
+  };
+  // Runtime-flow siege dev-server config, resolved by the broker from .dungeonmaster.json. Only
+  // populated onto the WorkUnit when the resolved flow is a runtime flow.
+  siegeDevServer?: {
+    devCommand: DevCommand;
+    devServerUrl: DevServerUrl;
+  };
 }): { prompt: ContentText } => {
   const parsedAgent = agentPromptNameContract.parse(agentName);
   const overrideField =
@@ -125,6 +149,23 @@ export const workItemToPromptTransformer = ({
     }
 
     if (workItem.role === 'spiritmender') {
+      // Batch-based recovery path: the broker read the sidecar and supplied the batch directly.
+      // These spiritmenders carry no relatedDataItems by design.
+      if (spiritmenderBatch !== undefined) {
+        return buildWorkUnitForRoleTransformer({
+          role: 'spiritmender',
+          filePaths: spiritmenderBatch.filePaths,
+          ...(spiritmenderBatch.errors === undefined ? {} : { errors: spiritmenderBatch.errors }),
+          ...(spiritmenderBatch.verificationCommand === undefined
+            ? {}
+            : { verificationCommand: spiritmenderBatch.verificationCommand }),
+          ...(spiritmenderBatch.contextInstructions === undefined
+            ? {}
+            : { contextInstructions: spiritmenderBatch.contextInstructions }),
+          ...overrideField,
+        });
+      }
+      // Step-derived path: a single steps/<id> reference names the file to repair.
       const [ref] = workItem.relatedDataItems;
       if (ref === undefined) {
         throw new Error(
@@ -157,10 +198,22 @@ export const workItemToPromptTransformer = ({
           `workItemToPromptTransformer: siegemaster work item ${String(workItem.id)} expected flows reference, got ${resolved.collection}`,
         );
       }
+      // Dev-server config only applies to runtime flows. Operational flows get no server: the
+      // siege agent verifies post-execution state without one.
+      const siegeRuntimeDevServer =
+        siegeDevServer !== undefined && resolved.item.flowType === 'runtime'
+          ? siegeDevServer
+          : undefined;
       return buildWorkUnitForRoleTransformer({
         role: 'siegemaster',
         flow: resolved.item,
         quest,
+        ...(siegeRuntimeDevServer === undefined
+          ? {}
+          : {
+              devCommand: siegeRuntimeDevServer.devCommand,
+              devServerUrl: siegeRuntimeDevServer.devServerUrl,
+            }),
         ...overrideField,
       });
     }

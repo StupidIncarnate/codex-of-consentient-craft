@@ -1,5 +1,6 @@
 import {
   DependencyStepStub,
+  ErrorMessageStub,
   FlowStub,
   PackageNameStub,
   QuestIdStub,
@@ -7,10 +8,15 @@ import {
   QuestWorkItemIdStub,
   RelatedDataItemStub,
   SliceNameStub,
+  StepFileReferenceStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { outcomeTypeDescriptionsStatics } from '@dungeonmaster/shared/statics';
+
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
+import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
+import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
@@ -19,6 +25,7 @@ import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeke
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
 import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
+import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 
@@ -358,6 +365,163 @@ describe('workItemToPromptTransformer', () => {
 
       expect(result.prompt).toBe(
         pesteaterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+  });
+
+  describe('spiritmender batch (recovery, no relatedDataItems)', () => {
+    it('VALID: {agent: spiritmender, spiritmenderBatch present, empty relatedDataItems} => builds WorkUnit carrying batch fields', () => {
+      // Recovery spiritmenders carry their fix scope via the batch input the broker reads from
+      // the sidecar — NOT via a steps/<id> relatedDataItem. The WorkUnit's filePaths use the
+      // step-file-reference path brand (FilePath); the sidecar's AbsoluteFilePath values are
+      // re-branded to it by the broker before reaching the transformer. verificationCommand and
+      // contextInstructions have no standalone stub — brand them inline via `as never` (the
+      // sanctioned pattern for branded literals without a stub, used across the work-unit tests).
+      const filePath = StepFileReferenceStub({ path: 'src/broker.ts' }).path;
+
+      const workItem = WorkItemStub({ role: 'spiritmender', relatedDataItems: [] });
+      const quest = QuestStub({ workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+        spiritmenderBatch: {
+          filePaths: [filePath],
+          errors: [ErrorMessageStub({ value: 'line 5: Unexpected any' })],
+          verificationCommand: 'npm run ward -- -- src/broker.ts' as never,
+          contextInstructions: 'Ward failed. Fix the listed files.' as never,
+        },
+      });
+
+      const expectedArgs =
+        'Ward failed. Fix the listed files.\n\nFiles:\n  - src/broker.ts\nErrors:\n  - line 5: Unexpected any\nVerification Command: npm run ward -- -- src/broker.ts';
+
+      expect(result.prompt).toBe(
+        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    it('VALID: {agent: spiritmender, no batch, steps/<id> relatedDataItem} => step-ref path still works', () => {
+      const step = DependencyStepStub({
+        id: 'orchestrator-broker',
+        focusFile: { path: 'src/broker.ts' },
+        accompanyingFiles: [],
+      });
+      const workItem = WorkItemStub({
+        role: 'spiritmender',
+        relatedDataItems: [RelatedDataItemStub({ value: 'steps/orchestrator-broker' })],
+      });
+      const quest = QuestStub({ steps: [step], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'spiritmender' }),
+      });
+
+      const expectedArgs =
+        'Files:\n  - src/broker.ts\nRun npm run ward on the files to verify fixes.';
+
+      expect(result.prompt).toBe(
+        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+  });
+
+  describe('siegemaster dev-server pass-through', () => {
+    it('VALID: {agent: siegemaster, flowType: runtime, siegeDevServer present} => WorkUnit includes devServerUrl AND devCommand', () => {
+      const flow = FlowStub({
+        flowType: 'runtime',
+        name: 'Login Flow',
+        entryPoint: '/login',
+        nodes: [],
+        edges: [],
+      });
+      const workItem = WorkItemStub({
+        role: 'siegemaster',
+        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        flows: [flow],
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+        siegeDevServer: {
+          devCommand: DevCommandStub({ value: 'npm run dev' }),
+          devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
+        },
+      });
+
+      // For a runtime flow, work-unit-to-arguments renders both dev-server lines after the flow
+      // header, before the Observable Type Reference glossary. Build the full expected args from
+      // the same glossary static the transformer reads, so the assertion stays exact.
+      const glossaryLines = Object.entries(outcomeTypeDescriptionsStatics)
+        .map(([type, desc]) => `  - \`${type}\` — ${desc}`)
+        .join('\n');
+      const expectedArgs =
+        `Quest ID: my-quest\n` +
+        `Flow: Login Flow\n` +
+        `  flowType: runtime\n` +
+        `  entryPoint: /login\n` +
+        `Dev Server URL: http://localhost:3000\n` +
+        `Dev Command: npm run dev\n` +
+        `\n` +
+        `Observable Type Reference:\n${glossaryLines}`;
+
+      expect(result.prompt).toBe(
+        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    it('VALID: {agent: siegemaster, flowType: operational, siegeDevServer present} => WorkUnit omits devServerUrl/devCommand', () => {
+      const flow = FlowStub({
+        flowType: 'operational',
+        name: 'Login Flow',
+        entryPoint: '/login',
+        nodes: [],
+        edges: [],
+      });
+      const workItem = WorkItemStub({
+        role: 'siegemaster',
+        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        flows: [flow],
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+        siegeDevServer: {
+          devCommand: DevCommandStub({ value: 'npm run dev' }),
+          devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
+        },
+      });
+
+      // Operational flows get no dev server: the rendered args skip both dev-server lines and go
+      // straight from the flow header to the Observable Type Reference glossary.
+      const glossaryLines = Object.entries(outcomeTypeDescriptionsStatics)
+        .map(([type, desc]) => `  - \`${type}\` — ${desc}`)
+        .join('\n');
+      const expectedArgs =
+        `Quest ID: my-quest\n` +
+        `Flow: Login Flow\n` +
+        `  flowType: operational\n` +
+        `  entryPoint: /login\n` +
+        `\n` +
+        `Observable Type Reference:\n${glossaryLines}`;
+
+      expect(result.prompt).toBe(
+        siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
   });

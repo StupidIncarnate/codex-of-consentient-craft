@@ -116,6 +116,60 @@ describe('selectBatchLayerBroker', () => {
     });
   });
 
+  describe('spiritmender recovery batch', () => {
+    it('VALID: {failed-ward recovery: one spiritmender + one siegemaster ready} => returns ONLY the spiritmender, never the siegemaster', () => {
+      selectBatchLayerBrokerProxy();
+      const spirit = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee11111-1111-4222-9333-444444444444' }),
+        role: 'spiritmender',
+      });
+      const siege = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee22222-1111-4222-9333-444444444444' }),
+        role: 'siegemaster',
+      });
+
+      const batch = selectBatchLayerBroker({ ready: [spirit, siege] });
+
+      expect(batch).toStrictEqual([spirit]);
+    });
+
+    it('VALID: {three spiritmenders + one siegemaster ready} => returns ALL three spiritmenders in one batch, never the siegemaster', () => {
+      selectBatchLayerBrokerProxy();
+      const spiritA = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee33333-1111-4222-9333-444444444444' }),
+        role: 'spiritmender',
+      });
+      const spiritB = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee44444-1111-4222-9333-444444444444' }),
+        role: 'spiritmender',
+      });
+      const spiritC = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee55555-1111-4222-9333-444444444444' }),
+        role: 'spiritmender',
+      });
+      const siege = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee66666-1111-4222-9333-444444444444' }),
+        role: 'siegemaster',
+      });
+
+      const batch = selectBatchLayerBroker({ ready: [spiritA, spiritB, spiritC, siege] });
+
+      expect(batch).toStrictEqual([spiritA, spiritB, spiritC]);
+    });
+
+    it('VALID: {single siegemaster ready (no spiritmenders)} => returns the siegemaster via single-item fallback', () => {
+      selectBatchLayerBrokerProxy();
+      const siege = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee77777-1111-4222-9333-444444444444' }),
+        role: 'siegemaster',
+      });
+
+      const batch = selectBatchLayerBroker({ ready: [siege] });
+
+      expect(batch).toStrictEqual([siege]);
+    });
+  });
+
   describe('pathseeker-corrections batch (dedup + assertion-correctness)', () => {
     it('VALID: {dedup + assertion-correctness both ready} => returns BOTH in one batch', () => {
       selectBatchLayerBrokerProxy();

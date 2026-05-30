@@ -71,6 +71,7 @@ const siegemasterWorkUnitContract = z.object({
   relatedDesignDecisions: z.array(designDecisionContract).default([]),
   flow: flowContract,
   devServerUrl: z.string().url().brand<'DevServerUrl'>().optional(),
+  devCommand: z.string().min(1).brand<'DevCommand'>().optional(),
   ...smoketestOverrideField,
 });
 

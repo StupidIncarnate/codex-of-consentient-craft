@@ -367,7 +367,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   ├─ Blightwarden ── single Task(); whole-diff cross-cutting audit
   ├─ Ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
   │
-  │   (no recovery items are auto-created on failure — see "Failure handling (current path)")
+  │   (on failure, recovery items are spliced or the quest is blocked — see "Failure handling")
   ▼
 Complete ──► /dumpster-launch's next get-next-step() picks up the next FIFO quest in the queue
 ```
@@ -384,10 +384,11 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 - **Concurrency**: intrinsic — `pathseeker-surface` items (siblings via `dependsOn: []`) return as one `spawn-agents`
   batch; `pathseeker-dedup` + `pathseeker-assertion-correctness` return as one batch; everything else returns one agent
   per response. `slotManagerStatics` slot caps stay configured but are not consulted by `get-next-step`.
-- **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The one live use is the
-  `pathseeker-walk` post-completion hook, which calls `stepsToWorkItemsTransformer` to generate the downstream
-  codeweaver / ward / siegemaster / lawbringer / blightwarden chain. Recovery insertions (retries, spiritmenders, fix
-  chains) would use the same mechanism but are not currently wired — see "Failure handling (current path)".
+- **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
+  `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
+  codeweaver / ward / siegemaster / lawbringer / blightwarden chain. Recovery splices (ward/lawbringer
+  spiritmender batches + retries) use the same mechanism via `questSpliceFixerBroker`, plus
+  `replacementMapping` to rewire downstream dependents onto the retry — see "Failure handling".
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
   (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat
   roles (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init
@@ -508,9 +509,10 @@ builder + the type added to `questTypeContract`.
 
 ## Agent Roles
 
-On failure, every execution role's work item is simply marked `failed` (no recovery item is created on
-the live path — see "Failure handling (current path)"). Because `failed` satisfies `dependsOn`, the
-chain runs past it; the quest then derives `complete`/`blocked`/`in_progress` from work-item states.
+On failure, an execution role's work item is marked `failed`, then routed by `role`: `ward` (budget
+remaining) and `lawbringer` RECOVER (splice spiritmender(s) + a retry); every other role BLOCKS the
+quest (status `blocked`, pending items `skipped`) — see "Failure handling". The quest then derives
+`complete`/`blocked`/`in_progress` from work-item states.
 
 | Role                             | Dispatched By                                                       | Signals                         | MCP Tools (modify-quest)                                               |
 |----------------------------------|---------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
@@ -560,39 +562,52 @@ via the `get-quest-planning-notes` MCP tool.
 ## Signal System
 
 Agents report via the `signal-back` MCP tool. The live handler is
-`quest-handle-signal-back-responder.ts`, which does exactly two things:
+`quest-handle-signal-back-responder.ts`, which:
 
 1. Marks the named work item terminal — `complete` for signal `complete`, `failed` for signal `failed`
    **or** `failed-replan` — and stamps `completedAt`.
 2. If the item is `pathseeker-walk` AND the signal is `complete`, fires `questPostWalkHookBroker` to
    generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
+3. On a `failed` / `failed-replan` signal, routes by the failing item's `role` — `lawbringer` recovers
+   (splice spiritmender(s) + retry); every other role blocks the quest (see "Failure handling").
 
-### Failure handling (current path)
+### Failure handling
 
-There is no failure-recovery routing wired into the `/dumpster-launch` flow. A `failed` signal just
-marks the item `failed`; `run-ward` marks a non-zero ward `failed` and persists the result (it
-explicitly delegates retry/recovery away — `quest-run-ward-broker.ts`). No recovery work items
-(spiritmenders, ward-retries, siege fix chains, pathseeker replans) are created anywhere on the live
-path. `failed-replan` is recorded as a plain `failed`.
+Terminal-failure routing lives in the two places that set terminal status: the `run-ward` broker
+(`quest-run-ward-broker.ts`) for ward items and the `signal-back` handler
+(`quest-handle-signal-back-responder.ts`) for agent items. Routing is keyed on the failing item's
+`role`, and falls into two shapes — **RECOVER** (splice fixers + a retry, quest stays `in_progress`)
+or **BLOCK** (set status `blocked`, halt dispatch).
 
-A `failed` item **satisfies** its dependents (`satisfiesDependencyWorkItemStatusGuard` =
-`{complete, failed}`), so the chain runs past a failure rather than halting. Quest status is then
-derived by `workItemsToQuestStatusTransformer`:
+- **ward-fail → RECOVER.** A non-zero ward exit with retry budget remaining
+  (`attempt < maxAttempts - 1`) splices a batch of `spiritmender` items plus a `ward`-retry (same
+  `wardMode`, `attempt + 1`) via `questSpliceFixerBroker`. The spiritmender batch is built from the
+  ward detail blob (`wardDetailToSpiritmenderBatchesTransformer`, `slotManagerStatics.ward.spiritmenderBatchSize`)
+  and delivered through per-item `spiritmender-batches/<id>.json` sidecars. The splice rewires
+  downstream siege/chain dependents off the failed ward onto the retry. When ward's retries are
+  exhausted, the failure routes to BLOCK instead.
+- **lawbringer-fail → RECOVER.** A `lawbringer` `failed` signal splices spiritmender(s) (context from
+  the lawbringer's failure summary) plus a `lawbringer`-retry via `questSpliceFixerBroker`, rewiring
+  downstream blightwarden onto the retry. Quest stays `in_progress`.
+- **All other agent `failed` / `failed-replan` → BLOCK.** `codeweaver`, `siegemaster`, `spiritmender`,
+  `blightwarden`, `pathseeker-*`, and `pesteater` failures route through `questBlockOnFailureBroker`,
+  which sets quest status `blocked` and marks every still-`pending` item `skipped`. `failed-replan`
+  (Blightwarden) is treated as `failed` for status, then routed by the same table (→ BLOCK). A
+  `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on `in_progress`), so
+  dispatch halts.
+- **Siegemaster owns its dev server.** For runtime flows, the siege agent controls its own dev server
+  via Playwright's `webServer` config (`{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`),
+  resolved from `.dungeonmaster.json` (`devCommand` + dev `port`) and passed into the siege WorkUnit by
+  `agentPromptGetBroker`. Operational flows run no server. If siege cannot build/start, it signals
+  `failed` → BLOCK per the table.
 
-- every item terminal AND none `failed` → `complete`
-- any item `in_progress` → `in_progress`
-- pending items remain AND each depends on a `failed` id → `blocked`
-- otherwise unchanged (a `failed` item with nothing pending leaves the quest `in_progress` — the stuck
-  state)
-
-`skipped` is terminal and non-failure, but does NOT satisfy `dependsOn` — a `skipped` dep blocks its
-dependents permanently.
-
-> The per-role recovery apparatus (drain+skip, batched spiritmenders, ward-retry items, the siege fix
-> chain `codeweaver-fix → ward-rerun → siege-recheck`, pathseeker replans) lives only in the
-> unreferenced `run-*-layer-broker` / `slot-manager/` / `questOrchestrationLoopBroker` code. When
-> recovery returns it will hang off the `signal-back` handler and the `run-ward` broker — the two
-> places that currently set terminal status.
+Recovery splices append work items with correct `dependsOn` (the same dynamic-insertion mechanism the
+post-walk hook uses) and rewire downstream via `replacementMapping`. Both routing brokers are
+idempotent on a double `signal-back`. Once routing settles, `workItemsToQuestStatusTransformer`
+derives quest status from work-item states (`complete` when every item is non-failure-terminal,
+`blocked` when pending items all depend on a `failed` id, `in_progress` while any item is active).
+`skipped` is terminal and non-failure but does NOT satisfy `dependsOn`, so a `skipped` dep blocks its
+dependents permanently — reinforcing the halt on a blocked quest.
 
 ### MCP Sanitization
 
