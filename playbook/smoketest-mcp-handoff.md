@@ -3,6 +3,31 @@
 Status as of the first smoke-test session driving `playbook/smoketest-mcp-orchestration.md`.
 Detailed per-probe findings log: `/tmp/smoke-mcp-notes.md` (may not survive a reboot — the essentials are here).
 
+## Session 5 (2026-05-31) — PW fixes committed; Flows 1/2/3 re-validated on the committed build
+
+- **Committed** the prompt-walk fixes as `39f839ad` (19 source/test files + the 2 playbook docs).
+- **Flow 1** = PASS (committed quest `83628747` from Session 4; re-confirmed).
+- **Flow 2 Part A** = PASS (quest `5a49a9f8`): `get-next-step` returned all **3 `pathseeker-surface` in ONE same-role
+  batch** (legal parallel); on disk all 3 `complete` with **distinct `agentId`s** but a **shared parent `sessionId`**
+  (the B4 dup-log trap); UI showed **3 distinct DONE rows**. Then dedup + assertion-correctness came back as a
+  **mixed-role batch** — serialized one-at-a-time (new finding; HARD RULE in the orchestration doc updated to cover it).
+- **Flow 2 Part B** = PASS (quest `1e695f73`): 2 codeweaver chunks, step-gated → `get-next-step` returned **only cw1**,
+  then **only cw2** (serialized, not batched); ward gated until both terminal; exit 0; quest derived `complete`.
+- **Flow 3 codeweaver BLOCK** = PASS (quest `38e317f7`): codeweaver `failed` (sessionId stamped, no errorMessage),
+  blightwarden `skipped`, quest `blocked`, `get-next-step` idle; UI FAILED row + skipped hidden + no banner + RESUME +
+  "0/1 COMPLETE".
+- **Flow 3 lawbringer RECOVER** = PASS (quest `ab3aa249`): splice = 1 spiritmender (insertedBy, dependsOn failed law) +
+  1 lawbringer retry (attempt 1, insertedBy, dependsOn spiritmender); blightwarden **rewired** onto the retry; sidecar
+  `spiritmender-batches/<id>.json` written; quest stayed `in_progress`. Drove spiritmender → law-retry → blightwarden →
+  ward(full, exit 0) → **quest `complete` while the original lawbringer stays `failed`** (F5 superseded-by-retry, live).
+- **Flow 3 ward sad paths** (budget-splice + exhaustion): NOT re-driven live (a failing real ward can exceed the 5-min
+  MCP `run-ward` timeout, and the pre-edit lint hook blocks writing an obvious defect file). Per user decision, treated
+  as covered by Session 2 (validated live then, on code this commit didn't touch) + re-confirmed green via
+  `quest-run-ward-broker.test.ts` (479 tests pass; covers RECOVER attempt-0 splice and EXHAUSTION attempt-2 block).
+- **Process note:** repeatedly hit cascade failures from batching a long pipeline against a *guessed* quest id (the
+  first scratch `python3` fails `FileNotFoundError` and cancels the batch). Discipline reaffirmed in G7: one logical
+  step per turn; only ever use the `questId`/`workItemId` the tool just echoed.
+
 ## Outcome so far
 
 **Flow 1 (happy-path execution chain) = PASS.** Every transition validated live (MCP + web):
