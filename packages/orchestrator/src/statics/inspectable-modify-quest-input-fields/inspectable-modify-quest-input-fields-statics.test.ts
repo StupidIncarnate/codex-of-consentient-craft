@@ -11,6 +11,7 @@ describe('inspectableModifyQuestInputFieldsStatics', () => {
       'status',
       'title',
       'planningNotes',
+      'packagesAffected',
     ]);
   });
 });

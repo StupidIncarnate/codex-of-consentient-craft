@@ -405,6 +405,24 @@ exit-code line; assert the detail breakdown only for a known-**failing** ward ru
 
 # REFERENCE C — the repeatable probe cycle
 
+> ## ⛔ HARD RULE — NEVER PARALLEL-DISPATCH DIFFERENT ROLES
+> **You may ONLY dispatch what a single `get-next-step()` returns, then wait for it to land before calling
+> `get-next-step()` again.** The orchestrator hands you exactly the batch that is ready; you do not get to pick the next
+> item or run ahead of the graph.
+>
+> - **You CANNOT dispatch multiple different roles concurrently.** The orchestration does NOT handle that correctly:
+>   `signal-back` does not gate on readiness and `get-agent-prompt` stamps identity best-effort without a dependency
+>   check, so hand-batching e.g. `siege` + `law` + `blight` together force-completes items out of dependency order and
+>   **invalidates the entire run** (you never actually observed each gate). A chain like `siege → law → blight` is
+>   strictly serial: one `get-next-step` returns ONLY `siege`; you dispatch `siege`, wait, verify, THEN the next
+>   `get-next-step` returns `law`, and so on.
+> - **The ONLY parallelism allowed is multiple agents OF THE SAME ROLE that a SINGLE `get-next-step` returns together**
+>   in one `spawn-agents.agents[]` batch (e.g. 3× `pathseeker-surface`, or N `codeweaver`/`spiritmender` siblings). That
+>   is the real concurrent-dispatch the orchestrator emits, and the only case the dup-log (B4) assertion needs.
+> - **Operationally:** ONE `get-next-step` → dispatch ONLY its returned `workItemId`(s) → wait → assert `quest.json` →
+>   `get-next-step` again. Drive strictly off the returned `workItemId`; never off the seed array or a remembered id.
+>   When in doubt, do one tool call per turn.
+
 Every step of every flow is the same six beats:
 
 1. **CALL** `get-next-step()`.
@@ -426,8 +444,11 @@ Every step of every flow is the same six beats:
 
 ### Stub-agent dispatch recipe
 
-For each `spawn-agents.agents[]` entry, dispatch one real `Task()` (parallel for a batch, to exercise concurrent MCP
-calls + the dup-log path):
+Dispatch one real `Task()` for each entry **in the `spawn-agents.agents[]` array that THIS `get-next-step` returned** —
+nothing else. If that array has multiple entries they are, by construction, the **same role** (a same-role batch);
+running those in parallel is correct and exercises the concurrent-MCP + dup-log (B4) path. If it has one entry, you
+dispatch one. **Never add an entry the orchestrator did not return, and never carry a different role into the same
+batch** (see the HARD RULE above).
 
 ```
 You are a SMOKETEST STUB AGENT. Do NOT do real work, do NOT read/write source files.
@@ -454,6 +475,28 @@ in-process call) is required so `get-agent-prompt` can resolve identity via `_me
 - **G4 — ward detail renders null** while loading / on error / when green. Only assert the breakdown for a failing ward.
 - **G5 — get-agent-prompt THROWS on a missing `steps/<id>`/`flows/<id>`** referenced by the work item (§6). Seed the
   referenced step/flow object, or the stub's first call errors before it can signal.
+
+### Operator gotchas (driving mistakes that have repeatedly invalidated runs)
+
+These are not system behaviors — they are ways the *driver* (you) corrupts a run. Each one has actually happened and
+each one silently produced a bogus "PASS" or a corrupted `quest.json`. Treat them as hard rules.
+
+- **G6 — `run-ward`'s param is `mode` (`'changed' | 'full'`), NOT `wardMode`.** The work-item field and the seed JSON
+  both spell it `wardMode`, but the **MCP tool argument is `mode`**. Passing `wardMode` errors
+  `Unrecognized key(s): wardMode` + `mode Required` and **the ward never runs** — easy to miss if you then "drive on"
+  by hand. Always call `run-ward({ questId, workItemId, mode })`.
+- **G7 — never parallel-dispatch different roles; one logical step per turn; act only on echoed ids.** This is the
+  ⛔ HARD RULE at the top of REFERENCE C, restated here because violating it is the single most common way a run goes
+  bad:
+  - **Different roles in one batch → INVALID run.** `signal-back` does not gate on readiness and `get-agent-prompt`
+    stamps identity without a dependency check, so concurrently dispatching e.g. `siege`+`law`+`blight` force-completes
+    them out of dependency order. The end-state can *look* complete while never having exercised the gates. The ONLY
+    legal parallelism is multiple agents **of the same role** that a SINGLE `get-next-step` returned together.
+  - **Hallucinated / remembered ids → cancelled batch + possible corruption.** Batching a long pipeline against a
+    `questId` typed from memory (not the one `create-quest` echoed) makes the first scratch command fail
+    `FileNotFoundError`, which cancels every queued call after it; a botched scratch write can also clobber a real
+    `quest.json`. Use ONLY the `questId`/`workItemId` echoed back by the immediately-preceding tool result — never one
+    retyped from the seed array or memory. When in doubt, do one tool call per turn.
 
 ---
 

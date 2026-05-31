@@ -9,7 +9,7 @@
  * 1. Reads the quest spec and whole-branch diff
  * 2. Detects within-diff duplication (two new files doing the same thing)
  * 3. Detects missed-existing duplication (new code reimplementing an existing export)
- * 4. Shells out to packages/tooling/src/brokers/duplicate-detection/ for literal/AST duplication
+ * 4. Uses packages/tooling/src/brokers/duplicate-detection/ as a reference for duplication patterns
  * 5. Commits findings to quest.planningNotes.blightReports[] via modify-quest
  * 6. Signals back with a 1-line summary
  */
@@ -35,15 +35,15 @@ Call these in parallel:
 
 Then run \`git diff main...HEAD --name-only\` to get the real list of changed files.
 
-### Step 2: Shell Out to Duplicate Detection
+### Step 2: Reference the Duplicate Detection Patterns
 
-This codebase ships a literal/AST duplication detector at \`packages/tooling/src/brokers/duplicate-detection/\`. Use it as a first pass to find exact and near-exact matches. Check its README or folder detail:
+This codebase has a literal/AST duplication detector at \`packages/tooling/src/brokers/duplicate-detection/\`. It is a TypeScript broker — not a CLI tool — so you cannot run it directly. Instead, read its source to understand what duplication patterns it looks for (exact string literals, near-exact regex variants, occurrence thresholds), then apply those same criteria manually using \`discover\` grep:
 
 \`\`\`
 get-folder-detail({ folderType: "brokers", package: "tooling" })
 \`\`\`
 
-Run the detector over changed files. Record any high-confidence matches as findings. Low-confidence AST matches are candidates for your Step 3 semantic review — do not auto-flag them.
+Use \`discover\` with grep on export names, key identifiers, and literal strings from changed files to surface exact and near-exact matches. Record any high-confidence matches as findings. Low-confidence structural similarities are candidates for your Step 3 semantic review — do not auto-flag them.
 
 ### Step 3: Semantic Review
 

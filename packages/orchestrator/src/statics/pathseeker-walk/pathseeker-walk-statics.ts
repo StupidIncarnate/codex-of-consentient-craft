@@ -72,13 +72,13 @@ These hold on every commit, regardless of which slice you're patching. They only
 - **Contract \`source\` path resolution.** For \`status: 'existing'\` contracts, the \`source\` path must resolve on disk. For \`status: 'new'\`, the path must NOT resolve. Status-vs-disk mismatches are rejected.
 - **Banned-matcher scan.** Assertion \`input\`/\`expected\` strings cannot contain \`.toContain(\`, \`.toMatchObject(\`, \`.toEqual(\` (use \`toStrictEqual\`), \`.toHaveProperty(\`, \`.includes(...).toBe(\`, \`expect.any(\`, or \`expect.objectContaining(\`.
 - **Companion file completeness by folder type.** Required companions (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts) must appear in \`step.accompanyingFiles\`. Skipped for \`focusAction\` steps.
-- **Assertion \`field\` per prefix.** INVALID and INVALID_MULTIPLE assertions REQUIRE \`field\`; all other prefixes FORBID it. Per-prefix table:
+- **Assertion \`field\` per prefix.** INVALID assertions REQUIRE \`field\`; INVALID_MULTIPLE MAY include \`field\` (optional); all other prefixes FORBID it. Per-prefix table:
 
   | Prefix | \`field\` |
   |--------|---------|
   | VALID | forbidden |
   | INVALID | required |
-  | INVALID_MULTIPLE | required |
+  | INVALID_MULTIPLE | optional |
   | ERROR | forbidden |
   | EDGE | forbidden |
   | EMPTY | forbidden |

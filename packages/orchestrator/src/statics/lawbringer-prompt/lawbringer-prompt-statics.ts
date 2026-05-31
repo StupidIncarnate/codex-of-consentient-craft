@@ -5,11 +5,11 @@
  * lawbringerPromptStatics.prompt.template;
  * // Returns the Lawbringer agent prompt template
  *
- * The prompt in this module is used to spawn a Claude CLI subprocess that:
+ * The prompt is served via get-agent-prompt to a Task-dispatched sub-agent that:
  * 1. Reviews implementation and test file pairs
  * 2. Enforces code quality standards
  * 3. Verifies test coverage completeness
- * 4. Signals approval or rejection via stdout signals
+ * 4. Reports approval or rejection via the signal-back MCP tool
  */
 
 export const lawbringerPromptStatics = {

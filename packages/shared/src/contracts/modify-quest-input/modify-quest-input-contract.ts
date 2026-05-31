@@ -25,6 +25,7 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
 import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
@@ -140,6 +141,12 @@ export const modifyQuestInputContract = z
       )
       .describe(
         'Contracts to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch (e.g. flip status from new to existing) without clobbering other fields',
+      )
+      .optional(),
+    packagesAffected: z
+      .array(packageNameContract)
+      .describe(
+        'Monorepo packages the quest will touch. Replaces the whole list on write (not an id-keyed upsert). Drives pathseeker-surface slice fan-out at Start Quest; ChaosWhisperer sets it during explore_observables.',
       )
       .optional(),
     flows: z

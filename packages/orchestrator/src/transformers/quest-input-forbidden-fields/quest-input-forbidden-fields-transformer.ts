@@ -63,24 +63,33 @@ export const questInputForbiddenFieldsTransformer = ({
   }
 
   const blightReportsRule: QuestStatusBlightReportsRule = entry.blightReportsRule;
+  const allowedPlanningNotesSet = new Set<unknown>(entry.allowedPlanningNotesFields);
   const inputPlanningNotes = input.planningNotes;
-  // Nested-path carveout: when `planningNotes` is NOT in allowedFields but the only sub-field
-  // the caller is writing is `blightReports` AND `blightReportsRule === 'full'`, the write is
-  // permitted. This is how Blightwarden writes `planningNotes.blightReports[]` during `in_progress`
-  // without opening the full `planningNotes` object to general writers at that status.
-  const planningNotesBlightOnly =
+  // Nested-path carveout: when `planningNotes` is NOT in allowedFields but every sub-field the
+  // caller is writing appears in `allowedPlanningNotesFields` AND `blightReportsRule === 'full'`,
+  // the write is permitted. `in_progress` is the only status with `blightReportsRule: 'full'`, and
+  // it allows exactly the sub-fields written during execution: `blightReports` (Blightwarden) and
+  // `walkFindings` (pathseeker-walk's terminal commit). This keeps the rest of `planningNotes`
+  // closed to general writers at that status while letting those two roles write their own slice.
+  const planningNotesCarveoutKeys =
+    inputPlanningNotes === undefined
+      ? []
+      : Object.keys(inputPlanningNotes).filter(
+          (key) => inputPlanningNotes[key as keyof typeof inputPlanningNotes] !== undefined,
+        );
+  const planningNotesCarveout =
     inputPlanningNotes !== undefined &&
     !allowedSet.has('planningNotes') &&
     blightReportsRule === 'full' &&
-    Object.keys(inputPlanningNotes).every((key) => key === 'blightReports') &&
-    inputPlanningNotes.blightReports !== undefined;
+    planningNotesCarveoutKeys.length > 0 &&
+    planningNotesCarveoutKeys.every((key) => allowedPlanningNotesSet.has(key));
 
   for (const field of inspectableModifyQuestInputFieldsStatics) {
     const value = input[field];
     if (value === undefined) {
       continue;
     }
-    if (field === 'planningNotes' && planningNotesBlightOnly) {
+    if (field === 'planningNotes' && planningNotesCarveout) {
       continue;
     }
     if (!allowedSet.has(field)) {
@@ -91,14 +100,13 @@ export const questInputForbiddenFieldsTransformer = ({
   }
 
   // Sub-field allowlist for planningNotes: applies whenever planningNotes was accepted at the top
-  // level (either via allowedFields OR via the blight-only carveout). Every sub-field being written
+  // level (either via allowedFields OR via the nested-path carveout). Every sub-field being written
   // must appear in `allowedPlanningNotesFields`. This blocks a seek_walk writer from stamping
   // `scopeClassification`, a seek_synth writer from writing `walkFindings`, etc.
   if (
     inputPlanningNotes !== undefined &&
-    (allowedSet.has('planningNotes') || planningNotesBlightOnly)
+    (allowedSet.has('planningNotes') || planningNotesCarveout)
   ) {
-    const allowedPlanningNotesSet = new Set<unknown>(entry.allowedPlanningNotesFields);
     for (const [subField, subValue] of Object.entries(inputPlanningNotes)) {
       if (subValue === undefined) {
         continue;

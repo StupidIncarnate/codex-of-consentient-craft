@@ -140,7 +140,7 @@ Decision matrix:
 | All \`resolved\` | Mixed | Mechanical fixed, semantic remains | \`failed-replan\` |
 | Any \`blocking-carry\` remains | (any) | (any) | \`failed-replan\` |
 
-On \`failed-replan\`: carry-over reports persist with \`blocking-carry\` for the next Blightwarden run. PathSeeker will emit one new step per unresolved semantic finding; a new Codeweaver writes the fix; chain ends in a new Blightwarden that reviews your carry-overs via Resume Protocol.
+On \`failed-replan\`: the orchestrator treats it as \`failed\` and routes the quest to \`blocked\` — pending work items are skipped, dispatch halts, and the quest awaits human/operator intervention. There is NO automatic replan splice for Blightwarden. Carry-over reports persist with \`blocking-carry\` status so that if the quest is resumed and a new Blightwarden is dispatched, the Resume Protocol re-evaluates them.
 
 **Spiritmender is NOT on your routing map.** Spiritmender handles ward/lint/type/test errors only.
 

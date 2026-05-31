@@ -44,15 +44,121 @@ sequence; caught by `quest-flow.integration.test.ts` and narrowed to apply only 
 - §1: added the build-kills-MCP gotcha.
 - `packages/mcp/CLAUDE.md`: added the rebuild+reconnect requirement.
 
-## What REMAINS (not started)
+## Session 2 (2026-05-30) — Flow 2, Flow 3, Prompt-walk = ALL DONE
 
-- **Flow 2** — parallel batches + the dup-log surface (3× pathseeker-surface parallel, then dedup+assertion;
-  2+ codeweaver chunks). Key assertion: each parallel row shows a **distinct** transcript (B4 workItemId bucketing).
-- **Flow 3** — sad path × 10 roles. BLOCK cases (codeweaver/siege/pathseeker-*/spiritmender/blightwarden/pesteater),
-  lawbringer RECOVER, ward budget/exhausted. Use a **deliberate ward-catchable defect** for the ward-fail cases
-  (per §5) to validate the spiritmender-batch splice with real file batches.
-- **Flow P** — pathseeker + post-walk hook (needs a completeness-passing spec; lowest priority).
-- **Prompt-walk** — static desk-check of every orchestrator `-prompt`/`-minion` static + pathseeker prompts.
+Driven on the live MCP path against the same prod testbed. The 7 Session-1 fixes all held (F5/F6 completion
+derivation re-confirmed live). **No new orchestration bugs.** Full per-probe log appended to `/tmp/smoke-mcp-notes.md`.
+
+- **Flow 2 = PASS.** Part A: 3× pathseeker-surface parallel + dedup/assertion-correctness parallel — every row shows
+  its **own** distinct transcript keyed by `workItemId` even though all siblings share one parent `sessionId` (the B4
+  dup-log bug is NOT present). Part B: codeweaver chunks dispatched **one-at-a-time** (serialized), ward gated until
+  all chunks terminal; ran to `complete` + terminal banner; B3 Stage-1 "Ward exit code: 0 (changed)" green.
+- **Flow 3 = PASS (all roles, all paths).** 9 agent roles → BLOCK (codeweaver full-rigor + 8 via direct signal-back);
+  lawbringer → RECOVER (spiritmender + retry spliced, blightwarden rewired, sidecar, AD-HOC + `retry 1/1` rows live,
+  then drove to `complete` re-validating F5); ward budget (attempt 0) → splice spiritmender + ward `retry 1/3`, B3
+  Stage-1 "Ward exit code: 1 (changed)" red + Stage-2 detail breakdown (real TS2322 from a deliberate defect);
+  ward exhausted (attempt 2) → BLOCK, no splice. Defect file restored; tree clean.
+  - **UI nuance (NOT a bug, confirmed in `execution-panel-widget.tsx`):** ward exit-code + detail render **only** in
+    the normal/stepped branch. `isPlanning = steps.length===0 && !terminal`; a quest with workItems but **no `steps[]`**
+    renders in the isPlanning branch which passes `errorMessage` but not `wardResults`/`questId` → only "Error: ..."
+    shows. Real quests always have steps. Direct `quest.json` edits don't fire the outbox; force a refresh with an MCP
+    `modify-quest` (an allowed field) to make the web re-read.
+- **Prompt-walk = DONE (19 prompts).** Surfaced prompt/contract DRIFT (not runtime bugs). Verified-against-source holes:
+  - **PW-1 [HIGH]** `packagesAffected` is not a field on `modifyQuestInputContract` (`.strict()`); `dumpster-create`
+    (and optionally `dumpster-hunt`) instruct `modify-quest({packagesAffected})` → rejected → never persists →
+    orchestrator falls back to whole-monorepo single slice.
+  - **PW-2 [MED]** `stepAssertionContract` makes `field` **optional** for `INVALID_MULTIPLE` (required only for
+    `INVALID`); pathseeker-surface/assertion-correctness/walk prompts wrongly say "required".
+  - **PW-3 [HIGH]** `in_progress.allowedPlanningNotesFields = ['blightReports']`; `walkFindings` is only allowed at the
+    **dead** `seek_walk` status. pathseeker-walk runs at `in_progress` and its terminal commit writes
+    `planningNotes.walkFindings` → rejected by the allowlist. (Also gates Flow P's walk commit.)
+  - **PW-4 [LOW]** surface + assertion-correctness banned-matcher lists omit `.includes(` (present in
+    `bannedJestMatchersStatics`).
+  - Plausible (agent-reported, confirm before fixing): PW-5 orphaned `postBlightwardenFailure` spiritmender context;
+    PW-6 blightwarden `failed-replan` prose claims a replan splice but the handler routes `failed-replan`→BLOCK;
+    PW-7 dedup-minion "shell out to duplicate-detection broker" has no CLI entrypoint; PW-8 dumpster-hunt lacks the
+    browser-open step; PW-9 stale "spawn a Claude CLI subprocess" JSDoc; PW-10 glyphsmith missing
+    approved→explore_design self-transition. See `/tmp/smoke-mcp-notes.md` for full detail.
+
+## Session 4 (2026-05-31) — Flow-1 re-run = PASS (clean, quest `83628747`); three process errors caught + corrected
+
+**Result:** Flow 1 passes on the post-fix MCP child — the prompt-walk fixes did NOT regress the execution dispatch
+chain. Staleness probe confirmed the live child runs current `dist/`: `modify-quest({packagesAffected})` on a `created`
+quest returns the NEW gate `"Field 'packagesAffected' not allowed in status 'created'"`, not the stale
+`"Unrecognized key(s)"`. Prod restarted (4800/4801).
+
+**Authoritative clean run = quest `83628747-d149-4e48-83b8-e39b3719b73b`** — pre-seeded Flow-1 chain, driven strictly
+ONE `get-next-step` per dispatch (one tool call per turn; no running ahead of the graph; no cross-role batching), every
+beat verified on disk before advancing:
+- codeweaver → ward(changed, **exit 0**) → siegemaster → lawbringer → blightwarden → ward(full, **exit 0**) → **quest
+  derived `complete`** (F5/F6 live) → `get-next-step` `idle`. Each `get-next-step` returned exactly the next single
+  ready item, proving dependency gating (siege only after ward1, law only after siege, blight only after law).
+- Each agent item: `complete` + `sessionId`/`agentId`/`startedAt`/`completedAt`; `summary`/`actualSignal` absent (G1).
+  Each ward item: `relatedDataItems:['wardResults/<id>']` + matching `wardResults[]` ref (B3 Stage-1), `startedAt`
+  absent (no get-agent-prompt for ward), no `errorMessage`.
+- **UI = PASS** (live, no refresh): "EXECUTION COMPLETE", all 6 rows `DONE` across
+  FORGE/MINI BOSS/ARENA/TRIBUNAL/QUARANTINE/FLOOR BOSS; both ward results green (changed exit 0, full exit 0).
+
+**Three process errors made earlier this session (NOT product bugs) — recorded so they aren't repeated:**
+1. **`run-ward` param is `mode` (`'changed'|'full'`), NOT `wardMode`.** A first attempt (quest `940e5e04`) passed
+   `wardMode` → `Unrecognized key(s): wardMode`, so the ward never ran; I then mis-drove downstream stubs by hand.
+2. **Never parallel-dispatch different roles.** A second attempt batched siege+law+blight `Task()`s concurrently;
+   `signal-back` doesn't gate on readiness so they force-completed out of dependency order, invalidating the run.
+   **Codified as a HARD RULE in `smoketest-mcp-orchestration.md` REFERENCE C** (only same-role batches a single
+   `get-next-step` returns may run in parallel).
+3. **Hallucinated quest ids in batched scratch commands** (twice) — typed a `questId` `create-quest` had not returned,
+   so the first `python3` failed `FileNotFoundError` and cancelled the whole batch. Fix: one logical step per turn; use
+   only the `questId`/`workItemId` echoed back by the tool.
+
+All polluted/abandoned quests were wiped; `83628747` is the only valid run, left `complete` (terminal). Queue clean.
+
+Remaining: Session-3 fixes are still **uncommitted** (user has not asked to commit). Flow P remains optional.
+
+## Session 3 (2026-05-30) — Prompt-walk holes FIXED; full ward green; Flow-1 re-run PENDING
+
+All actionable prompt-walk findings are fixed in the working tree. **`npm run ward` is fully green (exit 0)** —
+lint, typecheck, unit, integration, e2e (incl. the previously-flaky WS-reconnect e2e). Changes are **uncommitted**
+(19 source/test files + this doc). Nothing is git-committed yet — the user has not asked to commit.
+
+Fixed (verified against source, TDD where it applies):
+- **PW-1** — `packagesAffected` added to `modifyQuestInputContract` (plain string-brand array, whole-list replace) +
+  `quest-modify-broker` handling + `inspectableModifyQuestInputFieldsStatics` + allowlist (`flows_approved`,
+  `explore_observables`, `review_observables` back-transition). `dumpster-create` writes it at `explore_observables`;
+  the prompt was already correct.
+- **PW-2** — INVALID_MULTIPLE `field` corrected from "required" to **optional** in pathseeker-surface / -assertion-correctness / -walk prompts (contract: `field` required only for `INVALID`).
+- **PW-3** — `in_progress.allowedPlanningNotesFields` now `['blightReports','walkFindings']`, and the
+  `quest-input-forbidden-fields-transformer` carveout was **generalized** (was blight-only) so a planningNotes write
+  whose sub-fields are all in the allowlist passes at a `blightReportsRule:'full'` status. This unblocks
+  pathseeker-walk's terminal `walkFindings` commit (it runs at `in_progress`).
+- **PW-4** — `.includes` added to the banned-matcher lists in surface + assertion-correctness prompts (+ test needle).
+- **PW-6** — blightwarden `failed-replan` prose corrected: it routes to BLOCK (no auto replan splice).
+- **PW-7** — dedup-minion "shell out to duplicate-detection broker" reworded to "read its source as a reference"
+  (the broker has no CLI entrypoint).
+- **PW-8** — dumpster-hunt now has the `get-server-config` + browser-open step (parity with dumpster-create).
+- **PW-9** — codeweaver/lawbringer JSDoc "spawn a Claude CLI subprocess" → "served via get-agent-prompt to a
+  Task-dispatched sub-agent … signal-back". (The same stale JSDoc phrasing may linger in other statics — cosmetic,
+  not runtime; a full sweep was out of scope.)
+
+FALSE findings (verified, NOT changed):
+- **PW-5** — `postBlightwardenFailure` spiritmender context is **live** (`quest-run-ward-broker.ts:185`,
+  `run-ward-layer-broker.ts:247` — ward-fail-after-blightwarden path). Not orphaned.
+- **PW-10** — glyphsmith does NOT need an `approved→explore_design` self-transition; `design-start-responder` sets
+  `explore_design` before glyphsmith is spawned.
+
+## What REMAINS (do this FIRST next session)
+
+1. **Re-run Flow 1 against the fixes (the user's explicit ask: "make sure nothing broke").** The prod server was
+   restarted on the new `dist/` (4800/4801) and the quest queue was wiped at the end of Session 3. **The MCP stdio
+   child is STALE** — it still holds the pre-fix `dist/` from session boot (confirmed: it rejects `packagesAffected`
+   with "Unrecognized key(s)"). A new session boots a fresh MCP child against current `dist/`, so this resolves
+   automatically — but **re-`npm run build` is NOT needed unless you edit source again** (dist already current).
+   Staleness probe: `create-quest` then `modify-quest({ packagesAffected: ['orchestrator'] })` on the `created` quest
+   → NEW code returns "Field 'packagesAffected' not allowed in status 'created'" (gate); STALE returns "Unrecognized
+   key(s)". Then seed + drive Flow 1 (pre-seeded chain, §"Flow 1" in `smoketest-mcp-orchestration.md`) to `complete`.
+2. **Flow P** — pathseeker + post-walk hook (optional). **PW-3 is now fixed**, so the walk's `walkFindings` terminal
+   commit should land at `in_progress` — Flow P is unblocked. Still needs a completeness-passing spec (borrow from a
+   `complete` quest). All execution roles are already covered by Flows 1–3, so this remains lowest priority.
+3. **(Optional) commit** the Session-3 fixes once Flow 1 confirms no regression.
 
 ## How to resume (next session)
 

@@ -111,7 +111,7 @@ When the assertion proves a related fact but not the precise clause, strengthen 
 
 #### (c) Paraphrased banned matchers
 
-Literal banned matchers (\`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`expect.any\`, \`expect.objectContaining\`) are caught by the save-time validator. **Paraphrased forms slip past:**
+Literal banned matchers (\`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`.includes\`, \`expect.any\`, \`expect.objectContaining\`) are caught by the save-time validator. **Paraphrased forms slip past:**
 
 - "approximately equals"
 - "contains roughly"
@@ -131,7 +131,7 @@ The save-time validator catches mismatches at commit, but flag borderline cases 
 |--------|---------|
 | VALID | forbidden |
 | INVALID | required |
-| INVALID_MULTIPLE | required |
+| INVALID_MULTIPLE | optional |
 | ERROR | forbidden |
 | EDGE | forbidden |
 | EMPTY | forbidden |
@@ -160,7 +160,7 @@ modify-quest({
 - **Channel drift:** remove the entry from \`assertions[]\` and append a one-directive entry to \`instructions[]\` on the same step.
 - **Paraphrased matchers:** rewrite the assertion's \`input\` and/or \`expected\` text to plain prose. Do NOT name a jest matcher.
 - **Clause-mapping fixes:** strengthen the assertion's \`input\` and/or \`expected\` text so it exercises the observable's \`when\` and verifies its \`then\`. Preserve the \`observablesSatisfied\` and \`prefix\` fields.
-- **Prefix mismatches:** either set the correct \`field\` for INVALID/INVALID_MULTIPLE, drop the stray \`field\` from VALID/ERROR/EDGE/EMPTY, OR move the entry to \`instructions[]\` if it is editorial.
+- **Prefix mismatches:** INVALID assertions REQUIRE \`field\`; INVALID_MULTIPLE MAY include \`field\` (optional); VALID/ERROR/EDGE/EMPTY FORBID it. Either set or supply the required/optional \`field\`, drop the stray \`field\` from VALID/ERROR/EDGE/EMPTY, OR move the entry to \`instructions[]\` if it is editorial.
 
 **Save-time validator reminder.** The banned-matchers (literal), per-prefix \`field\`, slice-prefix on step IDs, and duplicate-step-focus-files checks fire on every commit. Confirm your fix text does not trip them before sending. Banned-matcher paraphrases you introduce by accident (e.g. writing "approximately matches" in your own rewrite) will land in the plan and cause downstream drift — re-read your fix prose before committing.
 

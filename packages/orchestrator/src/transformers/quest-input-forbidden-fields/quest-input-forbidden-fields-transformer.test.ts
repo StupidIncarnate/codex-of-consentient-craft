@@ -712,6 +712,91 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
         expect(offenders).toStrictEqual([]);
       });
+
+      it('VALID: {in_progress + planningNotes.walkFindings} => returns empty array (pathseeker-walk terminal commit)', () => {
+        const input = ModifyQuestInputStub({
+          planningNotes: {
+            walkFindings: PlanningWalkFindingsStub(),
+          },
+        });
+        const currentQuest = QuestStub({ status: 'in_progress' });
+
+        const offenders = questInputForbiddenFieldsTransformer({
+          input,
+          currentQuest,
+          currentStatus: 'in_progress',
+        });
+
+        expect(offenders).toStrictEqual([]);
+      });
+
+      it('INVALID: {in_progress + planningNotes.surfaceReports} => rejects planningNotes (surfaceReports not in in_progress allowlist)', () => {
+        const input = ModifyQuestInputStub({
+          planningNotes: {
+            surfaceReports: [PlanningSurfaceReportStub()],
+          },
+        });
+        const currentQuest = QuestStub({ status: 'in_progress' });
+
+        const offenders = questInputForbiddenFieldsTransformer({
+          input,
+          currentQuest,
+          currentStatus: 'in_progress',
+        });
+
+        expect(offenders.map((o) => String(o))).toStrictEqual([
+          "Field 'planningNotes' not allowed in status 'in_progress'",
+        ]);
+      });
+    });
+  });
+
+  describe('packagesAffected field allowlist', () => {
+    it('VALID: {explore_observables + packagesAffected} => returns empty array', () => {
+      const input = ModifyQuestInputStub({
+        packagesAffected: ['orchestrator', 'web'] as never,
+      });
+      const currentQuest = QuestStub({ status: 'explore_observables' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'explore_observables',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {flows_approved + packagesAffected} => returns empty array', () => {
+      const input = ModifyQuestInputStub({
+        packagesAffected: ['shared'] as never,
+      });
+      const currentQuest = QuestStub({ status: 'flows_approved' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'flows_approved',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('INVALID: {in_progress + packagesAffected} => rejects packagesAffected (spec-phase only)', () => {
+      const input = ModifyQuestInputStub({
+        packagesAffected: ['orchestrator'] as never,
+      });
+      const currentQuest = QuestStub({ status: 'in_progress' });
+
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'packagesAffected' not allowed in status 'in_progress'",
+      ]);
     });
   });
 });

@@ -38,6 +38,8 @@ in the "User Request" section at the bottom of this prompt — copy it exactly) 
 \`questType: 'bug-hunt'\` so the quest seeds the PestEater pipeline at Start. The user never passes a
 questId — you mint it. Capture the returned \`questId\` and \`guildSlug\`.
 
+**Open the web UI immediately after quest creation.** Call \`mcp__dungeonmaster__get-server-config()\` to learn the server's \`baseUrl\`, then open the spec view with chat hidden so the user can watch quest state live without a duplicate chat panel: \`<baseUrl>/<guildSlug>/quest/<questId>?chat=hidden\`. Open it via Bash: \`xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true\`. Do this exactly once, before any further spec work. The user does not need to manually navigate.
+
 **Load the quest.** Call \`get-quest\` with the \`questId\` you minted (\`stage: 'spec'\`,
 \`format: 'text'\`). The quest begins at status \`created\`. You drive it through the status lifecycle
 below via \`modify-quest\`.

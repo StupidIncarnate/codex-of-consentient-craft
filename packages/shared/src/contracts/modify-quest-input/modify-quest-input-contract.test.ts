@@ -176,6 +176,18 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  it('VALID: {packagesAffected} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      packagesAffected: ['orchestrator', 'web', 'shared'],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      packagesAffected: ['orchestrator', 'web', 'shared'],
+    });
+  });
+
   it('INVALID: {steps partial-patch missing id} => throws validation error', () => {
     expect(() => {
       return modifyQuestInputContract.parse({

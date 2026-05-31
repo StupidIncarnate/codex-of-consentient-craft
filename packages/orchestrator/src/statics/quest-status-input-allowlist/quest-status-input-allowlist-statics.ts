@@ -77,13 +77,27 @@ export const questStatusInputAllowlistStatics = {
     allowedPlanningNotesFields: [],
   },
   flows_approved: {
-    allowedFields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'status'],
+    allowedFields: [
+      'flows',
+      'designDecisions',
+      'contracts',
+      'toolingRequirements',
+      'packagesAffected',
+      'status',
+    ],
     flowsRule: 'full',
     blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   explore_observables: {
-    allowedFields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'status'],
+    allowedFields: [
+      'flows',
+      'designDecisions',
+      'contracts',
+      'toolingRequirements',
+      'packagesAffected',
+      'status',
+    ],
     flowsRule: 'full',
     blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
@@ -92,7 +106,7 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['status'],
     backTransitionFields: {
       toStatus: 'explore_observables',
-      fields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+      fields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'packagesAffected'],
     },
     flowsRule: 'full',
     blightReportsRule: 'forbidden',
@@ -162,7 +176,7 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
     flowsRule: 'observable-wording-only',
     blightReportsRule: 'full',
-    allowedPlanningNotesFields: ['blightReports'],
+    allowedPlanningNotesFields: ['blightReports', 'walkFindings'],
   },
   paused: {
     allowedFields: ['status'],

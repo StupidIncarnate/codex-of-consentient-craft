@@ -5,11 +5,11 @@
  * codeweaverPromptStatics.prompt.template;
  * // Returns the Codeweaver agent prompt template
  *
- * The prompt in this module is used to spawn a Claude CLI subprocess that:
+ * The prompt is served via get-agent-prompt to a Task-dispatched sub-agent that:
  * 1. Implements quest steps following project standards
  * 2. Writes comprehensive tests with full branch coverage
  * 3. Follows gate-based development process
- * 4. Signals completion via stdout signals
+ * 4. Reports completion via the signal-back MCP tool
  */
 
 export const codeweaverPromptStatics = {

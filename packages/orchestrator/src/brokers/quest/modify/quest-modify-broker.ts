@@ -133,6 +133,12 @@ export const questModifyBroker = async ({
           });
         }
 
+        if (validated.packagesAffected !== undefined) {
+          // packagesAffected is a plain string-brand array (no id), so it replaces the
+          // whole list rather than upserting by id like the object arrays above.
+          quest.packagesAffected = validated.packagesAffected;
+        }
+
         if (validated.flows) {
           quest.flows = questArrayUpsertTransformer({
             existing: quest.flows,

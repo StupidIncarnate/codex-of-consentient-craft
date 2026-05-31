@@ -20,4 +20,5 @@ export const inspectableModifyQuestInputFieldsStatics = [
   'status',
   'title',
   'planningNotes',
+  'packagesAffected',
 ] as const;

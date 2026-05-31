@@ -120,7 +120,7 @@ describe('pathseekerSurfaceStatics', () => {
 
     it('VALID: template => Constraints/Validator-tripping bullet forbids banned jest matchers', () => {
       const needle =
-        '- **Banned jest matchers in assertions** — no `.toContain`, `.toMatchObject`, `.toEqual`, `.toHaveProperty`, `expect.any`, `expect.objectContaining`.';
+        '- **Banned jest matchers in assertions** — no `.toContain`, `.toMatchObject`, `.toEqual`, `.toHaveProperty`, `.includes`, `expect.any`, `expect.objectContaining`.';
       const { template } = pathseekerSurfaceStatics.prompt;
       const found = template.slice(
         template.indexOf(needle),
