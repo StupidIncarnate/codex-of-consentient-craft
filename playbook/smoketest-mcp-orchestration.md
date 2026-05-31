@@ -410,18 +410,23 @@ exit-code line; assert the detail breakdown only for a known-**failing** ward ru
 > `get-next-step()` again.** The orchestrator hands you exactly the batch that is ready; you do not get to pick the next
 > item or run ahead of the graph.
 >
-> - **You CANNOT dispatch multiple different roles concurrently.** The orchestration does NOT handle that correctly:
->   `signal-back` does not gate on readiness and `get-agent-prompt` stamps identity best-effort without a dependency
->   check, so hand-batching e.g. `siege` + `law` + `blight` together force-completes items out of dependency order and
->   **invalidates the entire run** (you never actually observed each gate). A chain like `siege → law → blight` is
->   strictly serial: one `get-next-step` returns ONLY `siege`; you dispatch `siege`, wait, verify, THEN the next
->   `get-next-step` returns `law`, and so on.
-> - **The ONLY parallelism allowed is multiple agents OF THE SAME ROLE that a SINGLE `get-next-step` returns together**
->   in one `spawn-agents.agents[]` batch (e.g. 3× `pathseeker-surface`, or N `codeweaver`/`spiritmender` siblings). That
->   is the real concurrent-dispatch the orchestrator emits, and the only case the dup-log (B4) assertion needs.
-> - **Operationally:** ONE `get-next-step` → dispatch ONLY its returned `workItemId`(s) → wait → assert `quest.json` →
->   `get-next-step` again. Drive strictly off the returned `workItemId`; never off the seed array or a remembered id.
->   When in doubt, do one tool call per turn.
+> - **You CANNOT dispatch multiple different roles concurrently** — even when a single `get-next-step` returns them in
+    > the same batch. `get-next-step` DOES sometimes return a mixed-role batch of mutually-independent items (observed:
+    > `pathseeker-dedup` + `pathseeker-assertion-correctness`, both depending only on the surfaces). Do **not** parallel
+    > those: dispatch the first one alone — its `get-agent-prompt` flips it to `in_progress`, so the **next**
+    > `get-next-step` returns only the remainder — then dispatch that. The worst failure is hand-batching a dependency
+    > **chain** (`siege → law → blight`) the orchestrator returns one-at-a-time: `signal-back` does not gate on
+    readiness
+    > and `get-agent-prompt` stamps identity without a dependency check, so concurrent dispatch force-completes items
+    out
+    > of order and **invalidates the entire run** (you never observed each gate).
+> - **The ONLY parallelism allowed is multiple agents OF THE SAME ROLE in a single returned batch** (e.g. 3×
+    > `pathseeker-surface`, or N `codeweaver`/`spiritmender` siblings). That same-role fan-out is the real concurrent
+    > dispatch the orchestrator emits and the only case the dup-log (B4) assertion needs. Different roles → serialize,
+    > always.
+> - **Operationally:** ONE `get-next-step` → from its `agents[]`, dispatch in parallel ONLY the entries that share the
+    > same role (usually just one entry) → wait → assert `quest.json` → `get-next-step` again. Drive strictly off the
+    > returned `workItemId`; never off the seed array or a remembered id. When in doubt, do one tool call per turn.
 
 Every step of every flow is the same six beats:
 
@@ -445,10 +450,11 @@ Every step of every flow is the same six beats:
 ### Stub-agent dispatch recipe
 
 Dispatch one real `Task()` for each entry **in the `spawn-agents.agents[]` array that THIS `get-next-step` returned** —
-nothing else. If that array has multiple entries they are, by construction, the **same role** (a same-role batch);
-running those in parallel is correct and exercises the concurrent-MCP + dup-log (B4) path. If it has one entry, you
-dispatch one. **Never add an entry the orchestrator did not return, and never carry a different role into the same
-batch** (see the HARD RULE above).
+nothing else. If that array has multiple entries **of the same role** (e.g. 3× `pathseeker-surface`), run them in
+parallel — that exercises the concurrent-MCP + dup-log (B4) path. If it has multiple entries of **different** roles
+(e.g. `pathseeker-dedup` + `pathseeker-assertion-correctness`), dispatch them **one at a time** (the first's
+`get-agent-prompt` flips it to `in_progress`, so the next `get-next-step` returns only the rest) — see the HARD RULE
+above. **Never add an entry the orchestrator did not return.**
 
 ```
 You are a SMOKETEST STUB AGENT. Do NOT do real work, do NOT read/write source files.
@@ -488,10 +494,15 @@ each one silently produced a bogus "PASS" or a corrupted `quest.json`. Treat the
 - **G7 — never parallel-dispatch different roles; one logical step per turn; act only on echoed ids.** This is the
   ⛔ HARD RULE at the top of REFERENCE C, restated here because violating it is the single most common way a run goes
   bad:
-  - **Different roles in one batch → INVALID run.** `signal-back` does not gate on readiness and `get-agent-prompt`
+    - **Different roles → serialize, even in one batch.** `signal-back` does not gate on readiness and
+      `get-agent-prompt`
     stamps identity without a dependency check, so concurrently dispatching e.g. `siege`+`law`+`blight` force-completes
     them out of dependency order. The end-state can *look* complete while never having exercised the gates. The ONLY
-    legal parallelism is multiple agents **of the same role** that a SINGLE `get-next-step` returned together.
+      legal parallelism is multiple agents **of the same role**. Note `get-next-step` may itself return a mixed-role
+      batch
+      of mutually-independent items (e.g. `pathseeker-dedup` + `pathseeker-assertion-correctness`) — still dispatch
+      those
+      one at a time; the first's `get-agent-prompt` flips it `in_progress` so the next `get-next-step` returns the rest.
   - **Hallucinated / remembered ids → cancelled batch + possible corruption.** Batching a long pipeline against a
     `questId` typed from memory (not the one `create-quest` echoed) makes the first scratch command fail
     `FileNotFoundError`, which cancels every queued call after it; a botched scratch write can also clobber a real
