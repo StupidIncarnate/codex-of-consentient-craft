@@ -45,6 +45,20 @@ The sibling `agent-<realAgentId>.meta.json` sidecar does exist (Claude Code writ
 Task() spawn time with the **parent's** Task() tool-use-id), but its toolUseId field does
 NOT match `_meta.claudecode/toolUseId` and so cannot be used for this resolution.
 
+## `npm run build` kills the running MCP child
+
+The MCP stdio child runs the compiled `packages/mcp/dist/src/index.js`. A `npm run build` (or any
+build that rewrites this package's `dist/`) overwrites those files out from under the running child,
+so the child dies and the parent Claude Code session loses every `mcp__dungeonmaster__*` tool.
+
+Consequences:
+
+- **Any fix to MCP code only takes effect after a rebuild AND an MCP reconnect.** Editing source is
+  not enough — rebuild `dist/`, then reconnect (`/mcp` → reconnect dungeonmaster, or restart the
+  session's MCP) so a fresh child loads the new `dist/`.
+- **Any rebuild for an unrelated reason still drops the tools.** After building mid-session, reconnect
+  the MCP before issuing further MCP calls. Batch source fixes so you rebuild + reconnect once.
+
 ## Troubleshooting: MCP Tools Not Available
 
 If `claude mcp list` shows "Connected" but tools give "No such tool available" error:

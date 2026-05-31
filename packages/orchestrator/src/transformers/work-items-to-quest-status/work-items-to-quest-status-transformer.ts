@@ -31,11 +31,18 @@ export const workItemsToQuestStatusTransformer = ({
     return currentStatus;
   }
 
+  // Build the set of work-item ids that have been superseded by a later retry.
+  // A failed item is superseded (resolved) when another item was spliced for it —
+  // i.e. some work item has insertedBy === failedItem.id.
+  const supersededIds = new Set(
+    workItems.map((item) => item.insertedBy).filter((id) => id !== undefined),
+  );
+
   if (
     workItems.every(
       (item) =>
         isTerminalWorkItemStatusGuard({ status: item.status }) &&
-        !isFailureWorkItemStatusGuard({ status: item.status }),
+        (!isFailureWorkItemStatusGuard({ status: item.status }) || supersededIds.has(item.id)),
     )
   ) {
     return 'complete';

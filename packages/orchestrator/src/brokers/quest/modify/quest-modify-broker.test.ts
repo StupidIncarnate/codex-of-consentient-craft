@@ -10,6 +10,7 @@ import {
   PlanningSynthesisStub,
   PlanningWalkFindingsStub,
   QuestStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
@@ -1273,6 +1274,169 @@ describe('questModifyBroker', () => {
 
       expect('pausedAtStatus' in parsedRaw).toBe(false);
       expect(parsedRaw.status).toBe('seek_scope');
+    });
+  });
+
+  describe('work-item-driven status derivation', () => {
+    it('VALID: {workItems: [complete last item], no status} with all others already complete => persisted quest.status is "complete"', async () => {
+      const proxy = questModifyBrokerProxy();
+      const item1 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d001',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const item2 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d002',
+        role: 'ward',
+        spawnerType: 'command',
+        status: 'pending',
+        dependsOn: [item1.id],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        workItems: [item1, item2],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Complete the last pending item — no explicit status passed
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        workItems: [{ id: item2.id, status: 'complete' }],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.status).toBe('complete');
+    });
+
+    it('VALID: {explicit status: "blocked", workItems present} => explicit status wins, derivation does NOT override to in_progress', async () => {
+      const proxy = questModifyBrokerProxy();
+      const item1 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d003',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const item2 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d004',
+        role: 'ward',
+        spawnerType: 'command',
+        status: 'pending',
+        dependsOn: [],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        workItems: [item1, item2],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Explicit status: 'blocked' is passed alongside workItems
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'blocked',
+        workItems: [{ id: item2.id, status: 'skipped' }],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.status).toBe('blocked');
+    });
+
+    it('VALID: {workItems: [mark one item running], no status} with another item still pending => persisted quest.status stays "in_progress" (non-complete derivation does not clobber status)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const item1 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d005',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const item2 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d006',
+        role: 'ward',
+        spawnerType: 'command',
+        status: 'pending',
+        dependsOn: [item1.id],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        workItems: [item1, item2],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Mark item2 as in_progress — still active, not complete.
+      // Derived status would be 'in_progress' (non-complete); quest.status must remain unchanged.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        workItems: [{ id: item2.id, status: 'in_progress' }],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.status).toBe('in_progress');
+    });
+
+    it('EDGE: {workItems: [mark ward failed], no status} where only downstream item depends on failed ward => persisted quest.status stays "in_progress" (premature blocked derivation is suppressed)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const wardItem = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d007',
+        role: 'ward',
+        spawnerType: 'command',
+        status: 'in_progress',
+        dependsOn: [],
+      });
+      const downstreamItem = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d008',
+        role: 'spiritmender',
+        status: 'pending',
+        dependsOn: [wardItem.id],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        workItems: [wardItem, downstreamItem],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      // Mark ward as failed — workItems-only write, no explicit status.
+      // The transformer derives 'blocked' because downstreamItem depends on the failed wardItem.
+      // The narrow-to-complete fix suppresses that derived 'blocked' and leaves
+      // quest.status as 'in_progress' so the recovery splice can proceed.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        workItems: [{ id: wardItem.id, status: 'failed' }],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.status).toBe('in_progress');
     });
   });
 

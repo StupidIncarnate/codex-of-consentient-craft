@@ -43,6 +43,7 @@ import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
+import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { withQuestModifyLockLayerBroker } from './with-quest-modify-lock-layer-broker';
@@ -327,6 +328,14 @@ export const questModifyBroker = async ({
 
         if (validated.status) {
           quest.status = validated.status;
+        } else if (validated.workItems !== undefined) {
+          const derivedStatus = workItemsToQuestStatusTransformer({
+            workItems: quest.workItems,
+            currentStatus: quest.status,
+          });
+          if (derivedStatus === 'complete') {
+            quest.status = derivedStatus;
+          }
         }
 
         if (validated.pausedAtStatus === null) {

@@ -8,6 +8,7 @@ export const gitDiffFilesBrokerProxy = (): {
   setupWithMasterBranch: (params: { diffOutput: string }) => void;
   setupMergeBaseFails: (params: { diffOutput: string }) => void;
   setupNoBranch: (params: { diffOutput: string }) => void;
+  getDiffArgs: () => unknown;
 } => {
   const detectProxy = gitDetectDefaultBranchBrokerProxy();
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
@@ -66,5 +67,7 @@ export const gitDiffFilesBrokerProxy = (): {
         stderr: emptyMessage,
       });
     },
+
+    getDiffArgs: (): unknown => captureProxy.getSpawnedArgs(),
   };
 };

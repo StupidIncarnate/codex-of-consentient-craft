@@ -12,6 +12,7 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
 
   return {
     setupHomePath: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
       homedirProxy.returns({ path: homeDir });
       pathJoinProxy.returns({ result: homePath });
     },

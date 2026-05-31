@@ -73,4 +73,33 @@ describe('gitDiffFilesBroker', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('--diff-filter=d flag', () => {
+    it('VALID: {merge-base path} => git diff args include --diff-filter=d to exclude deletions', async () => {
+      const proxy = gitDiffFilesBrokerProxy();
+      proxy.setupWithMainBranch({ diffOutput: 'src/file1.ts\n' });
+
+      await gitDiffFilesBroker({
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.getDiffArgs()).toStrictEqual([
+        'diff',
+        '--name-only',
+        '--diff-filter=d',
+        'abc123',
+      ]);
+    });
+
+    it('VALID: {HEAD fallback path} => git diff args include --diff-filter=d to exclude deletions', async () => {
+      const proxy = gitDiffFilesBrokerProxy();
+      proxy.setupNoBranch({ diffOutput: 'src/orphan.ts\n' });
+
+      await gitDiffFilesBroker({
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(proxy.getDiffArgs()).toStrictEqual(['diff', '--name-only', '--diff-filter=d', 'HEAD']);
+    });
+  });
 });

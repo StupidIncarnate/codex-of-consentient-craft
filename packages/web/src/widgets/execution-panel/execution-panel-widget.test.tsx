@@ -183,6 +183,153 @@ describe('ExecutionPanelWidget', () => {
         'EXECUTION1/3 COMPLETE',
       );
     });
+
+    it('VALID: {6 work items, 1 step, 2 complete} => status bar shows 2/6 not step-count', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'pathseeker',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'in_progress',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'codeweaver',
+            status: 'in_progress',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000005',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000006',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION2/6 COMPLETE',
+      );
+    });
+
+    it('VALID: {6 work items, 1 step, 0 complete} => status bar shows 0/6', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'pathseeker',
+            status: 'in_progress',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'pending',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000005',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000006',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION0/6 COMPLETE',
+      );
+    });
+
+    it('VALID: {6 work items including 1 skipped, 1 step, 2 complete} => status bar shows 2/5 excluding skipped', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'pathseeker',
+            status: 'complete',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000005',
+            role: 'codeweaver',
+            status: 'pending',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000006',
+            role: 'codeweaver',
+            status: 'skipped',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION2/5 COMPLETE',
+      );
+    });
   });
 
   describe('action bar', () => {

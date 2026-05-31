@@ -115,6 +115,13 @@ npm run prod                          # ROOT-ONLY. server 4800 / web 4801, home 
 Never use a workspace-scoped invocation or `cd` into a package — the root script owns ports/env/home. Rebuild + restart
 prod after any source change (prod serves `dist/`, not source).
 
+> **GOTCHA — `npm run build` kills the MCP stdio child.** The dungeonmaster MCP server in this session is a stdio child
+> running `packages/mcp/dist/src/index.js`. Any `npm run build` (e.g. applying a fix mid-run) overwrites that `dist/`
+> out from under the running child, so it dies and the `mcp__dungeonmaster__*` tools drop. **After ANY rebuild,
+> reconnect the MCP** (`/mcp` → reconnect dungeonmaster) before resuming MCP-driven probes. Corollary: any fix to MCP
+> code itself only takes effect after a rebuild **and** an MCP reconnect. To minimize disruption, batch source fixes so
+> you rebuild + reconnect once, not per-fix.
+
 > If `.dungeonmaster/config.json` ever loses the `codex` guild, recreate it (`dungeonmaster init`, the web "add guild"
 > on `:4801`, or `POST /api/guilds { name, path }` with `path` = repo root) — `create-quest` throws
 > `"No guild registered for current directory…"` when no guild matches the cwd. Auto-create-on-first-quest is an
@@ -142,14 +149,21 @@ seeded quest is the only active one. (Wiping the quests dir in §1 already gives
 Open `http://dungeonmaster.localhost:4801/...` for the seeded quest. Many assertions are about what the UI *streams*.
 **Never refresh** — it kills live agents and corrupts state. If something doesn't appear live, that is the bug.
 
-### 5. (Ward paths) deterministic ward via fake CLI
+### 5. (Ward paths) deterministic ward via a real, ward-catchable defect
 
-`run-ward` shells out to `process.env.WARD_CLI_PATH ?? 'dungeonmaster-ward'` and routes recovery on the **exit code**.
-The real repo is green, so to test ward *failure/splice* you must point `WARD_CLI_PATH` at a fake that exits with a
-chosen code and prints a parseable run id, in the env the **prod server** inherits. If you can't inject it: run real
-`run-ward` for ward *happy* paths (exit 0 → `complete`) and assert ward-fail recovery via
-`quest-run-ward-broker.test.ts`
-instead (the splice lives inside the broker, keyed on real exit code — it cannot be staged by editing `quest.json`).
+`run-ward` shells out to `dungeonmaster-ward` and routes recovery on the **real exit code** inside
+`quest-run-ward-broker` (it can't be staged by editing `quest.json`). The repo is green, so:
+
+- **Ward happy paths (exit 0 → `complete`):** just run real `run-ward` against the clean tree.
+- **Ward failure/splice paths (exit ≠ 0):** **break something real ward catches**, then run real `run-ward`. Introduce
+  a genuine defect in a git-changed source file that ward will flag — e.g. a TS type error, an eslint violation, or a
+  failing assertion in a colocated `*.test.ts`. `wardMode: 'changed'` scopes to git-changed files, so the broken file
+  must be a working-tree change (editing it makes it one). Real ward then exits non-zero and the broker routes the
+  splice/block on that real exit code. **Restore the file** (`git checkout -- <path>`) once the case is asserted so the
+  tree is clean for the next run. (A small dedicated scratch file with a deliberate type error is the least-invasive
+  choice — pick one whose folder type ward's `changed` mode actually checks.)
+- **Fallback:** if you can't get a changed file in front of ward, assert ward-fail recovery via
+  `quest-run-ward-broker.test.ts` (the splice lives inside the broker, keyed on the real exit code).
 
 ### 6. The seeding technique (the crux)
 
@@ -570,7 +584,8 @@ For each role, drive a failure and assert `get-next-step` + `quest.json` + UI la
 Each scenario is a freshly-seeded quest (clean FIFO first). Seed so the target role is the **next ready** item (deps
 satisfied — give upstream deps `status: complete` — and downstream items `pending`). For `codeweaver`/`siegemaster`/
 stepped-`lawbringer`, **also seed the matching `steps/<id>`/`flows/<id>`** (else `get-agent-prompt` throws before the
-stub can signal — G5). Dispatch the stub with `signal: "failed"` (ward: force exit ≠ 0 via fake CLI).
+stub can signal — G5). Dispatch the stub with `signal: "failed"` (ward: force exit ≠ 0 by breaking a real,
+ward-catchable defect in a git-changed file per §5, then run real `run-ward`).
 
 | Role failed                                             | quest.json after                                                                                                                                                                                                                    | next get-next-step                                | UI                                                                                                                                            |
 |---------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|

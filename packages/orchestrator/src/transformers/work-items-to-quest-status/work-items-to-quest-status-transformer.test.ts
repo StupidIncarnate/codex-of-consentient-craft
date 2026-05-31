@@ -277,6 +277,54 @@ describe('workItemsToQuestStatusTransformer', () => {
     });
   });
 
+  describe('recovery via insertedBy (failed item superseded by a retry)', () => {
+    it('VALID: {all complete except one failed item that is superseded by a complete retry} => complete', () => {
+      const failedId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      // The failed item (e.g. ward failed)
+      const failedItem = WorkItemStub({ id: failedId, status: 'failed' });
+      // The retry item spliced in recovery — insertedBy === failedItem.id
+      const retryItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'complete',
+        insertedBy: failedId,
+      });
+      // All other items are complete
+      const codeweaverItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f' }),
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [codeweaverItem, failedItem, retryItem],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('complete');
+    });
+
+    it('VALID: {failed item with NO superseding retry} => does not derive complete (stays in_progress)', () => {
+      // An unsuperseded failed item (e.g. blocked scenario with no retry spliced)
+      const failedId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const failedItem = WorkItemStub({ id: failedId, status: 'failed' });
+      const completeItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'complete',
+        // insertedBy is NOT set — this item was not a retry for failedItem
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [failedItem, completeItem],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('in_progress');
+    });
+  });
+
   describe('keep current status', () => {
     it('VALID: {mix of complete and pending with valid deps} => keep current', () => {
       const completeId = QuestWorkItemIdStub({

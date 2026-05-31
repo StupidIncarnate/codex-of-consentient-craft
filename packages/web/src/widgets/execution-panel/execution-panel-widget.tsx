@@ -40,6 +40,7 @@ import {
   isCompletedSuccessfullyQuestStatusGuard,
   isCompleteWorkItemStatusGuard,
   isQuestResumableQuestStatusGuard,
+  isSkippedWorkItemStatusGuard,
   isTerminalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
@@ -119,14 +120,13 @@ export const ExecutionPanelWidget = ({
 
   const stepsById = new Map(steps.map((s) => [s.id, s]));
 
-  const totalCount = (hasWorkItemsOnly ? quest.workItems.length : steps.length) as TotalCount;
-  const completedCount = (
-    hasWorkItemsOnly
-      ? quest.workItems.filter((wi) => isCompleteWorkItemStatusGuard({ status: wi.status })).length
-      : [...stepWorkItemMap.values()].filter((wi) =>
-          isCompleteWorkItemStatusGuard({ status: wi.status }),
-        ).length
-  ) as CompletedCount;
+  const nonSkippedWorkItems = quest.workItems.filter(
+    (wi) => !isSkippedWorkItemStatusGuard({ status: wi.status }),
+  );
+  const totalCount = nonSkippedWorkItems.length as TotalCount;
+  const completedCount = nonSkippedWorkItems.filter((wi) =>
+    isCompleteWorkItemStatusGuard({ status: wi.status }),
+  ).length as CompletedCount;
 
   const workItemIdToLabel = new Map<WorkItem['id'], WorkItem['role']>();
   for (const wi of quest.workItems) {
