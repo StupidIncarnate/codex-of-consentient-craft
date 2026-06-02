@@ -21,6 +21,7 @@ export * from './src/guards/is-user-paused-quest-status/is-user-paused-quest-sta
 export * from './src/guards/is-quest-blocked-quest-status/is-quest-blocked-quest-status-guard';
 export * from './src/guards/is-terminal-quest-status/is-terminal-quest-status-guard';
 export * from './src/guards/is-completed-successfully-quest-status/is-completed-successfully-quest-status-guard';
+export * from './src/guards/is-abandoned-quest-status/is-abandoned-quest-status-guard';
 export * from './src/guards/is-abandonable-quest-status/is-abandonable-quest-status-guard';
 export * from './src/guards/is-quest-pauseable-quest-status/is-quest-pauseable-quest-status-guard';
 export * from './src/guards/is-quest-resumable-quest-status/is-quest-resumable-quest-status-guard';

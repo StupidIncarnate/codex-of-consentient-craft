@@ -34,8 +34,7 @@ import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import {
   hasQuestGateContentGuard,
-  isActivelyExecutingQuestStatusGuard,
-  isCompletedSuccessfullyQuestStatusGuard,
+  isQuestBlockedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
@@ -337,22 +336,30 @@ export const questModifyBroker = async ({
         const completenessInfoChecks = completenessResults.filter((check) => check.passed);
 
         if (validated.status) {
+          // Explicit transition (start / pause / resume / abandon / block) — already gated above
+          // by the transition-validity guard and completeness checks.
           quest.status = validated.status;
         } else if (validated.workItems !== undefined) {
+          // Work items changed with no explicit status: the new status is whatever they imply.
+          // workItemsToQuestStatusTransformer is authoritative — it preserves the statuses it must
+          // not derive over (pathseeker/pre-execution/paused/abandoned) and otherwise returns the
+          // canonical complete / in_progress / blocked, including re-opening a quest that briefly
+          // derived `complete` when fresh pending work is appended. Derived transitions are
+          // consequences, not user transitions, so they bypass the transition-validity guard
+          // (e.g. complete -> in_progress has no explicit edge).
+          //
+          // `blocked` is the one derived status NOT applied here: it is owned by the explicit
+          // failure-routing path (questBlockOnFailureBroker / ward exhaustion / orchestration-loop
+          // terminal / smoketest driver), which passes status explicitly AND drains pending items
+          // to skipped. A bare workItems write that marks an item failed momentarily leaves its
+          // downstream dead-ended — deriving `blocked` there would flicker the quest to a terminal
+          // status (tripping smoketest terminal detection) before the recovery splice, which runs
+          // as the next write, reopens it. Leaving blocked to the explicit path avoids that.
           const derivedStatus = workItemsToQuestStatusTransformer({
             workItems: quest.workItems,
             currentStatus: quest.status,
           });
-          if (derivedStatus === 'complete') {
-            quest.status = derivedStatus;
-          } else if (
-            isCompletedSuccessfullyQuestStatusGuard({ status: quest.status }) &&
-            isActivelyExecutingQuestStatusGuard({ status: derivedStatus })
-          ) {
-            // New live pending work was appended after the quest had derived `complete` — the
-            // post-walk hook generating the codeweaver chain when the last pathseeker finishes,
-            // or a recovery splice. Re-open the quest to in_progress so get-next-step dispatches
-            // the new work instead of leaving it stranded under the terminal `complete` status.
+          if (!isQuestBlockedQuestStatusGuard({ status: derivedStatus })) {
             quest.status = derivedStatus;
           }
         }

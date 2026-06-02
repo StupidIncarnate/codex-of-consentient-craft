@@ -1422,9 +1422,10 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       // Mark ward as failed — workItems-only write, no explicit status.
-      // The transformer derives 'blocked' because downstreamItem depends on the failed wardItem.
-      // The narrow-to-complete fix suppresses that derived 'blocked' and leaves
-      // quest.status as 'in_progress' so the recovery splice can proceed.
+      // The transformer derives 'blocked' because downstreamItem depends on the failed wardItem,
+      // but the bare-workItems branch does not apply a derived 'blocked' — that status is owned by
+      // the explicit failure-routing path. So quest.status stays 'in_progress' and the recovery
+      // splice (the next write) can reopen it without a blocked flicker.
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         workItems: [{ id: wardItem.id, status: 'failed' }],

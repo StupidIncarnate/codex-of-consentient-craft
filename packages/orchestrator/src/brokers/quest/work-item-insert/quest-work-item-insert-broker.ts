@@ -17,7 +17,6 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { ReplacementEntry } from '../../../contracts/replacement-entry/replacement-entry-contract';
-import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
 export const questWorkItemInsertBroker = async ({
@@ -47,16 +46,13 @@ export const questWorkItemInsertBroker = async ({
 
   updatedWorkItems.push(...newWorkItems);
 
-  const newStatus = workItemsToQuestStatusTransformer({
-    workItems: updatedWorkItems,
-    currentStatus: quest.status,
-  });
-
+  // No explicit status: questModifyBroker re-derives it from the updated work items. A recovery
+  // splice adds pending retry items (and rewires deps off the failed item), so the derived status
+  // re-opens the quest to in_progress — which is exactly what the work items now imply.
   await questModifyBroker({
     input: {
       questId,
       workItems: updatedWorkItems,
-      ...(newStatus === quest.status ? {} : { status: newStatus }),
       ...(tackOnSteps ? { steps: [...quest.steps, ...tackOnSteps] } : {}),
     } as ModifyQuestInput,
   });

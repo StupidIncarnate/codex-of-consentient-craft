@@ -304,8 +304,10 @@ describe('workItemsToQuestStatusTransformer', () => {
       expect(result).toBe('complete');
     });
 
-    it('VALID: {failed item with NO superseding retry} => does not derive complete (stays in_progress)', () => {
-      // An unsuperseded failed item (e.g. blocked scenario with no retry spliced)
+    it('VALID: {all terminal, failed item with NO superseding retry, no pending} => blocked', () => {
+      // Every item is terminal and an unsuperseded failure remains with nothing left to dispatch:
+      // the quest is blocked. (This is the case the orchestration loop used to force to `blocked`
+      // by hand; the transformer now derives it directly.)
       const failedId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -321,7 +323,29 @@ describe('workItemsToQuestStatusTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(result).toBe('in_progress');
+      expect(result).toBe('blocked');
+    });
+  });
+
+  describe('abandoned quest is held by explicit user intent', () => {
+    it('VALID: {currentStatus: "abandoned", all items terminal} => stays abandoned (not re-derived to complete)', () => {
+      // Abandon is a deliberate terminal decision. Even though every item is terminal (which would
+      // otherwise derive `complete`), work-item state must never override the abandon.
+      const skippedItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        status: 'skipped',
+      });
+      const completeItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [skippedItem, completeItem],
+        currentStatus: 'abandoned',
+      });
+
+      expect(result).toBe('abandoned');
     });
   });
 

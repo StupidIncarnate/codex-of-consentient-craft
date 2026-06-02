@@ -27,7 +27,6 @@ import { slotCountContract } from '../../../contracts/slot-count/slot-count-cont
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
-  isFailureWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
@@ -134,20 +133,13 @@ export const questOrchestrationLoopBroker = async ({
   // silent swallow here is what was leaving smoketest quests stuck at
   // in_progress and bypassing the post-terminal listener.
   if (questTerminal) {
-    const transformedStatus = workItemsToQuestStatusTransformer({
+    // Every work item is terminal. workItemsToQuestStatusTransformer derives `complete` or, when
+    // an unrecovered failure remains, `blocked` — so post-terminal listeners (smoketest
+    // assertions) always fire on a definite terminal status.
+    const newStatus = workItemsToQuestStatusTransformer({
       workItems: quest.workItems,
       currentStatus: quest.status,
     });
-    // When every work item is terminal but transformedStatus didn't transition
-    // (e.g. all-terminal-with-failures + no pending dependents leaves
-    // workItemsToQuestStatusTransformer falling through to currentStatus),
-    // force `blocked` so the quest reaches a terminal status and post-terminal
-    // listeners (smoketest assertions) fire.
-    const hasFailures = quest.workItems.some((item) =>
-      isFailureWorkItemStatusGuard({ status: item.status }),
-    );
-    const newStatus =
-      transformedStatus === quest.status && hasFailures ? 'blocked' : transformedStatus;
     if (newStatus !== quest.status) {
       try {
         const transitionResult = await questModifyBroker({
