@@ -32,7 +32,11 @@ import { modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
-import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';
+import {
+  hasQuestGateContentGuard,
+  isActivelyExecutingQuestStatusGuard,
+  isCompletedSuccessfullyQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
@@ -340,6 +344,15 @@ export const questModifyBroker = async ({
             currentStatus: quest.status,
           });
           if (derivedStatus === 'complete') {
+            quest.status = derivedStatus;
+          } else if (
+            isCompletedSuccessfullyQuestStatusGuard({ status: quest.status }) &&
+            isActivelyExecutingQuestStatusGuard({ status: derivedStatus })
+          ) {
+            // New live pending work was appended after the quest had derived `complete` — the
+            // post-walk hook generating the codeweaver chain when the last pathseeker finishes,
+            // or a recovery splice. Re-open the quest to in_progress so get-next-step dispatches
+            // the new work instead of leaving it stranded under the terminal `complete` status.
             quest.status = derivedStatus;
           }
         }

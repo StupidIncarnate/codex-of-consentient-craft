@@ -14,6 +14,7 @@ import {
   isPendingWorkItemStatusGuard,
   isPreExecutionQuestStatusGuard,
   isTerminalWorkItemStatusGuard,
+  isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
 export const workItemsToQuestStatusTransformer = ({
@@ -69,5 +70,15 @@ export const workItemsToQuestStatusTransformer = ({
     return 'blocked';
   }
 
-  return currentStatus;
+  // A user-paused quest is held by explicit user intent — never derive it back to running.
+  if (isUserPausedQuestStatusGuard({ status: currentStatus })) {
+    return currentStatus;
+  }
+
+  // Reaching here means the quest is neither all-terminal nor blocked, so it has live pending
+  // work whose dependencies are satisfiable — the quest is in_progress. This recovers a quest
+  // that momentarily derived `complete` (the last pathseeker finishing before the post-walk hook
+  // appends the codeweaver chain) or `blocked` (recovery splice rewiring deps off a failed item):
+  // appending live pending work re-opens it for dispatch rather than stranding it.
+  return 'in_progress';
 };

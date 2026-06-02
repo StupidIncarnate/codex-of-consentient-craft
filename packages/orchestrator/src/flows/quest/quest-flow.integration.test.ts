@@ -671,6 +671,104 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('post-walk hook — pathseeker-walk completion hands off to codeweaver', () => {
+    // Regression: completing the LAST pathseeker (pathseeker-walk) momentarily leaves every
+    // work item terminal, so the quest derives `complete`. The post-walk hook then appends the
+    // pending codeweaver/ward/siege/lawbringer/blightwarden chain — but the quest stays stuck at
+    // `complete`, so `loadActiveQuestsLayerBroker` (filters on in_progress) drops it and
+    // `get-next-step` returns idle. The codeweaver never launches. This is the exact hole the
+    // user hit (quest 014208d8… with pathseekers done, pending codeweavers, get-next-step silent).
+    // 35s timeout: on the BROKEN source `get-next-step` long-polls its full ~25s budget before
+    // returning idle, so the failing assertion is reached after the wait.
+    it('VALID: {pathseeker-walk signals complete} => post-walk codeweaver is dispatched and quest stays in_progress', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-postwalk-codeweaver' }),
+      });
+      // Full setup so loadActiveQuestsLayerBroker discovers the in_progress quest from
+      // DUNGEONMASTER_HOME (same as the recover/block tests below).
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Post-Walk Handoff Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'Post-Walk Handoff Quest',
+        userRequest: 'Drives pathseeker-walk completion through the post-walk codeweaver handoff',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      // Seed valid flows + steps (stepCount: 1 → exactly one codeweaver chunk) so the post-walk
+      // completeness scope passes and stepsToWorkItemsTransformer emits the downstream chain.
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      // Mark the pre-existing chaoswhisperer item complete and add a pathseeker-walk that is the
+      // only non-terminal item. When it completes, EVERY item is terminal at that instant — this
+      // is what trips the premature `complete` derivation.
+      const walkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const walkItem = WorkItemStub({
+        id: walkItemId,
+        role: 'pathseeker-walk',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        dependsOn: [],
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...existingComplete, walkItem],
+        }),
+      });
+
+      // pathseeker-walk signals complete → real signal-back handler fires questPostWalkHookBroker,
+      // which appends the codeweaver/ward/siege/lawbringer/blightwarden chain.
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: walkItemId,
+        signal: 'complete',
+      });
+
+      // The post-walk hook DID append the codeweaver (that half works); read its generated id.
+      const afterWalk = await QuestGetResponder({ questId });
+      const codeweaverItem = afterWalk.quest!.workItems.find((wi) => wi.role === 'codeweaver');
+      const codeweaverId = codeweaverItem!.id;
+
+      // The user-visible symptom: get-next-step must dispatch the codeweaver, NOT return idle.
+      const nextStep = await QuestFlow.getNextStep();
+
+      testbed.cleanup();
+
+      expect(nextStep).toStrictEqual({
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'codeweaver',
+            workItemId: codeweaverId,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${String(codeweaverId)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(codeweaverId)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+          },
+        ],
+      });
+      // Root cause: appending the pending chain must re-open the quest, not leave it `complete`.
+      expect(afterWalk.quest!.status).toBe('in_progress');
+    }, 35_000);
+  });
+
   describe('failure recovery — block sad path (BLOCK)', () => {
     // 30s timeout: after BLOCK there are no in_progress quests, so get-next-step finds nothing
     // ready and long-polls its full ~25s budget before returning idle (proving BLK-2: a blocked

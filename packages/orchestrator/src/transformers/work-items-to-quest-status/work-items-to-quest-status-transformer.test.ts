@@ -345,4 +345,46 @@ describe('workItemsToQuestStatusTransformer', () => {
       expect(result).toBe('in_progress');
     });
   });
+
+  describe('re-open a completed quest when live pending work is appended', () => {
+    it('VALID: {currentStatus: "complete", complete item + newly appended pending codeweaver with satisfied deps} => in_progress', () => {
+      // Regression for the post-walk hook hole: the last pathseeker completing leaves every item
+      // terminal so the quest derives `complete`; the hook then appends the pending codeweaver
+      // chain. The derivation must re-open the quest to in_progress, not preserve `complete`,
+      // otherwise loadActiveQuestsLayerBroker drops it and get-next-step never dispatches.
+      const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const walkItem = WorkItemStub({ id: walkId, status: 'complete' });
+      const codeweaverItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [walkId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [walkItem, codeweaverItem],
+        currentStatus: 'complete',
+      });
+
+      expect(result).toBe('in_progress');
+    });
+  });
+
+  describe('user-paused quest is held by explicit user intent', () => {
+    it('VALID: {currentStatus: "paused", pending item with satisfied deps} => stays paused (not re-derived to in_progress)', () => {
+      const completeId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const completeItem = WorkItemStub({ id: completeId, status: 'complete' });
+      const pendingItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        status: 'pending',
+        dependsOn: [completeId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, pendingItem],
+        currentStatus: 'paused',
+      });
+
+      expect(result).toBe('paused');
+    });
+  });
 });
