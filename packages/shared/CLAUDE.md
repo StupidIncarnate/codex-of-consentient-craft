@@ -52,6 +52,31 @@ Claude CLI outputs newline-delimited JSON (JSONL) during sessions. Each line has
 
 **Design decision:** One `assistant-stream-line` contract with variant stubs (not separate contracts per content type). The outer shape `{type: 'assistant', message: {content: [...]}}` is identical — only content items differ.
 
+## Resolving the Repo Root / Project Root
+
+To resolve "the repo root", "the project root", or "the guild path" from a working directory, use the canonical
+`cwdResolveBroker` — do NOT hand-roll a `git rev-parse` call, a parent-walk loop, or read `process.cwd()` as if it
+were the root.
+
+```typescript
+import {cwdResolveBroker} from '@dungeonmaster/shared/cwd/resolve';
+
+const repoRoot = await cwdResolveBroker({startPath, kind: 'repo-root'});
+```
+
+`startPath` is a `FilePath` (typically `processCwdAdapter()`). `kind` selects what to walk up for:
+
+| `kind`                 | Walks up to the directory containing | Return brand           |
+|------------------------|--------------------------------------|------------------------|
+| `'repo-root'`          | `.dungeonmaster.json`                | `RepoRootCwd`          |
+| `'project-root'`       | `package.json`                       | `ProjectRootCwd`       |
+| `'guild-path'`         | `guild.json`                         | `GuildPathCwd`         |
+| `'dungeonmaster-home'` | the dungeonmaster home dir           | `DungeonmasterHomeCwd` |
+
+It recurses up the directory tree and throws `ProjectRootNotFoundError` if it reaches the filesystem root without
+finding the target file. The underlying walk lives in `brokers/config-root/find/config-root-find-broker.ts`
+(`.dungeonmaster.json`) and `brokers/project-root/find/project-root-find-broker.ts` (`package.json`).
+
 ## Important Notes
 
 - **Never** import from `@dungeonmaster/shared/dist/...` directly

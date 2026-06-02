@@ -51,16 +51,6 @@ const CHAT_ROLES = new Set<WorkItemRole>([
   'glyphsmith' as WorkItemRole,
 ]);
 
-// Roles whose layer brokers fan work out through slot-manager-orchestrate-broker.
-// For these, only the first slotCount items actually dispatch immediately — the rest
-// are held by the slot manager and should be surfaced as `queued` instead of `in_progress`
-// so the UI can distinguish "ready, waiting for slot" from "actually running".
-const SLOT_MANAGED_ROLES = new Set<WorkItemRole>([
-  'codeweaver' as WorkItemRole,
-  'lawbringer' as WorkItemRole,
-  'spiritmender' as WorkItemRole,
-]);
-
 export const questOrchestrationLoopBroker = async ({
   processId,
   questId,
@@ -200,9 +190,18 @@ export const questOrchestrationLoopBroker = async ({
     return result;
   }
 
-  // 4. Single-role concurrency: group ready items by role, pick first group
+  // This loop only dispatches chat roles (chaoswhisperer / glyphsmith). Every execution role
+  // is dispatched by /dumpster-launch via the MCP get-next-step tool, and its work item is
+  // flipped to in_progress only when the sub-agent calls get-agent-prompt. Execution-role
+  // items are left `pending` here — the loop must not touch their status.
+  const chatReady = ready.filter((item) => CHAT_ROLES.has(item.role));
+  if (chatReady.length === 0) {
+    return result;
+  }
+
+  // 4. Single-role concurrency: group ready chat items by role, pick first group
   const roleGroupMap = new Map<WorkItemRole, WorkItem[]>();
-  for (const item of ready) {
+  for (const item of chatReady) {
     const group = roleGroupMap.get(item.role);
     if (group) {
       group.push(item);
@@ -242,16 +241,11 @@ export const questOrchestrationLoopBroker = async ({
     return result;
   }
 
-  // 7. Mark items that will actually dispatch now as in_progress, and any overflow
-  // (for slot-managed roles with more items than slots) as queued. The layer broker's
-  // slot-manager will work through the queued ones as slots free up, and its terminal
-  // write will transition them directly to complete/failed.
+  // 7. Mark the dispatching chat work item in_progress before handing off to the chat layer.
   const now = new Date().toISOString();
-  const isSlotManagedRole = SLOT_MANAGED_ROLES.has(roleName);
-  const immediateCount = isSlotManagedRole ? Number(slotCount) : roleItems.length;
-  const workItemStatusUpdates = roleItems.map((wi, index) => ({
+  const workItemStatusUpdates = roleItems.map((wi) => ({
     id: wi.id,
-    status: index < immediateCount ? 'in_progress' : 'queued',
+    status: 'in_progress',
     startedAt: now,
   }));
   await questModifyBroker({
@@ -261,29 +255,16 @@ export const questOrchestrationLoopBroker = async ({
     } as ModifyQuestInput,
   });
 
-  // 8. Dispatch to role-specific layer broker
+  // 8. Dispatch to the chat layer (chaoswhisperer / glyphsmith — the only roles this loop runs).
   try {
-    if (roleName === 'chaoswhisperer' || roleName === 'glyphsmith') {
-      await runChatLayerBroker({
-        questId,
-        workItem: firstItem,
-        startPath,
-        guildId,
-        ...(userMessage === undefined ? {} : { userMessage }),
-        onAgentEntry,
-      });
-    } else {
-      // Execution-role dispatch retired — pathseeker, codeweaver, ward, siegemaster,
-      // lawbringer, blightwarden, and spiritmender are all driven by /dumpster-launch
-      // via the MCP `get-next-step` tool. The orchestration loop no longer spawns them.
-      // Drop through; the work item stays `in_progress` (set above) until the external
-      // dispatcher signals back. Orphan items from runs that hit the legacy loop are
-      // reset to `pending` by `questOrphanResetBroker` (invoked by the quest-driven
-      // watcher's `questMonitorWatcherStartBroker` on the next observed sessionId).
-      // WorkItemRole is exhaustive: chat roles handled in the chaoswhisperer/
-      // glyphsmith branch above; every remaining role lands here.
-      return result;
-    }
+    await runChatLayerBroker({
+      questId,
+      workItem: firstItem,
+      startPath,
+      guildId,
+      ...(userMessage === undefined ? {} : { userMessage }),
+      onAgentEntry,
+    });
   } catch (error: unknown) {
     // On unhandled error: mark all in_progress items as failed to prevent zombies
     // Wrapped in inner try/catch to ensure original error always propagates (double fault safety)

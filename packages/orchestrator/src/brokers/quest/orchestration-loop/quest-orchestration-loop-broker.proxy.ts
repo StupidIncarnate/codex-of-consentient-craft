@@ -27,6 +27,7 @@ const parsePersistedQuests = ({
 export const questOrchestrationLoopBrokerProxy = (): {
   setupQuestTerminal: (params: { quest: QuestParam }) => void;
   setupQuestBlocked: (params: { quest: QuestParam }) => void;
+  setupQuestReady: (params: { quest: QuestParam }) => void;
   setupQuestNotFound: () => void;
   setupNoReadyItems: (params: { quest: QuestParam }) => void;
   getAllPersistedContents: () => readonly unknown[];
@@ -58,6 +59,11 @@ export const questOrchestrationLoopBrokerProxy = (): {
     },
 
     setupQuestBlocked: ({ quest }: { quest: QuestParam }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+    },
+
+    setupQuestReady: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
