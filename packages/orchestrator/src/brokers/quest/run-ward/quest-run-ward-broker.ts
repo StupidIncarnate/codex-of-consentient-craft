@@ -40,6 +40,7 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questRunWardResultContract } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 import type { QuestRunWardResult } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
+import type { SpiritmenderBatch } from '../../../contracts/spiritmender-batch/spiritmender-batch-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
 import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
@@ -167,12 +168,31 @@ export const questRunWardBroker = async ({
           await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
         } else {
           // Retry budget remains — splice batched spiritmenders + a ward retry.
-          const batches = detailJson
+          const detailBatches = detailJson
             ? wardDetailToSpiritmenderBatchesTransformer({
                 detailJson: errorMessageContract.parse(detailJson),
                 batchSize: slotManagerStatics.ward.spiritmenderBatchSize,
               })
             : [];
+
+          // Invariant: a failed ward with retry budget ALWAYS splices at least one spiritmender,
+          // so the ward-retry never depends on an empty set (which would make it immediately ready
+          // and let ward re-run with nothing repaired). When the detail blob yields no batches
+          // (ward crashed before emitting a runId, or produced no parseable failure detail), fall
+          // back to a single catch-all spiritmender carrying the failure summary.
+          const batches: SpiritmenderBatch[] =
+            detailBatches.length > 0
+              ? detailBatches
+              : [
+                  {
+                    filePaths: [],
+                    errors: [
+                      errorMessageContract.parse(
+                        `ward ${mode} failed (exit ${String(exitCode)}) with no structured errors — re-run ward and fix every reported failure`,
+                      ),
+                    ],
+                  },
+                ];
 
           // Pick the context preamble: post-Blightwarden warning if Blightwarden already ran,
           // else the default ward-failure preamble.

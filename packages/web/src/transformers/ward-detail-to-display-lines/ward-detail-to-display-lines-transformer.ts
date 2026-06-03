@@ -1,7 +1,10 @@
 /**
  * PURPOSE: Flattens the ward-result detail blob into human-readable breakdown lines — one per
- * lint/typecheck error and one per test failure — each prefixed with its check type. Used to render
- * the failure breakdown under an expanded failed [WARD] execution row.
+ * lint/typecheck error and one per test failure — each prefixed with its check type. A project that
+ * FAILED with no structured errors and no test failures (a suite that crashed / failed to run) gets
+ * a `<check>: <project> — FAILED` summary line plus its rawOutput, so the breakdown is never empty
+ * under a failed [WARD] row. Used to render the failure breakdown under an expanded failed [WARD]
+ * execution row.
  *
  * USAGE:
  * wardDetailToDisplayLinesTransformer({ detail });
@@ -45,6 +48,32 @@ export const wardDetailToDisplayLinesTransformer = ({
         const name = failure.testName === undefined ? '' : ` › ${String(failure.testName)}`;
         const message = failure.message === undefined ? '' : ` — ${String(failure.message)}`;
         lines.push(wardDetailLineContract.parse(`${label}: ${suite}${name}${message}`));
+      }
+
+      // Crash project: failed with no structured errors and no test failures (a suite that
+      // crashed / failed to run). Render a FAILED summary plus the rawOutput tail so the
+      // breakdown is never empty under a failed [WARD] row.
+      const crashed =
+        projectResult.status === 'fail' &&
+        (projectResult.errors ?? []).length === 0 &&
+        (projectResult.testFailures ?? []).length === 0;
+
+      if (crashed) {
+        const projectName =
+          projectResult.projectFolder?.name === undefined
+            ? 'unknown'
+            : String(projectResult.projectFolder.name);
+        lines.push(wardDetailLineContract.parse(`${label}: ${projectName} — FAILED`));
+
+        const stdout = projectResult.rawOutput?.stdout;
+        if (typeof stdout === 'string' && stdout.trim().length > 0) {
+          lines.push(wardDetailLineContract.parse(String(stdout)));
+        }
+
+        const stderr = projectResult.rawOutput?.stderr;
+        if (typeof stderr === 'string' && stderr.trim().length > 0) {
+          lines.push(wardDetailLineContract.parse(String(stderr)));
+        }
       }
     }
   }

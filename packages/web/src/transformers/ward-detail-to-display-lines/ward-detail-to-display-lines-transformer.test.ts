@@ -63,6 +63,115 @@ describe('wardDetailToDisplayLinesTransformer', () => {
     });
   });
 
+  describe('crash failures (no structured errors)', () => {
+    it('VALID: {failing project with no errors/testFailures} => renders FAILED summary + rawOutput stdout', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/shared', path: '/repo/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout: 'Cannot find module ./missing', stderr: '', exitCode: 1 },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual([
+        'integration: @dungeonmaster/shared — FAILED',
+        'Cannot find module ./missing',
+      ]);
+    });
+
+    it('VALID: {crash project with stderr only} => renders FAILED summary + stderr', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout: '', stderr: 'worker crashed', exitCode: 1 },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual(['integration: shared — FAILED', 'worker crashed']);
+    });
+
+    it('VALID: {crash project with no rawOutput} => renders FAILED summary only', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual(['integration: shared — FAILED']);
+    });
+
+    it('VALID: {passing project alongside a crash project} => renders only the crash', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/orchestrator',
+                  path: '/repo/packages/orchestrator',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+              },
+              {
+                projectFolder: { name: '@dungeonmaster/shared', path: '/repo/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout: 'crash', stderr: '', exitCode: 1 },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual(['integration: @dungeonmaster/shared — FAILED', 'crash']);
+    });
+  });
+
   describe('no failures', () => {
     it('EMPTY: {checks empty} => returns empty array', () => {
       const detail = WardDetailStub({ checks: [] });

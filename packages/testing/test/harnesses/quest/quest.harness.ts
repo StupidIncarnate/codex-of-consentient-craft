@@ -6,8 +6,8 @@
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
  * quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { appendFileSync, writeFileSync } from 'fs';
-import { dirname } from 'path';
+import { appendFileSync, mkdirSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
 
@@ -76,6 +76,18 @@ export const questHarness = ({
     userRequest?: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
+    wardResults?: {
+      id: string;
+      exitCode: number;
+      wardMode?: string;
+      runId?: string;
+      createdAt?: string;
+    }[];
+  }) => void;
+  writeWardResultDetail: (params: {
+    questFilePath: string;
+    wardResultId: string;
+    detail: Record<PropertyKey, unknown>;
   }) => void;
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
   buildQuestJson: (params: {
@@ -127,6 +139,7 @@ export const questHarness = ({
     userRequest = 'Build the feature',
     planningNotes,
     flows,
+    wardResults = [],
   }: {
     questId: string;
     questFolder: string;
@@ -152,6 +165,13 @@ export const questHarness = ({
     userRequest?: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
+    wardResults?: {
+      id: string;
+      exitCode: number;
+      wardMode?: string;
+      runId?: string;
+      createdAt?: string;
+    }[];
   }): void => {
     const seededPlanningNotes = questGateContentSeedTransformer({
       status,
@@ -219,7 +239,13 @@ export const questHarness = ({
       contracts: [],
       planningNotes: seededPlanningNotes,
       flows: seededFlows,
-      wardResults: [],
+      wardResults: wardResults.map((wr) => ({
+        id: wr.id,
+        createdAt: wr.createdAt ?? new Date().toISOString(),
+        exitCode: wr.exitCode,
+        ...(wr.runId === undefined ? {} : { runId: wr.runId }),
+        ...(wr.wardMode === undefined ? {} : { wardMode: wr.wardMode }),
+      })),
     };
 
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
@@ -235,6 +261,25 @@ export const questHarness = ({
     const outboxPath = `${dungeonmasterHome}/event-outbox.jsonl`;
     const outboxLine = `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`;
     appendFileSync(outboxPath, outboxLine);
+  };
+
+  const writeWardResultDetail = ({
+    questFilePath,
+    wardResultId,
+    detail,
+  }: {
+    questFilePath: string;
+    wardResultId: string;
+    detail: Record<PropertyKey, unknown>;
+  }): void => {
+    // The server's ward-detail endpoint reads <questFolder>/ward-results/<id>.json. The quest
+    // folder is the directory holding quest.json.
+    const wardResultsDir = join(dirname(questFilePath), 'ward-results');
+    mkdirSync(wardResultsDir, { recursive: true });
+    writeFileSync(
+      join(wardResultsDir, `${wardResultId}.json`),
+      JSON.stringify(detail, null, JSON_INDENT),
+    );
   };
 
   const patchQuestStatus = async ({
@@ -304,6 +349,7 @@ export const questHarness = ({
   return {
     createQuest,
     writeQuestFile,
+    writeWardResultDetail,
     patchQuestStatus,
     buildQuestJson,
   };

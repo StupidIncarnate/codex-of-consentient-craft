@@ -1,9 +1,14 @@
 /**
- * PURPOSE: Transforms ward detail JSON into batched file groups for spiritmender processing
+ * PURPOSE: Transforms ward detail JSON into batched file groups for spiritmender processing.
+ * Structured lint/typecheck/test failures group by absolute file path. A project that FAILED
+ * with no structured errors (a suite that crashed / failed to run) gets a catch-all entry
+ * carrying the failing-check summary plus its rawOutput, so a ward failure always yields at
+ * least one batch to fix instead of an empty list (which would let ward retry with nothing
+ * repaired in between).
  *
  * USAGE:
  * wardDetailToSpiritmenderBatchesTransformer({ detailJson: ErrorMessageStub(), batchSize: 5 });
- * // Returns SpiritmenderBatch[] grouped by file path
+ * // Returns SpiritmenderBatch[] grouped by file path, plus catch-all batches for crash failures
  */
 
 import {
@@ -34,6 +39,7 @@ export const wardDetailToSpiritmenderBatchesTransformer = ({
 
   const detail = parseResult.data;
   const fileErrorMap = new Map<AbsoluteFilePath, ErrorMessage[]>();
+  const crashEntries: { filePath: AbsoluteFilePath | null; errors: ErrorMessage[] }[] = [];
   const checks = detail.checks ?? [];
 
   for (const check of checks) {
@@ -124,10 +130,54 @@ export const wardDetailToSpiritmenderBatchesTransformer = ({
           // Skip failures with invalid suite paths
         }
       }
+
+      // Crash project: a failing project that produced no structured errors and no test
+      // failures (a suite that crashed / failed to run). Synthesize a catch-all entry from
+      // the failing-check summary plus its rawOutput so a ward failure never yields zero
+      // batches — which would let ward retry with nothing repaired in between.
+      if (projectResult.status === 'fail' && errors.length === 0 && testFailures.length === 0) {
+        const checkLabel = check.checkType === undefined ? 'check' : String(check.checkType);
+        const projectName =
+          projectResult.projectFolder?.name === undefined
+            ? 'unknown'
+            : String(projectResult.projectFolder.name);
+
+        const crashErrors: ErrorMessage[] = [
+          errorMessageContract.parse(`${checkLabel}: ${projectName} — FAILED`),
+        ];
+
+        const stdout = projectResult.rawOutput?.stdout;
+        if (typeof stdout === 'string' && stdout.trim().length > 0) {
+          crashErrors.push(errorMessageContract.parse(String(stdout)));
+        }
+
+        const stderr = projectResult.rawOutput?.stderr;
+        if (typeof stderr === 'string' && stderr.trim().length > 0) {
+          crashErrors.push(errorMessageContract.parse(String(stderr)));
+        }
+
+        let crashFilePath: AbsoluteFilePath | null = null;
+        const folderPath = projectResult.projectFolder?.path;
+        if (typeof folderPath === 'string') {
+          try {
+            crashFilePath = absoluteFilePathContract.parse(String(folderPath));
+          } catch {
+            crashFilePath = null;
+          }
+        }
+
+        crashEntries.push({ filePath: crashFilePath, errors: crashErrors });
+      }
     }
   }
 
-  const entries = [...fileErrorMap.entries()];
+  const entries: { filePath: AbsoluteFilePath | null; errors: ErrorMessage[] }[] = [
+    ...[...fileErrorMap.entries()].map(([filePath, fileErrors]) => ({
+      filePath,
+      errors: fileErrors,
+    })),
+    ...crashEntries,
+  ];
   const batches: SpiritmenderBatch[] = [];
 
   for (let i = 0; i < entries.length; i += batchSize) {
@@ -135,10 +185,12 @@ export const wardDetailToSpiritmenderBatchesTransformer = ({
     const batchFilePaths: AbsoluteFilePath[] = [];
     const batchErrors: ErrorMessage[] = [];
 
-    for (const [filePath, fileErrors] of slice) {
-      batchFilePaths.push(filePath);
+    for (const entry of slice) {
+      if (entry.filePath !== null) {
+        batchFilePaths.push(entry.filePath);
+      }
 
-      for (const fileError of fileErrors) {
+      for (const fileError of entry.errors) {
         batchErrors.push(fileError);
       }
     }

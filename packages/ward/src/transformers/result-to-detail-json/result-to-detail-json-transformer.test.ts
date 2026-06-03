@@ -4,6 +4,7 @@ import { ProjectResultStub } from '../../contracts/project-result/project-result
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
 import { PassingTestStub } from '../../contracts/passing-test/passing-test.stub';
+import { rawOutputCapStatics } from '../../statics/raw-output-cap/raw-output-cap-statics';
 import { resultToDetailJsonTransformer } from './result-to-detail-json-transformer';
 
 describe('resultToDetailJsonTransformer', () => {
@@ -456,6 +457,170 @@ describe('resultToDetailJsonTransformer', () => {
                     durationMs: 15,
                   },
                 ],
+                filesCount: 0,
+                discoveredCount: 0,
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('includes rawOutput for crash projects', () => {
+    it('VALID: {wardResult: failing project with no errors/testFailures} => includes rawOutput', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'shared', path: '/home/user/project/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                rawOutput: {
+                  stdout: 'Cannot find module ./missing in src/index.ts',
+                  stderr: 'jest exited with code 1',
+                  exitCode: 1,
+                },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: 'shared', path: '/home/user/project/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                passingTests: [],
+                filesCount: 0,
+                discoveredCount: 0,
+                rawOutput: {
+                  stdout: 'Cannot find module ./missing in src/index.ts',
+                  stderr: 'jest exited with code 1',
+                  exitCode: 1,
+                },
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it('EDGE: {crash project rawOutput longer than cap} => keeps only the trailing cap chars', () => {
+      const { maxChars } = rawOutputCapStatics.cap;
+      const stdout = `${'H'.repeat(maxChars)}TAILMARK`;
+      const expectedStdout = stdout.slice(-maxChars);
+
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'shared', path: '/home/user/project/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                rawOutput: { stdout, stderr: '', exitCode: 1 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: 'shared', path: '/home/user/project/packages/shared' },
+                status: 'fail',
+                errors: [],
+                testFailures: [],
+                passingTests: [],
+                filesCount: 0,
+                discoveredCount: 0,
+                rawOutput: { stdout: expectedStdout, stderr: '', exitCode: 1 },
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it('VALID: {failing project WITH structured errors} => still excludes rawOutput', () => {
+      const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                status: 'fail',
+                errors: [
+                  ErrorEntryStub({
+                    filePath: 'src/app.ts',
+                    message: 'no-unused-vars',
+                    line: 1,
+                    column: 1,
+                  }),
+                ],
+                rawOutput: { stdout: 'should not appear', stderr: '', exitCode: 1 },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'fail',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'fail',
+                errors: [
+                  {
+                    filePath: 'src/app.ts',
+                    line: 1,
+                    column: 1,
+                    message: 'no-unused-vars',
+                    severity: 'error',
+                  },
+                ],
+                testFailures: [],
+                passingTests: [],
                 filesCount: 0,
                 discoveredCount: 0,
               },
