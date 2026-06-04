@@ -59,7 +59,7 @@ If \`blightReports[]\` is empty (first run on this quest), skip straight to Disp
 
 ## Dispatch — Parallel Minion Spawn
 
-**Small-scope skip:** If \`planningNotes.scopeClassification.size === 'small'\`, skip minion dispatch entirely. Audit inline yourself — read \`git diff main...HEAD\` and eyeball for any of the 5 concerns. Write a single \`minion: 'synthesizer'\` report summarizing findings (empty findings is fine for a clean small-scope diff). Proceed to Synthesis.
+**Small-scope skip:** If \`planningNotes.scopeClassification.size === 'small'\`, skip minion dispatch entirely. Audit inline yourself — read \`git diff <main-or-master>...HEAD\` (diff against your repo's default branch — \`main\` or \`master\`, whichever exists) and eyeball for any of the 5 concerns. Write a single \`minion: 'synthesizer'\` report summarizing findings (empty findings is fine for a clean small-scope diff). Proceed to Synthesis.
 
 If \`scopeClassification\` is absent OR any size other than \`'small'\`, dispatch minions. This is the safe fallback.
 
@@ -168,6 +168,19 @@ signal-back({
 \`\`\`
 
 Use \`failed\` only when you cannot audit at all (tool access, contradictory quest state). Semantic findings you cannot fix inline are \`failed-replan\`, not \`failed\`.
+
+## Committing Inline Fixes
+
+If you applied any mechanical fixes inline, **commit them before you signal** so they are durable and visible to the next role:
+
+\`\`\`bash
+git add <the files you changed>
+git commit -m "blightwarden: <what you fixed>"
+\`\`\`
+
+**Hard rule — DO NOT STASH.**
+
+Never run \`git stash\` (or \`git checkout\` / \`git reset\` that discards working changes). Other agents may be working in the SAME branch; a stash/pop will swallow or clobber their in-flight work. If something looks like a regression, own it and fix it forward — diagnose the real cause and resolve it in place.
 
 ## Quest Context
 

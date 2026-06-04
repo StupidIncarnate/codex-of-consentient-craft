@@ -42,7 +42,7 @@ matching graph (`questBuildPathseekerGraphBroker` vs `questBuildBugHuntGraphBrok
 the same flow/observable spec lifecycle (the reproduction path is a flow, the expected behavior is an
 observable that **PestEater** turns into a failing test). The rest of this doc describes the
 `feature` flow in full; `bug-hunt` is the same dispatch machinery over a shorter, hand-seeded graph,
-and its `lawbringer` runs in **whole-diff mode** (reviews `git diff main...HEAD`, no per-step refs).
+and its `lawbringer` runs in **whole-diff mode** (reviews the diff against the repo default branch, no per-step refs).
 
 ---
 
@@ -266,7 +266,7 @@ returned prompt and stamps `sessionId` + `agentId` onto the work item.
 | **Codeweaver**   | One step chunk: assertions, instructions, focusFile, contracts, observables                         | Six gates: read context → discover standards → write tests first → confirm they fail behaviorally → implement → verify via ward + manual 100% branch-coverage audit                                  | `complete` / `failed`                            |
 | **Ward**         | `mode` (`changed`/`full`)                                                                           | Runs `dungeonmaster-ward run [--changed]` as a shell command. Exit 0 → `complete`, non-zero → `failed`. Only non-agent role                                                                          | (terminal status set by exit code, not a signal) |
 | **Siegemaster**  | One flow: nodes, edges, observables, entry/exit                                                     | Picks verification mode from observable-type distribution — Playwright E2E (runtime/UI), integration harness (API/CLI/queue), or ward+grep+adversarial (operational); writes real verification tests | `complete` / `failed`                            |
-| **Lawbringer**   | One step chunk (file pairs); OR, in **whole-diff mode** (bug-hunt), just `questId` and no step refs | Read-only review: logic / error-handling / security + manual test branch-coverage walk; runs ward. Whole-diff mode reviews every changed file in `git diff main...HEAD` instead of a named pair      | `complete` / `failed`                            |
+| **Lawbringer**   | One step chunk (file pairs); OR, in **whole-diff mode** (bug-hunt), just `questId` and no step refs | Review AND fix: logic / error-handling / security + manual test branch-coverage walk; fixes violations inline, commits, runs ward. Whole-diff mode reviews every changed file in the diff vs the repo default branch instead of a named pair | `complete` / `failed` (→ BLOCK)                  |
 | **Blightwarden** | The whole diff + quest context                                                                      | Whole-diff cross-cutting audit (security, dedup, perf, integrity, dead-code via parallel minions); fixes mechanical issues inline, routes semantic findings out                                      | `complete` / `failed-replan` / `failed`          |
 | **PestEater**    | The bug report (reads the quest itself: `userRequest`, repro flow, expected observable)             | Bug Hunt's single TDD agent: root-cause → write the failing test FIRST and watch it fail → fix → verify via ward. Front of the bug-hunt chain                                                        | `complete` / `failed`                            |
 | **Spiritmender** | Error context: affected files, errors, verification command                                         | Targeted error resolution without weakening tests / `any` / disabling lint; re-runs the verification command after each fix                                                                          | `complete` / `failed`                            |
@@ -289,19 +289,20 @@ Agents report via the `signal-back` MCP tool. The live handler is
    **or** `failed-replan`. Stamps `completedAt`.
 2. If the item is `pathseeker-walk` **and** the signal is `complete`, fires the post-walk hook to
    generate the downstream chain.
-3. On a `failed` / `failed-replan` signal, routes by the failing item's `role` (see the failure table
-   under "Invariants" → "Failure recovery & blocking"): `lawbringer` recovers; every other agent role
-   blocks the quest.
+3. On a `failed` / `failed-replan` signal, every agent role blocks the quest (see the failure table
+   under "Invariants" → "Failure recovery & blocking"). Lawbringer, siegemaster, and blightwarden fix
+   what they find inline during their own run, so a `failed` signal from them is an unfixable-issue
+   block.
 
 Terminal-failure routing lives in the two places that set terminal status:
 
 - **`run-ward` broker (`quest-run-ward-broker.ts`)** routes a non-zero ward exit: with retry budget
   remaining it splices a spiritmender batch + a ward-retry (`questSpliceFixerBroker`) and rewires
   downstream onto the retry; with retries exhausted it blocks the quest (`questBlockOnFailureBroker`).
-- **`signal-back` handler** routes agent failures: `lawbringer` splices spiritmender(s) + a
-  lawbringer-retry; `codeweaver` / `siegemaster` / `spiritmender` / `blightwarden` / `pathseeker-*` /
-  `pesteater` block the quest. `failed-replan` from Blightwarden is treated as `failed`, then routed by
-  the same table (→ BLOCK).
+  This is the only RECOVER path and the only place spiritmenders are spawned.
+- **`signal-back` handler** routes agent failures: `lawbringer` / `codeweaver` / `siegemaster` /
+  `spiritmender` / `blightwarden` / `pathseeker-*` / `pesteater` all block the quest. `failed-replan`
+  from Blightwarden is treated as `failed`, then routed by the same table (→ BLOCK).
 
 A blocked quest sets status `blocked` and marks every still-`pending` item `skipped`. A recovered
 quest stays `in_progress` and dispatches the spliced fixers on the next `get-next-step`. Quest status
@@ -321,10 +322,10 @@ Evaluated whenever work items change, against the current status:
    stays `in_progress`: terminal-but-not-complete, the "stuck" state).
 
 > **Note.** Recovery routing hangs off the two terminal-status setters — the `signal-back` handler and
-> the `run-ward` broker. Recoverable failures (ward with budget, lawbringer) splice a spiritmender
-> batch + a retry via `questSpliceFixerBroker`; failures that would have routed to a pathseeker replan
-> in the previous in-process model instead BLOCK the quest (`questBlockOnFailureBroker`) — the
-> orchestrator does not auto-replan.
+> the `run-ward` broker. The only recoverable failure is ward with retry budget, which splices a
+> spiritmender batch + a retry via `questSpliceFixerBroker`; every agent failure BLOCKS the quest
+> (`questBlockOnFailureBroker`) — the orchestrator does not auto-replan, and the self-correcting roles
+> (lawbringer / siegemaster / blightwarden) fix what they find inline rather than spawning a fixer.
 
 ---
 
@@ -371,7 +372,7 @@ items + a retry into `quest.workItems[]`; all other failures block the quest. Th
 |---------------------------------------------|----------------------------------------------------------------------------|
 | `ward` (retry budget remains)               | **RECOVER** — splice spiritmender(s) + ward-retry, rewire downstream       |
 | `ward` (retries exhausted)                  | **BLOCK**                                                                  |
-| `lawbringer`                                | **RECOVER** — splice spiritmender(s) + lawbringer-retry, rewire downstream |
+| `lawbringer`                                | **BLOCK** (fixes findings inline; `failed` = unfixable)                    |
 | `codeweaver`                                | **BLOCK**                                                                  |
 | `siegemaster`                               | **BLOCK**                                                                  |
 | `spiritmender`                              | **BLOCK**                                                                  |

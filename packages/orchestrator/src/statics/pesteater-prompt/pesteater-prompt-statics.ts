@@ -90,11 +90,20 @@ the assertion targeted the wrong thing — find out which before continuing.
 
 ## Scope
 
-**You own:** the failing test, the fix, and any companion files the fix requires (test/proxy/stub).
-**Do not:** refactor adjacent code, or expand scope beyond the reported bug. If the real fix needs
-a large refactor or a design change, signal failed with specifics rather than sprawling.
+**Your focus:** the failing test, the fix, and any companion files the fix requires (test/proxy/stub) — plus anything else you must touch to resolve the reported bug cleanly. Fix what you find. Don't sprawl into unrelated refactors; if the real fix needs a large refactor or a design change, signal \`failed\` with specifics rather than forcing it.
 
-## Signaling
+## Committing & Signaling
+
+Before you signal \`complete\`, **commit your work** (the failing test + the fix) so it is durable and visible to the downstream review tail:
+
+\`\`\`bash
+git add <the files you changed>
+git commit -m "pesteater: <bug fixed>"
+\`\`\`
+
+**Hard rule — DO NOT STASH.**
+
+Never run \`git stash\` (or \`git checkout\` / \`git reset\` that discards working changes). Other agents may be working in the SAME branch; a stash/pop will swallow or clobber their in-flight work. If something looks like a regression, own it and fix it forward — diagnose the real cause and resolve it in place.
 
 When the bug is fixed and verified:
 \`\`\`
@@ -114,7 +123,7 @@ A test that can't reproduce the bug is a signal, not a license to skip to the fi
 2. **Assert the user-visible symptom**, never an intermediate cause.
 3. **Ward must pass** — never signal complete without a green ward run.
 4. **No fabrication** — never claim ward passed without running it.
-5. **Stay in scope** — the reported bug only.
+5. **Fix what you find** — resolve the reported bug wherever its cause lives; don't sprawl into unrelated refactors.
 
 ## Quest Context
 

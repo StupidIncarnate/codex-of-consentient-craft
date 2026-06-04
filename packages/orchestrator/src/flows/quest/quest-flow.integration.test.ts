@@ -671,6 +671,186 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('failure recovery — crash ward (no structured errors) RECOVER', () => {
+    // Regression: the user's quest 014208d8 — the integration check FAILED at the suite level
+    // (a project that crashed / failed to run) with ZERO structured errors and ZERO test
+    // failures, the actual reason living only in rawOutput. The spiritmender batcher read only
+    // errors[]/testFailures[] → returned [] → the ward-retry was spliced with dependsOn: [] →
+    // ward re-ran immediately with nothing repaired (ward-after-ward-after-ward). This test
+    // drives that exact shape and proves a spiritmender is now ALWAYS spliced and the ward-retry
+    // depends on it (never bare).
+    it('VALID: {ward fails with crash-only detail (rawOutput, no structured errors)} => spiritmender spliced, ward-retry dependsOn it (never bare)', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-ward-crash-recover' }),
+      });
+      const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Ward Crash Recover Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'Ward Crash Recover Quest',
+        userRequest: 'Drives a suite-level ward crash (no structured errors) through recovery',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const siegeItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const codeweaverItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: crypto.randomUUID() }),
+        role: 'codeweaver',
+        status: 'complete',
+        spawnerType: 'agent',
+        dependsOn: [],
+        createdAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+      });
+      const wardItem = WorkItemStub({
+        id: wardItemId,
+        role: 'ward',
+        status: 'pending',
+        spawnerType: 'command',
+        dependsOn: [codeweaverItem.id],
+        wardMode: 'changed',
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const siegeItem = WorkItemStub({
+        id: siegeItemId,
+        role: 'siegemaster',
+        status: 'pending',
+        spawnerType: 'agent',
+        dependsOn: [wardItemId],
+        createdAt: new Date().toISOString(),
+      });
+
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...existingComplete, codeweaverItem, wardItem, siegeItem],
+        }),
+      });
+
+      // The crash shape: integration check FAILED, one project FAILED with no errors and no test
+      // failures — the reason only in rawOutput. This is exactly what jest emits when a suite
+      // fails to run/compile (filesCount 0).
+      const crashProjectName = '@dungeonmaster/shared';
+      const crashStdout = 'FATAL: jest failed to run @dungeonmaster/shared integration suite';
+      const failRunId = WardRunIdStub({
+        value: `1739625600000-c1f${String(Date.now() % 100000)}`,
+      });
+      queue.enqueue({
+        queueDir: env.wardQueueDir,
+        response: {
+          exitCode: 1,
+          runId: failRunId,
+          wardResultJson: {
+            checks: [
+              {
+                checkType: 'integration',
+                status: 'fail',
+                projectResults: [
+                  {
+                    projectFolder: {
+                      name: crashProjectName,
+                      path: '/repo/packages/shared',
+                    },
+                    status: 'fail',
+                    errors: [],
+                    testFailures: [],
+                    rawOutput: { stdout: crashStdout, stderr: '', exitCode: 1 },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      const wardRun = await QuestFlow.runWard({
+        questId,
+        workItemId: wardItemId,
+        mode: 'changed',
+      });
+
+      expect(wardRun.exitCode).toBe(1);
+
+      const afterSplice = await QuestGetResponder({ questId });
+      const spiritmenderItem = afterSplice.quest!.workItems.find(
+        (wi) => wi.role === 'spiritmender',
+      );
+      const wardRetryItem = afterSplice
+        .quest!.workItems.filter((wi) => wi.id !== wardItemId)
+        .find((wi) => wi.role === 'ward');
+      const spiritmenderId = spiritmenderItem!.id;
+      const wardRetryId = wardRetryItem!.id;
+
+      // The core regression: a spiritmender WAS spliced and the ward-retry depends on it —
+      // never an empty dependsOn (which is what produced ward-after-ward).
+      expect(wardRetryItem!.dependsOn).toStrictEqual([spiritmenderId]);
+
+      // get-next-step yields the SPIRITMENDER, never a bare ward re-run.
+      const afterWard = await QuestFlow.getNextStep();
+
+      expect(afterWard).toStrictEqual({
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'spiritmender',
+            workItemId: spiritmenderId,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "spiritmender",\n  workItemId: "${String(spiritmenderId)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(spiritmenderId)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+          },
+        ],
+      });
+
+      // The spiritmender's BUILT prompt carries the crash summary + rawOutput from the sidecar —
+      // proving the catch-all batch gives the fixer real failure text to act on.
+      const spiritmenderPrompt = await AgentPromptFlow.get({
+        agent: 'spiritmender',
+        questId,
+        workItemId: spiritmenderId,
+      });
+      const promptText = String(spiritmenderPrompt.prompt);
+
+      expect(new RegExp(crashStdout, 'u').exec(promptText)?.[0]).toBe(crashStdout);
+      expect(/FAILED/u.exec(promptText)?.[0]).toBe('FAILED');
+
+      // Completing the spiritmender yields the ward-RETRY (not the original failed ward).
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: spiritmenderId,
+        signal: 'complete',
+      });
+      const afterSpiritmender = await QuestFlow.getNextStep();
+
+      testbed.cleanup();
+
+      expect(afterSpiritmender).toStrictEqual({
+        type: 'run-ward',
+        questId,
+        workItemId: wardRetryId,
+        mode: 'changed',
+      });
+    });
+  });
+
   describe('post-walk hook — pathseeker-walk completion hands off to codeweaver', () => {
     // Regression: completing the LAST pathseeker (pathseeker-walk) momentarily leaves every
     // work item terminal, so the quest derives `complete`. The post-walk hook then appends the

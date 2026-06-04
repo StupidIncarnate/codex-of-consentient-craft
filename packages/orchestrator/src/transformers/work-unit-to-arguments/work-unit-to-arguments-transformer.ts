@@ -209,7 +209,7 @@ export const workUnitToArgumentsTransformer = ({
         const wholeDiffParts: ContentText[] = [
           contentTextContract.parse('Review Mode: whole-diff'),
           contentTextContract.parse(
-            'Review the entire branch diff: run `git diff main...HEAD --name-only`, then read and review every changed non-test file alongside its test.',
+            'Review the entire branch diff: run `git diff <main-or-master>...HEAD --name-only` (diff against your repo default branch — main or master, whichever exists), then read and review every changed non-test file alongside its test.',
           ),
         ];
         if (workUnit.questId !== undefined) {

@@ -11,4 +11,14 @@ describe('codeweaverPromptStatics', () => {
       },
     });
   });
+
+  it('VALID: prompt template => has the commit-before-signal section', () => {
+    expect(codeweaverPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
+  });
+
+  it('VALID: prompt template => carries the hard DO NOT STASH rule', () => {
+    expect(codeweaverPromptStatics.prompt.template).toMatch(
+      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
+    );
+  });
 });

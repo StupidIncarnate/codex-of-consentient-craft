@@ -18,7 +18,7 @@ describe('blightwardenIntegrityMinionStatics', () => {
 
   it('VALID: template => runs git diff main...HEAD', () => {
     expect(blightwardenIntegrityMinionStatics.prompt.template).toMatch(
-      /^Then run `git diff main\.\.\.HEAD --name-only` to get the real list of changed files\. Also run `git diff main\.\.\.HEAD` \(without `--name-only`\) to see the actual changes — you need to know WHAT changed, not just which files\.$/mu,
+      /^Then run `git diff <main-or-master>\.\.\.HEAD --name-only` \(diff against your repo's default branch — `main` or `master`, whichever exists\) to get the real list of changed files\. Also run `git diff <main-or-master>\.\.\.HEAD` \(without `--name-only`\) to see the actual changes — you need to know WHAT changed, not just which files\.$/mu,
     );
   });
 

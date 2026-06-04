@@ -13,12 +13,14 @@ type PersistedQuest = ReturnType<typeof QuestStub>;
 const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
 
 // The per-role routing table's BLOCK set: every agent role this responder routes to BLOCK on
-// a `failed` signal. `lawbringer` is excluded (RECOVER path, covered separately); `ward` is
-// excluded (command role, terminal status set by run-ward, never reaches this responder); chat
-// roles (`chaoswhisperer`/`glyphsmith`) and the deprecated `pathseeker` never signal-back.
-// WorkItemRole value-import is banned in test files, so the routing-table subset is enumerated
-// explicitly — adding a new agent role to the routing table requires adding it here too.
+// a `failed` signal. `lawbringer` is included — it fixes its findings inline, so a `failed`
+// signal means something genuinely unfixable, the same BLOCK semantics as every other role.
+// `ward` is excluded (command role, terminal status set by run-ward, never reaches this
+// responder); chat roles (`chaoswhisperer`/`glyphsmith`) and the deprecated `pathseeker` never
+// signal-back. WorkItemRole value-import is banned in test files, so the routing-table subset is
+// enumerated explicitly — adding a new agent role to the routing table requires adding it here too.
 const BLOCK_ROLES = [
+  'lawbringer',
   'codeweaver',
   'siegemaster',
   'spiritmender',

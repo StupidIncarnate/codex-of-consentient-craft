@@ -18,7 +18,7 @@ describe('blightwardenDeadCodeMinionStatics', () => {
 
   it('VALID: template => runs git diff main...HEAD', () => {
     expect(blightwardenDeadCodeMinionStatics.prompt.template).toMatch(
-      /^Then run `git diff main\.\.\.HEAD --name-only` and `git diff main\.\.\.HEAD` to see the actual added\/modified code\.$/mu,
+      /^Then run `git diff <main-or-master>\.\.\.HEAD --name-only` and `git diff <main-or-master>\.\.\.HEAD` \(diff against your repo's default branch — `main` or `master`, whichever exists\) to see the actual added\/modified code\.$/mu,
     );
   });
 

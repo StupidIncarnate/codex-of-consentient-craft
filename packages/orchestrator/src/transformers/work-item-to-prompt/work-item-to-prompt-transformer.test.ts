@@ -216,7 +216,7 @@ describe('workItemToPromptTransformer', () => {
       });
 
       const expectedArgs =
-        'Review Mode: whole-diff\nReview the entire branch diff: run `git diff main...HEAD --name-only`, then read and review every changed non-test file alongside its test.\nQuest ID: my-quest';
+        'Review Mode: whole-diff\nReview the entire branch diff: run `git diff <main-or-master>...HEAD --name-only` (diff against your repo default branch — main or master, whichever exists), then read and review every changed non-test file alongside its test.\nQuest ID: my-quest';
 
       expect(result.prompt).toBe(
         lawbringerPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),

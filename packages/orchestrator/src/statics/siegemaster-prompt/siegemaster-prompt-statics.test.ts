@@ -18,7 +18,7 @@ describe('siegemasterPromptStatics', () => {
 
   it('VALID: template => Phase 3 body line covers git diff + folder mapping + over-auditing guidance', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^Run `git diff main\.\.\.HEAD --name-only` to get the full changed file list for this branch\. Using the flow's semantic content \(entryPoint, node labels, observable descriptions and types\), judge which changed files are in your slice\. Observable type tags help: `ui-state` → widgets; `api-call` → responders; `file-exists` → brokers\/transformers touching those files; `log-output` → process entry points\. For files that land in a `flows\/` or `startup\/` folder type, locate the colocated `\.integration\.test\.ts` and audit it — is it real or faked\? When in doubt about whether a changed file belongs to your slice, include it and audit — over-auditing is cheap, missing is expensive\.$/mu,
+      /^Run `git diff <main-or-master>\.\.\.HEAD --name-only` \(diff against your repo's default branch — `main` or `master`, whichever exists\) to get the full changed file list for this branch\. Using the flow's semantic content \(entryPoint, node labels, observable descriptions and types\), judge which changed files are in your slice\. Observable type tags help: `ui-state` → widgets; `api-call` → responders; `file-exists` → brokers\/transformers touching those files; `log-output` → process entry points\. For files that land in a `flows\/` or `startup\/` folder type, locate the colocated `\.integration\.test\.ts` and audit it — is it real or faked\? When in doubt about whether a changed file belongs to your slice, include it and audit — over-auditing is cheap, missing is expensive\.$/mu,
     );
   });
 
@@ -37,6 +37,16 @@ describe('siegemasterPromptStatics', () => {
   it('VALID: template => failure-summary guidance references Nodes block for observable-id placeholder', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
       /^Use observable IDs from the Nodes block when populating `\{observable-id\}` placeholders\.$/mu,
+    );
+  });
+
+  it('VALID: template => has the commit-before-signal section', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
+  });
+
+  it('VALID: template => carries the hard DO NOT STASH rule', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
     );
   });
 });

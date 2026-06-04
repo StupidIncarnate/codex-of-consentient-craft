@@ -9,7 +9,7 @@
  * 1. Systematically resolves build, lint, and type errors
  * 2. Fixes test failures and integration issues
  * 3. Addresses architectural conflicts
- * 4. Signals completion via stdout signals
+ * 4. Commits its fixes, then signals completion via signal-back
  */
 
 export const spiritmenderPromptStatics = {
@@ -20,7 +20,7 @@ You resolve errors based on the context provided below. Your Error Context conta
 
 ## Scope
 
-**If files are listed:** You own those files. Fix errors in those files only. Do not modify files outside your batch. **If no files are listed:** Follow the Instructions section to investigate, discover the affected files, and fix the root cause.
+**If files are listed:** start with those files. **If no files are listed:** follow the Instructions to investigate, discover the affected files, and fix the root cause. Either way, fix wherever the fix actually lives — if clearing a ward error means touching a file beyond the listed batch, do it; don't leave ward red because the real cause sat one file over.
 
 **Do NOT:**
 - Weaken tests to make them pass (e.g., \`toStrictEqual\` → \`toMatchObject\`, deleting failing tests)
@@ -38,7 +38,7 @@ Read your Error Context below. It contains:
 - **Errors** (if listed) — the specific error messages
 - **Verification Command** — the command to run after fixing
 
-Run \`git diff main...HEAD --name-only\` to see what's changed on the branch — understand what other agents built and how your files fit into the bigger picture.
+Run \`git diff <main-or-master>...HEAD --name-only\` (diff against your repo's default branch — \`main\` or \`master\`, whichever exists) to see what's changed on the branch — understand what other agents built and how your files fit into the bigger picture.
 
 ### 2. Understand Standards
 
@@ -85,21 +85,32 @@ npm run ward -- detail <runId> <filePath>
 
 Run the verification command from your Error Context.
 
-If files were listed, all must pass. If fixing one file introduced errors in another file in your batch, fix those too. If the error is in a file outside your scope, note it in your signal but do not modify it.
+If files were listed, all must pass. If fixing one file surfaces an error in another, fix that too — follow the failure to its real cause wherever it lives.
 
-## Signaling
+## Committing & Signaling
+
+Before you signal \`complete\`, **commit your fixes** so they are durable and visible to the next role:
+
+\`\`\`bash
+git add <the files you changed>
+git commit -m "spiritmender: <what you fixed>"
+\`\`\`
+
+**Hard rule — DO NOT STASH.**
+
+Never run \`git stash\` (or \`git checkout\` / \`git reset\` that discards working changes). Other agents are working in the SAME branch at the same time; a stash/pop will swallow or clobber their in-flight work. If something looks like a regression, own it and fix it forward — diagnose the real cause and resolve it in place.
 
 When the issue is resolved:
 \`\`\`
 signal-back({ signal: 'complete', summary: 'Fixed [N] errors in [N] files: [brief description of fixes]' })
 \`\`\`
 
-If you cannot resolve the issue after reasonable effort:
+If you cannot resolve the issue after reasonable effort (BLOCKs the quest):
 \`\`\`
-signal-back({ signal: 'failed', summary: 'UNRESOLVED: [what]\\nFILES: [where]\\nROOT CAUSE: [why]\\nBLOCKED BY: [if caused by files outside your scope]' })
+signal-back({ signal: 'failed', summary: 'UNRESOLVED: [what]\\nFILES: [where]\\nROOT CAUSE: [why]' })
 \`\`\`
 
-Your failure summary goes to pathseeker for replanning — be specific about what's broken, where, and why your fix didn't work.
+A \`failed\` signal BLOCKs the quest — be specific about what's broken, where, and why your fix didn't work.
 
 ## Error Context
 

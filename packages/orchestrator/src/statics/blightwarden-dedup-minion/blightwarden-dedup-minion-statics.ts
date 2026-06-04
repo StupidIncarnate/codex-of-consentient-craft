@@ -33,7 +33,7 @@ Call these in parallel:
 - \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`
 - \`get-project-map({ packages: [...] })\` for the package(s) covered by this diff
 
-Then run \`git diff main...HEAD --name-only\` to get the real list of changed files.
+Then run \`git diff <main-or-master>...HEAD --name-only\` (diff against your repo's default branch — \`main\` or \`master\`, whichever exists) to get the real list of changed files.
 
 ### Step 2: Reference the Duplicate Detection Patterns
 

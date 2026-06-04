@@ -24,7 +24,7 @@ describe('blightwardenSecurityMinionStatics', () => {
 
   it('VALID: template => Step 1 runs git diff main...HEAD', () => {
     expect(blightwardenSecurityMinionStatics.prompt.template).toMatch(
-      /^Then run `git diff main\.\.\.HEAD --name-only` to get the real list of changed files for this branch\. Do NOT try to re-derive the diff from the quest spec — use the actual git output\.$/mu,
+      /^Then run `git diff <main-or-master>\.\.\.HEAD --name-only` \(diff against your repo's default branch — `main` or `master`, whichever exists\) to get the real list of changed files for this branch\. Do NOT try to re-derive the diff from the quest spec — use the actual git output\.$/mu,
     );
   });
 

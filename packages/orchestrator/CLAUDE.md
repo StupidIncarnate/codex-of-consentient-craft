@@ -386,8 +386,8 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
   per response. `slotManagerStatics` slot caps stay configured but are not consulted by `get-next-step`.
 - **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
   `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
-  codeweaver / ward / siegemaster / lawbringer / blightwarden chain. Recovery splices (ward/lawbringer
-  spiritmender batches + retries) use the same mechanism via `questSpliceFixerBroker`, plus
+  codeweaver / ward / siegemaster / lawbringer / blightwarden chain. The ward recovery splice
+  (spiritmender batch + retry) uses the same mechanism via `questSpliceFixerBroker`, plus
   `replacementMapping` to rewire downstream dependents onto the retry — see "Failure handling".
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
   (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat
@@ -510,8 +510,10 @@ builder + the type added to `questTypeContract`.
 ## Agent Roles
 
 On failure, an execution role's work item is marked `failed`, then routed by `role`: `ward` (budget
-remaining) and `lawbringer` RECOVER (splice spiritmender(s) + a retry); every other role BLOCKS the
-quest (status `blocked`, pending items `skipped`) — see "Failure handling". The quest then derives
+remaining) is the only RECOVER path (splice spiritmender(s) + a retry); every agent role — lawbringer
+included — BLOCKS the quest (status `blocked`, pending items `skipped`) — see "Failure handling".
+Lawbringer (and siegemaster, blightwarden) fix what they find inline during their own run, so a
+`failed` signal means a genuinely unfixable issue. The quest then derives
 `complete`/`blocked`/`in_progress` from work-item states.
 
 | Role                             | Dispatched By                                                       | Signals                         | MCP Tools (modify-quest)                                               |
@@ -525,7 +527,7 @@ quest (status `blocked`, pending items `skipped`) — see "Failure handling". Th
 | Codeweaver                       | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
 | Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                | terminal set by exit code       | none (server writes wardResults + item status)                         |
 | Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained)               | complete, failed                | none                                                                   |
-| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)        | complete, failed                | none                                                                   |
+| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)        | complete, failed (→ BLOCK)      | none (fixes findings inline)                                           |
 | Blightwarden                     | `/dumpster-launch` via Task()                                       | complete, failed-replan, failed | none                                                                   |
 | Spiritmender                     | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
 | PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)  | complete, failed                | none                                                                   |
@@ -568,8 +570,9 @@ Agents report via the `signal-back` MCP tool. The live handler is
    **or** `failed-replan` — and stamps `completedAt`.
 2. If the item is `pathseeker-walk` AND the signal is `complete`, fires `questPostWalkHookBroker` to
    generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
-3. On a `failed` / `failed-replan` signal, routes by the failing item's `role` — `lawbringer` recovers
-   (splice spiritmender(s) + retry); every other role blocks the quest (see "Failure handling").
+3. On a `failed` / `failed-replan` signal, every agent role blocks the quest (see "Failure handling").
+   Lawbringer is included — it fixes findings inline, so its `failed` signal is an unfixable-issue
+   block, not a recover.
 
 ### Failure handling
 
@@ -586,15 +589,15 @@ or **BLOCK** (set status `blocked`, halt dispatch).
   and delivered through per-item `spiritmender-batches/<id>.json` sidecars. The splice rewires
   downstream siege/chain dependents off the failed ward onto the retry. When ward's retries are
   exhausted, the failure routes to BLOCK instead.
-- **lawbringer-fail → RECOVER.** A `lawbringer` `failed` signal splices spiritmender(s) (context from
-  the lawbringer's failure summary) plus a `lawbringer`-retry via `questSpliceFixerBroker`, rewiring
-  downstream blightwarden onto the retry. Quest stays `in_progress`.
-- **All other agent `failed` / `failed-replan` → BLOCK.** `codeweaver`, `siegemaster`, `spiritmender`,
-  `blightwarden`, `pathseeker-*`, and `pesteater` failures route through `questBlockOnFailureBroker`,
-  which sets quest status `blocked` and marks every still-`pending` item `skipped`. `failed-replan`
-  (Blightwarden) is treated as `failed` for status, then routed by the same table (→ BLOCK). A
-  `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on `in_progress`), so
-  dispatch halts.
+- **All agent `failed` / `failed-replan` → BLOCK.** `lawbringer`, `codeweaver`, `siegemaster`,
+  `spiritmender`, `blightwarden`, `pathseeker-*`, and `pesteater` failures route through
+  `questBlockOnFailureBroker`. Lawbringer, siegemaster, and blightwarden fix what they find inline
+  during their own run (blightwarden routes semantic findings out via `failed-replan`); a `failed`
+  signal from any of them means a genuinely unfixable issue, so it BLOCKS rather than spawning a
+  fixer. The broker sets quest status `blocked` and marks every still-`pending` item `skipped`.
+  `failed-replan` (Blightwarden) is treated as `failed` for status, then routed by the same table
+  (→ BLOCK). A `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on
+  `in_progress`), so dispatch halts.
 - **Siegemaster owns its dev server.** For runtime flows, the siege agent controls its own dev server
   via Playwright's `webServer` config (`{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`),
   resolved from `.dungeonmaster.json` (`devCommand` + dev `port`) and passed into the siege WorkUnit by

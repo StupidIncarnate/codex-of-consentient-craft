@@ -36,7 +36,7 @@ describe('blightwardenPromptStatics', () => {
 
   it('VALID: template => small-scope skip rule appears in Dispatch section', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
-      /^\*\*Small-scope skip:\*\* If `planningNotes\.scopeClassification\.size === 'small'`, skip minion dispatch entirely\. Audit inline yourself — read `git diff main\.\.\.HEAD` and eyeball for any of the 5 concerns\. Write a single `minion: 'synthesizer'` report summarizing findings \(empty findings is fine for a clean small-scope diff\)\. Proceed to Synthesis\.$/mu,
+      /^\*\*Small-scope skip:\*\* If `planningNotes\.scopeClassification\.size === 'small'`, skip minion dispatch entirely\. Audit inline yourself — read `git diff <main-or-master>\.\.\.HEAD` \(diff against your repo's default branch — `main` or `master`, whichever exists\) and eyeball for any of the 5 concerns\. Write a single `minion: 'synthesizer'` report summarizing findings \(empty findings is fine for a clean small-scope diff\)\. Proceed to Synthesis\.$/mu,
     );
   });
 
@@ -73,6 +73,16 @@ describe('blightwardenPromptStatics', () => {
   it('VALID: template => Spiritmender exclusion noted', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
       /^\*\*Spiritmender is NOT on your routing map\.\*\* Spiritmender handles ward\/lint\/type\/test errors only\.$/mu,
+    );
+  });
+
+  it('VALID: template => has the commit-inline-fixes section', () => {
+    expect(blightwardenPromptStatics.prompt.template).toMatch(/^## Committing Inline Fixes$/mu);
+  });
+
+  it('VALID: template => carries the hard DO NOT STASH rule', () => {
+    expect(blightwardenPromptStatics.prompt.template).toMatch(
+      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
     );
   });
 });

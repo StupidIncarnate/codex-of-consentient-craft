@@ -89,6 +89,70 @@ describe('checkRunUnitBroker', () => {
     });
   });
 
+  describe('no related tests in file scope', () => {
+    it('VALID: {fileList provided, jest finds no related unit tests} => returns skip not fail', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupFailWithStderr({
+        stdout: '',
+        stderr:
+          'No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\n',
+      });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'src/index.test.ts' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no unit tests related to changed files',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {no fileList, jest emits no-tests banner} => returns fail preserving full-run protection', async () => {
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupFailWithStderr({
+        stdout: '',
+        stderr: 'No tests found, exiting with code 1\n',
+      });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunUnitBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
+          rawOutput: RawOutputStub({
+            stdout: 'No tests found, exiting with code 1\n',
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
+    });
+  });
+
   describe('unparseable output', () => {
     it('VALID: {jest exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
       const proxy = checkRunUnitBrokerProxy();

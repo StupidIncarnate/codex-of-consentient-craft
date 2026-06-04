@@ -80,6 +80,7 @@ export const questRunWardBrokerProxy = (): {
     runId: FileName;
   }) => void;
   setupWardCrash: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
+  setupWardCrashRecover: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
   getPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
@@ -327,6 +328,30 @@ export const questRunWardBrokerProxy = (): {
       setupFindQuestPathForBroker({ quest });
       modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+
+      spawnProxy.setupSuccess({
+        exitCode,
+        stdoutLines: ['fatal error'],
+      });
+    },
+
+    setupWardCrashRecover: ({
+      quest,
+      exitCode,
+    }: {
+      quest: QuestInput;
+      exitCode: ExitCode;
+    }): void => {
+      // Ward crashes before emitting a runId => detailJson is null => zero structured batches.
+      // With the failure-routing quest load wired, the broker must STILL splice a fallback
+      // spiritmender (one batch) so the ward-retry never depends on an empty set.
+      setupFindQuestPathForBroker({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      queueBatchPathJoins({ batchCount: 1 });
+      spliceProxy.setupQuestModify({ quest });
+      blockProxy.setupBlocked();
 
       spawnProxy.setupSuccess({
         exitCode,

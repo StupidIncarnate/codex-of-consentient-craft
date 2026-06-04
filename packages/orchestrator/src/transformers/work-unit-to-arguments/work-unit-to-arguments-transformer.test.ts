@@ -644,7 +644,7 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe(
-        'Review Mode: whole-diff\nReview the entire branch diff: run `git diff main...HEAD --name-only`, then read and review every changed non-test file alongside its test.\nQuest ID: fix-bug',
+        'Review Mode: whole-diff\nReview the entire branch diff: run `git diff <main-or-master>...HEAD --name-only` (diff against your repo default branch — main or master, whichever exists), then read and review every changed non-test file alongside its test.\nQuest ID: fix-bug',
       );
     });
   });

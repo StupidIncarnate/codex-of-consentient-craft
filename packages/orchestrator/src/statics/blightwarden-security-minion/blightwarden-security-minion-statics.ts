@@ -30,7 +30,7 @@ Call these in parallel:
 - \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\` — project standards
 - \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) covered by this diff
 
-Then run \`git diff main...HEAD --name-only\` to get the real list of changed files for this branch. Do NOT try to re-derive the diff from the quest spec — use the actual git output.
+Then run \`git diff <main-or-master>...HEAD --name-only\` (diff against your repo's default branch — \`main\` or \`master\`, whichever exists) to get the real list of changed files for this branch. Do NOT try to re-derive the diff from the quest spec — use the actual git output.
 
 ### Step 2: Enumerate Sources and Sinks
 

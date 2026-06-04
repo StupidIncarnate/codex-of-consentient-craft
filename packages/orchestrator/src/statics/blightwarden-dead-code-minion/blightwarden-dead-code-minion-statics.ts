@@ -31,7 +31,7 @@ Call these in parallel:
 - \`get-architecture\`, \`get-testing-patterns\`, \`get-syntax-rules\`
 - \`get-project-map({ packages: [...] })\` for the package(s) covered by this diff
 
-Then run \`git diff main...HEAD --name-only\` and \`git diff main...HEAD\` to see the actual added/modified code.
+Then run \`git diff <main-or-master>...HEAD --name-only\` and \`git diff <main-or-master>...HEAD\` (diff against your repo's default branch — \`main\` or \`master\`, whichever exists) to see the actual added/modified code.
 
 ### Step 2: List New Exports
 

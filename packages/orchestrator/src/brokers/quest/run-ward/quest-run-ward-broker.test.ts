@@ -504,6 +504,90 @@ describe('questRunWardBroker', () => {
     });
   });
 
+  describe('failure recovery — fallback spiritmender when no structured batches', () => {
+    it('VALID: {exitCode 1, no runId (crash), retries remain} => one fallback spiritmender spliced (dependsOn ward, insertedBy ward)', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const wardItem = WorkItemStub({
+        id: workItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        attempt: 0,
+        maxAttempts: 3,
+        wardMode: 'changed',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem],
+      });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupWardCrashRecover({ quest, exitCode: ExitCodeStub({ value: 1 }) });
+
+      await questRunWardBroker({ questId, workItemId, mode: 'changed' });
+
+      const spiritmenders = proxy
+        .getFinalPersistedWorkItems()
+        .filter((item) => item.role === 'spiritmender');
+
+      expect(spiritmenders).toStrictEqual([
+        WorkItemStub({
+          id: SPLICED_SPIRITMENDER_ID,
+          role: 'spiritmender',
+          status: 'pending',
+          spawnerType: 'agent',
+          dependsOn: [workItemId],
+          maxAttempts: 1,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          insertedBy: workItemId,
+        }),
+      ]);
+    });
+
+    it('VALID: {exitCode 1, no runId (crash), retries remain} => ward-retry dependsOn the fallback spiritmender, never empty', async () => {
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const wardItem = WorkItemStub({
+        id: workItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        attempt: 0,
+        maxAttempts: 3,
+        wardMode: 'changed',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [wardItem],
+      });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupWardCrashRecover({ quest, exitCode: ExitCodeStub({ value: 1 }) });
+
+      await questRunWardBroker({ questId, workItemId, mode: 'changed' });
+
+      const retries = proxy
+        .getFinalPersistedWorkItems()
+        .filter((item) => item.id === SPLICED_WARD_RETRY_ID);
+
+      expect(retries).toStrictEqual([
+        WorkItemStub({
+          id: SPLICED_WARD_RETRY_ID,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          dependsOn: [SPLICED_SPIRITMENDER_ID],
+          attempt: ATTEMPT_ONE,
+          maxAttempts: MAX_ATTEMPTS_THREE,
+          createdAt: '2024-01-15T10:00:00.000Z',
+          insertedBy: workItemId,
+          wardMode: 'changed',
+        }),
+      ]);
+    });
+  });
+
   describe('crash path (no runId in stdout)', () => {
     it('VALID: {exitCode 1, no runId} => work item marked failed without lastWardRunId', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });

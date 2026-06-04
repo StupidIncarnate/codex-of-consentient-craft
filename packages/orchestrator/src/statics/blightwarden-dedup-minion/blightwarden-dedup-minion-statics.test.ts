@@ -30,7 +30,7 @@ describe('blightwardenDedupMinionStatics', () => {
 
   it('VALID: template => runs git diff main...HEAD', () => {
     expect(blightwardenDedupMinionStatics.prompt.template).toMatch(
-      /^Then run `git diff main\.\.\.HEAD --name-only` to get the real list of changed files\.$/mu,
+      /^Then run `git diff <main-or-master>\.\.\.HEAD --name-only` \(diff against your repo's default branch — `main` or `master`, whichever exists\) to get the real list of changed files\.$/mu,
     );
   });
 

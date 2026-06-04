@@ -6,12 +6,11 @@
  *
  * - `complete` + `pathseeker-walk` → fires `questPostWalkHookBroker` to generate the
  *   downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
- * - `failed` / `failed-replan` + `lawbringer` → RECOVER: writes a spiritmender batch
- *   sidecar built from the lawbringer's failure summary and splices a spiritmender +
- *   lawbringer-retry via `RecoverLawbringerLayerResponder` (rewires blightwarden onto the
- *   retry).
- * - `failed` / `failed-replan` + any other role → BLOCK the quest via
+ * - `failed` / `failed-replan` + any agent role → BLOCK the quest via
  *   `questBlockOnFailureBroker` (drains pending items to `skipped`, sets status `blocked`).
+ *   Lawbringer fixes the issues it finds inline in its own run, so a lawbringer `failed`
+ *   signal means it hit something genuinely unfixable — the same BLOCK semantics as every
+ *   other execution role. Ward is the only RECOVER path (see `quest-run-ward-broker`).
  *
  * The status transition is the only path that flips a Task-dispatched sub-agent's work
  * item out of `in_progress` under the `/dumpster-launch` model — without it the next
@@ -40,7 +39,6 @@ import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failu
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questPostWalkHookBroker } from '../../../brokers/quest/post-walk-hook/quest-post-walk-hook-broker';
-import { RecoverLawbringerLayerResponder } from './recover-lawbringer-layer-responder';
 
 export const QuestHandleSignalBackResponder = async ({
   questId,
@@ -84,12 +82,8 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  // signal === 'failed' || 'failed-replan' — route by role.
-  if (workItem.role === 'lawbringer') {
-    return RecoverLawbringerLayerResponder({ questId, failedItem: workItem });
-  }
-
-  // codeweaver | siegemaster | spiritmender | blightwarden | pathseeker-* | pesteater → BLOCK.
+  // signal === 'failed' || 'failed-replan' — every agent role routes to BLOCK.
+  // lawbringer | codeweaver | siegemaster | spiritmender | blightwarden | pathseeker-* | pesteater.
   await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
 
   return adapterResultContract.parse({ success: true });

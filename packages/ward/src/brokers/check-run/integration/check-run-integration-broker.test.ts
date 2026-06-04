@@ -507,6 +507,70 @@ describe('checkRunIntegrationBroker', () => {
     });
   });
 
+  describe('no related tests in file scope', () => {
+    it('VALID: {fileList provided, jest finds no related integration tests} => returns skip not fail', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupFailWithStderr({
+        stdout: '',
+        stderr:
+          'No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nPattern: testing.ts|\\.integration\\.test\\.(ts|tsx|js|jsx)$ - 0 matches',
+      });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [GitRelativePathStub({ value: 'testing.ts' })],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no integration tests related to changed files',
+            exitCode: 0,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {no fileList, jest emits no-tests banner} => returns fail preserving full-run protection', async () => {
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupFailWithStderr({
+        stdout: '',
+        stderr: 'No tests found, exiting with code 1\n',
+      });
+
+      const projectFolder = ProjectFolderStub();
+
+      const result = await checkRunIntegrationBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          onlyDiscovered: ['discovered.ts'],
+          rawOutput: RawOutputStub({
+            stdout: 'No tests found, exiting with code 1\n',
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
+    });
+  });
+
   describe('fileTimings', () => {
     it('VALID: {jest output with startTime/endTime} => returns fileTimings with per-file durations', async () => {
       const proxy = checkRunIntegrationBrokerProxy();

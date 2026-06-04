@@ -600,6 +600,199 @@ describe('wardDetailToSpiritmenderBatchesTransformer', () => {
     });
   });
 
+  describe('crash failures (no structured errors)', () => {
+    it('VALID: {integration check, one project pass + one project crash} => one catch-all batch for the crash', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'integration',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: {
+                    name: '@dungeonmaster/orchestrator',
+                    path: '/repo/packages/orchestrator',
+                  },
+                  status: 'pass',
+                  errors: [],
+                  testFailures: [],
+                },
+                {
+                  projectFolder: {
+                    name: '@dungeonmaster/shared',
+                    path: '/repo/packages/shared',
+                  },
+                  status: 'fail',
+                  errors: [],
+                  testFailures: [],
+                  rawOutput: {
+                    stdout: 'Cannot find module ./missing',
+                    stderr: '',
+                    exitCode: 1,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_THREE,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/repo/packages/shared'],
+          errors: ['integration: @dungeonmaster/shared — FAILED', 'Cannot find module ./missing'],
+        },
+      ]);
+    });
+
+    it('VALID: {crash project with empty rawOutput} => batch with summary line only', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'integration',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+                  status: 'fail',
+                  errors: [],
+                  testFailures: [],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_THREE,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/repo/packages/shared'],
+          errors: ['integration: shared — FAILED'],
+        },
+      ]);
+    });
+
+    it('VALID: {crash project with stderr only} => batch includes stderr line', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'integration',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+                  status: 'fail',
+                  errors: [],
+                  testFailures: [],
+                  rawOutput: { stdout: '', stderr: 'worker crashed', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_THREE,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/repo/packages/shared'],
+          errors: ['integration: shared — FAILED', 'worker crashed'],
+        },
+      ]);
+    });
+
+    it('VALID: {structured error AND a crash project} => both appear in the batch', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'web', path: '/repo/packages/web' },
+                  status: 'fail',
+                  errors: [{ filePath: '/src/a.ts', line: 1, column: 1, message: 'boom' }],
+                  testFailures: [],
+                },
+              ],
+            },
+            {
+              checkType: 'integration',
+              status: 'fail',
+              projectResults: [
+                {
+                  projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+                  status: 'fail',
+                  errors: [],
+                  testFailures: [],
+                  rawOutput: { stdout: 'crash', stderr: '', exitCode: 1 },
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_THREE,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePaths: ['/src/a.ts', '/repo/packages/shared'],
+          errors: ['/src/a.ts:1:1 boom', 'integration: shared — FAILED', 'crash'],
+        },
+      ]);
+    });
+
+    it('VALID: {all projects pass} => returns empty array', () => {
+      const detailJson = ErrorMessageStub({
+        value: JSON.stringify({
+          checks: [
+            {
+              checkType: 'lint',
+              status: 'pass',
+              projectResults: [
+                {
+                  projectFolder: { name: 'shared', path: '/repo/packages/shared' },
+                  status: 'pass',
+                  errors: [],
+                  testFailures: [],
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = wardDetailToSpiritmenderBatchesTransformer({
+        detailJson,
+        batchSize: BATCH_SIZE_THREE,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {error without line/column/rule} => formats with file path and message only', () => {
       const detailJson = ErrorMessageStub({

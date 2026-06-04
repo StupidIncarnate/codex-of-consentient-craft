@@ -12,10 +12,24 @@ describe('lawbringerPromptStatics', () => {
     });
   });
 
-  it("VALID: scope section => defers observable satisfaction to PathSeeker's seek_walk flow walk", () => {
+  it('VALID: focus section => defers observable / flow-walk coverage to PathSeeker', () => {
     expect(lawbringerPromptStatics.prompt.template).toMatch(
-      /^- Check if the step satisfies observables — observable checking during seek_walk is PathSeeker's flow-walk responsibility; Lawbringer's job is post-implementation rule compliance only$/mu,
+      /^- Post-implementation rule compliance is your job\. Business-logic correctness is siegemaster's, and observable \/ flow-walk coverage is PathSeeker's — don't re-litigate those\. But if you spot a clear bug while reviewing, fix it\.$/mu,
     );
+  });
+
+  it('VALID: prompt template => is a fixer, not read-only (no read-only framing remains)', () => {
+    expect(lawbringerPromptStatics.prompt.template.indexOf('read-only')).toBe(-1);
+  });
+
+  it('VALID: prompt template => carries the hard DO NOT STASH rule', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(
+      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
+    );
+  });
+
+  it('VALID: prompt template => has the commit-before-signal section', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
   });
 
   it('VALID: prompt template => documents the whole-diff bug-hunt review mode', () => {
