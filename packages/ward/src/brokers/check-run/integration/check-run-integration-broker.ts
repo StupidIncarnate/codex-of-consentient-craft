@@ -36,6 +36,7 @@ import {
   type FileTiming,
 } from '../../../contracts/file-timing/file-timing-contract';
 import { isNonIntegrationTestGuard } from '../../../guards/is-non-integration-test/is-non-integration-test-guard';
+import { isNoTestsFoundGuard } from '../../../guards/is-no-tests-found/is-no-tests-found-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { jestJsonReportContract } from '../../../contracts/jest-json-report/jest-json-report-contract';
 import { extractJsonObjectTransformer } from '../../../transformers/extract-json-object/extract-json-object-transformer';
@@ -156,6 +157,25 @@ export const checkRunIntegrationBroker = async ({
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+
+  // In file scope (--changed / passthrough), jest's "no tests found" banner means none of the
+  // changed files has a related integration test — a skip, not a failure. Full runs keep failing
+  // so a genuinely missing-tests misconfiguration still surfaces.
+  if (status === 'fail' && fileList.length > 0 && isNoTestsFoundGuard({ output: result.output })) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no integration tests related to changed files',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
 
   let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
   let resolvedStatus = status;

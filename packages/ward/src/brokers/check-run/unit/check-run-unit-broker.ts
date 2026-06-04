@@ -36,6 +36,7 @@ import {
   type FileTiming,
 } from '../../../contracts/file-timing/file-timing-contract';
 import { isUnitTestPathGuard } from '../../../guards/is-unit-test-path/is-unit-test-path-guard';
+import { isNoTestsFoundGuard } from '../../../guards/is-no-tests-found/is-no-tests-found-guard';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import { tsExtensionsStatics } from '../../../statics/ts-extensions/ts-extensions-statics';
 import { jestJsonReportContract } from '../../../contracts/jest-json-report/jest-json-report-contract';
@@ -175,6 +176,25 @@ export const checkRunUnitBroker = async ({
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+
+  // In file scope (--changed / passthrough), jest's "no tests found" banner means none of the
+  // changed files has a related unit test — a skip, not a failure. Full runs keep failing so a
+  // genuinely missing-tests misconfiguration still surfaces.
+  if (status === 'fail' && fileList.length > 0 && isNoTestsFoundGuard({ output: result.output })) {
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no unit tests related to changed files',
+        exitCode: exitCodeContract.parse(0),
+      }),
+    });
+  }
 
   let testFailures: ReturnType<typeof jestJsonParseTransformer> = [];
   let resolvedStatus = status;
