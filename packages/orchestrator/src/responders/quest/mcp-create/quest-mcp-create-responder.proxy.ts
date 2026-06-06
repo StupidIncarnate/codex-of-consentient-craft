@@ -3,20 +3,24 @@ import { QuestMcpCreateResponder } from './quest-mcp-create-responder';
 
 export const QuestMcpCreateResponderProxy = (): {
   callResponder: typeof QuestMcpCreateResponder;
-  setupMatchingGuild: ReturnType<typeof questMcpCreateBrokerProxy>['setupMatchingGuild'];
-  setupGuildsWithMatch: ReturnType<typeof questMcpCreateBrokerProxy>['setupGuildsWithMatch'];
-  setupNoMatchingGuild: ReturnType<typeof questMcpCreateBrokerProxy>['setupNoMatchingGuild'];
-  setupEmptyGuildList: ReturnType<typeof questMcpCreateBrokerProxy>['setupEmptyGuildList'];
+  setupResolvedRepoRoot: ReturnType<typeof questMcpCreateBrokerProxy>['setupResolvedRepoRoot'];
+  setupResolveFallback: ReturnType<typeof questMcpCreateBrokerProxy>['setupResolveFallback'];
+  setupGuilds: ReturnType<typeof questMcpCreateBrokerProxy>['setupGuilds'];
+  setupAutoCreatedGuild: ReturnType<typeof questMcpCreateBrokerProxy>['setupAutoCreatedGuild'];
+  setupSuccessfulAdd: ReturnType<typeof questMcpCreateBrokerProxy>['setupSuccessfulAdd'];
   setupAddFailure: ReturnType<typeof questMcpCreateBrokerProxy>['setupAddFailure'];
+  getGuildAddCalls: ReturnType<typeof questMcpCreateBrokerProxy>['getGuildAddCalls'];
 } => {
   const brokerProxy = questMcpCreateBrokerProxy();
 
   return {
     callResponder: QuestMcpCreateResponder,
-    setupMatchingGuild: brokerProxy.setupMatchingGuild,
-    setupGuildsWithMatch: brokerProxy.setupGuildsWithMatch,
-    setupNoMatchingGuild: brokerProxy.setupNoMatchingGuild,
-    setupEmptyGuildList: brokerProxy.setupEmptyGuildList,
+    setupResolvedRepoRoot: brokerProxy.setupResolvedRepoRoot,
+    setupResolveFallback: brokerProxy.setupResolveFallback,
+    setupGuilds: brokerProxy.setupGuilds,
+    setupAutoCreatedGuild: brokerProxy.setupAutoCreatedGuild,
+    setupSuccessfulAdd: brokerProxy.setupSuccessfulAdd,
     setupAddFailure: brokerProxy.setupAddFailure,
+    getGuildAddCalls: brokerProxy.getGuildAddCalls,
   };
 };

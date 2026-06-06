@@ -17,6 +17,7 @@ import { outcomeTypeDescriptionsStatics } from '@dungeonmaster/shared/statics';
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
 import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
+import { blightwardenDeadCodeMinionStatics } from '../../statics/blightwarden-dead-code-minion/blightwarden-dead-code-minion-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
@@ -323,9 +324,9 @@ describe('workItemToPromptTransformer', () => {
   });
 
   describe('blightwarden-security-minion', () => {
-    it('VALID: {agent: blightwarden-security-minion} => substitutes Quest ID + Work Item ID', () => {
+    it('VALID: {agent + role: blightwarden-security-minion} => substitutes Quest ID + Work Item ID', () => {
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden-security-minion' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'my-quest' }),
         workItems: [workItem],
@@ -341,6 +342,27 @@ describe('workItemToPromptTransformer', () => {
 
       expect(result.prompt).toBe(
         blightwardenSecurityMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    it('VALID: {agent + role: blightwarden-dead-code-minion} => substitutes Quest ID + Work Item ID', () => {
+      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden-dead-code-minion' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'blightwarden-dead-code-minion' }),
+      });
+
+      const expectedArgs = 'Quest ID: my-quest\nWork Item ID: dddddddd-1111-4222-9333-444444444444';
+
+      expect(result.prompt).toBe(
+        blightwardenDeadCodeMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
   });

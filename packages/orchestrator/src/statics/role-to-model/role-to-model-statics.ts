@@ -18,6 +18,11 @@ export const roleToModelStatics = {
   codeweaver: 'sonnet',
   spiritmender: 'sonnet',
   lawbringer: 'sonnet',
+  'blightwarden-security-minion': 'sonnet',
+  'blightwarden-dedup-minion': 'sonnet',
+  'blightwarden-perf-minion': 'sonnet',
+  'blightwarden-integrity-minion': 'sonnet',
+  'blightwarden-dead-code-minion': 'sonnet',
   blightwarden: 'sonnet',
   pesteater: 'opus',
 } as const;

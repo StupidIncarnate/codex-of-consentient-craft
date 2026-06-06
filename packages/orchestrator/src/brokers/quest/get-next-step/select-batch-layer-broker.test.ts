@@ -170,6 +170,50 @@ describe('selectBatchLayerBroker', () => {
     });
   });
 
+  describe('blightwarden minion batch', () => {
+    it('VALID: {five blightwarden minions ready} => returns ALL five in one batch', () => {
+      selectBatchLayerBrokerProxy();
+      const security = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'fff11111-1111-4222-9333-444444444444' }),
+        role: 'blightwarden-security-minion',
+      });
+      const dedup = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'fff22222-1111-4222-9333-444444444444' }),
+        role: 'blightwarden-dedup-minion',
+      });
+      const perf = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'fff33333-1111-4222-9333-444444444444' }),
+        role: 'blightwarden-perf-minion',
+      });
+      const integrity = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'fff44444-1111-4222-9333-444444444444' }),
+        role: 'blightwarden-integrity-minion',
+      });
+      const deadCode = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'fff55555-1111-4222-9333-444444444444' }),
+        role: 'blightwarden-dead-code-minion',
+      });
+
+      const batch = selectBatchLayerBroker({
+        ready: [security, dedup, perf, integrity, deadCode],
+      });
+
+      expect(batch).toStrictEqual([security, dedup, perf, integrity, deadCode]);
+    });
+
+    it('VALID: {single blightwarden synthesizer ready} => returns it as a solo batch (synthesizer is NOT a minion)', () => {
+      selectBatchLayerBrokerProxy();
+      const synthesizer = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'fff66666-1111-4222-9333-444444444444' }),
+        role: 'blightwarden',
+      });
+
+      const batch = selectBatchLayerBroker({ ready: [synthesizer] });
+
+      expect(batch).toStrictEqual([synthesizer]);
+    });
+  });
+
   describe('pathseeker-corrections batch (dedup + assertion-correctness)', () => {
     it('VALID: {dedup + assertion-correctness both ready} => returns BOTH in one batch', () => {
       selectBatchLayerBrokerProxy();

@@ -98,6 +98,44 @@ describe('planningBlightReportContract', () => {
       });
     });
 
+    it('VALID: {status: failed + note} => parses successfully (minion could not complete its audit)', () => {
+      const result = PlanningBlightReportStub({
+        minion: 'perf',
+        status: 'failed',
+        note: 'git diff timed out; could not audit perf concern',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        minion: 'perf',
+        status: 'failed',
+        note: 'git diff timed out; could not audit perf concern',
+        findings: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+        reviewedOn: [],
+      });
+    });
+
+    it('VALID: {minion: synthesizer + note} => parses successfully (synthesizer roll-up summary)', () => {
+      const result = PlanningBlightReportStub({
+        minion: 'synthesizer',
+        status: 'resolved',
+        note: 'all 5 concerns audited; 2 mechanical fixes applied, 0 escalations',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        minion: 'synthesizer',
+        status: 'resolved',
+        note: 'all 5 concerns audited; 2 mechanical fixes applied, 0 escalations',
+        findings: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+        reviewedOn: [],
+      });
+    });
+
     it('VALID: {findings populated + reviewedOn populated} => parses successfully', () => {
       const result = PlanningBlightReportStub({
         findings: [
@@ -210,6 +248,19 @@ describe('planningBlightReportContract', () => {
               fixHint: 'hint',
             },
           ],
+          createdAt: '2024-01-15T10:00:00.000Z',
+        });
+      }).toThrow(/String must contain at least 1 character/u);
+    });
+
+    it('INVALID: {note: ""} => throws validation error', () => {
+      expect(() => {
+        return planningBlightReportContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+          minion: 'security',
+          status: 'failed',
+          note: '',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
       }).toThrow(/String must contain at least 1 character/u);

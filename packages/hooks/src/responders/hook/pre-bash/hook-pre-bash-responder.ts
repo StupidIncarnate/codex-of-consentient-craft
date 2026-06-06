@@ -15,6 +15,7 @@ import { bashToolInputContract } from '../../../contracts/bash-tool-input/bash-t
 import { preToolUseHookDataContract } from '../../../contracts/pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { hookPreEditResponderResultContract } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
 import { discoverSuggestionMessageStatics } from '../../../statics/discover-suggestion-message/discover-suggestion-message-statics';
+import { wardBackgroundBlockMessageStatics } from '../../../statics/ward-background-block-message/ward-background-block-message-statics';
 import { wardTimeoutStatics } from '../../../statics/ward-timeout/ward-timeout-statics';
 import type { HookData } from '../../../contracts/hook-data/hook-data-contract';
 import type { HookPreEditResponderResult } from '../../../contracts/hook-pre-edit-responder-result/hook-pre-edit-responder-result-contract';
@@ -41,7 +42,16 @@ export const HookPreBashResponder = ({
     });
   }
 
-  const { command, timeout } = parseResult.data;
+  const { command, timeout, run_in_background: runInBackground } = parseResult.data;
+
+  // A backgrounded ward run gives no reliable completion signal — the agent strands itself
+  // sleep-polling an output file that never updates. Block it and force foreground execution.
+  if (runInBackground === true && isWardCommandGuard({ command })) {
+    return hookPreEditResponderResultContract.parse({
+      shouldBlock: true,
+      message: wardBackgroundBlockMessageStatics.blockMessage,
+    });
+  }
 
   const isPiped = isWardPipedCommandGuard({ command });
 

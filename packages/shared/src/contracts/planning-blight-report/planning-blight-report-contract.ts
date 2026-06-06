@@ -15,7 +15,12 @@ export const planningBlightReportContract = z.object({
   id: z.string().uuid().brand<'PlanningBlightReportId'>(),
   workItemId: questWorkItemIdContract,
   minion: z.enum(['security', 'dedup', 'perf', 'integrity', 'dead-code', 'synthesizer']),
-  status: z.enum(['active', 'resolved', 'blocking-carry']),
+  // `failed` records a minion that could not complete its audit — its work item still terminates
+  // non-blocking; the failure detail lives in `note` and the synthesizer reads it and decides.
+  status: z.enum(['active', 'resolved', 'blocking-carry', 'failed']),
+  // Free-text top-level message: a minion's failure detail when `status: 'failed'`, or the
+  // synthesizer's roll-up summary. Per-file specifics stay in structured `findings[]`.
+  note: z.string().min(1).brand<'BlightReportNote'>().optional(),
   findings: z
     .array(
       z.object({

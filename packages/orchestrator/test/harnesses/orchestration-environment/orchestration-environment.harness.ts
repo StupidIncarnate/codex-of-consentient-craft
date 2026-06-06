@@ -10,7 +10,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { GuildNameStub, guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
+import type {
+  FilePath,
+  GuildId,
+  GuildName,
+  GuildPath,
+  QuestId,
+  UrlSlug,
+} from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
@@ -35,6 +42,17 @@ export const orchestrationEnvironmentHarness = (): {
   afterEach: () => void;
   setupHome: (params: { tempDir: GuildPath }) => {
     restore: () => void;
+  };
+  writeRepoRootMarker: (params: { repoRoot: GuildPath }) => void;
+  chdirInto: (params: { dir: GuildPath }) => { restore: () => void };
+  makeAndChdir: (params: { dir: GuildPath }) => { restore: () => void };
+  readConfigGuilds: (params: {
+    tempDir: GuildPath;
+  }) => readonly { name: GuildName; path: GuildPath; guildId: GuildId; urlSlug: UrlSlug }[];
+  questsDirExists: (params: { tempDir: GuildPath; guildId: GuildId }) => boolean;
+  questFilePersisted: (params: { tempDir: GuildPath; guildId: GuildId; questId: QuestId }) => {
+    exists: boolean;
+    questIdInFile: boolean;
   };
   seedRepoRootGuild: (params: { tempDir: GuildPath }) => Promise<{ guildPath: GuildPath }>;
   setup: (params: { tempDir: GuildPath; queueHarness: QueueHarness }) => {
@@ -85,6 +103,69 @@ export const orchestrationEnvironmentHarness = (): {
       currentRestore = restore;
 
       return { restore };
+    },
+    writeRepoRootMarker: ({ repoRoot }: { repoRoot: GuildPath }): void => {
+      // Drop a `.dungeonmaster.json` at the repo root so cwdResolveBroker({ kind: 'repo-root' })
+      // walking up from process.cwd() resolves to this directory.
+      fs.mkdirSync(repoRoot, { recursive: true });
+      fs.writeFileSync(path.join(repoRoot, '.dungeonmaster.json'), '{}');
+    },
+    chdirInto: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
+      // questMcpCreateBroker reads process.cwd() verbatim via processCwdAdapter; chdir so the
+      // real cwd walk-up anchors on this testbed dir, not the host repo.
+      const savedCwd = process.cwd();
+      process.chdir(dir);
+      return {
+        restore: (): void => {
+          process.chdir(savedCwd);
+        },
+      };
+    },
+    makeAndChdir: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
+      // Create a nested subfolder (so create-quest can run from inside an ancestor guild) and
+      // chdir into it; restore the original cwd afterwards.
+      const savedCwd = process.cwd();
+      fs.mkdirSync(dir, { recursive: true });
+      process.chdir(dir);
+      return {
+        restore: (): void => {
+          process.chdir(savedCwd);
+        },
+      };
+    },
+    readConfigGuilds: ({
+      tempDir,
+    }: {
+      tempDir: GuildPath;
+    }): readonly { name: GuildName; path: GuildPath; guildId: GuildId; urlSlug: UrlSlug }[] => {
+      const raw = fs.readFileSync(path.join(tempDir, 'config.json'), 'utf-8');
+      const parsed = JSON.parse(raw) as {
+        guilds: { name: GuildName; path: GuildPath; id: GuildId; urlSlug: UrlSlug }[];
+      };
+      return parsed.guilds.map((guild) => ({
+        name: guild.name,
+        path: guild.path,
+        guildId: guild.id,
+        urlSlug: guild.urlSlug,
+      }));
+    },
+    questsDirExists: ({ tempDir, guildId }: { tempDir: GuildPath; guildId: GuildId }): boolean =>
+      fs.existsSync(path.join(tempDir, 'guilds', guildId, 'quests')),
+    questFilePersisted: ({
+      tempDir,
+      guildId,
+      questId,
+    }: {
+      tempDir: GuildPath;
+      guildId: GuildId;
+      questId: QuestId;
+    }): { exists: boolean; questIdInFile: boolean } => {
+      const questFilePath = path.join(tempDir, 'guilds', guildId, 'quests', questId, 'quest.json');
+      const exists = fs.existsSync(questFilePath);
+      const parsed = exists
+        ? (JSON.parse(fs.readFileSync(questFilePath, 'utf-8')) as { id?: QuestId })
+        : { id: undefined };
+      return { exists, questIdInFile: parsed.id === questId };
     },
     seedRepoRootGuild: async ({
       tempDir,

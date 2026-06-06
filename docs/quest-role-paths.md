@@ -34,8 +34,8 @@ type's planning sub-stage, not a universal stage.
 
 | Type       | Intake                              | Start-Quest graph                                                                                                                                    |
 |------------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `feature`  | `/dumpster-create` (ChaosWhisperer) | PathSeeker graph → post-walk chain: `codeweaver → ward → siegemaster[per flow] → lawbringer → blightwarden → ward`                                   |
-| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | full chain hand-seeded at Start (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden → ward(full)` |
+| `feature`  | `/dumpster-create` (ChaosWhisperer) | PathSeeker graph → post-walk chain: `codeweaver → ward → siegemaster[per flow] → lawbringer → blightwarden minions[5 parallel] → blightwarden synthesizer → ward`                                   |
+| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | full chain hand-seeded at Start (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden minions[5 parallel] → blightwarden synthesizer → ward(full)` |
 
 `orchestration-start-responder` reads `registry[quest.questType].startGraphKind` and seeds the
 matching graph (`questBuildPathseekerGraphBroker` vs `questBuildBugHuntGraphBroker`). Bug-hunt reuses
@@ -239,17 +239,18 @@ here rather than at a status hop.
 The downstream chain, exactly as wired (`steps-to-work-items-transformer.ts`):
 
 ```
-codeweaver(s) → ward(changed) → siegemaster[one per flow, chained] → lawbringer(s) → blightwarden → ward(full)
+codeweaver(s) → ward(changed) → siegemaster[one per flow, chained] → lawbringer(s) → blightwarden minions[5 parallel] → blightwarden synthesizer → ward(full)
 ```
 
-| Item           | Count      | spawnerType | dependsOn                                                         | Notes                                                                                                                                |
-|----------------|------------|-------------|-------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `codeweaver`   | N chunks   | agent       | `[pathseeker-walk id] + inter-step cw deps`                       | Steps chunked by `stepsToBatchChunksTransformer`; a chunk depends on the chunk(s) its steps depend on                                |
-| `ward`         | 1          | command     | `[all codeweaver ids]`                                            | `wardMode: 'changed'`, `maxAttempts: slotManagerStatics.ward.maxRetries`                                                             |
-| `siegemaster`  | 1 per flow | agent       | `[ward id]` (+ previous siege id)                                 | **Chained** so at most one siege runs at a time (dev-server / port / FS contention); each carries `relatedDataItems: ['flows/<id>']` |
-| `lawbringer`   | N chunks   | agent       | `[all siege ids]` (or `[ward id]` if no flows)                    | Same chunking as codeweaver                                                                                                          |
-| `blightwarden` | 1          | agent       | `[all lawbringer ids]` (or all sieges, or ward — first non-empty) | Whole-diff cross-cutting audit                                                                                                       |
-| `ward` (final) | 1          | command     | `[blightwarden id]`                                               | `wardMode: 'full'`                                                                                                                   |
+| Item                       | Count      | spawnerType | dependsOn                                                         | Notes                                                                                                                                |
+|----------------------------|------------|-------------|-------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `codeweaver`               | N chunks   | agent       | `[pathseeker-walk id] + inter-step cw deps`                       | Steps chunked by `stepsToBatchChunksTransformer`; a chunk depends on the chunk(s) its steps depend on                                |
+| `ward`                     | 1          | command     | `[all codeweaver ids]`                                            | `wardMode: 'changed'`, `maxAttempts: slotManagerStatics.ward.maxRetries`                                                             |
+| `siegemaster`              | 1 per flow | agent       | `[ward id]` (+ previous siege id)                                 | **Chained** so at most one siege runs at a time (dev-server / port / FS contention); each carries `relatedDataItems: ['flows/<id>']` |
+| `lawbringer`               | N chunks   | agent       | `[all siege ids]` (or `[ward id]` if no flows)                    | Same chunking as codeweaver                                                                                                          |
+| `blightwarden-*-minion`    | 5          | agent       | `[all lawbringer ids]` (or all sieges, or ward — first non-empty) | Report-only finders (security/dedup/perf/integrity/dead-code), dispatched as ONE parallel batch; each writes a `PlanningBlightReport`, none fixes or blocks |
+| `blightwarden`             | 1          | agent       | `[all 5 minion ids]`                                              | Synthesizer: reads minion reports, judges, applies final cleanup                                                                     |
+| `ward` (final)             | 1          | command     | `[blightwarden synthesizer id]`                                   | `wardMode: 'full'`                                                                                                                   |
 
 ---
 
@@ -267,7 +268,8 @@ returned prompt and stamps `sessionId` + `agentId` onto the work item.
 | **Ward**         | `mode` (`changed`/`full`)                                                                           | Runs `dungeonmaster-ward run [--changed]` as a shell command. Exit 0 → `complete`, non-zero → `failed`. Only non-agent role                                                                          | (terminal status set by exit code, not a signal) |
 | **Siegemaster**  | One flow: nodes, edges, observables, entry/exit                                                     | Picks verification mode from observable-type distribution — Playwright E2E (runtime/UI), integration harness (API/CLI/queue), or ward+grep+adversarial (operational); writes real verification tests | `complete` / `failed`                            |
 | **Lawbringer**   | One step chunk (file pairs); OR, in **whole-diff mode** (bug-hunt), just `questId` and no step refs | Review AND fix: logic / error-handling / security + manual test branch-coverage walk; fixes violations inline, commits, runs ward. Whole-diff mode reviews every changed file in the diff vs the repo default branch instead of a named pair | `complete` / `failed` (→ BLOCK)                  |
-| **Blightwarden** | The whole diff + quest context                                                                      | Whole-diff cross-cutting audit (security, dedup, perf, integrity, dead-code via parallel minions); fixes mechanical issues inline, routes semantic findings out                                      | `complete` / `failed-replan` / `failed`          |
+| **Blightwarden minion** (×5) | The whole diff + quest context (one concern each)                                       | Report-only finder for ONE cross-cutting concern (security / dedup / perf / integrity / dead-code). Reads the diff, writes a `PlanningBlightReport`; never fixes, never blocks. The five run as one parallel batch | `complete` (on any failure, records `status: 'failed'` in its report — NON-BLOCKING) |
+| **Blightwarden** (synthesizer) | The 5 minion reports + quest context                                                  | Reads minion reports, judges/dedups, compensates for any failed minion, applies mechanical fixes inline, routes semantic findings out via `failed-replan` (→ pathseeker replan)                      | `complete` / `failed-replan` / `failed`          |
 | **PestEater**    | The bug report (reads the quest itself: `userRequest`, repro flow, expected observable)             | Bug Hunt's single TDD agent: root-cause → write the failing test FIRST and watch it fail → fix → verify via ward. Front of the bug-hunt chain                                                        | `complete` / `failed`                            |
 | **Spiritmender** | Error context: affected files, errors, verification command                                         | Targeted error resolution without weakening tests / `any` / disabling lint; re-runs the verification command after each fix                                                                          | `complete` / `failed`                            |
 
@@ -285,14 +287,14 @@ Chat roles (spec phase), for completeness:
 Agents report via the `signal-back` MCP tool. The live handler is
 `quest-handle-signal-back-responder.ts`, and it:
 
-1. Marks the named work item terminal: `complete` for signal `complete`; `failed` for signal `failed`
-   **or** `failed-replan`. Stamps `completedAt`.
+1. Marks the named work item terminal: `complete` for signal `complete`. For a failure signal:
+   a **blightwarden minion** terminates `complete` (with `actualSignal` recording the real signal —
+   NON-BLOCKING); every other role terminates `failed`. Stamps `completedAt`.
 2. If the item is `pathseeker-walk` **and** the signal is `complete`, fires the post-walk hook to
    generate the downstream chain.
-3. On a `failed` / `failed-replan` signal, every agent role blocks the quest (see the failure table
-   under "Invariants" → "Failure recovery & blocking"). Lawbringer, siegemaster, and blightwarden fix
-   what they find inline during their own run, so a `failed` signal from them is an unfixable-issue
-   block.
+3. On a `failed` signal, every non-minion agent role blocks the quest (see the failure table under
+   "Invariants" → "Failure recovery & blocking"). On `failed-replan` (only the blightwarden
+   synthesizer emits it), the handler splices a `pathseeker-walk` replan instead of blocking.
 
 Terminal-failure routing lives in the two places that set terminal status:
 
@@ -300,9 +302,16 @@ Terminal-failure routing lives in the two places that set terminal status:
   remaining it splices a spiritmender batch + a ward-retry (`questSpliceFixerBroker`) and rewires
   downstream onto the retry; with retries exhausted it blocks the quest (`questBlockOnFailureBroker`).
   This is the only RECOVER path and the only place spiritmenders are spawned.
-- **`signal-back` handler** routes agent failures: `lawbringer` / `codeweaver` / `siegemaster` /
-  `spiritmender` / `blightwarden` / `pathseeker-*` / `pesteater` all block the quest. `failed-replan`
-  from Blightwarden is treated as `failed`, then routed by the same table (→ BLOCK).
+- **`signal-back` handler** routes agent failures:
+  - **Blightwarden minion `failed` / `failed-replan` → NON-BLOCKING.** The minion's work item
+    terminates `complete` so the synthesizer's `dependsOn` stays satisfiable; the failure lives in
+    the minion's `PlanningBlightReport` (`status: 'failed'`), which the synthesizer reads.
+  - **Blightwarden synthesizer `failed-replan` → REPLAN.** Marks the synthesizer `failed` (superseded
+    by `insertedBy`), drains pending items to `skipped`, and splices a `pathseeker-walk` replan
+    (`dependsOn: []`) that re-fires the post-walk hook on completion, regenerating the whole chain.
+    The quest stays `in_progress`.
+  - **All other `failed` signals** (`lawbringer` / `codeweaver` / `siegemaster` / `spiritmender` /
+    `blightwarden` synthesizer hard-fail / `pathseeker-*` / `pesteater`) block the quest.
 
 A blocked quest sets status `blocked` and marks every still-`pending` item `skipped`. A recovered
 quest stays `in_progress` and dispatches the spliced fixers on the next `get-next-step`. Quest status
@@ -350,7 +359,7 @@ These hold under the current model and are the right things to assert in integra
 - **DEP-2 — `failed` unblocks, `skipped` blocks.** A `failed` dep satisfies dependents; a `skipped` dep
   never does, so its dependents can never become ready.
 - **DEP-3 — Standard chain.** A successful PathSeeker walk produces
-  `codeweaver → ward(changed) → siegemaster[per flow, chained] → lawbringer → blightwarden → ward(full)`,
+  `codeweaver → ward(changed) → siegemaster[per flow, chained] → lawbringer → blightwarden minions[5 parallel] → blightwarden synthesizer → ward(full)`,
   wired exactly as the `stepsToWorkItemsTransformer` table above.
 - **DEP-4 — Siege serialization.** Each siege item (after the first) depends on the previous siege id,
   so at most one Siegemaster runs concurrently.
@@ -376,7 +385,9 @@ items + a retry into `quest.workItems[]`; all other failures block the quest. Th
 | `codeweaver`                                | **BLOCK**                                                                  |
 | `siegemaster`                               | **BLOCK**                                                                  |
 | `spiritmender`                              | **BLOCK**                                                                  |
-| `blightwarden` (`failed` / `failed-replan`) | **BLOCK**                                                                  |
+| `blightwarden-*-minion` (`failed` / `failed-replan`) | **NON-BLOCKING** — minion terminates `complete`, failure recorded in its report |
+| `blightwarden` synthesizer (`failed-replan`)| **REPLAN** — splice a `pathseeker-walk` replan, quest stays `in_progress`   |
+| `blightwarden` synthesizer (`failed`)       | **BLOCK**                                                                  |
 | `pathseeker-*`                              | **BLOCK**                                                                  |
 | `pesteater`                                 | **BLOCK**                                                                  |
 
@@ -387,10 +398,21 @@ items + a retry into `quest.workItems[]`; all other failures block the quest. Th
   downstream dependent off the failed item onto the retry item via
   `replacementMapping: [{ oldId: failedWorkItemId, newId: retryItem.id }]`, so siege/downstream items
   depend on the retry rather than the original failure.
+- **REC-3 — Minion failure is non-blocking, recorded in its report.** A `blightwarden-*-minion`
+  failure terminates the work item `complete` (stamping `actualSignal`) so the synthesizer's
+  `dependsOn` stays satisfiable and the quest is not blocked. The failure detail lives in the
+  minion's `PlanningBlightReport` (`status: 'failed'`, `note`), which the synthesizer reads and
+  compensates for (audits the concern itself) or escalates via `failed-replan`. A missing report is
+  treated the same as a `failed` report.
+- **REC-4 — Synthesizer `failed-replan` splices a pathseeker-walk replan.** The synthesizer is marked
+  `failed` (superseded via `insertedBy`, so it is not an unresolved failure), every still-`pending`
+  item is `skipped`, and a `pathseeker-walk` replan (`dependsOn: []`) is appended. On its completion
+  the post-walk hook re-fires and regenerates the whole downstream chain. The quest stays
+  `in_progress` (a bare workItems write never derives `blocked`).
 - **BLK-1 — Pathseeker-routed failures block + skip pending.** A failure that routes to block
-  (`codeweaver` / `siegemaster` / `spiritmender` / `blightwarden` / `pathseeker-*` / `pesteater`, and
-  `ward` when retries are exhausted) sets quest status `blocked` and marks every still-`pending` item
-  `skipped`, so nothing dispatches on the broken state.
+  (`codeweaver` / `siegemaster` / `spiritmender` / `blightwarden` synthesizer hard-`failed` /
+  `pathseeker-*` / `pesteater`, and `ward` when retries are exhausted) sets quest status `blocked` and
+  marks every still-`pending` item `skipped`, so nothing dispatches on the broken state.
 - **BLK-2 — A `blocked` quest is not dispatched.** `loadActiveQuestsLayerBroker` filters on
   `isActivelyExecutingQuestStatusGuard` (`== in_progress`), so a `blocked` quest is not scanned by
   `get-next-step` and dispatch halts.
@@ -422,7 +444,8 @@ items + a retry into `quest.workItems[]`; all other failures block the quest. Th
    ▼ ward (changed)        [run-ward MCP tool] → complete
    ▼ siegemaster (per flow, chained)          → complete
    ▼ lawbringer(s)                            → complete
-   ▼ blightwarden                             → complete
+   ▼ blightwarden minions ×5 (parallel)       → complete  (each writes a report)
+   ▼ blightwarden synthesizer (single)        → complete  (judges reports, cleans up)
    ▼ ward (full)           [run-ward MCP tool] → complete
    All items non-failure-terminal → quest complete ✓
 /dumpster-launch's next get-next-step() picks up the next FIFO quest.

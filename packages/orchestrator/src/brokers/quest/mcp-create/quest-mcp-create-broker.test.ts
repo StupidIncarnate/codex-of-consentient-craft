@@ -2,7 +2,10 @@ import {
   AddQuestInputStub,
   GuildIdStub,
   GuildListItemStub,
+  GuildStub,
   QuestIdStub,
+  QuestTypeStub,
+  SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questMcpCreateBroker } from './quest-mcp-create-broker';
@@ -11,8 +14,8 @@ import { questMcpCreateBrokerProxy } from './quest-mcp-create-broker.proxy';
 const { userRequest } = AddQuestInputStub();
 
 describe('questMcpCreateBroker', () => {
-  describe('cwd matches a registered guild', () => {
-    it('VALID: {cwd matches one guild with urlSlug} => returns { questId, guildSlug }', async () => {
+  describe('covering guild reused', () => {
+    it('VALID: {covering guild exists} => resolves to { questId, guildSlug } and does not throw', async () => {
       const proxy = questMcpCreateBrokerProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
@@ -22,7 +25,9 @@ describe('questMcpCreateBroker', () => {
         urlSlug: 'my-guild' as never,
         valid: true,
       });
-      proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild', guild, questId });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/my-guild', repoRoot: '/home/dev/my-guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
 
       const result = await questMcpCreateBroker({ userRequest });
 
@@ -32,27 +37,33 @@ describe('questMcpCreateBroker', () => {
       });
     });
 
-    it('VALID: {cwd has trailing slash, guild.path does not} => still matches', async () => {
+    it('VALID: {cwd is a subfolder, repo root resolves above it} => matches guild against resolved repo root, not the cwd', async () => {
       const proxy = questMcpCreateBrokerProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      // Guild covers ONLY the resolved repo root; it does NOT cover the literal cwd.
+      // If the broker matched against the cwd, no guild would cover it and guildAddBroker
+      // would fire. Asserting guildAddBroker stays uncalled proves the repo-root match.
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'My Guild' as never,
-        path: '/home/dev/my-guild' as never,
-        urlSlug: 'my-guild' as never,
+        name: 'Repo Guild' as never,
+        path: '/home/dev/repo' as never,
+        urlSlug: 'repo-guild' as never,
         valid: true,
       });
-      proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild/', guild, questId });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/elsewhere', repoRoot: '/home/dev/repo' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
 
       const result = await questMcpCreateBroker({ userRequest });
 
       expect(result).toStrictEqual({
         questId,
-        guildSlug: 'my-guild',
+        guildSlug: 'repo-guild',
       });
+      expect(proxy.getGuildAddCalls()).toStrictEqual([]);
     });
 
-    it('VALID: {cwd matches one guild among many} => returns matching guild slug, not first', async () => {
+    it('VALID: {one covering guild among many} => selects that guild and returns its urlSlug', async () => {
       const proxy = questMcpCreateBrokerProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const firstGuild = GuildListItemStub({
@@ -76,11 +87,12 @@ describe('questMcpCreateBroker', () => {
         urlSlug: 'last-guild' as never,
         valid: true,
       });
-      proxy.setupGuildsWithMatch({
+      proxy.setupResolvedRepoRoot({
         cwd: '/home/dev/target-guild',
-        guilds: [firstGuild, targetGuild, lastGuild],
-        questId,
+        repoRoot: '/home/dev/target-guild',
       });
+      proxy.setupGuilds({ guilds: [firstGuild, targetGuild, lastGuild] });
+      proxy.setupSuccessfulAdd({ questId });
 
       const result = await questMcpCreateBroker({ userRequest });
 
@@ -90,29 +102,27 @@ describe('questMcpCreateBroker', () => {
       });
     });
 
-    it('VALID: {userRequest, questType: "bug-hunt"} => returns { questId, guildSlug }', async () => {
+    it('VALID: {covering guild exists} => guildAddBroker is not called and returned guildSlug equals existing guild urlSlug', async () => {
       const proxy = questMcpCreateBrokerProxy();
-      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'My Guild' as never,
-        path: '/home/dev/my-guild' as never,
-        urlSlug: 'my-guild' as never,
+        name: 'Existing Guild' as never,
+        path: '/home/dev/existing' as never,
+        urlSlug: 'existing-guild' as never,
         valid: true,
       });
-      proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild', guild, questId });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/existing', repoRoot: '/home/dev/existing' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({});
 
-      const result = await questMcpCreateBroker({ userRequest, questType: 'bug-hunt' });
+      const result = await questMcpCreateBroker({ userRequest });
 
-      expect(result).toStrictEqual({
-        questId,
-        guildSlug: 'my-guild',
-      });
+      expect(proxy.getGuildAddCalls()).toStrictEqual([]);
+      expect(result.guildSlug).toBe('existing-guild');
     });
 
-    it('VALID: {matching guild has no urlSlug} => derives slug from guild name', async () => {
+    it('VALID: {covering guild has no urlSlug} => derives the slug from the guild name', async () => {
       const proxy = questMcpCreateBrokerProxy();
-      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'ffffffff-6666-4777-9888-999999999999' }),
         name: 'Another Guild' as never,
@@ -120,47 +130,216 @@ describe('questMcpCreateBroker', () => {
         urlSlug: undefined,
         valid: true,
       });
-      proxy.setupMatchingGuild({ cwd: '/home/dev/another-guild', guild, questId });
+      proxy.setupResolvedRepoRoot({
+        cwd: '/home/dev/another-guild',
+        repoRoot: '/home/dev/another-guild',
+      });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({});
 
       const result = await questMcpCreateBroker({ userRequest });
 
+      expect(result.guildSlug).toBe('another-guild');
+    });
+
+    it('VALID: {questUserAddBroker succeeds} => returned questId equals the minted quest id', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: '99999999-9999-4999-9999-999999999999' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'Guild' as never,
+        path: '/home/dev/guild' as never,
+        urlSlug: 'guild' as never,
+        valid: true,
+      });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
+
+      const result = await questMcpCreateBroker({ userRequest });
+
+      expect(result.questId).toBe('99999999-9999-4999-9999-999999999999');
+    });
+  });
+
+  describe('auto-create guild', () => {
+    it('VALID: {no covering guild} => guildAddBroker called once with derived name + repo-root path and the new urlSlug is returned', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const createdGuild = GuildStub({
+        id: GuildIdStub({ value: 'cccccccc-cccc-4ccc-9ccc-cccccccccccc' }),
+        name: 'Codex of Consentient Craft' as never,
+        path: '/home/dev/codex-of-consentient-craft' as never,
+        urlSlug: 'codex-of-consentient-craft' as never,
+      });
+      proxy.setupResolvedRepoRoot({
+        cwd: '/home/dev/codex-of-consentient-craft',
+        repoRoot: '/home/dev/codex-of-consentient-craft',
+      });
+      proxy.setupGuilds({ guilds: [] });
+      proxy.setupAutoCreatedGuild({ guild: createdGuild });
+      proxy.setupSuccessfulAdd({ questId });
+
+      const result = await questMcpCreateBroker({ userRequest });
+
+      expect(proxy.getGuildAddCalls()).toStrictEqual([
+        {
+          name: 'Codex of Consentient Craft',
+          path: '/home/dev/codex-of-consentient-craft',
+        },
+      ]);
       expect(result).toStrictEqual({
         questId,
-        guildSlug: 'another-guild',
+        guildSlug: 'codex-of-consentient-craft',
       });
     });
   });
 
-  describe('error cases', () => {
-    it('ERROR: {cwd matches no guild} => throws clear error mentioning the cwd', async () => {
+  describe('repo-root resolution fallback', () => {
+    it('EDGE: {cwdResolveBroker rejects, covering guild exists} => uses literal cwd, reuses covering guild, resolves without rethrowing', async () => {
       const proxy = questMcpCreateBrokerProxy();
-      const other = GuildListItemStub({
-        id: GuildIdStub({ value: '11111111-1111-4111-9111-111111111111' }),
-        name: 'Other Guild' as never,
-        path: '/home/dev/other-guild' as never,
-        urlSlug: 'other-guild' as never,
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'Fresh Repo' as never,
+        path: '/home/dev/fresh-repo' as never,
+        urlSlug: 'fresh-repo' as never,
         valid: true,
       });
-      proxy.setupNoMatchingGuild({
-        cwd: '/home/dev/unregistered-repo',
-        guilds: [other],
+      proxy.setupResolveFallback({ cwd: '/home/dev/fresh-repo' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
+
+      const result = await questMcpCreateBroker({ userRequest });
+
+      expect(proxy.getGuildAddCalls()).toStrictEqual([]);
+      expect(result).toStrictEqual({
+        questId,
+        guildSlug: 'fresh-repo',
+      });
+    });
+
+    it('EDGE: {cwdResolveBroker rejects, no covering guild} => guildAddBroker called once with literal cwd path + basename-derived name', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const createdGuild = GuildStub({
+        id: GuildIdStub({ value: 'cccccccc-cccc-4ccc-9ccc-cccccccccccc' }),
+        name: 'Codex of Consentient Craft' as never,
+        path: '/home/dev/codex-of-consentient-craft' as never,
+        urlSlug: 'codex-of-consentient-craft' as never,
+      });
+      proxy.setupResolveFallback({ cwd: '/home/dev/codex-of-consentient-craft' });
+      proxy.setupGuilds({ guilds: [] });
+      proxy.setupAutoCreatedGuild({ guild: createdGuild });
+      proxy.setupSuccessfulAdd({ questId });
+
+      const result = await questMcpCreateBroker({ userRequest });
+
+      expect(proxy.getGuildAddCalls()).toStrictEqual([
+        {
+          name: 'Codex of Consentient Craft',
+          path: '/home/dev/codex-of-consentient-craft',
+        },
+      ]);
+      expect(result).toStrictEqual({
+        questId,
+        guildSlug: 'codex-of-consentient-craft',
+      });
+    });
+  });
+
+  describe('optional inputs forwarded to questUserAddBroker', () => {
+    it('VALID: {questType provided} => forwards questType inside the quest input', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const questType = QuestTypeStub({ value: 'bug-hunt' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'Guild' as never,
+        path: '/home/dev/guild' as never,
+        urlSlug: 'guild' as never,
+        valid: true,
+      });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
+
+      await questMcpCreateBroker({ userRequest, questType });
+
+      expect(proxy.getLastQuestAddCall().questType).toBe('bug-hunt');
+    });
+
+    it('VALID: {questType omitted} => quest input carries no questType', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'Guild' as never,
+        path: '/home/dev/guild' as never,
+        urlSlug: 'guild' as never,
+        valid: true,
+      });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
+
+      await questMcpCreateBroker({ userRequest });
+
+      expect(proxy.getLastQuestAddCall().questType).toBe(undefined);
+    });
+
+    it('VALID: {sessionId provided} => forwards sessionId to questUserAddBroker', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const sessionId = SessionIdStub({ value: '77777777-7777-4777-9777-777777777777' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'Guild' as never,
+        path: '/home/dev/guild' as never,
+        urlSlug: 'guild' as never,
+        valid: true,
+      });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
+
+      await questMcpCreateBroker({ userRequest, sessionId });
+
+      expect(proxy.getLastQuestAddCall().sessionId).toBe('77777777-7777-4777-9777-777777777777');
+    });
+
+    it('VALID: {sessionId omitted} => questUserAddBroker receives no sessionId', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        name: 'Guild' as never,
+        path: '/home/dev/guild' as never,
+        urlSlug: 'guild' as never,
+        valid: true,
+      });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSuccessfulAdd({ questId });
+
+      await questMcpCreateBroker({ userRequest });
+
+      expect(proxy.getLastQuestAddCall().sessionId).toBe(undefined);
+    });
+  });
+
+  describe('error cases', () => {
+    it('ERROR: {cwdResolveBroker rejects with a non-ProjectRootNotFoundError} => rethrows that error', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      proxy.setupResolveError({
+        cwd: '/home/dev/guild',
+        error: new Error('disk read failed'),
       });
 
-      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(
-        /No guild registered for current directory: \/home\/dev\/unregistered-repo\. Run `dungeonmaster init` in this repo first\./u,
-      );
+      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(/disk read failed/u);
     });
 
-    it('ERROR: {zero guilds registered} => throws clear error mentioning the cwd', async () => {
-      const proxy = questMcpCreateBrokerProxy();
-      proxy.setupEmptyGuildList({ cwd: '/home/dev/some-repo' });
-
-      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(
-        /No guild registered for current directory: \/home\/dev\/some-repo\. Run `dungeonmaster init` in this repo first\./u,
-      );
-    });
-
-    it('ERROR: {user-add returns failure} => throws with the underlying error message', async () => {
+    it('ERROR: {questUserAddBroker returns failure} => throws with the underlying error message', async () => {
       const proxy = questMcpCreateBrokerProxy();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: '22222222-2222-4222-9222-222222222222' }),
@@ -169,9 +348,29 @@ describe('questMcpCreateBroker', () => {
         urlSlug: 'guild' as never,
         valid: true,
       });
-      proxy.setupAddFailure({ cwd: '/home/dev/guild', guild, error: 'persist failed' });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupAddFailure({ error: 'persist failed' });
 
       await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(/persist failed/u);
+    });
+
+    it('ERROR: {questUserAddBroker returns success but no questId} => throws with the unknown-error fallback message', async () => {
+      const proxy = questMcpCreateBrokerProxy();
+      const guild = GuildListItemStub({
+        id: GuildIdStub({ value: '22222222-2222-4222-9222-222222222222' }),
+        name: 'Guild' as never,
+        path: '/home/dev/guild' as never,
+        urlSlug: 'guild' as never,
+        valid: true,
+      });
+      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupAddSuccessWithoutQuestId();
+
+      await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(
+        /Failed to create quest: unknown error/u,
+      );
     });
   });
 });

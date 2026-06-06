@@ -1,117 +1,146 @@
 import {
+  GuildStub,
   QuestIdStub,
+  RepoRootCwdStub,
   FilePathStub,
+  type AddQuestInput,
   type AddQuestResult,
+  type Guild,
   type GuildListItem,
+  type GuildName,
+  type GuildPath,
+  type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import {
+  cwdResolveBrokerProxy,
+  pathBasenameAdapterProxy,
+  processCwdAdapterProxy,
+} from '@dungeonmaster/shared/testing';
+import {
+  registerMock,
+  registerModuleMock,
+  type MockHandle,
+} from '@dungeonmaster/testing/register-mock';
+import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
+import { guildAddBroker } from '../../guild/add/guild-add-broker';
+import { guildAddBrokerProxy } from '../../guild/add/guild-add-broker.proxy';
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';
 import { questUserAddBroker } from '../user-add/quest-user-add-broker';
 import { questUserAddBrokerProxy } from '../user-add/quest-user-add-broker.proxy';
 
 registerModuleMock({ module: '../user-add/quest-user-add-broker' });
+registerModuleMock({ module: '../../guild/add/guild-add-broker' });
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 
 export const questMcpCreateBrokerProxy = (): {
-  setupMatchingGuild: (params: { cwd: string; guild: GuildListItem; questId?: QuestId }) => void;
-  setupGuildsWithMatch: (params: {
-    cwd: string;
-    guilds: readonly GuildListItem[];
-    questId?: QuestId;
-  }) => void;
-  setupNoMatchingGuild: (params: { cwd: string; guilds: readonly GuildListItem[] }) => void;
-  setupEmptyGuildList: (params: { cwd: string }) => void;
-  setupAddFailure: (params: { cwd: string; guild: GuildListItem; error: string }) => void;
+  setupResolvedRepoRoot: (params: { cwd: string; repoRoot: string }) => void;
+  setupResolveFallback: (params: { cwd: string }) => void;
+  setupResolveError: (params: { cwd: string; error: Error }) => void;
+  setupGuilds: (params: { guilds: readonly GuildListItem[] }) => void;
+  setupAutoCreatedGuild: (params: { guild: Guild }) => void;
+  setupSuccessfulAdd: (params: { questId?: QuestId }) => void;
+  setupAddSuccessWithoutQuestId: () => void;
+  setupAddFailure: (params: { error: string }) => void;
+  getGuildAddCalls: () => readonly { name: GuildName; path: GuildPath }[];
+  getLastQuestAddCall: () => {
+    questType: AddQuestInput['questType'];
+    sessionId: SessionId | undefined;
+  };
 } => {
   const cwdProxy = processCwdAdapterProxy();
   const listProxy = guildListBrokerProxy();
-  // Initializing the user-add proxy registers its companion mocks; we still override the
-  // top-level mock per setup case below so this broker resolves through user-add cleanly.
+  // Initializing these proxies registers their companion mocks; we still override the
+  // top-level mock per setup case below so this broker resolves through them cleanly.
+  // cwdResolveBroker is overridden via registerMock so its underlying fs/path mocks
+  // aren't actually exercised; guildAddBroker is module-mocked so its internals never run.
+  cwdResolveBrokerProxy();
+  pathBasenameAdapterProxy();
+  guildAddBrokerProxy();
   questUserAddBrokerProxy();
 
+  const resolveMock: MockHandle = registerMock({ fn: cwdResolveBroker });
   const listMock = guildListBroker as jest.MockedFunction<typeof guildListBroker>;
-  const addMock = questUserAddBroker as jest.MockedFunction<typeof questUserAddBroker>;
+  const addGuildMock = guildAddBroker as jest.MockedFunction<typeof guildAddBroker>;
+  const addQuestMock = questUserAddBroker as jest.MockedFunction<typeof questUserAddBroker>;
 
   // Defaults: ensure we never accidentally pick up the real implementations between tests.
   listMock.mockResolvedValue([]);
 
-  const stageSuccessfulAdd = ({ questId }: { questId: QuestId }): void => {
-    const addResult = {
-      success: true,
-      questId,
-      questFolder: questId,
-      filePath: FilePathStub({ value: '/tmp/quest.json' }),
-      chaoswhispererWorkItemId: questId,
-    } as unknown as AddQuestResult;
-    addMock.mockResolvedValueOnce(addResult);
-  };
-
   return {
-    setupMatchingGuild: ({
-      cwd,
-      guild,
-      questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-    }: {
-      cwd: string;
-      guild: GuildListItem;
-      questId?: QuestId;
-    }): void => {
+    setupResolvedRepoRoot: ({ cwd, repoRoot }: { cwd: string; repoRoot: string }): void => {
       cwdProxy.returns({ path: cwd });
-      listProxy.setupDirectListing({ items: [guild] });
-      stageSuccessfulAdd({ questId });
+      resolveMock.mockResolvedValueOnce(RepoRootCwdStub({ value: repoRoot }));
     },
 
-    setupGuildsWithMatch: ({
-      cwd,
-      guilds,
-      questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-    }: {
-      cwd: string;
-      guilds: readonly GuildListItem[];
-      questId?: QuestId;
-    }): void => {
+    setupResolveFallback: ({ cwd }: { cwd: string }): void => {
       cwdProxy.returns({ path: cwd });
-      listProxy.setupDirectListing({ items: guilds });
-      stageSuccessfulAdd({ questId });
+      resolveMock.mockRejectedValueOnce(new ProjectRootNotFoundError({ startPath: cwd }));
     },
 
-    setupNoMatchingGuild: ({
-      cwd,
-      guilds,
-    }: {
-      cwd: string;
-      guilds: readonly GuildListItem[];
-    }): void => {
+    setupResolveError: ({ cwd, error }: { cwd: string; error: Error }): void => {
       cwdProxy.returns({ path: cwd });
+      resolveMock.mockRejectedValueOnce(error);
+    },
+
+    setupGuilds: ({ guilds }: { guilds: readonly GuildListItem[] }): void => {
       listProxy.setupDirectListing({ items: guilds });
     },
 
-    setupEmptyGuildList: ({ cwd }: { cwd: string }): void => {
-      cwdProxy.returns({ path: cwd });
-      listProxy.setupDirectListing({ items: [] as readonly GuildListItem[] });
+    setupAutoCreatedGuild: ({ guild }: { guild: Guild }): void => {
+      addGuildMock.mockResolvedValueOnce(GuildStub({ ...guild }));
     },
 
-    setupAddFailure: ({
-      cwd,
-      guild,
-      error,
+    setupSuccessfulAdd: ({
+      questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
     }: {
-      cwd: string;
-      guild: GuildListItem;
-      error: string;
+      questId?: QuestId;
     }): void => {
-      cwdProxy.returns({ path: cwd });
-      listProxy.setupDirectListing({ items: [guild] });
+      const addResult = {
+        success: true,
+        questId,
+        questFolder: questId,
+        filePath: FilePathStub({ value: '/tmp/quest.json' }),
+        chaoswhispererWorkItemId: questId,
+      } as unknown as AddQuestResult;
+      addQuestMock.mockResolvedValueOnce(addResult);
+    },
 
+    setupAddSuccessWithoutQuestId: (): void => {
+      const addResult = {
+        success: true,
+      } as unknown as AddQuestResult;
+      addQuestMock.mockResolvedValueOnce(addResult);
+    },
+
+    setupAddFailure: ({ error }: { error: string }): void => {
       const addResult = {
         success: false,
         error,
       } as unknown as AddQuestResult;
-      addMock.mockResolvedValueOnce(addResult);
+      addQuestMock.mockResolvedValueOnce(addResult);
+    },
+
+    getGuildAddCalls: (): readonly { name: GuildName; path: GuildPath }[] =>
+      addGuildMock.mock.calls.map((call) => {
+        const [{ name, path }] = call;
+        return { name, path };
+      }),
+
+    getLastQuestAddCall: (): {
+      questType: AddQuestInput['questType'];
+      sessionId: SessionId | undefined;
+    } => {
+      const { calls } = addQuestMock.mock;
+      const lastCall = calls[calls.length - 1];
+      if (lastCall === undefined) {
+        throw new Error('questUserAddBroker was not called');
+      }
+      const [{ input, sessionId }] = lastCall;
+      return { questType: input.questType, sessionId };
     },
   };
 };

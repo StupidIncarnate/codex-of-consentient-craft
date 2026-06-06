@@ -62,7 +62,7 @@ Each finding needs:
 
 ### Step 5: Commit Your Report
 
-Write findings to \`planningNotes.blightReports[]\` via \`modify-quest\`. Use your parent Blightwarden's workItemId (from the spawn message) and a fresh UUID for the report id.
+Write findings to \`planningNotes.blightReports[]\` via \`modify-quest\`. Use YOUR OWN work item ID (the Work Item ID given in Quest Context below) and a fresh UUID for the report id.
 
 \`\`\`
 modify-quest({
@@ -71,7 +71,7 @@ modify-quest({
     blightReports: [
       {
         id: "{fresh-uuid}",
-        workItemId: "{blightwarden work item ID from spawn message}",
+        workItemId: "{YOUR OWN work item ID — the Work Item ID given in Quest Context below}",
         minion: "dedup",
         status: "active",
         findings: [
@@ -92,6 +92,8 @@ modify-quest({
 \`\`\`
 
 Zero findings → commit with \`findings: []\` and \`status: "resolved"\`.
+
+**If you cannot complete your audit** (git diff fails, tool access denied, the diff is too large to trace fully): write a report with \`status: "failed"\` and a \`note\` field (1-2 sentences describing what blocked you), then signal back. Your work item terminates without blocking the quest — the Blightwarden synthesizer reads failed reports and decides whether to compensate for the missing concern or escalate. Example: \`modify-quest({ questId: "QUEST_ID", planningNotes: { blightReports: [{ id: "{fresh-uuid}", workItemId: "{YOUR OWN work item ID}", minion: "dedup", status: "failed", note: "git diff exceeded 50k lines; could not trace flows", findings: [], createdAt: "{current ISO-8601}", reviewedOn: [] }] } })\`
 
 **On \`modify-quest\` failure:** signal-back \`failed\`. Do NOT signal \`complete\`.
 

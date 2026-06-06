@@ -21,6 +21,11 @@ export const executionRoleContract = z.enum([
   'spiritmender',
   'siegemaster',
   'lawbringer',
+  'blightwarden-security-minion',
+  'blightwarden-dedup-minion',
+  'blightwarden-perf-minion',
+  'blightwarden-integrity-minion',
+  'blightwarden-dead-code-minion',
   'blightwarden',
   'pesteater',
 ]);

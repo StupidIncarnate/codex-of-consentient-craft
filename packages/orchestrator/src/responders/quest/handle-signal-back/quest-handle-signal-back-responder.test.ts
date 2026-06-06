@@ -127,7 +127,7 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(String(transitioned?.completedAt)).toMatch(ISO_TIMESTAMP_RE);
     });
 
-    it('VALID: {role: blightwarden, signal: failed-replan} => persists workItem.status=failed with completedAt set', async () => {
+    it('VALID: {role: blightwarden, signal: failed-replan} => persists synthesizer workItem.status=failed with completedAt set', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const itemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
@@ -155,6 +155,44 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(transitioned?.status).toBe('failed');
       expect(String(transitioned?.completedAt)).toMatch(ISO_TIMESTAMP_RE);
     });
+
+    it.each([
+      ['failed', 'blightwarden-security-minion'],
+      ['failed-replan', 'blightwarden-perf-minion'],
+    ] as const)(
+      'VALID: {role: %2$s, signal: %1$s} => minion terminates complete (non-blocking), actualSignal records the real signal',
+      async (signal, role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
+        const minionId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+        const synthId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+        const minionItem = WorkItemStub({ id: minionId, role, status: 'in_progress' });
+        // Synthesizer depends on the minion — proving the minion's terminal `complete` keeps the
+        // dependency satisfiable rather than blocking the quest.
+        const synthItem = WorkItemStub({
+          id: synthId,
+          role: 'blightwarden',
+          status: 'pending',
+          dependsOn: [minionId],
+        });
+        const quest = QuestStub({
+          id: questId,
+          status: 'in_progress',
+          workItems: [minionItem, synthItem],
+        });
+        proxy.setupQuest({ quest });
+
+        await QuestHandleSignalBackResponder({ questId, workItemId: minionId, signal });
+
+        const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
+        const transitioned = persistedQuest.workItems.find((wi) => wi.id === minionId);
+
+        expect(transitioned?.status).toBe('complete');
+        expect(transitioned?.actualSignal).toBe(signal);
+        // Quest is NOT blocked — the failure lives in the minion's report, not its work-item status.
+        expect(persistedQuest.status).toBe('in_progress');
+      },
+    );
 
     it('VALID: {pathseeker-surface complete, dedup pending depending on it} => surface persists complete so dedup becomes ready (regression repro: orchestrator went idle when surface stayed in_progress)', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
@@ -196,18 +234,23 @@ describe('QuestHandleSignalBackResponder', () => {
   });
 
   describe('pathseeker-walk post-walk hook', () => {
-    it('VALID: {role: pathseeker-walk, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/blightwarden/final-ward chain)', async () => {
+    it('VALID: {role: pathseeker-walk, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/minions/blightwarden/final-ward chain)', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       // The hook's stepsToWorkItemsTransformer mints one UUID per generated item; queue distinct
-      // ids so the persisted chain has unique sibling ids (empty steps/flows => ward + blightwarden
-      // + final-ward = 3 items).
+      // ids so the persisted chain has unique sibling ids (empty steps/flows => ward + 5 minions
+      // + blightwarden synthesizer + final-ward = 8 items).
       proxy.setupWalkHookUuids({
         uuids: [
           'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b',
           'd2d3d4d5-e6e7-4f8a-9b1c-2d3e4f5a6b7c',
           'e3e4e5e6-f7f8-4a9b-8c1d-3e4f5a6b7c8d',
+          'f4f5f6f7-a8a9-4b1c-8d2e-4f5a6b7c8d9e',
+          'a5a6a7a8-b9b1-4c2d-8e3f-5a6b7c8d9e0f',
+          'b6b7b8b9-c1c2-4d3e-8f4a-6b7c8d9e0f1a',
+          'c7c8c9c1-d2d3-4e4f-8a5b-7c8d9e0f1a2b',
+          'd8d9d1d2-e3e4-4f5a-8b6c-8d9e0f1a2b3c',
         ],
       });
       const walkItem = WorkItemStub({
@@ -233,13 +276,22 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(result).toStrictEqual({ success: true });
 
       // The LAST persisted write is the hook's modify call — proves the hook fired. It carries
-      // the generated downstream chain (the only writer of ward/blightwarden items here).
+      // the generated downstream chain (the only writer of ward/minion/blightwarden items here).
       const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
       const generatedRoles = persistedQuest.workItems
         .filter((wi) => wi.id !== walkId)
         .map((wi) => wi.role);
 
-      expect(generatedRoles).toStrictEqual(['ward', 'blightwarden', 'ward']);
+      expect(generatedRoles).toStrictEqual([
+        'ward',
+        'blightwarden-security-minion',
+        'blightwarden-dedup-minion',
+        'blightwarden-perf-minion',
+        'blightwarden-integrity-minion',
+        'blightwarden-dead-code-minion',
+        'blightwarden',
+        'ward',
+      ]);
     });
 
     it('VALID: {role: pathseeker-walk, signal: failed} => transitions to failed, does NOT invoke post-walk hook', async () => {
@@ -304,43 +356,67 @@ describe('QuestHandleSignalBackResponder', () => {
         expect(persistedQuest.workItems.find((wi) => wi.id === pendingId)?.status).toBe('skipped');
       },
     );
+  });
 
-    it('VALID: {role: blightwarden, signal: failed-replan} => routed to BLOCK (treated as failed): quest blocked + pending skipped', async () => {
+  describe('synthesizer failed-replan splices a pathseeker-walk replan', () => {
+    it('VALID: {role: blightwarden, signal: failed-replan} => synthesizer failed, pending skipped, pathseeker-walk replan inserted, quest stays in_progress', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
-      const blightItem = WorkItemStub({
-        id: failedId,
+      const synthId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const finalWardId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+      const synthItem = WorkItemStub({
+        id: synthId,
         role: 'blightwarden',
         status: 'in_progress',
       });
-      const pendingItem = WorkItemStub({
-        id: pendingId,
+      const finalWard = WorkItemStub({
+        id: finalWardId,
         role: 'ward',
         status: 'pending',
         spawnerType: 'command',
-        dependsOn: [failedId],
+        dependsOn: [synthId],
         wardMode: 'full',
       });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        workItems: [blightItem, pendingItem],
+        workItems: [synthItem, finalWard],
       });
-      proxy.setupQuestBlockPassthrough({ quest });
+      proxy.setupQuest({ quest });
 
       await QuestHandleSignalBackResponder({
         questId,
-        workItemId: failedId,
+        workItemId: synthId,
         signal: 'failed-replan',
       });
 
-      const persistedQuest = proxy.getLastPersistedQuest();
+      const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persistedQuest.status).toBe('blocked');
-      expect(persistedQuest.workItems.find((wi) => wi.id === failedId)?.status).toBe('failed');
-      expect(persistedQuest.workItems.find((wi) => wi.id === pendingId)?.status).toBe('skipped');
+      // Synthesizer marked failed (superseded by the replan it inserted); the pending final ward is
+      // skipped; a pathseeker-walk replan was spliced (depends on nothing, inserted by the failed
+      // synthesizer — the quest had no pathseeker-walk item before, so this is unambiguously it); and
+      // the quest re-opens for the replan rather than blocking.
+      const synth = persistedQuest.workItems.find((wi) => wi.id === synthId);
+      const finalWardItem = persistedQuest.workItems.find((wi) => wi.id === finalWardId);
+      const replan = persistedQuest.workItems.find((wi) => wi.role === 'pathseeker-walk');
+
+      expect({
+        synthStatus: synth?.status,
+        synthActualSignal: synth?.actualSignal,
+        finalWardStatus: finalWardItem?.status,
+        replanStatus: replan?.status,
+        replanInsertedBy: replan?.insertedBy,
+        replanDependsOn: replan?.dependsOn,
+        questStatus: persistedQuest.status,
+      }).toStrictEqual({
+        synthStatus: 'failed',
+        synthActualSignal: 'failed-replan',
+        finalWardStatus: 'skipped',
+        replanStatus: 'pending',
+        replanInsertedBy: synthId,
+        replanDependsOn: [],
+        questStatus: 'in_progress',
+      });
     });
   });
 

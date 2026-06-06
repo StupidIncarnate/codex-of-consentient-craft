@@ -1,5 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
+  AddQuestInputStub,
   GuildNameStub,
   GuildPathStub,
   ObservableIdStub,
@@ -1050,6 +1051,194 @@ describe('QuestFlow', () => {
       });
       // Blocked quest is not dispatched.
       expect(afterBlock).toStrictEqual({ type: 'idle' });
+    }, 30_000);
+  });
+
+  // Flow: Auto-create guild on create-quest. Entry point mcp__dungeonmaster__create-quest,
+  // surfaced in-process as QuestFlow.mcpCreate. These drive the WHOLE real seam end-to-end —
+  // processCwdAdapter → cwdResolveBroker → guildListBroker → guildCoversRepoRootGuard →
+  // guildAddBroker → questUserAddBroker against a real DUNGEONMASTER_HOME + real cwd. The
+  // broker/responder/guard unit tests mock every one of those, so this is the only place the
+  // glue between create-quest and the guild brokers is proven against the real filesystem.
+  describe('auto-create guild on create-quest', () => {
+    const { userRequest } = AddQuestInputStub();
+
+    it('VALID: {no covering guild registered} => auto-creates a guild at the repo root, creates its quests dir, persists the quest, and returns { questId, guildSlug }', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-mcp-autocreate' }),
+      });
+      // tempDir doubles as DUNGEONMASTER_HOME AND the repo root the cwd resolves to:
+      // the guild gets path === repo root === testbed dir.
+      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      envHarness.setupHome({ tempDir: repoRoot });
+      envHarness.writeRepoRootMarker({ repoRoot });
+      const cwd = envHarness.chdirInto({ dir: repoRoot });
+
+      const result = await QuestFlow.mcpCreate({ userRequest });
+
+      const guildsAfter = envHarness.readConfigGuilds({ tempDir: repoRoot });
+      const created = guildsAfter[0]!;
+      const questsDirExists = envHarness.questsDirExists({
+        tempDir: repoRoot,
+        guildId: created.guildId,
+      });
+      const questFile = envHarness.questFilePersisted({
+        tempDir: repoRoot,
+        guildId: created.guildId,
+        questId: result.questId,
+      });
+
+      cwd.restore();
+      testbed.cleanup();
+
+      // check-guild-appended + check-new-guild-slug-returned: exactly one guild (the complete
+      // array is [created]), anchored at the repo root, and the returned slug is its urlSlug.
+      expect(guildsAfter).toStrictEqual([
+        {
+          name: created.name,
+          path: created.path,
+          guildId: created.guildId,
+          urlSlug: created.urlSlug,
+        },
+      ]);
+      expect(created.path).toBe(String(repoRoot));
+      expect(result.guildSlug).toBe(created.urlSlug);
+      // check-quests-dir-created + check-quest-persisted.
+      expect(questsDirExists).toBe(true);
+      expect(questFile).toStrictEqual({ exists: true, questIdInFile: true });
+    }, 30_000);
+
+    it('VALID: {a guild already covers the repo root} => reuses it, appends no new guild, returns the existing guild slug', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-mcp-reuse' }),
+      });
+      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      envHarness.setupHome({ tempDir: repoRoot });
+      envHarness.writeRepoRootMarker({ repoRoot });
+
+      // Pre-register a guild whose path equals the repo root.
+      const existing = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Existing Covering Guild' }),
+        path: repoRoot,
+      });
+
+      const cwd = envHarness.chdirInto({ dir: repoRoot });
+
+      const result = await QuestFlow.mcpCreate({ userRequest });
+
+      const guildsAfter = envHarness.readConfigGuilds({ tempDir: repoRoot });
+      const questFile = envHarness.questFilePersisted({
+        tempDir: repoRoot,
+        guildId: existing.id,
+        questId: result.questId,
+      });
+
+      cwd.restore();
+      testbed.cleanup();
+
+      // check-no-duplicate-when-covered: the complete guilds array is still just the
+      // pre-registered guild — no new entry was appended.
+      expect(guildsAfter).toStrictEqual([
+        {
+          name: existing.name,
+          path: existing.path,
+          guildId: existing.id,
+          urlSlug: existing.urlSlug,
+        },
+      ]);
+      // check-existing-guild-slug-returned: the returned slug is the existing guild's urlSlug,
+      // and the quest persisted under the EXISTING guild (reuse, not a fresh guild).
+      expect(result.guildSlug).toBe(existing.urlSlug);
+      expect(questFile).toStrictEqual({ exists: true, questIdInFile: true });
+    }, 30_000);
+
+    it('VALID: {cwd is a subfolder of an already-registered guild} => reuses the ancestor guild (matches repo root, not the literal subfolder cwd)', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-mcp-subfolder' }),
+      });
+      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      envHarness.setupHome({ tempDir: repoRoot });
+      // .dungeonmaster.json lives ONLY at the repo root, so cwdResolveBroker walking up from the
+      // subfolder resolves to the repo root.
+      envHarness.writeRepoRootMarker({ repoRoot });
+
+      const ancestor = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Ancestor Guild' }),
+        path: repoRoot,
+      });
+
+      // Create a nested subfolder under the repo root and run create-quest from there.
+      const subfolder = GuildPathStub({ value: `${String(repoRoot)}/packages/some-pkg/src` });
+      const cwd = envHarness.makeAndChdir({ dir: subfolder });
+
+      const result = await QuestFlow.mcpCreate({ userRequest });
+
+      const guildsAfter = envHarness.readConfigGuilds({ tempDir: repoRoot });
+      const questFile = envHarness.questFilePersisted({
+        tempDir: repoRoot,
+        guildId: ancestor.id,
+        questId: result.questId,
+      });
+
+      cwd.restore();
+      testbed.cleanup();
+
+      // The ancestor guild covers the resolved repo root: the complete guilds array is just the
+      // ancestor — no duplicate — and the slug + quest belong to it.
+      expect(guildsAfter).toStrictEqual([
+        {
+          name: ancestor.name,
+          path: ancestor.path,
+          guildId: ancestor.id,
+          urlSlug: ancestor.urlSlug,
+        },
+      ]);
+      expect(result.guildSlug).toBe(ancestor.urlSlug);
+      expect(questFile).toStrictEqual({ exists: true, questIdInFile: true });
+    }, 30_000);
+
+    it('EDGE: {no .dungeonmaster.json anywhere up the tree AND no covering guild} => cwdResolveBroker rejects, broker falls back to literal cwd, auto-creates a guild there, and still returns { questId, guildSlug }', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-mcp-fallback' }),
+      });
+      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      // setupHome writes config.json but NO .dungeonmaster.json — and /tmp has none up the tree,
+      // so cwdResolveBroker walks to filesystem root and throws ProjectRootNotFoundError, exercising
+      // the literal-cwd fallback against the real resolver (not a mocked rejection).
+      envHarness.setupHome({ tempDir: repoRoot });
+      const cwd = envHarness.chdirInto({ dir: repoRoot });
+
+      const result = await QuestFlow.mcpCreate({ userRequest });
+
+      const guildsAfter = envHarness.readConfigGuilds({ tempDir: repoRoot });
+      const created = guildsAfter[0]!;
+      const questsDirExists = envHarness.questsDirExists({
+        tempDir: repoRoot,
+        guildId: created.guildId,
+      });
+      const questFile = envHarness.questFilePersisted({
+        tempDir: repoRoot,
+        guildId: created.guildId,
+        questId: result.questId,
+      });
+
+      cwd.restore();
+      testbed.cleanup();
+
+      // check-fallback-autocreate-at-cwd: exactly one guild (complete array is [created]) was
+      // auto-created with path === literal cwd.
+      expect(guildsAfter).toStrictEqual([
+        {
+          name: created.name,
+          path: created.path,
+          guildId: created.guildId,
+          urlSlug: created.urlSlug,
+        },
+      ]);
+      expect(created.path).toBe(String(repoRoot));
+      expect(result.guildSlug).toBe(created.urlSlug);
+      expect(questsDirExists).toBe(true);
+      expect(questFile).toStrictEqual({ exists: true, questIdInFile: true });
     }, 30_000);
   });
 });

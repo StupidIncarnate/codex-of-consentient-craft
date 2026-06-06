@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer helper for questGetNextStepBroker — picks the work-items to bundle into a single spawn-agents response. Returns all pathseeker-surface items together, all spiritmender items together (parallel recovery dispatch), both pathseeker-corrections items together when both ready, otherwise the single oldest ready item. Ward items are handled by the parent broker before this runs.
+ * PURPOSE: Layer helper for questGetNextStepBroker — picks the work-items to bundle into a single spawn-agents response. Returns all pathseeker-surface items together, all spiritmender items together (parallel recovery dispatch), all blightwarden minions together (parallel report-only audit), both pathseeker-corrections items together when both ready, otherwise the single oldest ready item. Ward items are handled by the parent broker before this runs.
  *
  * USAGE:
  * const batch = selectBatchLayerBroker({ ready });
@@ -7,6 +7,8 @@
  */
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
+
+import { isBlightwardenMinionRoleGuard } from '../../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 
 export const selectBatchLayerBroker = ({ ready }: { ready: WorkItem[] }): WorkItem[] => {
   // Pathseeker-surface — every ready surface item batches together.
@@ -19,6 +21,13 @@ export const selectBatchLayerBroker = ({ ready }: { ready: WorkItem[] }): WorkIt
   const spiritmenderItems = ready.filter((item) => item.role === 'spiritmender');
   if (spiritmenderItems.length > 0) {
     return spiritmenderItems;
+  }
+
+  // Blightwarden minions — every ready minion batches together (parallel report-only audit). The
+  // synthesizer (`blightwarden`) is NOT a minion, so it falls through to single-item dispatch.
+  const minionItems = ready.filter((item) => isBlightwardenMinionRoleGuard({ role: item.role }));
+  if (minionItems.length > 0) {
+    return minionItems;
   }
 
   // Pathseeker-corrections — dedup + assertion-correctness when both are ready simultaneously.

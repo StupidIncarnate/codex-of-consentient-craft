@@ -2,6 +2,7 @@ import {
   AddQuestInputStub,
   GuildIdStub,
   GuildListItemStub,
+  GuildStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -10,7 +11,7 @@ import { QuestMcpCreateResponderProxy } from './quest-mcp-create-responder.proxy
 const { userRequest } = AddQuestInputStub();
 
 describe('QuestMcpCreateResponder', () => {
-  it('VALID: {cwd matches one guild} => returns { questId, guildSlug }', async () => {
+  it('VALID: {covering guild exists} => returns { questId, guildSlug }', async () => {
     const proxy = QuestMcpCreateResponderProxy();
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
     const guild = GuildListItemStub({
@@ -21,7 +22,9 @@ describe('QuestMcpCreateResponder', () => {
       valid: true,
     });
 
-    proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild', guild, questId });
+    proxy.setupResolvedRepoRoot({ cwd: '/home/dev/my-guild', repoRoot: '/home/dev/my-guild' });
+    proxy.setupGuilds({ guilds: [guild] });
+    proxy.setupSuccessfulAdd({ questId });
 
     const result = await proxy.callResponder({ userRequest });
 
@@ -39,19 +42,35 @@ describe('QuestMcpCreateResponder', () => {
       valid: true,
     });
 
-    proxy.setupMatchingGuild({ cwd: '/home/dev/my-guild', guild, questId });
+    proxy.setupResolvedRepoRoot({ cwd: '/home/dev/my-guild', repoRoot: '/home/dev/my-guild' });
+    proxy.setupGuilds({ guilds: [guild] });
+    proxy.setupSuccessfulAdd({ questId });
 
     const result = await proxy.callResponder({ userRequest, questType: 'bug-hunt' });
 
     expect(result).toStrictEqual({ questId, guildSlug: 'my-guild' });
   });
 
-  it('ERROR: {cwd matches no guild} => throws clear error mentioning the cwd', async () => {
+  it('VALID: {no covering guild} => auto-creates a guild and returns its slug', async () => {
     const proxy = QuestMcpCreateResponderProxy();
-    proxy.setupEmptyGuildList({ cwd: '/home/dev/some-repo' });
+    const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+    const createdGuild = GuildStub({
+      id: GuildIdStub({ value: 'cccccccc-cccc-4ccc-9ccc-cccccccccccc' }),
+      name: 'Codex of Consentient Craft' as never,
+      path: '/home/dev/codex-of-consentient-craft' as never,
+      urlSlug: 'codex-of-consentient-craft' as never,
+    });
 
-    await expect(proxy.callResponder({ userRequest })).rejects.toThrow(
-      /No guild registered for current directory: \/home\/dev\/some-repo/u,
-    );
+    proxy.setupResolvedRepoRoot({
+      cwd: '/home/dev/codex-of-consentient-craft',
+      repoRoot: '/home/dev/codex-of-consentient-craft',
+    });
+    proxy.setupGuilds({ guilds: [] });
+    proxy.setupAutoCreatedGuild({ guild: createdGuild });
+    proxy.setupSuccessfulAdd({ questId });
+
+    const result = await proxy.callResponder({ userRequest });
+
+    expect(result).toStrictEqual({ questId, guildSlug: 'codex-of-consentient-craft' });
   });
 });

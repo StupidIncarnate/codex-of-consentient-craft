@@ -99,6 +99,46 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('lawbringer');
     });
 
+    it('VALID: blightwarden-security-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-security-minion' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('blightwarden-security-minion');
+    });
+
+    it('VALID: blightwarden-dedup-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-dedup-minion' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('blightwarden-dedup-minion');
+    });
+
+    it('VALID: blightwarden-perf-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-perf-minion' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('blightwarden-perf-minion');
+    });
+
+    it('VALID: blightwarden-integrity-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-integrity-minion' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('blightwarden-integrity-minion');
+    });
+
+    it('VALID: blightwarden-dead-code-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-dead-code-minion' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('blightwarden-dead-code-minion');
+    });
+
     it('VALID: blightwarden => parses successfully', () => {
       const role = WorkItemRoleStub({ value: 'blightwarden' });
 

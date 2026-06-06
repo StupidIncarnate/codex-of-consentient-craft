@@ -34,16 +34,18 @@ describe('blightwardenPromptStatics', () => {
     );
   });
 
-  it('VALID: template => small-scope skip rule appears in Dispatch section', () => {
+  it('VALID: template => Read Minion Reports section appears (synthesizer does not spawn minions)', () => {
+    expect(blightwardenPromptStatics.prompt.template).toMatch(/^## Read Minion Reports$/mu);
+  });
+
+  it('VALID: template => states the synthesizer does NOT spawn the minions', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
-      /^\*\*Small-scope skip:\*\* If `planningNotes\.scopeClassification\.size === 'small'`, skip minion dispatch entirely\. Audit inline yourself — read `git diff <main-or-master>\.\.\.HEAD` \(diff against your repo's default branch — `main` or `master`, whichever exists\) and eyeball for any of the 5 concerns\. Write a single `minion: 'synthesizer'` report summarizing findings \(empty findings is fine for a clean small-scope diff\)\. Proceed to Synthesis\.$/mu,
+      /^You do NOT spawn the minions — the orchestrator dispatched them as their own parallel work items before yours became ready\. Your job starts by reading what they wrote\.$/mu,
     );
   });
 
-  it('VALID: template => Dispatch section spawns 5 minions in parallel', () => {
-    expect(blightwardenPromptStatics.prompt.template).toMatch(
-      /^Spawn all 5 minions in a SINGLE MESSAGE with parallel Agent tool calls\. Use `model: "sonnet"`\. Each minion uses the same prompt shape, only the `agent` name differs:$/mu,
-    );
+  it('VALID: template => Minion-Failure Handling section appears', () => {
+    expect(blightwardenPromptStatics.prompt.template).toMatch(/^## Minion-Failure Handling$/mu);
   });
 
   it('VALID: template => Synthesis section combines carry-over and fresh findings', () => {

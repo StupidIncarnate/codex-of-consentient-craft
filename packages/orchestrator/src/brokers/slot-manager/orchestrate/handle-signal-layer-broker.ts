@@ -40,6 +40,14 @@ const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
   'pathseeker-dedup': null,
   'pathseeker-assertion-correctness': null,
   'pathseeker-walk': null,
+  // Blightwarden minions dispatch via the MCP `/dumpster-launch` path and never enter the
+  // slot-manager loop; their failures are non-blocking (recorded in the minion's report) and
+  // handled by QuestHandleSignalBackResponder, so they bubble to the user here for parity.
+  'blightwarden-security-minion': null,
+  'blightwarden-dedup-minion': null,
+  'blightwarden-perf-minion': null,
+  'blightwarden-integrity-minion': null,
+  'blightwarden-dead-code-minion': null,
   blightwarden: 'pathseeker',
   // PestEater dispatches via the MCP `/dumpster-launch` path and never enters the slot-manager
   // loop; its failures bubble to the user (terminal), matching the pathseeker-* variants.

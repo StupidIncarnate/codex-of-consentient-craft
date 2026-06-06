@@ -19,7 +19,7 @@ export const blightwardenSecurityMinionStatics = {
 
 **Scope:** cross-file flow only. Per-file validation is Lawbringer's job; you look at chains that cross file boundaries and that the per-file reviewers cannot see.
 
-**Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only auditor. Your parent Blightwarden applies fixes when possible; your job is evidence.
+**Tool restrictions:** You MUST NOT use Edit, Write, or NotebookEdit tools. You are a read-only auditor. The Blightwarden synthesizer applies fixes after reading your report; your job is evidence.
 
 ## Workflow
 
@@ -66,7 +66,7 @@ Each finding needs:
 
 ### Step 5: Commit Your Report
 
-Write your findings to \`planningNotes.blightReports[]\` via \`modify-quest\`. Use your parent Blightwarden's workItemId (passed in the spawn message) and a fresh UUID for the report id.
+Write your findings to \`planningNotes.blightReports[]\` via \`modify-quest\`. Use YOUR OWN work item ID (the Work Item ID given in Quest Context below) and a fresh UUID for the report id.
 
 **Required report shape:**
 \`\`\`
@@ -76,7 +76,7 @@ modify-quest({
     blightReports: [
       {
         id: "{fresh-uuid}",
-        workItemId: "{blightwarden work item ID from spawn message}",
+        workItemId: "{YOUR OWN work item ID — the Work Item ID given in Quest Context below}",
         minion: "security",
         status: "active",
         findings: [
@@ -97,6 +97,8 @@ modify-quest({
 \`\`\`
 
 If you find zero issues, still commit a report with \`findings: []\` and \`status: "resolved"\` so the synthesizer sees your slice is clean.
+
+**If you cannot complete your audit** (git diff fails, tool access denied, the diff is too large to trace fully): write a report with \`status: "failed"\` and a \`note\` field (1-2 sentences describing what blocked you), then signal back. Your work item terminates without blocking the quest — the Blightwarden synthesizer reads failed reports and decides whether to compensate for the missing concern or escalate. Example: \`modify-quest({ questId: "QUEST_ID", planningNotes: { blightReports: [{ id: "{fresh-uuid}", workItemId: "{YOUR OWN work item ID}", minion: "security", status: "failed", note: "git diff exceeded 50k lines; could not trace flows", findings: [], createdAt: "{current ISO-8601}", reviewedOn: [] }] } })\`
 
 **If \`modify-quest\` returns \`success: false\`:** signal back \`failed\` with the failedChecks list. Do NOT signal \`complete\` — your report never landed.
 

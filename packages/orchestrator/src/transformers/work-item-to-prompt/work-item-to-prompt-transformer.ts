@@ -6,12 +6,12 @@
  *
  * **Path discrimination — minion vs role:** the agent name is run through
  * `workItemRoleContract.safeParse`. If it succeeds, the agent has its own work item with a
- * matching role and gets the full WorkUnit substitution. If it fails (e.g.
- * `chaoswhisperer-gap-minion`, `blightwarden-*-minion`), the agent is parent-dispatched via
- * the Agent tool — its `workItemId` param is the parent's work item id — and it receives a
- * minimal "Quest ID + Work Item ID" substitution. This discriminator is self-maintaining:
- * adding a new role to `workItemRoleContract` automatically routes it through the WorkUnit
- * path; new minions stay outside that enum and route through the minion path.
+ * matching role. Most roles get the full WorkUnit substitution; the lighter-weight roles that
+ * read the quest directly (the five `blightwarden-*-minion` finders and `pesteater`) take a
+ * minimal "Quest ID + Work Item ID" substitution branch instead. If safeParse fails (e.g.
+ * `chaoswhisperer-gap-minion`), the agent is parent-dispatched via the Agent tool — its
+ * `workItemId` param is the parent's work item id — and it also receives the minimal
+ * substitution.
  *
  * USAGE:
  * const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName });
@@ -28,6 +28,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
+import { isBlightwardenMinionRoleGuard } from '../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import {
@@ -78,6 +79,17 @@ export const workItemToPromptTransformer = ({
   // Template only needs Quest ID + Work Item ID.
   const isWorkItemRole = workItemRoleContract.safeParse(parsedAgent).success;
   if (!isWorkItemRole) {
+    const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
+    const minionArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
+    return {
+      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', minionArguments)),
+    };
+  }
+
+  // Blightwarden minions own their work items (role path) but are report-only finders that read
+  // the diff + quest themselves — no steps/flows refs to resolve into a WorkUnit. Substitute only
+  // Quest ID + Work Item ID; the minion prompt does the rest via get-quest / git diff.
+  if (isBlightwardenMinionRoleGuard({ role: workItem.role })) {
     const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
     const minionArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
     return {

@@ -75,7 +75,8 @@ describe('roleToConfigIndexTransformer', () => {
         role: ExecutionRoleStub({ value: 'pathseeker' }),
       });
 
-      expect(result).toBe(14);
+      // floors.length sentinel: 14 base floors + 5 blightwarden minion floors = 19.
+      expect(result).toBe(19);
     });
   });
 });

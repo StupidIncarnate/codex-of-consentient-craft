@@ -51,6 +51,18 @@ describe('bashToolInputContract', () => {
         command: 'echo hello',
       });
     });
+
+    it('VALID: {command with run_in_background} => parses successfully', () => {
+      const result = bashToolInputContract.parse({
+        command: 'npm run ward',
+        run_in_background: true,
+      });
+
+      expect(result).toStrictEqual({
+        command: 'npm run ward',
+        run_in_background: true,
+      });
+    });
   });
 
   describe('invalid inputs', () => {

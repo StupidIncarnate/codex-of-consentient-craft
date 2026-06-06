@@ -25,6 +25,18 @@ export const workItemRoleContract = z.enum([
   'spiritmender',
   'siegemaster',
   'lawbringer',
+  /** Blightwarden minions: five report-only finders that run in parallel, one per cross-cutting
+   * concern. Each audits the whole diff for its concern and writes a `PlanningBlightReport`; none
+   * fixes code or blocks the quest. The `blightwarden` synthesizer runs after all five and depends
+   * on them. */
+  'blightwarden-security-minion',
+  'blightwarden-dedup-minion',
+  'blightwarden-perf-minion',
+  'blightwarden-integrity-minion',
+  'blightwarden-dead-code-minion',
+  /** Blightwarden synthesizer: runs after the five minions, reads their reports, judges/dedups,
+   * applies the final cleanup, and escalates to a pathseeker replan via `failed-replan` when it
+   * cannot resolve a finding. */
   'blightwarden',
   /** Bug Hunt quest type: a single TDD agent that investigates the bug, writes a failing test
    * first, then fixes it. Front of the bug-hunt work-item flow. */
