@@ -86,10 +86,10 @@ type UnbrandRecord<T> = keyof T extends string
  * - Records with branded keys => Record<string, ...> or Record<number, ...>
  * - Objects => recursively transformed properties (all optional)
  */
-export type StubArgument<T> = T extends any // Distributive - handles union members separately
+type StubArgumentBase<T> = T extends any // Distributive - handles union members separately
   ? UnbrandPrimitive<T> extends T
     ? T extends (infer U)[] // Not a branded primitive, check if array
-      ? StubArgument<U>[]
+      ? StubArgumentBase<U>[]
       : // IMPORTANT: `any` is required here, not `unknown`
         // Function parameters are contravariant in TypeScript
         // `(...args: unknown[]) => unknown` would fail to match specific function signatures
@@ -103,3 +103,12 @@ export type StubArgument<T> = T extends any // Distributive - handles union memb
             : T
     : UnbrandPrimitive<T> // T is a branded primitive, return unbranded version
   : never; // Should never reach here
+
+/**
+ * Stub parameter type. `Extra` carries optional convenience keys a stub accepts beyond the
+ * contract's own fields (e.g. a `text` shortcut that the stub brands and injects into a nested
+ * line). It defaults to `{}` so the common single-argument form `StubArgument<T>` is unchanged.
+ * Both forms keep the annotation a bare `StubArgument<...>` reference, which `enforce-stub-patterns`
+ * requires.
+ */
+export type StubArgument<T, Extra = unknown> = StubArgumentBase<T> & Extra;

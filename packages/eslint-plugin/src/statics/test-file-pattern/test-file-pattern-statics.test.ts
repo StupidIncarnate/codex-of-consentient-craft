@@ -10,13 +10,14 @@ describe('testFilePatternStatics', () => {
         suffixes: ['.integration.test', '.integration.spec'],
       },
       e2e: {
-        suffixes: ['.e2e.test', '.e2e.spec'],
+        suffixes: ['.e2e', '.e2e.test', '.e2e.spec'],
       },
       suffixes: [
         '.test',
         '.spec',
         '.integration.test',
         '.integration.spec',
+        '.e2e',
         '.e2e.test',
         '.e2e.spec',
       ],

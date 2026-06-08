@@ -26,7 +26,7 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
     // Anchored toHaveText in spec file
     {
       code: `expect(locator).toHaveText(/^Hello world$/u);`,
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
     },
 
     // Non-test file — not checked
@@ -99,7 +99,7 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
     // Unanchored toMatch in spec file
     {
       code: `expect(text).toMatch(/Build auth flow/u);`,
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
       errors: [
         {
           messageId: 'unanchoredRegex',
@@ -111,7 +111,7 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
     // Unanchored toHaveText
     {
       code: `expect(locator).toHaveText(/partial text/u);`,
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
       errors: [
         {
           messageId: 'unanchoredRegex',
@@ -123,7 +123,7 @@ ruleTester.run('ban-unanchored-to-match', ruleBanUnanchoredToMatchBroker(), {
     // Unanchored toContainText
     {
       code: `expect(locator).toContainText(/fragment/u);`,
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
       errors: [
         {
           messageId: 'unanchoredRegex',

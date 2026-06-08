@@ -38,7 +38,7 @@ describe('isLocationLiteralAllowlistedGuard', () => {
       '/repo/packages/web/src/widgets/foo/foo-widget.test.tsx',
       '/repo/packages/web/src/widgets/foo/foo-widget.stub.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.proxy.ts',
-      '/repo/packages/web/src/widgets/foo/foo-widget.spec.ts',
+      '/repo/packages/web/src/widgets/foo/foo-widget.e2e.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.integration.test.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.e2e.test.ts',
       '/repo/packages/web/test/harnesses/quest/quest.harness.ts',

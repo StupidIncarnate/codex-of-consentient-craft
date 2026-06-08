@@ -10,8 +10,10 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
 import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -57,6 +59,11 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
         const isTestFile = isTestFileGuard({ filename });
 
         if (!isTestFile) {
+          return;
+        }
+
+        // Playwright e2e scenario files may import contracts/stubs directly — exempt them.
+        if (isE2eTestFileGuard({ filePath: filePathContract.parse(filename) })) {
           return;
         }
 

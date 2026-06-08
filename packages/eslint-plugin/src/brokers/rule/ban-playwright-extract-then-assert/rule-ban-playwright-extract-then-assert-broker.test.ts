@@ -8,20 +8,20 @@ ruleTester.run('ban-playwright-extract-then-assert', ruleBanPlaywrightExtractThe
     // --- Correct Playwright assertions ---
     {
       code: "await expect(page.getByTestId('x')).toHaveText('hello')",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     {
       code: "await expect(page.getByTestId('x')).toHaveValue('input')",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     {
       code: "await expect(page.getByTestId('x')).toHaveCount(3)",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     // --- textContent without subsequent expect is allowed ---
     {
       code: 'const text = await el.textContent()',
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     // --- Extract-then-assert in non-spec file is not checked ---
     {
@@ -33,7 +33,7 @@ ruleTester.run('ban-playwright-extract-then-assert', ruleBanPlaywrightExtractThe
     // --- textContent extract then assert ---
     {
       code: "const text = await el.textContent();\nexpect(text).toBe('hello')",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'extractThenAssert',
@@ -44,7 +44,7 @@ ruleTester.run('ban-playwright-extract-then-assert', ruleBanPlaywrightExtractThe
     // --- inputValue extract then assert ---
     {
       code: "const val = await el.inputValue();\nexpect(val).toBe('test')",
-      filename: '/project/e2e/web/form.spec.ts',
+      filename: '/project/e2e/web/form.e2e.ts',
       errors: [
         {
           messageId: 'extractThenAssert',
@@ -55,7 +55,7 @@ ruleTester.run('ban-playwright-extract-then-assert', ruleBanPlaywrightExtractThe
     // --- count extract then assert ---
     {
       code: 'const count = await el.count();\nexpect(count).toBe(3)',
-      filename: '/project/e2e/web/list.spec.ts',
+      filename: '/project/e2e/web/list.e2e.ts',
       errors: [
         {
           messageId: 'extractThenAssert',

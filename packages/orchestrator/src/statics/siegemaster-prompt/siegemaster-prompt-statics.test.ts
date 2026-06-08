@@ -67,4 +67,19 @@ describe('siegemasterPromptStatics', () => {
       /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
     );
   });
+
+  it('VALID: template => e2e ward command targets a colocated web flow .e2e.ts', () => {
+    const needle = 'npm run ward -- --only e2e -- packages/web/src/flows/<route>/<feature>.e2e.ts';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
+    expect(siegemasterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
+  });
 });

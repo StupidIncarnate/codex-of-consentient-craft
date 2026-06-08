@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "exclude": [
-    "src/**/*.e2e.test.ts"
+    "src/dungeonmaster-rule-enforce-on.integration.test.ts",
+    "src/module-loads.integration.test.ts",
+    "src/tmp-environment.integration.test.ts"
   ]
 }

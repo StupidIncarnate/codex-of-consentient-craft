@@ -2,10 +2,11 @@
  * PURPOSE: After PathSeeker creates steps, generate the full work item chain
  *          (codeweaver[per package] -> ward -> flowrider[per flow, chained] ->
  *           siegemaster[per flow, chained] -> lawbringer -> blightwarden minions[5 parallel] ->
- *           blightwarden synthesizer -> final-ward). Codeweaver owns every folder type EXCEPT
- *           flows/ and startup/; those steps route to the per-flow flowrider items (which own the
- *           flow-perspective test suite). Flowrider items are emitted only when ≥1 flow/startup
- *           step exists.
+ *           blightwarden synthesizer -> final-ward). Codeweaver owns every step EXCEPT
+ *           flowrider-owned ones (flows/ + startup/ folder types and .integration.test.ts / .e2e.ts
+ *           files, per isFlowriderOwnedStepGuard); those route to the per-flow flowrider items
+ *           (which own the flow-perspective test suite). Flowrider items are emitted only when ≥1
+ *           flowrider-owned step exists.
  *
  * USAGE:
  * stepsToWorkItemsTransformer({ steps, flows, pathseekerWorkItemId, now });
@@ -16,20 +17,16 @@ import { workItemContract } from '@dungeonmaster/shared/contracts';
 import type {
   DependencyStep,
   Flow,
-  FolderType,
   FolderTypeGroups,
   QuestWorkItemId,
   StepId,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { folderTypeContract } from '@dungeonmaster/shared/contracts';
-import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
+import { isFlowriderOwnedStepGuard } from '../../guards/is-flowrider-owned-step/is-flowrider-owned-step-guard';
 import { blightwardenMinionRolesStatics } from '../../statics/blightwarden-minion-roles/blightwarden-minion-roles-statics';
-import { flowTestOwnedFolderTypesStatics } from '../../statics/flow-test-owned-folder-types/flow-test-owned-folder-types-statics';
 import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
-import { pathToFolderTypeTransformer } from '../path-to-folder-type/path-to-folder-type-transformer';
 import { stepsToBatchChunksTransformer } from '../steps-to-batch-chunks/steps-to-batch-chunks-transformer';
 import { stepsToPackageChunksTransformer } from '../steps-to-package-chunks/steps-to-package-chunks-transformer';
 
@@ -46,19 +43,10 @@ export const stepsToWorkItemsTransformer = ({
   now: IsoTimestamp;
   batchGroups: FolderTypeGroups;
 }): WorkItem[] => {
-  // Flow/startup steps are owned by flowrider (it writes their impl + flow test), not codeweaver.
-  // Partition them out so codeweaver chunks exclude them and flowrider items can carry their refs.
-  const ownedFolderTypes = new Set<FolderType>(
-    flowTestOwnedFolderTypesStatics.value.map((ft) => folderTypeContract.parse(ft)),
-  );
-  const flowStartupSteps = steps.filter((step) => {
-    const filePath = step.focusFile?.path;
-    const folderType =
-      filePath === undefined
-        ? undefined
-        : pathToFolderTypeTransformer({ filePath, folderConfigs: folderConfigStatics });
-    return folderType !== undefined && ownedFolderTypes.has(folderType);
-  });
+  // Flow-test-owned steps are owned by flowrider (it writes their impl + flow/e2e/integration test
+  // suite), not codeweaver. Partition them out so codeweaver chunks exclude them and flowrider items
+  // can carry their refs.
+  const flowStartupSteps = steps.filter((step) => isFlowriderOwnedStepGuard({ step }));
   const flowStartupStepRefs = flowStartupSteps.map((step) => `steps/${String(step.id)}`);
 
   // Pass 1: chunk the codeweaver steps (one chunk per package, flow/startup excluded) AND

@@ -27,33 +27,33 @@ ruleTester.run(
       // --- Constants are fine (no block body) ---
       {
         code: 'const TIMEOUT = 5000;',
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
       },
       {
         code: "const GUILD_PATH = '/tmp/dm-e2e-guild';",
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
       },
       {
         code: 'const HTTP_OK = 200;',
-        filename: '/project/e2e/web/chat-features.spec.ts',
+        filename: '/project/e2e/web/chat-features.e2e.ts',
       },
 
       // --- Expression-body arrows are fine (simple transforms) ---
       {
         code: 'const extractId = (guild: { id: string }) => guild.id;',
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
       },
       {
         code: ['const extractGuildId = (guild: Record<string, unknown>) => `', '{guild.id}`;'].join(
           '$',
         ),
-        filename: '/project/e2e/web/chat-features.spec.ts',
+        filename: '/project/e2e/web/chat-features.e2e.ts',
       },
 
       // --- Helpers inside test() callbacks are fine ---
       {
         code: "test('my test', async () => { const setupState = () => { return { ready: true }; }; setupState(); });",
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
       },
 
       // --- Helpers inside it() callbacks are fine ---
@@ -65,35 +65,35 @@ ruleTester.run(
       // --- Helpers inside describe() callbacks are fine ---
       {
         code: "describe('Guild Creation', () => { const createGuildData = () => { return { name: 'Test Guild' }; }; });",
-        filename: '/project/e2e/web/guild-creation.spec.ts',
+        filename: '/project/e2e/web/guild-creation.e2e.ts',
       },
 
       // --- Helpers inside test.describe() callbacks are fine ---
       {
         code: "test.describe('Chat Features', () => { const queueResponse = () => { return { text: 'hello' }; }; });",
-        filename: '/project/e2e/web/chat-features.spec.ts',
+        filename: '/project/e2e/web/chat-features.e2e.ts',
       },
 
       // --- Playwright test.beforeEach with arrow inside is fine ---
       {
         code: "test.beforeEach(async () => { const cleanAll = async () => { await fetch('/api/guilds'); }; await cleanAll(); });",
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
       },
 
       // --- Array/object constants are fine ---
       {
         code: "const VISIBLE_ROLES = ['chaoswhisperer', 'pathseeker', 'codeweaver'];",
-        filename: '/project/e2e/web/session-id-routing.spec.ts',
+        filename: '/project/e2e/web/session-id-routing.e2e.ts',
       },
       {
         code: "const ROLE_FLOOR_MAP: Record<string, string> = { chaoswhisperer: 'SANCTUM' };",
-        filename: '/project/e2e/web/session-id-routing.spec.ts',
+        filename: '/project/e2e/web/session-id-routing.e2e.ts',
       },
 
       // --- function declarations are not flagged (rule only targets arrow functions) ---
       {
         code: 'function createQuest() { return { id: "test" }; }',
-        filename: '/project/e2e/web/quest-creation.spec.ts',
+        filename: '/project/e2e/web/quest-creation.e2e.ts',
       },
     ],
 
@@ -101,7 +101,7 @@ ruleTester.run(
       // --- Top-level block-body arrow in spec file ---
       {
         code: 'const createQuest = ({ id }: { id: string }) => { return { id }; };',
-        filename: '/project/e2e/web/quest-creation.spec.ts',
+        filename: '/project/e2e/web/quest-creation.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 
@@ -115,42 +115,42 @@ ruleTester.run(
       // --- Exported top-level helper in spec file ---
       {
         code: 'export const navigateToSession = ({ page }: { page: unknown }) => { return page; };',
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 
       // --- Async top-level helper in spec file ---
       {
         code: 'const pollStatus = async ({ id }: { id: string }) => { const result = await fetch(id); return result; };',
-        filename: '/project/e2e/web/quest-start.spec.ts',
+        filename: '/project/e2e/web/quest-start.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 
       // --- Real pattern: createQuestFile helper at top level in spec ---
       {
         code: "const createQuestFile = ({ guildId, questId }: { guildId: string; questId: string }) => { const dir = '/tmp/' + guildId; return dir + questId; };",
-        filename: '/project/e2e/web/quest-approve.spec.ts',
+        filename: '/project/e2e/web/quest-approve.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 
       // --- Real pattern: navigateToSession helper at top level ---
       {
         code: "const navigateToSession = async ({ urlSlug, sessionId }: { urlSlug: string; sessionId: string }) => { await fetch('/' + urlSlug + '/session/' + sessionId); };",
-        filename: '/project/e2e/web/quest-approved-modal.spec.ts',
+        filename: '/project/e2e/web/quest-approved-modal.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 
       // --- Real pattern: patchQuestStatus at top level ---
       {
         code: "const patchQuestStatus = async ({ questId, status }: { questId: string; status: string }) => { await fetch('/api/quests/' + questId, { method: 'PATCH' }); };",
-        filename: '/project/e2e/web/quest-begin-transition.spec.ts',
+        filename: '/project/e2e/web/quest-begin-transition.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }],
       },
 
       // --- Multiple top-level helpers (each flagged) ---
       {
         code: 'const helperA = () => { return 1; };\nconst helperB = () => { return 2; };',
-        filename: '/project/e2e/web/smoke.spec.ts',
+        filename: '/project/e2e/web/smoke.e2e.ts',
         errors: [{ messageId: 'noInlineHelper' }, { messageId: 'noInlineHelper' }],
       },
     ],

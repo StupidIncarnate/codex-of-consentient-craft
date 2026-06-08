@@ -35,4 +35,20 @@ describe('pesteaterPromptStatics', () => {
       /^1\. \*\*Failing test before fix\*\* — non-negotiable; watch it fail on unchanged source\.$/mu,
     );
   });
+
+  it('VALID: template => points UI-symptom e2e tests at colocated web flow .e2e.ts files', () => {
+    const needle =
+      "- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: `packages/web/src/flows/**/*.e2e.ts`.";
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
+    expect(pesteaterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
+  });
 });

@@ -512,18 +512,14 @@ Use \`registerMock\` for globals the same way you use it for module mocks:
 import { randomUUID } from 'crypto';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-// Example: Broker proxy mocking globals via registerMock
 export const userCreateBrokerProxy = () => {
   const httpProxy = httpAdapterProxy();
-
   // registerMock works for globals too — stack-based dispatch prevents collisions
   const uuidHandle = registerMock({ fn: randomUUID });
   uuidHandle.mockReturnValue('f47ac10b-...');
 
   return {
-    setupUserCreate: ({userData, user}) => {
-      httpProxy.returns({url: '/users', data: user});
-    }
+    setupUserCreate: ({user}) => httpProxy.returns({url: '/users', data: user}),
   };
 };
 \`\`\`
@@ -577,19 +573,17 @@ proxy.setupQuestFile({questJson});  // ✅ Clean, semantic
   const staticsProxy = `**Statics proxies** override immutable values for edge case testing. Use \`Reflect.set()\` to mutate readonly constants at runtime, or \`registerSpyOn\` for getters.
 
 \`\`\`typescript
-// Use Reflect.set for direct properties
-export const userStaticsProxy = () => ({
-  setupUnlimitedAttempts: (): void => {
-    Reflect.set(userStatics.limits, 'maxLoginAttempts', Infinity);
-  }
-});
-
-// Use registerSpyOn for getters
 import {registerSpyOn} from '@dungeonmaster/testing/register-mock';
 
+// Reflect.set for direct properties
+export const userStaticsProxy = () => ({
+  setupUnlimitedAttempts: (): void =>
+    Reflect.set(userStatics.limits, 'maxLoginAttempts', Infinity),
+});
+
+// registerSpyOn for getters
 export const apiStaticsProxy = () => {
-  const handle = registerSpyOn({object: apiStatics, method: 'timeout'});
-  handle.mockReturnValue(0);
+  registerSpyOn({object: apiStatics, method: 'timeout'}).mockReturnValue(0);
   return {};
 };
 \`\`\``;
@@ -667,26 +661,20 @@ Each layer delegates setup to the layer below. The broker proxy is the only laye
 
 ### MSW Lifecycle
 
-\`StartEndpointMockSetup\` manages the MSW server lifecycle automatically via \`jest.config.js\`:
-
-- \`beforeAll\` — Starts the MSW server
-- \`afterEach\` — Resets all handlers between tests
-- \`afterAll\` — Closes the server
-
-To enable EndpointMock in a package, add the setup file to \`jest.config.js\`:
-
-\`\`\`javascript
-module.exports = {
-  ...baseConfig,
-  setupFilesAfterEnv: [
-    '<rootDir>/../../packages/testing/src/jest.setup.js',
-    '<rootDir>/../../packages/testing/src/startup/start-endpoint-mock-setup.ts',
-  ],
-};
-\`\`\``;
+\`StartEndpointMockSetup\` manages the MSW server lifecycle automatically (start, per-test handler reset, close). To enable EndpointMock in a package, add \`start-endpoint-mock-setup.ts\` to \`setupFilesAfterEnv\` in \`jest.config.js\`.`;
 
   // E2E Testing (Playwright)
   const e2eTesting = `E2E tests run the full stack (real server, real browser, real WebSocket). Only external dependencies (LLMs, third-party APIs) are mocked.
+
+### e2e = Playwright Exclusively, Colocated in the UI Package
+
+**\`e2e\` means Playwright — nothing else.** A non-Playwright (Jest) test that exercises a slice end-to-end is named **integration** (\`.integration.test.ts\`), never "e2e".
+
+**e2es are \`*.e2e.ts\`, colocated in the entry flow's folder of the UI package.** Each e2e lives in the flow/route folder where the test starts — its \`page.goto\` target: \`packages/web/src/flows/<route>/<feature>.e2e.ts\`. Where the test STARTS is where it lives, even when it bridges two UIs.
+
+**The Playwright config + UI-specific harnesses live in the UI package.** \`packages/web/playwright.config.ts\` (\`testMatch: '**/*.e2e.ts'\`) and \`packages/web/test/harnesses/\` own the e2e stack. The \`testing\` package holds ONLY cross-package reshareables (register-mock, shared stubs, \`installTestbedCreateBroker\`) — it does NOT own e2e config, harnesses, or specs.
+
+**e2e imports are web-relative.** Spec files import \`{ test, expect, wireHarnessLifecycle }\` and the named harnesses from the UI package's own \`test/\` (e.g. \`test/harnesses/e2e-fixtures\`), NOT from \`@dungeonmaster/testing/e2e\`.
 
 ### Assert the Full Transition
 
@@ -721,48 +709,25 @@ await expect(page.getByTestId('panel')).toBeVisible({timeout: 10_000});
 
 ### Drive State via Server/Filesystem Writes — ONLY for preconditions
 
-This rule applies to **every server-mutating call**, not just PATCH: \`request.patch\`, \`request.post\`,
-\`request.delete\`, \`writeQuestFile\`, direct \`fs.writeFile\` / \`fs.rm\`, harness helpers that wrap these, etc.
-
-Use them to put the system into the *starting state* for the test. **Never** use them to perform a mutation the test is
-actually exercising. If the UI has a control (button, form, input) for the mutation, the test MUST drive it through
-that UI. Bypassing the UI skips the whole point of an E2E: you never verify the control wires up, the handler fires,
-and the outgoing request body/URL are correct.
+This rule applies to **every server-mutating call** (\`request.patch\`/\`post\`/\`delete\`, \`writeQuestFile\`, \`fs.writeFile\`/\`fs.rm\`, harness helpers wrapping these). Use them to set the *starting state* only. **Never** use them to perform the mutation the test is actually exercising — if the UI has a control for it, drive it through that UI. Bypassing skips the point of an E2E: you never verify the control wires up, the handler fires, and the request body/URL are correct.
 
 \`\`\`typescript
-// ❌ WRONG — the test's whole purpose is to verify the APPROVE button transitions the quest;
-// PATCHing skips the button entirely. Silently passes while the button is broken.
-// Same failure mode for request.post / request.delete.
+// ❌ WRONG — the test's purpose is to verify the APPROVE button transitions the quest;
+// PATCHing skips the button. Passes silently while the button is broken.
 await request.patch(\`/api/quests/\${questId}\`, {data: {status: 'approved'}});
-await expect(page.getByText('Begin Quest modal')).toBeVisible();
-
-// ❌ WRONG — file-backed harness helpers are equally covered by this rule.
-// If there's a "Remove Guild" button, the "remove guild" test must click it.
-await guildHarness.deleteGuildFile({guildId});
-await expect(page.getByTestId('guild-card')).not.toBeVisible();
 
 // ✅ CORRECT — click the real button so the test verifies the actual user path
 await page.getByTestId('PIXEL_BTN').filter({hasText: 'APPROVE'}).click();
 await expect(page.getByText('Begin Quest modal')).toBeVisible();
 
-// ✅ CORRECT — writes are OK when they set up state the user would reach through a
-// *different* flow that isn't in scope for this test (e.g. seeding a guild, fast-forwarding
-// through a spec phase the test isn't exercising). The test's scope here is "Begin Quest",
-// so seeding "approved" via writeQuestFile is fine IF there's another test that covers the
-// APPROVE button click itself.
+// ✅ CORRECT — writes are OK to seed state outside this test's scope (a guild, a prior
+// phase) IF another test covers the bypassed control directly.
 await quests.writeQuestFile({questId, status: 'approved', /* ... */});
 \`\`\`
 
-**Rule of thumb:**
+**Rule of thumb:** OK to write state the test doesn't care about (seeded fixtures, upstream phases). NOT OK to write the mutation the test name is about — drive it through the UI unless it's a pure server-side effect with no user-facing control (cron, webhooks).
 
-- ✅ OK via server/filesystem write: setting up state the test doesn't care about (seeded guild, prior phase results,
-  fixture data, anything upstream of the behavior the test name describes).
-- ❌ NOT OK via server/filesystem write: any mutation the test name or scope is about. If the UI has a
-  button/form/input for it, drive it through the UI. Only bypass the UI when the mutation is a pure server-side effect
-  with no user-facing control (e.g. cron-driven transitions, webhook-triggered events).
-
-**Locators:** use \`page.getByTestId('<testid>').filter({hasText: '<label>'})\`, not \`getByRole\`. All interactive elements
-have stable testids (\`PIXEL_BTN\`, \`CHAT_INPUT\`, etc.); filter by text when multiple elements share a testid.
+**Locators:** use \`page.getByTestId('<testid>').filter({hasText: '<label>'})\`, not \`getByRole\`. All interactive elements have stable testids (\`PIXEL_BTN\`, \`CHAT_INPUT\`); filter by text when multiple share a testid.
 
 ### Observe Requests, Don't Intercept
 
@@ -823,10 +788,15 @@ export const questHarness = () => {
 ### Directory Structure
 
 \`\`\`
-my-project/
+ui-package/                              # e.g. packages/web
 ├── src/
+│   └── flows/
+│       └── <route>/
+│           ├── <route>-flow.tsx
+│           └── <feature>.e2e.ts         # Playwright e2e, colocated where the test starts
 ├── test/
 │   └── harnesses/
+│       ├── e2e-fixtures.ts              # wrapped { test, expect, wireHarnessLifecycle }
 │       ├── claude-mock/
 │       │   ├── claude-mock.harness.ts
 │       │   └── bin-claude.js             # fake binary (non-TS artifact)
@@ -834,14 +804,13 @@ my-project/
 │       │   └── quest.harness.ts
 │       └── environment/
 │           └── environment.harness.ts
-└── e2e/
-    └── *.spec.ts
+└── playwright.config.ts                 # testMatch: '**/*.e2e.ts'
 \`\`\`
 
 ### Import Boundaries
 
 - \`*.harness.ts\` → node:fs/path/os, contracts/stubs, other harnesses, test framework APIs
-- \`*.spec.ts\` / \`*.integration.test.ts\` → harnesses and contracts/stubs only
+- \`*.e2e.ts\` / \`*.integration.test.ts\` → harnesses and contracts/stubs only
 - **Scenario files CANNOT import:** node:fs, node:path, node:os, node:child_process, .proxy.ts files
 - **Harness files CANNOT import:** .proxy.ts files, contract value imports (use .stub.ts)
 - **Unit test files CANNOT import:** .harness.ts files
@@ -878,7 +847,7 @@ export const guildHarness = () => {
 };
 \`\`\`
 
-**For Playwright:** Spec files use \`wireHarnessLifecycle()\` from test fixtures. Spec files MUST import \`{ test, expect }\` from \`@dungeonmaster/testing/e2e\`, NOT from \`@playwright/test\`.
+**For Playwright:** Spec files use \`wireHarnessLifecycle()\` from test fixtures. Spec files MUST import \`{ test, expect }\` from the UI package's web-relative e2e fixtures (e.g. \`test/harnesses/e2e-fixtures\`), NOT from \`@playwright/test\` and NOT from \`@dungeonmaster/testing/e2e\`.
 
 ### Scenario File Rules
 
@@ -936,27 +905,14 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { writeFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-export const fsWriteFileAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
-  getWrittenContent: () => unknown;
-} => {
+export const fsWriteFileAdapterProxy = () => {
   const handle = registerMock({ fn: writeFile });
   handle.mockResolvedValue(undefined); // Default: writes succeed
 
   return {
-    succeeds: (): void => {
-      handle.mockResolvedValueOnce(undefined);
-    },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
-    },
-    getWrittenContent: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
+    succeeds: (): void => handle.mockResolvedValueOnce(undefined),
+    throws: ({ error }: { error: Error }): void => handle.mockRejectedValueOnce(error),
+    getWrittenContent: (): unknown => handle.mock.calls.at(-1)?.[1],
   };
 };
 \`\`\`
@@ -1102,36 +1058,11 @@ it('ERROR: {input: error state} => returns error', () => {
 
 **Method:** Read implementation line by line and create a test for every conditional path:
 
-**Control Flow:**
-
-- if/else branches
-- switch cases
-- ternary operators (? :)
-- try/catch blocks
-
-**Operators:**
-- Optional chaining (?.)
-- Nullish coalescing (??)
-
-**Data Patterns:**
-
-- Arrays: [], [single], [multiple]
-- Strings: '', single char, multiple chars
-- Loops: 0, 1, many iterations
-- Pagination: first page, middle, last page
-- Ranges: min boundary, within range, max boundary
-
-**Async:**
-
-- Immediate resolution
-- Delayed resolution
-- Rejected promises
-
-**React/UI:**
-
-- Dynamic JSX values
-- Conditional rendering (&&, ternary)
-- Event handlers (onClick, onChange, onSubmit)
+- **Control flow:** if/else, switch cases, ternary (\`? :\`), try/catch
+- **Operators:** optional chaining (\`?.\`), nullish coalescing (\`??\`)
+- **Data patterns:** arrays (\`[]\`/single/multiple), strings (\`''\`/one/many chars), loops (0/1/many), boundaries (min/within/max)
+- **Async:** immediate resolution, delayed resolution, rejected promises
+- **React/UI:** dynamic JSX values, conditional rendering (\`&&\`/ternary), event handlers (onClick/onChange/onSubmit)
 
 \`\`\`typescript
 // Manual analysis: Needs 3 tests

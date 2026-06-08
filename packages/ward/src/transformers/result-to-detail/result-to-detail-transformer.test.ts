@@ -507,13 +507,13 @@ describe('resultToDetailTransformer', () => {
                 errors: [],
                 testFailures: [
                   TestFailureStub({
-                    suitePath: 'e2e/web/quest.spec.ts',
+                    suitePath: 'packages/web/src/flows/quest-chat/quest.e2e.ts',
                     testName: 'Quest › fails',
                     message: 'Error: timeout exceeded',
-                    stackTrace: 'at /project/e2e/web/quest.spec.ts:25:10',
+                    stackTrace: 'at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:25:10',
                   }),
                 ],
-                onlyDiscovered: ['e2e/web/visual.spec.ts'],
+                onlyDiscovered: ['packages/web/src/flows/app/visual.e2e.ts'],
               }),
             ],
           }),
@@ -525,13 +525,13 @@ describe('resultToDetailTransformer', () => {
       expect(result).toBe(
         WardFileDetailStub({
           value: [
-            'e2e/web/quest.spec.ts',
+            'packages/web/src/flows/quest-chat/quest.e2e.ts',
             '  FAIL  "Quest › fails"',
             '    Error: timeout exceeded',
-            '    at /project/e2e/web/quest.spec.ts:25:10',
+            '    at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:25:10',
             '',
             'not run (1 files):',
-            '  e2e/web/visual.spec.ts',
+            '  packages/web/src/flows/app/visual.e2e.ts',
           ].join('\n'),
         }),
       );
@@ -688,12 +688,12 @@ describe('resultToDetailTransformer', () => {
                 filesCount: 1,
                 passingTests: [
                   PassingTestStub({
-                    suitePath: 'e2e/web/echo-badge.spec.ts',
+                    suitePath: 'packages/web/src/flows/app/echo-badge.e2e.ts',
                     testName: 'Echo Badge › renders',
                     durationMs: 6000,
                   }),
                   PassingTestStub({
-                    suitePath: 'e2e/web/echo-badge.spec.ts',
+                    suitePath: 'packages/web/src/flows/app/echo-badge.e2e.ts',
                     testName: 'Echo Badge › does something else',
                     durationMs: 1000,
                   }),
@@ -711,8 +711,8 @@ describe('resultToDetailTransformer', () => {
           value: [
             'testing',
             '  e2e  PASS  (1 files, 2 tests, 7.0s)',
-            '    ✓ e2e/web/echo-badge.spec.ts › Echo Badge › renders (6000ms)',
-            '    ✓ e2e/web/echo-badge.spec.ts › Echo Badge › does something else (1000ms)',
+            '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › renders (6000ms)',
+            '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › does something else (1000ms)',
           ].join('\n'),
         }),
       );

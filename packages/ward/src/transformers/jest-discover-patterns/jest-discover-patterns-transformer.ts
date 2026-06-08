@@ -39,9 +39,18 @@ export const jestDiscoverPatternsTransformer = ({
         globPatternContract.parse(`src/**/*.test.${ext}`),
         globPatternContract.parse(`test/**/*.test.${ext}`),
       ]),
+      // `bin/**` and `tests/**` integration/e2e excludes mirror the integration-branch
+      // discovery roots so a `bin/` integration test or a `tests/integration/` test is
+      // never collected as a unit test. `.e2e.test` is retained defensively — e2e is
+      // Playwright-only (`*.e2e.ts`), so no repo file carries the Jest suffix, but a stray
+      // one must still stay out of the unit run.
       excludePatterns: exts.flatMap((ext) => [
         globPatternContract.parse(`**/*.integration.test.${ext}`),
         globPatternContract.parse(`**/*.e2e.test.${ext}`),
+        globPatternContract.parse(`bin/**/*.integration.test.${ext}`),
+        globPatternContract.parse(`bin/**/*.e2e.test.${ext}`),
+        globPatternContract.parse(`tests/**/*.integration.test.${ext}`),
+        globPatternContract.parse(`tests/**/*.e2e.test.${ext}`),
       ]),
     };
   }
@@ -50,6 +59,8 @@ export const jestDiscoverPatternsTransformer = ({
     patterns: exts.flatMap((ext) => [
       globPatternContract.parse(`src/**/*.integration.test.${ext}`),
       globPatternContract.parse(`test/**/*.integration.test.${ext}`),
+      globPatternContract.parse(`bin/**/*.integration.test.${ext}`),
+      globPatternContract.parse(`tests/**/*.integration.test.${ext}`),
     ]),
     excludePatterns: [],
   };

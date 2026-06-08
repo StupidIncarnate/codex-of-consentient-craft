@@ -17,13 +17,30 @@
       "require": "./dist/src/register-mock.js",
       "types": "./dist/src/register-mock.d.ts"
     },
-    "./e2e": {
-      "source": "./src/e2e-fixtures.ts",
-      "import": "./dist/src/e2e-fixtures.js",
-      "require": "./dist/src/e2e-fixtures.js",
-      "types": "./dist/src/e2e-fixtures.d.ts"
+    "./brokers/network-record/playwright": {
+      "source": "./src/brokers/network-record/playwright/network-record-playwright-broker.ts",
+      "import": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js",
+      "require": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js",
+      "types": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.d.ts"
     },
-    "./brokers/network-record/playwright": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js"
+    "./adapters/fs/queue-metadata-read": {
+      "source": "./src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.ts",
+      "import": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js",
+      "require": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js",
+      "types": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.d.ts"
+    },
+    "./transformers/quest-flow-observable-seed": {
+      "source": "./src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.ts",
+      "import": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.js",
+      "require": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.js",
+      "types": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.d.ts"
+    },
+    "./transformers/quest-gate-content-seed": {
+      "source": "./src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.ts",
+      "import": "./dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.js",
+      "require": "./dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.js",
+      "types": "./dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.d.ts"
+    }
   },
   "scripts": {
     "build": "tsc",
@@ -42,6 +59,18 @@
     "*": {
       "register-mock": [
         "dist/src/register-mock.d.ts"
+      ],
+      "brokers/network-record/playwright": [
+        "dist/src/brokers/network-record/playwright/network-record-playwright-broker.d.ts"
+      ],
+      "adapters/fs/queue-metadata-read": [
+        "dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.d.ts"
+      ],
+      "transformers/quest-flow-observable-seed": [
+        "dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.d.ts"
+      ],
+      "transformers/quest-gate-content-seed": [
+        "dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.d.ts"
       ]
     }
   },

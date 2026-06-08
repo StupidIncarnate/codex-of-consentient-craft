@@ -275,6 +275,30 @@ describe('pathseekerWalkStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: prompt template => mandates e2e/integration test steps be focusFile, never focusAction', () => {
+    const needle =
+      '**e2e / integration TEST steps MUST be `focusFile` — never `focusAction`.** Flowrider routing keys on the focusFile suffix:';
+    const { template } = pathseekerWalkStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => requires .e2e.ts paths in the entry flow folder of the UI package', () => {
+    const needle =
+      "e2e is Playwright exclusively, and `.e2e.ts` paths MUST live in the entry flow's folder of the UI package";
+    const { template } = pathseekerWalkStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
   it('VALID: prompt template => Quest Context section ends with $ARGUMENTS placeholder', () => {
     expect(pathseekerWalkStatics.prompt.template.endsWith('$ARGUMENTS')).toBe(true);
   });

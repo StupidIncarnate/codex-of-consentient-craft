@@ -30,7 +30,7 @@ describe('isStatusComparisonAllowlistedGuard', () => {
     });
   });
 
-  describe('allowlisted test/stub/proxy/spec/harness paths', () => {
+  describe('allowlisted test/stub/proxy/e2e/harness paths', () => {
     it.each([
       '/repo/packages/web/src/widgets/foo/foo-widget.test.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.test.tsx',
@@ -38,8 +38,7 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/web/src/widgets/foo/foo-widget.stub.tsx',
       '/repo/packages/web/src/widgets/foo/foo-widget.proxy.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.proxy.tsx',
-      '/repo/packages/web/src/widgets/foo/foo-widget.spec.ts',
-      '/repo/packages/web/src/widgets/foo/foo-widget.spec.tsx',
+      '/repo/packages/web/src/widgets/foo/foo-widget.e2e.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.integration.test.ts',
       '/repo/packages/web/src/widgets/foo/foo-widget.integration.test.tsx',
       '/repo/packages/web/src/widgets/foo/foo-widget.e2e.test.ts',

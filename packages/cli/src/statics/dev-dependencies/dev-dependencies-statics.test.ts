@@ -6,6 +6,7 @@ describe('devDependenciesStatics', () => {
       packages: {
         '@eslint/compat': '^1.3.1',
         '@eslint/eslintrc': '^3.3.1',
+        '@playwright/test': '^1.58.2',
         '@types/debug': '^4.1.12',
         '@types/eslint': '^9.0.0',
         '@types/jest': '^30.0.0',

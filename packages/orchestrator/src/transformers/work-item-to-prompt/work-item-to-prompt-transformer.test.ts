@@ -21,6 +21,7 @@ import { blightwardenDeadCodeMinionStatics } from '../../statics/blightwarden-de
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
 import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
@@ -351,6 +352,52 @@ describe('workItemToPromptTransformer', () => {
           agentName: AgentPromptNameStub({ value: 'flowrider' }),
         }),
       ).toThrow(/has no flows reference/u);
+    });
+
+    it('VALID: {agent: flowrider, e2e-only quest: flows present + only .e2e.ts focusFile step, no flows/ or startup/ impl step} => builds prompt without throwing no-flows-reference', () => {
+      // e2e-only quest: the flow is present and the only step is a Playwright e2e focus file
+      // (no flows/ or startup/ implementation step). The post-walk hook routes the e2e step to
+      // the flowrider, so its work item carries the flows/<id> ref alongside the e2e steps/<id>
+      // ref. Because the flows ref IS present, the "no flows reference" guard must NOT fire and
+      // the prompt must build.
+      const flow = FlowStub({ flowType: 'runtime' });
+      const e2eStep = DependencyStepStub({
+        focusFile: StepFileReferenceStub({
+          path: 'packages/web/src/flows/home/guild-delete.e2e.ts',
+        }),
+      });
+      const workItem = WorkItemStub({
+        role: 'flowrider',
+        relatedDataItems: [
+          RelatedDataItemStub({ value: `flows/${String(flow.id)}` }),
+          RelatedDataItemStub({ value: `steps/${String(e2eStep.id)}` }),
+        ],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        flows: [flow],
+        steps: [e2eStep],
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'flowrider' }),
+        siegeDevServer: {
+          devCommand: DevCommandStub({ value: 'npm run dev' }),
+          devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
+        },
+      });
+
+      // Resolved to the flowrider template (proves agentName routed to the flowrider role) and
+      // $ARGUMENTS was substituted (the flow context filled in), so the no-flows-reference guard
+      // did NOT fire. Detailed arg shape is exercised by work-unit-to-arguments-transformer.test.ts.
+      const [flowriderTemplatePrefix = ''] =
+        flowriderPromptStatics.prompt.template.split('$ARGUMENTS');
+
+      expect(result.prompt.startsWith(flowriderTemplatePrefix)).toBe(true);
+      expect(result.prompt.endsWith('$ARGUMENTS')).toBe(false);
     });
   });
 

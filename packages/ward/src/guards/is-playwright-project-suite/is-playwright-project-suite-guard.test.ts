@@ -4,7 +4,7 @@ describe('isPlaywrightProjectSuiteGuard', () => {
   describe('project suites', () => {
     it('VALID: {suite with nested suites and no specs} => returns true', () => {
       const result = isPlaywrightProjectSuiteGuard({
-        suite: { title: 'chromium', suites: [{ title: 'login.spec.ts' }], specs: [] },
+        suite: { title: 'chromium', suites: [{ title: 'login.e2e.ts' }], specs: [] },
       });
 
       expect(result).toBe(true);
@@ -12,7 +12,7 @@ describe('isPlaywrightProjectSuiteGuard', () => {
 
     it('VALID: {suite with nested suites and missing specs key} => returns true', () => {
       const result = isPlaywrightProjectSuiteGuard({
-        suite: { title: 'chromium', suites: [{ title: 'login.spec.ts' }] },
+        suite: { title: 'chromium', suites: [{ title: 'login.e2e.ts' }] },
       });
 
       expect(result).toBe(true);
@@ -22,7 +22,7 @@ describe('isPlaywrightProjectSuiteGuard', () => {
   describe('file suites', () => {
     it('INVALID: {suite with specs} => returns false', () => {
       const result = isPlaywrightProjectSuiteGuard({
-        suite: { title: 'login.spec.ts', suites: [], specs: [{ title: 'should login' }] },
+        suite: { title: 'login.e2e.ts', suites: [], specs: [{ title: 'should login' }] },
       });
 
       expect(result).toBe(false);
@@ -30,7 +30,7 @@ describe('isPlaywrightProjectSuiteGuard', () => {
 
     it('INVALID: {suite with no nested suites and no specs} => returns false', () => {
       const result = isPlaywrightProjectSuiteGuard({
-        suite: { title: 'empty.spec.ts', suites: [], specs: [] },
+        suite: { title: 'empty.e2e.ts', suites: [], specs: [] },
       });
 
       expect(result).toBe(false);

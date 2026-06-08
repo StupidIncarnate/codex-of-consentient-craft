@@ -9,6 +9,7 @@
  * //   '/src/brokers/user/user-broker.test.ts',
  * //   '/src/brokers/user/user-broker.spec.ts',
  * //   '/src/brokers/user/user-broker.integration.test.ts',
+ * //   '/src/brokers/user/user-broker.e2e.ts',
  * //   '/src/brokers/user/user-broker.e2e.test.ts'
  * // ]
  */

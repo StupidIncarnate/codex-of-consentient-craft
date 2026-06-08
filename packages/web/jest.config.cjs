@@ -9,7 +9,7 @@ module.exports = {
     customExportConditions: [''],
     url: 'http://localhost',
   },
-  roots: ['<rootDir>/src'],
+  roots: ['<rootDir>/src', '<rootDir>/test'],
   setupFiles: ['<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
   setupFilesAfterEnv: [
     '<rootDir>/../../packages/testing/src/jest.setup.js',
@@ -17,7 +17,11 @@ module.exports = {
     '@testing-library/jest-dom',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  testMatch: ['**/src/**/*.test.[jt]s?(x)'],
+  // Jest collects src/**/*.test.ts(x) plus harness unit tests under test/**/*.test.ts(x).
+  // Playwright e2e specs (src/flows/**/*.e2e.ts) and harness fixtures (test/**/*.harness.ts)
+  // deliberately do NOT match this pattern, so Jest never collects them — they run under
+  // Playwright via playwright.config.ts.
+  testMatch: ['**/src/**/*.test.[jt]s?(x)', '<rootDir>/test/**/*.test.[jt]s?(x)'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '\\.(css|less|scss)$': '<rootDir>/src/__mocks__/style-mock.cjs',

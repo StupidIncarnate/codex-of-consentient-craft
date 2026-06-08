@@ -69,8 +69,8 @@ describe('checkRunE2eBroker', () => {
     it('VALID: {playwright exits 0 with line output} => returns pass result with filesCount from line output', async () => {
       const proxy = checkRunE2eBrokerProxy();
       const lineOutput = [
-        '[1/2] [chromium] › e2e/web/smoke.spec.ts:20:7 › Smoke › loads page',
-        '[2/2] [chromium] › e2e/web/chat.spec.ts:10:7 › Chat › sends message',
+        '[1/2] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › loads page',
+        '[2/2] [chromium] › packages/web/src/flows/quest-chat/chat.e2e.ts:10:7 › Chat › sends message',
       ].join('\n');
       proxy.setupPassWithOutput({ stdout: lineOutput });
 
@@ -90,7 +90,10 @@ describe('checkRunE2eBroker', () => {
           testFailures: [],
           filesCount: 2,
           onlyDiscovered: ['discovered.ts'],
-          onlyProcessed: ['e2e/web/smoke.spec.ts', 'e2e/web/chat.spec.ts'],
+          onlyProcessed: [
+            'packages/web/src/flows/app/smoke.e2e.ts',
+            'packages/web/src/flows/quest-chat/chat.e2e.ts',
+          ],
           rawOutput: RawOutputStub({
             stdout: lineOutput,
             stderr: '',
@@ -105,8 +108,8 @@ describe('checkRunE2eBroker', () => {
     it('VALID: {playwright exits 1 with failure output} => returns fail result with parsed test failures', async () => {
       const proxy = checkRunE2eBrokerProxy();
       const failOutput = [
-        '[1/1] [chromium] › e2e/login.spec.ts:10:7 › Login › should display login form',
-        '  1) [chromium] › e2e/login.spec.ts:10:7 › Login › should display login form ',
+        '[1/1] [chromium] › packages/web/src/flows/home/login.e2e.ts:10:7 › Login › should display login form',
+        '  1) [chromium] › packages/web/src/flows/home/login.e2e.ts:10:7 › Login › should display login form ',
         '',
         '    Element not found',
         '',
@@ -128,13 +131,13 @@ describe('checkRunE2eBroker', () => {
           errors: [],
           testFailures: [
             TestFailureStub({
-              suitePath: 'e2e/login.spec.ts',
+              suitePath: 'packages/web/src/flows/home/login.e2e.ts',
               testName: 'Login › should display login form',
               message: 'Element not found',
             }),
           ],
           filesCount: 1,
-          onlyProcessed: ['e2e/login.spec.ts'],
+          onlyProcessed: ['packages/web/src/flows/home/login.e2e.ts'],
           onlyDiscovered: ['discovered.ts'],
           rawOutput: RawOutputStub({ stdout: failOutput, stderr: '', exitCode: 1 }),
         }),
@@ -181,12 +184,16 @@ describe('checkRunE2eBroker', () => {
 
       await checkRunE2eBroker({
         projectFolder,
-        fileList: [GitRelativePathStub({ value: 'e2e/login.spec.ts' })],
+        fileList: [GitRelativePathStub({ value: 'packages/web/src/flows/home/login.e2e.ts' })],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', 'e2e/login.spec.ts']);
+      expect(spawnedArgs).toStrictEqual([
+        'test',
+        '--reporter=line,json',
+        'packages/web/src/flows/home/login.e2e.ts',
+      ]);
     });
 
     it('VALID: {fileList with no e2e files} => returns skip result', async () => {
@@ -229,13 +236,17 @@ describe('checkRunE2eBroker', () => {
         projectFolder,
         fileList: [
           GitRelativePathStub({ value: 'src/brokers/user/user-broker.ts' }),
-          GitRelativePathStub({ value: 'e2e/web/smoke.spec.ts' }),
+          GitRelativePathStub({ value: 'packages/web/src/flows/app/smoke.e2e.ts' }),
         ],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', 'e2e/web/smoke.spec.ts']);
+      expect(spawnedArgs).toStrictEqual([
+        'test',
+        '--reporter=line,json',
+        'packages/web/src/flows/app/smoke.e2e.ts',
+      ]);
     });
   });
 
@@ -245,11 +256,11 @@ describe('checkRunE2eBroker', () => {
       const jsonContent = JSON.stringify({
         suites: [
           {
-            title: 'e2e/web/smoke.spec.ts',
+            title: 'packages/web/src/flows/app/smoke.e2e.ts',
             specs: [
               {
                 title: 'loads',
-                file: 'e2e/web/smoke.spec.ts',
+                file: 'packages/web/src/flows/app/smoke.e2e.ts',
                 tests: [{ results: [{ status: 'passed', duration: 1234 }] }],
               },
             ],
@@ -275,8 +286,8 @@ describe('checkRunE2eBroker', () => {
           onlyDiscovered: ['discovered.ts'],
           passingTests: [
             PassingTestStub({
-              suitePath: 'e2e/web/smoke.spec.ts',
-              testName: 'e2e/web/smoke.spec.ts › loads',
+              suitePath: 'packages/web/src/flows/app/smoke.e2e.ts',
+              testName: 'packages/web/src/flows/app/smoke.e2e.ts › loads',
               durationMs: 1234,
             }),
           ],

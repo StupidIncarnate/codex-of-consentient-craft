@@ -26,7 +26,7 @@ describe('StartInstall', () => {
         packageName: '@dungeonmaster/cli',
         success: true,
         action: 'created',
-        message: 'Added devDependencies to package.json',
+        message: 'Added devDependencies to package.json; Created playwright.config.ts',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);

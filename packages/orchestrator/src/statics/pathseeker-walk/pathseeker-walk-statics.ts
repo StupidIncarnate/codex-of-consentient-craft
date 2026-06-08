@@ -227,6 +227,8 @@ As you walk, fix what's broken and author exploratory steps inline.
 
 These are normal steps with normal schema — \`focusFile\` or \`focusAction\`, real assertions, real instructions, real \`outputContracts\`. They are NOT placeholder "spike" markers. **Wire \`dependsOn\`** on the consumer step(s) so they wait for the exploratory step.
 
+**e2e / integration TEST steps MUST be \`focusFile\` — never \`focusAction\`.** Flowrider routing keys on the focusFile suffix: a step whose \`focusFile.path\` ends in \`.e2e.ts\` (Playwright) or \`.integration.test.ts\` (Jest) routes to Flowrider; a \`focusAction\` step does not. If a surface agent authored an e2e/integration test as a \`focusAction\` (so it would land on Codeweaver and skip the Flowrider floor), patch it to a \`focusFile\` step whose \`focusFile.path\` is the test file. e2e is Playwright exclusively, and \`.e2e.ts\` paths MUST live in the entry flow's folder of the UI package (the \`page.goto\` target): \`packages/web/src/flows/<route>/<feature>.e2e.ts\` — where the test STARTS is where it lives. Non-Playwright "e2e" tests are named integration (\`.integration.test.ts\`, colocated with the \`flows/\`/\`startup/\` file they exercise).
+
 **False premise detection.** If the walk reveals the spec describes a bug in code that does not exist (e.g. "the skull button incorrectly renders for in_progress quests" but there is no skull button), signal back \`failed\` with a summary describing what the spec claimed and what the code actually shows.
 
 #### Step 4 — Rolling commits during walk, single terminal commit at exit

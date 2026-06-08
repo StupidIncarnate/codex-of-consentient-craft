@@ -1,25 +1,31 @@
 import { isSpecFileGuard } from './is-spec-file-guard';
 
 describe('isSpecFileGuard', () => {
-  describe('spec files', () => {
-    it('VALID: {filename: "smoke.spec.ts"} => returns true', () => {
-      const result = isSpecFileGuard({ filename: 'smoke.spec.ts' });
+  describe('e2e files', () => {
+    it('VALID: {filename: "smoke.e2e.ts"} => returns true', () => {
+      const result = isSpecFileGuard({ filename: 'smoke.e2e.ts' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {filename: "/project/e2e/web/guild-creation.spec.ts"} => returns true', () => {
+    it('VALID: {filename: "/project/web/src/flows/home/guild-creation.e2e.ts"} => returns true', () => {
       const result = isSpecFileGuard({
-        filename: '/project/e2e/web/guild-creation.spec.ts',
+        filename: '/project/web/src/flows/home/guild-creation.e2e.ts',
       });
 
       expect(result).toBe(true);
     });
   });
 
-  describe('non-spec files', () => {
+  describe('non-e2e files', () => {
     it('VALID: {filename: "guild-broker.test.ts"} => returns false', () => {
       const result = isSpecFileGuard({ filename: 'guild-broker.test.ts' });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {filename: "smoke.spec.ts"} => returns false', () => {
+      const result = isSpecFileGuard({ filename: 'smoke.spec.ts' });
 
       expect(result).toBe(false);
     });

@@ -60,13 +60,13 @@ symptom.
 
 Write (or strengthen) a test that asserts the **user-visible invariant** from Gate 1 — not an
 intermediate cause. Choose the test type by symptom shape:
-- UI element missing / wrong content → e2e in \`packages/testing/e2e/web/*.spec.ts\`.
+- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`packages/web/src/flows/**/*.e2e.ts\`.
 - A transformer/contract you can drive directly → a unit test alongside the implementation.
 - Default to e2e for any "I don't see X in the UI" report.
 
 Run it and **confirm it fails on the assertion**, not on setup/infrastructure:
 \`\`\`bash
-npm run ward -- --only e2e --onlyTests "<your test name fragment>" -- packages/testing
+npm run ward -- --only e2e --onlyTests "<your test name fragment>" -- packages/web
 \`\`\`
 (or \`--only unit -- <path>\` for a unit test). If a timeout or setup error fires before your assert
 is reached, the test is broken, not the implementation — fix the test setup first.

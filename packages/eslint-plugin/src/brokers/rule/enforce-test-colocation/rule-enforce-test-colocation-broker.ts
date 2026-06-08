@@ -14,6 +14,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
+import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
 import { filePathWithTypeInfixTransformer } from '../../../transformers/file-path-with-type-infix/file-path-with-type-infix-transformer';
 
@@ -27,9 +28,6 @@ export const ruleEnforceTestColocationBroker = (): EslintRule => ({
       messages: {
         testNotColocated:
           'Test file must be co-located with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
-        // Need to decide what to do with e2e. Having it outside src means we need to change to rootDir in tsconfig which messes things up.
-        // e2eTestInSrc:
-        //   'E2E test files should not be in /src/ directory. Move to a dedicated e2e test directory outside /src/.',
       },
       schema: [],
     },
@@ -47,17 +45,11 @@ export const ruleEnforceTestColocationBroker = (): EslintRule => ({
 
         const testFilePath = filePathContract.parse(filename);
 
-        // // E2E tests should NOT be in /src/
-        // if (isE2eTestFileGuard({ filePath: testFilePath })) {
-        //   const isInSrcFolder = filename.includes('/src/');
-        //   if (isInSrcFolder) {
-        //     ctx.report({
-        //       node,
-        //       messageId: 'e2eTestInSrc',
-        //     });
-        //   }
-        //   return;
-        // }
+        // E2e files (.e2e.ts) colocate with the entry flow they exercise — they have no
+        // single implementation companion, so exempt them from the test↔impl pairing check.
+        if (isE2eTestFileGuard({ filePath: testFilePath })) {
+          return;
+        }
 
         // Non-e2e tests must have colocated implementation file
         const basePath = testFilePathToImplementationPathTransformer({ testFilePath });

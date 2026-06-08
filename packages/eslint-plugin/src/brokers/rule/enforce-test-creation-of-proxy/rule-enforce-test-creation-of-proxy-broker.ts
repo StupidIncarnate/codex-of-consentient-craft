@@ -132,7 +132,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
                     data: { name },
                   });
                 } else if (isSpec) {
-                  // In .spec.ts files, bare harness calls must be wrapped with wireHarnessLifecycle
+                  // In .e2e.ts files, bare harness calls must be wrapped with wireHarnessLifecycle
                   ctx.report({
                     node,
                     messageId: 'harnessNeedsWireInSpec',
@@ -175,7 +175,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
                     data: { name: variableName },
                   });
                 } else if (isSpec) {
-                  // In .spec.ts files, harness must be wrapped with wireHarnessLifecycle
+                  // In .e2e.ts files, harness must be wrapped with wireHarnessLifecycle
                   const variableName = id?.name ?? 'harness';
                   ctx.report({
                     node: declaration,
@@ -189,7 +189,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
                 callee.type === 'Identifier' &&
                 callee.name === 'wireHarnessLifecycle'
               ) {
-                // wireHarnessLifecycle wrapping is valid in .spec.ts - no report needed
+                // wireHarnessLifecycle wrapping is valid in .e2e.ts - no report needed
               }
             }
           }

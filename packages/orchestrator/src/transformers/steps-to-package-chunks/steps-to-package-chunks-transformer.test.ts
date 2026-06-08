@@ -52,6 +52,36 @@ describe('stepsToPackageChunksTransformer', () => {
       expect(result).toStrictEqual([[brokerStep]]);
     });
 
+    it('VALID: {.e2e.ts + broker steps} => excludes the e2e step, keeps broker', () => {
+      const e2eStep = DependencyStepStub({
+        focusFile: StepFileReferenceStub({
+          path: 'packages/web/src/flows/home/guild-delete.e2e.ts',
+        }),
+      });
+      const brokerStep = DependencyStepStub({
+        focusFile: StepFileReferenceStub({ path: 'packages/web/src/brokers/y/y-broker.ts' }),
+      });
+
+      const result = stepsToPackageChunksTransformer({ steps: [e2eStep, brokerStep] });
+
+      expect(result).toStrictEqual([[brokerStep]]);
+    });
+
+    it('VALID: {.integration.test.ts + broker steps} => excludes the integration step, keeps broker', () => {
+      const integrationStep = DependencyStepStub({
+        focusFile: StepFileReferenceStub({
+          path: 'packages/server/src/flows/quest/quest-flow.integration.test.ts',
+        }),
+      });
+      const brokerStep = DependencyStepStub({
+        focusFile: StepFileReferenceStub({ path: 'packages/server/src/brokers/y/y-broker.ts' }),
+      });
+
+      const result = stepsToPackageChunksTransformer({ steps: [integrationStep, brokerStep] });
+
+      expect(result).toStrictEqual([[brokerStep]]);
+    });
+
     it('EMPTY: {only flows + startup steps} => returns no chunks', () => {
       const flowStep = DependencyStepStub({
         focusFile: StepFileReferenceStub({ path: 'packages/web/src/flows/x/x-flow.ts' }),
