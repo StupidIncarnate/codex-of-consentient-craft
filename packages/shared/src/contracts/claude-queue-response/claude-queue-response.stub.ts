@@ -7,8 +7,11 @@ import {
   AssistantToolUseStreamLineStub,
   AssistantToolResultStreamLineStub,
 } from '../assistant-stream-line/assistant-stream-line.stub';
-import type { TextBlockParam } from '../text-block-param/text-block-param-contract';
+import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
+import { toolUseBlockParamContract } from '../tool-use-block-param/tool-use-block-param-contract';
 import type { ToolUseBlockParam } from '../tool-use-block-param/tool-use-block-param-contract';
+// `textBlockParamContract` / `toolUseBlockParamContract` are value imports so the internal
+// line builders can brand plain-string inputs via `.shape.text.parse` / `.shape.name.parse`.
 import type { ToolResultBlockParam } from '../tool-result-block-param/tool-result-block-param-contract';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
@@ -22,9 +25,7 @@ import type { ClaudeQueueResponse } from './claude-queue-response-contract';
 
 // ── Branded type aliases ───────────────────────────────────────────────────────
 
-type TextContent = TextBlockParam['text'];
 type ToolUseId = ToolUseBlockParam['id'];
-type ToolName = ToolUseBlockParam['name'];
 type ToolResultContent = Exclude<NonNullable<ToolResultBlockParam['content']>, unknown[]>;
 type UsageBlock = NonNullable<AssistantStreamLine['message']['usage']>;
 type InputTokenCount = UsageBlock['input_tokens'];
@@ -58,14 +59,14 @@ const initLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): StreamJsonLine =>
 // every E2E using these line builders exercise the contract null-tolerance path that
 // previously caused the orchestrator to silently drop every assistant line.
 const textLine = ({
-  text = 'Hello from Claude' as TextContent,
+  text = 'Hello from Claude',
   usage = DEFAULT_USAGE,
-} = {}): StreamJsonLine =>
+}: { text?: string; usage?: typeof DEFAULT_USAGE } = {}): StreamJsonLine =>
   toLine(
     AssistantTextStreamLineStub({
       message: {
         role: 'assistant' as const,
-        content: [{ type: 'text' as const, text }],
+        content: [{ type: 'text' as const, text: textBlockParamContract.shape.text.parse(text) }],
         usage,
         stop_reason: null,
       },
@@ -74,14 +75,21 @@ const textLine = ({
 
 const toolUseLine = ({
   id = 'toolu_e2e_00000000' as ToolUseId,
-  name = 'Read' as ToolName,
+  name = 'Read',
   input = { file_path: '/test.ts' } as Record<PropertyKey, unknown>,
-} = {}): StreamJsonLine =>
+}: { id?: ToolUseId; name?: string; input?: Record<PropertyKey, unknown> } = {}): StreamJsonLine =>
   toLine(
     AssistantToolUseStreamLineStub({
       message: {
         role: 'assistant' as const,
-        content: [{ type: 'tool_use' as const, id, name, input }],
+        content: [
+          {
+            type: 'tool_use' as const,
+            id,
+            name: toolUseBlockParamContract.shape.name.parse(name),
+            input,
+          },
+        ],
         stop_reason: null,
       },
     }) as object,
@@ -122,17 +130,17 @@ export const ClaudeQueueResponseStub = ({
  */
 export const SimpleTextResponseStub = ({
   ...props
-}: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customText = (props as Record<PropertyKey, unknown>).text as string | undefined;
-  const sessionId = sessionOrDefault({ value: props.sessionId });
+}: StubArgument<ClaudeQueueResponse, { text?: string }> = {}): ClaudeQueueResponse => {
+  const { text: customText, ...rest } = props;
+  const sessionId = sessionOrDefault({ value: rest.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
     lines: [
       initLine({ sessionId }),
-      textLine(customText === undefined ? undefined : { text: customText as TextContent }),
+      textLine(customText === undefined ? undefined : { text: customText }),
       resultLine({ sessionId }),
     ],
-    ...props,
+    ...rest,
   });
 };
 
@@ -143,23 +151,22 @@ export const SimpleTextResponseStub = ({
  */
 export const ToolUseChainResponseStub = ({
   ...props
-}: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const propsAsRecord = props as Record<PropertyKey, unknown>;
-  const customFollowUpText = propsAsRecord.followUpText as string | undefined;
-  const customToolName = propsAsRecord.toolName as string | undefined;
-  const sessionId = sessionOrDefault({ value: props.sessionId });
+}: StubArgument<
+  ClaudeQueueResponse,
+  { followUpText?: string; toolName?: string }
+> = {}): ClaudeQueueResponse => {
+  const { followUpText: customFollowUpText, toolName: customToolName, ...rest } = props;
+  const sessionId = sessionOrDefault({ value: rest.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
     lines: [
       initLine({ sessionId }),
-      toolUseLine(customToolName === undefined ? undefined : { name: customToolName as ToolName }),
+      toolUseLine(customToolName === undefined ? undefined : { name: customToolName }),
       toolResultLine(),
-      textLine(
-        customFollowUpText === undefined ? undefined : { text: customFollowUpText as TextContent },
-      ),
+      textLine(customFollowUpText === undefined ? undefined : { text: customFollowUpText }),
       resultLine({ sessionId }),
     ],
-    ...props,
+    ...rest,
   });
 };
 
@@ -169,17 +176,14 @@ export const ToolUseChainResponseStub = ({
  */
 export const ErrorResponseStub = ({
   ...props
-}: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customText = (props as Record<PropertyKey, unknown>).partialOutput as string | undefined;
-  const sessionId = sessionOrDefault({ value: props.sessionId });
+}: StubArgument<ClaudeQueueResponse, { partialOutput?: string }> = {}): ClaudeQueueResponse => {
+  const { partialOutput: customText, ...rest } = props;
+  const sessionId = sessionOrDefault({ value: rest.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
-    lines: [
-      initLine({ sessionId }),
-      textLine({ text: (customText ?? 'Processing...') as TextContent }),
-    ],
+    lines: [initLine({ sessionId }), textLine({ text: customText ?? 'Processing...' })],
     exitCode: ExitCodeStub({ value: 1 }),
-    ...props,
+    ...rest,
   });
 };
 
@@ -189,16 +193,16 @@ export const ErrorResponseStub = ({
  */
 export const ResumeResponseStub = ({
   ...props
-}: StubArgument<ClaudeQueueResponse> = {}): ClaudeQueueResponse => {
-  const customText = (props as Record<PropertyKey, unknown>).text as string | undefined;
-  const sessionId = sessionOrDefault({ value: props.sessionId });
+}: StubArgument<ClaudeQueueResponse, { text?: string }> = {}): ClaudeQueueResponse => {
+  const { text: customText, ...rest } = props;
+  const sessionId = sessionOrDefault({ value: rest.sessionId });
   return claudeQueueResponseContract.parse({
     sessionId,
     lines: [
-      textLine(customText === undefined ? undefined : { text: customText as TextContent }),
+      textLine(customText === undefined ? undefined : { text: customText }),
       resultLine({ sessionId }),
     ],
-    ...props,
+    ...rest,
   });
 };
 
@@ -215,7 +219,7 @@ export const ClarificationResponseStub = ({
     lines: [
       initLine({ sessionId }),
       toolUseLine({
-        name: 'mcp__dungeonmaster__ask-user-question' as ToolName,
+        name: 'mcp__dungeonmaster__ask-user-question',
         input: {
           questions: [
             {

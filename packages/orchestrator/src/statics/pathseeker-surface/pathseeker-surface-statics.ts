@@ -196,6 +196,10 @@ kind: 'custom'        — anything that doesn't fit the above; describe verbatim
 
 For \`runtime\` flows (user clicks, API hits) your steps are almost entirely \`focusFile\`. For \`operational\` flows you mix \`focusFile\` (for new files the operational change requires) with \`focusAction\` (for the executable predicates that prove the operational invariant held). Don't force operational work into file-only shape.
 
+**e2e / integration TEST steps MUST be \`focusFile\` — never \`focusAction\`.** Flowrider routing keys on the focusFile suffix: a step whose \`focusFile.path\` ends in \`.e2e.ts\` (Playwright) or \`.integration.test.ts\` (Jest) routes to Flowrider; a \`focusAction\` step does not. So author every e2e/integration test as a \`focusFile\` step with the test path as its \`focusFile.path\` — do NOT describe "write an e2e test" as a \`focusAction: 'verification'\`/\`'command'\` predicate, or it will land on Codeweaver and skip the Flowrider floor entirely.
+
+**\`.e2e.ts\` paths live in the entry flow's folder of the UI package.** e2e is Playwright exclusively, and each \`.e2e.ts\` colocates with the UI it tests — in the flow/route folder where the test starts (its \`page.goto\` target): \`packages/web/src/flows/<route>/<feature>.e2e.ts\`. Where the test STARTS is where it lives, even when it bridges two UIs. Non-Playwright "e2e" tests are named integration (\`.integration.test.ts\`, colocated with the \`flows/\`/\`startup/\` file they exercise).
+
 ### Step 8: Assertions vs Instructions — the Boundary
 
 \`assertions[]\` is for behavioral predicates that compile to \`expect(...)\`. \`instructions[]\` is for editorial directives about file shape, comments, removals, imports, and cross-step constraints. The boundary is the minion's responsibility: the banned-matcher scan catches banned matchers mechanically but cannot tell behavioral assertions from editorial ones. Author the split correctly here so pathseeker doesn't have to triage drift during its seek_walk flow walk.

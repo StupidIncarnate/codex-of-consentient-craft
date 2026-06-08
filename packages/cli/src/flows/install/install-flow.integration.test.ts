@@ -8,8 +8,8 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallFlow } from './install-flow';
 
 describe('InstallFlow', () => {
-  describe('delegation to responder', () => {
-    it('VALID: {context: no devDependencies} => delegates to responder and adds devDependencies', async () => {
+  describe('add-dev-deps + create-playwright', () => {
+    it('VALID: {context: no devDependencies, no playwright config} => adds devDependencies and creates playwright.config.ts', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'flow-add-devdeps' }),
       });
@@ -24,6 +24,9 @@ describe('InstallFlow', () => {
       const packageJsonContent = testbed.readFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
       });
+      const playwrightConfigContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+      });
 
       testbed.cleanup();
 
@@ -31,13 +34,20 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/cli',
         success: true,
         action: 'created',
-        message: 'Added devDependencies to package.json',
+        message: 'Added devDependencies to package.json; Created playwright.config.ts',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
+      expect(packageJsonContent).toMatch(/^\s*"@playwright\/test": "\^1\.58\.2",$/mu);
+      expect(playwrightConfigContent).toBe(
+        `import { defineConfig } from '@playwright/test';
+
+export default defineConfig({ testMatch: '**/*.e2e.ts', timeout: 30_000 });
+`,
+      );
     });
 
-    it('VALID: {context: all devDependencies present} => returns skipped', async () => {
+    it('VALID: {context: all devDependencies present, playwright config exists} => returns skipped without overwriting', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'flow-skip-devdeps' }),
       });
@@ -52,6 +62,7 @@ describe('InstallFlow', () => {
               devDependencies: {
                 '@eslint/compat': '^1.3.1',
                 '@eslint/eslintrc': '^3.3.1',
+                '@playwright/test': '^1.58.2',
                 '@types/debug': '^4.1.12',
                 '@types/eslint': '^9.0.0',
                 '@types/jest': '^30.0.0',
@@ -77,6 +88,10 @@ describe('InstallFlow', () => {
           ),
         }),
       });
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+        content: FileContentStub({ value: '// existing user config\n' }),
+      });
 
       const result = await InstallFlow({
         context: {
@@ -85,14 +100,19 @@ describe('InstallFlow', () => {
         },
       });
 
+      const playwrightConfigContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+      });
+
       testbed.cleanup();
 
       expect(result).toStrictEqual({
         packageName: '@dungeonmaster/cli',
         success: true,
         action: 'skipped',
-        message: 'All devDependencies already present',
+        message: 'All devDependencies already present; playwright.config.ts already exists',
       });
+      expect(playwrightConfigContent).toBe('// existing user config\n');
     });
   });
 });

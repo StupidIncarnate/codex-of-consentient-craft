@@ -2,6 +2,14 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { isE2eTestFileGuard } from './is-e2e-test-file-guard';
 
 describe('isE2eTestFileGuard', () => {
+  it('VALID: {filePath: "/project/web/src/flows/home/guild-delete.e2e.ts"} => returns true', () => {
+    const filePath = FilePathStub({ value: '/project/web/src/flows/home/guild-delete.e2e.ts' });
+
+    const result = isE2eTestFileGuard({ filePath });
+
+    expect(result).toBe(true);
+  });
+
   it('VALID: {filePath: "/src/user.e2e.test.ts"} => returns true', () => {
     const filePath = FilePathStub({ value: '/src/user.e2e.test.ts' });
 

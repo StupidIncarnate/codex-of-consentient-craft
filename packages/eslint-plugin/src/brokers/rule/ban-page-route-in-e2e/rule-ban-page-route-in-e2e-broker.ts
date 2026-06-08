@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Bans page.route() calls in e2e spec files to prevent intercepting server responses
+ * PURPOSE: Bans page.route() calls in Playwright e2e files to prevent intercepting server responses
  *
  * USAGE:
  * const rule = ruleBanPageRouteInE2eBroker();
- * // Returns ESLint rule that prevents page.route() in .spec.ts files
+ * // Returns ESLint rule that prevents page.route() in .e2e.ts files
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';

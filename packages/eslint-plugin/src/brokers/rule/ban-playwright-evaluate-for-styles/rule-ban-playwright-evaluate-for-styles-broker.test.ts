@@ -8,12 +8,12 @@ ruleTester.run('ban-playwright-evaluate-for-styles', ruleBanPlaywrightEvaluateFo
     // --- toHaveCSS is the correct Playwright assertion ---
     {
       code: "await expect(el).toHaveCSS('color', 'rgb(255, 0, 0)')",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     // --- evaluate without getComputedStyle is fine ---
     {
       code: 'await el.evaluate(() => someOtherFunction())',
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     // --- evaluate with getComputedStyle in non-spec file is fine ---
     {
@@ -30,13 +30,13 @@ ruleTester.run('ban-playwright-evaluate-for-styles', ruleBanPlaywrightEvaluateFo
     // --- getComputedStyle in evaluate in spec file ---
     {
       code: 'await el.evaluate((e) => getComputedStyle(e).color)',
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [{ messageId: 'noEvaluateForStyles' }],
     },
     // --- window.getComputedStyle in evaluate in spec file ---
     {
       code: 'await el.evaluate((e) => window.getComputedStyle(e).backgroundColor)',
-      filename: '/project/e2e/web/styles.spec.ts',
+      filename: '/project/e2e/web/styles.e2e.ts',
       errors: [{ messageId: 'noEvaluateForStyles' }],
     },
   ],

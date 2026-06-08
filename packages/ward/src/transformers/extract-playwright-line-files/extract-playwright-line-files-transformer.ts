@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Extracts unique spec file paths from Playwright line reporter output as a fallback when JSON report is unavailable
+ * PURPOSE: Extracts unique e2e file paths from Playwright line reporter output as a fallback when JSON report is unavailable
  *
  * USAGE:
- * extractPlaywrightLineFilesTransformer({ output: errorMessageContract.parse('[1/5] [chromium] › e2e/web/smoke.spec.ts:20:7 › Smoke › test') });
- * // Returns ['e2e/web/smoke.spec.ts']
+ * extractPlaywrightLineFilesTransformer({ output: errorMessageContract.parse('[1/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › test') });
+ * // Returns ['packages/web/src/flows/app/smoke.e2e.ts']
  */
 
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
@@ -13,7 +13,7 @@ import {
   type GitRelativePath,
 } from '../../contracts/git-relative-path/git-relative-path-contract';
 
-const LINE_REPORTER_PATTERN = /› ([\w/./-]+\.spec\.ts):\d+/gu;
+const LINE_REPORTER_PATTERN = /› ([\w/./-]+\.e2e\.ts):\d+/gu;
 
 export const extractPlaywrightLineFilesTransformer = ({
   output,

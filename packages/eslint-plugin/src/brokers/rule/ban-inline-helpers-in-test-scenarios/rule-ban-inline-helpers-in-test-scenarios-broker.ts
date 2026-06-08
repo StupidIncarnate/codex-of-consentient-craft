@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const rule = ruleBanInlineHelpersInTestScenariosBroker();
- * // Returns ESLint rule that prevents inline helper functions in *.spec.ts and *.integration.test.ts files
+ * // Returns ESLint rule that prevents inline helper functions in *.e2e.ts and *.integration.test.ts files
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';

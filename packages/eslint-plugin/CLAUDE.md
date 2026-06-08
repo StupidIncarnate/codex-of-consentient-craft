@@ -30,7 +30,7 @@ When creating a new ESLint rule, you MUST update these files:
     - Add rule with `'post-edit'` timing (if rule uses `fsExistsSyncAdapter`, `fsReadFileSyncAdapter`, or other fs
       operations)
    - Update test `src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts`
-   - **CRITICAL**: Integration tests in `tests/e2e/dungeonmaster-rule-enforce-on.e2e.test.ts` will FAIL if you
+   - **CRITICAL**: The integration test `src/dungeonmaster-rule-enforce-on.integration.test.ts` will FAIL if you
       skip this step
 
 Missing any of these steps will result in the rule not being available or enforced. Make sure you run tests for each

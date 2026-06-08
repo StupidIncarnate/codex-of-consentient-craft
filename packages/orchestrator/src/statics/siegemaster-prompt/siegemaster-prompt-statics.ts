@@ -107,7 +107,7 @@ webServer: {
 
 **Run tests:**
 \`\`\`bash
-npm run ward -- --only e2e -- path/to/test-file.spec.ts
+npm run ward -- --only e2e -- packages/web/src/flows/<route>/<feature>.e2e.ts
 \`\`\`
 If ward fails, use \`npm run ward -- detail <runId> <filePath>\` for full output.
 

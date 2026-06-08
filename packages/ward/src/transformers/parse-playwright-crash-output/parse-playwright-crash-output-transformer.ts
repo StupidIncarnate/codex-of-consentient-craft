@@ -2,7 +2,7 @@
  * PURPOSE: Parses Playwright line-reporter text output from a crash into structured TestFailure entries
  *
  * USAGE:
- * parsePlaywrightCrashOutputTransformer({ output: errorMessageContract.parse('  1) [chromium] › e2e/smoke.spec.ts:20:7 › Smoke › test\n\n    Error: timeout') });
+ * parsePlaywrightCrashOutputTransformer({ output: errorMessageContract.parse('  1) [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › test\n\n    Error: timeout') });
  * // Returns TestFailure[] with suitePath, testName, message, and stackTrace
  */
 
@@ -14,7 +14,7 @@ import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-
 import { stripTimeoutNoiseTransformer } from '../strip-timeout-noise/strip-timeout-noise-transformer';
 
 const FAILURE_HEADER_PATTERN =
-  /^\s*\d+\)\s+\[.*?\]\s+›\s+([\w/./-]+\.spec\.ts):(\d+):\d+\s+›\s+(.+?)\s*$/u;
+  /^\s*\d+\)\s+\[.*?\]\s+›\s+([\w/./-]+\.e2e\.ts):(\d+):\d+\s+›\s+(.+?)\s*$/u;
 const PROGRESS_LINE_PATTERN = /^\s*\[\d+\/\d+\]\s+\[/u;
 const ATTACHMENT_LINE_PATTERN = /^\s+attachment\s+#\d+:?\s/u;
 const NETWORK_LOG_ATTACHMENT_PATTERN = /^\s+attachment\s+#\d+:?\s+network-log/u;

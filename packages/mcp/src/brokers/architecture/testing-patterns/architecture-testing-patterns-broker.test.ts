@@ -331,6 +331,39 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^### Assert the Full Transition$/mu);
     });
 
+    it('VALID: {} => states e2e is Playwright exclusively, colocated in the UI package', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### e2e = Playwright Exclusively, Colocated in the UI Package$/mu);
+      expect(result).toMatch(
+        /^\*\*`e2e` means Playwright — nothing else\.\*\* A non-Playwright \(Jest\) test that exercises a slice end-to-end is named \*\*integration\*\* \(`\.integration\.test\.ts`\), never "e2e"\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*e2es are `\*\.e2e\.ts`, colocated in the entry flow's folder of the UI package\.\*\* Each e2e lives in the flow\/route folder where the test starts — its `page\.goto` target: `packages\/web\/src\/flows\/<route>\/<feature>\.e2e\.ts`\. Where the test STARTS is where it lives, even when it bridges two UIs\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*The Playwright config \+ UI-specific harnesses live in the UI package\.\*\* `packages\/web\/playwright\.config\.ts` \(`testMatch: '\*\*\/\*\.e2e\.ts'`\) and `packages\/web\/test\/harnesses\/` own the e2e stack\. The `testing` package holds ONLY cross-package reshareables \(register-mock, shared stubs, `installTestbedCreateBroker`\) — it does NOT own e2e config, harnesses, or specs\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*e2e imports are web-relative\.\*\* Spec files import `\{ test, expect, wireHarnessLifecycle \}` and the named harnesses from the UI package's own `test\/` \(e\.g\. `test\/harnesses\/e2e-fixtures`\), NOT from `@dungeonmaster\/testing\/e2e`\.$/mu,
+      );
+    });
+
+    it('VALID: {} => harness section colocates e2e specs and web-relative fixtures', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^- `\*\.e2e\.ts` \/ `\*\.integration\.test\.ts` → harnesses and contracts\/stubs only$/mu,
+      );
+      expect(result).toMatch(
+        /^\*\*For Playwright:\*\* Spec files use `wireHarnessLifecycle\(\)` from test fixtures\. Spec files MUST import `\{ test, expect \}` from the UI package's web-relative e2e fixtures \(e\.g\. `test\/harnesses\/e2e-fixtures`\), NOT from `@playwright\/test` and NOT from `@dungeonmaster\/testing\/e2e`\.$/mu,
+      );
+    });
+
     it('VALID: {} => includes harness pattern section', () => {
       architectureTestingPatternsBrokerProxy();
 

@@ -2,26 +2,24 @@ import { isE2eTestPathGuard } from './is-e2e-test-path-guard';
 
 describe('isE2eTestPathGuard', () => {
   describe('valid e2e paths', () => {
-    it('VALID: {e2e/web/smoke.spec.ts} => returns true', () => {
-      const result = isE2eTestPathGuard({ filePath: 'e2e/web/smoke.spec.ts' });
+    it('VALID: {packages/web/src/flows/home/guild-delete.e2e.ts} => returns true', () => {
+      const result = isE2eTestPathGuard({
+        filePath: 'packages/web/src/flows/home/guild-delete.e2e.ts',
+      });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {tests/e2e/login.spec.ts} => returns true', () => {
-      const result = isE2eTestPathGuard({ filePath: 'tests/e2e/login.spec.ts' });
+    it('VALID: {smoke.e2e.ts} => returns true', () => {
+      const result = isE2eTestPathGuard({ filePath: 'smoke.e2e.ts' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {e2e/chat.spec.ts} => returns true', () => {
-      const result = isE2eTestPathGuard({ filePath: 'e2e/chat.spec.ts' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {packages/testing/e2e/web/smoke.spec.ts} => returns true', () => {
-      const result = isE2eTestPathGuard({ filePath: 'packages/testing/e2e/web/smoke.spec.ts' });
+    it('VALID: {packages/web/src/flows/quest-chat/chat-features.e2e.ts} => returns true', () => {
+      const result = isE2eTestPathGuard({
+        filePath: 'packages/web/src/flows/quest-chat/chat-features.e2e.ts',
+      });
 
       expect(result).toBe(true);
     });
@@ -46,8 +44,8 @@ describe('isE2eTestPathGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID: {spec.ts outside e2e folder} => returns false', () => {
-      const result = isE2eTestPathGuard({ filePath: 'src/smoke.spec.ts' });
+    it('INVALID: {foo.e2e.test.ts} => returns false', () => {
+      const result = isE2eTestPathGuard({ filePath: 'src/foo.e2e.test.ts' });
 
       expect(result).toBe(false);
     });

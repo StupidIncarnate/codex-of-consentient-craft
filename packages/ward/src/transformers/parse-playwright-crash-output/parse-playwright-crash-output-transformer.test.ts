@@ -10,8 +10,8 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
         value: [
           'Running 5 tests using 1 worker',
           '',
-          '[1/5] [chromium] › e2e/web/smoke.spec.ts:20:7 › Smoke › loads page',
-          '[2/5] [chromium] › e2e/web/smoke.spec.ts:30:7 › Smoke › clicks button',
+          '[1/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › loads page',
+          '[2/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:30:7 › Smoke › clicks button',
         ].join('\n'),
       });
 
@@ -25,10 +25,10 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
     it('VALID: {output: one numbered failure with error and stack} => returns one TestFailure with message and stackTrace', () => {
       const output = ErrorMessageStub({
         value: [
-          '[1/3] [chromium] › e2e/web/smoke.spec.ts:20:7 › Smoke › loads page',
-          '[2/3] [chromium] › e2e/web/quest.spec.ts:10:7 › Quest › starts quest',
-          '[3/3] [chromium] › e2e/web/quest.spec.ts:10:7 › Quest › starts quest (retry #1)',
-          '  1) [chromium] › e2e/web/quest.spec.ts:10:7 › Quest › starts quest ',
+          '[1/3] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › loads page',
+          '[2/3] [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › starts quest',
+          '[3/3] [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › starts quest (retry #1)',
+          '  1) [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › starts quest ',
           '',
           '    Test timeout of 10000ms exceeded.',
           '',
@@ -39,8 +39,8 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
           '    > 87 |   const sessionResponsePromise = page.waitForResponse(',
           '         |                                       ^',
           '      88 |     (r) =>',
-          '        at navigateToSession (/project/e2e/web/quest.spec.ts:87:39)',
-          '        at /project/e2e/web/quest.spec.ts:10:11',
+          '        at navigateToSession (/project/packages/web/src/flows/quest-chat/quest.e2e.ts:87:39)',
+          '        at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:10:11',
           '',
         ].join('\n'),
       });
@@ -49,7 +49,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
       expect(result).toStrictEqual([
         TestFailureStub({
-          suitePath: 'e2e/web/quest.spec.ts',
+          suitePath: 'packages/web/src/flows/quest-chat/quest.e2e.ts',
           testName: 'Quest › starts quest',
           message: [
             'Error: page.waitForResponse: ',
@@ -60,8 +60,8 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
             '88 |     (r) =>',
           ].join('\n'),
           stackTrace: [
-            'at navigateToSession (/project/e2e/web/quest.spec.ts:87:39)',
-            'at /project/e2e/web/quest.spec.ts:10:11',
+            'at navigateToSession (/project/packages/web/src/flows/quest-chat/quest.e2e.ts:87:39)',
+            'at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:10:11',
           ].join('\n'),
         }),
       ]);
@@ -72,16 +72,16 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
     it('VALID: {output: two numbered failures} => returns two TestFailure entries', () => {
       const output = ErrorMessageStub({
         value: [
-          '  1) [chromium] › e2e/web/alpha.spec.ts:10:7 › Alpha › test one ',
+          '  1) [chromium] › packages/web/src/flows/home/alpha.e2e.ts:10:7 › Alpha › test one ',
           '',
           '    Expected: true',
           '    Received: false',
-          '        at Object.<anonymous> (/project/e2e/web/alpha.spec.ts:15:20)',
+          '        at Object.<anonymous> (/project/packages/web/src/flows/home/alpha.e2e.ts:15:20)',
           '',
-          '  2) [chromium] › e2e/web/beta.spec.ts:20:7 › Beta › test two ',
+          '  2) [chromium] › packages/web/src/flows/home/beta.e2e.ts:20:7 › Beta › test two ',
           '',
           '    Timeout of 5000ms exceeded.',
-          '        at /project/e2e/web/beta.spec.ts:25:10',
+          '        at /project/packages/web/src/flows/home/beta.e2e.ts:25:10',
           '',
         ].join('\n'),
       });
@@ -90,16 +90,17 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
       expect(result).toStrictEqual([
         TestFailureStub({
-          suitePath: 'e2e/web/alpha.spec.ts',
+          suitePath: 'packages/web/src/flows/home/alpha.e2e.ts',
           testName: 'Alpha › test one',
           message: 'Expected: true\nReceived: false',
-          stackTrace: 'at Object.<anonymous> (/project/e2e/web/alpha.spec.ts:15:20)',
+          stackTrace:
+            'at Object.<anonymous> (/project/packages/web/src/flows/home/alpha.e2e.ts:15:20)',
         }),
         TestFailureStub({
-          suitePath: 'e2e/web/beta.spec.ts',
+          suitePath: 'packages/web/src/flows/home/beta.e2e.ts',
           testName: 'Beta › test two',
           message: 'Timeout of 5000ms exceeded.',
-          stackTrace: 'at /project/e2e/web/beta.spec.ts:25:10',
+          stackTrace: 'at /project/packages/web/src/flows/home/beta.e2e.ts:25:10',
         }),
       ]);
     });
@@ -109,10 +110,10 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
     it('VALID: {output: failure with WebServer lines and attachments} => strips noise from error block', () => {
       const output = ErrorMessageStub({
         value: [
-          '  1) [chromium] › e2e/web/quest.spec.ts:10:7 › Quest › fails ',
+          '  1) [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › fails ',
           '',
           '    Error: element not found',
-          '        at /project/e2e/web/quest.spec.ts:15:5',
+          '        at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:15:5',
           '',
           '    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────',
           '    test-results/quest-chromium/test-failed-1.png',
@@ -123,7 +124,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
           '    Retry #1 ───────────────────────────────────────────────────────────────────────────────────',
           '',
           '    Error: element not found (retry)',
-          '        at /project/e2e/web/quest.spec.ts:15:5',
+          '        at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:15:5',
           '',
           '[WebServer] some debug output',
           '[WebServer] more debug output',
@@ -135,10 +136,10 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
       expect(result).toStrictEqual([
         TestFailureStub({
-          suitePath: 'e2e/web/quest.spec.ts',
+          suitePath: 'packages/web/src/flows/quest-chat/quest.e2e.ts',
           testName: 'Quest › fails',
           message: 'Error: element not found',
-          stackTrace: 'at /project/e2e/web/quest.spec.ts:15:5',
+          stackTrace: 'at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:15:5',
         }),
       ]);
     });
@@ -148,7 +149,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
     it('VALID: {output: failure with ANSI escape codes} => strips ANSI before parsing', () => {
       const output = ErrorMessageStub({
         value: [
-          '  1) \x1b[31m[chromium]\x1b[0m › e2e/web/smoke.spec.ts:5:7 › Smoke › red test ',
+          '  1) \x1b[31m[chromium]\x1b[0m › packages/web/src/flows/app/smoke.e2e.ts:5:7 › Smoke › red test ',
           '',
           '    \x1b[1mAssertion failed\x1b[0m',
           '',
@@ -159,7 +160,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
       expect(result).toStrictEqual([
         TestFailureStub({
-          suitePath: 'e2e/web/smoke.spec.ts',
+          suitePath: 'packages/web/src/flows/app/smoke.e2e.ts',
           testName: 'Smoke › red test',
           message: 'Assertion failed',
         }),

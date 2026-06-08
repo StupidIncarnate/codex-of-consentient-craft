@@ -28,7 +28,7 @@ ruleTester.run('enforce-harness-patterns', ruleEnforceHarnessPatternsBroker(), {
     },
     {
       code: "import { guildContract } from '../contracts/guild/guild-contract';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
     {
       code: "import { guildContract } from '../contracts/guild/guild-contract';",

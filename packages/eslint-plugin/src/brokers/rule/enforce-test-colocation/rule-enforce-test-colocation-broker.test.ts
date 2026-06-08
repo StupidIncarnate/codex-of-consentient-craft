@@ -60,14 +60,17 @@ ruleTester.run('enforce-test-colocation', ruleEnforceTestColocationBroker(), {
       code: 'describe("test", () => {});',
       filename: '/project/src/@types/stub-argument.test.ts',
     },
-    // {
-    //   code: 'describe("test", () => {});',
-    //   filename: '/project/tests/e2e/user-flow.e2e.test.ts',
-    // },
-    // {
-    //   code: 'describe("test", () => {});',
-    //   filename: '/project/tests/e2e/checkout-flow.e2e.spec.ts',
-    // },
+    // E2e files colocate with the entry flow — no single impl companion, so exempt
+    {
+      code: 'describe("test", () => {});',
+      filename: '/project/src/flows/home/guild-delete.e2e.ts',
+    },
+    // The e2e exemption is by file type, not folder: a .e2e.ts in a non-flow folder with
+    // no matching implementation file is still exempt.
+    {
+      code: 'describe("test", () => {});',
+      filename: '/project/src/widgets/foo/bar.e2e.ts',
+    },
     {
       code: 'const foo = "bar"',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
@@ -98,15 +101,12 @@ ruleTester.run('enforce-test-colocation', ruleEnforceTestColocationBroker(), {
       filename: '/project/src/adapters/missing.integration.spec.tsx',
       errors: [{ messageId: 'testNotColocated' }],
     },
-    // {
-    //   code: 'describe("test", () => {});',
-    //   filename: '/project/src/brokers/user/user-flow.e2e.test.ts',
-    //   errors: [{ messageId: 'e2eTestInSrc' }],
-    // },
-    // {
-    //   code: 'describe("test", () => {});',
-    //   filename: '/project/src/widgets/checkout.e2e.spec.tsx',
-    //   errors: [{ messageId: 'e2eTestInSrc' }],
-    // },
+    // The exemption is e2e-only, not a blanket non-impl exemption: an integration test in a
+    // non-flow folder with no matching implementation file is still flagged.
+    {
+      code: 'describe("test", () => {});',
+      filename: '/project/src/widgets/foo/bar.integration.test.ts',
+      errors: [{ messageId: 'testNotColocated' }],
+    },
   ],
 });

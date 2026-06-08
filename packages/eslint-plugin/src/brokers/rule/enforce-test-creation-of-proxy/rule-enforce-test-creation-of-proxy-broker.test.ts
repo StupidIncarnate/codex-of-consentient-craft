@@ -333,7 +333,7 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       filename: '/project/src/startup/start-server.integration.test.ts',
     },
 
-    // Harness wrapped with wireHarnessLifecycle inside describe in .spec.ts - ALLOWED
+    // Harness wrapped with wireHarnessLifecycle inside describe in .e2e.ts - ALLOWED
     {
       code: `
         describe('GuildDisplay', () => {
@@ -344,7 +344,7 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           });
         });
       `,
-      filename: '/project/src/tests/guilds.spec.ts',
+      filename: '/project/src/tests/guilds.e2e.ts',
     },
   ],
   invalid: [
@@ -438,7 +438,7 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       ],
     },
 
-    // Proxy import in .spec.ts file - FORBIDDEN (spec files are e2e-like, no proxies)
+    // Proxy import in .e2e.ts file - FORBIDDEN (e2e files have no proxies, no proxies)
     {
       code: `
         import { apiProxy } from './api-broker.proxy';
@@ -447,7 +447,7 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           apiProxy();
         });
       `,
-      filename: '/project/src/brokers/api/api-broker.spec.ts',
+      filename: '/project/src/brokers/api/api-broker.e2e.ts',
       errors: [
         {
           messageId: 'noProxyInIntegrationTest',
@@ -857,7 +857,7 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
       ],
     },
 
-    // Bare harness call inside describe in .spec.ts - needs wireHarnessLifecycle
+    // Bare harness call inside describe in .e2e.ts - needs wireHarnessLifecycle
     {
       code: `
         describe('GuildDisplay', () => {
@@ -868,7 +868,7 @@ ruleTester.run('enforce-test-creation-of-proxy', ruleEnforceTestCreationOfProxyB
           });
         });
       `,
-      filename: '/project/src/tests/guilds.spec.ts',
+      filename: '/project/src/tests/guilds.e2e.ts',
       errors: [
         {
           messageId: 'harnessNeedsWireInSpec',

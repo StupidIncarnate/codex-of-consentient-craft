@@ -46,13 +46,13 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     // Spec file importing from harness (not a node builtin) — allowed
     {
       code: "import { guildHarness } from '../../test/harnesses/guild/guild.harness';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
 
     // Spec file importing non-banned modules — allowed
     {
       code: "import { expect } from '@playwright/test';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
 
     // Integration test importing non-banned modules — allowed
@@ -64,20 +64,20 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     // Crypto is allowed in spec files (data generation, not infrastructure)
     {
       code: "import crypto from 'crypto';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
     },
 
     // File in test/ directory that is a spec file — test/ exclusion takes priority
     {
       code: "import fs from 'fs';",
-      filename: '/project/test/e2e/smoke.spec.ts',
+      filename: '/project/test/e2e/smoke.e2e.ts',
     },
   ],
   invalid: [
     // Spec file importing fs
     {
       code: "import fs from 'fs';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -89,7 +89,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     // Spec file importing fs/promises
     {
       code: "import { readFile } from 'fs/promises';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -113,7 +113,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     // Spec file importing os
     {
       code: "import os from 'os';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -125,7 +125,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     // Spec file importing child_process
     {
       code: "import { execFile } from 'child_process';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -137,7 +137,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     // Spec file importing node: prefixed builtins
     {
       code: "import fs from 'node:fs';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -147,7 +147,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     },
     {
       code: "import { readFile } from 'node:fs/promises';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -157,7 +157,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     },
     {
       code: "import path from 'node:path';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -167,7 +167,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     },
     {
       code: "import os from 'node:os';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -177,7 +177,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
     },
     {
       code: "import { execFile } from 'node:child_process';",
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',
@@ -203,7 +203,7 @@ ruleTester.run('ban-node-builtins-in-test-scenarios', ruleBanNodeBuiltinsInTestS
       code: `import fs from 'fs';
 import path from 'path';
 import os from 'os';`,
-      filename: '/project/e2e/web/smoke.spec.ts',
+      filename: '/project/e2e/web/smoke.e2e.ts',
       errors: [
         {
           messageId: 'noNodeBuiltins',

@@ -32,4 +32,4 @@ dungeonmaster init
 
 - Unit tests use proxy files for mocking (no direct `jest.mock`/`jest.spyOn` — use `registerMock`/`registerSpyOn` from `@dungeonmaster/testing/register-mock`)
 - Integration tests for startup files use `installTestbedCreateBroker` for isolated temp directories
-- E2E test (`bin/dungeonmaster.e2e.test.ts`) requires `npm run build` first
+- Integration test (`bin/cli-entry.integration.test.ts`) spawns the built binary via `test/harnesses/cli-bin/cli-bin.harness.ts`; requires `npm run build` first

@@ -166,7 +166,7 @@ describe('EslintPluginCreateResponder', () => {
       expect(Object.keys(test).sort()).toStrictEqual(['plugins', 'rules']);
     });
 
-    it('VALID: {} => returns fileOverrides with 8 override configs', () => {
+    it('VALID: {} => returns fileOverrides with 9 override configs', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
@@ -175,10 +175,11 @@ describe('EslintPluginCreateResponder', () => {
         ['**/*.proxy.ts', '**/*.proxy.tsx'],
         ['**/*.stub.ts', '**/*.stub.tsx'],
         ['**/*.integration.test.ts', '**/*.integration.test.tsx'],
+        ['**/src/*.integration.test.ts', '**/src/*.integration.test.tsx'],
         ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
         ['**/*.e2e.test.ts', '**/*.integration.test.ts'],
         ['**/startup/start-*.ts'],
-        ['**/*.spec.ts'],
+        ['**/*.e2e.ts'],
         ['**/*.harness.ts'],
       ]);
     });
@@ -225,11 +226,29 @@ describe('EslintPluginCreateResponder', () => {
       });
     });
 
+    it('VALID: {} => returns fileOverrides with package-meta integration test override', () => {
+      const proxy = EslintPluginCreateResponderProxy();
+      const plugin = proxy.callResponder();
+      const { fileOverrides } = plugin.configs.dungeonmaster;
+      const [, , , packageMetaOverride] = fileOverrides;
+
+      expect(packageMetaOverride).toStrictEqual({
+        files: ['**/src/*.integration.test.ts', '**/src/*.integration.test.tsx'],
+        rules: {
+          '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
+          '@dungeonmaster/enforce-test-colocation': 'off',
+          '@dungeonmaster/require-contract-validation': 'off',
+          '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'off',
+          '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'off',
+        },
+      });
+    });
+
     it('VALID: {} => returns fileOverrides with e2e test override', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
-      const [, , , e2eOverride] = fileOverrides;
+      const [, , , , e2eOverride] = fileOverrides;
 
       expect(e2eOverride).toStrictEqual({
         files: ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
@@ -246,7 +265,7 @@ describe('EslintPluginCreateResponder', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
-      const [, , , , startupOverride] = fileOverrides;
+      const [, , , , , startupOverride] = fileOverrides;
 
       expect(startupOverride).toStrictEqual({
         files: ['**/*.e2e.test.ts', '**/*.integration.test.ts'],
@@ -261,7 +280,7 @@ describe('EslintPluginCreateResponder', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
       const { fileOverrides } = plugin.configs.dungeonmaster;
-      const [, , , , , startupStartOverride] = fileOverrides;
+      const [, , , , , , startupStartOverride] = fileOverrides;
 
       expect(startupStartOverride).toStrictEqual({
         files: ['**/startup/start-*.ts'],

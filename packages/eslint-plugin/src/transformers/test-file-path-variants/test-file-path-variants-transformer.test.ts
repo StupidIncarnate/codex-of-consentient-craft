@@ -12,6 +12,7 @@ describe('testFilePathVariantsTransformer', () => {
         '/src/user-broker.spec.ts',
         '/src/user-broker.integration.test.ts',
         '/src/user-broker.integration.spec.ts',
+        '/src/user-broker.e2e.ts',
         '/src/user-broker.e2e.test.ts',
         '/src/user-broker.e2e.spec.ts',
       ]);
@@ -29,6 +30,7 @@ describe('testFilePathVariantsTransformer', () => {
         '/src/user-widget.spec.tsx',
         '/src/user-widget.integration.test.tsx',
         '/src/user-widget.integration.spec.tsx',
+        '/src/user-widget.e2e.tsx',
         '/src/user-widget.e2e.test.tsx',
         '/src/user-widget.e2e.spec.tsx',
       ]);
@@ -46,6 +48,7 @@ describe('testFilePathVariantsTransformer', () => {
         '/project/src/brokers/user/fetch/user-fetch-broker.spec.ts',
         '/project/src/brokers/user/fetch/user-fetch-broker.integration.test.ts',
         '/project/src/brokers/user/fetch/user-fetch-broker.integration.spec.ts',
+        '/project/src/brokers/user/fetch/user-fetch-broker.e2e.ts',
         '/project/src/brokers/user/fetch/user-fetch-broker.e2e.test.ts',
         '/project/src/brokers/user/fetch/user-fetch-broker.e2e.spec.ts',
       ]);

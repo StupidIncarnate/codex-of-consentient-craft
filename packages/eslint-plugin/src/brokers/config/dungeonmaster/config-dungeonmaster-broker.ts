@@ -219,6 +219,21 @@ export const configDungeonmasterBroker = ({
     },
   });
 
+  // Package-meta integration tests sit directly in src/ (not in a domain subfolder): they
+  // exercise the package as a whole (loading the built plugin, reading rule source files,
+  // spinning up tmp environments), so they legitimately use node builtins + module-level
+  // helpers and have no single colocated implementation companion.
+  const packageMetaIntegrationOverrides: EslintConfig = eslintConfigContract.parse({
+    files: ['**/src/*.integration.test.ts', '**/src/*.integration.test.tsx'],
+    rules: {
+      '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
+      '@dungeonmaster/enforce-test-colocation': 'off',
+      '@dungeonmaster/require-contract-validation': 'off',
+      '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'off',
+      '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'off',
+    },
+  });
+
   const e2eOverrides: EslintConfig = eslintConfigContract.parse({
     files: ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
     rules: {
@@ -246,10 +261,10 @@ export const configDungeonmasterBroker = ({
     },
   });
 
-  // Playwright spec files — relax rules that conflict with Playwright's test API.
-  // isTestFileGuard matches *.spec.ts, so test-scoped @dungeonmaster rules fire on specs.
+  // Playwright e2e files — relax rules that conflict with Playwright's test API.
+  // isTestFileGuard matches *.e2e.ts, so test-scoped @dungeonmaster rules fire on e2e files.
   const specOverrides: EslintConfig = eslintConfigContract.parse({
-    files: ['**/*.spec.ts'],
+    files: ['**/*.e2e.ts'],
     rules: {
       // Jest API conflicts — Playwright uses test() not it(), has own expect/hooks/describe
       'jest/no-hooks': 'off',
@@ -263,12 +278,33 @@ export const configDungeonmasterBroker = ({
       // Proxy rules — specs use harnesses, not proxies
       '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
       '@dungeonmaster/enforce-test-proxy-imports': 'off',
-      // Colocation — specs live in e2e/, not co-located with implementation
+      // Colocation — e2e files colocate with the entry flow they test, not a single impl companion
       '@dungeonmaster/enforce-test-colocation': 'off',
       // Stubs — specs can use inline test data, not everything needs a stub
       '@dungeonmaster/enforce-stub-usage': 'off',
       // Jest mock — specs don't use jest.mock
       '@dungeonmaster/ban-jest-mock-in-tests': 'off',
+      // Import deps — e2e specs are TEST files colocated under flows/<route>, not flow
+      // modules. They legitimately reach for node builtins (crypto) to mint unique test
+      // data; the flows/-can't-import-external rule targets shipped flow code, not specs.
+      '@dungeonmaster/enforce-import-dependencies': 'off',
+      // Return types — Playwright test()/page-eval callbacks are inline arrow throwaways;
+      // explicit return annotations add noise without value in spec assertions.
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      // Magic numbers — specs assert literal HTTP status codes (200) and row/index counts
+      // inline; extracting every literal to a named const harms spec readability.
+      '@typescript-eslint/no-magic-numbers': 'off',
+      // Type conversion — String()/Number() coercions over Playwright's loosely-typed
+      // handles are intentional defensive normalization, not redundant in spec context.
+      '@typescript-eslint/no-unnecessary-type-conversion': 'off',
+      // Unsafe any family — page.evaluate() and HTTP harness responses return `any`;
+      // these are the same relaxations the repo grants other test files, since specs
+      // read untyped browser/harness payloads at runtime.
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
     },
   });
 
@@ -293,6 +329,7 @@ export const configDungeonmasterBroker = ({
       proxyOverrides,
       stubOverride,
       integrationOverrides,
+      packageMetaIntegrationOverrides,
       e2eOverrides,
       startupTestOverrides,
       startupShortCircuitOverrides,

@@ -25,6 +25,9 @@ const unitDiscoverPatterns = allExts.flatMap((ext) => [
   `bin/**/*.test.${ext}`,
   `test/**/*.test.${ext}`,
 ]);
+// `.e2e.test` is retained defensively: e2e is now exclusively Playwright `*.e2e.ts`,
+// so no repo file carries the Jest `.e2e.test` suffix after the rename — but a stray one
+// must still be excluded from the unit run rather than collected as a unit test.
 const unitExcludePatterns = allExts.flatMap((ext) => [
   `**/*.integration.test.${ext}`,
   `**/*.e2e.test.${ext}`,
@@ -62,6 +65,9 @@ export const checkCommandsStatics = {
       '--forceExit',
       '--detectOpenHandles',
       '--testPathIgnorePatterns',
+      // `.e2e.test` is retained defensively here too: e2e is Playwright-only (`*.e2e.ts`),
+      // so the Jest `.e2e.test` suffix is unused after the rename, but a stray one should
+      // still never run as a unit test.
       `\\.integration\\.test\\.(${extRegex})$|\\.e2e\\.test\\.(${extRegex})$`,
     ],
     discoverPatterns: unitDiscoverPatterns,
@@ -83,6 +89,6 @@ export const checkCommandsStatics = {
   e2e: {
     bin: 'playwright',
     args: ['test', '--reporter=line,json'],
-    discoverPatterns: ['tests/e2e/**/*.spec.ts', 'e2e/**/*.spec.ts'],
+    discoverPatterns: ['**/*.e2e.ts'],
   },
 } as const;

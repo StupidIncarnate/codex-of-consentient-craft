@@ -742,6 +742,138 @@ describe('stepsToWorkItemsTransformer', () => {
       expect(siege?.dependsOn).toStrictEqual([flowrider?.id]);
     });
 
+    it('VALID: {one broker step + one .e2e.ts step + one flow} => flowrider owns the e2e step; no codeweaver carries it', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 5 minions + synth + ward = 13
+      proxy.setupUuids({ uuids: IDS.slice(0, 13) });
+
+      const brokerStepId = StepIdStub({ value: 'broker-step' });
+      const e2eStepId = StepIdStub({ value: 'e2e-step' });
+
+      const brokerStep = DependencyStepStub({
+        id: brokerStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/brokers/a/a-broker.ts' },
+      });
+      const e2eStep = DependencyStepStub({
+        id: e2eStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/flows/home/guild-delete.e2e.ts' },
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [brokerStep, e2eStep],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      const flowrider = result.find((wi) => wi.role === 'flowrider');
+
+      expect(flowrider?.relatedDataItems).toStrictEqual([
+        `flows/${String(flow.id)}`,
+        `steps/${String(e2eStepId)}`,
+      ]);
+
+      const codeweaverRelated = result
+        .filter((wi) => wi.role === 'codeweaver')
+        .map((wi) => wi.relatedDataItems);
+
+      // The e2e step lands on flowrider, never codeweaver — only the broker step remains.
+      expect(codeweaverRelated).toStrictEqual([[`steps/${String(brokerStepId)}`]]);
+    });
+
+    it('VALID: {one broker step + one .integration.test.ts step + one flow} => flowrider owns the integration step; no codeweaver carries it', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 5 minions + synth + ward = 13
+      proxy.setupUuids({ uuids: IDS.slice(0, 13) });
+
+      const brokerStepId = StepIdStub({ value: 'broker-step' });
+      const integrationStepId = StepIdStub({ value: 'integration-step' });
+
+      const brokerStep = DependencyStepStub({
+        id: brokerStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/server/src/brokers/a/a-broker.ts' },
+      });
+      const integrationStep = DependencyStepStub({
+        id: integrationStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/server/src/flows/quest/quest-flow.integration.test.ts' },
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [brokerStep, integrationStep],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      const flowrider = result.find((wi) => wi.role === 'flowrider');
+
+      expect(flowrider?.relatedDataItems).toStrictEqual([
+        `flows/${String(flow.id)}`,
+        `steps/${String(integrationStepId)}`,
+      ]);
+
+      const codeweaverRelated = result
+        .filter((wi) => wi.role === 'codeweaver')
+        .map((wi) => wi.relatedDataItems);
+
+      expect(codeweaverRelated).toStrictEqual([[`steps/${String(brokerStepId)}`]]);
+    });
+
+    it('VALID: {e2e-only quest — one .e2e.ts step, one flow, no flows/ or startup/ impl step} => flowrider summoned', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      // ward + 1 flowrider + 1 siege + 1 lawbringer (e2e step is ungrouped) + 5 minions + synth +
+      // ward = 10 work items (no codeweaver — the only step is flowrider-owned). Provide a spare id.
+      proxy.setupUuids({ uuids: IDS.slice(0, 11) });
+
+      const e2eStepId = StepIdStub({ value: 'e2e-only-step' });
+      const e2eStep = DependencyStepStub({
+        id: e2eStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/flows/home/guild-delete.e2e.ts' },
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [e2eStep],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      const flowrider = result.find((wi) => wi.role === 'flowrider');
+
+      expect(flowrider?.relatedDataItems).toStrictEqual([
+        `flows/${String(flow.id)}`,
+        `steps/${String(e2eStepId)}`,
+      ]);
+
+      // No codeweaver item — the only step is flowrider-owned.
+      const codeweaverRoles = result.filter((wi) => wi.role === 'codeweaver').map((wi) => wi.role);
+
+      expect(codeweaverRoles).toStrictEqual([]);
+    });
+
     it('VALID: {no flow/startup steps} => no flowrider items; siege depends on the changed-ward', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       // 1 codeweaver + ward + 1 siege + 1 lawbringer + 5 minions + synth + ward = 11

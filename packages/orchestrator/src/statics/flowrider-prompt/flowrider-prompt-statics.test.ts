@@ -49,4 +49,31 @@ describe('flowriderPromptStatics', () => {
       /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
     );
   });
+
+  it('VALID: template => declares e2e Playwright-exclusive colocation in the UI package', () => {
+    const needle =
+      "**e2e = Playwright exclusively, and each `.e2e.ts` colocates with the UI it tests.** An e2e lives in the entry flow's folder of the UI package";
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => e2e ward command targets a colocated web flow .e2e.ts', () => {
+    const needle = 'npm run ward -- --only e2e -- packages/web/src/flows/<route>/<feature>.e2e.ts';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
+    expect(flowriderPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
+  });
 });

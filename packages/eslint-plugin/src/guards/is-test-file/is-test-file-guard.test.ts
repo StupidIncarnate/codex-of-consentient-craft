@@ -32,6 +32,18 @@ describe('isTestFileGuard', () => {
       expect(result).toBe(true);
     });
 
+    it('VALID: {filename: "guild-delete.e2e.ts"} => true', () => {
+      const result = isTestFileGuard({ filename: 'guild-delete.e2e.ts' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {filename: "user-widget.e2e.tsx"} => true', () => {
+      const result = isTestFileGuard({ filename: 'user-widget.e2e.tsx' });
+
+      expect(result).toBe(true);
+    });
+
     it('VALID: {filename: "user-broker.e2e.test.ts"} => true', () => {
       const result = isTestFileGuard({ filename: 'user-broker.e2e.test.ts' });
 

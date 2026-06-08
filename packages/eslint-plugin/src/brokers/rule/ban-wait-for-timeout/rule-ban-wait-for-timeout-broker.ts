@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const rule = ruleBanWaitForTimeoutBroker();
- * // Returns ESLint rule that prevents waitForTimeout() and setTimeout() delays in *.spec.ts files
+ * // Returns ESLint rule that prevents waitForTimeout() and setTimeout() delays in *.e2e.ts files
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';

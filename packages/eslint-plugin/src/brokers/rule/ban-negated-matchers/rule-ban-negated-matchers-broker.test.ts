@@ -35,10 +35,10 @@ ruleTester.run('ban-negated-matchers', ruleBanNegatedMatchersBroker(), {
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
 
-    // Playwright spec files — allowed Playwright visibility matchers with .not
+    // Playwright e2e files — allowed Playwright visibility matchers with .not
     {
       code: 'await expect(locator).not.toBeVisible();',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
     },
 
     // Playwright .not.toBeEnabled() in e2e files
@@ -59,28 +59,28 @@ ruleTester.run('ban-negated-matchers', ruleBanNegatedMatchersBroker(), {
       filename: '/project/src/e2e/login.e2e.test.tsx',
     },
 
-    // Playwright .not.toBeDisabled() in spec files
+    // Playwright .not.toBeDisabled() in e2e files
     {
       code: 'await expect(locator).not.toBeDisabled();',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
     },
 
-    // Playwright .not.toBeChecked() in spec files
+    // Playwright .not.toBeChecked() in e2e files
     {
       code: 'await expect(locator).not.toBeChecked();',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
     },
 
-    // Playwright .not.toBeEmpty() in spec files
+    // Playwright .not.toBeEmpty() in e2e files
     {
       code: 'await expect(locator).not.toBeEmpty();',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
     },
 
-    // Playwright .not.toHaveCount() in spec files
+    // Playwright .not.toHaveCount() in e2e files
     {
       code: 'await expect(locator).not.toHaveCount(0);',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
     },
   ],
 
@@ -127,10 +127,10 @@ ruleTester.run('ban-negated-matchers', ruleBanNegatedMatchersBroker(), {
       errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toBe' } }],
     },
 
-    // .not.toBe(null) in spec files is NOT allowed (not in Playwright allowlist)
+    // .not.toBe(null) in e2e files is NOT allowed (not in Playwright allowlist)
     {
       code: 'expect(value).not.toBe(null);',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
       errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toBe' } }],
     },
 
@@ -141,10 +141,10 @@ ruleTester.run('ban-negated-matchers', ruleBanNegatedMatchersBroker(), {
       errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toHaveBeenCalled' } }],
     },
 
-    // .not.toStrictEqual() in spec files is NOT allowed
+    // .not.toStrictEqual() in e2e files is NOT allowed
     {
       code: 'expect(result).not.toStrictEqual({ id: 1 });',
-      filename: '/project/src/e2e/quest.spec.ts',
+      filename: '/project/src/e2e/quest.e2e.ts',
       errors: [{ messageId: 'noNegatedMatcher', data: { matcher: 'toStrictEqual' } }],
     },
   ],
