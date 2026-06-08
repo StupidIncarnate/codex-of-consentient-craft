@@ -144,7 +144,7 @@ describe('caseCatalogToBlueprintTransformer', () => {
       }).toStrictEqual({
         title: 'Smoketest: Signals',
         userRequest: 'Emit each scripted signal (complete / failed / failed-replan) once',
-        skipRoles: ['ward', 'siegemaster', 'lawbringer', 'blightwarden'],
+        skipRoles: ['ward', 'flowrider', 'siegemaster', 'lawbringer', 'blightwarden'],
       });
     });
   });

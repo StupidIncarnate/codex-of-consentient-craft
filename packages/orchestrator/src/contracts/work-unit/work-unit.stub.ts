@@ -61,6 +61,16 @@ export const SiegemasterWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {
     ...props,
   });
 
+export const FlowriderWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}): WorkUnit =>
+  workUnitContract.parse({
+    role: 'flowrider',
+    questId: QuestIdStub({ value: 'add-auth' }),
+    relatedDesignDecisions: [],
+    flow: FlowStub(),
+    focusFiles: [],
+    ...props,
+  });
+
 export const BlightwardenWorkUnitStub = ({ ...props }: StubArgument<WorkUnit> = {}): WorkUnit =>
   workUnitContract.parse({
     role: 'blightwarden',

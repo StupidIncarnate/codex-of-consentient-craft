@@ -24,6 +24,7 @@ import {
   type ContentText,
   type ErrorMessage,
   type Quest,
+  type StepFileReference,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
@@ -225,6 +226,57 @@ export const workItemToPromptTransformer = ({
           : {
               devCommand: siegeRuntimeDevServer.devCommand,
               devServerUrl: siegeRuntimeDevServer.devServerUrl,
+            }),
+        ...overrideField,
+      });
+    }
+
+    if (workItem.role === 'flowrider') {
+      if (workItem.relatedDataItems.length === 0) {
+        throw new Error(
+          `workItemToPromptTransformer: flowrider work item ${String(workItem.id)} has no relatedDataItems`,
+        );
+      }
+      // Flowrider's relatedDataItems carry exactly one flows/<id> ref (the flow it tests) plus
+      // the flow/startup steps/<id> refs it must implement. Resolve the flow for context and
+      // collect each step's focusFile path into focusFiles (the files this role creates).
+      const resolvedItems = workItem.relatedDataItems.map((ref) =>
+        resolveRelatedDataItemTransformer({ ref, quest }),
+      );
+      for (const resolved of resolvedItems) {
+        if (resolved.collection !== 'flows' && resolved.collection !== 'steps') {
+          throw new Error(
+            `workItemToPromptTransformer: flowrider work item ${String(workItem.id)} expected flows or steps reference, got ${resolved.collection}`,
+          );
+        }
+      }
+      const flowResolved = resolvedItems.find((resolved) => resolved.collection === 'flows');
+      if (flowResolved === undefined) {
+        throw new Error(
+          `workItemToPromptTransformer: flowrider work item ${String(workItem.id)} has no flows reference`,
+        );
+      }
+      const resolvedFlow = flowResolved.item;
+      const focusFiles: StepFileReference['path'][] = resolvedItems.flatMap((resolved) =>
+        resolved.collection === 'steps' && resolved.item.focusFile !== undefined
+          ? [resolved.item.focusFile.path]
+          : [],
+      );
+      // Dev-server config only applies to runtime flows (same as siegemaster).
+      const flowriderRuntimeDevServer =
+        siegeDevServer !== undefined && resolvedFlow.flowType === 'runtime'
+          ? siegeDevServer
+          : undefined;
+      return buildWorkUnitForRoleTransformer({
+        role: 'flowrider',
+        flow: resolvedFlow,
+        quest,
+        focusFiles,
+        ...(flowriderRuntimeDevServer === undefined
+          ? {}
+          : {
+              devCommand: flowriderRuntimeDevServer.devCommand,
+              devServerUrl: flowriderRuntimeDevServer.devServerUrl,
             }),
         ...overrideField,
       });

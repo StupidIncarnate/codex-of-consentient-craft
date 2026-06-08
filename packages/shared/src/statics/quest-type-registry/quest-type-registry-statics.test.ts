@@ -14,6 +14,7 @@ describe('questTypeRegistryStatics', () => {
           'pathseeker-walk',
           'codeweaver',
           'ward',
+          'flowrider',
           'siegemaster',
           'lawbringer',
           'blightwarden',

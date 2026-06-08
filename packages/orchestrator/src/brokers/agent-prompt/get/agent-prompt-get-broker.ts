@@ -113,13 +113,13 @@ export const agentPromptGetBroker = async ({
     };
   })();
 
-  // Siegemaster runtime flows own their dev server through Playwright's webServer config. Resolve
-  // the dev-server command + URL from .dungeonmaster.json here; the transformer applies them only
-  // when the resolved flow is a runtime flow (operational flows get no server).
+  // Siegemaster AND Flowrider runtime flows own their dev server through Playwright's webServer
+  // config. Resolve the dev-server command + URL from .dungeonmaster.json here; the transformer
+  // applies them only when the resolved flow is a runtime flow (operational flows get no server).
   const siegeDevServer = await (async (): Promise<
     Parameters<typeof workItemToPromptTransformer>[0]['siegeDevServer']
   > => {
-    if (workItem.role !== 'siegemaster') {
+    if (workItem.role !== 'siegemaster' && workItem.role !== 'flowrider') {
       return undefined;
     }
     // The config-find chain dirname()s startPath on its first iteration — it expects a FILE, so it

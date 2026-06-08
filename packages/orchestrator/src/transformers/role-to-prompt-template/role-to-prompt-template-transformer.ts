@@ -16,6 +16,7 @@ import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-m
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
@@ -39,6 +40,8 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
       return contentTextContract.parse(pathseekerAssertionCorrectnessStatics.prompt.template);
     case 'pathseeker-walk':
       return contentTextContract.parse(pathseekerWalkStatics.prompt.template);
+    case 'flowrider':
+      return contentTextContract.parse(flowriderPromptStatics.prompt.template);
     case 'siegemaster':
       return contentTextContract.parse(siegemasterPromptStatics.prompt.template);
     case 'lawbringer':

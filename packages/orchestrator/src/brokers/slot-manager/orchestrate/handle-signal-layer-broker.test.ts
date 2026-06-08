@@ -86,6 +86,35 @@ describe('handleSignalLayerBroker', () => {
     });
   });
 
+  describe('failed signal - flowrider', () => {
+    it('VALID: {signal: failed, role: flowrider} => bubbles to user (block intent)', async () => {
+      handleSignalLayerBrokerProxy();
+      const workItemId = WorkItemIdStub({ value: 'work-item-1' });
+      const mockMarkFailed = jest.fn().mockResolvedValue(undefined);
+      const workTracker = WorkTrackerStub({
+        markFailed: mockMarkFailed,
+      });
+      const signal = StreamSignalStub({
+        signal: 'failed',
+        summary: 'Flow spec is unimplementable' as never,
+      });
+
+      const result = await handleSignalLayerBroker({
+        signal,
+        questId,
+        workItemId,
+        workTracker,
+        role: 'flowrider',
+      });
+
+      expect(result).toStrictEqual({
+        action: 'bubble_to_user',
+        summary: 'Flow spec is unimplementable',
+      });
+      expect(mockMarkFailed).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('failed signal - lawbringer', () => {
     it('VALID: {signal: failed, role: lawbringer} => spawns spiritmender', async () => {
       handleSignalLayerBrokerProxy();

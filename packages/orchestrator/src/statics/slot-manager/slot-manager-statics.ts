@@ -11,6 +11,12 @@ export const slotManagerStatics = {
     slotCount: 3,
     maxFollowupDepth: 5,
   },
+  flowrider: {
+    concurrentLimit: 3,
+    maxRetries: 2,
+    maxDispatchDepth: 3,
+    maxFollowupDepth: 3,
+  },
   siegemaster: {
     concurrentLimit: 3,
     maxRetries: 2,

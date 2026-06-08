@@ -56,6 +56,19 @@ describe('orchestrationStatusContract', () => {
       });
     });
 
+    it('VALID: {phase: "flowrider"} => parses flowrider phase', () => {
+      const result = OrchestrationStatusStub({ phase: 'flowrider' });
+
+      expect(orchestrationStatusContract.parse(result)).toStrictEqual({
+        processId: 'proc-12345',
+        questId: 'add-auth',
+        phase: 'flowrider',
+        completed: 0,
+        total: 5,
+        slots: [],
+      });
+    });
+
     it('VALID: {phase: "siegemaster"} => parses siegemaster phase', () => {
       const result = OrchestrationStatusStub({ phase: 'siegemaster' });
 

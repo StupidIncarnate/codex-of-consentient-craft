@@ -75,8 +75,8 @@ describe('roleToConfigIndexTransformer', () => {
         role: ExecutionRoleStub({ value: 'pathseeker' }),
       });
 
-      // floors.length sentinel: 14 base floors + 5 blightwarden minion floors = 19.
-      expect(result).toBe(19);
+      // floors.length sentinel: 15 base floors (incl. flowrider's GLUEWORKS) + 5 blightwarden minion floors = 20.
+      expect(result).toBe(20);
     });
   });
 });

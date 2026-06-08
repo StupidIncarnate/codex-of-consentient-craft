@@ -1,5 +1,28 @@
+import { indexProxy } from './index.proxy';
+
 describe('orchestrator', () => {
+  it('EDGE: {barrel import} => start-orchestrator module-load schedules no real interval timers', async () => {
+    // indexProxy mocks the interval scheduler so start-orchestrator's module-load bootstraps
+    // (rate-limits poller, stale-process watchdog, execution-queue runner) never start real
+    // setInterval timers. Without it those timers outlive jest's per-file module reset and keep
+    // firing for the worker's whole lifetime — the rate-limits poller writes read-errors into
+    // other test files' stderr spies (notably chat-spawn).
+    indexProxy();
+    const timersBefore = process
+      .getActiveResourcesInfo()
+      .filter((resource) => resource === 'Timeout').length;
+
+    await import('./index');
+
+    const timersAfter = process
+      .getActiveResourcesInfo()
+      .filter((resource) => resource === 'Timeout').length;
+
+    expect(timersAfter).toBe(timersBefore);
+  });
+
   it('VALID: exports module', async () => {
+    indexProxy();
     const orchestrator = await import('./index');
 
     const exportedKeys = Object.keys(orchestrator).sort();
@@ -13,6 +36,7 @@ describe('orchestrator', () => {
       'agentSlotContract',
       'codeweaverPromptStatics',
       'dumpsterCreatePromptStatics',
+      'flowriderPromptStatics',
       'followupDepthContract',
       'getQuestInputContract',
       'getQuestResultContract',

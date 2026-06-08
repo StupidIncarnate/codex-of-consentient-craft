@@ -12,6 +12,7 @@ import { workUnitContract } from './work-unit-contract';
 import {
   BlightwardenWorkUnitStub,
   CodeweaverWorkUnitStub,
+  FlowriderWorkUnitStub,
   LawbringerWorkUnitStub,
   PathseekerWorkUnitStub,
   SiegemasterWorkUnitStub,
@@ -432,6 +433,73 @@ describe('workUnitContract', () => {
       expect(() =>
         workUnitContract.parse({
           role: 'siegemaster',
+          questId: QuestIdStub({ value: 'add-auth' }),
+        }),
+      ).toThrow(/required/iu);
+    });
+  });
+
+  describe('flowrider work unit', () => {
+    it('VALID: {role: flowrider, questId, flow} => parses successfully', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const flow = FlowStub();
+
+      const result = workUnitContract.parse({
+        role: 'flowrider',
+        questId,
+        flow,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'flowrider',
+        questId,
+        flow,
+        relatedDesignDecisions: [],
+        focusFiles: [],
+      });
+    });
+
+    it('VALID: {FlowriderWorkUnitStub} => parses successfully', () => {
+      const stub = FlowriderWorkUnitStub();
+
+      expect(stub).toStrictEqual({
+        role: 'flowrider',
+        questId: QuestIdStub({ value: 'add-auth' }),
+        flow: FlowStub(),
+        relatedDesignDecisions: [],
+        focusFiles: [],
+      });
+    });
+
+    it('VALID: {flowrider with focusFiles + devServerUrl + devCommand} => parses runtime fields', () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const flow = FlowStub();
+      const focusFile = AbsoluteFilePathStub({ value: '/src/flows/auth-flow.ts' });
+
+      const result = workUnitContract.parse({
+        role: 'flowrider',
+        questId,
+        flow,
+        focusFiles: [focusFile],
+        devServerUrl: 'http://localhost:3000',
+        devCommand: 'npm run dev',
+      });
+
+      expect(result).toStrictEqual({
+        role: 'flowrider',
+        questId,
+        flow,
+        relatedDesignDecisions: [],
+        focusFiles: [focusFile],
+        devServerUrl: 'http://localhost:3000',
+        devCommand: 'npm run dev',
+      });
+    });
+
+    it('INVALID: {flowrider without flow} => throws validation error', () => {
+      expect(() =>
+        workUnitContract.parse({
+          role: 'flowrider',
           questId: QuestIdStub({ value: 'add-auth' }),
         }),
       ).toThrow(/required/iu);

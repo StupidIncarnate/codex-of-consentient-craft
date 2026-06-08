@@ -53,6 +53,15 @@ type BuildWorkUnitForRoleInput =
       devCommand?: DevCommand;
       smoketestPromptOverride?: PromptText;
     }
+  | {
+      role: 'flowrider';
+      flow: Flow;
+      quest: Quest;
+      focusFiles?: StepFilePath[];
+      devServerUrl?: DevServerUrl;
+      devCommand?: DevCommand;
+      smoketestPromptOverride?: PromptText;
+    }
   | { role: 'lawbringer'; steps: DependencyStep[]; smoketestPromptOverride?: PromptText }
   // Spiritmender accepts EITHER a single step (the step-derived recovery path) OR a
   // pre-built batch (sidecar-derived recovery path supplied by agentPromptGetBroker).
@@ -149,6 +158,21 @@ export const buildWorkUnitForRoleTransformer = ({
         questId: quest.id,
         flow,
         relatedDesignDecisions: quest.designDecisions,
+        ...(devServerUrl === undefined ? {} : { devServerUrl }),
+        ...(devCommand === undefined ? {} : { devCommand }),
+        ...overrideField,
+      });
+    }
+
+    case 'flowrider': {
+      const { flow, quest, devServerUrl, devCommand, focusFiles } = params;
+
+      return workUnitContract.parse({
+        role: 'flowrider',
+        questId: quest.id,
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
+        focusFiles: focusFiles ?? [],
         ...(devServerUrl === undefined ? {} : { devServerUrl }),
         ...(devCommand === undefined ? {} : { devCommand }),
         ...overrideField,

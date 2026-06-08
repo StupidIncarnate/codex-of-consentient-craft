@@ -115,11 +115,11 @@ const buildValidQuestWith2Steps = ({
         observablesSatisfied: [obsId2],
         dependsOn: [],
         focusFile: {
-          path: 'packages/orchestrator/src/guards/step-two/step-two-guard.ts',
+          path: 'packages/web/src/guards/step-two/step-two-guard.ts',
         },
         accompanyingFiles: [
           {
-            path: 'packages/orchestrator/src/guards/step-two/step-two-guard.test.ts',
+            path: 'packages/web/src/guards/step-two/step-two-guard.test.ts',
           },
         ],
         outputContracts: [contractName],

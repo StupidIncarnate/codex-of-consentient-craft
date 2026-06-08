@@ -11,6 +11,7 @@ import { z } from 'zod';
 export const orchestrationPhaseContract = z.enum([
   'pathseeker',
   'codeweaver',
+  'flowrider',
   'siegemaster',
   'lawbringer',
   'spiritmender',

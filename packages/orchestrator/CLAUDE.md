@@ -360,10 +360,11 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   ├─ pathseeker-walk ─────── single Task(); on complete the signal-back handler fires the post-walk hook
   │     │
   │     ▼   (post-walk hook runs stepsToWorkItemsTransformer over authored steps + flows)
-  ├─ Codeweaver ──── one Task() per chunk; chunked by `agents.batchGroups`, capped at `defaultMaxStepsPerChunkStatics.value`
+  ├─ Codeweaver ──── one Task() per package (flows/startup excluded), capped at `codeweaverMaxFilesPerChunkStatics.value` (~20); implementation + unit tests
   ├─ Ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
-  ├─ Siegemaster ─── one Task() per flow, chained (at most one at a time); integration/E2E tests for observables
-  ├─ Lawbringer ──── one Task() per chunk; same chunking as codeweaver
+  ├─ Flowrider ───── one Task() per flow, chained; owns flows/startup files + their flow-perspective test suite (integration or e2e). Only when ≥1 flow/startup step exists.
+  ├─ Siegemaster ─── one Task() per flow, chained (at most one at a time); manual QA + reviews flowrider's suite + TDD-fixes what it breaks
+  ├─ Lawbringer ──── one Task() per chunk; folder-type batch chunks (whole-diff review)
   ├─ Blightwarden ── single Task(); whole-diff cross-cutting audit
   ├─ Ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
   │
@@ -386,7 +387,7 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
   per response. `slotManagerStatics` slot caps stay configured but are not consulted by `get-next-step`.
 - **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
   `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
-  codeweaver / ward / siegemaster / lawbringer / blightwarden chain. The ward recovery splice
+  codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain. The ward recovery splice
   (spiritmender batch + retry) uses the same mechanism via `questSpliceFixerBroker`, plus
   `replacementMapping` to rewire downstream dependents onto the retry — see "Failure handling".
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
@@ -470,11 +471,12 @@ Observables are embedded directly in flow nodes at `flows[].nodes[].observables[
 }
 ```
 
-Three consumers read different parts:
+Four consumers read different parts:
 
 - **User** reads given/when/then as a human-readable acceptance criteria checklist
 - **PathSeeker** reads `then[].type` tags (file planning: ui-state -> widgets, api-call -> responders)
-- **Siegemaster** uses the full observable to create integration tests
+- **Flowrider** uses the full observable to author the flow-perspective test suite (integration or e2e)
+- **Siegemaster** uses the full observable to manually QA the flow and review the suite's coverage
 
 ## Quest Stages
 
@@ -496,8 +498,8 @@ create-time seed role, Start-Quest `startGraphKind`, and role set. `orchestratio
 switches on `startGraphKind` to seed the matching work-item graph:
 
 - **`feature`** (`/dumpster-create`): `questBuildPathseekerGraphBroker` seeds the PathSeeker graph; the
-  post-walk hook then generates the `codeweaver → ward → siegemaster → lawbringer → blightwarden → ward`
-  chain.
+  post-walk hook then generates the `codeweaver → ward → flowrider → siegemaster → lawbringer →
+  blightwarden → ward` chain (flowrider only when ≥1 flow/startup step exists).
 - **`bug-hunt`** (`/dumpster-hunt`): `questBuildBugHuntGraphBroker` hand-seeds the WHOLE chain at Start
   (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden
   → ward(full)`. Bug-hunt reuses the flow/observable spec lifecycle — the reproduction path is a flow,
@@ -512,25 +514,26 @@ builder + the type added to `questTypeContract`.
 On failure, an execution role's work item is marked `failed`, then routed by `role`: `ward` (budget
 remaining) is the only RECOVER path (splice spiritmender(s) + a retry); every agent role — lawbringer
 included — BLOCKS the quest (status `blocked`, pending items `skipped`) — see "Failure handling".
-Lawbringer (and siegemaster, blightwarden) fix what they find inline during their own run, so a
-`failed` signal means a genuinely unfixable issue. The quest then derives
+Lawbringer (and flowrider, siegemaster, blightwarden) fix what they find inline during their own run,
+so a `failed` signal means a genuinely unfixable issue. The quest then derives
 `complete`/`blocked`/`in_progress` from work-item states.
 
-| Role                             | Dispatched By                                                       | Signals                         | MCP Tools (modify-quest)                                               |
-|----------------------------------|---------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
-| ChaosWhisperer                   | `/dumpster-create`                                                  | N/A (spec)                      | full spec surface (flows, observables, contracts, packagesAffected, …) |
-| Glyphsmith                       | startDesignChat                                                     | N/A (design)                    | status                                                                 |
-| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel, one per slice)           | complete, failed                | planningNotes (surface slice), steps (slice), contracts (slice)        |
-| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)                       | complete, failed                | steps, contracts (in-package + cross-slice dedup)                      |
-| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)                       | complete, failed                | steps (assertion correctness)                                          |
-| pathseeker-walk                  | `/dumpster-launch` via Task() (after dedup + assertion-correctness) | complete, failed                | planningNotes.walkFindings, steps (exploratory)                        |
-| Codeweaver                       | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
-| Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                | terminal set by exit code       | none (server writes wardResults + item status)                         |
-| Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained)               | complete, failed                | none                                                                   |
-| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)        | complete, failed (→ BLOCK)      | none (fixes findings inline)                                           |
-| Blightwarden                     | `/dumpster-launch` via Task()                                       | complete, failed-replan, failed | none                                                                   |
-| Spiritmender                     | `/dumpster-launch` via Task()                                       | complete, failed                | none                                                                   |
-| PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)  | complete, failed                | none                                                                   |
+| Role                             | Dispatched By                                                                                | Signals                         | MCP Tools (modify-quest)                                               |
+|----------------------------------|----------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
+| ChaosWhisperer                   | `/dumpster-create`                                                                           | N/A (spec)                      | full spec surface (flows, observables, contracts, packagesAffected, …) |
+| Glyphsmith                       | startDesignChat                                                                              | N/A (design)                    | status                                                                 |
+| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel, one per slice)                                    | complete, failed                | planningNotes (surface slice), steps (slice), contracts (slice)        |
+| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)                                                | complete, failed                | steps, contracts (in-package + cross-slice dedup)                      |
+| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)                                                | complete, failed                | steps (assertion correctness)                                          |
+| pathseeker-walk                  | `/dumpster-launch` via Task() (after dedup + assertion-correctness)                          | complete, failed                | planningNotes.walkFindings, steps (exploratory)                        |
+| Codeweaver                       | `/dumpster-launch` via Task() (one per package; flows/startup excluded; unit tests)          | complete, failed                | none                                                                   |
+| Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                                         | terminal set by exit code       | none (server writes wardResults + item status)                         |
+| Flowrider                        | `/dumpster-launch` via Task() (one per flow, chained; owns flows/startup files + flow tests) | complete, failed (→ BLOCK)      | none                                                                   |
+| Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained; manual QA + suite review + gap-fill)   | complete, failed                | none                                                                   |
+| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)                                 | complete, failed (→ BLOCK)      | none (fixes findings inline)                                           |
+| Blightwarden                     | `/dumpster-launch` via Task()                                                                | complete, failed-replan, failed | none                                                                   |
+| Spiritmender                     | `/dumpster-launch` via Task()                                                                | complete, failed                | none                                                                   |
+| PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                           | complete, failed                | none                                                                   |
 
 ### PathSeeker work-item graph
 
@@ -547,7 +550,7 @@ pathseeker-dedup + pathseeker-assertion-correctness (parallel, dependsOn: [...al
 pathseeker-walk (single, dependsOn: [dedup, assertion-correctness])
         │
         ▼   (post-success hook)
-stepsToWorkItemsTransformer fires → codeweaver / ward / siegemaster / lawbringer / blightwarden chain inserted
+stepsToWorkItemsTransformer fires → codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain inserted
 ```
 
 Slice generation: on Start Quest, the work-item insertion broker reads
@@ -589,19 +592,20 @@ or **BLOCK** (set status `blocked`, halt dispatch).
   and delivered through per-item `spiritmender-batches/<id>.json` sidecars. The splice rewires
   downstream siege/chain dependents off the failed ward onto the retry. When ward's retries are
   exhausted, the failure routes to BLOCK instead.
-- **All agent `failed` / `failed-replan` → BLOCK.** `lawbringer`, `codeweaver`, `siegemaster`,
-  `spiritmender`, `blightwarden`, `pathseeker-*`, and `pesteater` failures route through
-  `questBlockOnFailureBroker`. Lawbringer, siegemaster, and blightwarden fix what they find inline
-  during their own run (blightwarden routes semantic findings out via `failed-replan`); a `failed`
-  signal from any of them means a genuinely unfixable issue, so it BLOCKS rather than spawning a
-  fixer. The broker sets quest status `blocked` and marks every still-`pending` item `skipped`.
+- **All agent `failed` / `failed-replan` → BLOCK.** `lawbringer`, `codeweaver`, `flowrider`,
+  `siegemaster`, `spiritmender`, `blightwarden`, `pathseeker-*`, and `pesteater` failures route through
+  `questBlockOnFailureBroker`. Lawbringer, flowrider, siegemaster, and blightwarden fix what they find
+  inline during their own run (blightwarden routes semantic findings out via `failed-replan`); a
+  `failed` signal from any of them means a genuinely unfixable issue, so it BLOCKS rather than spawning
+  a fixer. The broker sets quest status `blocked` and marks every still-`pending` item `skipped`.
   `failed-replan` (Blightwarden) is treated as `failed` for status, then routed by the same table
   (→ BLOCK). A `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on
   `in_progress`), so dispatch halts.
-- **Siegemaster owns its dev server.** For runtime flows, the siege agent controls its own dev server
-  via Playwright's `webServer` config (`{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`),
-  resolved from `.dungeonmaster.json` (`devCommand` + dev `port`) and passed into the siege WorkUnit by
-  `agentPromptGetBroker`. Operational flows run no server. If siege cannot build/start, it signals
+- **Flowrider and Siegemaster own their dev server.** For runtime flows, both agents control their own
+  dev server via Playwright's `webServer` config (
+  `{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`),
+  resolved from `.dungeonmaster.json` (`devCommand` + dev `port`) and passed into their WorkUnit by
+  `agentPromptGetBroker`. Operational flows run no server. If either cannot build/start, it signals
   `failed` → BLOCK per the table.
 
 Recovery splices append work items with correct `dependsOn` (the same dynamic-insertion mechanism the

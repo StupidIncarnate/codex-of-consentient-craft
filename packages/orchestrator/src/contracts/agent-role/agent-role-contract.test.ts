@@ -67,6 +67,14 @@ describe('agentRoleContract', () => {
       expect(result).toBe('lawbringer');
     });
 
+    it('VALID: flowrider => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'flowrider' });
+
+      const result = agentRoleContract.parse(role);
+
+      expect(result).toBe('flowrider');
+    });
+
     it('VALID: siegemaster => parses successfully', () => {
       const role = AgentRoleStub({ value: 'siegemaster' });
 

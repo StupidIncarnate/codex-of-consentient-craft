@@ -83,6 +83,14 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('spiritmender');
     });
 
+    it('VALID: flowrider => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'flowrider' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('flowrider');
+    });
+
     it('VALID: siegemaster => parses successfully', () => {
       const role = WorkItemRoleStub({ value: 'siegemaster' });
 

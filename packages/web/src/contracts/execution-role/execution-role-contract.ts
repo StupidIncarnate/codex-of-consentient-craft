@@ -19,6 +19,7 @@ export const executionRoleContract = z.enum([
   'codeweaver',
   'ward',
   'spiritmender',
+  'flowrider',
   'siegemaster',
   'lawbringer',
   'blightwarden-security-minion',

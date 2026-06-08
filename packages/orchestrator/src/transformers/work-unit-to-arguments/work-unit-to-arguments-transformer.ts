@@ -8,9 +8,9 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
-import { outcomeTypeDescriptionsStatics } from '@dungeonmaster/shared/statics';
 
 import type { WorkUnit } from '../../contracts/work-unit/work-unit-contract';
+import { flowContextToArgumentsTransformer } from '../flow-context-to-arguments/flow-context-to-arguments-transformer';
 
 export const workUnitToArgumentsTransformer = ({
   workUnit,
@@ -133,73 +133,27 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'siegemaster': {
-      const {
-        questId: siegeQuestId,
-        relatedDesignDecisions,
+      const { questId, relatedDesignDecisions, flow, devServerUrl, devCommand } = workUnit;
+      return flowContextToArgumentsTransformer({
+        questId,
         flow,
-        devServerUrl,
-        devCommand,
-      } = workUnit;
-      const siegeParts: ContentText[] = [
-        contentTextContract.parse(`Quest ID: ${siegeQuestId}`),
-        contentTextContract.parse(`Flow: ${flow.name}`),
-        contentTextContract.parse(`  flowType: ${flow.flowType}`),
-        contentTextContract.parse(`  entryPoint: ${flow.entryPoint}`),
-      ];
+        relatedDesignDecisions,
+        ...(devServerUrl === undefined ? {} : { devServerUrl }),
+        ...(devCommand === undefined ? {} : { devCommand }),
+      });
+    }
 
-      if (flow.nodes.length > 0) {
-        siegeParts.push(contentTextContract.parse('Nodes:'));
-        for (const node of flow.nodes) {
-          siegeParts.push(
-            contentTextContract.parse(`  - ${node.id} "${node.label}" [type: ${node.type}]`),
-          );
-          if (node.observables.length > 0) {
-            siegeParts.push(contentTextContract.parse('    Observables:'));
-            for (const observable of node.observables) {
-              siegeParts.push(
-                contentTextContract.parse(
-                  `      - ${observable.id} (${observable.type}) ${observable.description}`,
-                ),
-              );
-            }
-          }
-        }
-      }
-
-      if (flow.edges.length > 0) {
-        siegeParts.push(contentTextContract.parse('Edges:'));
-        for (const edge of flow.edges) {
-          const edgeLabel = edge.label ?? '';
-          siegeParts.push(
-            contentTextContract.parse(`  - ${edge.from} --[${edgeLabel}]--> ${edge.to}`),
-          );
-        }
-      }
-
-      if (relatedDesignDecisions.length > 0) {
-        siegeParts.push(contentTextContract.parse('Design Decisions:'));
-        for (const decision of relatedDesignDecisions) {
-          siegeParts.push(
-            contentTextContract.parse(`  - ${decision.title}: ${decision.rationale}`),
-          );
-        }
-      }
-
-      if (devServerUrl !== undefined) {
-        siegeParts.push(contentTextContract.parse(`Dev Server URL: ${devServerUrl}`));
-      }
-
-      if (devCommand !== undefined) {
-        siegeParts.push(contentTextContract.parse(`Dev Command: ${devCommand}`));
-      }
-
-      siegeParts.push(contentTextContract.parse(''));
-      siegeParts.push(contentTextContract.parse('Observable Type Reference:'));
-      for (const [type, desc] of Object.entries(outcomeTypeDescriptionsStatics)) {
-        siegeParts.push(contentTextContract.parse(`  - \`${type}\` — ${desc}`));
-      }
-
-      return contentTextContract.parse(siegeParts.join('\n'));
+    case 'flowrider': {
+      const { questId, relatedDesignDecisions, flow, focusFiles, devServerUrl, devCommand } =
+        workUnit;
+      return flowContextToArgumentsTransformer({
+        questId,
+        flow,
+        relatedDesignDecisions,
+        focusFiles,
+        ...(devServerUrl === undefined ? {} : { devServerUrl }),
+        ...(devCommand === undefined ? {} : { devCommand }),
+      });
     }
 
     case 'lawbringer': {

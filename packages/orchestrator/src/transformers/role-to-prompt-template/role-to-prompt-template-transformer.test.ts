@@ -51,6 +51,14 @@ describe('roleToPromptTemplateTransformer', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
+    it('VALID: {role: flowrider} => returns flowrider prompt template', () => {
+      const result = roleToPromptTemplateTransformer({
+        role: AgentRoleStub({ value: 'flowrider' }),
+      });
+
+      expect(result.length).toBeGreaterThan(0);
+    });
+
     it('VALID: {role: siegemaster} => returns siegemaster prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'siegemaster' }),

@@ -86,7 +86,7 @@ export const caseCatalogToBlueprintTransformer = ({
     flows: minimal.flows,
     planningNotes: minimal.planningNotes,
     steps,
-    skipRoles: ['ward', 'siegemaster', 'lawbringer', 'blightwarden'],
+    skipRoles: ['ward', 'flowrider', 'siegemaster', 'lawbringer', 'blightwarden'],
   });
 
   const workItemIds: QuestWorkItemId[] = cases.map(() =>

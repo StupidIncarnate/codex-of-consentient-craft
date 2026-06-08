@@ -12,6 +12,12 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
+  it('VALID: prompt template => declares unit-tests-only scope (no integration/e2e, no flows/startup)', () => {
+    expect(codeweaverPromptStatics.prompt.template).toMatch(
+      /^\*\*Unit tests only\.\*\* You write `\.test\.ts` unit tests for your focusFiles\. You do NOT write$/mu,
+    );
+  });
+
   it('VALID: prompt template => has the commit-before-signal section', () => {
     expect(codeweaverPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
   });

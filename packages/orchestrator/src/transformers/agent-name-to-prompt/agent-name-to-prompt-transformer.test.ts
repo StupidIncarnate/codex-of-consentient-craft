@@ -7,6 +7,7 @@ import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/bli
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
@@ -111,6 +112,18 @@ describe('agentNameToPromptTransformer', () => {
       name: 'spiritmender',
       model: 'sonnet',
       prompt: spiritmenderPromptStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "flowrider"} => returns flowrider prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'flowrider' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'flowrider',
+      model: 'opus',
+      prompt: flowriderPromptStatics.prompt.template,
     });
   });
 

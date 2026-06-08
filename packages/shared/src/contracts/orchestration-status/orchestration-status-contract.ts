@@ -16,6 +16,7 @@ export const orchestrationStatusContract = z.object({
   phase: z.enum([
     'pathseeker',
     'codeweaver',
+    'flowrider',
     'siegemaster',
     'lawbringer',
     'spiritmender',

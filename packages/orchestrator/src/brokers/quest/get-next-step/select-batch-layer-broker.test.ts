@@ -168,6 +168,18 @@ describe('selectBatchLayerBroker', () => {
 
       expect(batch).toStrictEqual([siege]);
     });
+
+    it('VALID: {single flowrider ready} => returns the flowrider via single-item fallback (never batched)', () => {
+      selectBatchLayerBrokerProxy();
+      const flowrider = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'eee88888-1111-4222-9333-444444444444' }),
+        role: 'flowrider',
+      });
+
+      const batch = selectBatchLayerBroker({ ready: [flowrider] });
+
+      expect(batch).toStrictEqual([flowrider]);
+    });
   });
 
   describe('blightwarden minion batch', () => {

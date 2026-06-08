@@ -22,6 +22,7 @@ const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
 const BLOCK_ROLES = [
   'lawbringer',
   'codeweaver',
+  'flowrider',
   'siegemaster',
   'spiritmender',
   'blightwarden',

@@ -14,6 +14,7 @@ export const roleToModelStatics = {
   'pathseeker-dedup': 'sonnet',
   'pathseeker-assertion-correctness': 'sonnet',
   'pathseeker-walk': 'opus',
+  flowrider: 'opus',
   siegemaster: 'opus',
   codeweaver: 'sonnet',
   spiritmender: 'sonnet',

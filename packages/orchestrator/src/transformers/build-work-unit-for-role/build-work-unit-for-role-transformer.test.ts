@@ -223,6 +223,66 @@ describe('buildWorkUnitForRoleTransformer', () => {
     });
   });
 
+  describe('flowrider role', () => {
+    it('VALID: {role: flowrider, flow, quest, focusFiles, devServerUrl, devCommand} => returns FlowriderWorkUnit with all runtime fields', () => {
+      buildWorkUnitForRoleTransformerProxy();
+
+      const flow = FlowStub({
+        id: 'checkout-flow',
+        name: 'Checkout Flow',
+        nodes: [FlowNodeStub({ id: 'cart-page', observables: [FlowObservableStub()] })],
+      });
+      const quest = QuestStub({ flows: [flow] });
+      const focusFile = StepFileReferenceStub().path;
+      const devServerUrl = DevServerUrlStub({ value: 'http://localhost:4700' });
+      const devCommand = DevCommandStub({ value: 'npm run dev' });
+
+      const result = buildWorkUnitForRoleTransformer({
+        role: 'flowrider',
+        flow,
+        quest,
+        focusFiles: [focusFile],
+        devServerUrl,
+        devCommand,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'flowrider',
+        questId: quest.id,
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
+        focusFiles: [focusFile],
+        devServerUrl,
+        devCommand,
+      });
+    });
+
+    it('VALID: {role: flowrider, flow, quest, no dev server} => returns FlowriderWorkUnit with empty focusFiles and no dev server', () => {
+      buildWorkUnitForRoleTransformerProxy();
+
+      const flow = FlowStub({
+        id: 'login-flow',
+        name: 'Login Flow',
+        nodes: [FlowNodeStub({ id: 'login-page', observables: [FlowObservableStub()] })],
+      });
+      const quest = QuestStub({ flows: [flow] });
+
+      const result = buildWorkUnitForRoleTransformer({
+        role: 'flowrider',
+        flow,
+        quest,
+      });
+
+      expect(result).toStrictEqual({
+        role: 'flowrider',
+        questId: quest.id,
+        flow,
+        relatedDesignDecisions: quest.designDecisions,
+        focusFiles: [],
+      });
+    });
+  });
+
   describe('lawbringer role', () => {
     it('VALID: {role: lawbringer, step with focusFile and accompanyingFiles} => returns LawbringerWorkUnit with deduplicated filePaths', () => {
       buildWorkUnitForRoleTransformerProxy();

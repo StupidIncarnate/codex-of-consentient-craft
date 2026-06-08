@@ -16,15 +16,33 @@ describe('siegemasterPromptStatics', () => {
     expect(siegemasterPromptStatics.prompt.template.length).toBeGreaterThan(2000);
   });
 
-  it('VALID: template => Phase 3 body line covers git diff + folder mapping + over-auditing guidance', () => {
+  it('VALID: template => declares bounded authorship (never creates a net-new primary suite file)', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^Run `git diff <main-or-master>\.\.\.HEAD --name-only` \(diff against your repo's default branch — `main` or `master`, whichever exists\) to get the full changed file list for this branch\. Using the flow's semantic content \(entryPoint, node labels, observable descriptions and types\), judge which changed files are in your slice\. Observable type tags help: `ui-state` → widgets; `api-call` → responders; `file-exists` → brokers\/transformers touching those files; `log-output` → process entry points\. For files that land in a `flows\/` or `startup\/` folder type, locate the colocated `\.integration\.test\.ts` and audit it — is it real or faked\? When in doubt about whether a changed file belongs to your slice, include it and audit — over-auditing is cheap, missing is expensive\.$/mu,
+      /^5\. \*\*Bounded authorship\*\* — you never create a net-new primary e2e\/integration file \(that is Flowrider's job\)\. You only extend existing suites with the specific cases your manual exploration exposed\.$/mu,
     );
   });
 
-  it('VALID: template => Phase 3 skip-detection line contains exact skip literal', () => {
+  it('VALID: template => verifies the happy path first before trying to break anything', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^\*\*Phase 3 skip detection:\*\* If no changed files in your slice land in a `flows\/` or `startup\/` folder type, state "Phase 3 skipped: no flow\/startup files changed in this slice" and proceed to Phase 4\.$/mu,
+      /^This is your first active phase — exploration the automated tests are blind to\. \*\*Confirm the happy path works BEFORE you try to break anything\.\*\*$/mu,
+    );
+  });
+
+  it('VALID: template => leads with a Manual QA phase that runs the flow for real', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^## Phase 2: Manual QA \(run it for real\)$/mu,
+    );
+  });
+
+  it('VALID: template => cross-checks tests it did not personally run for false positives', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^## Phase 5: Cross-Check Tests You Didn't Run$/mu,
+    );
+  });
+
+  it('VALID: template => carries the red-test-before-fix discipline', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^This is the repo's mandatory red-test-before-fix discipline: never change implementation without a test that fails first on the unfixed code\.$/mu,
     );
   });
 

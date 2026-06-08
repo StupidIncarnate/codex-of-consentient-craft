@@ -279,6 +279,81 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
+  describe('flowrider', () => {
+    it('VALID: {agent: flowrider, workItem with flows ref + flow/startup steps ref} => resolves flow + focusFiles and substitutes $ARGUMENTS', () => {
+      const flow = FlowStub({ flowType: 'runtime' });
+      const step = DependencyStepStub({
+        focusFile: StepFileReferenceStub({ path: 'packages/web/src/flows/login-flow.ts' }),
+      });
+      const workItem = WorkItemStub({
+        role: 'flowrider',
+        relatedDataItems: [
+          RelatedDataItemStub({ value: `flows/${String(flow.id)}` }),
+          RelatedDataItemStub({ value: `steps/${String(step.id)}` }),
+        ],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        flows: [flow],
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'flowrider' }),
+        siegeDevServer: {
+          devCommand: DevCommandStub({ value: 'npm run dev' }),
+          devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
+        },
+      });
+
+      // Detailed arg shape (Focus Files, Dev Server lines) is exercised by
+      // work-unit-to-arguments-transformer.test.ts. Here we confirm substitution happened.
+      expect(result.prompt.endsWith('$ARGUMENTS')).toBe(false);
+    });
+
+    it('ERROR: {agent: flowrider, workItem with no relatedDataItems} => throws', () => {
+      const workItem = WorkItemStub({ role: 'flowrider', relatedDataItems: [] });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        workItems: [workItem],
+      });
+
+      expect(() =>
+        workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'flowrider' }),
+        }),
+      ).toThrow(/has no relatedDataItems/u);
+    });
+
+    it('ERROR: {agent: flowrider, workItem with only a steps ref and no flows ref} => throws no flows reference', () => {
+      const step = DependencyStepStub({
+        focusFile: StepFileReferenceStub({ path: 'packages/web/src/flows/login-flow.ts' }),
+      });
+      const workItem = WorkItemStub({
+        role: 'flowrider',
+        relatedDataItems: [RelatedDataItemStub({ value: `steps/${String(step.id)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        steps: [step],
+        workItems: [workItem],
+      });
+
+      expect(() =>
+        workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'flowrider' }),
+        }),
+      ).toThrow(/has no flows reference/u);
+    });
+  });
+
   describe('blightwarden', () => {
     it('VALID: {agent: blightwarden} => substitutes Quest ID, no $ARGUMENTS literal remains', () => {
       const workItem = WorkItemStub({ role: 'blightwarden' });

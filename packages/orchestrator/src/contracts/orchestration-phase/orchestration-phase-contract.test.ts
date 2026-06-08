@@ -43,6 +43,14 @@ describe('orchestrationPhaseContract', () => {
       expect(result).toBe('failed');
     });
 
+    it('VALID: {flowrider} => parses successfully', () => {
+      const phase = OrchestrationPhaseStub({ value: 'flowrider' });
+
+      const result = orchestrationPhaseContract.parse(phase);
+
+      expect(result).toBe('flowrider');
+    });
+
     it('VALID: {siegemaster} => parses successfully', () => {
       const phase = OrchestrationPhaseStub({ value: 'siegemaster' });
 

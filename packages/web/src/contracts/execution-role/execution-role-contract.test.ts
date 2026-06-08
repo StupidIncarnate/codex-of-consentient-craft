@@ -32,6 +32,12 @@ describe('executionRoleContract', () => {
 
       expect(result).toBe('pesteater');
     });
+
+    it('VALID: {value: "flowrider"} => parses flowrider role', () => {
+      const result = executionRoleContract.parse('flowrider');
+
+      expect(result).toBe('flowrider');
+    });
   });
 
   describe('invalid inputs', () => {

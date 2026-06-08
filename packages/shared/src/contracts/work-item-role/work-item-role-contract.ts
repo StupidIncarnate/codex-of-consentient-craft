@@ -23,6 +23,10 @@ export const workItemRoleContract = z.enum([
   'codeweaver',
   'ward',
   'spiritmender',
+  /** Flowrider: authors the flow-perspective test suite (integration for API/CLI/server flows,
+   * e2e for UI flows) and owns the `flows/` + `startup/` implementation files. Dispatched one
+   * per quest flow, chained, after ward(changed) and before siegemaster. */
+  'flowrider',
   'siegemaster',
   'lawbringer',
   /** Blightwarden minions: five report-only finders that run in parallel, one per cross-cutting

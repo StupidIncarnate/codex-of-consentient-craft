@@ -75,6 +75,20 @@ const siegemasterWorkUnitContract = z.object({
   ...smoketestOverrideField,
 });
 
+const flowriderWorkUnitContract = z.object({
+  role: z.literal('flowrider'),
+  questId: questIdContract,
+  relatedDesignDecisions: z.array(designDecisionContract).default([]),
+  flow: flowContract,
+  // The flows/ + startup/ step focusFile paths routed to this role. Flowrider writes these
+  // files (impl + flow test), so unlike siegemaster it cannot infer its slice from git diff —
+  // the files don't exist until it creates them. The agent reads full step specs from the quest.
+  focusFiles: z.array(stepFilePathContract).default([]),
+  devServerUrl: z.string().url().brand<'DevServerUrl'>().optional(),
+  devCommand: z.string().min(1).brand<'DevCommand'>().optional(),
+  ...smoketestOverrideField,
+});
+
 const lawbringerStepBoundaryContract = z.object({
   stepId: stepIdContract,
   filePaths: z.array(stepFilePathContract),
@@ -106,6 +120,7 @@ export const workUnitContract = z.discriminatedUnion('role', [
   spiritmenderWorkUnitContract,
   lawbringerWorkUnitContract,
   siegemasterWorkUnitContract,
+  flowriderWorkUnitContract,
   blightwardenWorkUnitContract,
 ]);
 
@@ -115,4 +130,5 @@ export type CodeweaverWorkUnit = z.infer<typeof codeweaverWorkUnitContract>;
 export type SpiritmenderWorkUnit = z.infer<typeof spiritmenderWorkUnitContract>;
 export type LawbringerWorkUnit = z.infer<typeof lawbringerWorkUnitContract>;
 export type SiegemasterWorkUnit = z.infer<typeof siegemasterWorkUnitContract>;
+export type FlowriderWorkUnit = z.infer<typeof flowriderWorkUnitContract>;
 export type BlightwardenWorkUnit = z.infer<typeof blightwardenWorkUnitContract>;

@@ -538,6 +538,14 @@ describe('chatSpawnBroker', () => {
       proxy.setupSessionLinkQuest({ quest: linkQuest });
       proxy.setupSessionLinkReject({ error: new Error('modify exploded') });
 
+      // A leaked background poller (e.g. the rate-limits watcher) can land an unrelated
+      // write inside this stderr spy's window. Simulate that interleaving so the assertion
+      // is proven robust to shadowing — the chat-spawn line must be located among ALL
+      // writes, never assumed to be the first.
+      process.stderr.write(
+        'rate-limits-watch read error: Failed to read file at /home/x/.dungeonmaster/rate-limits.json\n',
+      );
+
       await chatSpawnBroker({
         role,
         guildId,
@@ -560,8 +568,13 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      expect(stderrSpy.mock.calls.length).toBeGreaterThan(0);
-      expect(stderrSpy.mock.calls[0]?.[0]).toMatch(
+      const linkFailureWrite = stderrSpy.mock.calls
+        .map((call) => String(call[0]))
+        .find((line) =>
+          /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u.test(line),
+        );
+
+      expect(linkFailureWrite).toMatch(
         /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u,
       );
     });

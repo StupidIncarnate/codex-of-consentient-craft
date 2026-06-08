@@ -14,6 +14,7 @@ describe('executionStepStatusConfigStatics', () => {
         codeweaver: 'primary',
         ward: 'warning',
         spiritmender: 'primary',
+        flowrider: 'primary',
         siegemaster: 'primary',
         lawbringer: 'primary',
         'blightwarden-security-minion': 'primary',

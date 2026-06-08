@@ -55,6 +55,7 @@ export { pathseekerWalkStatics } from './statics/pathseeker-walk/pathseeker-walk
 export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
 export { lawbringerPromptStatics } from './statics/lawbringer-prompt/lawbringer-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';
+export { flowriderPromptStatics } from './statics/flowrider-prompt/flowrider-prompt-statics';
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';
 export { toolDisplayConfigStatics } from './statics/tool-display-config/tool-display-config-statics';
 

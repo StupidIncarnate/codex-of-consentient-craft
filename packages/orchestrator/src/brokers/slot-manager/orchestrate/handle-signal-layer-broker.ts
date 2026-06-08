@@ -33,6 +33,10 @@ type SignalSummary = NonNullable<StreamSignal['summary']>;
 const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
   codeweaver: 'pathseeker',
   siegemaster: 'pathseeker',
+  // Flowrider authors flows/startup files + their flow tests and fixes inline; a `failed` signal
+  // means a genuinely unfixable issue, so it BLOCKS (terminal). The live block path is
+  // QuestHandleSignalBackResponder; in this legacy slot-manager loop null => bubble_to_user.
+  flowrider: null,
   lawbringer: 'spiritmender',
   spiritmender: 'pathseeker',
   pathseeker: null,

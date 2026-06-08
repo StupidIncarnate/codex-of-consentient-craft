@@ -66,6 +66,14 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('spiritmender');
   });
 
+  it('VALID: {value: "flowrider"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'flowrider' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('flowrider');
+  });
+
   it('VALID: {value: "siegemaster"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'siegemaster' });
 

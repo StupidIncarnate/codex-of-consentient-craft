@@ -20,6 +20,9 @@ export const agentRoleContract = z.enum([
   'codeweaver',
   'spiritmender',
   'lawbringer',
+  /** Flowrider — authors the flow-perspective test suite (integration/e2e) and owns the
+   * `flows/` + `startup/` implementation files. Dispatched one per quest flow, chained. */
+  'flowrider',
   'siegemaster',
   /** Blightwarden minions — five report-only parallel finders (one per cross-cutting concern).
    * Dispatched as work items; each writes a `PlanningBlightReport` and never fixes or blocks. */

@@ -14,6 +14,7 @@ import {
 import {
   BlightwardenWorkUnitStub,
   CodeweaverWorkUnitStub,
+  FlowriderWorkUnitStub,
   LawbringerWorkUnitStub,
   PathseekerWorkUnitStub,
   SiegemasterWorkUnitStub,
@@ -607,6 +608,47 @@ describe('workUnitToArgumentsTransformer', () => {
 
       expect(result).toBe(
         `Quest ID: quest-1\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nNodes:\n  - login-page "Login Page" [type: state]\n    Observables:\n      - obs-form-visible (ui-state) login form is visible\nEdges:\n  - login-page --[success]--> dashboard\nDesign Decisions:\n  - Use JWT for auth: Stateless authentication\nDev Server URL: http://localhost:3000\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
+      );
+    });
+  });
+
+  describe('flowrider role', () => {
+    const OBSERVABLE_TYPE_REFERENCE_BLOCK =
+      '\nObservable Type Reference:\n  - `api-call` — Assert an HTTP request was made with correct method/path/body\n  - `file-exists` — Assert a file/directory exists or was removed on disk\n  - `environment` — Assert environment variables or runtime config are set correctly\n  - `log-output` — Assert specific log lines were written to stdout/stderr\n  - `process-state` — Assert a process is running, exited, or in expected state\n  - `performance` — Assert response time or throughput meets threshold\n  - `ui-state` — Assert visible DOM state (element exists, text content, disabled state, CSS)\n  - `cache-state` — Assert cache entries exist, expired, or were invalidated\n  - `db-query` — Assert database rows were created, updated, or deleted\n  - `queue-message` — Assert a message was enqueued or dequeued\n  - `external-api` — Assert an outbound call to a third-party API was made correctly\n  - `custom` — Project-specific assertion — read the description for details';
+
+    it('VALID: {flowrider runtime flow with node, observable, focusFiles, dev server} => renders flow context plus Focus Files block', () => {
+      const workUnit = FlowriderWorkUnitStub({
+        questId: QuestIdStub({ value: 'verify-quest' }),
+        flow: FlowStub({
+          id: 'login-flow',
+          name: 'Login Flow',
+          flowType: 'runtime',
+          entryPoint: '/login',
+          nodes: [
+            FlowNodeStub({
+              id: 'login-page',
+              label: 'Login Page',
+              type: 'state',
+              observables: [
+                FlowObservableStub({
+                  id: 'shows-success-message',
+                  type: 'ui-state',
+                  description: 'Shows success message',
+                }),
+              ],
+            }),
+          ],
+          edges: [],
+        }),
+        focusFiles: [AbsoluteFilePathStub({ value: '/src/flows/login-flow.ts' })],
+        devServerUrl: 'http://localhost:3000',
+        devCommand: 'npm run dev',
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        `Quest ID: verify-quest\nFlow: Login Flow\n  flowType: runtime\n  entryPoint: /login\nNodes:\n  - login-page "Login Page" [type: state]\n    Observables:\n      - shows-success-message (ui-state) Shows success message\nFocus Files:\n  - /src/flows/login-flow.ts\nDev Server URL: http://localhost:3000\nDev Command: npm run dev\n${OBSERVABLE_TYPE_REFERENCE_BLOCK}`,
       );
     });
   });

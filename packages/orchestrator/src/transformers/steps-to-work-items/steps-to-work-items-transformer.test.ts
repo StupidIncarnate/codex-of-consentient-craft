@@ -623,63 +623,26 @@ describe('stepsToWorkItemsTransformer', () => {
     });
   });
 
-  describe('cap-split forward-ref resolution', () => {
-    it('VALID: {8 contract steps in one group, step #8 depends on step #1} => chunks of [6, 2]; chunk-2 codeweaver depends on chunk-1 codeweaver', () => {
+  describe('cross-package forward-ref resolution', () => {
+    it('VALID: {2 contract steps in different packages, step #2 depends on step #1} => one codeweaver per package; package-2 codeweaver depends on package-1 codeweaver', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 2 codeweaver + ward + siege + 2 lawbringer + 5 minions + synthesizer + final ward = 13
-      proxy.setupUuids({ uuids: IDS.slice(0, 13) });
+      // 2 codeweaver + ward + siege + 1 lawbringer + 5 minions + synthesizer + final ward = 12
+      proxy.setupUuids({ uuids: IDS.slice(0, 12) });
 
-      const step1Id = StepIdStub({ value: 'cap-step-1' });
-      const step2Id = StepIdStub({ value: 'cap-step-2' });
-      const step3Id = StepIdStub({ value: 'cap-step-3' });
-      const step4Id = StepIdStub({ value: 'cap-step-4' });
-      const step5Id = StepIdStub({ value: 'cap-step-5' });
-      const step6Id = StepIdStub({ value: 'cap-step-6' });
-      const step7Id = StepIdStub({ value: 'cap-step-7' });
-      const step8Id = StepIdStub({ value: 'cap-step-8' });
+      const step1Id = StepIdStub({ value: 'pkg-step-1' });
+      const step2Id = StepIdStub({ value: 'pkg-step-2' });
 
       const step1 = DependencyStepStub({
         id: step1Id,
         dependsOn: [],
-        focusFile: { path: 'src/contracts/c1/c1-contract.ts' },
+        focusFile: { path: 'packages/web/src/contracts/c1/c1-contract.ts' },
       });
+      // Step #2 lives in a different package and forward-refs step #1, so the package-2 codeweaver
+      // chunk must list the package-1 codeweaver id in dependsOn.
       const step2 = DependencyStepStub({
         id: step2Id,
-        dependsOn: [],
-        focusFile: { path: 'src/contracts/c2/c2-contract.ts' },
-      });
-      const step3 = DependencyStepStub({
-        id: step3Id,
-        dependsOn: [],
-        focusFile: { path: 'src/contracts/c3/c3-contract.ts' },
-      });
-      const step4 = DependencyStepStub({
-        id: step4Id,
-        dependsOn: [],
-        focusFile: { path: 'src/contracts/c4/c4-contract.ts' },
-      });
-      const step5 = DependencyStepStub({
-        id: step5Id,
-        dependsOn: [],
-        focusFile: { path: 'src/contracts/c5/c5-contract.ts' },
-      });
-      const step6 = DependencyStepStub({
-        id: step6Id,
-        dependsOn: [],
-        focusFile: { path: 'src/contracts/c6/c6-contract.ts' },
-      });
-      const step7 = DependencyStepStub({
-        id: step7Id,
-        dependsOn: [],
-        focusFile: { path: 'src/contracts/c7/c7-contract.ts' },
-      });
-      // Step #8 forward-refs back to step #1 — they land in different cap-split chunks
-      // (#1 in chunk-1 [steps 1-6], #8 in chunk-2 [steps 7-8]), so chunk-2's codeweaver
-      // must list chunk-1's codeweaver id in dependsOn.
-      const step8 = DependencyStepStub({
-        id: step8Id,
         dependsOn: [step1Id],
-        focusFile: { path: 'src/contracts/c8/c8-contract.ts' },
+        focusFile: { path: 'packages/orchestrator/src/contracts/c2/c2-contract.ts' },
       });
 
       const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
@@ -688,7 +651,7 @@ describe('stepsToWorkItemsTransformer', () => {
       });
 
       const result = stepsToWorkItemsTransformer({
-        steps: [step1, step2, step3, step4, step5, step6, step7, step8],
+        steps: [step1, step2],
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
@@ -702,7 +665,6 @@ describe('stepsToWorkItemsTransformer', () => {
         'codeweaver',
         'ward',
         'siegemaster',
-        'lawbringer',
         'lawbringer',
         'blightwarden-security-minion',
         'blightwarden-dedup-minion',
@@ -718,11 +680,98 @@ describe('stepsToWorkItemsTransformer', () => {
         .map((wi) => wi.dependsOn);
 
       expect(codeweaverDeps).toStrictEqual([
-        // chunk-1 codeweaver (id #1) — no cross-chunk deps
+        // package-1 codeweaver (id #1) — no cross-chunk deps
         [pathseekerWorkItemId],
-        // chunk-2 codeweaver (id #2) — step #8 forward-refs step #1 in chunk-1
+        // package-2 codeweaver (id #2) — step #2 forward-refs step #1 in package-1
         [pathseekerWorkItemId, IDS[0]],
       ]);
+    });
+  });
+
+  describe('flowrider routing (flow/startup steps)', () => {
+    it('VALID: {one broker step + one flows step + one flow} => flowrider owns the flows step; codeweaver excludes it; siege depends on flowrider', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 5 minions + synth + ward = 13
+      proxy.setupUuids({ uuids: IDS.slice(0, 13) });
+
+      const brokerStepId = StepIdStub({ value: 'broker-step' });
+      const flowStepId = StepIdStub({ value: 'flow-step' });
+
+      const brokerStep = DependencyStepStub({
+        id: brokerStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/brokers/a/a-broker.ts' },
+      });
+      const flowStep = DependencyStepStub({
+        id: flowStepId,
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/flows/login/login-flow.ts' },
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [brokerStep, flowStep],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      // Codeweaver excludes the flows/ step — only the broker step remains.
+      const codeweaverRelated = result
+        .filter((wi) => wi.role === 'codeweaver')
+        .map((wi) => wi.relatedDataItems);
+
+      expect(codeweaverRelated).toStrictEqual([[`steps/${String(brokerStepId)}`]]);
+
+      // Flowrider owns the flow plus the flow/startup step ref.
+      const flowrider = result.find((wi) => wi.role === 'flowrider');
+
+      expect(flowrider?.relatedDataItems).toStrictEqual([
+        `flows/${String(flow.id)}`,
+        `steps/${String(flowStepId)}`,
+      ]);
+
+      // Siege depends on the flowrider for its flow (not the changed-ward directly).
+      const siege = result.find((wi) => wi.role === 'siegemaster');
+
+      expect(siege?.dependsOn).toStrictEqual([flowrider?.id]);
+    });
+
+    it('VALID: {no flow/startup steps} => no flowrider items; siege depends on the changed-ward', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      // 1 codeweaver + ward + 1 siege + 1 lawbringer + 5 minions + synth + ward = 11
+      proxy.setupUuids({ uuids: IDS.slice(0, 11) });
+
+      const brokerStep = DependencyStepStub({
+        id: StepIdStub({ value: 'broker-only' }),
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/brokers/a/a-broker.ts' },
+      });
+      const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [brokerStep],
+        flows: [flow],
+        pathseekerWorkItemId: QuestWorkItemIdStub({
+          value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+        }),
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      const flowriderRoles = result.filter((wi) => wi.role === 'flowrider').map((wi) => wi.role);
+
+      expect(flowriderRoles).toStrictEqual([]);
+
+      const ward = result.find((wi) => wi.role === 'ward');
+      const siege = result.find((wi) => wi.role === 'siegemaster');
+
+      expect(siege?.dependsOn).toStrictEqual([ward?.id]);
     });
   });
 });

@@ -1,1 +1,0 @@
-This is your session id: ${CLAUDE_SESSION_ID}. Tell the user what it is
