@@ -126,6 +126,28 @@ describe('stepAssertionContract', () => {
 
       expect('observablesSatisfied' in assertion).toBe(false);
     });
+
+    it('VALID: {id present} => parses with server-stamped id', () => {
+      const assertion = StepAssertionStub({
+        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        prefix: 'VALID',
+        input: '{valid input}',
+        expected: 'returns expected result',
+      });
+
+      expect(assertion).toStrictEqual({
+        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        prefix: 'VALID',
+        input: '{valid input}',
+        expected: 'returns expected result',
+      });
+    });
+
+    it('VALID: {id omitted} => parses without the optional id', () => {
+      const assertion = StepAssertionStub();
+
+      expect('id' in assertion).toBe(false);
+    });
   });
 
   describe('invalid assertions', () => {
@@ -227,6 +249,18 @@ describe('stepAssertionContract', () => {
         });
 
       expect(parseMissing).toThrow(/Required/u);
+    });
+
+    it('INVALID: {id: "not-a-uuid"} => throws validation error', () => {
+      const parseBadId = (): unknown =>
+        stepAssertionContract.parse({
+          id: 'not-a-uuid',
+          prefix: 'VALID',
+          input: '{valid input}',
+          expected: 'returns result',
+        });
+
+      expect(parseBadId).toThrow(/Invalid uuid/u);
     });
   });
 });

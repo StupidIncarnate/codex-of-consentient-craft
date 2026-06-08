@@ -64,6 +64,100 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
+    it('VALID: {new step with assertions} => persists each assertion with a server-stamped id', async () => {
+      const proxy = questModifyBrokerProxy();
+      proxy.setupAssertionIds({ ids: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        steps: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'backend-create-api',
+            slice: 'backend',
+            name: 'Create API',
+            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
+            observablesSatisfied: [],
+            dependsOn: [],
+            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
+            accompanyingFiles: [
+              { path: 'src/brokers/auth/create/auth-create-broker.proxy.ts' },
+              { path: 'src/brokers/auth/create/auth-create-broker.test.ts' },
+            ],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      const [persistedStep] = persisted.steps;
+
+      expect(persistedStep?.assertions).toStrictEqual([
+        {
+          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+          prefix: 'VALID',
+          input: '{valid input}',
+          expected: 'returns result',
+        },
+      ]);
+    });
+
+    it('INVALID: {new step missing assertions} => returns a clean New Step Completeness failedCheck', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        steps: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'backend-create-api',
+            slice: 'backend',
+            name: 'Create API',
+            observablesSatisfied: [],
+            dependsOn: [],
+            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
+            accompanyingFiles: [],
+            inputContracts: ['Void'],
+            outputContracts: ['Void'],
+          } as never,
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'New step is missing required fields',
+        failedChecks: [
+          {
+            name: 'New Step Completeness',
+            passed: false,
+            details:
+              "step 'backend-create-api' is a new step but is missing or has invalid required fields: assertions",
+          },
+        ],
+      });
+    });
+
     it('VALID: {questId, steps: [partial patch]} => merges only the changed field, preserves siblings (partial-patch safety)', async () => {
       const proxy = questModifyBrokerProxy();
       const existingStep = DependencyStepStub({

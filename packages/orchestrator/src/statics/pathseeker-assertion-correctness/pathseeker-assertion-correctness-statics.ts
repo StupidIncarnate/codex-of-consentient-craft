@@ -40,7 +40,7 @@ export const pathseekerAssertionCorrectnessStatics = {
 
 Batch both loads in parallel — a single message with two tool calls:
 
-- \`get-quest({ questId: "QUEST_ID", stage: "implementation" })\` — returns steps (with assertions, instructions, observablesSatisfied at step-level and per-assertion) and contracts.
+- \`get-quest({ questId: "QUEST_ID", stage: "implementation" })\` — returns steps (with assertions, instructions, observablesSatisfied at step-level and per-assertion) and contracts. Each assertion carries a server-stamped \`id\` — note it; you reference that id when you patch a specific assertion in Step 4.
 - \`get-quest({ questId: "QUEST_ID", stage: "spec-obs" })\` — returns flows-with-observables (the \`given\` / \`when\` / \`then\` content you need for clause-mapping checks).
 
 Hold both in context for the walk.
@@ -146,14 +146,21 @@ Group your fixes by step \`id\` and commit them in one or more \`modify-quest\` 
 modify-quest({
   questId: "QUEST_ID",
   steps: [
-    { id: "<step-id>", assertions: [ /* modified assertions only */ ] },
-    { id: "<step-id-2>", instructions: [ /* modified instructions only */ ] },
-    { id: "<step-id-3>", assertions: [ /* modified */ ], instructions: [ /* modified */ ] }
+    // Edit one assertion by its server-stamped id — only the changed fields travel.
+    { id: "<step-id>", assertions: [ { id: "<assertion-id-from-get-quest>", expected: "<new text>" } ] },
+    { id: "<step-id-2>", instructions: [ /* full new instructions array */ ] },
+    { id: "<step-id-3>", assertions: [ { id: "<assertion-id>", input: "<new>", expected: "<new>" } ], instructions: [ /* full */ ] }
   ]
 })
 \`\`\`
 
-\`assertions[]\` and \`instructions[]\` themselves are arrays-without-id, so when you send them they REPLACE the prior arrays for that step. Send the FULL new arrays for that step (all assertions you want present, not just the ones you changed) — but only on the steps you're patching. Steps you don't touch in this call remain entirely untouched.
+**Assertions merge by id; instructions replace.** Every assertion now carries a server-stamped \`id\` (you saw it in the get-quest readback from Step 1). The broker merges \`assertions[]\` BY that id — so:
+
+- **Edit one assertion:** send \`{ id: "<assertion-id>", ...only-the-fields-you-changed }\`. Fields you omit (\`observablesSatisfied\`, \`field\`, \`prefix\`, the other \`input\`/\`expected\`) are preserved automatically. You do NOT resend the whole array, and you do NOT need to re-supply \`observablesSatisfied\` to avoid clobbering it.
+- **Add a new assertion:** send it WITHOUT an \`id\` — the server stamps one.
+- **Assertions you don't mention are left untouched.**
+
+\`instructions[]\` entries have NO id, so sending \`instructions[]\` REPLACES the prior array — send the FULL instructions array you want present whenever you touch it. Steps you don't mention in this call remain entirely untouched.
 
 **Fix shapes:**
 

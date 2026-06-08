@@ -1,11 +1,13 @@
 import {
   AgentIdStub,
+  DependencyStepStub,
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  StepAssertionStub,
   WorkItemForUpsertStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -231,6 +233,64 @@ describe('questItemDeepMergeTransformer', () => {
       const { edges } = result as Flow;
 
       expect(edges).toStrictEqual([updatedEdge]);
+    });
+  });
+
+  describe('assertion merge by id (regression: preserve per-assertion fields)', () => {
+    it('VALID: {update patches one assertion by id, omitting observablesSatisfied} => preserves the untouched observablesSatisfied', () => {
+      const keptAssertion = StepAssertionStub({
+        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+        prefix: 'VALID',
+        input: '{x}',
+        expected: 'old expected',
+        observablesSatisfied: ['obs-delete'],
+      });
+      const siblingAssertion = StepAssertionStub({
+        id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+        prefix: 'ERROR',
+        input: '{y}',
+        expected: 'throws',
+      });
+      const existing = DependencyStepStub({
+        id: 'web-quest-delete-broker' as never,
+        assertions: [keptAssertion, siblingAssertion],
+      });
+
+      const update = DependencyStepStub({
+        id: 'web-quest-delete-broker' as never,
+        assertions: [
+          StepAssertionStub({
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+            prefix: 'VALID',
+            input: '{x}',
+            expected: 'new expected',
+          }),
+        ],
+      });
+      // Partial assertion patch: strip everything but id + expected AFTER the stub parses, so only
+      // those two fields travel into the merge. The rest must be preserved from the existing entry.
+      Reflect.deleteProperty(update.assertions[0] as Record<PropertyKey, unknown>, 'prefix');
+      Reflect.deleteProperty(update.assertions[0] as Record<PropertyKey, unknown>, 'input');
+
+      const result = questItemDeepMergeTransformer({ existing, update });
+
+      const { assertions } = result as ReturnType<typeof DependencyStepStub>;
+
+      expect(assertions).toStrictEqual([
+        {
+          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+          prefix: 'VALID',
+          input: '{x}',
+          expected: 'new expected',
+          observablesSatisfied: ['obs-delete'],
+        },
+        {
+          id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
+          prefix: 'ERROR',
+          input: '{y}',
+          expected: 'throws',
+        },
+      ]);
     });
   });
 

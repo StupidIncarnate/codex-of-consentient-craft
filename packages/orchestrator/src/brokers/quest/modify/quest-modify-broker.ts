@@ -44,7 +44,9 @@ import { questContractSourceResolutionTransformer } from '../../../transformers/
 import { questCrossSliceDagAutowireTransformer } from '../../../transformers/quest-cross-slice-dag-autowire/quest-cross-slice-dag-autowire-transformer';
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
+import { questIncompleteNewStepsTransformer } from '../../../transformers/quest-incomplete-new-steps/quest-incomplete-new-steps-transformer';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
+import { questStepAssertionsStampIdsTransformer } from '../../../transformers/quest-step-assertions-stamp-ids/quest-step-assertions-stamp-ids-transformer';
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -116,9 +118,42 @@ export const questModifyBroker = async ({
         }
 
         if (validated.steps) {
+          const incomingSteps = validated.steps as typeof quest.steps;
+
+          // Reject brand-new steps (id not yet on the quest) that arrive missing required fields.
+          // The input contract's partial-patch branch accepts them, but a partial shape is only
+          // legitimate for editing an EXISTING step. Catching this here yields a clean,
+          // field-named failedCheck instead of an opaque crash in the raw-input invariant
+          // transformers downstream.
+          const existingStepIds = new Set(quest.steps.map((step) => String(step.id)));
+          const incompleteNewStepOffenders = questIncompleteNewStepsTransformer({
+            steps: incomingSteps,
+            existingStepIds,
+          });
+          if (incompleteNewStepOffenders.length > 0) {
+            const incompleteChecks: VerifyQuestCheck[] = incompleteNewStepOffenders.map(
+              (offender) =>
+                verifyQuestCheckContract.parse({
+                  name: 'New Step Completeness',
+                  passed: false,
+                  details: String(offender),
+                }),
+            );
+            return modifyQuestResultContract.parse({
+              success: false,
+              error: 'New step is missing required fields',
+              failedChecks: incompleteChecks,
+            });
+          }
+
+          // Stamp a server-generated id onto every assertion lacking one BEFORE the upsert, so
+          // new assertions persist with a stable id and re-patched assertions (carrying an echoed
+          // id) merge by id instead of replacing the whole array.
+          const stampedSteps = questStepAssertionsStampIdsTransformer({ steps: incomingSteps });
+
           quest.steps = questArrayUpsertTransformer({
             existing: quest.steps,
-            updates: validated.steps as typeof quest.steps,
+            updates: stampedSteps as typeof quest.steps,
           });
         }
 

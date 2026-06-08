@@ -249,12 +249,39 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(/^#create-api: "Create API"$/mu);
-      expect(result).toMatch(/^ {2}Assertions: VALID: \{user: validUser\} => creates user$/mu);
+      expect(result).toMatch(/^ {2}Assertions:\n {4}VALID: \{user: validUser\} => creates user$/mu);
       expect(result).toMatch(/^ {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts$/mu);
       expect(result).toMatch(
         /^ {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts$/mu,
       );
       expect(result).toMatch(/^ {2}Satisfies: #api-responds$/mu);
+    });
+
+    it('VALID: {assertion with id + field + observablesSatisfied} => renders id, field, and satisfies inline', () => {
+      const quest = QuestStub({
+        steps: [
+          DependencyStepStub({
+            id: 'create-api' as never,
+            name: 'Create API' as never,
+            assertions: [
+              {
+                id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+                prefix: 'INVALID',
+                field: 'email',
+                input: '{email: "bad"}',
+                expected: 'throws validation error',
+                observablesSatisfied: ['email-rejected'],
+              } as never,
+            ],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(
+        /^ {4}\[a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d\] INVALID field=email: \{email: "bad"\} => throws validation error satisfies #email-rejected$/mu,
+      );
     });
 
     it('VALID: {quest: with full step} => renders dependencies, export, contracts, and uses', () => {
@@ -311,7 +338,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^#create-login-api: "Test Step"\n {2}Assertions: VALID: \{valid input\} => returns expected result\n {2}Focus: src\/brokers\/login\/create\/login-create-broker\.ts\n {2}Contracts in: Void \| out: Void$/mu,
+        /^#create-login-api: "Test Step"\n {2}Assertions:\n {4}VALID: \{valid input\} => returns expected result\n {2}Focus: src\/brokers\/login\/create\/login-create-broker\.ts\n {2}Contracts in: Void \| out: Void$/mu,
       );
     });
 

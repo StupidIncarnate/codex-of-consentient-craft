@@ -71,7 +71,7 @@ These hold on every commit, regardless of which slice you're patching. They only
 - **Contract name uniqueness with source path.** A second writer hitting an existing contract name gets a failedCheck embedding the existing entry's \`source\` path. Resolve by either (a) dropping the duplicate write and treating the contract as \`status: 'existing'\`, (b) changing your write's source to point at the existing source, or (c) promoting both writes to a shared path.
 - **Contract \`source\` path resolution.** For \`status: 'existing'\` contracts, the \`source\` path must resolve on disk. For \`status: 'new'\`, the path must NOT resolve. Status-vs-disk mismatches are rejected.
 - **Banned-matcher scan.** Assertion \`input\`/\`expected\` strings cannot contain \`.toContain(\`, \`.toMatchObject(\`, \`.toEqual(\` (use \`toStrictEqual\`), \`.toHaveProperty(\`, \`.includes(...).toBe(\`, \`expect.any(\`, or \`expect.objectContaining(\`.
-- **Companion file completeness by folder type.** Required companions (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts) must appear in \`step.accompanyingFiles\`. Skipped for \`focusAction\` steps.
+- **Companion file completeness by folder type.** Required companions (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts) must appear in \`step.accompanyingFiles\`. The companion *check* is skipped for \`focusAction\` steps — but every step you author (\`focusFile\` or \`focusAction\`) still REQUIRES \`assertions\` (≥1) and an \`accompanyingFiles\` array (\`[]\` is allowed, but the field must be present). Omitting either on a brand-new step is rejected.
 - **Assertion \`field\` per prefix.** INVALID assertions REQUIRE \`field\`; INVALID_MULTIPLE MAY include \`field\` (optional); all other prefixes FORBID it. Per-prefix table:
 
   | Prefix | \`field\` |
@@ -164,6 +164,8 @@ By the time you run, \`quest.steps[]\` and \`quest.contracts[]\` reflect every p
 
 **Use the partial-patch shape on every step / contract you edit: \`{ id, ...only-the-fields-you-changed }\`.** The broker merges by id and leaves untouched fields alone. Do NOT resend fields you didn't change — the pathseeker-dedup and pathseeker-assertion-correctness agents already wrote to these entries, and regenerating the full step risks clobbering their writes. Only send the full step shape when authoring a brand-new step (e.g. an exploratory step) where there is no existing entry to merge with.
 
+**Assertions are individually id-addressable.** Each assertion carries a server-stamped \`id\` (visible in the get-quest readback). \`assertions[]\` merges BY that id — to fix one assertion send \`{ id: "<step-id>", assertions: [ { id: "<assertion-id>", ...only-the-changed-fields } ] }\`; omitted assertions and their \`observablesSatisfied\` are preserved. To add an assertion, send it without an \`id\` (the server stamps one). You never resend the whole \`assertions[]\` array to avoid clobbering a sibling's \`observablesSatisfied\`.
+
 **What the pathseeker-surface agents already self-checked (so you don't have to):**
 - Within-slice CLAUDE.md compliance (each agent ran a self-check pass against its package's CLAUDE.md before signaling).
 - Within-slice assertion-per-\`then[]\`-clause coverage (each agent confirmed every claimed observable's \`then[]\` clauses each have a matching assertion, with no asymmetric coverage like Esc-key zero-call but missing outside-click zero-call).
@@ -217,6 +219,7 @@ As you walk, fix what's broken and author exploratory steps inline.
 - **Observable coverage gap across the whole flow.** Every observable in every flow must be claimed by some step or assertion. Catch gaps now or pay for them at the in_progress transition.
 - **Dead step.** An agent produced a step that doesn't trace to its slice's observables or contracts. Delete it.
 - **Whole-slice rewrite (rare).** An agent fundamentally misunderstood its slice. Rewrite the slice in place; you have full authority over every step in every slice.
+- **Missing cross-package addition.** If a flow needs a contract/guard/transformer in a package that NO slice owns (typically \`shared\`), author the step for it — no surface agent will have. Prefer reusing an existing shared export (\`get-project-inventory\`) over creating one. If a sibling SLICE owns the package, fix the wiring instead (list the symbol in the consumer step's \`uses[]\` so the save-time validator auto-wires \`dependsOn\`) rather than duplicating work into that slice's package.
 
 **Author exploratory steps for genuine novelty.** Identify anything picked without sibling precedent in the package — an npm method nothing else in the package uses, a contract shape unlike existing siblings, an assertion strategy not seen elsewhere in this package. For genuine novelty that warrants experimentation, **author an exploratory step directly in your final commit**:
 - **Implementation prototype.** A \`focusFile\` step in a sandbox path or an early-DAG position that produces the foundational pattern other steps will mirror.
@@ -235,8 +238,8 @@ These are normal steps with normal schema — \`focusFile\` or \`focusAction\`, 
 modify-quest({
   questId: "QUEST_ID",
   steps: [
-    { id: "web-update-guild-session-list-widget", assertions: [ /* only the new or changed assertion entries */ ] },
-    { id: "server-modify-quest-delete-responder", instructions: [ /* only the new or changed instructions */ ] }
+    { id: "web-update-guild-session-list-widget", assertions: [ { id: "<assertion-id-from-get-quest>", expected: "<tightened text>" } ] },
+    { id: "server-modify-quest-delete-responder", instructions: [ /* full new instructions array */ ] }
   ]
 })
 

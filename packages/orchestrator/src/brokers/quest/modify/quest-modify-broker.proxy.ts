@@ -21,7 +21,11 @@ import {
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  registerModuleMock,
+  registerSpyOn,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { questModifyBroker } from './quest-modify-broker';
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
@@ -40,9 +44,15 @@ export const questModifyBrokerProxy = (): {
   setupEmptyFolder: () => void;
   setupReject: (params: { error: Error }) => void;
   setupContractSourceResolvesOnce: () => void;
+  setupAssertionIds: (params: {
+    ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
+  }) => void;
   getAllPersistedContents: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
+  // Server-stamped assertion ids come from crypto.randomUUID. Passthrough so every test gets a real
+  // uuid by default; tests that assert on the stamped id queue deterministic values via setupAssertionIds.
+  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
   const pathJoinProxy = pathJoinAdapterProxy();
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
@@ -125,6 +135,16 @@ export const questModifyBrokerProxy = (): {
     // intentionally trigger a `status: 'new'`-with-existing-path rejection.
     setupContractSourceResolvesOnce: (): void => {
       fsAccessProxy.resolves();
+    },
+
+    setupAssertionIds: ({
+      ids,
+    }: {
+      ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
+    }): void => {
+      for (const id of ids) {
+        uuidSpy.mockReturnValueOnce(id);
+      }
     },
 
     getAllPersistedContents: (): readonly unknown[] =>

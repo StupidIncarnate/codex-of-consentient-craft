@@ -84,6 +84,7 @@ For EVERY contract in \`quest.contracts[]\` with \`status: 'new'\`:
 1. Determine its source package — parse \`source\` (e.g., \`packages/shared/src/contracts/quest-id/quest-id-contract.ts\` → package \`shared\`).
 2. Call \`get-project-inventory({ packageName })\` for that package.
 3. Look through the returned inventory's \`contracts/\` listing for an existing contract that the new one DUPLICATES or SHOULD REUSE.
+4. **Also scan the shared library package.** Reusable contracts usually live in the shared library, not in a slice's own package — a surface agent that didn't check shared may have reinvented one. Identify the library package(s) from \`get-project-map\` (it tags library packages \`[library]\`; do NOT hardcode the name \`shared\`, since repos name it differently) and call \`get-project-inventory({ packageName })\` for each. If a \`status: 'new'\` slice-package contract's shape already exists in the library, that's a missed reuse: flip it to \`status: 'existing'\` pointing at the library source (Step 5 case B).
 
 **Why inventory and not \`discover\` globs:** Naming variants (\`email/\` vs \`email-address/\` vs \`user-email/\`) are common; \`discover\` globs miss on those variants because they require knowing the canonical name up front. \`get-project-inventory\` enumerates the package's contract folders deterministically — every folder appears in the list regardless of naming convention.
 

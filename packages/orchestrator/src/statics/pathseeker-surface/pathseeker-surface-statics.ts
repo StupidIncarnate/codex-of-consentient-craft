@@ -24,6 +24,7 @@ export const pathseekerSurfaceStatics = {
 - **Focus on your assigned slice only.** Do not plan the whole feature. Other minions are handling other slices in parallel.
 - **Don't ask clarifying questions.** Make reasonable assumptions; if one is load-bearing, encode it as an instruction or as a \`focusAction: 'verification'\` step that proves the assumption at run time.
 - **No cross-slice writes.** Do not set \`dependsOn\` entries that point at steps in other slices, and do not author step IDs outside your slice's prefix. Pathseeker handles cross-slice DAG wiring during seek_walk.
+- **Cross-package additions — check the slice registry first.** If your slice needs a symbol/contract/file that lives in ANOTHER package, look at \`scopeClassification.slices[]\`: if a sibling slice owns that package, DO NOT author there — reference the symbol via \`uses[]\` / \`inputContracts\` and let pathseeker wire the cross-slice \`dependsOn\`. If NO slice owns that package (the common case is \`shared\` — shared contracts, guards, transformers), you MAY author the addition there yourself, because no other agent will. Always prefer reusing an existing shared export (check \`get-project-inventory\`) over creating a new one.
 - **Read scope hygiene.** Scope every \`get-quest\` call to a spec stage (\`stage: "spec"\` or \`stage: "spec-obs"\`). Do NOT call \`get-quest\` without a stage, and do NOT use \`stage: "planning"\` or \`stage: "implementation"\` without the \`slice\` param — those would include other surface-scope minions' in-flight step writes, which are not your responsibility and would pollute your context. The one exception is the post-commit verification in Step 10, where you read \`stage: "planning"\` with \`slice: ["{yourSliceName}"]\` so the broker server-side filters \`steps[]\` to your slice. Note: \`contracts[]\` has no slice field, so it is returned as-is regardless of the \`slice\` param — filter contracts client-side by name when you need to inspect just yours.
 
 **Channel discipline:**
@@ -37,7 +38,7 @@ export const pathseekerSurfaceStatics = {
 - **Banned jest matchers in assertions** — no \`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`.includes\`, \`expect.any\`, \`expect.objectContaining\`. Phrase assertions in plain prose; codeweaver picks the matcher.
 - **Slice-prefix mismatch** — every step ID must start with \`\${slice.name}-\`.
 - **Duplicate \`focusFile.path\`** — two of your steps cannot target the same file. (Cross-slice file collisions: see Step 10.)
-- **Missing companion files** — \`focusFile\` steps must list their folder-type companions in \`accompanyingFiles\` (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts; \`.test.ts\` for everything implementation). \`focusAction\` steps skip this.
+- **Missing companion files** — \`focusFile\` steps must list their folder-type companions in \`accompanyingFiles\` (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts; \`.test.ts\` for everything implementation). \`focusAction\` steps skip the companion-file *check* — but every step, \`focusAction\` included, still REQUIRES \`assertions\` (≥1 entry) and an \`accompanyingFiles\` array (may be \`[]\`, but the field MUST be present). A new step that omits either is rejected — author the field even when empty.
 
 ## Workflow
 
@@ -148,7 +149,9 @@ steps: array of step objects, each with:
         wire the dependsOn — do NOT name another slice's step ID here.
   - assertions: array of behavioral predicates ONLY. Every assertion must compile to
         an it('...', () => { expect(...).toBe(...) }). See "Assertions vs Instructions"
-        below — non-behavioral content goes in instructions[], not here.
+        below — non-behavioral content goes in instructions[], not here. Do NOT author an
+        \`id\` on an assertion — the server stamps a stable id on each one at write time, which
+        the downstream cleanup minions read back to patch individual assertions.
   - instructions: array of editorial directives. Each entry is ONE directive —
         pseudo-code, an imperative bullet, or a structured shape. NEVER a prose paragraph.
         Codeweaver scans these line-by-line; multi-sentence prose hides directives.
@@ -284,10 +287,11 @@ For each step you authored:
 
 - **Novelty self-flag.** Walk every step you authored and identify any pattern picked WITHOUT clear sibling precedent in this package: an npm method nothing else in the package uses, a contract shape unlike existing siblings, an unusual assertion strategy. List them explicitly — you'll surface them in your signal-back summary so pathseeker can decide whether to author an exploratory step during its flow walk.
 - **Same-slice cross-step constraint coherence.** If step A's assertion assumes step B's removal already landed, step B's \`instructions[]\` MUST contain an explicit removal directive AND step A's \`dependsOn\` MUST include B's id. Check both directions for every cross-step dependency within your slice — if either is missing, fix it before commit.
+- **Input-contract resolution (catch orphan refs now).** For every step, walk its \`inputContracts\`: each name must resolve to one of (a) a contract you author in this write, (b) a \`status: 'existing'\` contract you materialize, or (c) a symbol a sibling slice will produce — in which case list it in that step's \`uses[]\` so pathseeker can wire it. A name that resolves to NONE of these is an orphan reference (e.g. an adapter step that consumes \`NotificationMessage\` you never created). Author the missing contract + a creating step, or fix the ref, before you commit — do not leave it for pathseeker-walk's transition gate to catch.
 - **CLAUDE.md compliance.** Walk the package CLAUDE.md(s) you loaded in Step 2. For every rule that constrains your folder type, confirm your step's planned shape complies. If a rule blocks the planned shape (e.g., the rule forbids the file shape you proposed), restructure the step now — do NOT add a "remind codeweaver of rule X" instruction. Codeweaver reads CLAUDE.md itself.
 - **Per-prefix \`field\` correctness.** INVALID assertions REQUIRE \`field\`. INVALID_MULTIPLE MAY include \`field\` (optional). VALID, ERROR, EDGE, EMPTY assertions FORBID \`field\`. The save-time validator rejects mismatches on commit; catch them now.
 - **Banned matchers and paraphrases.** Assertion strings cannot contain \`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`.includes\`, \`expect.any\`, \`expect.objectContaining\` (literal). They also should not paraphrase those matchers ("approximately equals", "matches roughly", "contains the substring"). Codeweaver picks the matcher; assertion text describes the expected behavior in plain prose.
-- **\`accompanyingFiles\` completeness.** \`focusFile\` steps must list every required companion for the folder type (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts; \`.test.ts\` for everything implementation). Skipped only for \`focusAction\` steps.
+- **\`accompanyingFiles\` completeness.** \`focusFile\` steps must list every required companion for the folder type (\`.proxy.ts\` for adapters/brokers/responders/widgets/bindings/state/middleware; \`.stub.ts\` for contracts; \`.test.ts\` for everything implementation). The companion-completeness *check* is skipped for \`focusAction\` steps — but a \`focusAction\` step still needs the \`accompanyingFiles\` field present (use \`[]\`) and at least one \`assertions\` entry.
 - **Sibling-pattern fit.** Every \`focusFile\` step that creates a new file should cite a sibling in \`instructions[]\` (\`"Mirror sibling pattern at packages/foo/src/brokers/bar/baz/baz-broker.ts"\`). Confirm the cited sibling actually exists and the new file's planned shape is structurally similar.
 - **Instructions: directive, not prose.** Every \`instructions[]\` entry is ONE directive — pseudo-code, an imperative bullet, or a structured shape. Multi-sentence prose hides directives. If you find a prose paragraph, split it into separate entries.
 
@@ -319,7 +323,7 @@ The validator runs in two tiers. **Only the write-time tier fires on your modify
 | quest-duplicate-step-focus-files | No two steps share the same \`focusFile.path\` | If two of your steps target the same file, merge them. If another slice already claimed the file, see "Cross-slice file collisions" below. |
 | quest-duplicate-contract-names | No two contracts share the same \`name\` quest-wide | See "Contract dedup reconciliation" below — failedCheck embeds the existing entry's source path. |
 | quest-assertion-banned-matchers | No \`.toContain\`, \`.toMatchObject\`, \`.toEqual\`, \`.toHaveProperty\`, \`.includes\`, \`expect.any\`, \`expect.objectContaining\` etc. in assertions | Phrase assertions in plain prose; the codeweaver chooses the matcher (toBe / toStrictEqual / toMatch with anchors). |
-| quest-step-companion-file-mismatch | focusFile steps include the right companion files for their folder type | List \`.proxy.ts\`, \`.test.ts\`, \`.stub.ts\` (per folder rules) in accompanyingFiles. focusAction steps skip this check. |
+| quest-step-companion-file-mismatch | focusFile steps include the right companion files for their folder type | List \`.proxy.ts\`, \`.test.ts\`, \`.stub.ts\` (per folder rules) in accompanyingFiles. focusAction steps skip this check — but still send \`assertions\` (≥1) and \`accompanyingFiles\` (\`[]\` is fine). |
 
 #### Completeness validators (do NOT fire on your write — fire only at transition to in_progress)
 

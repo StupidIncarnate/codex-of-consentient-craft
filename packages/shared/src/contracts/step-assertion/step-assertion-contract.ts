@@ -4,11 +4,16 @@
  * USAGE:
  * stepAssertionContract.parse({prefix: 'VALID', input: '{valid input}', expected: 'returns expected result'});
  * // Returns: StepAssertion object with branded fields
+ *
+ * The `id` is server-stamped on write (agents never author it). Once present, the modify-quest
+ * array-upsert merges a step's assertions[] by id — so a partial patch can edit one assertion
+ * without clobbering the others' observablesSatisfied / field values.
  */
 
 import { z } from 'zod';
 
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { stepAssertionIdContract } from '../step-assertion-id/step-assertion-id-contract';
 
 const stepAssertionPrefixContract = z.enum([
   'VALID',
@@ -23,6 +28,11 @@ export type StepAssertionPrefix = z.infer<typeof stepAssertionPrefixContract>;
 
 export const stepAssertionContract = z
   .object({
+    id: stepAssertionIdContract
+      .optional()
+      .describe(
+        'Server-stamped identifier. Omitted by authors; assigned on first write so the modify-quest upsert can merge assertions[] by id rather than replacing the whole array.',
+      ),
     prefix: stepAssertionPrefixContract,
     field: z.string().min(1).brand<'AssertionField'>().optional(),
     input: z.string().min(1).brand<'AssertionInput'>(),

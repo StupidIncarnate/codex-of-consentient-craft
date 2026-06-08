@@ -117,11 +117,20 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
   } else {
     for (const step of quest.steps) {
       parts.push(contentTextContract.parse(`#${step.id}: "${step.name}"`));
-      parts.push(
-        contentTextContract.parse(
-          `${SYM.indent}Assertions: ${step.assertions.map((a) => `${a.prefix}: ${a.input} => ${a.expected}`).join('; ')}`,
-        ),
-      );
+      parts.push(contentTextContract.parse(`${SYM.indent}Assertions:`));
+      for (const a of step.assertions) {
+        const idPart = a.id === undefined ? '' : `[${String(a.id)}] `;
+        const fieldPart = a.field === undefined ? '' : ` field=${String(a.field)}`;
+        const satisfiesPart =
+          a.observablesSatisfied === undefined || a.observablesSatisfied.length === 0
+            ? ''
+            : ` satisfies ${a.observablesSatisfied.map((oid) => `#${String(oid)}`).join(', ')}`;
+        parts.push(
+          contentTextContract.parse(
+            `${SYM.indent}${SYM.indent}${idPart}${a.prefix}${fieldPart}: ${a.input} => ${a.expected}${satisfiesPart}`,
+          ),
+        );
+      }
       const focusDescription =
         step.focusFile === undefined
           ? step.focusAction === undefined
