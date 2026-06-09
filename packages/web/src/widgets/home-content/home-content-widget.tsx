@@ -19,10 +19,12 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 
+import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
 import { guildCreateBroker } from '../../brokers/guild/create/guild-create-broker';
+import { questDeleteBroker } from '../../brokers/quest/delete/quest-delete-broker';
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { GuildAddModalWidget } from '../guild-add-modal/guild-add-modal-widget';
@@ -52,9 +54,16 @@ export const HomeContentWidget = (): React.JSX.Element => {
   const { data: sessions, loading: sessionsLoading } = useSessionListBinding({
     guildId: selectedGuildId,
   });
-  const { data: questsList, loading: questsLoading } = useQuestsBinding({
+  const {
+    data: questsList,
+    loading: questsLoading,
+    refresh: refreshQuests,
+  } = useQuestsBinding({
     guildId: selectedGuildId,
   });
+
+  const [confirmingQuestId, setConfirmingQuestId] = useState<QuestId | null>(null);
+  const [deletingQuestId, setDeletingQuestId] = useState<QuestId | null>(null);
 
   useEffect(() => {
     try {
@@ -171,6 +180,29 @@ export const HomeContentWidget = (): React.JSX.Element => {
                       globalThis.console.error('[home-content] navigation failed', navError);
                     });
                   }
+                }}
+                confirmingQuestId={confirmingQuestId}
+                onConfirmingQuestIdChange={({ questId }) => {
+                  setConfirmingQuestId(questId);
+                }}
+                deletingQuestId={deletingQuestId}
+                onDeleteQuest={({ questId }: { questId: QuestId }) => {
+                  setDeletingQuestId(questId);
+                  questDeleteBroker({ questId, guildId: selectedGuildId })
+                    .then(async () => {
+                      await refreshQuests();
+                      setConfirmingQuestId(null);
+                      setDeletingQuestId(null);
+                    })
+                    .catch((deleteError: unknown) => {
+                      const message =
+                        deleteError instanceof Error && deleteError.message
+                          ? deleteError.message
+                          : 'Failed to delete quest';
+                      mantineNotificationsShowAdapter({ message, color: 'red' });
+                      setConfirmingQuestId(null);
+                      setDeletingQuestId(null);
+                    });
                 }}
               />
             ) : (

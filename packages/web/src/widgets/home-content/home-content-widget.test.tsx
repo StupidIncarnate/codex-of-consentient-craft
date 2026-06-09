@@ -8,6 +8,7 @@ import {
   GuildIdStub,
   GuildListItemStub,
   QuestIdStub,
+  QuestListItemStub,
   SessionIdStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -583,6 +584,195 @@ describe('HomeContentWidget', () => {
       expect(
         consoleErrorSpy.mock.calls.some((c) => c[0] === '[home-content] guild create failed'),
       ).toBe(true);
+    });
+  });
+
+  describe('quest delete from root page', () => {
+    it('VALID: {click skull, Banish, delete resolves} => broker called once with questId+guildId, row removed, popover hidden', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guildId = GuildIdStub({ value: 'f1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const guild = GuildListItemStub({ id: guildId, name: 'Delete Guild' });
+      const questId = QuestIdStub({ value: 'delete-me-quest' });
+      const quest = QuestListItemStub({
+        id: questId,
+        title: 'Delete Me' as never,
+        status: 'complete' as never,
+      });
+      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuests({ quests: [quest] });
+      proxy.setupDeleteQuest();
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('SPAN');
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+          await Promise.resolve();
+        },
+      });
+
+      proxy.setupQuests({ quests: [] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickBanish();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId(`QUEST_ITEM_${questId}`)).toBe(null);
+      });
+
+      expect(proxy.getDeleteBrokerCalls()).toStrictEqual([[{ questId, guildId }]]);
+      expect(screen.queryByTestId(`QUEST_ITEM_${questId}`)).toBe(null);
+      expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(false);
+    });
+
+    it("ERROR: {delete rejects with 'Quest is currently running'} => red toast with that message, row remains, popover hidden", async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guildId = GuildIdStub({ value: 'a2b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const guild = GuildListItemStub({ id: guildId, name: 'Err Guild' });
+      const questId = QuestIdStub({ value: 'running-quest' });
+      const quest = QuestListItemStub({
+        id: questId,
+        title: 'Running Quest' as never,
+        status: 'complete' as never,
+      });
+      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuests({ quests: [quest] });
+      proxy.setupDeleteQuestRejectsWithMessage({ message: 'Quest is currently running' });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('SPAN');
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickBanish();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.getShownToast()).toStrictEqual({
+          message: 'Quest is currently running',
+          color: 'red',
+        });
+      });
+
+      expect(proxy.getShownToast()).toStrictEqual({
+        message: 'Quest is currently running',
+        color: 'red',
+      });
+      expect(screen.getByTestId(`QUEST_ITEM_${questId}`).tagName).toBe('DIV');
+      expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(false);
+    });
+
+    it('ERROR: {delete rejects with empty-message error} => red toast with fallback message, row remains', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guildId = GuildIdStub({ value: 'b2b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const guild = GuildListItemStub({ id: guildId, name: 'Fallback Guild' });
+      const questId = QuestIdStub({ value: 'fallback-quest' });
+      const quest = QuestListItemStub({
+        id: questId,
+        title: 'Fallback Quest' as never,
+        status: 'complete' as never,
+      });
+      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuests({ quests: [quest] });
+      proxy.setupDeleteQuestRejectsWithoutMessage();
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('SPAN');
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+          await Promise.resolve();
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickBanish();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.getShownToast()).toStrictEqual({
+          message: 'Failed to delete quest',
+          color: 'red',
+        });
+      });
+
+      expect(proxy.getShownToast()).toStrictEqual({
+        message: 'Failed to delete quest',
+        color: 'red',
+      });
+      expect(screen.getByTestId(`QUEST_ITEM_${questId}`).tagName).toBe('DIV');
     });
   });
 });

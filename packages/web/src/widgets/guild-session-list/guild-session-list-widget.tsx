@@ -6,8 +6,26 @@
  * // Renders SESSIONS header. In "quests-only" mode shows one row per quest file; in "all" mode shows one row per session JSONL.
  */
 
-import { Badge, Group, Loader, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core';
+import {
+  ActionIcon,
+  Badge,
+  Box,
+  Button,
+  Group,
+  Loader,
+  Popover,
+  SegmentedControl,
+  Stack,
+  Text,
+  UnstyledButton,
+} from '@mantine/core';
+import { IconSkull } from '@tabler/icons-react';
 
+import {
+  isPreExecutionQuestStatusGuard,
+  isTerminalQuestStatusGuard,
+  isUserPausedQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 import type {
   QuestId,
   QuestListItem,
@@ -33,6 +51,10 @@ export interface GuildSessionListWidgetProps {
   onSelect: (params: { sessionId: SessionId }) => void;
   onSelectQuest: (params: { questId: QuestId }) => void;
   onAdd: () => void;
+  confirmingQuestId: QuestId | null;
+  onConfirmingQuestIdChange: (params: { questId: QuestId | null }) => void;
+  onDeleteQuest: (params: { questId: QuestId }) => void;
+  deletingQuestId: QuestId | null;
 }
 
 const ITEM_FONT_SIZE = 12;
@@ -83,6 +105,10 @@ export const GuildSessionListWidget = ({
   onSelect,
   onSelectQuest,
   onAdd,
+  confirmingQuestId,
+  onConfirmingQuestIdChange,
+  onDeleteQuest,
+  deletingQuestId,
 }: GuildSessionListWidgetProps): React.JSX.Element => {
   const isQuestMode = filter === 'quests-only';
   const isEmpty = isQuestMode ? quests.length === 0 : sessions.length === 0;
@@ -127,16 +153,26 @@ export const GuildSessionListWidget = ({
         isQuestMode &&
         quests.map((quest) => {
           const isTerminal = TERMINAL_STATUSES.has(quest.status);
+          const isDeletable =
+            isTerminalQuestStatusGuard({ status: quest.status }) ||
+            isUserPausedQuestStatusGuard({ status: quest.status }) ||
+            isPreExecutionQuestStatusGuard({ status: quest.status });
           return (
-            <UnstyledButton
+            <Box
               key={quest.id}
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 onSelectQuest({ questId: quest.id });
               }}
               px="xs"
               py={3}
               data-testid={`QUEST_ITEM_${quest.id}`}
-              style={{ ...ROW_BASE_STYLE, opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1 }}
+              style={{
+                ...ROW_BASE_STYLE,
+                cursor: 'pointer',
+                opacity: isTerminal ? TERMINAL_ROW_OPACITY : 1,
+              }}
             >
               <span style={{ flex: 1, minWidth: 0 }}>{quest.title}</span>
               <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
@@ -149,8 +185,76 @@ export const GuildSessionListWidget = ({
                 >
                   {quest.status.toUpperCase().split('_').join(' ')}
                 </span>
+                {isDeletable && (
+                  <Popover
+                    opened={confirmingQuestId === quest.id}
+                    onChange={(opened) => {
+                      onConfirmingQuestIdChange({ questId: opened ? quest.id : null });
+                    }}
+                    position="bottom-end"
+                    withArrow
+                    trapFocus
+                    withinPortal={false}
+                    transitionProps={{ duration: 0 }}
+                  >
+                    <Popover.Target>
+                      <ActionIcon
+                        component="span"
+                        role="button"
+                        aria-label="Delete quest"
+                        data-testid={`QUEST_DELETE_${quest.id}`}
+                        variant="subtle"
+                        color={colors.danger}
+                        size="sm"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onConfirmingQuestIdChange({
+                            questId: confirmingQuestId === quest.id ? null : quest.id,
+                          });
+                        }}
+                      >
+                        <IconSkull size={14} />
+                      </ActionIcon>
+                    </Popover.Target>
+                    <Popover.Dropdown
+                      data-testid={`QUEST_DELETE_POPOVER_${quest.id}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                      }}
+                    >
+                      <Stack gap={8}>
+                        <Text ff="monospace" size="xs" style={{ color: colors.text }}>
+                          {`Deleting ${quest.title} is permanent. Are you sure?`}
+                        </Text>
+                        <Group gap={8} justify="flex-end">
+                          <Button
+                            size="xs"
+                            variant="default"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onConfirmingQuestIdChange({ questId: null });
+                            }}
+                          >
+                            Spare
+                          </Button>
+                          <Button
+                            size="xs"
+                            color="red"
+                            disabled={deletingQuestId === quest.id}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onDeleteQuest({ questId: quest.id });
+                            }}
+                          >
+                            Banish
+                          </Button>
+                        </Group>
+                      </Stack>
+                    </Popover.Dropdown>
+                  </Popover>
+                )}
               </Group>
-            </UnstyledButton>
+            </Box>
           );
         })}
       {!loading &&
