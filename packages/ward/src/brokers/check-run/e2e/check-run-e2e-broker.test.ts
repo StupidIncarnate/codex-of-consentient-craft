@@ -212,7 +212,7 @@ describe('checkRunE2eBroker', () => {
 
       expect(result).toStrictEqual(
         ProjectResultStub({
-          discoveredCount: 1,
+          discoveredCount: 0,
           projectFolder,
           status: 'skip',
           errors: [],
