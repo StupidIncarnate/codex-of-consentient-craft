@@ -1,4 +1,5 @@
 import {
+  DependencyStepStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -293,6 +294,60 @@ describe('QuestHandleSignalBackResponder', () => {
         'blightwarden',
         'ward',
       ]);
+    });
+
+    it('ERROR: {role: pathseeker-walk, signal: complete, post-walk hook throws on an invalid plan} => quest BLOCKED with walk failed, never falsely complete', async () => {
+      // Reproduces the real failure that stranded quest ea97db12 ("Delete Quest Button"):
+      // pathseeker-walk signalled complete, but the post-walk completeness validation threw
+      // because a step's inputContracts referenced a contract absent from quest.contracts[].
+      // The responder must convert that throw into a BLOCK — not leave the quest derived
+      // `complete` (terminal, never re-scanned) with no implementation chain.
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const walkItem = WorkItemStub({
+        id: walkId,
+        role: 'pathseeker-walk',
+        status: 'in_progress',
+      });
+      // The unresolved step→contract ref that makes the REAL post-walk completeness scope
+      // (questValidateSpecTransformer scope 'completeness') throw: 'GhostContract' is not in
+      // quest.contracts[] and is not the Void sentinel.
+      // id must keep the default 'backend' slice prefix so the only failing check is the
+      // completeness contract-ref scope (run solely by the post-walk hook) — a slice-prefix
+      // mismatch would instead trip the per-write save-invariants on every modify call.
+      const invalidStep = DependencyStepStub({
+        id: 'backend-references-ghost',
+        inputContracts: ['GhostContract'],
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [walkItem],
+        steps: [invalidStep],
+        flows: [],
+        contracts: [],
+      });
+      proxy.setupQuestBlockPassthrough({ quest });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId,
+        workItemId: walkId,
+        signal: 'complete',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persistedQuest = proxy.getLastPersistedQuest();
+      const persistedWalk = persistedQuest.workItems.find((wi) => wi.id === walkId);
+
+      expect({
+        questStatus: persistedQuest.status,
+        walkStatus: persistedWalk?.status,
+      }).toStrictEqual({
+        questStatus: 'blocked',
+        walkStatus: 'failed',
+      });
     });
 
     it('VALID: {role: pathseeker-walk, signal: failed} => transitions to failed, does NOT invoke post-walk hook', async () => {

@@ -78,11 +78,34 @@ export const QuestHandleSignalBackResponder = async ({
     });
 
     if (workItem.role === 'pathseeker-walk') {
-      await questPostWalkHookBroker({
-        questId,
-        walkWorkItemId: workItemId,
-        batchGroups: folderTypeGroupsContract.parse(undefined),
-      });
+      // The post-walk hook runs the completeness scope and generates the downstream
+      // codeweaver/ward/lawbringer/blightwarden chain. If it throws (the authored plan failed
+      // completeness — e.g. a step references a contract absent from quest.contracts[]), the walk
+      // item is already marked `complete` above, so the quest derives `complete` (every work item
+      // terminal) — a terminal status `loadActiveQuestsLayerBroker` never re-scans, stranding the
+      // quest with no implementation chain. A failed hook means the plan is unusable, so route it
+      // to BLOCK: flip the walk item to `failed` and drain pending items, the same containment as
+      // any other unfixable agent failure. This keeps the invariant that a quest never reads
+      // `complete` without its implementation work having been generated.
+      try {
+        await questPostWalkHookBroker({
+          questId,
+          walkWorkItemId: workItemId,
+          batchGroups: folderTypeGroupsContract.parse(undefined),
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const errorMessage = errorMessageContract.parse(
+          message.length > 0 ? message : 'post_walk_hook_failed',
+        );
+        await questModifyBroker({
+          input: {
+            questId,
+            workItems: [{ id: workItemId, status: 'failed', completedAt, errorMessage }],
+          } as ModifyQuestInput,
+        });
+        await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+      }
     }
     return adapterResultContract.parse({ success: true });
   }
