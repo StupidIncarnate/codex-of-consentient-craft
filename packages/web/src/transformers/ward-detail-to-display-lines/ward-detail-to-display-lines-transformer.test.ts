@@ -172,6 +172,125 @@ describe('wardDetailToDisplayLinesTransformer', () => {
     });
   });
 
+  describe('discovery mismatch (no structured failures)', () => {
+    it('VALID: {check flagged discoveryMismatch with counts + onlyDiscovered} => renders mismatch header + discovered file lines', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'e2e',
+            status: 'skip',
+            discoveryMismatch: true,
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/web', path: '/repo/packages/web' },
+                status: 'skip',
+                errors: [],
+                testFailures: [],
+                filesCount: 0,
+                discoveredCount: 2,
+                onlyDiscovered: [
+                  'packages/web/src/flows/home/quest-delete-from-root.e2e.ts',
+                  'packages/web/src/flows/home/other.e2e.ts',
+                ],
+                onlyProcessed: [],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual([
+        'e2e: DISCOVERY MISMATCH — 2 discovered, 0 processed',
+        'e2e: only discovered — packages/web/src/flows/home/quest-delete-from-root.e2e.ts',
+        'e2e: only discovered — packages/web/src/flows/home/other.e2e.ts',
+      ]);
+    });
+
+    it('VALID: {check flagged discoveryMismatch with counts only, no file lists} => renders mismatch header from counts', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'e2e',
+            status: 'skip',
+            discoveryMismatch: true,
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/web', path: '/repo/packages/web' },
+                status: 'skip',
+                errors: [],
+                testFailures: [],
+                filesCount: 0,
+                discoveredCount: 46,
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual(['e2e: DISCOVERY MISMATCH — 46 discovered, 0 processed']);
+    });
+
+    it('VALID: {onlyProcessed present (discovered but unrun the other way)} => renders processed file lines too', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'unit',
+            status: 'pass',
+            discoveryMismatch: true,
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/web', path: '/repo/packages/web' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 1,
+                discoveredCount: 0,
+                onlyDiscovered: [],
+                onlyProcessed: ['packages/web/src/orphan.test.ts'],
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual([
+        'unit: DISCOVERY MISMATCH — 0 discovered, 1 processed',
+        'unit: only processed — packages/web/src/orphan.test.ts',
+      ]);
+    });
+
+    it('EMPTY: {skip check WITHOUT discoveryMismatch flag} => returns empty array (web never recomputes the verdict)', () => {
+      const detail = WardDetailStub({
+        checks: [
+          {
+            checkType: 'e2e',
+            status: 'skip',
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/web', path: '/repo/packages/web' },
+                status: 'skip',
+                errors: [],
+                testFailures: [],
+                filesCount: 0,
+                discoveredCount: 46,
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = wardDetailToDisplayLinesTransformer({ detail });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
   describe('no failures', () => {
     it('EMPTY: {checks empty} => returns empty array', () => {
       const detail = WardDetailStub({ checks: [] });
