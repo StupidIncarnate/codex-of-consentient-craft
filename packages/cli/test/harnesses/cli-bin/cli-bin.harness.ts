@@ -13,7 +13,6 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import {
-  filePathContract,
   fileContentsContract,
   FilePathStub,
   ExitCodeStub,
@@ -22,6 +21,11 @@ import {
 
 const BIN_PATH = FilePathStub({ value: resolve(__dirname, '../../../dist/bin/dungeonmaster.js') });
 const SPAWN_TIMEOUT_MS = 5000;
+// Probe-only port + timeout for `requireWithoutAutorun`. The port is a neutralizer: if the
+// import-time autorun guard ever regresses, the booted server lands here instead of the
+// configured port (4800), so the probe can't collide with a running instance.
+const IMPORT_PROBE_PORT = 59_999;
+const IMPORT_PROBE_TIMEOUT_MS = 3000;
 
 export const cliBinHarness = (): {
   binPath: ReturnType<typeof FilePathStub>;
@@ -29,7 +33,7 @@ export const cliBinHarness = (): {
   binIsExecutable: () => boolean;
   readBinContent: () => FileContents;
   runInit: () => Promise<{ exitCode: ReturnType<typeof ExitCodeStub> }>;
-  loadModule: () => Promise<{ isEsModule: boolean }>;
+  requireWithoutAutorun: () => Promise<{ exitedCleanly: boolean; servedLineSeen: boolean }>;
 } => ({
   binPath: BIN_PATH,
 
@@ -83,12 +87,50 @@ export const cliBinHarness = (): {
     return { exitCode };
   },
 
-  loadModule: async (): Promise<{ isEsModule: boolean }> => {
-    const mod: unknown = await import(filePathContract.parse(BIN_PATH));
-    const isEsModule =
-      typeof mod === 'object' &&
-      mod !== null &&
-      (mod as Record<PropertyKey, unknown>).__esModule === true;
-    return { isEsModule };
-  },
+  // Requires the built bin in a child process to prove that importing it is side-effect-free:
+  // a valid module loads (no syntax error) and exits cleanly, WITHOUT booting the HTTP server
+  // or opening a browser. A child process is used (not in-process import) so a regression that
+  // re-enables the import-time serve can't leave a server/browser in the jest process.
+  requireWithoutAutorun: async (): Promise<{ exitedCleanly: boolean; servedLineSeen: boolean }> =>
+    new Promise((promiseResolve) => {
+      const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-import-'));
+      const child = spawn('node', ['-e', `require(${JSON.stringify(String(BIN_PATH))})`], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          FORCE_COLOR: '0',
+          BROWSER: '/bin/true',
+          DUNGEONMASTER_PORT: String(IMPORT_PROBE_PORT),
+        },
+        cwd: tempDir,
+      });
+
+      let captured = '';
+      child.stdout.on('data', (chunk) => {
+        captured += String(chunk);
+      });
+
+      const settle = ({ exitedCleanly }: { exitedCleanly: boolean }): void => {
+        rmSync(tempDir, { recursive: true, force: true });
+        promiseResolve({
+          exitedCleanly,
+          servedLineSeen: captured.includes('Dungeonmaster server running at'),
+        });
+      };
+
+      const timer = setTimeout(() => {
+        child.kill();
+        settle({ exitedCleanly: false });
+      }, IMPORT_PROBE_TIMEOUT_MS);
+
+      child.on('exit', (exitCode) => {
+        clearTimeout(timer);
+        settle({ exitedCleanly: exitCode === 0 });
+      });
+
+      child.on('error', () => {
+        clearTimeout(timer);
+        settle({ exitedCleanly: false });
+      });
+    }),
 });

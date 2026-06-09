@@ -38,10 +38,17 @@ describe('dungeonmaster binary', () => {
       TIMEOUT_MS,
     );
 
-    it('VALID: {} => loads module without syntax errors', async () => {
-      const { isEsModule } = await harness.loadModule();
+    it(
+      'VALID: {required as a module} => exits cleanly without booting the server or opening a browser',
+      async () => {
+        const { exitedCleanly, servedLineSeen } = await harness.requireWithoutAutorun();
 
-      expect(isEsModule).toBe(true);
-    });
+        expect({ exitedCleanly, servedLineSeen }).toStrictEqual({
+          exitedCleanly: true,
+          servedLineSeen: false,
+        });
+      },
+      TIMEOUT_MS,
+    );
   });
 });
