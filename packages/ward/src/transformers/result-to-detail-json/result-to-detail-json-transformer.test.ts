@@ -631,9 +631,110 @@ describe('resultToDetailJsonTransformer', () => {
     });
   });
 
-  describe('preserves filesCount and discoveredCount', () => {
-    it('VALID: {wardResult: project with filesCount and discoveredCount} => includes counts in JSON', () => {
+  describe('records discovery mismatch', () => {
+    it('VALID: {check with discovery mismatch (discovered>0, files=0, no passthrough)} => flags discoveryMismatch + includes onlyDiscovered/onlyProcessed', () => {
       const wardResult = WardResultStub({
+        checks: [
+          CheckResultStub({
+            checkType: 'e2e',
+            status: 'skip',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: '@dungeonmaster/web', path: '/repo/packages/web' },
+                status: 'skip',
+                errors: [],
+                testFailures: [],
+                filesCount: 0,
+                discoveredCount: 2,
+                onlyDiscovered: ['packages/web/a.e2e.ts', 'packages/web/b.e2e.ts'],
+                onlyProcessed: [],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'e2e',
+            status: 'skip',
+            discoveryMismatch: true,
+            projectResults: [
+              {
+                projectFolder: { name: '@dungeonmaster/web', path: '/repo/packages/web' },
+                status: 'skip',
+                errors: [],
+                testFailures: [],
+                passingTests: [],
+                filesCount: 0,
+                discoveredCount: 2,
+                onlyDiscovered: ['packages/web/a.e2e.ts', 'packages/web/b.e2e.ts'],
+                onlyProcessed: [],
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it('VALID: {scoped passthrough run with results (discovered != files but suppressed)} => no discoveryMismatch, omits onlyDiscovered/onlyProcessed', () => {
+      const wardResult = WardResultStub({
+        filters: { passthrough: ['packages/web/src/foo.test.ts'] },
+        checks: [
+          CheckResultStub({
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              ProjectResultStub({
+                status: 'pass',
+                filesCount: 8,
+                discoveredCount: 267,
+                onlyDiscovered: ['packages/web/src/bar.test.ts'],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToDetailJsonTransformer({ wardResult });
+      const parsed: unknown = JSON.parse(result);
+
+      expect(parsed).toStrictEqual({
+        runId: '1739625600000-a3f1',
+        timestamp: 1739625600000,
+        checks: [
+          {
+            checkType: 'unit',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: { name: 'ward', path: '/home/user/project/packages/ward' },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                passingTests: [],
+                filesCount: 8,
+                discoveredCount: 267,
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('preserves filesCount and discoveredCount', () => {
+    it('VALID: {scoped run, project with filesCount and discoveredCount} => includes counts in JSON, no mismatch flag', () => {
+      // Scoped (passthrough) run: filesCount != discoveredCount is expected under findRelatedTests,
+      // so the discovery-mismatch verdict is suppressed and the counts simply round-trip.
+      const wardResult = WardResultStub({
+        filters: { passthrough: ['packages/ward/src/foo.test.ts'] },
         checks: [
           CheckResultStub({
             checkType: 'unit',
