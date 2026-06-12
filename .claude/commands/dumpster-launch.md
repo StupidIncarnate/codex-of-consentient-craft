@@ -10,10 +10,10 @@ Loop forever:
 
 1. Call `mcp__dungeonmaster__get-next-step()` with NO arguments. This may block up to ~25 s — that is normal.
 2. Switch on `result.type`:
-    - `spawn-agents`: dispatch ALL listed agents IN PARALLEL via the Task tool. Each Task's prompt is `taskPrompt`
-      verbatim (the questId is already interpolated). AWAIT all Tasks before continuing.
-    - `run-ward`: call
-      `mcp__dungeonmaster__run-ward({ questId: result.questId, workItemId: result.workItemId, mode: result.mode })`.
-      This blocks while ward runs (minutes). Wait for it.
+   - `spawn-agents`: dispatch ALL listed agents IN PARALLEL via the Task tool. Each Task's prompt is `taskPrompt`
+     verbatim (the questId is already interpolated). AWAIT all Tasks before continuing.
+   - `run-ward`: call
+     `mcp__dungeonmaster__run-ward({ questId: result.questId, workItemId: result.workItemId, mode: result.mode })`. This
+     blocks while ward runs (minutes). Wait for it.
    - `idle`: no work right now. Sleep for 30 minutes and then call `get-next-step()` again.
 3. Loop back to 1.

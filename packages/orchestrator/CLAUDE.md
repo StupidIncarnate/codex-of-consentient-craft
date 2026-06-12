@@ -509,8 +509,9 @@ switches on `startGraphKind` to seed the matching work-item graph:
   blightwarden → ward` chain (flowrider only when ≥1 flow/startup step exists).
 - **`bug-hunt`** (`/dumpster-hunt`): `questBuildBugHuntGraphBroker` hand-seeds the WHOLE chain at Start
   (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden
-  → ward(full)`. Bug-hunt reuses the flow/observable spec lifecycle — the reproduction path is a flow,
-  the expected behavior an observable PestEater turns into a failing test.
+  → ward(full)`. Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows
+  (the actual-state reproduction path ending at the symptom, and the expected-state path ending at the
+  correct behavior), with the expected behavior an observable PestEater turns into a failing test.
 
 Each type owns its COMPLETE work-item flow; PathSeeker's single planning work item is the *feature*
 type's planning sub-stage, not universal. Adding a type = one `questTypeRegistryStatics` entry + a

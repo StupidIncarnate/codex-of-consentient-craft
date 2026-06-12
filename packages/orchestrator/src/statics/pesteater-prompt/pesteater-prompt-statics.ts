@@ -28,6 +28,9 @@ ${agentOperatingRulesStatics.markdown}
 
 Your Quest Context below contains the Quest ID. Call \`get-quest({ questId })\` and read:
 - **userRequest** — the raw bug report: what the user sees vs. what they expect.
+- **flows** — two flows: the **actual-state flow** (the reproduction path, ending at the
+  observed symptom) and the **expected-state flow** (the same trigger, ending at the behavior
+  your fix must make real — its observable is the invariant your failing test asserts).
 - **designDecisions** — structured intake answers (reproduction steps, URL/prompt, affected
   packages, any root-cause hypotheses captured during /dumpster-hunt).
 - **packagesAffected** — where the bug likely lives.

@@ -27,4 +27,20 @@ describe('dumpsterHuntPromptStatics', () => {
 
     expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
   });
+
+  it('VALID: template => instructs capturing the bug as actual-state and expected-state flows', () => {
+    const needle = '**Work:** Capture the bug as TWO flows:';
+    const { template } = dumpsterHuntPromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+
+    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+  });
+
+  it('VALID: template => anchors the observable on the expected-state flow', () => {
+    const needle = "On the expected-state flow's node where the corrected behavior is observed";
+    const { template } = dumpsterHuntPromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+
+    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+  });
 });

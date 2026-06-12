@@ -65,4 +65,13 @@ describe('pesteaterPromptStatics', () => {
   it('VALID: template => hardcodes no UI package path', () => {
     expect(pesteaterPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
+
+  it('VALID: template => Gate 1 reads the actual-state and expected-state flows', () => {
+    const needle =
+      '- **flows** — two flows: the **actual-state flow** (the reproduction path, ending at the\n  observed symptom) and the **expected-state flow**';
+    const { template } = pesteaterPromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+
+    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+  });
 });
