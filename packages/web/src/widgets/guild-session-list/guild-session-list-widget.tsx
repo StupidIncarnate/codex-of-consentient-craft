@@ -194,7 +194,7 @@ export const GuildSessionListWidget = ({
                     position="bottom-end"
                     withArrow
                     trapFocus
-                    withinPortal={false}
+                    withinPortal
                     transitionProps={{ duration: 0 }}
                   >
                     <Popover.Target>
@@ -218,6 +218,10 @@ export const GuildSessionListWidget = ({
                     </Popover.Target>
                     <Popover.Dropdown
                       data-testid={`QUEST_DELETE_POPOVER_${quest.id}`}
+                      style={{
+                        background: colors['bg-raised'],
+                        borderColor: colors.border,
+                      }}
                       onClick={(event) => {
                         event.stopPropagation();
                       }}
