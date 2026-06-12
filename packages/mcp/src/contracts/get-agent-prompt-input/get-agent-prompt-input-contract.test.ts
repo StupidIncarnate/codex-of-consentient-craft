@@ -73,13 +73,18 @@ describe('getAgentPromptInputContract', () => {
     }).toThrow(/Required/u);
   });
 
-  it('INVALID: {missing workItemId} => throws validation error', () => {
-    expect(() => {
-      getAgentPromptInputContract.parse({
-        agent: 'codeweaver',
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-      });
-    }).toThrow(/Required/u);
+  it('VALID: {missing workItemId} => parses (a parent-summoned minion omits it)', () => {
+    const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+
+    const result = getAgentPromptInputContract.parse({
+      agent: 'chaoswhisperer-gap-minion',
+      questId,
+    });
+
+    expect(result).toStrictEqual({
+      agent: 'chaoswhisperer-gap-minion',
+      questId,
+    });
   });
 
   it('INVALID: {workItemId: "not-a-uuid"} => throws validation error', () => {

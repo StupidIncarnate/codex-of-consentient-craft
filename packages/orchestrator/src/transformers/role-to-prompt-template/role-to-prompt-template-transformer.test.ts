@@ -43,14 +43,6 @@ describe('roleToPromptTemplateTransformer', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: pathseeker-walk} => returns pathseeker-walk prompt template', () => {
-      const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'pathseeker-walk' }),
-      });
-
-      expect(result.length).toBeGreaterThan(0);
-    });
-
     it('VALID: {role: flowrider} => returns flowrider prompt template', () => {
       const result = roleToPromptTemplateTransformer({
         role: AgentRoleStub({ value: 'flowrider' }),

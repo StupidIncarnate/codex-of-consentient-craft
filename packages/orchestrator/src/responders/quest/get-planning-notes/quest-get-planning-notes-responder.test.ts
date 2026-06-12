@@ -20,7 +20,7 @@ describe('QuestGetPlanningNotesResponder', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { surfaceReports: [], blightReports: [] },
+        data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
       });
     });
 
@@ -52,6 +52,7 @@ describe('QuestGetPlanningNotesResponder', () => {
           scopeClassification: scope,
           surfaceReports: [surface],
           blightReports: [blight],
+          codeweaverPlans: [],
           synthesis,
           walkFindings: walk,
         },

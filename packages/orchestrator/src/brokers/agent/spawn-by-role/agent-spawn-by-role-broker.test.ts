@@ -87,9 +87,9 @@ describe('agentSpawnByRoleBroker', () => {
       const [, prompt] = spawnedArgs;
 
       expect(String(prompt)).toMatch(/^Quest ID: add-auth$/mu);
-      // pathseeker-walk-statics no longer branches on seek_* statuses; assert the
-      // architect-review section header instead.
-      expect(String(prompt)).toMatch(/^## The Architect-Review Walk$/mu);
+      // The pathseeker role resolves to the parent planner prompt; assert one of its sections
+      // (it summons minions, then runs the architect-review walk itself).
+      expect(String(prompt)).toMatch(/^## How you summon a minion$/mu);
     });
 
     it('VALID: {siegemaster workUnit} => resolves siegemaster prompt template', async () => {
@@ -609,7 +609,7 @@ describe('agentSpawnByRoleBroker', () => {
       expect(spawnedArgs[modelIdx + 1]).toBe('opus');
     });
 
-    it('VALID: {codeweaver workUnit, no smoketest override} => spawns with --model sonnet', async () => {
+    it('VALID: {codeweaver workUnit, no smoketest override} => spawns with --model opus', async () => {
       const proxy = agentSpawnByRoleBrokerProxy();
       const step = DependencyStepStub();
       const workUnit = CodeweaverWorkUnitStub({ steps: [step] });
@@ -630,7 +630,7 @@ describe('agentSpawnByRoleBroker', () => {
       const modelIdx = spawnedArgs.indexOf('--model');
 
       expect(modelIdx).toBeGreaterThan(-1);
-      expect(spawnedArgs[modelIdx + 1]).toBe('sonnet');
+      expect(spawnedArgs[modelIdx + 1]).toBe('opus');
     });
 
     it('VALID: {siegemaster workUnit, no smoketest override} => spawns with --model opus', async () => {

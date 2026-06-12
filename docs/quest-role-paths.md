@@ -29,8 +29,8 @@ orchestrator-spawned Claude process.
 A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`).
 `questTypeRegistryStatics` (`@dungeonmaster/shared/statics`) is the single source of truth per type:
 its intake slash command, the create-time seed role, the Start-Quest graph kind, and the role set.
-**Each type owns its COMPLETE work-item flow** — PathSeeker's four-tier graph is just the *feature*
-type's planning sub-stage, not a universal stage.
+**Each type owns its COMPLETE work-item flow** — PathSeeker's single planning work item is just the
+*feature* type's planning sub-stage, not a universal stage.
 
 | Type       | Intake                              | Start-Quest graph                                                                                                                                    |
 |------------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|

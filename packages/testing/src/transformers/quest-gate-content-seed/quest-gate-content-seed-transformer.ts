@@ -57,6 +57,9 @@ export const questGateContentSeedTransformer = ({
   if (seeded.blightReports === undefined) {
     seeded.blightReports = [];
   }
+  if (seeded.codeweaverPlans === undefined) {
+    seeded.codeweaverPlans = [];
+  }
   const parseResult = questStatusContract.safeParse(status);
   if (!parseResult.success) {
     return seeded;

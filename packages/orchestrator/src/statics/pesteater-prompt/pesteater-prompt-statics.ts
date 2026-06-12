@@ -11,6 +11,8 @@
  * before signaling. The downstream tail (ward → lawbringer → blightwarden → ward) reviews its diff.
  */
 
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 export const pesteaterPromptStatics = {
   prompt: {
     template: `# PestEater - Bug Hunt Agent
@@ -19,6 +21,8 @@ You hunt ONE reported bug to its source, prove it with one or more failing tests
 The order is load-bearing: the failing test must exist and be observed to fail on its assertion BEFORE you
 touch any implementation file. This mirrors the regression-through-e2e playbook — phases are
 sequential, not a checklist you can reorder.
+
+${agentOperatingRulesStatics.markdown}
 
 ## Gate 1: Read the Bug Report
 
@@ -60,13 +64,13 @@ symptom.
 
 Write (or strengthen) a test that asserts the **user-visible invariant** from Gate 1 — not an
 intermediate cause. Choose the test type by symptom shape:
-- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`packages/web/src/flows/**/*.e2e.ts\`.
+- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: \`<ui-package>/src/flows/**/*.e2e.ts\` (use the actual package from packagesAffected / the diff — a repo may have several UI packages).
 - A transformer/contract you can drive directly → a unit test alongside the implementation.
 - Default to e2e for any "I don't see X in the UI" report.
 
 Run it and **confirm it fails on the assertion**, not on setup/infrastructure:
 \`\`\`bash
-npm run ward -- --only e2e --onlyTests "<your test name fragment>" -- packages/web
+npm run ward -- --only e2e --onlyTests "<your test name fragment>" -- <ui-package>
 \`\`\`
 (or \`--only unit -- <path>\` for a unit test). If a timeout or setup error fires before your assert
 is reached, the test is broken, not the implementation — fix the test setup first.

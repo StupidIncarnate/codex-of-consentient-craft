@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Tests whether an `AgentPromptName` belongs to the parent-dispatched minion class
- * (chaoswhisperer-gap-minion, blightwarden-*-minion). Minions are dispatched by their parent
- * agent via the Agent tool and receive a minimal "Quest ID + Work Item ID" $ARGUMENTS, not a
- * full WorkUnit substitution.
+ * PURPOSE: Tests whether an `AgentPromptName` belongs to the parent-summoned minion class
+ * (chaoswhisperer-gap-minion, the pathseeker surface/dedup/assertion-correctness minions,
+ * codeweaver-minion, blightwarden-*-minion). Minions are summoned by their parent agent via the
+ * Agent tool and fetch their served prompt with no work item of their own.
  *
  * USAGE:
  * isMinionAgentPromptNameGuard({ agentName });
- * // Returns true if the name is one of the 6 minion variants
+ * // Returns true if the name is one of the minion variants (agentPromptClassificationStatics.minionNames)
  */
 
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';

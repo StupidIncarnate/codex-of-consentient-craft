@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Resolves an agent name to its prompt data for the get-agent-prompt MCP tool.
- * Reads quest.json for the supplied questId and appends a "Work item context" block to the
- * returned prompt. questId and workItemId are required — every caller is a Task()-dispatched
- * sub-agent under `/dumpster-launch`.
+ * For a work-item caller (questId + workItemId) it reads quest.json and appends a "Work item
+ * context" block. For a parent-summoned minion (questId only, no workItemId) it returns the served
+ * template directly — the parent briefs slice/task context inline.
  *
  * USAGE:
  * const augmented = await AgentPromptFlow.get({ agent: 'codeweaver', questId, workItemId });
@@ -21,11 +21,11 @@ export const AgentPromptFlow = {
   }: {
     agent: string;
     questId: QuestId;
-    workItemId: QuestWorkItemId;
+    workItemId?: QuestWorkItemId;
   }): Promise<AgentPromptResult> =>
     AgentPromptGetResponder({
       agent,
       questId,
-      workItemId,
+      ...(workItemId !== undefined && { workItemId }),
     }),
 };

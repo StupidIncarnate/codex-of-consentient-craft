@@ -18,10 +18,10 @@ export const AgentPromptGetResponder = async ({
 }: {
   agent: string;
   questId: QuestId;
-  workItemId: QuestWorkItemId;
+  workItemId?: QuestWorkItemId;
 }): Promise<AgentPromptResult> =>
   agentPromptGetBroker({
     agent,
     questId,
-    workItemId,
+    ...(workItemId !== undefined && { workItemId }),
   });

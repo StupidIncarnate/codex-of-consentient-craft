@@ -12,6 +12,10 @@
 export const agentPromptClassificationStatics = {
   minionNames: [
     'chaoswhisperer-gap-minion',
+    'pathseeker-surface',
+    'pathseeker-dedup',
+    'pathseeker-assertion-correctness',
+    'codeweaver-minion',
     'blightwarden-security-minion',
     'blightwarden-dedup-minion',
     'blightwarden-perf-minion',

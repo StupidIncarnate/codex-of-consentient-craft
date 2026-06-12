@@ -6,7 +6,7 @@
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
  * quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { appendFileSync, mkdirSync, writeFileSync } from 'fs';
+import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 import type { APIRequestContext } from '@playwright/test';
@@ -90,6 +90,7 @@ export const questHarness = ({
     detail: Record<PropertyKey, unknown>;
   }) => void;
   patchQuestStatus: (params: { questId: string; status: string }) => Promise<void>;
+  questFolderExists: (params: { questFilePath: string }) => boolean;
   buildQuestJson: (params: {
     questId: string;
     questFolder: string;
@@ -294,6 +295,12 @@ export const questHarness = ({
     });
   };
 
+  // The quest folder is the directory holding quest.json — i.e. dirname(questFilePath),
+  // which resolves to <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/. The
+  // backend delete removes this folder recursively, so a UI delete should leave it absent.
+  const questFolderExists = ({ questFilePath }: { questFilePath: string }): boolean =>
+    existsSync(dirname(questFilePath));
+
   const buildQuestJson = ({
     questId,
     questFolder,
@@ -351,6 +358,7 @@ export const questHarness = ({
     writeQuestFile,
     writeWardResultDetail,
     patchQuestStatus,
+    questFolderExists,
     buildQuestJson,
   };
 };

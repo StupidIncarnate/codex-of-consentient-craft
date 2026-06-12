@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Post-completion hook that fires when a `pathseeker-walk` work item transitions to complete — runs the completeness scope of `questValidateSpecTransformer` against the freshly-authored quest (step contract refs resolve, new contracts have creating step, observables satisfied) and, when those pass, invokes `stepsToWorkItemsTransformer` against the quest's authored steps + flows and persists the resulting codeweaver/ward/siegemaster/lawbringer/blightwarden chain onto the quest via questModifyBroker. Replaces the legacy `run-pathseeker-layer-broker` post-success inline path now that pathseeker is decomposed into the four-tier graph. The completeness scope used to be triggered by `questSaveInvariantsTransformer` at the `seek_walk → in_progress` status hop; under the `/dumpster-launch` flow that hop happens BEFORE pathseeker-walk runs, so the check is invoked here instead — the only point where the authored plan is fully assembled.
+ * PURPOSE: Post-completion hook that fires when the `pathseeker` work item transitions to complete — runs the completeness scope of `questValidateSpecTransformer` against the freshly-authored quest (step contract refs resolve, new contracts have creating step, observables satisfied) and, when those pass, invokes `stepsToWorkItemsTransformer` against the quest's authored steps + flows and persists the resulting codeweaver/ward/siegemaster/lawbringer/blightwarden chain onto the quest via questModifyBroker. PathSeeker classifies scope, summons its minions, and runs the architect-review walk itself, then signals complete — this hook is the only point where the authored plan is fully assembled, so the whole-quest completeness check (which can't fire at a status transition under the always-`in_progress` dispatch-loop flow) runs here.
  *
  * USAGE:
  * await questPostWalkHookBroker({ questId, walkWorkItemId, batchGroups });
  * // Re-reads the quest, runs the completeness scope, then (on pass) generates downstream
  * // work items from quest.steps + quest.flows and persists them via questModifyBroker.
- * // Throws when the named work item is not pathseeker-walk, when the quest is not loadable,
- * // or when the completeness scope reports failures (with the failure details on the error).
+ * // Throws when the named work item is not the `pathseeker` planner, when the quest is not
+ * // loadable, or when the completeness scope reports failures (details on the error).
  * // Returns AdapterResult on success.
  */
 
@@ -41,12 +41,12 @@ export const questPostWalkHookBroker = async ({
   }
 
   const { quest } = result;
-  const walkItem = quest.workItems.find((wi) => wi.id === walkWorkItemId);
-  if (!walkItem) {
-    throw new Error(`Walk work item not found: ${walkWorkItemId}`);
+  const pathseekerItem = quest.workItems.find((wi) => wi.id === walkWorkItemId);
+  if (!pathseekerItem) {
+    throw new Error(`PathSeeker work item not found: ${walkWorkItemId}`);
   }
-  if (walkItem.role !== 'pathseeker-walk') {
-    throw new Error(`Work item role is not pathseeker-walk: ${walkItem.role}`);
+  if (pathseekerItem.role !== 'pathseeker') {
+    throw new Error(`Work item role is not pathseeker: ${pathseekerItem.role}`);
   }
 
   // Run the completeness scope explicitly — this used to fire at the

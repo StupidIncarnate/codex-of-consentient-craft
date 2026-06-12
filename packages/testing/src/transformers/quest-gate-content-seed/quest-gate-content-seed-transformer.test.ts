@@ -15,6 +15,7 @@ describe('questGateContentSeedTransformer', () => {
         scopeClassification: PlanningScopeClassificationStub(),
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       });
     });
   });
@@ -28,6 +29,7 @@ describe('questGateContentSeedTransformer', () => {
         synthesis: PlanningSynthesisStub(),
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       });
     });
   });
@@ -42,6 +44,7 @@ describe('questGateContentSeedTransformer', () => {
         walkFindings: PlanningWalkFindingsStub(),
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       });
     });
   });
@@ -53,6 +56,7 @@ describe('questGateContentSeedTransformer', () => {
       expect(result).toStrictEqual({
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       });
     });
   });
@@ -74,6 +78,7 @@ describe('questGateContentSeedTransformer', () => {
         scopeClassification: customScope,
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       });
     });
 
@@ -92,6 +97,7 @@ describe('questGateContentSeedTransformer', () => {
         synthesis: customSynthesis,
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       });
     });
   });

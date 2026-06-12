@@ -9,10 +9,9 @@ import { BaseNameStub, installTestbedCreateBroker } from '@dungeonmaster/testing
 import { QuestStub, QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
-import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
-import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
-import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
+import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
+import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
+import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
@@ -74,7 +73,7 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-surface',
         model: 'sonnet',
-        prompt: pathseekerSurfaceStatics.prompt.template.replace(
+        prompt: pathseekerSurfaceMinionStatics.prompt.template.replace(
           '$ARGUMENTS',
           `Quest ID: ${String(quest.id)}`,
         ),
@@ -103,7 +102,7 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-dedup',
         model: 'sonnet',
-        prompt: pathseekerDedupStatics.prompt.template.replace(
+        prompt: pathseekerDedupMinionStatics.prompt.template.replace(
           '$ARGUMENTS',
           `Quest ID: ${String(quest.id)}`,
         ),
@@ -135,36 +134,7 @@ describe('AgentPromptFlow', () => {
       expect(result).toStrictEqual({
         name: 'pathseeker-assertion-correctness',
         model: 'sonnet',
-        prompt: pathseekerAssertionCorrectnessStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(quest.id)}`,
-        ),
-      });
-    });
-
-    it('VALID: {agent: pathseeker-walk, questId, workItemId} => returns substituted prompt with Quest ID', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-walk' }),
-      });
-      const env = envHarness.setupHome({ tempDir: testbed.guildPath });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'pathseeker-walk' });
-      const quest = QuestStub({ workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
-
-      const result = await AgentPromptFlow.get({
-        agent: 'pathseeker-walk',
-        questId: quest.id,
-        workItemId,
-      });
-
-      env.restore();
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({
-        name: 'pathseeker-walk',
-        model: 'sonnet',
-        prompt: pathseekerWalkStatics.prompt.template.replace(
+        prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template.replace(
           '$ARGUMENTS',
           `Quest ID: ${String(quest.id)}`,
         ),

@@ -155,6 +155,32 @@ describe('stepsToBatchChunksTransformer', () => {
     });
   });
 
+  describe('isolate flag', () => {
+    it('VALID: isolate step among same-group steps => isolated solo, others batched', () => {
+      const isolated = DependencyStepStub({
+        id: 'proto',
+        focusFile: { path: 'src/contracts/proto/proto-contract.ts' },
+        isolate: true,
+      });
+      const contractA = DependencyStepStub({
+        id: 'a',
+        focusFile: { path: 'src/contracts/a/a-contract.ts' },
+      });
+      const contractB = DependencyStepStub({
+        id: 'b',
+        focusFile: { path: 'src/contracts/b/b-contract.ts' },
+      });
+
+      const result = stepsToBatchChunksTransformer({
+        steps: [isolated, contractA, contractB],
+        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
+      });
+
+      // The isolate step is emitted solo in encounter order; the rest flush as one grouped batch.
+      expect(result).toStrictEqual([[isolated], [contractA, contractB]]);
+    });
+  });
+
   describe('empty steps', () => {
     it('EMPTY: {steps: []} => returns []', () => {
       const result = stepsToBatchChunksTransformer({

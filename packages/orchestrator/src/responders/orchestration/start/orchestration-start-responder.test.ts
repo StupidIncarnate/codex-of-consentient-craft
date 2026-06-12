@@ -11,6 +11,7 @@ import { questExecutionQueueState } from '../../../state/quest-execution-queue/q
 import { OrchestrationStartResponderProxy } from './orchestration-start-responder.proxy';
 
 const NEW_PATHSEEKER_ROLES = [
+  WorkItemRoleStub({ value: 'pathseeker' }),
   WorkItemRoleStub({ value: 'pathseeker-surface' }),
   WorkItemRoleStub({ value: 'pathseeker-dedup' }),
   WorkItemRoleStub({ value: 'pathseeker-assertion-correctness' }),
@@ -155,8 +156,8 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
-  describe('pathseeker graph creation (four-tier graph)', () => {
-    it('VALID: {approved quest with packagesAffected=["orchestrator"]} => persists 1 surface + 1 dedup + 1 assertion + 1 walk', async () => {
+  describe('pathseeker graph creation (single planning work item)', () => {
+    it('VALID: {approved quest with packagesAffected=["orchestrator"]} => persists a single pathseeker work item', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
@@ -174,15 +175,10 @@ describe('OrchestrationStartResponder', () => {
         .map((wi) => wi.role)
         .filter((role) => NEW_PATHSEEKER_ROLES.includes(role));
 
-      expect(newPathseekerRoles).toStrictEqual([
-        'pathseeker-surface',
-        'pathseeker-dedup',
-        'pathseeker-assertion-correctness',
-        'pathseeker-walk',
-      ]);
+      expect(newPathseekerRoles).toStrictEqual(['pathseeker']);
     });
 
-    it('VALID: {approved quest with packagesAffected=["a","b"]} => persists 2 surface + 1 dedup + 1 assertion + 1 walk', async () => {
+    it('VALID: {approved quest with packagesAffected=["a","b"]} => still persists exactly one pathseeker work item', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
@@ -203,16 +199,10 @@ describe('OrchestrationStartResponder', () => {
         .map((wi) => wi.role)
         .filter((role) => NEW_PATHSEEKER_ROLES.includes(role));
 
-      expect(newPathseekerRoles).toStrictEqual([
-        'pathseeker-surface',
-        'pathseeker-surface',
-        'pathseeker-dedup',
-        'pathseeker-assertion-correctness',
-        'pathseeker-walk',
-      ]);
+      expect(newPathseekerRoles).toStrictEqual(['pathseeker']);
     });
 
-    it('VALID: {approved quest with empty packagesAffected} => default-slice plan still emits the 4-item graph', async () => {
+    it('VALID: {approved quest with empty packagesAffected} => default-slice plan still emits one pathseeker item', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
@@ -226,15 +216,10 @@ describe('OrchestrationStartResponder', () => {
         .map((wi) => wi.role)
         .filter((role) => NEW_PATHSEEKER_ROLES.includes(role));
 
-      expect(newPathseekerRoles).toStrictEqual([
-        'pathseeker-surface',
-        'pathseeker-dedup',
-        'pathseeker-assertion-correctness',
-        'pathseeker-walk',
-      ]);
+      expect(newPathseekerRoles).toStrictEqual(['pathseeker']);
     });
 
-    it('VALID: {approved quest with packagesAffected=["orchestrator"]} => walk depends on dedup AND assertion ids', async () => {
+    it('VALID: {approved quest with packagesAffected=["orchestrator"]} => the pathseeker item is an agent spawner', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({
@@ -248,16 +233,9 @@ describe('OrchestrationStartResponder', () => {
       await proxy.callResponder({ questId });
 
       const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
-      const newPathseekerItems = persistedQuest.workItems.filter((wi) =>
-        NEW_PATHSEEKER_ROLES.includes(wi.role),
-      );
-      const dedup = newPathseekerItems.find((wi) => wi.role === 'pathseeker-dedup');
-      const assertion = newPathseekerItems.find(
-        (wi) => wi.role === 'pathseeker-assertion-correctness',
-      );
-      const walk = newPathseekerItems.find((wi) => wi.role === 'pathseeker-walk');
+      const pathseeker = persistedQuest.workItems.find((wi) => wi.role === 'pathseeker');
 
-      expect(walk?.dependsOn).toStrictEqual([dedup?.id, assertion?.id]);
+      expect(pathseeker?.spawnerType).toBe('agent');
     });
 
     it('VALID: {quest already has pathseeker-walk} => does not insert another graph', async () => {
@@ -284,7 +262,7 @@ describe('OrchestrationStartResponder', () => {
       expect(walkItems).toStrictEqual([existingWalk]);
     });
 
-    it('VALID: {quest already has legacy pathseeker work item} => does not insert another graph', async () => {
+    it('VALID: {quest already has a pathseeker work item} => does not insert another graph', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const existingPathseeker = WorkItemStub({
@@ -393,7 +371,7 @@ describe('OrchestrationStartResponder', () => {
       );
     });
 
-    it('VALID: {approved quest with pending chaos} => every new surface item depends on chaos id', async () => {
+    it('VALID: {approved quest with pending chaos} => the new pathseeker item depends on chaos id', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const chaosId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
@@ -415,11 +393,9 @@ describe('OrchestrationStartResponder', () => {
       await proxy.callResponder({ questId });
 
       const persistedQuest = proxy.getPersistedQuestAt({ index: 0 });
-      const surfaceItems = persistedQuest.workItems.filter(
-        (wi) => wi.role === 'pathseeker-surface',
-      );
+      const pathseekerItem = persistedQuest.workItems.find((wi) => wi.role === 'pathseeker');
 
-      expect(surfaceItems[0]?.dependsOn).toStrictEqual([chaosId]);
+      expect(pathseekerItem?.dependsOn).toStrictEqual([chaosId]);
     });
 
     it('VALID: {approved quest with failed chaos} => failed chaos NOT promoted', async () => {

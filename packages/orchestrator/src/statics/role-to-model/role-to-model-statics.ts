@@ -16,7 +16,7 @@ export const roleToModelStatics = {
   'pathseeker-walk': 'opus',
   flowrider: 'opus',
   siegemaster: 'opus',
-  codeweaver: 'sonnet',
+  codeweaver: 'opus',
   spiritmender: 'sonnet',
   lawbringer: 'sonnet',
   'blightwarden-security-minion': 'sonnet',

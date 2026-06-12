@@ -1,3 +1,5 @@
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 import { pesteaterPromptStatics } from './pesteater-prompt-statics';
 
 describe('pesteaterPromptStatics', () => {
@@ -38,7 +40,7 @@ describe('pesteaterPromptStatics', () => {
 
   it('VALID: template => points UI-symptom e2e tests at colocated web flow .e2e.ts files', () => {
     const needle =
-      "- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: `packages/web/src/flows/**/*.e2e.ts`.";
+      "- UI element missing / wrong content → e2e (Playwright) colocated in the entry flow's folder of the UI package: `<ui-package>/src/flows/**/*.e2e.ts` (use the actual package from packagesAffected / the diff — a repo may have several UI packages).";
     const { template } = pesteaterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -50,5 +52,17 @@ describe('pesteaterPromptStatics', () => {
 
   it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
     expect(pesteaterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
+  });
+
+  it('VALID: template => embeds the shared agent operating rules', () => {
+    const rules = agentOperatingRulesStatics.markdown;
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(template.indexOf(rules), template.indexOf(rules) + rules.length);
+
+    expect(found).toBe(rules);
+  });
+
+  it('VALID: template => hardcodes no UI package path', () => {
+    expect(pesteaterPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
 });

@@ -253,12 +253,12 @@ export const StartOrchestrator = {
   }: {
     agent: string;
     questId: QuestId;
-    workItemId: QuestWorkItemId;
+    workItemId?: QuestWorkItemId;
   }): Promise<AgentPromptResult> =>
     AgentPromptFlow.get({
       agent,
       questId,
-      workItemId,
+      ...(workItemId !== undefined && { workItemId }),
     }),
 
   // Recovery methods

@@ -34,14 +34,6 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('pathseeker-assertion-correctness');
   });
 
-  it('VALID: {value: "pathseeker-walk"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-walk' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('pathseeker-walk');
-  });
-
   it('VALID: {value: "codeweaver"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'codeweaver' });
 

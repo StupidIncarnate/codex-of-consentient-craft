@@ -11,11 +11,14 @@ import { z } from 'zod';
 export const workItemRoleContract = z.enum([
   'chaoswhisperer',
   'glyphsmith',
-  /** @deprecated Retained for forward-compat with quest.json files that still
-   * reference the monolithic pathseeker role. New work items must use
-   * `pathseeker-surface`, `pathseeker-dedup`, `pathseeker-assertion-correctness`,
-   * or `pathseeker-walk`. */
+  /** PathSeeker: the single planning work item. It classifies scope, summons
+   * `pathseeker-surface`/`-dedup`/`-assertion-correctness` minions as `Agent` sub-agents, then
+   * runs the architect-review walk itself. On `complete` the post-walk hook generates the
+   * codeweaver chain. */
   'pathseeker',
+  /** @deprecated These pathseeker sub-role values are not seeded as work items — `pathseeker`
+   * summons `pathseeker-surface`/`-dedup`/`-assertion-correctness` as sub-agents and runs the walk
+   * itself. Kept so quest.json files that carry these role values still parse. */
   'pathseeker-surface',
   'pathseeker-dedup',
   'pathseeker-assertion-correctness',

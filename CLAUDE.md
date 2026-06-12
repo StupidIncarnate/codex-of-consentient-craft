@@ -140,7 +140,7 @@ is produced the next time someone runs `npm run init`.
    rebuilt. Build FIRST, then ward:
    ```bash
    npm run build
-   npm run ward
+   npm run ward [arguments]
    ```
    This applies to scoped ward too (`npm run ward -- --only unit -- packages/X`). The build is
    fast (~7s); the time lost to re-diagnosing a stale-dist failure is much larger.

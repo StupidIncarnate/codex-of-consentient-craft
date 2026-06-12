@@ -50,13 +50,45 @@ describe('isMinionAgentPromptNameGuard', () => {
         }),
       ).toBe(true);
     });
-  });
 
-  describe('role names', () => {
-    it('VALID: {agentName: "pathseeker-surface"} => returns false', () => {
+    it('VALID: {agentName: "pathseeker-surface"} => returns true (summoned by PathSeeker)', () => {
       expect(
         isMinionAgentPromptNameGuard({
           agentName: AgentPromptNameStub({ value: 'pathseeker-surface' }),
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {agentName: "pathseeker-dedup"} => returns true (summoned by PathSeeker)', () => {
+      expect(
+        isMinionAgentPromptNameGuard({
+          agentName: AgentPromptNameStub({ value: 'pathseeker-dedup' }),
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {agentName: "pathseeker-assertion-correctness"} => returns true (summoned by PathSeeker)', () => {
+      expect(
+        isMinionAgentPromptNameGuard({
+          agentName: AgentPromptNameStub({ value: 'pathseeker-assertion-correctness' }),
+        }),
+      ).toBe(true);
+    });
+
+    it('VALID: {agentName: "codeweaver-minion"} => returns true (summoned by Codeweaver)', () => {
+      expect(
+        isMinionAgentPromptNameGuard({
+          agentName: AgentPromptNameStub({ value: 'codeweaver-minion' }),
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('role names', () => {
+    it('VALID: {agentName: "pathseeker"} => returns false (the planning work item, not a minion)', () => {
+      expect(
+        isMinionAgentPromptNameGuard({
+          agentName: AgentPromptNameStub({ value: 'pathseeker' }),
         }),
       ).toBe(false);
     });

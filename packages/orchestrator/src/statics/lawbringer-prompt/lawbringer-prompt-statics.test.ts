@@ -1,3 +1,5 @@
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 import { lawbringerPromptStatics } from './lawbringer-prompt-statics';
 
 describe('lawbringerPromptStatics', () => {
@@ -41,5 +43,13 @@ describe('lawbringerPromptStatics', () => {
 
     expect(template.indexOf('Verify Minion')).toBe(-1);
     expect(template.indexOf('Quest Review Minion')).toBe(-1);
+  });
+
+  it('VALID: template => embeds the shared agent operating rules', () => {
+    const rules = agentOperatingRulesStatics.markdown;
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(template.indexOf(rules), template.indexOf(rules) + rules.length);
+
+    expect(found).toBe(rules);
   });
 });

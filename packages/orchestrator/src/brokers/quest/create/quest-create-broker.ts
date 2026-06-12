@@ -67,7 +67,7 @@ export const questCreateBroker = async ({
     userRequest: input.userRequest,
     workItems: initialWorkItems ?? [],
     wardResults: [],
-    planningNotes: { surfaceReports: [], blightReports: [] },
+    planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
     ...(input.questSource === undefined ? {} : { questSource: input.questSource }),
     ...(input.questType === undefined ? {} : { questType: input.questType }),
   });

@@ -7,7 +7,6 @@ const PATHSEEKER_VARIANT_ROLES = [
   'pathseeker-surface',
   'pathseeker-dedup',
   'pathseeker-assertion-correctness',
-  'pathseeker-walk',
 ] as const;
 
 describe('buildSpawnInstructionLayerBroker', () => {

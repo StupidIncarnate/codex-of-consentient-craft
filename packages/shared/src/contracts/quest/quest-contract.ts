@@ -13,6 +13,7 @@ import { designDecisionContract } from '../design-decision/design-decision-contr
 import { flowContract } from '../flow/flow-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
+import { planningCodeweaverPlanContract } from '../planning-codeweaver-plan/planning-codeweaver-plan-contract';
 import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
 import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
 import { planningSynthesisContract } from '../planning-synthesis/planning-synthesis-contract';
@@ -101,12 +102,13 @@ export const questContract = z.object({
       scopeClassification: planningScopeClassificationContract.optional(),
       surfaceReports: z.array(planningSurfaceReportContract).default([]),
       blightReports: z.array(planningBlightReportContract).default([]),
+      codeweaverPlans: z.array(planningCodeweaverPlanContract).default([]),
       synthesis: planningSynthesisContract.optional(),
       walkFindings: planningWalkFindingsContract.optional(),
     })
-    .default({ surfaceReports: [], blightReports: [] })
+    .default({ surfaceReports: [], blightReports: [], codeweaverPlans: [] })
     .describe(
-      'PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings)',
+      "PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings) and Codeweaver's living per-slice tactical plans (codeweaverPlans)",
     ),
   questSource: questSourceContract
     .optional()

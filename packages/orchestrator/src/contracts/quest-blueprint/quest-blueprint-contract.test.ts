@@ -13,7 +13,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         steps: [],
         skipRoles: [],
         rolePromptOverrides: {},
@@ -30,7 +30,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         steps: [],
         skipRoles: [],
         targetStatus: 'flows_approved',
@@ -48,7 +48,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         steps: [],
         skipRoles: ['ward'],
         rolePromptOverrides: {},
@@ -67,7 +67,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         steps: [],
         skipRoles: [],
         fixedQuestId: '00000000-0000-0000-0000-000000000000',
@@ -85,7 +85,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [] },
+          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
           steps: [],
         });
       }).toThrow(/Required/u);
@@ -99,7 +99,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [] },
+          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
           steps: [],
         });
       }).toThrow(/Required/u);
@@ -114,7 +114,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [] },
+          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
           steps: [],
           skipRoles: ['bogus' as never],
         });
@@ -130,7 +130,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [] },
+          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
           steps: [],
           targetStatus: 'nonsense' as never,
         });
@@ -146,7 +146,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [] },
+          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
           steps: [],
           fixedQuestId: '',
         });

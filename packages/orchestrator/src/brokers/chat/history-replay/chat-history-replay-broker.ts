@@ -194,13 +194,24 @@ export const chatHistoryReplayBroker = async ({
     }
   }
 
-  // PASS 1a: scan every parent-stream user tool_result for `tool_use_result.agentId` paired
-  // with the content item's `tool_use_id`. Register each mapping with the processor BEFORE
-  // we emit any sub-agent lines. Without this pre-scan, sub-agent lines that sort earlier
-  // than their completion tool_result can't translate their realAgentId to a Task toolUseId,
-  // so the web's chain grouping would key on realAgentId for those lines and on toolUseId
-  // for the eagerly-stamped Task entry — a permanent mismatch that looks like "(0 entries)".
-  for (const line of sessionLines) {
+  // The pre-scan covers the main session AND every sub-agent file. A nested helper (a sub-agent
+  // spawned by another sub-agent, e.g. codeweaver → helper) has its completion tool_result inside
+  // its SPAWNER's sub-agent JSONL, not the main session. Scanning sub-agent files too registers
+  // that realAgentId↔toolUseId pair, so the helper's own lines translate to the helper's toolUseId
+  // on replay instead of orphaning. (The live path already covers this because the processor's
+  // reverse map is populated source-agnostically and shared across every tail.)
+  const allScanLines: StreamJsonLine[] = [
+    ...sessionLines,
+    ...subagentFiles.flatMap((f) => f.lines),
+  ];
+
+  // PASS 1a: scan every user tool_result for `tool_use_result.agentId` paired with the content
+  // item's `tool_use_id`. Register each mapping with the processor BEFORE we emit any sub-agent
+  // lines. Without this pre-scan, sub-agent lines that sort earlier than their completion
+  // tool_result can't translate their realAgentId to a Task toolUseId, so the web's chain grouping
+  // would key on realAgentId for those lines and on toolUseId for the eagerly-stamped Task entry —
+  // a permanent mismatch that looks like "(0 entries)".
+  for (const line of allScanLines) {
     const parsed = claudeLineNormalizeBroker({ rawLine: line });
     const lineParse = normalizedStreamLineContract.safeParse(parsed);
     if (!lineParse.success) continue;
@@ -239,7 +250,9 @@ export const chatHistoryReplayBroker = async ({
   // and subagent file lines would emerge with agentId = realAgentId (from the JSONL
   // filename) instead of the Task's toolUseId. The web's chain grouping keys on toolUseId,
   // so those entries would render as orphaned trailing singletons below the chain header.
-  for (const line of sessionLines) {
+  // Scans the main session AND sub-agent files so an in-flight nested helper (a Task spawned by a
+  // sub-agent, paused before its completion landed) pairs against its own subagent JSONL too.
+  for (const line of allScanLines) {
     const parsed = claudeLineNormalizeBroker({ rawLine: line });
     const lineParse = normalizedStreamLineContract.safeParse(parsed);
     if (!lineParse.success) continue;

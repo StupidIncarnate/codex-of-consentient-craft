@@ -6,14 +6,15 @@ import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-m
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
+import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
-import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
-import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
-import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
+import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
+import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
+import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
@@ -31,6 +32,18 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
+  it('VALID: {agent: "pathseeker"} => returns pathseeker parent prompt data on opus', () => {
+    const agent = AgentPromptNameStub({ value: 'pathseeker' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'pathseeker',
+      model: 'opus',
+      prompt: pathseekerPromptStatics.prompt.template,
+    });
+  });
+
   it('VALID: {agent: "pathseeker-surface"} => returns pathseeker-surface prompt data', () => {
     const agent = AgentPromptNameStub({ value: 'pathseeker-surface' });
 
@@ -39,7 +52,7 @@ describe('agentNameToPromptTransformer', () => {
     expect(result).toStrictEqual({
       name: 'pathseeker-surface',
       model: 'sonnet',
-      prompt: pathseekerSurfaceStatics.prompt.template,
+      prompt: pathseekerSurfaceMinionStatics.prompt.template,
     });
   });
 
@@ -51,7 +64,7 @@ describe('agentNameToPromptTransformer', () => {
     expect(result).toStrictEqual({
       name: 'pathseeker-dedup',
       model: 'sonnet',
-      prompt: pathseekerDedupStatics.prompt.template,
+      prompt: pathseekerDedupMinionStatics.prompt.template,
     });
   });
 
@@ -63,31 +76,31 @@ describe('agentNameToPromptTransformer', () => {
     expect(result).toStrictEqual({
       name: 'pathseeker-assertion-correctness',
       model: 'sonnet',
-      prompt: pathseekerAssertionCorrectnessStatics.prompt.template,
+      prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
     });
   });
 
-  it('VALID: {agent: "pathseeker-walk"} => returns pathseeker-walk prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-walk' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'pathseeker-walk',
-      model: 'sonnet',
-      prompt: pathseekerWalkStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "codeweaver"} => returns codeweaver prompt data', () => {
+  it('VALID: {agent: "codeweaver"} => returns codeweaver prompt data on opus', () => {
     const agent = AgentPromptNameStub({ value: 'codeweaver' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
       name: 'codeweaver',
-      model: 'sonnet',
+      model: 'opus',
       prompt: codeweaverPromptStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "codeweaver-minion"} => returns codeweaver-minion prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'codeweaver-minion' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'codeweaver-minion',
+      model: 'sonnet',
+      prompt: codeweaverMinionStatics.prompt.template,
     });
   });
 

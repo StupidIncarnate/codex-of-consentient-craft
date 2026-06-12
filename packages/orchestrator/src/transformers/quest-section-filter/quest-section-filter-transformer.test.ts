@@ -57,7 +57,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [
           FlowStub({
             nodes: [
@@ -99,7 +99,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });
@@ -136,7 +136,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [flow],
       });
     });
@@ -169,7 +169,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });
@@ -209,7 +209,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });
@@ -259,7 +259,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });
@@ -290,7 +290,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: quest.flows,
       });
     });
@@ -323,7 +323,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });
@@ -354,7 +354,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });
@@ -385,7 +385,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         flows: [],
       });
     });

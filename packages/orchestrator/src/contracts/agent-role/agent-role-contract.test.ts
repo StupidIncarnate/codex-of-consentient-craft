@@ -35,14 +35,6 @@ describe('agentRoleContract', () => {
       expect(result).toBe('pathseeker-assertion-correctness');
     });
 
-    it('VALID: pathseeker-walk => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'pathseeker-walk' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('pathseeker-walk');
-    });
-
     it('VALID: codeweaver => parses successfully', () => {
       const role = AgentRoleStub({ value: 'codeweaver' });
 

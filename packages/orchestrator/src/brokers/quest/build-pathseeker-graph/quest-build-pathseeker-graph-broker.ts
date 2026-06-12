@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Builds the four-tier pathseeker work-item graph (surface × N → dedup + assertion-correctness → walk) and the matching scopeClassification.slices[] from a quest's packagesAffected[]
+ * PURPOSE: Builds the single `pathseeker` planning work item and the matching
+ * scopeClassification.slices[] from a quest's packagesAffected[]. PathSeeker classifies scope,
+ * summons surface + cleanup minions as `Agent` sub-agents, then runs the architect-review walk
+ * itself, so the graph is a single work item.
  *
  * USAGE:
  * const result = questBuildPathseekerGraphBroker({
@@ -8,9 +11,10 @@
  *   priorWorkItemIds: [chaosId],
  *   now: '2024-01-15T10:00:00.000Z',
  * });
- * // Returns { workItems: WorkItem[], slices: Slice[] } using crypto.randomUUID() for ids.
+ * // Returns { workItems: [pathseekerItem], slices: Slice[] } using crypto.randomUUID() for ids.
+ * // The slices seed scopeClassification.slices[]; PathSeeker resumes off that into its summon wave.
  *
- * WHEN-TO-USE: Once per Start Quest transition. Replaces the legacy single-pathseeker insertion.
+ * WHEN-TO-USE: Once per Start Quest transition (feature quests).
  * WHEN-NOT-TO-USE: During retries/replans inside a running quest — those create role-specific
  * work items directly via questWorkItemInsertBroker.
  */
@@ -54,53 +58,18 @@ export const questBuildPathseekerGraphBroker = ({
           flowIds,
         }));
 
-  const surfaceItems: WorkItem[] = slices.map((slice) =>
-    workItemContract.parse({
-      id: questWorkItemIdContract.parse(crypto.randomUUID()),
-      role: 'pathseeker-surface',
-      status: 'pending',
-      spawnerType: 'agent',
-      dependsOn: priorWorkItemIds,
-      maxAttempts: 3,
-      createdAt: now,
-      sliceName: slice.name,
-    }),
-  );
-
-  const surfaceIds = surfaceItems.map((item) => item.id);
-
-  const dedupItem = workItemContract.parse({
+  const pathseekerItem: WorkItem = workItemContract.parse({
     id: questWorkItemIdContract.parse(crypto.randomUUID()),
-    role: 'pathseeker-dedup',
+    role: 'pathseeker',
     status: 'pending',
     spawnerType: 'agent',
-    dependsOn: surfaceIds,
-    maxAttempts: 3,
-    createdAt: now,
-  });
-
-  const assertionItem = workItemContract.parse({
-    id: questWorkItemIdContract.parse(crypto.randomUUID()),
-    role: 'pathseeker-assertion-correctness',
-    status: 'pending',
-    spawnerType: 'agent',
-    dependsOn: surfaceIds,
-    maxAttempts: 3,
-    createdAt: now,
-  });
-
-  const walkItem = workItemContract.parse({
-    id: questWorkItemIdContract.parse(crypto.randomUUID()),
-    role: 'pathseeker-walk',
-    status: 'pending',
-    spawnerType: 'agent',
-    dependsOn: [dedupItem.id, assertionItem.id],
+    dependsOn: priorWorkItemIds,
     maxAttempts: 3,
     createdAt: now,
   });
 
   return {
-    workItems: [...surfaceItems, dedupItem, assertionItem, walkItem],
+    workItems: [pathseekerItem],
     slices,
   };
 };

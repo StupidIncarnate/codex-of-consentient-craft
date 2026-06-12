@@ -23,9 +23,8 @@ import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
-import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
-import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
-import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
+import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
+import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
@@ -46,6 +45,7 @@ describe('workItemToPromptTransformer', () => {
         planningNotes: {
           surfaceReports: [],
           blightReports: [],
+          codeweaverPlans: [],
           scopeClassification: {
             size: 'small',
             slicing: 'one slice per affected package',
@@ -72,7 +72,7 @@ describe('workItemToPromptTransformer', () => {
         'Quest ID: my-quest\nSlice: orchestrator\nPackages: orchestrator\nFlow IDs: ';
 
       expect(result.prompt).toBe(
-        pathseekerSurfaceStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        pathseekerSurfaceMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
   });
@@ -92,7 +92,7 @@ describe('workItemToPromptTransformer', () => {
       });
 
       expect(result.prompt).toBe(
-        pathseekerSurfaceStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
+        pathseekerSurfaceMinionStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
       );
     });
   });
@@ -112,27 +112,7 @@ describe('workItemToPromptTransformer', () => {
       });
 
       expect(result.prompt).toBe(
-        pathseekerDedupStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
-      );
-    });
-  });
-
-  describe('pathseeker-walk', () => {
-    it('VALID: {agent: pathseeker-walk} => substitutes Quest ID', () => {
-      const workItem = WorkItemStub({ role: 'pathseeker-walk' });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'my-quest' }),
-        workItems: [workItem],
-      });
-
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'pathseeker-walk' }),
-      });
-
-      expect(result.prompt).toBe(
-        pathseekerWalkStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
+        pathseekerDedupMinionStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
       );
     });
   });

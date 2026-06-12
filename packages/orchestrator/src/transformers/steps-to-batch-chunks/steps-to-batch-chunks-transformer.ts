@@ -38,6 +38,14 @@ export const stepsToBatchChunksTransformer = ({
   const accumulators = new Map<ArrayIndex, DependencyStep[]>();
 
   for (const step of steps) {
+    // Prototype steps PathSeeker flags `isolate` prove a novel or hard-to-test pattern; they get
+    // their own chunk so the proving work owns its context budget and the steps that mirror it
+    // are not batched in alongside it.
+    if (step.isolate === true) {
+      result.push([step]);
+      continue;
+    }
+
     const filePath = step.focusFile?.path;
     const folderType =
       filePath === undefined

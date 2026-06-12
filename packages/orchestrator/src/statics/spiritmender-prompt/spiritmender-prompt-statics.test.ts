@@ -1,3 +1,5 @@
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 import { spiritmenderPromptStatics } from './spiritmender-prompt-statics';
 
 describe('spiritmenderPromptStatics', () => {
@@ -24,5 +26,13 @@ describe('spiritmenderPromptStatics', () => {
 
   it('VALID: prompt template => keeps the anti-cheating guardrails (Do NOT section)', () => {
     expect(spiritmenderPromptStatics.prompt.template).toMatch(/^\*\*Do NOT:\*\*$/mu);
+  });
+
+  it('VALID: template => embeds the shared agent operating rules', () => {
+    const rules = agentOperatingRulesStatics.markdown;
+    const { template } = spiritmenderPromptStatics.prompt;
+    const found = template.slice(template.indexOf(rules), template.indexOf(rules) + rules.length);
+
+    expect(found).toBe(rules);
   });
 });

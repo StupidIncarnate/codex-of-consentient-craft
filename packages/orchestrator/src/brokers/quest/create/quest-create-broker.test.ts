@@ -55,7 +55,7 @@ describe('questCreateBroker', () => {
       needsDesign: false,
       workItems: [],
       wardResults: [],
-      planningNotes: { surfaceReports: [], blightReports: [] },
+      planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
     });
   });
 

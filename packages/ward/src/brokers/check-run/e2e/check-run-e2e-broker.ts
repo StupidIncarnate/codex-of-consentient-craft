@@ -76,13 +76,15 @@ export const checkRunE2eBroker = async ({
   const e2eFiles = fileList.filter((f) => isE2eTestPathGuard({ filePath: String(f) }));
 
   if (fileList.length > 0 && e2eFiles.length === 0) {
+    // Scope (changed/passthrough) holds no e2e files, so nothing was in scope to
+    // discover. Report discoveredCount 0 — a nonzero count here would trip the
+    // discovery-mismatch detector even though skipping is the correct behavior.
     return projectResultContract.parse({
       projectFolder,
       status: 'skip',
       errors: [],
       testFailures: [],
       filesCount: 0,
-      discoveredCount,
       rawOutput: rawOutputContract.parse({
         stdout: '',
         stderr: 'no matching e2e test files in passthrough',

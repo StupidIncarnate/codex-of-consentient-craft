@@ -68,9 +68,10 @@ export const questInputForbiddenFieldsTransformer = ({
   // Nested-path carveout: when `planningNotes` is NOT in allowedFields but every sub-field the
   // caller is writing appears in `allowedPlanningNotesFields` AND `blightReportsRule === 'full'`,
   // the write is permitted. `in_progress` is the only status with `blightReportsRule: 'full'`, and
-  // it allows exactly the sub-fields written during execution: `blightReports` (Blightwarden) and
-  // `walkFindings` (pathseeker-walk's terminal commit). This keeps the rest of `planningNotes`
-  // closed to general writers at that status while letting those two roles write their own slice.
+  // it allows exactly the sub-fields written during execution: `blightReports` (Blightwarden),
+  // `walkFindings` (pathseeker-walk's terminal commit), and `codeweaverPlans` (Codeweaver's living
+  // per-slice tactical plan). This keeps the rest of `planningNotes` closed to general writers at
+  // that status while letting those roles write their own slice.
   const planningNotesCarveoutKeys =
     inputPlanningNotes === undefined
       ? []

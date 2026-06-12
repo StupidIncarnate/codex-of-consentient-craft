@@ -1,10 +1,14 @@
 import { agentPromptClassificationStatics } from './agent-prompt-classification-statics';
 
 describe('agentPromptClassificationStatics', () => {
-  it('VALID: minionNames => contains the 6 parent-dispatched minion names', () => {
+  it('VALID: minionNames => contains the parent-summoned minion names', () => {
     expect(agentPromptClassificationStatics).toStrictEqual({
       minionNames: [
         'chaoswhisperer-gap-minion',
+        'pathseeker-surface',
+        'pathseeker-dedup',
+        'pathseeker-assertion-correctness',
+        'codeweaver-minion',
         'blightwarden-security-minion',
         'blightwarden-dedup-minion',
         'blightwarden-perf-minion',

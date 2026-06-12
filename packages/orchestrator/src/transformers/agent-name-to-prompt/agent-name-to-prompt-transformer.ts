@@ -15,14 +15,15 @@ import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-m
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
+import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { pathseekerAssertionCorrectnessStatics } from '../../statics/pathseeker-assertion-correctness/pathseeker-assertion-correctness-statics';
-import { pathseekerDedupStatics } from '../../statics/pathseeker-dedup/pathseeker-dedup-statics';
-import { pathseekerSurfaceStatics } from '../../statics/pathseeker-surface/pathseeker-surface-statics';
-import { pathseekerWalkStatics } from '../../statics/pathseeker-walk/pathseeker-walk-statics';
+import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
+import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
+import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
+import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 
@@ -38,35 +39,41 @@ export const agentNameToPromptTransformer = ({
         model: 'sonnet',
         prompt: chaoswhispererGapMinionStatics.prompt.template,
       });
+    case 'pathseeker':
+      return agentPromptResultContract.parse({
+        name: 'pathseeker',
+        model: 'opus',
+        prompt: pathseekerPromptStatics.prompt.template,
+      });
     case 'pathseeker-surface':
       return agentPromptResultContract.parse({
         name: 'pathseeker-surface',
         model: 'sonnet',
-        prompt: pathseekerSurfaceStatics.prompt.template,
+        prompt: pathseekerSurfaceMinionStatics.prompt.template,
       });
     case 'pathseeker-dedup':
       return agentPromptResultContract.parse({
         name: 'pathseeker-dedup',
         model: 'sonnet',
-        prompt: pathseekerDedupStatics.prompt.template,
+        prompt: pathseekerDedupMinionStatics.prompt.template,
       });
     case 'pathseeker-assertion-correctness':
       return agentPromptResultContract.parse({
         name: 'pathseeker-assertion-correctness',
         model: 'sonnet',
-        prompt: pathseekerAssertionCorrectnessStatics.prompt.template,
-      });
-    case 'pathseeker-walk':
-      return agentPromptResultContract.parse({
-        name: 'pathseeker-walk',
-        model: 'sonnet',
-        prompt: pathseekerWalkStatics.prompt.template,
+        prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
       });
     case 'codeweaver':
       return agentPromptResultContract.parse({
         name: 'codeweaver',
-        model: 'sonnet',
+        model: 'opus',
         prompt: codeweaverPromptStatics.prompt.template,
+      });
+    case 'codeweaver-minion':
+      return agentPromptResultContract.parse({
+        name: 'codeweaver-minion',
+        model: 'sonnet',
+        prompt: codeweaverMinionStatics.prompt.template,
       });
     case 'lawbringer':
       return agentPromptResultContract.parse({

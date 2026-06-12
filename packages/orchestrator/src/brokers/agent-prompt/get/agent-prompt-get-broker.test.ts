@@ -297,4 +297,34 @@ describe('agentPromptGetBroker', () => {
       );
     });
   });
+
+  describe('minion-fetch path (no workItemId)', () => {
+    it('VALID: {minion agent, questId, no workItemId} => returns served template with Quest ID substituted', async () => {
+      agentPromptGetBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      const result = await agentPromptGetBroker({
+        agent: 'chaoswhisperer-gap-minion',
+        questId,
+      });
+
+      expect(result).toStrictEqual({
+        name: 'chaoswhisperer-gap-minion',
+        model: 'sonnet',
+        prompt: chaoswhispererGapMinionStatics.prompt.template.replace(
+          '$ARGUMENTS',
+          `Quest ID: ${String(questId)}`,
+        ),
+      });
+    });
+
+    it('ERROR: {role agent, questId, no workItemId} => throws role-requires-workItemId', async () => {
+      agentPromptGetBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      await expect(agentPromptGetBroker({ agent: 'codeweaver', questId })).rejects.toThrow(
+        /role "codeweaver" requires a workItemId/u,
+      );
+    });
+  });
 });

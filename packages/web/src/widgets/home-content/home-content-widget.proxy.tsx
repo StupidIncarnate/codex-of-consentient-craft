@@ -19,10 +19,14 @@ import type {
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import * as questDeleteBrokerModule from '../../brokers/quest/delete/quest-delete-broker';
+
+import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-session-list-binding.proxy';
 import { guildCreateBrokerProxy } from '../../brokers/guild/create/guild-create-broker.proxy';
+import { questDeleteBrokerProxy } from '../../brokers/quest/delete/quest-delete-broker.proxy';
 import { GuildAddModalWidgetProxy } from '../guild-add-modal/guild-add-modal-widget.proxy';
 import { GuildEmptyStateWidgetProxy } from '../guild-empty-state/guild-empty-state-widget.proxy';
 import { GuildListWidgetProxy } from '../guild-list/guild-list-widget.proxy';
@@ -58,11 +62,26 @@ export const HomeContentWidgetProxy = (): {
   setupConsoleErrorCapture: () => SpyOnHandle;
   setupCreateGuildError: () => void;
   clearStorage: () => void;
+  setupDeleteQuest: () => void;
+  setupDeleteQuestRejectsWithMessage: (params: { message: string }) => void;
+  setupDeleteQuestRejectsWithoutMessage: () => void;
+  clickDeleteButton: (params: { testId: string }) => Promise<void>;
+  clickBanish: () => Promise<void>;
+  isPopoverVisible: (params: { testId: string }) => boolean;
+  getShownToast: () => unknown;
+  getDeleteBrokerCalls: () => SpyOnHandle['mock']['calls'];
 } => {
   const sessionsProxy = useSessionListBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
   const questsProxy = useQuestsBindingProxy();
   const createGuildProxy = guildCreateBrokerProxy();
+  const deleteQuestProxy = questDeleteBrokerProxy();
+  const deleteBrokerSpy = registerSpyOn({
+    object: questDeleteBrokerModule,
+    method: 'questDeleteBroker',
+    passthrough: true,
+  });
+  const notificationsProxy = mantineNotificationsShowAdapterProxy();
   const guildList = GuildListWidgetProxy();
   const sessionList = GuildSessionListWidgetProxy();
   const emptyState = GuildEmptyStateWidgetProxy();
@@ -134,6 +153,31 @@ export const HomeContentWidgetProxy = (): {
     setupCreateGuildError: (): void => {
       createGuildProxy.setupError();
     },
+    setupDeleteQuest: (): void => {
+      deleteQuestProxy.setupDelete();
+    },
+    setupDeleteQuestRejectsWithMessage: ({ message }: { message: string }): void => {
+      deleteBrokerSpy.mockImplementation(async () => {
+        await Promise.resolve();
+        throw new Error(message);
+      });
+    },
+    setupDeleteQuestRejectsWithoutMessage: (): void => {
+      deleteBrokerSpy.mockImplementation(async () => {
+        await Promise.resolve();
+        throw new Error('');
+      });
+    },
+    clickDeleteButton: async ({ testId }: { testId: string }): Promise<void> => {
+      await sessionList.clickDeleteButton({ testId });
+    },
+    clickBanish: async (): Promise<void> => {
+      await sessionList.clickBanish();
+    },
+    isPopoverVisible: ({ testId }: { testId: string }): boolean =>
+      sessionList.isPopoverVisible({ testId }),
+    getShownToast: (): unknown => notificationsProxy.getShownNotification(),
+    getDeleteBrokerCalls: (): SpyOnHandle['mock']['calls'] => deleteBrokerSpy.mock.calls,
     clearStorage: (): void => {
       localStorage.clear();
     },

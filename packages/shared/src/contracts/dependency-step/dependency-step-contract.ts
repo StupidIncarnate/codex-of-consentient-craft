@@ -71,6 +71,12 @@ export const dependencyStepContract = z.object({
     .describe(
       'References to exports from other steps that this step integrates with. Names integration points visible in the branch diff',
     ),
+  isolate: z
+    .boolean()
+    .optional()
+    .describe(
+      'When true, this step is dispatched as its own codeweaver chunk rather than batched with same-folder-type steps. PathSeeker sets it on prototype steps that prove a novel or hard-to-test pattern, so the proving work gets its own context budget and downstream steps mirror the result',
+    ),
 });
 
 export type DependencyStep = z.infer<typeof dependencyStepContract>;

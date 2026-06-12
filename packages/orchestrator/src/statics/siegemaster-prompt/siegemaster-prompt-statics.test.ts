@@ -1,3 +1,5 @@
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 import { siegemasterPromptStatics } from './siegemaster-prompt-statics';
 
 describe('siegemasterPromptStatics', () => {
@@ -68,8 +70,8 @@ describe('siegemasterPromptStatics', () => {
     );
   });
 
-  it('VALID: template => e2e ward command targets a colocated web flow .e2e.ts', () => {
-    const needle = 'npm run ward -- --only e2e -- packages/web/src/flows/<route>/<feature>.e2e.ts';
+  it('VALID: template => runs both flow layers scoped, path-agnostic (no hardcoded package)', () => {
+    const needle = 'npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -81,5 +83,56 @@ describe('siegemasterPromptStatics', () => {
 
   it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
     expect(siegemasterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
+  });
+
+  it('VALID: template => leads with operating rules read first', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^## Operating Rules — READ FIRST \(ignoring these wedges the whole quest\)$/mu,
+    );
+  });
+
+  it('VALID: template => forbids ending the turn waiting for a background task', () => {
+    const needle = 'NEVER end your turn waiting for a background task.';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => forbids the full monorepo ward for runtime/UI flows', () => {
+    const needle = 'NOT the full monorepo `npm run ward`';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => defines manual QA as driving the real browser via the Claude-in-Chrome MCP', () => {
+    const needle = 'drive the actual browser via the **Claude-in-Chrome MCP**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => embeds the shared agent operating rules', () => {
+    const rules = agentOperatingRulesStatics.markdown;
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(template.indexOf(rules), template.indexOf(rules) + rules.length);
+
+    expect(found).toBe(rules);
+  });
+
+  it('VALID: template => hardcodes no UI package path', () => {
+    expect(siegemasterPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
 });

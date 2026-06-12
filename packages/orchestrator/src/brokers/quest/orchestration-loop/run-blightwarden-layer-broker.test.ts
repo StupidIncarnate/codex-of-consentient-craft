@@ -297,6 +297,7 @@ describe('runBlightwardenLayerBroker', () => {
               reviewedOn: [],
             },
           ],
+          codeweaverPlans: [],
         } as never,
       });
 
@@ -348,6 +349,7 @@ describe('runBlightwardenLayerBroker', () => {
         planningNotes: {
           surfaceReports: [],
           blightReports: [],
+          codeweaverPlans: [],
           scopeClassification: PlanningScopeClassificationStub({ size: 'small' }),
         } as never,
         designDecisions: [DesignDecisionStub()],

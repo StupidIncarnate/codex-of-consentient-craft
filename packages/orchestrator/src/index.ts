@@ -51,7 +51,6 @@ export type { SpawnInstruction } from './contracts/spawn-instruction/spawn-instr
 
 // Prompt statics - re-exported for CLI package
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
-export { pathseekerWalkStatics } from './statics/pathseeker-walk/pathseeker-walk-statics';
 export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
 export { lawbringerPromptStatics } from './statics/lawbringer-prompt/lawbringer-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';

@@ -45,6 +45,7 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { devCommandContract } from '../../../contracts/dev-command/dev-command-contract';
 import { devServerUrlContract } from '../../../contracts/dev-server-url/dev-server-url-contract';
+import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
 import { parseBatchFileTransformer } from '../../../transformers/parse-batch-file/parse-batch-file-transformer';
 import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
@@ -60,10 +61,29 @@ export const agentPromptGetBroker = async ({
 }: {
   agent: string;
   questId: QuestId;
-  workItemId: QuestWorkItemId;
+  workItemId?: QuestWorkItemId;
 }): Promise<AgentPromptResult> => {
   const parsedAgent = agentPromptNameContract.parse(agent);
   const base = agentNameToPromptTransformer({ agent: parsedAgent });
+
+  // Minion-fetch: a parent-summoned sub-agent minion (gap, pathseeker-surface/dedup/assertion,
+  // codeweaver-minion) has no work item of its own. It fetches its served methodology with
+  // { agent, questId } only; the parent briefs slice/task context inline in its Agent dispatch.
+  // No quest load, no work-item context block. A ROLE name (dispatched as its own work item by
+  // /dumpster-launch) MUST supply a workItemId — reject one that omits it.
+  if (workItemId === undefined) {
+    const isMinion = agentPromptClassificationStatics.minionNames.some(
+      (name) => name === parsedAgent,
+    );
+    if (!isMinion) {
+      throw new Error(`agentPromptGetBroker: role "${parsedAgent}" requires a workItemId`);
+    }
+    return agentPromptResultContract.parse({
+      name: base.name,
+      model: base.model,
+      prompt: base.prompt.replace('$ARGUMENTS', `Quest ID: ${String(questId)}`),
+    });
+  }
 
   const { questPath } = await questFindQuestPathBroker({ questId });
   const questFilePath = filePathContract.parse(

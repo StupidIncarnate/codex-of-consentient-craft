@@ -12,11 +12,15 @@
  * 4. Commits its fixes, then signals completion via signal-back
  */
 
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 export const spiritmenderPromptStatics = {
   prompt: {
     template: `# Spiritmender - Error Resolution Agent
 
 You resolve errors based on the context provided below. Your Error Context contains an Instructions section describing what happened, along with any file paths, error messages, and a verification command.
+
+${agentOperatingRulesStatics.markdown}
 
 ## Scope
 

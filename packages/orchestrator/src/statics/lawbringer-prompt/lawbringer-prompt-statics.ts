@@ -11,11 +11,15 @@
  * 3. Commits its work, then reports completion (or an unfixable issue) via signal-back
  */
 
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 export const lawbringerPromptStatics = {
   prompt: {
     template: `# Lawbringer - Code Review Agent
 
 You review one or more file pairs (implementation + test) against project standards, and you FIX what you find. Your file paths are in Review Context below — you may be handed a single pair or a batch of several. When you spot a violation, correct it directly in the file. Review EVERY pair you were given before signalling. Signal \`complete\` once all your fixes pass ward; signal \`failed\` (which BLOCKs the quest) only for something you genuinely cannot fix.
+
+${agentOperatingRulesStatics.markdown}
 
 ## Review Mode
 

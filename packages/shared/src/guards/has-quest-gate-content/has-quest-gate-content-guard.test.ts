@@ -120,6 +120,7 @@ describe('hasQuestGateContentGuard', () => {
           scopeClassification: PlanningScopeClassificationStub(),
           surfaceReports: [],
           blightReports: [],
+          codeweaverPlans: [],
         },
       });
       const nextStatus = QuestStatusStub({ value: 'seek_synth' });
@@ -130,7 +131,9 @@ describe('hasQuestGateContentGuard', () => {
     });
 
     it('INVALID: {planningNotes.scopeClassification undefined, nextStatus: seek_synth} => returns false', () => {
-      const quest = QuestStub({ planningNotes: { surfaceReports: [], blightReports: [] } });
+      const quest = QuestStub({
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+      });
       const nextStatus = QuestStatusStub({ value: 'seek_synth' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
@@ -144,6 +147,7 @@ describe('hasQuestGateContentGuard', () => {
           scopeClassification: PlanningScopeClassificationStub(),
           surfaceReports: [],
           blightReports: [],
+          codeweaverPlans: [],
         },
       });
       const nextStatus = QuestStatusStub({ value: 'seek_walk' });
@@ -160,6 +164,7 @@ describe('hasQuestGateContentGuard', () => {
           synthesis: PlanningSynthesisStub(),
           surfaceReports: [],
           blightReports: [],
+          codeweaverPlans: [],
         },
       });
       const nextStatus = QuestStatusStub({ value: 'seek_walk' });

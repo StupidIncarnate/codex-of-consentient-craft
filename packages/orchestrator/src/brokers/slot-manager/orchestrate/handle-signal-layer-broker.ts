@@ -18,8 +18,8 @@ import type { WorkTracker } from '../../../contracts/work-tracker/work-tracker-c
 
 // NOTE: post-walk-hook wiring lives in `QuestHandleSignalBackResponder` (responders/quest/handle-signal-back),
 // which fires when sub-agents call the `signal-back` MCP tool under the `/dumpster-launch` model.
-// This in-process handler is keyed on `AgentRole` which does not include `pathseeker-walk`; the
-// new pathseeker-* roles dispatch via `get-next-step` and never enter the slot-manager loop.
+// This in-process handler is keyed on `AgentRole`; PathSeeker and the roles it summons dispatch
+// via the MCP `/dumpster-launch` path and never enter the slot-manager loop.
 
 type SignalSummary = NonNullable<StreamSignal['summary']>;
 
@@ -28,8 +28,8 @@ type SignalSummary = NonNullable<StreamSignal['summary']>;
 // Lawbringer routes to spiritmender (targeted code fix using same file paths)
 // PathSeeker itself failing bubbles to the user (terminal)
 // Blightwarden routes to pathseeker (mirrors siegemaster; failed-replan handling is in run-blightwarden-layer-broker)
-// The four pathseeker-* variants are dispatched via the MCP `/dumpster-launch` path and never enter the
-// slot-manager loop; their failures bubble to the user (terminal) for parity with the monolithic pathseeker.
+// pathseeker-surface/-dedup/-assertion-correctness are summoned by PathSeeker as sub-agents under the
+// MCP `/dumpster-launch` path and never enter the slot-manager loop; their entries bubble to the user.
 const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
   codeweaver: 'pathseeker',
   siegemaster: 'pathseeker',
@@ -43,7 +43,6 @@ const FAILURE_ROLE_MAP: Record<AgentRole, AgentRole | null> = {
   'pathseeker-surface': null,
   'pathseeker-dedup': null,
   'pathseeker-assertion-correctness': null,
-  'pathseeker-walk': null,
   // Blightwarden minions dispatch via the MCP `/dumpster-launch` path and never enter the
   // slot-manager loop; their failures are non-blocking (recorded in the minion's report) and
   // handled by QuestHandleSignalBackResponder, so they bubble to the user here for parity.

@@ -216,6 +216,7 @@ export const sessionHarness = ({
   createSessionWithAssistantText: (params: { sessionId: string; text: string }) => void;
   createAnsweredClarificationSession: (params: { sessionId: string }) => void;
   createSessionFileForQuest: (params: { sessionId: string }) => void;
+  sessionFileExists: (params: { sessionId: string }) => boolean;
 } => {
   const getJsonlDir = (): FilePath => {
     const homeDir = os.homedir();
@@ -899,6 +900,12 @@ export const sessionHarness = ({
     createSessionFile({ sessionId, userMessage: 'Build the feature' });
   };
 
+  // Session JSONL files live under ~/.claude/projects/<encoded-guildPath>/ — outside the
+  // dungeonmaster home where quest folders live. A quest delete must NOT touch this tree,
+  // so a session file present before the delete must still exist afterward.
+  const sessionFileExists = ({ sessionId }: { sessionId: string }): boolean =>
+    fs.existsSync(path.join(getJsonlDir(), `${sessionId}.jsonl`));
+
   return {
     afterEach: cleanSessionDirectory,
     createSessionFile,
@@ -917,5 +924,6 @@ export const sessionHarness = ({
     createSessionWithAssistantText,
     createAnsweredClarificationSession,
     createSessionFileForQuest,
+    sessionFileExists,
   };
 };

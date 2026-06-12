@@ -59,50 +59,54 @@ export const InteractionHandleResponder = async ({
   if (tool === 'get-agent-prompt') {
     const parsed = getAgentPromptInputContract.safeParse(args);
     if (!parsed.success) {
-      throw new Error(
-        `get-agent-prompt requires {agent, questId, workItemId}: ${parsed.error.message}`,
-      );
+      throw new Error(`get-agent-prompt requires {agent, questId}: ${parsed.error.message}`);
     }
 
-    // Stamp the calling sub-agent's identity AND flip status to in_progress. The MCP call
-    // itself is direct proof the sub-agent is alive — file presence alone cannot prove
-    // liveness because Claude CLI never deletes subagent JSONLs. `sessionId` is the parent
-    // /dumpster-launch session UUID and `agentId` is the realAgentId Claude CLI assigned
-    // to this Task. The layer responder uses `_meta.claudecode/toolUseId` paired with a
-    // cross-session JSONL scan for a matching tool_use.id — deterministic, no mtime
-    // races. Best-effort: any resolution failure is logged and skipped so the prompt
-    // response still flows.
-    try {
-      const identity = await ResolveSubagentIdentityLayerResponder({
-        ...(meta !== undefined && { meta }),
-      });
-      if (identity !== undefined) {
-        await orchestratorModifyQuestAdapter({
-          questId: String(parsed.data.questId),
-          input: {
-            questId: parsed.data.questId,
-            workItems: [
-              {
-                id: parsed.data.workItemId,
-                sessionId: identity.sessionId,
-                agentId: identity.agentId,
-                status: 'in_progress',
-                startedAt: new Date().toISOString(),
-              },
-            ],
-          } as ModifyQuestInput,
+    const { workItemId } = parsed.data;
+
+    // Stamp the calling sub-agent's identity AND flip status to in_progress. ONLY when a
+    // workItemId is present — a summoned minion fetches with { agent, questId } and has no work
+    // item to stamp (it is observable as a sub-agent under its parent's chain via wire-level
+    // toolUseId correlation, not via work-item identity). The MCP call itself is direct proof the
+    // sub-agent is alive — file presence alone cannot prove liveness because Claude CLI never
+    // deletes subagent JSONLs. `sessionId` is the parent /dumpster-launch session UUID and
+    // `agentId` is the realAgentId Claude CLI assigned to this Task. The layer responder uses
+    // `_meta.claudecode/toolUseId` paired with a cross-session JSONL scan for a matching
+    // tool_use.id — deterministic, no mtime races. Best-effort: any resolution failure is logged
+    // and skipped so the prompt response still flows.
+    if (workItemId !== undefined) {
+      try {
+        const identity = await ResolveSubagentIdentityLayerResponder({
+          ...(meta !== undefined && { meta }),
         });
+        if (identity !== undefined) {
+          await orchestratorModifyQuestAdapter({
+            questId: String(parsed.data.questId),
+            input: {
+              questId: parsed.data.questId,
+              workItems: [
+                {
+                  id: workItemId,
+                  sessionId: identity.sessionId,
+                  agentId: identity.agentId,
+                  status: 'in_progress',
+                  startedAt: new Date().toISOString(),
+                },
+              ],
+            } as ModifyQuestInput,
+          });
+        }
+      } catch (error: unknown) {
+        process.stderr.write(
+          `[get-agent-prompt] session-id stamp failed: ${error instanceof Error ? error.message : String(error)}\n`,
+        );
       }
-    } catch (error: unknown) {
-      process.stderr.write(
-        `[get-agent-prompt] session-id stamp failed: ${error instanceof Error ? error.message : String(error)}\n`,
-      );
     }
 
     const result = await orchestratorGetAgentPromptAdapter({
       agent: parsed.data.agent,
       questId: parsed.data.questId,
-      workItemId: parsed.data.workItemId,
+      ...(workItemId !== undefined && { workItemId }),
     });
 
     return {

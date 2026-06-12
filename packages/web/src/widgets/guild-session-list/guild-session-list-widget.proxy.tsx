@@ -16,6 +16,17 @@ export const GuildSessionListWidgetProxy = (): {
   clickSession: (params: { testId: string }) => Promise<void>;
   clickAddButton: () => Promise<void>;
   clickFilterOption: (params: { label: string }) => Promise<void>;
+  isDeleteButtonVisible: (params: { testId: string }) => boolean;
+  getDeleteButtonAriaLabel: (params: { testId: string }) => HTMLElement['textContent'];
+  getDeleteButtonText: (params: { testId: string }) => HTMLElement['textContent'];
+  hasDeleteButtonSkullIcon: (params: { testId: string }) => boolean;
+  clickDeleteButton: (params: { testId: string }) => Promise<void>;
+  isPopoverVisible: (params: { testId: string }) => boolean;
+  getPopoverText: (params: { testId: string }) => HTMLElement['textContent'];
+  getVisiblePopoverTestIds: () => readonly HTMLElement['textContent'][];
+  isBanishButtonDisabled: () => boolean;
+  clickBanish: () => Promise<void>;
+  clickSpare: () => Promise<void>;
 } => {
   PixelBtnWidgetProxy();
 
@@ -62,6 +73,45 @@ export const GuildSessionListWidgetProxy = (): {
     },
     clickFilterOption: async ({ label }: { label: string }): Promise<void> => {
       await userEvent.click(screen.getByText(label));
+    },
+    isDeleteButtonVisible: ({ testId }: { testId: string }): boolean =>
+      screen.queryByTestId(testId) !== null,
+    getDeleteButtonAriaLabel: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId(testId);
+      return element?.getAttribute('aria-label') ?? null;
+    },
+    getDeleteButtonText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId(testId);
+      return element?.textContent ?? null;
+    },
+    hasDeleteButtonSkullIcon: ({ testId }: { testId: string }): boolean => {
+      const element = screen.queryByTestId(testId);
+      return Boolean(element?.querySelector('[data-testid="IconSkull"]'));
+    },
+    clickDeleteButton: async ({ testId }: { testId: string }): Promise<void> => {
+      await userEvent.click(screen.getByTestId(testId));
+    },
+    isPopoverVisible: ({ testId }: { testId: string }): boolean =>
+      screen.queryByTestId(testId) !== null,
+    getPopoverText: ({ testId }: { testId: string }): HTMLElement['textContent'] => {
+      const element = screen.queryByTestId(testId);
+      const paragraph = element?.querySelector('p');
+      return paragraph?.textContent ?? element?.textContent ?? null;
+    },
+    getVisiblePopoverTestIds: (): readonly HTMLElement['textContent'][] =>
+      Array.from(document.querySelectorAll('[data-testid^="QUEST_DELETE_POPOVER_"]')).map(
+        (element) => element.getAttribute('data-testid'),
+      ),
+    isBanishButtonDisabled: (): boolean => {
+      const banish = screen.getByText('Banish');
+      const button = banish.closest('button');
+      return button?.disabled === true;
+    },
+    clickBanish: async (): Promise<void> => {
+      await userEvent.click(screen.getByText('Banish'));
+    },
+    clickSpare: async (): Promise<void> => {
+      await userEvent.click(screen.getByText('Spare'));
     },
   };
 };

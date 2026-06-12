@@ -16,10 +16,13 @@ const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
 // The per-role routing table's BLOCK set: every agent role this responder routes to BLOCK on
 // a `failed` signal. `lawbringer` is included — it fixes its findings inline, so a `failed`
 // signal means something genuinely unfixable, the same BLOCK semantics as every other role.
-// `ward` is excluded (command role, terminal status set by run-ward, never reaches this
-// responder); chat roles (`chaoswhisperer`/`glyphsmith`) and the deprecated `pathseeker` never
-// signal-back. WorkItemRole value-import is banned in test files, so the routing-table subset is
-// enumerated explicitly — adding a new agent role to the routing table requires adding it here too.
+// `pathseeker` is the active planner: its `complete` fires the post-walk hook, its `failed`
+// routes to BLOCK like any other agent. `ward` is excluded (command role, terminal status set by
+// run-ward, never reaches this responder); chat roles (`chaoswhisperer`/`glyphsmith`) never
+// signal-back. The deprecated `pathseeker-surface`/`-dedup`/`-assertion-correctness`/`-walk` roles
+// are no longer seeded (PathSeeker summons them as sub-agents) but still route to BLOCK if an old
+// quest.json work item under those roles signals `failed`. WorkItemRole value-import is banned in
+// test files, so the routing-table subset is enumerated explicitly.
 const BLOCK_ROLES = [
   'lawbringer',
   'codeweaver',
@@ -27,6 +30,7 @@ const BLOCK_ROLES = [
   'siegemaster',
   'spiritmender',
   'blightwarden',
+  'pathseeker',
   'pathseeker-surface',
   'pathseeker-dedup',
   'pathseeker-assertion-correctness',
@@ -235,8 +239,8 @@ describe('QuestHandleSignalBackResponder', () => {
     });
   });
 
-  describe('pathseeker-walk post-walk hook', () => {
-    it('VALID: {role: pathseeker-walk, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/minions/blightwarden/final-ward chain)', async () => {
+  describe('pathseeker post-walk hook', () => {
+    it('VALID: {role: pathseeker, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/minions/blightwarden/final-ward chain)', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
@@ -257,7 +261,7 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       const walkItem = WorkItemStub({
         id: walkId,
-        role: 'pathseeker-walk',
+        role: 'pathseeker',
         status: 'in_progress',
       });
       const quest = QuestStub({
@@ -296,9 +300,9 @@ describe('QuestHandleSignalBackResponder', () => {
       ]);
     });
 
-    it('ERROR: {role: pathseeker-walk, signal: complete, post-walk hook throws on an invalid plan} => quest BLOCKED with walk failed, never falsely complete', async () => {
+    it('ERROR: {role: pathseeker, signal: complete, post-walk hook throws on an invalid plan} => quest BLOCKED with pathseeker failed, never falsely complete', async () => {
       // Reproduces the real failure that stranded quest ea97db12 ("Delete Quest Button"):
-      // pathseeker-walk signalled complete, but the post-walk completeness validation threw
+      // PathSeeker signalled complete, but the post-walk completeness validation threw
       // because a step's inputContracts referenced a contract absent from quest.contracts[].
       // The responder must convert that throw into a BLOCK — not leave the quest derived
       // `complete` (terminal, never re-scanned) with no implementation chain.
@@ -307,7 +311,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const walkItem = WorkItemStub({
         id: walkId,
-        role: 'pathseeker-walk',
+        role: 'pathseeker',
         status: 'in_progress',
       });
       // The unresolved step→contract ref that makes the REAL post-walk completeness scope
@@ -350,13 +354,13 @@ describe('QuestHandleSignalBackResponder', () => {
       });
     });
 
-    it('VALID: {role: pathseeker-walk, signal: failed} => transitions to failed, does NOT invoke post-walk hook', async () => {
+    it('VALID: {role: pathseeker, signal: failed} => transitions to failed, does NOT invoke post-walk hook', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const walkItem = WorkItemStub({
         id: walkId,
-        role: 'pathseeker-walk',
+        role: 'pathseeker',
         status: 'in_progress',
       });
       const quest = QuestStub({
@@ -414,8 +418,8 @@ describe('QuestHandleSignalBackResponder', () => {
     );
   });
 
-  describe('synthesizer failed-replan splices a pathseeker-walk replan', () => {
-    it('VALID: {role: blightwarden, signal: failed-replan} => synthesizer failed, pending skipped, pathseeker-walk replan inserted, quest stays in_progress', async () => {
+  describe('synthesizer failed-replan splices a pathseeker replan', () => {
+    it('VALID: {role: blightwarden, signal: failed-replan} => synthesizer failed, pending skipped, pathseeker replan inserted, quest stays in_progress', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const synthId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
@@ -449,12 +453,12 @@ describe('QuestHandleSignalBackResponder', () => {
       const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
 
       // Synthesizer marked failed (superseded by the replan it inserted); the pending final ward is
-      // skipped; a pathseeker-walk replan was spliced (depends on nothing, inserted by the failed
-      // synthesizer — the quest had no pathseeker-walk item before, so this is unambiguously it); and
+      // skipped; a pathseeker replan was spliced (depends on nothing, inserted by the failed
+      // synthesizer — the quest had no pathseeker item before, so this is unambiguously it); and
       // the quest re-opens for the replan rather than blocking.
       const synth = persistedQuest.workItems.find((wi) => wi.id === synthId);
       const finalWardItem = persistedQuest.workItems.find((wi) => wi.id === finalWardId);
-      const replan = persistedQuest.workItems.find((wi) => wi.role === 'pathseeker-walk');
+      const replan = persistedQuest.workItems.find((wi) => wi.role === 'pathseeker');
 
       expect({
         synthStatus: synth?.status,

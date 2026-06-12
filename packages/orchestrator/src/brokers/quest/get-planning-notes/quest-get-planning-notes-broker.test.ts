@@ -22,7 +22,7 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({ surfaceReports: [], blightReports: [] });
+      expect(result).toStrictEqual({ surfaceReports: [], blightReports: [], codeweaverPlans: [] });
     });
 
     it('VALID: {questId, fully populated planningNotes} => returns full object', async () => {
@@ -53,6 +53,7 @@ describe('questGetPlanningNotesBroker', () => {
         scopeClassification: scope,
         surfaceReports: [surface],
         blightReports: [blight],
+        codeweaverPlans: [],
         synthesis,
         walkFindings: walk,
       });

@@ -17,10 +17,10 @@ export const orchestratorGetAgentPromptAdapter = async ({
 }: {
   agent: string;
   questId: QuestId;
-  workItemId: QuestWorkItemId;
+  workItemId?: QuestWorkItemId;
 }): Promise<AgentPromptResult> =>
   StartOrchestrator.getAgentPrompt({
     agent,
     questId,
-    workItemId,
+    ...(workItemId !== undefined && { workItemId }),
   });

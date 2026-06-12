@@ -33,7 +33,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
       });
     });
 
@@ -63,7 +63,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
       });
     });
 
@@ -93,7 +93,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
       });
     });
 
@@ -183,7 +183,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [] },
+        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
       });
     });
 
@@ -281,7 +281,11 @@ describe('questContract', () => {
         status: 'resolved',
       });
       const quest = QuestStub({
-        planningNotes: { surfaceReports: [], blightReports: [firstReport, secondReport] },
+        planningNotes: {
+          surfaceReports: [],
+          blightReports: [firstReport, secondReport],
+          codeweaverPlans: [],
+        },
       });
 
       const result = questContract.parse(quest);
@@ -289,6 +293,7 @@ describe('questContract', () => {
       expect(result.planningNotes).toStrictEqual({
         surfaceReports: [],
         blightReports: [firstReport, secondReport],
+        codeweaverPlans: [],
       });
     });
 
@@ -304,7 +309,11 @@ describe('questContract', () => {
         toolingRequirements: [],
       });
 
-      expect(result.planningNotes).toStrictEqual({ surfaceReports: [], blightReports: [] });
+      expect(result.planningNotes).toStrictEqual({
+        surfaceReports: [],
+        blightReports: [],
+        codeweaverPlans: [],
+      });
     });
 
     it('VALID: quest with pausedAtStatus => parses successfully', () => {

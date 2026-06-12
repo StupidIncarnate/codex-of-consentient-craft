@@ -8,7 +8,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
       proxy.returns({
         result: {
           success: true,
-          data: { surfaceReports: [], blightReports: [] },
+          data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
         },
       });
 
@@ -16,7 +16,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { surfaceReports: [], blightReports: [] },
+        data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
       });
     });
 

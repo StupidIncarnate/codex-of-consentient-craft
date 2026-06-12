@@ -13,7 +13,7 @@ export const QuestBlueprintStub = ({
     designDecisions: [],
     contracts: [],
     toolingRequirements: [],
-    planningNotes: { surfaceReports: [], blightReports: [] },
+    planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
     steps: [],
     skipRoles: [],
     rolePromptOverrides: {},

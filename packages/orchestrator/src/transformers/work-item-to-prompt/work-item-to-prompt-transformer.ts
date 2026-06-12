@@ -308,8 +308,7 @@ export const workItemToPromptTransformer = ({
     if (
       workItem.role === 'pathseeker' ||
       workItem.role === 'pathseeker-dedup' ||
-      workItem.role === 'pathseeker-assertion-correctness' ||
-      workItem.role === 'pathseeker-walk'
+      workItem.role === 'pathseeker-assertion-correctness'
     ) {
       return workUnitContract.parse({
         role: 'pathseeker',
@@ -340,8 +339,7 @@ export const workItemToPromptTransformer = ({
     workItem.role === 'pathseeker' ||
     workItem.role === 'pathseeker-surface' ||
     workItem.role === 'pathseeker-dedup' ||
-    workItem.role === 'pathseeker-assertion-correctness' ||
-    workItem.role === 'pathseeker-walk'
+    workItem.role === 'pathseeker-assertion-correctness'
       ? workItem.role
       : workUnit.role;
   const template = roleToPromptTemplateTransformer({ role: templateRole });

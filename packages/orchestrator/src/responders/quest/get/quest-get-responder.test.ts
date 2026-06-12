@@ -33,7 +33,11 @@ describe('QuestGetResponder', () => {
       const result = await proxy.callResponder({ questId: quest.id, stage: 'planning' });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.planningNotes).toStrictEqual({ surfaceReports: [], blightReports: [] });
+      expect(result.quest?.planningNotes).toStrictEqual({
+        surfaceReports: [],
+        blightReports: [],
+        codeweaverPlans: [],
+      });
       expect(result.quest?.steps).toStrictEqual([]);
       expect(result.quest?.contracts).toStrictEqual([]);
     });
@@ -46,7 +50,11 @@ describe('QuestGetResponder', () => {
       const result = await proxy.callResponder({ questId: quest.id, stage: 'implementation' });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.planningNotes).toStrictEqual({ surfaceReports: [], blightReports: [] });
+      expect(result.quest?.planningNotes).toStrictEqual({
+        surfaceReports: [],
+        blightReports: [],
+        codeweaverPlans: [],
+      });
       expect(result.quest?.steps).toStrictEqual([]);
       expect(result.quest?.contracts).toStrictEqual([]);
       expect(result.quest?.toolingRequirements).toStrictEqual([]);

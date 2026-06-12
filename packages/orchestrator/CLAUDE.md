@@ -322,11 +322,12 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 ## Callouts
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
-  `packages/orchestrator/src/statics/` (e.g., `chaoswhisperer-gap-minion-statics.ts`,
-  `pathseeker-surface-statics.ts`, `pathseeker-dedup-statics.ts`,
-  `pathseeker-assertion-correctness-statics.ts`, `pathseeker-walk-statics.ts`). There are no
-  `.claude/agents/*.md` files for these agents — the `/dumpster-launch` dispatcher tells each
-  Task-spawned sub-agent to call the MCP tool to get its instructions.
+  `packages/orchestrator/src/statics/` (e.g., `pathseeker-prompt-statics.ts` — the PathSeeker parent —
+  plus the minions it summons: `pathseeker-surface-minion-statics.ts`, `pathseeker-dedup-minion-statics.ts`,
+  `pathseeker-assertion-correctness-minion-statics.ts`, `codeweaver-minion-statics.ts`,
+  `chaoswhisperer-gap-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents.
+  A work-item role calls `get-agent-prompt({agent, questId, workItemId})`; a parent-summoned minion calls
+  `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and is briefed inline by its parent.
 
 ## Quest Pipeline
 
@@ -355,10 +356,10 @@ Web UI "Start Quest" button ──► server orchestration-start-responder
 User runs /dumpster-launch (long-lived dispatch loop in their session)
   │   Loop: get-next-step() → Task() / run-ward() → await → repeat
   │
-  ├─ pathseeker-surface ──── N parallel via Task() (one per affected package)
-  ├─ pathseeker-dedup + pathseeker-assertion-correctness ──── 2 parallel via Task()
-  ├─ pathseeker-walk ─────── single Task(); on complete the signal-back handler fires the post-walk hook
-  │     │
+  ├─ pathseeker ──── single Task(); classifies scope, then summons its minions as Agent sub-agents —
+  │     │            pathseeker-surface (N parallel, one per slice) → pathseeker-dedup +
+  │     │            pathseeker-assertion-correctness — and runs the architect-review walk itself.
+  │     │            On complete the signal-back handler fires the post-walk hook.
   │     ▼   (post-walk hook runs stepsToWorkItemsTransformer over authored steps + flows)
   ├─ Codeweaver ──── one Task() per package (flows/startup excluded), capped at `codeweaverMaxFilesPerChunkStatics.value` (~20); implementation + unit tests
   ├─ Ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
@@ -382,11 +383,13 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 - **Dispatch**: `quest-get-next-step-broker` selects ready work items from the FIFO-active quest and returns a
   `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which then Task()s the agents or calls the
   `run-ward` MCP tool
-- **Concurrency**: intrinsic — `pathseeker-surface` items (siblings via `dependsOn: []`) return as one `spawn-agents`
-  batch; `pathseeker-dedup` + `pathseeker-assertion-correctness` return as one batch; everything else returns one agent
-  per response. `slotManagerStatics` slot caps stay configured but are not consulted by `get-next-step`.
+- **Concurrency**: intrinsic — `spiritmender` items and the five `blightwarden-*-minion` items each return as one
+  `spawn-agents` batch; the single `pathseeker` item and everything else return one agent per response.
+  PathSeeker fans out internally by summoning its surface/cleanup minions as `Agent` sub-agents — that parallelism
+  lives inside PathSeeker's turn, not in the work-item graph. `slotManagerStatics` slot caps stay configured but are
+  not consulted by `get-next-step`.
 - **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
-  `pathseeker-walk` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
+  `pathseeker` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
   codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain. The ward recovery splice
   (spiritmender batch + retry) uses the same mechanism via `questSpliceFixerBroker`, plus
   `replacementMapping` to rewire downstream dependents onto the retry — see "Failure handling".
@@ -420,11 +423,15 @@ created ──► explore_flows ──► review_flows ──► flows_approved 
                                                                                                                                       └──► explore_design (back)
 ```
 
-The `seek_scope` / `seek_synth` / `seek_walk` enum values remain on the contract for
-quest.json backward compatibility but are no longer assigned by any transition. The
-pathseeker phase boundaries that those statuses used to encode are now expressed as
-`dependsOn` edges on the four `pathseeker-*` work items (see "PathSeeker work-item graph"
-below).
+The `seek_scope` / `seek_synth` / `seek_walk` enum values remain on the contract. A quest never
+*rests* in one under the dispatch-loop model, but they are not dead: `orchestration-start-responder`
+transitions `approved → seek_scope → in_progress` on every Start because `seek_scope` is the only
+status whose input allowlist accepts `planningNotes.scopeClassification`, and the
+`seek_walk → in_progress` completeness gate still lives in `questSaveInvariantsTransformer` /
+`questCompletenessForTransitionTransformer`. What is gone is any quest that *settles* in a `seek_*`
+status: PathSeeker is a single `pathseeker` work item that runs entirely while the quest is
+`in_progress`; its scope → summon → walk phase boundaries live inside its own turn, tracked by
+`planningNotes` presence rather than quest status (see "PathSeeker work-item graph" below).
 
 | Status                | Set By                                          | Gate                                                                                              |
 |-----------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -505,9 +512,9 @@ switches on `startGraphKind` to seed the matching work-item graph:
   → ward(full)`. Bug-hunt reuses the flow/observable spec lifecycle — the reproduction path is a flow,
   the expected behavior an observable PestEater turns into a failing test.
 
-Each type owns its COMPLETE work-item flow; PathSeeker's four-tier graph is the *feature* type's
-planning sub-stage, not universal. Adding a type = one `questTypeRegistryStatics` entry + a graph
-builder + the type added to `questTypeContract`.
+Each type owns its COMPLETE work-item flow; PathSeeker's single planning work item is the *feature*
+type's planning sub-stage, not universal. Adding a type = one `questTypeRegistryStatics` entry + a
+graph builder + the type added to `questTypeContract`.
 
 ## Agent Roles
 
@@ -522,10 +529,7 @@ so a `failed` signal means a genuinely unfixable issue. The quest then derives
 |----------------------------------|----------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
 | ChaosWhisperer                   | `/dumpster-create`                                                                           | N/A (spec)                      | full spec surface (flows, observables, contracts, packagesAffected, …) |
 | Glyphsmith                       | startDesignChat                                                                              | N/A (design)                    | status                                                                 |
-| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel, one per slice)                                    | complete, failed                | planningNotes (surface slice), steps (slice), contracts (slice)        |
-| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)                                                | complete, failed                | steps, contracts (in-package + cross-slice dedup)                      |
-| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)                                                | complete, failed                | steps (assertion correctness)                                          |
-| pathseeker-walk                  | `/dumpster-launch` via Task() (after dedup + assertion-correctness)                          | complete, failed                | planningNotes.walkFindings, steps (exploratory)                        |
+| pathseeker                       | `/dumpster-launch` via Task() (single planner; summons surface/dedup/assertion minions, walks itself) | complete, failed                | planningNotes (scope/synthesis/walkFindings), steps, contracts          |
 | Codeweaver                       | `/dumpster-launch` via Task() (one per package; flows/startup excluded; unit tests)          | complete, failed                | none                                                                   |
 | Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                                         | terminal set by exit code       | none (server writes wardResults + item status)                         |
 | Flowrider                        | `/dumpster-launch` via Task() (one per flow, chained; owns flows/startup files + flow tests) | complete, failed (→ BLOCK)      | none                                                                   |
@@ -537,32 +541,30 @@ so a `failed` signal means a genuinely unfixable issue. The quest then derives
 
 ### PathSeeker work-item graph
 
-PathSeeker is dispatched as four distinct work-item roles, each with `dependsOn` edges that
-encode the previous three-phase (seek_scope / seek_synth / seek_walk) ordering:
+PathSeeker is **one** `pathseeker` work item that holds the whole planning lifecycle in a single
+warm mind. Within its own turn it classifies scope, then summons its minions as `Agent` sub-agents
+and runs the architect-review walk itself:
 
 ```
-pathseeker-surface (×N slices, one per packagesAffected entry, dependsOn: [])
-        │
-        ▼   (after all surface items complete)
-pathseeker-dedup + pathseeker-assertion-correctness (parallel, dependsOn: [...all surface ids])
-        │
-        ▼   (after both corrections complete)
-pathseeker-walk (single, dependsOn: [dedup, assertion-correctness])
-        │
-        ▼   (post-success hook)
+pathseeker (single work item, dependsOn: [chaoswhisperer])
+   │  Phase 1 — classify scope, write scopeClassification.slices
+   │  Phase 2 — summon minions via the Agent tool (minion-fetch: get-agent-prompt with no workItemId):
+   │              Wave A: pathseeker-surface ×N (parallel, one per slice)
+   │              Wave B: pathseeker-dedup + pathseeker-assertion-correctness (parallel, after Wave A)
+   │            each minion writes steps/contracts via modify-quest and returns a summary (no signal-back)
+   │  Phase 3 — architect-review walk (PathSeeker itself), commit walkFindings
+   ▼   signal-back complete → post-walk hook
 stepsToWorkItemsTransformer fires → codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain inserted
 ```
 
-Slice generation: on Start Quest, the work-item insertion broker reads
-`quest.packagesAffected[]` (declared during ChaosWhisperer spec approval), builds one slice
-per package into `scopeClassification.slices[]`, and inserts the graph above.
-
-Each pathseeker-* work item writes its own output directly via `modify-quest`. Writes flow
-through the same `modify-quest` pipeline as any other agent; the
-`questStatusInputAllowlistStatics` entry for `in_progress` governs which `planningNotes.*`
-sub-fields are writable. Work-item output is durable the moment it's committed — a Task
-crash after write does not lose work. Resumed work items read accumulated planning state
-via the `get-quest-planning-notes` MCP tool.
+Slice generation: on Start Quest, `questBuildPathseekerGraphBroker` reads `quest.packagesAffected[]`
+(declared during ChaosWhisperer spec approval), builds one slice per package into
+`scopeClassification.slices[]`, and seeds the single `pathseeker` work item. PathSeeker resumes off
+`planningNotes` presence (scopeClassification → synthesis → walkFindings), so a Task crash mid-plan
+re-enters at the right phase. Its minions are summoned sub-agents, NOT work items — they are
+observable under PathSeeker's chain via wire-level toolUseId correlation. The `pathseeker-surface`,
+`pathseeker-dedup`, `pathseeker-assertion-correctness`, and `pathseeker-walk` `WorkItemRole` values
+are not seeded as work items; they stay on the contract for quest.json back-compat.
 
 ## Signal System
 
@@ -571,7 +573,7 @@ Agents report via the `signal-back` MCP tool. The live handler is
 
 1. Marks the named work item terminal — `complete` for signal `complete`, `failed` for signal `failed`
    **or** `failed-replan` — and stamps `completedAt`.
-2. If the item is `pathseeker-walk` AND the signal is `complete`, fires `questPostWalkHookBroker` to
+2. If the item is `pathseeker` AND the signal is `complete`, fires `questPostWalkHookBroker` to
    generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
 3. On a `failed` / `failed-replan` signal, every agent role blocks the quest (see "Failure handling").
    Lawbringer is included — it fixes findings inline, so its `failed` signal is an unfixable-issue
@@ -670,8 +672,8 @@ sub-agents call in parallel against the same MCP stdio child.
 | Agent                            | Dispatched By                                     | Purpose                                                                                                                                                    |
 |----------------------------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | chaoswhisperer-gap-minion        | ChaosWhisperer (inside `/dumpster-create`)        | Validate spec completeness before execution                                                                                                                |
-| pathseeker-surface               | `/dumpster-launch` via Task() (N parallel)        | Slice-scoped step + contract authoring; writes `quest.steps[]` and `quest.contracts[]` for its slice                                                       |
-| pathseeker-dedup                 | `/dumpster-launch` via Task() (after surface)     | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`                                                                                  |
-| pathseeker-assertion-correctness | `/dumpster-launch` via Task() (after surface)     | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`                                       |
-| pathseeker-walk                  | `/dumpster-launch` via Task() (after corrections) | Full architect-review walk: trace every flow entry→exit, patch structural issues, author exploratory steps, commit `walkFindings`                          |
+| pathseeker-surface               | PathSeeker via the Agent tool (Wave A, N parallel) | Slice-scoped step + contract authoring; writes `quest.steps[]` and `quest.contracts[]` for its slice. Returns a summary (no signal-back)                   |
+| pathseeker-dedup                 | PathSeeker via the Agent tool (Wave B)            | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`. Returns a summary (no signal-back)                                              |
+| pathseeker-assertion-correctness | PathSeeker via the Agent tool (Wave B)            | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`. Returns a summary (no signal-back)   |
+| codeweaver-minion                | Codeweaver via the Agent tool (per isolated piece) | Focused TDD worker: builds one isolated step/file-group and returns a distilled artifact (working files + usage examples). No signal-back, no work item    |
 | pesteater                        | `/dumpster-launch` via Task() (bug-hunt front)    | Single TDD bug-fix agent: root-cause → write the failing test FIRST → fix → verify via ward. Reads the bug report from the quest; no `modify-quest` writes |

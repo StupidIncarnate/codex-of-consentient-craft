@@ -137,7 +137,7 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
         flowsRule: 'observable-wording-only',
         blightReportsRule: 'full',
-        allowedPlanningNotesFields: ['blightReports', 'walkFindings'],
+        allowedPlanningNotesFields: ['blightReports', 'walkFindings', 'codeweaverPlans'],
       },
       paused: {
         allowedFields: ['status'],
@@ -239,10 +239,11 @@ describe('questStatusInputAllowlistStatics', () => {
     ]);
   });
 
-  it('VALID: in_progress => allowedPlanningNotesFields permits blightReports (Blightwarden) and walkFindings (pathseeker-walk)', () => {
+  it('VALID: in_progress => allowedPlanningNotesFields permits blightReports (Blightwarden), walkFindings (pathseeker-walk), and codeweaverPlans (Codeweaver)', () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toStrictEqual([
       'blightReports',
       'walkFindings',
+      'codeweaverPlans',
     ]);
   });
 });

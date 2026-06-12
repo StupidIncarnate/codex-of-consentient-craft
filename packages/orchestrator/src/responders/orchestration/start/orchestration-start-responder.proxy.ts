@@ -46,8 +46,8 @@ export const OrchestrationStartResponderProxy = (): {
   const processesProxy = orchestrationProcessesStateProxy();
   processesProxy.setupEmpty();
 
-  // The responder mints several UUIDs per call (processId + 4..N pathseeker graph
-  // ids). The proxy queues unique values via mockReturnValueOnce so each call gets a
+  // The responder mints a couple of UUIDs per call (processId + the single pathseeker graph
+  // work-item id). The proxy queues unique values via mockReturnValueOnce so each call gets a
   // distinct id (the first one is the processId asserted by callers; the rest are
   // pathseeker-graph work-item ids whose values are not asserted, only their
   // distinctness).

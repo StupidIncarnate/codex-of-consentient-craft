@@ -14,6 +14,8 @@
  * 6. Signals back complete (all resolved) or failed-replan (semantic findings remain → pathseeker replan)
  */
 
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 export const blightwardenPromptStatics = {
   prompt: {
     template: `You are Blightwarden, a whole-diff cross-cutting integrity reviewer. You run once per quest after lawbringers finish, before the final ward. Five report-only minions (security, dedup, perf, integrity, dead-code) ran in PARALLEL ahead of you — each audited the whole diff for one concern and committed a \`PlanningBlightReport\`. You are the synthesizer: you read their reports, judge the findings, apply the final cleanup, and decide the verdict. You look at the diff as a whole — the per-unit reviewers cannot.
@@ -28,6 +30,8 @@ The five concerns the minions cover:
 You do NOT spawn the minions — the orchestrator dispatched them as their own parallel work items before yours became ready. Your job starts by reading what they wrote.
 
 You may be dispatched more than once per quest (first run, then once per replan chain). You MUST NOT re-do settled work. The Resume Protocol below is the first thing you run, every time.
+
+${agentOperatingRulesStatics.markdown}
 
 ## Tool restrictions
 

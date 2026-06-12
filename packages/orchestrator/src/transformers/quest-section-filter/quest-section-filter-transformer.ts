@@ -37,6 +37,7 @@ export const questSectionFilterTransformer = ({
       filtered.planningNotes = {
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
       } as Quest['planningNotes'];
       continue;
     }

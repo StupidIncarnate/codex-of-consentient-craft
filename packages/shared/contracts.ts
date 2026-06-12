@@ -426,6 +426,9 @@ export * from './src/contracts/planning-synthesis/planning-synthesis.stub';
 export * from './src/contracts/planning-walk-findings/planning-walk-findings-contract';
 export * from './src/contracts/planning-walk-findings/planning-walk-findings.stub';
 
+export * from './src/contracts/planning-codeweaver-plan/planning-codeweaver-plan-contract';
+export * from './src/contracts/planning-codeweaver-plan/planning-codeweaver-plan.stub';
+
 export * from './src/contracts/novelty-concern/novelty-concern-contract';
 export * from './src/contracts/novelty-concern/novelty-concern.stub';
 

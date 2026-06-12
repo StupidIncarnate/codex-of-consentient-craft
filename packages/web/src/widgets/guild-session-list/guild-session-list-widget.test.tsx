@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   QuestIdStub,
   QuestListItemStub,
@@ -10,6 +11,38 @@ import { SessionFilterStub } from '../../contracts/session-filter/session-filter
 import { GuildSessionListWidget } from './guild-session-list-widget';
 import { GuildSessionListWidgetProxy } from './guild-session-list-widget.proxy';
 
+type QuestId = ReturnType<typeof QuestIdStub>;
+
+const StatefulDeleteHarness = ({
+  quests,
+  onDeleteQuest,
+  deletingQuestId,
+}: {
+  quests: ReturnType<typeof QuestListItemStub>[];
+  onDeleteQuest: (params: { questId: QuestId }) => void;
+  deletingQuestId: QuestId | null;
+}): React.JSX.Element => {
+  const [confirmingQuestId, setConfirmingQuestId] = useState<QuestId | null>(null);
+  return (
+    <GuildSessionListWidget
+      quests={quests}
+      sessions={[]}
+      loading={false}
+      filter={SessionFilterStub({ value: 'quests-only' })}
+      onFilterChange={jest.fn()}
+      onSelect={jest.fn()}
+      onSelectQuest={jest.fn()}
+      onAdd={jest.fn()}
+      confirmingQuestId={confirmingQuestId}
+      onConfirmingQuestIdChange={({ questId }) => {
+        setConfirmingQuestId(questId);
+      }}
+      onDeleteQuest={onDeleteQuest}
+      deletingQuestId={deletingQuestId}
+    />
+  );
+};
+
 describe('GuildSessionListWidget', () => {
   describe('rendering', () => {
     it('VALID: {sessions} => renders SESSIONS header', () => {
@@ -20,13 +53,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -44,13 +81,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -74,13 +115,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -99,13 +144,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -129,13 +178,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -160,13 +213,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -191,13 +248,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -218,13 +279,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -241,13 +306,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -265,13 +334,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -288,13 +361,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
             onFilterChange={onFilterChange}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -323,13 +400,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[quest]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -357,13 +438,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[questSession, nonQuestSession]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -382,13 +467,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -410,13 +499,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={onSelect}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -436,13 +529,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={onAdd}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -469,13 +566,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -498,13 +599,17 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
@@ -526,18 +631,401 @@ describe('GuildSessionListWidget', () => {
         ui: (
           <GuildSessionListWidget
             quests={[]}
-            onSelectQuest={jest.fn()}
             sessions={[session]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
             onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
           />
         ),
       });
 
       expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${sessionId}` })).toBe(true);
+    });
+  });
+
+  describe('delete button visibility (deletable statuses)', () => {
+    it('VALID: {quest status complete} => skull delete button present in the row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'complete-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(true);
+    });
+
+    it('VALID: {quest status paused} => skull delete button present in the row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'paused-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'paused' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(true);
+    });
+
+    it('VALID: {quest status created (pre-execution)} => skull delete button present in the row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'created-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'created' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(true);
+    });
+  });
+
+  describe('delete button absence (non-deletable statuses)', () => {
+    it('EMPTY: {quest status in_progress} => no skull delete button for that row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'in-progress-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(false);
+    });
+
+    it('EMPTY: {quest status blocked} => no skull delete button for that row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'blocked-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'blocked' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(false);
+    });
+
+    it('EMPTY: {quest status seek_walk} => no skull delete button for that row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'seek-walk-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'seek_walk' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(false);
+    });
+  });
+
+  describe('delete button appearance', () => {
+    it("VALID: {deletable quest} => skull button has aria-label 'Delete quest'", () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'aria-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.getDeleteButtonAriaLabel({ testId: `QUEST_DELETE_${questId}` })).toBe(
+        'Delete quest',
+      );
+    });
+
+    it('VALID: {deletable quest} => skull button renders an svg glyph and no text label', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'icon-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.hasDeleteButtonSkullIcon({ testId: `QUEST_DELETE_${questId}` })).toBe(true);
+      expect(proxy.getDeleteButtonText({ testId: `QUEST_DELETE_${questId}` })).toBe('');
+    });
+  });
+
+  describe('delete button interaction', () => {
+    it('VALID: {click skull} => onSelectQuest not fired (no row navigation)', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'no-nav-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const onSelectQuest = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[quest]}
+            sessions={[]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={onSelectQuest}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+
+      expect(onSelectQuest).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {click skull} => confirm popover becomes visible', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'popover-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+
+      expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(true);
+    });
+
+    it("VALID: {open popover} => popover text equals 'Deleting My Quest is permanent. Are you sure?'", async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'text-quest' });
+      const quest = QuestListItemStub({
+        id: questId,
+        title: 'My Quest' as never,
+        status: 'complete' as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+
+      expect(proxy.getPopoverText({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(
+        'Deleting My Quest is permanent. Are you sure?',
+      );
+    });
+
+    it('VALID: {open popover} => Banish button present with exact label', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'banish-quest' });
+      const quest = QuestListItemStub({
+        id: questId,
+        title: 'My Quest' as never,
+        status: 'complete' as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+
+      expect(proxy.getPopoverText({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(
+        'Deleting My Quest is permanent. Are you sure?',
+      );
+      expect(proxy.isBanishButtonDisabled()).toBe(false);
+    });
+
+    it('VALID: {open popover, click Spare} => popover no longer visible', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'spare-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+      await proxy.clickSpare();
+
+      expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(false);
+    });
+  });
+
+  describe('single popover at a time', () => {
+    it('VALID: {open quest A then quest B skull} => only quest B popover visible', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questA = QuestListItemStub({
+        id: QuestIdStub({ value: 'quest-a' }),
+        status: 'complete' as never,
+      });
+      const questB = QuestListItemStub({
+        id: QuestIdStub({ value: 'quest-b' }),
+        status: 'complete' as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[questA, questB]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questA.id}` });
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questB.id}` });
+
+      expect(proxy.getVisiblePopoverTestIds()).toStrictEqual([`QUEST_DELETE_POPOVER_${questB.id}`]);
+    });
+  });
+
+  describe('spare cancels delete', () => {
+    it('VALID: {open popover then Spare} => popover hidden, onDeleteQuest not called, row still present', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'cancel-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const onDeleteQuest = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={onDeleteQuest}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+      await proxy.clickSpare();
+
+      expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(false);
+      expect(onDeleteQuest).toHaveBeenCalledTimes(0);
+      expect(proxy.isSessionVisible({ testId: `QUEST_ITEM_${questId}` })).toBe(true);
+    });
+
+    it('VALID: {click Banish} => onDeleteQuest called once with questId', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'banish-fire-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const onDeleteQuest = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={onDeleteQuest}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+      await proxy.clickBanish();
+
+      expect(onDeleteQuest).toHaveBeenCalledTimes(1);
+      expect(onDeleteQuest).toHaveBeenCalledWith({ questId });
+    });
+  });
+
+  describe('banish disabled while in flight', () => {
+    it('VALID: {deletingQuestId equals row quest} => Banish button disabled', async () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'inflight-quest' });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <StatefulDeleteHarness
+            quests={[quest]}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={questId}
+          />
+        ),
+      });
+
+      await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+
+      expect(proxy.isBanishButtonDisabled()).toBe(true);
     });
   });
 });

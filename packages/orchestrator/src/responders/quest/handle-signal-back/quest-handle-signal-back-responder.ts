@@ -3,7 +3,7 @@
  * Transitions the named work item to its terminal status and stamps `completedAt`, then routes
  * by signal + role:
  *
- * - `complete` + `pathseeker-walk` → fires `questPostWalkHookBroker` to generate the downstream
+ * - `complete` + `pathseeker` → fires `questPostWalkHookBroker` to generate the downstream
  *   codeweaver/ward/siegemaster/lawbringer/minions/synthesizer chain.
  * - `failed` / `failed-replan` from a blightwarden MINION → NON-BLOCKING. The minion's work item
  *   terminates `complete` (with `actualSignal` recording the real signal) so the synthesizer's
@@ -11,9 +11,10 @@
  *   `PlanningBlightReport`, which the synthesizer reads and handles.
  * - `failed-replan` from the blightwarden synthesizer → REPLAN. Marks the synthesizer `failed`
  *   (superseded by the replan it inserts), drains pending items to `skipped`, and splices a
- *   `pathseeker-walk` replan (`dependsOn: []`, `insertedBy: <synth id>`). When that replan
- *   completes it re-fires the post-walk hook, regenerating the whole downstream chain. The quest
- *   stays `in_progress` (a bare workItems write never derives `blocked`).
+ *   `pathseeker` replan (`dependsOn: []`, `insertedBy: <synth id>`). The respawned PathSeeker
+ *   resumes off `planningNotes` (steps already present → re-walks), and on `complete` re-fires the
+ *   post-walk hook, regenerating the whole downstream chain. The quest stays `in_progress` (a bare
+ *   workItems write never derives `blocked`).
  * - `failed` from any other agent role → BLOCK via `questBlockOnFailureBroker` (drains pending
  *   items to `skipped`, sets status `blocked`). Lawbringer/siegemaster/blightwarden fix what they
  *   find inline, so a `failed` signal means a genuinely unfixable issue.
@@ -77,7 +78,7 @@ export const QuestHandleSignalBackResponder = async ({
       } as ModifyQuestInput,
     });
 
-    if (workItem.role === 'pathseeker-walk') {
+    if (workItem.role === 'pathseeker') {
       // The post-walk hook runs the completeness scope and generates the downstream
       // codeweaver/ward/lawbringer/blightwarden chain. If it throws (the authored plan failed
       // completeness — e.g. a step references a contract absent from quest.contracts[]), the walk
@@ -140,7 +141,7 @@ export const QuestHandleSignalBackResponder = async ({
 
     const replanItem = workItemContract.parse({
       id: crypto.randomUUID(),
-      role: 'pathseeker-walk',
+      role: 'pathseeker',
       status: 'pending',
       spawnerType: 'agent',
       dependsOn: [],

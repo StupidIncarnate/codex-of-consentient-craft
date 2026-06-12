@@ -1,3 +1,5 @@
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 import { blightwardenPromptStatics } from './blightwarden-prompt-statics';
 
 describe('blightwardenPromptStatics', () => {
@@ -86,5 +88,13 @@ describe('blightwardenPromptStatics', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
       /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
     );
+  });
+
+  it('VALID: template => embeds the shared agent operating rules', () => {
+    const rules = agentOperatingRulesStatics.markdown;
+    const { template } = blightwardenPromptStatics.prompt;
+    const found = template.slice(template.indexOf(rules), template.indexOf(rules) + rules.length);
+
+    expect(found).toBe(rules);
   });
 });

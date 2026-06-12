@@ -45,7 +45,8 @@ export type QuestStatusPlanningNotesField =
   | 'surfaceReports'
   | 'synthesis'
   | 'walkFindings'
-  | 'blightReports';
+  | 'blightReports'
+  | 'codeweaverPlans';
 
 export const questStatusInputAllowlistStatics = {
   pending: {
@@ -176,7 +177,7 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
     flowsRule: 'observable-wording-only',
     blightReportsRule: 'full',
-    allowedPlanningNotesFields: ['blightReports', 'walkFindings'],
+    allowedPlanningNotesFields: ['blightReports', 'walkFindings', 'codeweaverPlans'],
   },
   paused: {
     allowedFields: ['status'],

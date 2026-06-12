@@ -752,6 +752,7 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
         synthesis: existingSynthesis,
         scopeClassification: newScope,
       });
@@ -1010,6 +1011,7 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [existingSurface],
         blightReports: [newBlight],
+        codeweaverPlans: [],
       });
     });
 
@@ -1047,6 +1049,7 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes).toStrictEqual({
         surfaceReports: [],
         blightReports: [],
+        codeweaverPlans: [],
         scopeClassification: existingScope,
         synthesis: existingSynthesis,
         walkFindings: newWalk,

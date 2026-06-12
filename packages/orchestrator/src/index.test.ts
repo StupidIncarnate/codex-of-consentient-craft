@@ -47,7 +47,6 @@ describe('orchestrator', () => {
       'nextStepContract',
       'orchestrationEventsState',
       'orchestrationProcessesState',
-      'pathseekerWalkStatics',
       'questFindQuestPathBroker',
       'questFolderFindBroker',
       'questGetBroker',

@@ -663,7 +663,10 @@ describe('QuestHandleResponder', () => {
           {
             type: 'text',
             text: JSON.stringify(
-              { success: true, data: { surfaceReports: [], blightReports: [] } },
+              {
+                success: true,
+                data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+              },
               null,
               JSON_INDENT_SPACES,
             ),

@@ -1004,6 +1004,130 @@ describe('chatHistoryReplayBroker', () => {
       ]);
     });
 
+    it('VALID: {nested helper — codeweaver (a sub-agent) spawns its own Task whose completion tool_result lives in the codeweaver subagent JSONL} => the helper-stream entry carries agentId = the helper Task toolUseId, not the helper real internal id', async () => {
+      // Two-level nesting. The main session dispatches codeweaver (a Task); codeweaver then
+      // spawns a helper (another Task). The helper's completion tool_result is written to
+      // codeweaver's OWN subagent JSONL, not the main session. The pre-scan must walk the
+      // subagent files too — otherwise the helper's own lines fall through pass 2 with
+      // agentId = helperRealAgentId (from its filename) and orphan in the web chain grouping.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-nested-helper' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const cwToolUseId = 'toolu_01CodeweaverDispatch01';
+      const cwRealAgentId = 'cwrealagent';
+      const helperToolUseId = 'toolu_01HelperDispatch0002';
+      const helperRealAgentId = 'helperrealagent';
+
+      const userLine = JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'kickoff' } }),
+        uuid: 'nested-user-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+      const cwTaskLine = JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: cwToolUseId,
+                name: 'Agent',
+                input: { description: 'codeweaver', prompt: 'implement slice' },
+              },
+            ],
+          },
+        }),
+        uuid: 'nested-cw-task-uuid',
+        timestamp: '2025-01-01T00:00:01.000Z',
+      });
+      const cwResultLine = JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: cwToolUseId, content: 'cw done' }],
+          },
+          toolUseResult: { agentId: cwRealAgentId },
+        }),
+        uuid: 'nested-cw-result-uuid',
+        timestamp: '2025-01-01T00:00:10.000Z',
+      });
+
+      // codeweaver's OWN subagent stream: it spawns the helper Task and receives its completion.
+      const helperTaskLine = JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: helperToolUseId,
+                name: 'Agent',
+                input: { description: 'helper', prompt: 'prove popover' },
+              },
+            ],
+          },
+        }),
+        uuid: 'nested-helper-task-uuid',
+        timestamp: '2025-01-01T00:00:03.000Z',
+      });
+      const helperResultLine = JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [
+              { type: 'tool_result', tool_use_id: helperToolUseId, content: 'helper done' },
+            ],
+          },
+          toolUseResult: { agentId: helperRealAgentId },
+        }),
+        uuid: 'nested-helper-result-uuid',
+        timestamp: '2025-01-01T00:00:08.000Z',
+      });
+
+      // the helper's OWN subagent stream: its activity text.
+      const helperTextLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'HELPER_TEXT' }] },
+        }),
+        uuid: 'nested-helper-text-uuid',
+        timestamp: '2025-01-01T00:00:05.000Z',
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({ content: [userLine, cwTaskLine, cwResultLine].join('\n') });
+      proxy.setupSubagentDir({
+        files: [
+          FileNameStub({ value: `agent-${cwRealAgentId}.jsonl` }),
+          FileNameStub({ value: `agent-${helperRealAgentId}.jsonl` }),
+        ],
+      });
+      // FIFO order must match the files array above: codeweaver stream first, helper stream second.
+      proxy.setupSubagentFile({ content: [helperTaskLine, helperResultLine].join('\n') });
+      proxy.setupSubagentFile({ content: helperTextLine });
+
+      const allEntries: unknown[] = [];
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntries: ({ entries }) => {
+          allEntries.push(...entries);
+        },
+      });
+
+      // Project only the helper's own stream text entry. The invariant: it correlates to the
+      // HELPER Task's toolUseId (resolved via the pre-scan walking codeweaver's subagent JSONL),
+      // NOT the helper's real internal agentId from its filename.
+      const helperProjection = allEntries
+        .map((entry) => entry as Record<PropertyKey, unknown>)
+        .filter((entry) => entry.content === 'HELPER_TEXT')
+        .map((entry) => ({ agentId: entry.agentId, source: entry.source }));
+
+      expect(helperProjection).toStrictEqual([{ agentId: helperToolUseId, source: 'subagent' }]);
+    });
+
     it('VALID: {agentId param} => emits ONLY the matching sub-agent JSONL; other sub-agents skipped', async () => {
       const proxy = chatHistoryReplayBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });

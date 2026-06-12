@@ -2,8 +2,8 @@
  * PURPOSE: Defines valid agent role values for orchestration
  *
  * USAGE:
- * agentRoleContract.parse('pathseeker-walk');
- * // Returns: 'pathseeker-walk' as AgentRole
+ * agentRoleContract.parse('pathseeker');
+ * // Returns: 'pathseeker' as AgentRole
  */
 
 import { z } from 'zod';
@@ -16,7 +16,6 @@ export const agentRoleContract = z.enum([
   'pathseeker-surface',
   'pathseeker-dedup',
   'pathseeker-assertion-correctness',
-  'pathseeker-walk',
   'codeweaver',
   'spiritmender',
   'lawbringer',

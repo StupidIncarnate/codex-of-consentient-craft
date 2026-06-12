@@ -211,6 +211,7 @@ describe('QuestFlow', () => {
           synthesis: PlanningSynthesisStub(),
           surfaceReports: [],
           blightReports: [],
+          codeweaverPlans: [],
         },
       });
 
@@ -437,6 +438,7 @@ describe('QuestFlow', () => {
           synthesis,
           surfaceReports: [report],
           blightReports: [],
+          codeweaverPlans: [],
         },
       });
 
@@ -451,6 +453,7 @@ describe('QuestFlow', () => {
           scopeClassification: scope,
           surfaceReports: [report],
           blightReports: [],
+          codeweaverPlans: [],
           synthesis,
         },
       });
@@ -852,8 +855,8 @@ describe('QuestFlow', () => {
     });
   });
 
-  describe('post-walk hook — pathseeker-walk completion hands off to codeweaver', () => {
-    // Regression: completing the LAST pathseeker (pathseeker-walk) momentarily leaves every
+  describe('post-walk hook — pathseeker completion hands off to codeweaver', () => {
+    // Regression: completing the pathseeker planner momentarily leaves every
     // work item terminal, so the quest derives `complete`. The post-walk hook then appends the
     // pending codeweaver/ward/siege/lawbringer/blightwarden chain — but the quest stays stuck at
     // `complete`, so `loadActiveQuestsLayerBroker` (filters on in_progress) drops it and
@@ -861,7 +864,7 @@ describe('QuestFlow', () => {
     // user hit (quest 014208d8… with pathseekers done, pending codeweavers, get-next-step silent).
     // 35s timeout: on the BROKEN source `get-next-step` long-polls its full ~25s budget before
     // returning idle, so the failing assertion is reached after the wait.
-    it('VALID: {pathseeker-walk signals complete} => post-walk codeweaver is dispatched and quest stays in_progress', async () => {
+    it('VALID: {pathseeker signals complete} => post-walk codeweaver is dispatched and quest stays in_progress', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'qf-postwalk-codeweaver' }),
       });
@@ -889,13 +892,13 @@ describe('QuestFlow', () => {
         finalStatus: 'in_progress',
       });
 
-      // Mark the pre-existing chaoswhisperer item complete and add a pathseeker-walk that is the
+      // Mark the pre-existing chaoswhisperer item complete and add a pathseeker that is the
       // only non-terminal item. When it completes, EVERY item is terminal at that instant — this
       // is what trips the premature `complete` derivation.
       const walkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
       const walkItem = WorkItemStub({
         id: walkItemId,
-        role: 'pathseeker-walk',
+        role: 'pathseeker',
         status: 'in_progress',
         spawnerType: 'agent',
         dependsOn: [],
@@ -916,7 +919,7 @@ describe('QuestFlow', () => {
         }),
       });
 
-      // pathseeker-walk signals complete → real signal-back handler fires questPostWalkHookBroker,
+      // pathseeker signals complete → real signal-back handler fires questPostWalkHookBroker,
       // which appends the codeweaver/ward/siege/lawbringer/blightwarden chain.
       await QuestFlow.handleSignalBack({
         questId,

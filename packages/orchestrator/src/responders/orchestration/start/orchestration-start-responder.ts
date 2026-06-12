@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Validates a quest is startable, promotes chat work items, inserts the four-tier pathseeker work-item graph (surface × N → dedup + assertion-correctness → walk) built from `quest.packagesAffected[]`, persists scopeClassification.slices[] into planningNotes, transitions the quest from approved through seek_scope to in_progress (so /dumpster-launch's questGetNextStepBroker picks it up), then enqueues it. Returns a synthetic processId for backwards compatibility with callers.
+ * PURPOSE: Validates a quest is startable, promotes chat work items, inserts the single `pathseeker` planning work item built from `quest.packagesAffected[]` (PathSeeker classifies scope, summons surface + cleanup minions as sub-agents, then runs the architect-review walk itself), persists scopeClassification.slices[] into planningNotes, transitions the quest from approved through seek_scope to in_progress (so /dumpster-launch's questGetNextStepBroker picks it up), then enqueues it. Returns a synthetic processId for backwards compatibility with callers.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
@@ -132,9 +132,10 @@ export const OrchestrationStartResponder = async ({
   //      `planningNotes.scopeClassification` — `seek_scope` is the only status whose
   //      input allowlist accepts that sub-field.
   //   3. seek_scope → in_progress so questGetNextStepBroker (driven by /dumpster-launch)
-  //      picks the quest up on its next pass. The `seek_*` quest statuses are dead enum
-  //      values under the dispatch-loop model (see plan: "Quest status enum impact");
-  //      the final assigned status must be in_progress for the queue to advance.
+  //      picks the quest up on its next pass. Under the dispatch-loop model the quest never
+  //      RESTS in a `seek_*` status — `seek_scope` here is a transient pass-through (the only
+  //      status whose allowlist accepts `scopeClassification`), and the final assigned status
+  //      must be in_progress for the queue to advance.
   const modifyInput = modifyQuestInputContract.parse({
     questId,
     status: 'seek_scope',

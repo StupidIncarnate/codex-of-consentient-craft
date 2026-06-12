@@ -180,6 +180,27 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
+    it('VALID: {minion agent, questId, no workItemId} => returns served prompt without stamping (minion-fetch)', async () => {
+      const proxy = InteractionHandleResponderProxy();
+      const expectedResult = AgentPromptResultStub({
+        name: 'chaoswhisperer-gap-minion',
+        prompt: 'You are chaoswhisperer-gap-minion.',
+      });
+      proxy.setupAgentPromptReturns({ result: expectedResult });
+
+      const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-agent-prompt' }),
+        args: { agent: 'chaoswhisperer-gap-minion', questId },
+      });
+
+      expect(proxy.getLastModifyQuestInput()).toBe(undefined);
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
+      });
+    });
+
     it('ERROR: {missing questId} => throws clear rejection error', async () => {
       const proxy = InteractionHandleResponderProxy();
 
@@ -191,21 +212,7 @@ describe('InteractionHandleResponder', () => {
             workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
           },
         }),
-      ).rejects.toThrow(/get-agent-prompt requires \{agent, questId, workItemId\}/u);
-    });
-
-    it('ERROR: {missing workItemId} => throws clear rejection error', async () => {
-      const proxy = InteractionHandleResponderProxy();
-
-      await expect(
-        proxy.callResponder({
-          tool: ToolNameStub({ value: 'get-agent-prompt' }),
-          args: {
-            agent: 'codeweaver',
-            questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          },
-        }),
-      ).rejects.toThrow(/get-agent-prompt requires \{agent, questId, workItemId\}/u);
+      ).rejects.toThrow(/get-agent-prompt requires \{agent, questId\}/u);
     });
 
     it('ERROR: {missing both questId and workItemId} => throws clear rejection error', async () => {
@@ -216,7 +223,7 @@ describe('InteractionHandleResponder', () => {
           tool: ToolNameStub({ value: 'get-agent-prompt' }),
           args: { agent: 'chaoswhisperer-gap-minion' },
         }),
-      ).rejects.toThrow(/get-agent-prompt requires \{agent, questId, workItemId\}/u);
+      ).rejects.toThrow(/get-agent-prompt requires \{agent, questId\}/u);
     });
   });
 

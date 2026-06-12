@@ -219,26 +219,23 @@ test.describe('Quest Begin Transition', () => {
     const chaoswhispererItem = questData.quest.workItems.find(
       (wi: { role: string }) => wi.role === 'chaoswhisperer',
     );
-    const pathseekerCount = questData.quest.workItems.filter((wi: { role: string }) =>
-      wi.role.startsWith('pathseeker-'),
-    ).length;
+    const pathseekerItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'pathseeker',
+    );
 
     expect(chaoswhispererItem.status).toBe('complete');
-    // At least one pathseeker-* work item was created by OrchestrationStartResponder.
-    // Under the /dumpster-launch flow OrchestrationStartResponder inserts the four-tier
-    // pathseeker graph (surface × N → dedup + assertion-correctness → walk); we only
-    // assert that >=1 exists (the responder's primary effect).
-    expect(pathseekerCount >= 1).toBe(true);
+    // OrchestrationStartResponder seeds a single `pathseeker` planning work item (it summons its
+    // surface/dedup/assertion minions as sub-agents at run time, not as separate work items).
+    expect(pathseekerItems.length).toBe(1);
   });
 
-  test('VALID: Begin Quest inserts the four-tier pathseeker work-item graph into quest.json', async ({
+  test('VALID: Begin Quest inserts the single pathseeker planning work item into quest.json', async ({
     page,
     request,
   }) => {
     // Under the `/dumpster-launch` model, Begin Quest mutates quest state only —
-    // OrchestrationStartResponder calls questBuildPathseekerGraphBroker to insert
-    // the surface × N → dedup + assertion-correctness → walk graph (one slice
-    // when packagesAffected is empty), promotes the chaoswhisperer chat item to
+    // OrchestrationStartResponder calls questBuildPathseekerGraphBroker to insert the single
+    // `pathseeker` planning work item, promotes the chaoswhisperer chat item to
     // complete, and transitions the quest to in_progress. The orchestrator does
     // NOT spawn anything; `/dumpster-launch` running in the user's Claude session
     // calls get-next-step() to pick the work up on its next pass. This test
@@ -317,49 +314,21 @@ test.describe('Quest Begin Transition', () => {
       )
       .toBe('in_progress');
 
-    // Inspect the persisted work-item graph. Empty packagesAffected → one default
-    // slice → exactly one pathseeker-surface item plus the dedup +
-    // assertion-correctness + walk roles. Dependency edges must mirror the
-    // documented surface → corrections → walk fan-in.
+    // Inspect the persisted work-item graph. PathSeeker is a single `pathseeker` planning work
+    // item that depends on the prior chat work item (chaoswhisperer here); it summons its
+    // surface/dedup/assertion minions as sub-agents within its own turn, not as work items.
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
-    const surfaceItems = questData.quest.workItems.filter(
-      (wi: { role: string }) => wi.role === 'pathseeker-surface',
-    );
-    const dedupItems = questData.quest.workItems.filter(
-      (wi: { role: string }) => wi.role === 'pathseeker-dedup',
-    );
-    const assertionItems = questData.quest.workItems.filter(
-      (wi: { role: string }) => wi.role === 'pathseeker-assertion-correctness',
-    );
-    const walkItems = questData.quest.workItems.filter(
-      (wi: { role: string }) => wi.role === 'pathseeker-walk',
+    const pathseekerItems = questData.quest.workItems.filter(
+      (wi: { role: string }) => wi.role === 'pathseeker',
     );
 
-    expect(surfaceItems.length).toBe(1);
-    expect(dedupItems.length).toBe(1);
-    expect(assertionItems.length).toBe(1);
-    expect(walkItems.length).toBe(1);
+    expect(pathseekerItems.length).toBe(1);
 
-    const [surfaceItem] = surfaceItems;
-    const [dedupItem] = dedupItems;
-    const [assertionItem] = assertionItems;
-    const [walkItem] = walkItems;
+    const [pathseekerItem] = pathseekerItems;
 
-    // surface depends on the prior chat work item ids (chaoswhisperer here).
-    expect(surfaceItem.dependsOn).toContain('e2e00000-0000-4000-8000-000000000099');
-
-    // dedup + assertion-correctness fan in on every surface id.
-    expect(dedupItem.dependsOn).toContain(surfaceItem.id);
-    expect(assertionItem.dependsOn).toContain(surfaceItem.id);
-
-    // walk depends on both corrections. Both ids appear in walkItem.dependsOn —
-    // testing the same property twice (not two distinct properties), so this
-    // does not trip property-bleedthrough.
-    const walkDeps = walkItem.dependsOn as readonly (typeof dedupItem.id)[];
-
-    expect(walkDeps).toContain(dedupItem.id);
-    expect(walkDeps).toContain(assertionItem.id);
+    // The pathseeker planner depends on the prior chat work item ids (chaoswhisperer here).
+    expect(pathseekerItem.dependsOn).toContain('e2e00000-0000-4000-8000-000000000099');
 
     // UI panel swap mirrors the other tests in this file.
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({

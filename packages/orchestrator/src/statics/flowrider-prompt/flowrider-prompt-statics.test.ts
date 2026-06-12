@@ -1,3 +1,5 @@
+import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+
 import { flowriderPromptStatics } from './flowrider-prompt-statics';
 
 describe('flowriderPromptStatics', () => {
@@ -62,8 +64,8 @@ describe('flowriderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => e2e ward command targets a colocated web flow .e2e.ts', () => {
-    const needle = 'npm run ward -- --only e2e -- packages/web/src/flows/<route>/<feature>.e2e.ts';
+  it('VALID: template => runs both flow layers scoped, path-agnostic (no hardcoded package)', () => {
+    const needle = 'npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>';
     const { template } = flowriderPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -75,5 +77,47 @@ describe('flowriderPromptStatics', () => {
 
   it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
     expect(flowriderPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
+  });
+
+  it('VALID: template => scopes accountability to the whole flow graph, not the step assertions', () => {
+    const needle =
+      "## Your Unit of Accountability: the WHOLE Flow Graph (not your step's assertions)";
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => makes the error/failure terminal a first-class, non-optional path', () => {
+    const needle =
+      'An `error-toast` / `4xx` / rejection terminal is a first-class path, never optional.';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => has the coverage self-audit gate before signaling', () => {
+    expect(flowriderPromptStatics.prompt.template).toMatch(
+      /^## Phase 5: Coverage Self-Audit \(gate — do not signal until this passes\)$/mu,
+    );
+  });
+
+  it('VALID: template => embeds the shared agent operating rules', () => {
+    const rules = agentOperatingRulesStatics.markdown;
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(template.indexOf(rules), template.indexOf(rules) + rules.length);
+
+    expect(found).toBe(rules);
+  });
+
+  it('VALID: template => hardcodes no UI package path', () => {
+    expect(flowriderPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
 });
