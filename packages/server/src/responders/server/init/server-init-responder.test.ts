@@ -823,6 +823,24 @@ describe('ServerInitResponder', () => {
       });
     });
 
+    it('VALID: {GET /api with no trailing slash} => not redirected to web UI port', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/api',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+      }).toStrictEqual({
+        status: 404,
+        location: null,
+      });
+    });
+
     it('VALID: {GET /ws} => not redirected to web UI port', async () => {
       const proxy = ServerInitResponderProxy();
       proxy.setServerPort({ value: '4800' });
@@ -832,6 +850,9 @@ describe('ServerInitResponder', () => {
         url: 'http://dungeonmaster.localhost:4800/ws',
       });
 
+      // The /ws route is claimed by the upgradeWebSocket handler before the catch-all
+      // sees it, so the request is never redirected to the web UI port. The invariant
+      // under test is the absence of a redirect Location header, not the exact status.
       expect(response.headers.get('location')).toBe(null);
     });
   });
