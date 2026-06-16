@@ -399,12 +399,12 @@ describe('questGetNextStepBroker', () => {
   });
 
   describe('dependency gating', () => {
-    it('VALID: {ready item with unsatisfied dep} => skipped, returns idle but keeps quest active', async () => {
+    it('VALID: {orphaned in_progress item blocking a pending dependent} => resets the orphan and re-dispatches it, leaving the dependent gated', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-blocked-by-dep' });
-      const blockingId = QuestWorkItemIdStub({
+      const orphanId = QuestWorkItemIdStub({
         value: 'aaa44444-1111-4222-9333-444444444444',
       });
       const blockedId = QuestWorkItemIdStub({
@@ -414,12 +414,12 @@ describe('questGetNextStepBroker', () => {
         id: questId,
         status: 'in_progress',
         workItems: [
-          WorkItemStub({ id: blockingId, role: 'codeweaver', status: 'in_progress' }),
+          WorkItemStub({ id: orphanId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: blockedId,
             role: 'lawbringer',
             status: 'pending',
-            dependsOn: [blockingId],
+            dependsOn: [orphanId],
           }),
         ],
       });
@@ -427,6 +427,7 @@ describe('questGetNextStepBroker', () => {
         guildItems: [guildItem],
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
+      proxy.setupModifyForQuest({ quest });
       const setActive = jest.fn();
       const activeQuest = ActiveQuestFacadeStub({ setActive });
 
@@ -435,7 +436,17 @@ describe('questGetNextStepBroker', () => {
         longPollTotalMs: 0,
       });
 
-      expect(result).toStrictEqual({ type: 'idle' });
+      expect(result).toStrictEqual({
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'codeweaver',
+            workItemId: orphanId,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+          },
+        ],
+      });
       expect(setActive).toHaveBeenCalledWith({ questId });
     });
 

@@ -12,6 +12,7 @@ export const questGetNextStepBrokerProxy = (): {
     questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];
   }) => void;
   setupNoGuilds: () => void;
+  setupModifyForQuest: (params: { quest: Quest }) => void;
   getRegisteredTimeoutMs: () => ElapsedMs | undefined;
 } => {
   const scanProxy = scanOnceLayerBrokerProxy();
@@ -20,6 +21,7 @@ export const questGetNextStepBrokerProxy = (): {
   return {
     setupGuildsAndQuests: scanProxy.setupGuildsAndQuests,
     setupNoGuilds: scanProxy.setupNoGuilds,
+    setupModifyForQuest: scanProxy.setupModifyForQuest,
     getRegisteredTimeoutMs: timeoutProxy.getRegisteredDelay,
   };
 };

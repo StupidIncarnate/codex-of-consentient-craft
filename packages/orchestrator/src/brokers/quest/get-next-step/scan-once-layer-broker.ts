@@ -11,6 +11,7 @@ import type { NextStep } from '../../../contracts/next-step/next-step-contract';
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
 import { loadActiveQuestsLayerBroker } from './load-active-quests-layer-broker';
 import { questHasIncompleteWorkLayerBroker } from './quest-has-incomplete-work-layer-broker';
+import { recoverOrphanedWorkItemsLayerBroker } from './recover-orphaned-work-items-layer-broker';
 
 export const scanOnceLayerBroker = async ({
   activeQuest,
@@ -35,7 +36,17 @@ export const scanOnceLayerBroker = async ({
     return null;
   }
 
-  const step = computeNextStepFromQuestLayerBroker({ quest });
+  // When the FIFO quest has incomplete work but yields nothing dispatchable, its only
+  // non-terminal items are orphaned in_progress work: the /dumpster-launch loop only calls
+  // get-next-step with no Task it dispatched in flight, so an in_progress item means its agent
+  // terminated without signalling back (the user killed it, or it crashed). Reset those orphans
+  // to pending and recompute so they re-dispatch instead of the quest stalling on idle forever.
+  const step =
+    computeNextStepFromQuestLayerBroker({ quest }) ??
+    computeNextStepFromQuestLayerBroker({
+      quest: await recoverOrphanedWorkItemsLayerBroker({ quest }),
+    });
+
   activeQuest.setActive({ questId: quest.id });
   return step;
 };

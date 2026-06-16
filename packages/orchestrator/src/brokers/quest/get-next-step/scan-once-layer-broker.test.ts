@@ -60,6 +60,55 @@ describe('scanOnceLayerBroker', () => {
     expect(setActive).toHaveBeenCalledWith({ questId });
   });
 
+  it('VALID: {orphaned in_progress item blocking a pending dependent} => resets the orphan and returns spawn-agents for it', async () => {
+    const proxy = scanOnceLayerBrokerProxy();
+    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildItem = GuildListItemStub({ id: guildId, valid: true });
+    const questId = QuestIdStub({ value: 'q-scan-orphan' });
+    const orphanId = QuestWorkItemIdStub({
+      value: 'aaa11111-1111-4222-9333-444444444444',
+    });
+    const dependentId = QuestWorkItemIdStub({
+      value: 'bbb22222-1111-4222-9333-444444444444',
+    });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      workItems: [
+        WorkItemStub({ id: orphanId, role: 'pesteater', status: 'in_progress' }),
+        WorkItemStub({
+          id: dependentId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          dependsOn: [orphanId],
+        }),
+      ],
+    });
+    proxy.setupGuildsAndQuests({
+      guildItems: [guildItem],
+      questsByGuildId: [{ guildId, quests: [quest] }],
+    });
+    proxy.setupModifyForQuest({ quest });
+    const setActive = jest.fn();
+    const activeQuest = ActiveQuestFacadeStub({ setActive });
+
+    const result = await scanOnceLayerBroker({ activeQuest });
+
+    expect(result).toStrictEqual({
+      type: 'spawn-agents',
+      agents: [
+        {
+          questId,
+          role: 'pesteater',
+          workItemId: orphanId,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pesteater",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+        },
+      ],
+    });
+    expect(setActive).toHaveBeenCalledWith({ questId });
+  });
+
   it('VALID: {one in_progress quest with all items complete} => clears active and returns null', async () => {
     const proxy = scanOnceLayerBrokerProxy();
     const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
