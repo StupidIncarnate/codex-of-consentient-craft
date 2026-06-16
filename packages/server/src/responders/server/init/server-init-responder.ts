@@ -464,7 +464,20 @@ export const ServerInitResponder = ({ app }: { app: HonoApp }): AdapterResult =>
   const serverPort = portResolveBroker();
   const serverHost = environmentStatics.hostname;
 
-  app.get('/', (c) => c.redirect(`http://${serverHost}:${Number(serverPort) + 1}`));
+  // Dogfood dev/prod serve the web UI on a separate port (serverPort + 1) while this API
+  // server stays on serverPort. Any non-API GET that reaches the API server — root or deep
+  // link — is redirected to the SAME path and query on the web UI port so links chaos opens
+  // against the API server (e.g. /codex/quest/<id>?chat=hidden) resolve to the rendered page
+  // instead of a 404. /api and /ws are owned by the mounted sub-apps and the WS upgrade route,
+  // so they fall through to their own handlers (or a real 404) rather than redirecting.
+  const webUiPort = Number(serverPort) + 1;
+  app.get('*', async (c) => {
+    const { pathname, search } = new URL(c.req.url);
+    if (pathname === '/ws' || pathname === '/api' || pathname.startsWith('/api/')) {
+      return c.notFound();
+    }
+    return c.redirect(`http://${serverHost}:${webUiPort}${pathname}${search}`);
+  });
 
   const server = honoServeAdapter({
     fetch: app.fetch,

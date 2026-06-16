@@ -768,6 +768,74 @@ describe('ServerInitResponder', () => {
     });
   });
 
+  describe('non-API deep-link redirect to web UI port', () => {
+    it('VALID: {GET /codex/quest/<id>?chat=hidden} => 302 redirect to same path and query on web UI port', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/codex/quest/abc-123?chat=hidden',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+      }).toStrictEqual({
+        status: 302,
+        location: 'http://dungeonmaster.localhost:4801/codex/quest/abc-123?chat=hidden',
+      });
+    });
+
+    it('VALID: {GET /} => 302 redirect to web UI port (root redirect preserved)', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+      }).toStrictEqual({
+        status: 302,
+        location: 'http://dungeonmaster.localhost:4801/',
+      });
+    });
+
+    it('VALID: {GET /api/quests with no mounted route} => not redirected to web UI port', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/api/quests',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+      }).toStrictEqual({
+        status: 404,
+        location: null,
+      });
+    });
+
+    it('VALID: {GET /ws} => not redirected to web UI port', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/ws',
+      });
+
+      expect(response.headers.get('location')).toBe(null);
+    });
+  });
+
   describe('web presence hooks', () => {
     it('VALID: {first connect} => invokes setWebPresence adapter with isPresent: true', () => {
       const proxy = ServerInitResponderProxy();

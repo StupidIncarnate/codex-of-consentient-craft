@@ -79,6 +79,8 @@ type EventHandler = (args: { processId: ProcessId; payload: Record<string, unkno
 
 export const ServerInitResponderProxy = (): {
   callResponder: () => void;
+  dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
+  setServerPort: (params: { value: string }) => void;
   simulateConnection: (params: { client: WsClient }) => void;
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
   simulateDisconnect: (params: { ws: WsClient }) => void;
@@ -104,7 +106,7 @@ export const ServerInitResponderProxy = (): {
   });
   dateSpy.mockReturnValue('2024-01-01T00:00:00.000Z');
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
-  honoServeAdapterProxy();
+  const serveProxy = honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
   const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
@@ -133,6 +135,19 @@ export const ServerInitResponderProxy = (): {
       process.removeAllListeners('SIGTERM');
       process.removeAllListeners('SIGINT');
       ServerInitResponder({ app: new Hono() });
+    },
+    dispatchRequest: async ({
+      url,
+      method = 'GET',
+    }: {
+      url: string;
+      method?: string;
+    }): Promise<Response> => {
+      const appFetch = serveProxy.getCapturedFetch();
+      return appFetch(new Request(url, { method }));
+    },
+    setServerPort: ({ value }: { value: string }): void => {
+      portProxy.setEnvPort({ value });
     },
     simulateConnection: ({ client }: { client: WsClient }): void => {
       wsProxy.simulateConnection({ client });
