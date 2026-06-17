@@ -18,10 +18,8 @@ describe('resolveWardFloorNameTransformer', () => {
         dependsOn: [cw.id],
       });
 
-      const result = resolveWardFloorNameTransformer({
-        workItem: ward,
-        allWorkItems: [cw, ward],
-      });
+      const allItemMap = new Map([cw, ward].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
 
       expect(result).toBe('MINI BOSS');
     });
@@ -42,10 +40,8 @@ describe('resolveWardFloorNameTransformer', () => {
         dependsOn: [lb.id],
       });
 
-      const result = resolveWardFloorNameTransformer({
-        workItem: ward,
-        allWorkItems: [lb, ward],
-      });
+      const allItemMap = new Map([lb, ward].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
 
       expect(result).toBe('FLOOR BOSS');
     });
@@ -61,10 +57,8 @@ describe('resolveWardFloorNameTransformer', () => {
         dependsOn: [],
       });
 
-      const result = resolveWardFloorNameTransformer({
-        workItem: ward,
-        allWorkItems: [ward],
-      });
+      const allItemMap = new Map([ward].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
 
       expect(result).toBe('FLOOR BOSS');
     });
@@ -84,10 +78,8 @@ describe('resolveWardFloorNameTransformer', () => {
         dependsOn: [lb.id],
       });
 
-      const result = resolveWardFloorNameTransformer({
-        workItem: ward,
-        allWorkItems: [lb, ward],
-      });
+      const allItemMap = new Map([lb, ward].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
 
       expect(result).toBe('MINI BOSS');
     });
@@ -114,10 +106,8 @@ describe('resolveWardFloorNameTransformer', () => {
         insertedBy: ward1.id,
       });
 
-      const result = resolveWardFloorNameTransformer({
-        workItem: ward2,
-        allWorkItems: [ward1, spirit, ward2],
-      });
+      const allItemMap = new Map([ward1, spirit, ward2].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward2, allItemMap });
 
       expect(result).toBe('FLOOR BOSS');
     });
@@ -151,10 +141,8 @@ describe('resolveWardFloorNameTransformer', () => {
         insertedBy: ward1.id,
       });
 
-      const result = resolveWardFloorNameTransformer({
-        workItem: ward2,
-        allWorkItems: [cw, ward1, spirit, ward2],
-      });
+      const allItemMap = new Map([cw, ward1, spirit, ward2].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward2, allItemMap });
 
       expect(result).toBe('MINI BOSS');
     });

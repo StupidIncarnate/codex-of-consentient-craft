@@ -19,7 +19,7 @@ import { floorNumberContract } from '../../contracts/floor-number/floor-number-c
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
 import { computeWorkItemDepthsTransformer } from '../compute-work-item-depths/compute-work-item-depths-transformer';
 import { resolveWardFloorNameTransformer } from '../resolve-ward-floor-name/resolve-ward-floor-name-transformer';
-import { roleToConfigIndexTransformer } from '../role-to-config-index/role-to-config-index-transformer';
+import { wardAwareConfigIndexTransformer } from '../ward-aware-config-index/ward-aware-config-index-transformer';
 
 export const workItemsToFloorGroupsTransformer = ({
   workItems,
@@ -42,6 +42,10 @@ export const workItemsToFloorGroupsTransformer = ({
     itemMap.set(item.id, item);
   }
 
+  const allItemMap = new Map<WorkItem['id'], WorkItem>(
+    unfilteredItems.map((item) => [item.id, item]),
+  );
+
   const depths = computeWorkItemDepthsTransformer({ items: filtered, itemMap });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -49,28 +53,8 @@ export const workItemsToFloorGroupsTransformer = ({
     const depthB = depths.get(b.id) ?? 0;
     if (depthA !== depthB) return depthA - depthB;
 
-    const configA = roleToConfigIndexTransformer({
-      role: a.role,
-      ...(a.role === 'ward'
-        ? {
-            floorName: resolveWardFloorNameTransformer({
-              workItem: a,
-              allWorkItems: unfilteredItems,
-            }),
-          }
-        : {}),
-    });
-    const configB = roleToConfigIndexTransformer({
-      role: b.role,
-      ...(b.role === 'ward'
-        ? {
-            floorName: resolveWardFloorNameTransformer({
-              workItem: b,
-              allWorkItems: unfilteredItems,
-            }),
-          }
-        : {}),
-    });
+    const configA = wardAwareConfigIndexTransformer({ workItem: a, allItemMap });
+    const configB = wardAwareConfigIndexTransformer({ workItem: b, allItemMap });
     if (configA !== configB) return configA - configB;
 
     return a.createdAt.localeCompare(b.createdAt);
@@ -87,7 +71,7 @@ export const workItemsToFloorGroupsTransformer = ({
     const depth = depths.get(item.id) ?? 0;
     const floorName =
       item.role === 'ward'
-        ? resolveWardFloorNameTransformer({ workItem: item, allWorkItems: unfilteredItems })
+        ? resolveWardFloorNameTransformer({ workItem: item, allItemMap })
         : floorNameContract.parse(
             executionFloorConfigStatics.floors.find((f) => f.role === item.role)?.name ??
               item.role.toUpperCase(),

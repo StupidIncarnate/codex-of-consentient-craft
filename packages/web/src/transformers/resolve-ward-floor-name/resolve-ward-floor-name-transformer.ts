@@ -4,7 +4,7 @@
  *   lawbringer in its transitive deps when wardMode is absent (work items written before wardMode existed).
  *
  * USAGE:
- * resolveWardFloorNameTransformer({workItem, allWorkItems});
+ * resolveWardFloorNameTransformer({workItem, allItemMap});
  * // Returns: 'MINI BOSS' or 'FLOOR BOSS' as FloorName
  */
 
@@ -16,16 +16,11 @@ import { hasLawbringerInDepsGuard } from '../../guards/has-lawbringer-in-deps/ha
 
 export const resolveWardFloorNameTransformer = ({
   workItem,
-  allWorkItems,
+  allItemMap,
 }: {
   workItem: WorkItem;
-  allWorkItems: WorkItem[];
+  allItemMap: Map<WorkItem['id'], WorkItem>;
 }): FloorName => {
-  const allItemMap = new Map<WorkItem['id'], WorkItem>();
-  for (const wi of allWorkItems) {
-    allItemMap.set(wi.id, wi);
-  }
-
   let rootWard = workItem;
   const visited = new Set<WorkItem['id']>();
   visited.add(rootWard.id);
