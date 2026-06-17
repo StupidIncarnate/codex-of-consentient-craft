@@ -44,7 +44,9 @@ describe('blightwardenDedupMinionStatics', () => {
     expect(blightwardenDedupMinionStatics.prompt.template).toMatch(/^ {8}minion: "dedup",$/mu);
   });
 
-  it('VALID: template => signal-back section uses complete signal', () => {
-    expect(blightwardenDedupMinionStatics.prompt.template).toMatch(/^ {2}signal: 'complete',$/mu);
+  it('VALID: template => return summary section instructs no signal-back', () => {
+    expect(blightwardenDedupMinionStatics.prompt.template).toMatch(
+      /^You have no work item, so do NOT call `signal-back`\. Return a one-line summary as your final message for the synthesizer to read:$/mu,
+    );
   });
 });

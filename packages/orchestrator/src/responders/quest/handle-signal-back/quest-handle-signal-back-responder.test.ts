@@ -240,23 +240,18 @@ describe('QuestHandleSignalBackResponder', () => {
   });
 
   describe('pathseeker post-walk hook', () => {
-    it('VALID: {role: pathseeker, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/minions/blightwarden/final-ward chain)', async () => {
+    it('VALID: {role: pathseeker, signal: complete} => transitions to complete AND invokes post-walk hook (generates ward/blightwarden/final-ward chain)', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       // The hook's stepsToWorkItemsTransformer mints one UUID per generated item; queue distinct
-      // ids so the persisted chain has unique sibling ids (empty steps/flows => ward + 5 minions
-      // + blightwarden synthesizer + final-ward = 8 items).
+      // ids so the persisted chain has unique sibling ids (empty steps/flows => ward + blightwarden
+      // + final-ward = 3 items).
       proxy.setupWalkHookUuids({
         uuids: [
           'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b',
           'd2d3d4d5-e6e7-4f8a-9b1c-2d3e4f5a6b7c',
           'e3e4e5e6-f7f8-4a9b-8c1d-3e4f5a6b7c8d',
-          'f4f5f6f7-a8a9-4b1c-8d2e-4f5a6b7c8d9e',
-          'a5a6a7a8-b9b1-4c2d-8e3f-5a6b7c8d9e0f',
-          'b6b7b8b9-c1c2-4d3e-8f4a-6b7c8d9e0f1a',
-          'c7c8c9c1-d2d3-4e4f-8a5b-7c8d9e0f1a2b',
-          'd8d9d1d2-e3e4-4f5a-8b6c-8d9e0f1a2b3c',
         ],
       });
       const walkItem = WorkItemStub({
@@ -288,16 +283,7 @@ describe('QuestHandleSignalBackResponder', () => {
         .filter((wi) => wi.id !== walkId)
         .map((wi) => wi.role);
 
-      expect(generatedRoles).toStrictEqual([
-        'ward',
-        'blightwarden-security-minion',
-        'blightwarden-dedup-minion',
-        'blightwarden-perf-minion',
-        'blightwarden-integrity-minion',
-        'blightwarden-dead-code-minion',
-        'blightwarden',
-        'ward',
-      ]);
+      expect(generatedRoles).toStrictEqual(['ward', 'blightwarden', 'ward']);
     });
 
     it('ERROR: {role: pathseeker, signal: complete, post-walk hook throws on an invalid plan} => quest BLOCKED with pathseeker failed, never falsely complete', async () => {

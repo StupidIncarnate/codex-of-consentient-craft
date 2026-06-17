@@ -36,13 +36,17 @@ describe('blightwardenPromptStatics', () => {
     );
   });
 
-  it('VALID: template => Read Minion Reports section appears (synthesizer does not spawn minions)', () => {
+  it('VALID: template => Summon the Minions section appears (synthesizer summons them as sub-agents)', () => {
+    expect(blightwardenPromptStatics.prompt.template).toMatch(/^## Summon the Minions$/mu);
+  });
+
+  it('VALID: template => Read Minion Reports section appears', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(/^## Read Minion Reports$/mu);
   });
 
-  it('VALID: template => states the synthesizer does NOT spawn the minions', () => {
+  it('VALID: template => states the synthesizer summons the minions itself', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
-      /^You do NOT spawn the minions — the orchestrator dispatched them as their own parallel work items before yours became ready\. Your job starts by reading what they wrote\.$/mu,
+      /^You summon the minions yourself, as `Agent` sub-agents within your own turn \(see "Summon the Minions" below\)\. They are NOT work items and the orchestrator does not dispatch them — you do, then you read what they wrote\.$/mu,
     );
   });
 

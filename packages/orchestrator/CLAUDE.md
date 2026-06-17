@@ -383,11 +383,12 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
 - **Dispatch**: `quest-get-next-step-broker` selects ready work items from the FIFO-active quest and returns a
   `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which then Task()s the agents or calls the
   `run-ward` MCP tool
-- **Concurrency**: intrinsic — `spiritmender` items and the five `blightwarden-*-minion` items each return as one
-  `spawn-agents` batch; the single `pathseeker` item and everything else return one agent per response.
-  PathSeeker fans out internally by summoning its surface/cleanup minions as `Agent` sub-agents — that parallelism
-  lives inside PathSeeker's turn, not in the work-item graph. `slotManagerStatics` slot caps stay configured but are
-  not consulted by `get-next-step`.
+- **Concurrency**: intrinsic — `spiritmender` items return as one `spawn-agents` batch; the single `pathseeker`
+  item, the single `blightwarden` item, and everything else return one agent per response. PathSeeker AND
+  Blightwarden each fan out internally by summoning their minions as `Agent` sub-agents — that parallelism lives
+  inside the parent's turn, not in the work-item graph (PathSeeker summons surface/cleanup minions; Blightwarden
+  summons the five security/dedup/perf/integrity/dead-code minions). `slotManagerStatics` slot caps stay
+  configured but are not consulted by `get-next-step`.
 - **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
   `pathseeker` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
   codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain. The ward recovery splice

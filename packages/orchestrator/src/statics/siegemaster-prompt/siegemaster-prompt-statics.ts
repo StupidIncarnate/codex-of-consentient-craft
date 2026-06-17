@@ -135,7 +135,7 @@ If you find a test that passes but the flow it covers is actually broken, treat 
 
 ## Phase 6: Verify & Signal
 
-Re-run your **scoped** ward one final time — both flow layers — \`npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>\`, foreground, NOT the full monorepo \`npm run ward\`. For an operational flow, re-run its verification foreground-blocking (\`timeout: 600000\`). Every gap-fill case must be green and every fix verified. Stop any dev server you started in Phase 2. Then your VERY NEXT action is \`signal-back\` — it is the last thing you do, on every path.
+Re-run your **scoped** ward one final time — both flow layers — \`npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>\`, foreground, NOT the full monorepo \`npm run ward\`. For an operational flow, re-run its verification scoped to the flow's changed files (\`npm run ward -- -- <files>\`), foreground-blocking (\`timeout: 600000\`). Every gap-fill case must be green and every fix verified. Stop any dev server you started in Phase 2. Then your VERY NEXT action is \`signal-back\` — it is the last thing you do, on every path.
 
 ## Committing & Signaling
 

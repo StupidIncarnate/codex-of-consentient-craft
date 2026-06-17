@@ -13,9 +13,9 @@ import { stepsToWorkItemsTransformerProxy } from './steps-to-work-items-transfor
 
 const NOW = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
 
-// Sequential UUIDs the proxy hands crypto.randomUUID() in order. The blightwarden phase mints
-// FIVE minion items + ONE synthesizer, so chains are longer than the legacy single-blightwarden
-// shape — every test slices off as many ids as its full chain needs.
+// Sequential UUIDs the proxy hands crypto.randomUUID() in order. Each test slices off as many ids
+// as its full chain needs. Blightwarden is a single work item (it summons its minions as
+// sub-agents itself), so the chain is one blightwarden item between the lawbringers and the final ward.
 const IDS = [
   '00000000-0000-4000-8000-000000000001',
   '00000000-0000-4000-8000-000000000002',
@@ -38,19 +38,11 @@ const IDS = [
   '00000000-0000-4000-8000-000000000013',
 ] as const;
 
-const MINION_ROLES = [
-  'blightwarden-security-minion',
-  'blightwarden-dedup-minion',
-  'blightwarden-perf-minion',
-  'blightwarden-integrity-minion',
-  'blightwarden-dead-code-minion',
-] as const;
-
 describe('stepsToWorkItemsTransformer', () => {
   describe('basic chain generation', () => {
-    it('VALID: {1 step, 1 flow} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer + 5 minions + 1 blightwarden + 1 final-ward', () => {
+    it('VALID: {1 step, 1 flow} => 1 codeweaver + 1 ward + 1 siege + 1 lawbringer + 1 blightwarden + 1 final-ward', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      proxy.setupUuids({ uuids: IDS.slice(0, 11) });
+      proxy.setupUuids({ uuids: IDS.slice(0, 6) });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, dependsOn: [] });
@@ -119,7 +111,7 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: IDS[4],
-          role: 'blightwarden-security-minion',
+          role: 'blightwarden',
           status: 'pending',
           spawnerType: 'agent',
           relatedDataItems: [],
@@ -131,71 +123,11 @@ describe('stepsToWorkItemsTransformer', () => {
         },
         {
           id: IDS[5],
-          role: 'blightwarden-dedup-minion',
-          status: 'pending',
-          spawnerType: 'agent',
-          relatedDataItems: [],
-          dependsOn: [IDS[3]],
-          maxAttempts: 1,
-          attempt: 0,
-          retryCount: 0,
-          createdAt: '2024-01-15T10:00:00.000Z',
-        },
-        {
-          id: IDS[6],
-          role: 'blightwarden-perf-minion',
-          status: 'pending',
-          spawnerType: 'agent',
-          relatedDataItems: [],
-          dependsOn: [IDS[3]],
-          maxAttempts: 1,
-          attempt: 0,
-          retryCount: 0,
-          createdAt: '2024-01-15T10:00:00.000Z',
-        },
-        {
-          id: IDS[7],
-          role: 'blightwarden-integrity-minion',
-          status: 'pending',
-          spawnerType: 'agent',
-          relatedDataItems: [],
-          dependsOn: [IDS[3]],
-          maxAttempts: 1,
-          attempt: 0,
-          retryCount: 0,
-          createdAt: '2024-01-15T10:00:00.000Z',
-        },
-        {
-          id: IDS[8],
-          role: 'blightwarden-dead-code-minion',
-          status: 'pending',
-          spawnerType: 'agent',
-          relatedDataItems: [],
-          dependsOn: [IDS[3]],
-          maxAttempts: 1,
-          attempt: 0,
-          retryCount: 0,
-          createdAt: '2024-01-15T10:00:00.000Z',
-        },
-        {
-          id: IDS[9],
-          role: 'blightwarden',
-          status: 'pending',
-          spawnerType: 'agent',
-          relatedDataItems: [],
-          dependsOn: [IDS[4], IDS[5], IDS[6], IDS[7], IDS[8]],
-          maxAttempts: 1,
-          attempt: 0,
-          retryCount: 0,
-          createdAt: '2024-01-15T10:00:00.000Z',
-        },
-        {
-          id: IDS[10],
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
           relatedDataItems: [],
-          dependsOn: [IDS[9]],
+          dependsOn: [IDS[4]],
           maxAttempts: 3,
           attempt: 0,
           retryCount: 0,
@@ -206,10 +138,10 @@ describe('stepsToWorkItemsTransformer', () => {
     });
   });
 
-  describe('blightwarden minion + synthesizer wiring', () => {
-    it('VALID: {1 step, 1 flow} => 5 minions all depend on the lawbringer; synthesizer depends on all 5 minions; final ward depends on synthesizer', () => {
+  describe('blightwarden wiring', () => {
+    it('VALID: {1 step, 1 flow} => blightwarden depends on the lawbringer; final ward depends on blightwarden', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      proxy.setupUuids({ uuids: IDS.slice(0, 11) });
+      proxy.setupUuids({ uuids: IDS.slice(0, 6) });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, dependsOn: [] });
@@ -226,29 +158,22 @@ describe('stepsToWorkItemsTransformer', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      const minions = result.filter((wi) => wi.role.endsWith('-minion'));
-      const synthesizer = result.find((wi) => wi.role === 'blightwarden');
+      // No minion work items — blightwarden summons them as sub-agents itself.
+      expect(result.filter((wi) => wi.role.endsWith('-minion'))).toStrictEqual([]);
+
+      const blightwarden = result.find((wi) => wi.role === 'blightwarden');
       const finalWard = result.filter((wi) => wi.role === 'ward').at(-1);
 
-      // Five minions, in concern order, each depending on the single lawbringer (id #4).
-      expect(minions.map((wi) => wi.role)).toStrictEqual([...MINION_ROLES]);
-      expect(minions.map((wi) => wi.dependsOn)).toStrictEqual([
-        [IDS[3]],
-        [IDS[3]],
-        [IDS[3]],
-        [IDS[3]],
-        [IDS[3]],
-      ]);
-      // Synthesizer depends on all five minion ids.
-      expect(synthesizer?.dependsOn).toStrictEqual([IDS[4], IDS[5], IDS[6], IDS[7], IDS[8]]);
-      // Final ward depends on the synthesizer only.
-      expect(finalWard?.dependsOn).toStrictEqual([IDS[9]]);
+      // Blightwarden depends on the single lawbringer (id #4).
+      expect(blightwarden?.dependsOn).toStrictEqual([IDS[3]]);
+      // Final ward depends on the blightwarden only.
+      expect(finalWard?.dependsOn).toStrictEqual([IDS[4]]);
       expect(finalWard?.wardMode).toBe('full');
     });
 
-    it('VALID: {0 steps, 1 flow} => minions depend on the siege item (no lawbringers exist)', () => {
+    it('VALID: {0 steps, 1 flow} => blightwarden depends on the siege item (no lawbringers exist)', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      proxy.setupUuids({ uuids: IDS.slice(0, 9) });
+      proxy.setupUuids({ uuids: IDS.slice(0, 4) });
 
       const flow = FlowStub({ id: FlowIdStub({ value: 'login-flow' }) });
       const pathseekerWorkItemId = QuestWorkItemIdStub({
@@ -263,25 +188,15 @@ describe('stepsToWorkItemsTransformer', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      // ward (#1) + siege (#2) + 5 minions (#3-#7) + synthesizer (#8) + final ward (#9)
-      const minions = result.filter((wi) => wi.role.endsWith('-minion'));
+      // ward (#1) + siege (#2) + blightwarden (#3) + final ward (#4)
+      const blightwarden = result.find((wi) => wi.role === 'blightwarden');
 
-      expect(minions.map((wi) => wi.dependsOn)).toStrictEqual([
-        [IDS[1]],
-        [IDS[1]],
-        [IDS[1]],
-        [IDS[1]],
-        [IDS[1]],
-      ]);
-
-      const synthesizer = result.find((wi) => wi.role === 'blightwarden');
-
-      expect(synthesizer?.dependsOn).toStrictEqual([IDS[2], IDS[3], IDS[4], IDS[5], IDS[6]]);
+      expect(blightwarden?.dependsOn).toStrictEqual([IDS[1]]);
     });
 
-    it('VALID: {1 step, 0 flows} => minions depend on the lawbringer (no sieges exist)', () => {
+    it('VALID: {1 step, 0 flows} => blightwarden depends on the lawbringer (no sieges exist)', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      proxy.setupUuids({ uuids: IDS.slice(0, 10) });
+      proxy.setupUuids({ uuids: IDS.slice(0, 5) });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, dependsOn: [] });
@@ -297,29 +212,19 @@ describe('stepsToWorkItemsTransformer', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      // codeweaver (#1) + ward (#2) + lawbringer (#3) + 5 minions (#4-#8) + synthesizer (#9) + final ward (#10)
-      const minions = result.filter((wi) => wi.role.endsWith('-minion'));
+      // codeweaver (#1) + ward (#2) + lawbringer (#3) + blightwarden (#4) + final ward (#5)
+      const blightwarden = result.find((wi) => wi.role === 'blightwarden');
 
-      expect(minions.map((wi) => wi.dependsOn)).toStrictEqual([
-        [IDS[2]],
-        [IDS[2]],
-        [IDS[2]],
-        [IDS[2]],
-        [IDS[2]],
-      ]);
-
-      const synthesizer = result.find((wi) => wi.role === 'blightwarden');
-
-      expect(synthesizer?.dependsOn).toStrictEqual([IDS[3], IDS[4], IDS[5], IDS[6], IDS[7]]);
+      expect(blightwarden?.dependsOn).toStrictEqual([IDS[2]]);
 
       const finalWard = result.filter((wi) => wi.role === 'ward').at(-1);
 
-      expect(finalWard?.dependsOn).toStrictEqual([IDS[8]]);
+      expect(finalWard?.dependsOn).toStrictEqual([IDS[3]]);
     });
 
-    it('VALID: {0 steps, 0 flows} => minions depend on the ward item (empty-flows edge)', () => {
+    it('VALID: {0 steps, 0 flows} => blightwarden depends on the ward item (empty-flows edge)', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      proxy.setupUuids({ uuids: IDS.slice(0, 8) });
+      proxy.setupUuids({ uuids: IDS.slice(0, 3) });
 
       const pathseekerWorkItemId = QuestWorkItemIdStub({
         value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
@@ -333,16 +238,10 @@ describe('stepsToWorkItemsTransformer', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      // ward (#1) + 5 minions (#2-#6) + synthesizer (#7) + final ward (#8)
-      const minions = result.filter((wi) => wi.role.endsWith('-minion'));
+      // ward (#1) + blightwarden (#2) + final ward (#3)
+      const blightwarden = result.find((wi) => wi.role === 'blightwarden');
 
-      expect(minions.map((wi) => wi.dependsOn)).toStrictEqual([
-        [IDS[0]],
-        [IDS[0]],
-        [IDS[0]],
-        [IDS[0]],
-        [IDS[0]],
-      ]);
+      expect(blightwarden?.dependsOn).toStrictEqual([IDS[0]]);
     });
   });
 
@@ -383,9 +282,9 @@ describe('stepsToWorkItemsTransformer', () => {
   });
 
   describe('multi-flow siege chain', () => {
-    it('VALID: {1 step, 3 flows} => 3 siege items chained; lawbringer depends on all 3; minions depend on lawbringer; synthesizer depends on minions; final ward depends on synthesizer', () => {
+    it('VALID: {1 step, 3 flows} => 3 siege items chained; lawbringer depends on all 3; blightwarden depends on lawbringer; final ward depends on blightwarden', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      proxy.setupUuids({ uuids: IDS.slice(0, 13) });
+      proxy.setupUuids({ uuids: IDS.slice(0, 8) });
 
       const stepId = StepIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const step = DependencyStepStub({ id: stepId, dependsOn: [] });
@@ -406,29 +305,18 @@ describe('stepsToWorkItemsTransformer', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      // cw (#1) + ward (#2) + 3 sieges (#3-#5) + lawbringer (#6) + 5 minions (#7-#11) + synth (#12) + final ward (#13)
+      // cw (#1) + ward (#2) + 3 sieges (#3-#5) + lawbringer (#6) + blightwarden (#7) + final ward (#8)
       const lawbringer = result.find((wi) => wi.role === 'lawbringer');
 
       expect(lawbringer?.dependsOn).toStrictEqual([IDS[2], IDS[3], IDS[4]]);
 
-      const minions = result.filter((wi) => wi.role.endsWith('-minion'));
+      const blightwarden = result.find((wi) => wi.role === 'blightwarden');
 
-      expect(minions.map((wi) => wi.role)).toStrictEqual([...MINION_ROLES]);
-      expect(minions.map((wi) => wi.dependsOn)).toStrictEqual([
-        [IDS[5]],
-        [IDS[5]],
-        [IDS[5]],
-        [IDS[5]],
-        [IDS[5]],
-      ]);
-
-      const synthesizer = result.find((wi) => wi.role === 'blightwarden');
-
-      expect(synthesizer?.dependsOn).toStrictEqual([IDS[6], IDS[7], IDS[8], IDS[9], IDS[10]]);
+      expect(blightwarden?.dependsOn).toStrictEqual([IDS[5]]);
 
       const finalWard = result.filter((wi) => wi.role === 'ward').at(-1);
 
-      expect(finalWard?.dependsOn).toStrictEqual([IDS[11]]);
+      expect(finalWard?.dependsOn).toStrictEqual([IDS[6]]);
     });
   });
 
@@ -626,8 +514,8 @@ describe('stepsToWorkItemsTransformer', () => {
   describe('cross-package forward-ref resolution', () => {
     it('VALID: {2 contract steps in different packages, step #2 depends on step #1} => one codeweaver per package; package-2 codeweaver depends on package-1 codeweaver', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 2 codeweaver + ward + siege + 1 lawbringer + 5 minions + synthesizer + final ward = 12
-      proxy.setupUuids({ uuids: IDS.slice(0, 12) });
+      // 2 codeweaver + ward + siege + 1 lawbringer + 1 blightwarden + final ward = 7
+      proxy.setupUuids({ uuids: IDS.slice(0, 7) });
 
       const step1Id = StepIdStub({ value: 'pkg-step-1' });
       const step2Id = StepIdStub({ value: 'pkg-step-2' });
@@ -666,11 +554,6 @@ describe('stepsToWorkItemsTransformer', () => {
         'ward',
         'siegemaster',
         'lawbringer',
-        'blightwarden-security-minion',
-        'blightwarden-dedup-minion',
-        'blightwarden-perf-minion',
-        'blightwarden-integrity-minion',
-        'blightwarden-dead-code-minion',
         'blightwarden',
         'ward',
       ]);
@@ -691,7 +574,7 @@ describe('stepsToWorkItemsTransformer', () => {
   describe('flowrider routing (flow/startup steps)', () => {
     it('VALID: {one broker step + one flows step + one flow} => flowrider owns the flows step; codeweaver excludes it; siege depends on flowrider', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 5 minions + synth + ward = 13
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 1 blightwarden + ward = 8
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
       const brokerStepId = StepIdStub({ value: 'broker-step' });
@@ -744,7 +627,7 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {one broker step + one .e2e.ts step + one flow} => flowrider owns the e2e step; no codeweaver carries it', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 5 minions + synth + ward = 13
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 1 blightwarden + ward = 8
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
       const brokerStepId = StepIdStub({ value: 'broker-step' });
@@ -791,7 +674,7 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {one broker step + one .integration.test.ts step + one flow} => flowrider owns the integration step; no codeweaver carries it', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 5 minions + synth + ward = 13
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 1 blightwarden + ward = 8
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
       const brokerStepId = StepIdStub({ value: 'broker-step' });
@@ -837,8 +720,8 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {e2e-only quest — one .e2e.ts step, one flow, no flows/ or startup/ impl step} => flowrider summoned', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // ward + 1 flowrider + 1 siege + 1 lawbringer (e2e step is ungrouped) + 5 minions + synth +
-      // ward = 10 work items (no codeweaver — the only step is flowrider-owned). Provide a spare id.
+      // ward + 1 flowrider + 1 siege + 1 lawbringer (e2e step is ungrouped) + 1 blightwarden +
+      // ward = 6 work items (no codeweaver — the only step is flowrider-owned). Provide spare ids.
       proxy.setupUuids({ uuids: IDS.slice(0, 11) });
 
       const e2eStepId = StepIdStub({ value: 'e2e-only-step' });
@@ -876,7 +759,7 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {no flow/startup steps} => no flowrider items; siege depends on the changed-ward', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 siege + 1 lawbringer + 5 minions + synth + ward = 11
+      // 1 codeweaver + ward + 1 siege + 1 lawbringer + 1 blightwarden + ward = 6
       proxy.setupUuids({ uuids: IDS.slice(0, 11) });
 
       const brokerStep = DependencyStepStub({

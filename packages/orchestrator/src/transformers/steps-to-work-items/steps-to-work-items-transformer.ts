@@ -1,8 +1,9 @@
 /**
  * PURPOSE: After PathSeeker creates steps, generate the full work item chain
  *          (codeweaver[per package] -> ward -> flowrider[per flow, chained] ->
- *           siegemaster[per flow, chained] -> lawbringer -> blightwarden minions[5 parallel] ->
- *           blightwarden synthesizer -> final-ward). Codeweaver owns every step EXCEPT
+ *           siegemaster[per flow, chained] -> lawbringer -> blightwarden -> final-ward).
+ *           Blightwarden is a single work item that summons its five report-only minions itself
+ *           as Agent sub-agents (mirrors pathseeker). Codeweaver owns every step EXCEPT
  *           flowrider-owned ones (flows/ + startup/ folder types and .integration.test.ts / .e2e.ts
  *           files, per isFlowriderOwnedStepGuard); those route to the per-flow flowrider items
  *           (which own the flow-perspective test suite). Flowrider items are emitted only when ≥1
@@ -25,7 +26,6 @@ import type {
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { isFlowriderOwnedStepGuard } from '../../guards/is-flowrider-owned-step/is-flowrider-owned-step-guard';
-import { blightwardenMinionRolesStatics } from '../../statics/blightwarden-minion-roles/blightwarden-minion-roles-statics';
 import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
 import { stepsToBatchChunksTransformer } from '../steps-to-batch-chunks/steps-to-batch-chunks-transformer';
 import { stepsToPackageChunksTransformer } from '../steps-to-package-chunks/steps-to-package-chunks-transformer';
@@ -174,36 +174,20 @@ export const stepsToWorkItemsTransformer = ({
 
   const allLawIds = lawItems.map((item) => item.id);
 
-  // The blightwarden phase runs between lawbringers and the final ward. It is two stages:
-  //   1. Five report-only minions (one per cross-cutting concern) run in PARALLEL — each audits
-  //      the whole diff for its concern and writes a PlanningBlightReport. None fixes or blocks.
-  //   2. The blightwarden synthesizer runs AFTER all five, reads the reports, judges/dedups, and
-  //      applies the final cleanup.
-  // The minions share the same upstream deps the single blightwarden used to have: all laws if any;
-  // otherwise all sieges; otherwise the ward (empty-flows edge).
-  const minionDependsOn: QuestWorkItemId[] =
+  // Blightwarden runs between lawbringers and the final ward as a SINGLE work item. It summons its
+  // five report-only minions (security, dedup, perf, integrity, dead-code) itself as Agent
+  // sub-agents — that parallelism lives inside its turn, not in the work-item graph (mirrors how
+  // pathseeker summons its surface/cleanup minions). Deps: all laws if any; otherwise all sieges;
+  // otherwise the ward (empty-flows edge).
+  const blightwardenDependsOn: QuestWorkItemId[] =
     allLawIds.length > 0 ? allLawIds : allSiegeIds.length > 0 ? [...allSiegeIds] : [wardItem.id];
 
-  const minionItems: WorkItem[] = blightwardenMinionRolesStatics.roles.map((role) =>
-    workItemContract.parse({
-      id: crypto.randomUUID(),
-      role,
-      status: 'pending',
-      spawnerType: 'agent',
-      dependsOn: minionDependsOn,
-      maxAttempts: 1,
-      createdAt: now,
-    }),
-  );
-
-  const minionIds = minionItems.map((item) => item.id);
-
-  const synthesizerItem = workItemContract.parse({
+  const blightwardenItem = workItemContract.parse({
     id: crypto.randomUUID(),
     role: 'blightwarden',
     status: 'pending',
     spawnerType: 'agent',
-    dependsOn: minionIds,
+    dependsOn: blightwardenDependsOn,
     maxAttempts: 1,
     createdAt: now,
   });
@@ -213,7 +197,7 @@ export const stepsToWorkItemsTransformer = ({
     role: 'ward',
     status: 'pending',
     spawnerType: 'command',
-    dependsOn: [synthesizerItem.id],
+    dependsOn: [blightwardenItem.id],
     maxAttempts: slotManagerStatics.ward.maxRetries,
     createdAt: now,
     wardMode: 'full',
@@ -225,8 +209,7 @@ export const stepsToWorkItemsTransformer = ({
     ...flowriderItems,
     ...siegeItems,
     ...lawItems,
-    ...minionItems,
-    synthesizerItem,
+    blightwardenItem,
     finalWardItem,
   ];
 };

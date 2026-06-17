@@ -135,7 +135,7 @@ describe('questHydrateBroker', () => {
     });
   });
 
-  it('VALID: {smoketestBlueprintsStatics.minimal} => generates the 5 parallel blightwarden minions in concern order, wired to the lawbringers, synthesizer, and final ward', async () => {
+  it('VALID: {smoketestBlueprintsStatics.minimal} => generates a single blightwarden depending on the lawbringers (no minion work items — blightwarden summons them itself)', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'hydrate-blightwarden-minions' }),
     });
@@ -152,33 +152,20 @@ describe('questHydrateBroker', () => {
     const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
     const { workItems } = loaded.quest!;
 
-    // Chain order is deterministic: lawbringers, then the five minions in concern order, then the
-    // synthesizer. (The minimal smoketest blueprint generates no ward items — final-ward wiring is
+    // Chain order is deterministic: lawbringers, then a SINGLE blightwarden depending on the full
+    // lawbringer set. Blightwarden summons its five minions itself as sub-agents — they are NOT
+    // work items. (The minimal smoketest blueprint generates no ward items — final-ward wiring is
     // covered by the steps-to-work-items-transformer unit tests.)
     const lawbringerIds = workItems.filter((wi) => wi.role === 'lawbringer').map((wi) => wi.id);
     const minionItems = workItems.filter((wi) => wi.role.endsWith('-minion'));
-    const minionIds = minionItems.map((wi) => wi.id);
-    const synthesizer = workItems.find((wi) => wi.role === 'blightwarden');
+    const blightwarden = workItems.find((wi) => wi.role === 'blightwarden');
 
     restore();
     testbed.cleanup();
 
-    // Five minions, emitted in concern order, each depending on the full lawbringer set.
-    expect(minionItems.map((wi) => wi.role)).toStrictEqual([
-      'blightwarden-security-minion',
-      'blightwarden-dedup-minion',
-      'blightwarden-perf-minion',
-      'blightwarden-integrity-minion',
-      'blightwarden-dead-code-minion',
-    ]);
-    expect(minionItems.map((wi) => wi.dependsOn)).toStrictEqual([
-      lawbringerIds,
-      lawbringerIds,
-      lawbringerIds,
-      lawbringerIds,
-      lawbringerIds,
-    ]);
-    // Synthesizer depends on exactly the five minion ids, in order.
-    expect(synthesizer?.dependsOn).toStrictEqual(minionIds);
+    // No minion work items — blightwarden is a single item that summons its minions as sub-agents.
+    expect(minionItems).toStrictEqual([]);
+    // The single blightwarden depends on the full lawbringer set.
+    expect(blightwarden?.dependsOn).toStrictEqual(lawbringerIds);
   });
 });

@@ -84,16 +84,19 @@ is reached, the test is broken, not the implementation — fix the test setup fi
 
 Apply the fix you identified in Gate 2. Then:
 1. Re-run the same \`--onlyTests\` invocation — confirm it now passes.
-2. Build before the broad ward (stale \`dist/\` produces false TS2339):
+2. Build, then re-run ward SCOPED to your changed files (stale \`dist/\` produces false TS2339):
    \`\`\`bash
-   npm run build && npm run ward
+   npm run build && npm run ward -- -- <your changed files>
    \`\`\`
-   Confirm no other test regressed. Do NOT assume an unrelated failure is "pre-existing."
+   Confirm your fix and its test are green. The whole-repo regression sweep is the dispatcher's
+   \`run-ward\` work item that runs right after you (\`ward(changed)\`) and at the end of the chain
+   (\`ward(full)\`) — do NOT run the bare \`npm run ward\` yourself (it auto-backgrounds and strands
+   your turn; see Operating Rule 2).
 
 If the failing-then-passing cycle doesn't snap together cleanly, either the fix is incomplete or
 the assertion targeted the wrong thing — find out which before continuing.
 
-**Exit Criteria:** Your test passes, full ward is green, and revert any temporary diagnostics.
+**Exit Criteria:** Your test passes, scoped ward on your changed files is green, and revert any temporary diagnostics.
 
 ## Scope
 

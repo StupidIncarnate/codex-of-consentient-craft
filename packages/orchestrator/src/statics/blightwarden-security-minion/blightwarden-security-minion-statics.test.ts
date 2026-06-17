@@ -40,9 +40,9 @@ describe('blightwardenSecurityMinionStatics', () => {
     );
   });
 
-  it('VALID: template => signal-back section uses complete signal', () => {
+  it('VALID: template => return summary section instructs no signal-back', () => {
     expect(blightwardenSecurityMinionStatics.prompt.template).toMatch(
-      /^ {2}signal: 'complete',$/mu,
+      /^You have no work item, so do NOT call `signal-back`\. Return a one-line summary as your final message for the synthesizer to read:$/mu,
     );
   });
 });

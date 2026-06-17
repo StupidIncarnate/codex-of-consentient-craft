@@ -26,7 +26,8 @@ describe('agentOperatingRulesStatics', () => {
   });
 
   it('VALID: markdown => forbids ending the turn waiting for a background task', () => {
-    const needle = '**2. NEVER end your turn waiting for a background task.**';
+    const needle =
+      '**2. NEVER end your turn waiting for a background task, and NEVER poll for one.**';
     const { markdown } = agentOperatingRulesStatics;
     const found = markdown.slice(
       markdown.indexOf(needle),
@@ -37,7 +38,8 @@ describe('agentOperatingRulesStatics', () => {
   });
 
   it('VALID: markdown => scopes ward to changed files and keeps it in the foreground', () => {
-    const needle = '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground.**';
+    const needle =
+      '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo `npm run ward`.**';
     const { markdown } = agentOperatingRulesStatics;
     const found = markdown.slice(
       markdown.indexOf(needle),

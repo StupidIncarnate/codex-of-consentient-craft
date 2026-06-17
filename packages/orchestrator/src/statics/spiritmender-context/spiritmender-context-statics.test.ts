@@ -17,7 +17,7 @@ The dev server failed to start. No specific files are listed — you must invest
       },
       lawbringerFailure: {
         instructions: `## Instructions
-A code review agent (lawbringer) found issues it could not auto-fix in the listed files. Read the failure summary below for context on what is wrong. Examine the files, understand the issue, and fix it. Run npm run ward on the files to verify.`,
+A code review agent (lawbringer) found issues it could not auto-fix in the listed files. Read the failure summary below for context on what is wrong. Examine the files, understand the issue, and fix it. Run ward scoped to those files (\`npm run ward -- -- <the listed files>\`) to verify.`,
       },
       postBlightwardenFailure: {
         instructions: `## Instructions
@@ -50,7 +50,7 @@ The dev server failed to start. No specific files are listed — you must invest
   it('VALID: lawbringerFailure => instructions has expected content', () => {
     expect(spiritmenderContextStatics.lawbringerFailure.instructions).toBe(
       `## Instructions
-A code review agent (lawbringer) found issues it could not auto-fix in the listed files. Read the failure summary below for context on what is wrong. Examine the files, understand the issue, and fix it. Run npm run ward on the files to verify.`,
+A code review agent (lawbringer) found issues it could not auto-fix in the listed files. Read the failure summary below for context on what is wrong. Examine the files, understand the issue, and fix it. Run ward scoped to those files (\`npm run ward -- -- <the listed files>\`) to verify.`,
     );
   });
 

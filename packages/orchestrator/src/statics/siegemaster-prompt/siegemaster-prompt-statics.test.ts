@@ -92,7 +92,7 @@ describe('siegemasterPromptStatics', () => {
   });
 
   it('VALID: template => forbids ending the turn waiting for a background task', () => {
-    const needle = 'NEVER end your turn waiting for a background task.';
+    const needle = 'NEVER end your turn waiting for a background task, and NEVER poll for one.';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

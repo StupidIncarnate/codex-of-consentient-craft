@@ -131,7 +131,7 @@ webServer: {
 
 ### Mode C (Operational verification)
 
-- Run Ward end-to-end (\`npm run ward\`, \`timeout: 600000\`) and assert zero failures.
+- Run ward SCOPED to the operational flow's touched files (\`npm run ward -- -- <the files this flow changed>\`, \`timeout: 600000\`) and assert zero failures. The whole-repo regression is the dispatcher's final \`ward(full)\` work item — never run the bare \`npm run ward\` (it auto-backgrounds; see Operating Rule 2).
 - Run every grep-predicate \`custom\` observable and assert the expected match count.
 - Verify every \`file-exists\` and \`process-state\` observable against real state.
 
@@ -140,7 +140,7 @@ webServer: {
 Run your suite SCOPED to the flow you touched. A flow change spans BOTH layers — the \`flows/\`/\`startup/\` file's colocated \`.integration.test.ts\` AND any \`.e2e.ts\` — so run both check types together; never the bare full \`npm run ward\`. Scope the \`--\` paths to the flow's ACTUAL files (read them from your Focus Files / the branch diff) — do NOT assume a fixed package; a repo may have several UI packages:
 \`\`\`bash
 npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>   # runtime flow — both layers, foreground
-npm run ward                                                               # operational flow ONLY — foreground-blocking, timeout 600000
+npm run ward -- -- <the operational flow's changed files>                  # operational flow — scoped to its files, foreground
 \`\`\`
 If ward fails, use \`npm run ward -- detail <runId> <filePath>\` for full output. Every test you wrote must pass before you signal.
 
