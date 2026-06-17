@@ -129,13 +129,14 @@ export const OrchestrationStartResponder = async ({
   //      transitions allowlist routes startable statuses through `seek_scope`, so this
   //      hop is required to unlock the planningNotes write below.
   //   2. (when a fresh pathseeker graph was built) modify in `seek_scope` to persist
-  //      `planningNotes.scopeClassification` — `seek_scope` is the only status whose
-  //      input allowlist accepts that sub-field.
+  //      `planningNotes.scopeClassification` — `seek_scope` is the canonical scope-seed
+  //      window whose input allowlist accepts that sub-field (`approved` does not).
   //   3. seek_scope → in_progress so questGetNextStepBroker (driven by /dumpster-launch)
   //      picks the quest up on its next pass. Under the dispatch-loop model the quest never
-  //      RESTS in a `seek_*` status — `seek_scope` here is a transient pass-through (the only
-  //      status whose allowlist accepts `scopeClassification`), and the final assigned status
-  //      must be in_progress for the queue to advance.
+  //      RESTS in a `seek_*` status — `seek_scope` here is a transient pass-through used only
+  //      to seed the auto-scope. `in_progress` ALSO accepts `scopeClassification`, so PathSeeker
+  //      can refine this seed (or re-slice on walk-time scope creep) during its run; the final
+  //      assigned status must be in_progress for the queue to advance.
   const modifyInput = modifyQuestInputContract.parse({
     questId,
     status: 'seek_scope',

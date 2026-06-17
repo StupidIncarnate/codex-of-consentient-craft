@@ -177,7 +177,12 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
     flowsRule: 'observable-wording-only',
     blightReportsRule: 'full',
-    allowedPlanningNotesFields: ['blightReports', 'walkFindings', 'codeweaverPlans'],
+    allowedPlanningNotesFields: [
+      'scopeClassification',
+      'blightReports',
+      'walkFindings',
+      'codeweaverPlans',
+    ],
   },
   paused: {
     allowedFields: ['status'],

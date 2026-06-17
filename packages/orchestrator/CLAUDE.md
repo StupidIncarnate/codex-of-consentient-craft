@@ -426,13 +426,16 @@ created ──► explore_flows ──► review_flows ──► flows_approved 
 
 The `seek_scope` / `seek_synth` / `seek_walk` enum values remain on the contract. A quest never
 *rests* in one under the dispatch-loop model, but they are not dead: `orchestration-start-responder`
-transitions `approved → seek_scope → in_progress` on every Start because `seek_scope` is the only
-status whose input allowlist accepts `planningNotes.scopeClassification`, and the
-`seek_walk → in_progress` completeness gate still lives in `questSaveInvariantsTransformer` /
-`questCompletenessForTransitionTransformer`. What is gone is any quest that *settles* in a `seek_*`
-status: PathSeeker is a single `pathseeker` work item that runs entirely while the quest is
-`in_progress`; its scope → summon → walk phase boundaries live inside its own turn, tracked by
-`planningNotes` presence rather than quest status (see "PathSeeker work-item graph" below).
+transitions `approved → seek_scope → in_progress` on every Start because `approved`'s allowlist
+forbids `planningNotes`, so the auto-seed of `planningNotes.scopeClassification` lands in the
+transient `seek_scope` window, and the `seek_walk → in_progress` completeness gate still lives in
+`questSaveInvariantsTransformer` / `questCompletenessForTransitionTransformer`. `in_progress` ALSO
+accepts `scopeClassification` (alongside `blightReports` / `walkFindings` / `codeweaverPlans`), so
+PathSeeker can refine that auto-seed — or re-slice on walk-time scope creep — during its own run.
+What is gone is any quest that *settles* in a `seek_*` status: PathSeeker is a single `pathseeker`
+work item that runs entirely while the quest is `in_progress`; its scope → summon → walk phase
+boundaries live inside its own turn, tracked by `planningNotes` presence rather than quest status
+(see "PathSeeker work-item graph" below).
 
 | Status                | Set By                                          | Gate                                                                                              |
 |-----------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|

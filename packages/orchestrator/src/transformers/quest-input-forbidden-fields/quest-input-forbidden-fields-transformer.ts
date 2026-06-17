@@ -8,13 +8,16 @@
  *
  * Behavior:
  * - Top-level fields not in allowlist (and not in backTransitionFields when nextStatus matches the carveout) are rejected.
- * - Nested-path carveout: `planningNotes` containing ONLY `blightReports` is permitted when the status's
- *   blightReportsRule is `'full'`, even if `planningNotes` itself is not in allowedFields. This lets Blightwarden
- *   write to `planningNotes.blightReports[]` during `in_progress` without unlocking the rest of `planningNotes`.
- * - Sub-field allowlist for planningNotes: when `planningNotes` is present in the input (permitted via either the
- *   top-level allowedFields entry OR the blight-only carveout), every sub-field present must appear in the
- *   per-status `allowedPlanningNotesFields` array. Any sub-field outside that list is rejected. This closes the
- *   gap where seek_scope/seek_synth/seek_walk used to accept any planningNotes.* sub-field.
+ * - Nested-path carveout: when `planningNotes` is NOT in allowedFields but the status's blightReportsRule is
+ *   `'full'` (only `in_progress`), each planningNotes sub-field is validated individually against
+ *   `allowedPlanningNotesFields` — letting Blightwarden/PathSeeker/Codeweaver write their own sub-field during
+ *   `in_progress` without unlocking the rest of `planningNotes`.
+ * - Sub-field allowlist for planningNotes: when `planningNotes` is present and the status accepts it (top-level
+ *   allowedFields entry OR the nested-path carveout), every sub-field present must appear in the per-status
+ *   `allowedPlanningNotesFields` array; any sub-field outside it is rejected BY NAME (`Sub-field
+ *   'planningNotes.<x>' not allowed`) so the writer knows exactly which sub-field tripped the gate. A status that
+ *   accepts no planningNotes sub-fields at all rejects the whole field with the blunt `Field 'planningNotes' not
+ *   allowed` instead.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
@@ -65,32 +68,35 @@ export const questInputForbiddenFieldsTransformer = ({
   const blightReportsRule: QuestStatusBlightReportsRule = entry.blightReportsRule;
   const allowedPlanningNotesSet = new Set<unknown>(entry.allowedPlanningNotesFields);
   const inputPlanningNotes = input.planningNotes;
-  // Nested-path carveout: when `planningNotes` is NOT in allowedFields but every sub-field the
-  // caller is writing appears in `allowedPlanningNotesFields` AND `blightReportsRule === 'full'`,
-  // the write is permitted. `in_progress` is the only status with `blightReportsRule: 'full'`, and
-  // it allows exactly the sub-fields written during execution: `blightReports` (Blightwarden),
-  // `walkFindings` (pathseeker-walk's terminal commit), and `codeweaverPlans` (Codeweaver's living
-  // per-slice tactical plan). This keeps the rest of `planningNotes` closed to general writers at
-  // that status while letting those roles write their own slice.
-  const planningNotesCarveoutKeys =
-    inputPlanningNotes === undefined
-      ? []
-      : Object.keys(inputPlanningNotes).filter(
-          (key) => inputPlanningNotes[key as keyof typeof inputPlanningNotes] !== undefined,
-        );
-  const planningNotesCarveout =
+  // planningNotes acceptance is one of three shapes per status:
+  //  (a) top-level allowed — `planningNotes` is in `allowedFields` (seek_scope/seek_synth/seek_walk).
+  //  (b) nested-path carveout — `planningNotes` is NOT in `allowedFields`, but `blightReportsRule:
+  //      'full'` opens per-sub-field acceptance for the sub-fields in `allowedPlanningNotesFields`.
+  //      `in_progress` is the only such status; it permits exactly the sub-fields written during
+  //      execution: `scopeClassification` (PathSeeker (re)classifying scope — the auto-seed from
+  //      Start plus any walk-time scope-creep re-slice), `blightReports` (Blightwarden),
+  //      `walkFindings` (pathseeker-walk's terminal commit), and `codeweaverPlans` (Codeweaver's
+  //      living per-slice tactical plan). The rest of `planningNotes` stays closed to general writers.
+  //  (c) wholesale forbidden — neither (created/approved/explore_*/...); any `planningNotes` write
+  //      is rejected with the blunt top-level message, since no sub-field is ever permitted there.
+  // In shapes (a) and (b) the per-sub-field loop below validates each sub-field individually and
+  // names the specific offender (`Sub-field 'planningNotes.<x>' not allowed`), so a writer that picks
+  // the wrong sub-field gets an actionable message instead of the blunt `Field 'planningNotes' not
+  // allowed` that hides which sub-field tripped the gate.
+  const planningNotesTopLevelAllowed = allowedSet.has('planningNotes');
+  const planningNotesCarveoutAvailable =
     inputPlanningNotes !== undefined &&
-    !allowedSet.has('planningNotes') &&
-    blightReportsRule === 'full' &&
-    planningNotesCarveoutKeys.length > 0 &&
-    planningNotesCarveoutKeys.every((key) => allowedPlanningNotesSet.has(key));
+    !planningNotesTopLevelAllowed &&
+    blightReportsRule === 'full';
 
   for (const field of inspectableModifyQuestInputFieldsStatics) {
     const value = input[field];
     if (value === undefined) {
       continue;
     }
-    if (field === 'planningNotes' && planningNotesCarveout) {
+    if (field === 'planningNotes' && planningNotesCarveoutAvailable) {
+      // Defer to the per-sub-field validation below, which names the specific offending sub-field
+      // rather than emitting the blunt top-level rejection.
       continue;
     }
     if (!allowedSet.has(field)) {
@@ -100,13 +106,13 @@ export const questInputForbiddenFieldsTransformer = ({
     }
   }
 
-  // Sub-field allowlist for planningNotes: applies whenever planningNotes was accepted at the top
-  // level (either via allowedFields OR via the nested-path carveout). Every sub-field being written
-  // must appear in `allowedPlanningNotesFields`. This blocks a seek_walk writer from stamping
-  // `scopeClassification`, a seek_synth writer from writing `walkFindings`, etc.
+  // Sub-field allowlist for planningNotes: runs whenever the status accepts planningNotes at all —
+  // top-level (a) or via the nested-path carveout (b). Every sub-field being written must appear in
+  // `allowedPlanningNotesFields`; any outside it is rejected by name. This blocks a seek_walk writer
+  // from stamping `scopeClassification`, an in_progress writer from stamping `surfaceReports`, etc.
   if (
     inputPlanningNotes !== undefined &&
-    (allowedSet.has('planningNotes') || planningNotesCarveout)
+    (planningNotesTopLevelAllowed || planningNotesCarveoutAvailable)
   ) {
     for (const [subField, subValue] of Object.entries(inputPlanningNotes)) {
       if (subValue === undefined) {

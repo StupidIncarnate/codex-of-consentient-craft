@@ -368,7 +368,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {in_progress + planningNotes with blightReports AND surfaceReports} => rejects planningNotes (not blight-only)', () => {
+    it('INVALID: {in_progress + planningNotes with blightReports AND surfaceReports} => rejects only the forbidden surfaceReports sub-field by name', () => {
       const blight = PlanningBlightReportStub();
       const surface = PlanningSurfaceReportStub();
       const input = ModifyQuestInputStub({
@@ -386,7 +386,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       });
 
       expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Field 'planningNotes' not allowed in status 'in_progress'",
+        "Sub-field 'planningNotes.surfaceReports' not allowed in status 'in_progress'",
       ]);
     });
 
@@ -730,7 +730,24 @@ describe('questInputForbiddenFieldsTransformer', () => {
         expect(offenders).toStrictEqual([]);
       });
 
-      it('INVALID: {in_progress + planningNotes.surfaceReports} => rejects planningNotes (surfaceReports not in in_progress allowlist)', () => {
+      it('VALID: {in_progress + planningNotes.scopeClassification} => returns empty array (PathSeeker (re)classifies scope during in_progress)', () => {
+        const input = ModifyQuestInputStub({
+          planningNotes: {
+            scopeClassification: PlanningScopeClassificationStub(),
+          },
+        });
+        const currentQuest = QuestStub({ status: 'in_progress' });
+
+        const offenders = questInputForbiddenFieldsTransformer({
+          input,
+          currentQuest,
+          currentStatus: 'in_progress',
+        });
+
+        expect(offenders).toStrictEqual([]);
+      });
+
+      it('INVALID: {in_progress + planningNotes.surfaceReports} => rejects the surfaceReports sub-field by name (not in in_progress allowlist)', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             surfaceReports: [PlanningSurfaceReportStub()],
@@ -745,7 +762,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         });
 
         expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Field 'planningNotes' not allowed in status 'in_progress'",
+          "Sub-field 'planningNotes.surfaceReports' not allowed in status 'in_progress'",
         ]);
       });
     });
