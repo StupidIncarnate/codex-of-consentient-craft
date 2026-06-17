@@ -725,6 +725,143 @@ describe('workItemsToFloorGroupsTransformer', () => {
     });
   });
 
+  describe('canonical pipeline ordering with two ward modes', () => {
+    it('VALID: {chaos done + codeweaver, ward(changed), flowrider, siege, lawbringer, blightwarden, ward(full)} => canonical floor order with full ward LAST', () => {
+      const chaos = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const codeweaver = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const wardChanged = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000003',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'changed',
+        dependsOn: [codeweaver.id],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const flowrider = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000004',
+        role: 'flowrider',
+        status: 'pending',
+        dependsOn: [wardChanged.id],
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+      const siege = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000005',
+        role: 'siegemaster',
+        status: 'pending',
+        dependsOn: [flowrider.id],
+        createdAt: '2024-01-15T10:04:00.000Z',
+      });
+      const lawbringer = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000006',
+        role: 'lawbringer',
+        status: 'pending',
+        dependsOn: [siege.id],
+        createdAt: '2024-01-15T10:05:00.000Z',
+      });
+      const blightwarden = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000007',
+        role: 'blightwarden',
+        status: 'pending',
+        dependsOn: [lawbringer.id],
+        createdAt: '2024-01-15T10:06:00.000Z',
+      });
+      const wardFull = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000008',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'full',
+        dependsOn: [blightwarden.id],
+        createdAt: '2024-01-15T10:07:00.000Z',
+      });
+
+      const items = [
+        chaos,
+        codeweaver,
+        wardChanged,
+        flowrider,
+        siege,
+        lawbringer,
+        blightwarden,
+        wardFull,
+      ];
+      const result = workItemsToFloorGroupsTransformer({ workItems: items });
+
+      const floorNames = result.map((g) => g.floorName);
+
+      expect(floorNames).toStrictEqual([
+        'HOMEBASE',
+        'FORGE',
+        'MINI BOSS',
+        'GLUEWORKS',
+        'ARENA',
+        'TRIBUNAL',
+        'QUARANTINE',
+        'FLOOR BOSS',
+      ]);
+
+      const flowriderIdx = result.findIndex((g) => g.floorName === 'GLUEWORKS');
+      const forgeIdx = result.findIndex((g) => g.floorName === 'FORGE');
+      const floorBossIdx = result.findIndex((g) => g.floorName === 'FLOOR BOSS');
+      const blightwardenIdx = result.findIndex((g) => g.floorName === 'QUARANTINE');
+
+      expect(flowriderIdx).toBeGreaterThan(forgeIdx);
+      expect(floorBossIdx).toBeGreaterThan(blightwardenIdx);
+      expect(floorBossIdx).toBe(result.length - 1);
+    });
+
+    it('VALID: {flat pipeline all at depth 0 — ward(changed), ward(full), flowrider, codeweaver} => full ward sorts after changed ward and flowrider after codeweaver', () => {
+      const codeweaver = WorkItemStub({
+        id: 'b0000000-0000-0000-0000-000000000001',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const wardChanged = WorkItemStub({
+        id: 'b0000000-0000-0000-0000-000000000002',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'changed',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const flowrider = WorkItemStub({
+        id: 'b0000000-0000-0000-0000-000000000003',
+        role: 'flowrider',
+        status: 'pending',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+      const wardFull = WorkItemStub({
+        id: 'b0000000-0000-0000-0000-000000000004',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'full',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:04:00.000Z',
+      });
+
+      const items = [wardFull, flowrider, wardChanged, codeweaver];
+      const result = workItemsToFloorGroupsTransformer({ workItems: items });
+
+      const floorNames = result.map((g) => g.floorName);
+
+      expect(floorNames).toStrictEqual(['FORGE', 'MINI BOSS', 'GLUEWORKS', 'FLOOR BOSS']);
+    });
+  });
+
   describe('pathseeker entrance collapse', () => {
     it('VALID: {chaos + 4 pathseeker-* split roles at depths 0/1/2/2/3} => one ENTRANCE: MAPPING DUMPSTER group with all 4 items in topological order', () => {
       const chaos = WorkItemStub({

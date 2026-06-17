@@ -51,6 +51,78 @@ describe('resolveWardFloorNameTransformer', () => {
     });
   });
 
+  describe('wardMode', () => {
+    it('VALID: {ward wardMode full, no lawbringer dep} => returns FLOOR BOSS', () => {
+      const ward = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'full',
+        dependsOn: [],
+      });
+
+      const result = resolveWardFloorNameTransformer({
+        workItem: ward,
+        allWorkItems: [ward],
+      });
+
+      expect(result).toBe('FLOOR BOSS');
+    });
+
+    it('VALID: {ward wardMode changed, lawbringer dep present} => returns MINI BOSS (wardMode wins over deps)', () => {
+      const lb = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'lawbringer',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const ward = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'changed',
+        dependsOn: [lb.id],
+      });
+
+      const result = resolveWardFloorNameTransformer({
+        workItem: ward,
+        allWorkItems: [lb, ward],
+      });
+
+      expect(result).toBe('MINI BOSS');
+    });
+
+    it('VALID: {ward retry inherits root wardMode full via insertedBy chain} => FLOOR BOSS', () => {
+      const ward1 = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'ward',
+        status: 'failed',
+        wardMode: 'full',
+        dependsOn: [],
+      });
+      const spirit = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'spiritmender',
+        status: 'complete',
+        dependsOn: [ward1.id],
+      });
+      const ward2 = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000003',
+        role: 'ward',
+        status: 'pending',
+        dependsOn: [spirit.id],
+        insertedBy: ward1.id,
+      });
+
+      const result = resolveWardFloorNameTransformer({
+        workItem: ward2,
+        allWorkItems: [ward1, spirit, ward2],
+      });
+
+      expect(result).toBe('FLOOR BOSS');
+    });
+  });
+
   describe('retry chain', () => {
     it('VALID: {ward retry via insertedBy chain, root has codeweaver deps} => MINI BOSS', () => {
       const cw = WorkItemStub({

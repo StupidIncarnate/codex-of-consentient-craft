@@ -71,6 +71,7 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
+      wardMode?: string;
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -161,6 +162,7 @@ export const questHarness = ({
       completedAt?: string;
       attempt?: number;
       maxAttempts?: number;
+      wardMode?: string;
     }[];
     steps?: { id: string; name: string }[];
     userRequest?: string;
@@ -204,6 +206,7 @@ export const questHarness = ({
         maxAttempts: wi.maxAttempts ?? 1,
         ...(wi.insertedBy ? { insertedBy: wi.insertedBy } : {}),
         ...(wi.completedAt === undefined ? {} : { completedAt: wi.completedAt }),
+        ...(wi.wardMode === undefined ? {} : { wardMode: wi.wardMode }),
       })),
       userRequest,
       designDecisions: [],

@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Resolves the floor name for a ward work item by tracing its insertedBy chain to find the root ward
+ * PURPOSE: Resolves the floor name for a ward work item, keying on its wardMode ('changed' => MINI BOSS,
+ *   'full' => FLOOR BOSS). Falls back to tracing the insertedBy chain to the root ward and checking for a
+ *   lawbringer in its transitive deps when wardMode is absent (work items written before wardMode existed).
  *
  * USAGE:
  * resolveWardFloorNameTransformer({workItem, allWorkItems});
@@ -33,6 +35,13 @@ export const resolveWardFloorNameTransformer = ({
     if (!parent || parent.role !== 'ward' || visited.has(parent.id)) break;
     visited.add(parent.id);
     rootWard = parent;
+  }
+
+  if (rootWard.wardMode === 'full') {
+    return floorNameContract.parse('FLOOR BOSS');
+  }
+  if (rootWard.wardMode === 'changed') {
+    return floorNameContract.parse('MINI BOSS');
   }
 
   const hasLawbringer = hasLawbringerInDepsGuard({

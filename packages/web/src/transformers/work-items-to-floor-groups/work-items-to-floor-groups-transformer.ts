@@ -49,8 +49,28 @@ export const workItemsToFloorGroupsTransformer = ({
     const depthB = depths.get(b.id) ?? 0;
     if (depthA !== depthB) return depthA - depthB;
 
-    const configA = roleToConfigIndexTransformer({ role: a.role });
-    const configB = roleToConfigIndexTransformer({ role: b.role });
+    const configA = roleToConfigIndexTransformer({
+      role: a.role,
+      ...(a.role === 'ward'
+        ? {
+            floorName: resolveWardFloorNameTransformer({
+              workItem: a,
+              allWorkItems: unfilteredItems,
+            }),
+          }
+        : {}),
+    });
+    const configB = roleToConfigIndexTransformer({
+      role: b.role,
+      ...(b.role === 'ward'
+        ? {
+            floorName: resolveWardFloorNameTransformer({
+              workItem: b,
+              allWorkItems: unfilteredItems,
+            }),
+          }
+        : {}),
+    });
     if (configA !== configB) return configA - configB;
 
     return a.createdAt.localeCompare(b.createdAt);

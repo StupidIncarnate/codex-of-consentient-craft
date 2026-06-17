@@ -151,6 +151,141 @@ test.describe('Floor Ordering', () => {
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[WARD]']);
   });
 
+  test('VALID: full pipeline with two ward modes => canonical floor order, full ward (FLOOR BOSS) last, flowrider after codeweaver', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Two Ward Modes Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const mainSessionId = `e2e-two-ward-modes-${Date.now()}`;
+
+    sessions.createSessionFileForQuest({ sessionId: mainSessionId });
+
+    const created = await questHarness({ request }).createQuest({
+      guildId,
+      title: 'E2E Two Ward Modes Quest',
+      userRequest: 'Build the feature',
+    });
+    const { questId } = created;
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
+
+    const cwId = crypto.randomUUID();
+    const wardChangedId = crypto.randomUUID();
+    const flowriderId = crypto.randomUUID();
+    const siegeId = crypto.randomUUID();
+    const lawbringerId = crypto.randomUUID();
+    const blightwardenId = crypto.randomUUID();
+    const wardFullId = crypto.randomUUID();
+
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
+      status: 'in_progress',
+      steps: [{ id: 'step-1', name: 'Build module' }],
+      workItems: [
+        {
+          id: crypto.randomUUID(),
+          role: 'chaoswhisperer',
+          sessionId: mainSessionId,
+          status: 'complete',
+          dependsOn: [],
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: cwId,
+          role: 'codeweaver',
+          sessionId: mainSessionId,
+          status: 'pending',
+          relatedDataItems: ['steps/step-1'],
+          dependsOn: [],
+          createdAt: '2024-01-15T10:01:00.000Z',
+        },
+        {
+          id: wardChangedId,
+          role: 'ward',
+          sessionId: mainSessionId,
+          status: 'pending',
+          wardMode: 'changed',
+          dependsOn: [cwId],
+          createdAt: '2024-01-15T10:02:00.000Z',
+        },
+        {
+          id: flowriderId,
+          role: 'flowrider',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [wardChangedId],
+          createdAt: '2024-01-15T10:03:00.000Z',
+        },
+        {
+          id: siegeId,
+          role: 'siegemaster',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [flowriderId],
+          createdAt: '2024-01-15T10:04:00.000Z',
+        },
+        {
+          id: lawbringerId,
+          role: 'lawbringer',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [siegeId],
+          createdAt: '2024-01-15T10:05:00.000Z',
+        },
+        {
+          id: blightwardenId,
+          role: 'blightwarden',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [lawbringerId],
+          createdAt: '2024-01-15T10:06:00.000Z',
+        },
+        {
+          id: wardFullId,
+          role: 'ward',
+          sessionId: mainSessionId,
+          status: 'pending',
+          wardMode: 'full',
+          dependsOn: [blightwardenId],
+          createdAt: '2024-01-15T10:07:00.000Z',
+        },
+      ],
+    });
+
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+
+    const floorTexts = await getFloorHeaderTexts({ page });
+
+    expect(floorTexts).toStrictEqual([
+      'HOMEBASE',
+      'FLOOR 1: FORGE',
+      'FLOOR 2: MINI BOSS',
+      'FLOOR 3: GLUEWORKS',
+      'FLOOR 4: ARENA',
+      'FLOOR 5: TRIBUNAL',
+      'FLOOR 6: QUARANTINE',
+      'FLOOR 7: FLOOR BOSS',
+    ]);
+
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 1 })).toStrictEqual(['[CODEWEAVER]']);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[FLOWRIDER]']);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 7 })).toStrictEqual(['[WARD]']);
+  });
+
   test('ERROR: ward fail → spiritmender → ward retry: FORGE before MINI BOSS, INFIRMARY between bosses', async ({
     page,
     request,

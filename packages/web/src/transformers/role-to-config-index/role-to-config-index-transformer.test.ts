@@ -1,4 +1,5 @@
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
+import { FloorNameStub } from '../../contracts/floor-name/floor-name.stub';
 
 import { roleToConfigIndexTransformer } from './role-to-config-index-transformer';
 
@@ -66,6 +67,34 @@ describe('roleToConfigIndexTransformer', () => {
       });
 
       expect(result).toBe(7);
+    });
+  });
+
+  describe('ward floorName disambiguation', () => {
+    it('VALID: {role: ward, no floorName} => returns 8 (first ward / MINI BOSS entry)', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'ward' }),
+      });
+
+      expect(result).toBe(8);
+    });
+
+    it('VALID: {role: ward, floorName: MINI BOSS} => returns 8 (MINI BOSS entry)', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'ward' }),
+        floorName: FloorNameStub({ value: 'MINI BOSS' }),
+      });
+
+      expect(result).toBe(8);
+    });
+
+    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 19 (FLOOR BOSS entry, last floor)', () => {
+      const result = roleToConfigIndexTransformer({
+        role: ExecutionRoleStub({ value: 'ward' }),
+        floorName: FloorNameStub({ value: 'FLOOR BOSS' }),
+      });
+
+      expect(result).toBe(19);
     });
   });
 
