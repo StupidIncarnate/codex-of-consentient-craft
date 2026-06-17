@@ -1,73 +1,33 @@
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { FloorNameStub } from '../../contracts/floor-name/floor-name.stub';
+import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
 
 import { roleToConfigIndexTransformer } from './role-to-config-index-transformer';
 
+// Derive the [role, expectedIndex] matrix from the canonical floor config so this test cannot
+// go stale as the config grows. Each single-floor role maps to its first-occurrence index; stop
+// before 'ward' (whose two entries are covered separately in the floorName disambiguation block).
+const FIRST_WARD_INDEX = executionFloorConfigStatics.floors.findIndex((f) => f.role === 'ward');
+const SINGLE_FLOOR_ROLE_INDEXES = executionFloorConfigStatics.floors
+  .map((floor, index) => [floor.role, index] as const)
+  .filter(
+    ([role, index]) =>
+      index < FIRST_WARD_INDEX &&
+      index === executionFloorConfigStatics.floors.findIndex((f) => f.role === role),
+  );
+
 describe('roleToConfigIndexTransformer', () => {
   describe('known roles', () => {
-    it('VALID: {role: chaoswhisperer} => returns 0 (first in config)', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'chaoswhisperer' }),
-      });
+    it.each(SINGLE_FLOOR_ROLE_INDEXES)(
+      'VALID: {role: %s} => returns %i (first-occurrence config index)',
+      (role, expectedIndex) => {
+        const result = roleToConfigIndexTransformer({
+          role: ExecutionRoleStub({ value: role }),
+        });
 
-      expect(result).toBe(0);
-    });
-
-    it('VALID: {role: glyphsmith} => returns 1', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'glyphsmith' }),
-      });
-
-      expect(result).toBe(1);
-    });
-
-    it('VALID: {role: pathseeker-surface} => returns 2', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'pathseeker-surface' }),
-      });
-
-      expect(result).toBe(2);
-    });
-
-    it('VALID: {role: pathseeker-dedup} => returns 3', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'pathseeker-dedup' }),
-      });
-
-      expect(result).toBe(3);
-    });
-
-    it('VALID: {role: pathseeker-assertion-correctness} => returns 4', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'pathseeker-assertion-correctness' }),
-      });
-
-      expect(result).toBe(4);
-    });
-
-    it('VALID: {role: pathseeker-walk} => returns 5', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'pathseeker-walk' }),
-      });
-
-      expect(result).toBe(5);
-    });
-
-    it('VALID: {role: codeweaver} => returns 6', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'codeweaver' }),
-      });
-
-      expect(result).toBe(6);
-    });
-
-    it('VALID: {role: pesteater} => returns 7 (EXTERMINATION floor, after codeweaver)', () => {
-      const result = roleToConfigIndexTransformer({
-        role: ExecutionRoleStub({ value: 'pesteater' }),
-      });
-
-      expect(result).toBe(7);
-    });
+        expect(result).toBe(expectedIndex);
+      },
+    );
   });
 
   describe('ward floorName disambiguation', () => {
