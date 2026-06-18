@@ -147,4 +147,71 @@ describe('resolveWardFloorNameTransformer', () => {
       expect(result).toBe('MINI BOSS');
     });
   });
+
+  describe('broken insertedBy chain', () => {
+    it('EDGE: {ward insertedBy points to missing parent, no wardMode, lawbringer dep} => stops walk at self, FLOOR BOSS', () => {
+      const lb = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'lawbringer',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const ward = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'ward',
+        status: 'pending',
+        dependsOn: [lb.id],
+        insertedBy: 'a0000000-0000-0000-0000-0000000000ff',
+      });
+
+      const allItemMap = new Map([lb, ward].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
+
+      expect(result).toBe('FLOOR BOSS');
+    });
+
+    it('EDGE: {ward insertedBy points to a non-ward parent, no wardMode, codeweaver dep} => stops walk at self, MINI BOSS', () => {
+      const cw = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const ward = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'ward',
+        status: 'pending',
+        dependsOn: [cw.id],
+        insertedBy: cw.id,
+      });
+
+      const allItemMap = new Map([cw, ward].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
+
+      expect(result).toBe('MINI BOSS');
+    });
+
+    it('EDGE: {two wards each insertedBy the other forming a cycle, root wardMode full} => visited-set breaks cycle, FLOOR BOSS', () => {
+      const wardA = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'ward',
+        status: 'failed',
+        wardMode: 'full',
+        dependsOn: [],
+        insertedBy: 'a0000000-0000-0000-0000-000000000002',
+      });
+      const wardB = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'ward',
+        status: 'pending',
+        dependsOn: [],
+        insertedBy: wardA.id,
+      });
+
+      const allItemMap = new Map([wardA, wardB].map((wi) => [wi.id, wi]));
+      const result = resolveWardFloorNameTransformer({ workItem: wardB, allItemMap });
+
+      expect(result).toBe('FLOOR BOSS');
+    });
+  });
 });

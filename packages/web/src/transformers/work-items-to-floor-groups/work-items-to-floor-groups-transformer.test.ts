@@ -227,6 +227,37 @@ describe('workItemsToFloorGroupsTransformer', () => {
 
       expect(totalItems).toBe(1);
     });
+
+    it('VALID: {skipped items, includeSkipped: true} => skipped items retained in output', () => {
+      const cw1 = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const cw2 = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'codeweaver',
+        status: 'skipped',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+
+      const result = workItemsToFloorGroupsTransformer({
+        workItems: [cw1, cw2],
+        includeSkipped: true,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          key: '0:FORGE',
+          floorName: 'FORGE',
+          floorNumber: 1,
+          workItems: [cw1, cw2],
+        },
+      ]);
+    });
   });
 
   describe('merged floors', () => {
