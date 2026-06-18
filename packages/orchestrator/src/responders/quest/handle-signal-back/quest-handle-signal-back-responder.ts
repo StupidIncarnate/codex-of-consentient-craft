@@ -34,7 +34,6 @@ import type {
 import {
   adapterResultContract,
   errorMessageContract,
-  folderTypeGroupsContract,
   getQuestInputContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
@@ -92,7 +91,6 @@ export const QuestHandleSignalBackResponder = async ({
         await questPostWalkHookBroker({
           questId,
           walkWorkItemId: workItemId,
-          batchGroups: folderTypeGroupsContract.parse(undefined),
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

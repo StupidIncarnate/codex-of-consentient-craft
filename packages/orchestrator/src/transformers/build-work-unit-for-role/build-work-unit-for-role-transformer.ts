@@ -18,6 +18,7 @@ import type {
   ObservableId,
   Quest,
   QuestContractEntry,
+  QuestId,
   StepFileReference,
 } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -62,7 +63,12 @@ type BuildWorkUnitForRoleInput =
       devCommand?: DevCommand;
       smoketestPromptOverride?: PromptText;
     }
-  | { role: 'lawbringer'; steps: DependencyStep[]; smoketestPromptOverride?: PromptText }
+  | {
+      role: 'lawbringer';
+      steps: DependencyStep[];
+      questId?: QuestId;
+      smoketestPromptOverride?: PromptText;
+    }
   // Spiritmender accepts EITHER a single step (the step-derived recovery path) OR a
   // pre-built batch (sidecar-derived recovery path supplied by agentPromptGetBroker).
   | { role: 'spiritmender'; step: DependencyStep; smoketestPromptOverride?: PromptText }
@@ -180,7 +186,7 @@ export const buildWorkUnitForRoleTransformer = ({
     }
 
     case 'lawbringer': {
-      const { steps } = params;
+      const { steps, questId } = params;
       const stepBoundaries: {
         stepId: DependencyStep['id'];
         filePaths: StepFilePath[];
@@ -218,6 +224,7 @@ export const buildWorkUnitForRoleTransformer = ({
         filePaths: aggregateFilePaths,
         folderTypes,
         stepBoundaries,
+        ...(questId === undefined ? {} : { questId }),
         ...overrideField,
       });
     }

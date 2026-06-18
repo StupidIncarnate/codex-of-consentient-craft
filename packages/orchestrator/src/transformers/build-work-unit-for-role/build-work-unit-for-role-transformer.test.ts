@@ -5,6 +5,7 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   QuestContractEntryStub,
+  QuestIdStub,
   QuestStub,
   StepFileReferenceStub,
 } from '@dungeonmaster/shared/contracts';
@@ -308,6 +309,30 @@ describe('buildWorkUnitForRoleTransformer', () => {
             filePaths: ['/src/brokers/user/user-broker.ts', '/src/brokers/index.ts'],
           },
         ],
+      });
+    });
+
+    it('VALID: {role: lawbringer, with questId} => includes questId on the work unit', () => {
+      buildWorkUnitForRoleTransformerProxy();
+
+      const step = DependencyStepStub({
+        focusFile: { path: '/src/brokers/user/user-broker.ts' },
+        accompanyingFiles: [],
+      });
+
+      const result = buildWorkUnitForRoleTransformer({
+        role: 'lawbringer',
+        steps: [step],
+        questId: QuestIdStub({ value: 'my-quest' }),
+      });
+
+      expect(result).toStrictEqual({
+        role: 'lawbringer',
+        reviewMode: 'per-steps',
+        filePaths: ['/src/brokers/user/user-broker.ts'],
+        folderTypes: ['brokers'],
+        stepBoundaries: [{ stepId: step.id, filePaths: ['/src/brokers/user/user-broker.ts'] }],
+        questId: 'my-quest',
       });
     });
   });

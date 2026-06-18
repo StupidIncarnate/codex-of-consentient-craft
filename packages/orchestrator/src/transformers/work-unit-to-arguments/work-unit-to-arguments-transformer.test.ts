@@ -9,6 +9,7 @@ import {
   FlowStub,
   QuestContractEntryStub,
   QuestIdStub,
+  StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -665,6 +666,70 @@ describe('workUnitToArgumentsTransformer', () => {
       const result = workUnitToArgumentsTransformer({ workUnit });
 
       expect(result).toBe('Files to Review:\n  - /src/broker.ts\n  - /src/broker.test.ts');
+    });
+
+    it('VALID: {lawbringer single pair with questId} => appends Quest ID after the file list', () => {
+      const workUnit = LawbringerWorkUnitStub({
+        filePaths: [AbsoluteFilePathStub({ value: '/src/broker.ts' })],
+        questId: QuestIdStub({ value: 'fix-bug' }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe('Files to Review:\n  - /src/broker.ts\nQuest ID: fix-bug');
+    });
+
+    it('VALID: {lawbringer multi-pair batch without questId} => returns batch header + per-pair blocks', () => {
+      const workUnit = LawbringerWorkUnitStub({
+        folderTypes: ['contracts', 'adapters'],
+        filePaths: [
+          AbsoluteFilePathStub({ value: '/a-contract.ts' }),
+          AbsoluteFilePathStub({ value: '/b-adapter.ts' }),
+        ],
+        stepBoundaries: [
+          {
+            stepId: StepIdStub({ value: 'pair-1' }),
+            filePaths: [AbsoluteFilePathStub({ value: '/a-contract.ts' })],
+          },
+          {
+            stepId: StepIdStub({ value: 'pair-2' }),
+            filePaths: [AbsoluteFilePathStub({ value: '/b-adapter.ts' })],
+          },
+        ],
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        '# Batch: 2 file pair(s), folder types: [contracts, adapters]\n\n--- Pair 1 of 2 (step: pair-1) ---\n  - /a-contract.ts\n\n--- Pair 2 of 2 (step: pair-2) ---\n  - /b-adapter.ts',
+      );
+    });
+
+    it('VALID: {lawbringer multi-pair batch with questId} => appends Quest ID after the pair blocks', () => {
+      const workUnit = LawbringerWorkUnitStub({
+        folderTypes: ['contracts', 'adapters'],
+        filePaths: [
+          AbsoluteFilePathStub({ value: '/a-contract.ts' }),
+          AbsoluteFilePathStub({ value: '/b-adapter.ts' }),
+        ],
+        stepBoundaries: [
+          {
+            stepId: StepIdStub({ value: 'pair-1' }),
+            filePaths: [AbsoluteFilePathStub({ value: '/a-contract.ts' })],
+          },
+          {
+            stepId: StepIdStub({ value: 'pair-2' }),
+            filePaths: [AbsoluteFilePathStub({ value: '/b-adapter.ts' })],
+          },
+        ],
+        questId: QuestIdStub({ value: 'fix-bug' }),
+      });
+
+      const result = workUnitToArgumentsTransformer({ workUnit });
+
+      expect(result).toBe(
+        '# Batch: 2 file pair(s), folder types: [contracts, adapters]\n\n--- Pair 1 of 2 (step: pair-1) ---\n  - /a-contract.ts\n\n--- Pair 2 of 2 (step: pair-2) ---\n  - /b-adapter.ts\nQuest ID: fix-bug',
+      );
     });
 
     it('EDGE: {lawbringer with empty filePaths} => returns header only with no file entries', () => {

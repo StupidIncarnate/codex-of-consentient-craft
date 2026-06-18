@@ -157,6 +157,7 @@ export const workItemToPromptTransformer = ({
       return buildWorkUnitForRoleTransformer({
         role: 'lawbringer',
         steps,
+        questId: quest.id,
         ...overrideField,
       });
     }

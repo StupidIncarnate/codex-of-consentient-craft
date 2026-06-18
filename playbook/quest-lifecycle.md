@@ -151,8 +151,10 @@ When `pathseeker-walk` signals `complete`, `questPostWalkHookBroker`:
    ```
    codeweaver(×chunks) → ward(changed) → siegemaster(×flow, chained) → lawbringer(×chunks) → blightwarden → ward(full)
    ```
-    - codeweaver/lawbringer steps are chunked by folder-type batch groups (capped at 6/chunk); each chunk carries
-      `relatedDataItems: ['steps/<id>', …]`;
+    - codeweaver and lawbringer steps are chunked per package (capped at 20/chunk); each chunk carries
+      `relatedDataItems: ['steps/<id>', …]`. Lawbringer chunks only reviewable source pairs (operational /
+      barrel / package.json + flowrider-owned steps are excluded) and fans out `lawbringer-minion`
+      sub-agents per pair-group inside its own turn;
     - one siege per flow, chained via `dependsOn` (so at most one runs at a time), each
       `relatedDataItems: ['flows/<id>']`;
     - ward items are `spawnerType: 'command'`.

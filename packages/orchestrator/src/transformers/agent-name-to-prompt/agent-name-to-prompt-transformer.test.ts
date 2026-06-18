@@ -9,6 +9,7 @@ import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap
 import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { lawbringerMinionStatics } from '../../statics/lawbringer-minion/lawbringer-minion-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
@@ -113,6 +114,18 @@ describe('agentNameToPromptTransformer', () => {
       name: 'lawbringer',
       model: 'sonnet',
       prompt: lawbringerPromptStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "lawbringer-minion"} => returns lawbringer-minion prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'lawbringer-minion' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'lawbringer-minion',
+      model: 'sonnet',
+      prompt: lawbringerMinionStatics.prompt.template,
     });
   });
 

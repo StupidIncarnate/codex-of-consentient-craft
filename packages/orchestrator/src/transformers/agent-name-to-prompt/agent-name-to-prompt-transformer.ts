@@ -18,6 +18,7 @@ import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap
 import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { lawbringerMinionStatics } from '../../statics/lawbringer-minion/lawbringer-minion-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
@@ -80,6 +81,12 @@ export const agentNameToPromptTransformer = ({
         name: 'lawbringer',
         model: 'sonnet',
         prompt: lawbringerPromptStatics.prompt.template,
+      });
+    case 'lawbringer-minion':
+      return agentPromptResultContract.parse({
+        name: 'lawbringer-minion',
+        model: 'sonnet',
+        prompt: lawbringerMinionStatics.prompt.template,
       });
     case 'spiritmender':
       return agentPromptResultContract.parse({

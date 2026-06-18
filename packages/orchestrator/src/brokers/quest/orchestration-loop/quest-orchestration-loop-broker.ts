@@ -9,7 +9,6 @@
 import type {
   AdapterResult,
   FilePath,
-  FolderTypeGroups,
   GuildId,
   ProcessId,
   QuestId,
@@ -17,7 +16,6 @@ import type {
   WorkItem,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
-import { folderTypeGroupsContract } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
@@ -58,7 +56,6 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry,
   abortSignal,
   userMessage,
-  batchGroups: providedBatchGroups,
   slotCount: providedSlotCount,
 }: {
   processId: ProcessId;
@@ -68,7 +65,6 @@ export const questOrchestrationLoopBroker = async ({
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
   userMessage?: UserInput;
-  batchGroups?: FolderTypeGroups;
   slotCount?: SlotCount;
 }): Promise<AdapterResult> => {
   const result = adapterResultContract.parse({ success: true });
@@ -76,29 +72,20 @@ export const questOrchestrationLoopBroker = async ({
     return result;
   }
 
-  // Resolve slotCount + batchGroups from project config ONCE per quest run, then
-  // propagate through the recursive loop. A missing `.dungeonmaster` file (end-user
-  // installs, temp environments) is not an error — fall back to the curated defaults
-  // the contracts would have produced.
-  const { slotCount, batchGroups } =
-    providedSlotCount !== undefined && providedBatchGroups !== undefined
-      ? { slotCount: providedSlotCount, batchGroups: providedBatchGroups }
-      : await (async (): Promise<{ slotCount: SlotCount; batchGroups: FolderTypeGroups }> => {
-          const fallbackSlotCount = slotCountContract.parse(DEFAULT_SLOT_COUNT);
-          const fallbackBatchGroups = folderTypeGroupsContract.parse(undefined);
-          try {
-            const config = await dungeonmasterConfigResolveAdapter({ startPath });
-            return {
-              slotCount: providedSlotCount ?? config.orchestration?.slotCount ?? fallbackSlotCount,
-              batchGroups: providedBatchGroups ?? config.agents?.batchGroups ?? fallbackBatchGroups,
-            };
-          } catch {
-            return {
-              slotCount: providedSlotCount ?? fallbackSlotCount,
-              batchGroups: providedBatchGroups ?? fallbackBatchGroups,
-            };
-          }
-        })();
+  // Resolve slotCount from project config ONCE per quest run, then propagate through the
+  // recursive loop. A missing `.dungeonmaster` file (end-user installs, temp environments) is
+  // not an error — fall back to the curated default the contract would have produced.
+  const slotCount =
+    providedSlotCount ??
+    (await (async (): Promise<SlotCount> => {
+      const fallbackSlotCount = slotCountContract.parse(DEFAULT_SLOT_COUNT);
+      try {
+        const config = await dungeonmasterConfigResolveAdapter({ startPath });
+        return config.orchestration?.slotCount ?? fallbackSlotCount;
+      } catch {
+        return fallbackSlotCount;
+      }
+    })());
 
   // 1. Load quest
   const input = getQuestInputContract.parse({ questId });
@@ -294,7 +281,7 @@ export const questOrchestrationLoopBroker = async ({
     throw error;
   }
 
-  // 9. Recurse — pass slotCount + batchGroups through so we only resolve config once per quest run
+  // 9. Recurse — pass slotCount through so we only resolve config once per quest run
   return questOrchestrationLoopBroker({
     processId,
     questId,
@@ -302,7 +289,6 @@ export const questOrchestrationLoopBroker = async ({
     guildId,
     onAgentEntry,
     abortSignal,
-    batchGroups,
     slotCount,
   });
 };

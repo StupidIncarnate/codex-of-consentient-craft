@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod';
-import { folderTypeGroupsContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import { networkPortContract } from '@dungeonmaster/shared/contracts';
 import { configDefaultsStatics } from '../../statics/config-defaults/config-defaults-statics';
 import { frameworkStatics } from '../../statics/framework/framework-statics';
 import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
@@ -49,11 +49,6 @@ export const dungeonmasterConfigContract = z
           .min(configDefaultsStatics.orchestration.timeoutMs.min)
           .default(configDefaultsStatics.orchestration.timeoutMs.default)
           .brand<'TimeoutMs'>(),
-      })
-      .optional(),
-    agents: z
-      .object({
-        batchGroups: folderTypeGroupsContract.optional(),
       })
       .optional(),
     dungeonmaster: z

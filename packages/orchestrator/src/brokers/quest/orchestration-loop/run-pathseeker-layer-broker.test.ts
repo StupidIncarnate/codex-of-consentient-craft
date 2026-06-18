@@ -6,7 +6,6 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
-  FolderTypeGroupsStub,
   GuildIdStub,
   ObservableIdStub,
   QuestContractEntryStub,
@@ -181,7 +180,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
@@ -218,7 +216,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
@@ -261,7 +258,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const lastQuest = proxy.getPersistedQuestJsons().at(-1) as PersistedQuest;
@@ -294,7 +290,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const allWorkItems = proxy
@@ -328,7 +323,6 @@ describe('runPathseekerLayerBroker', () => {
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
           onAgentEntry: jest.fn(),
           abortSignal: new AbortController().signal,
-          batchGroups: FolderTypeGroupsStub({ value: [] }),
         }),
       ).rejects.toThrow('Quest not found: nonexistent-quest');
 
@@ -365,7 +359,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(proxy.getPersistedQuestJsons().length).toBeGreaterThan(0);
@@ -409,7 +402,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -460,7 +452,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -513,7 +504,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const stderrOutput = proxy.getStderrWrites();
@@ -558,7 +548,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry,
         abortSignal: new AbortController().signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const summaries: {
@@ -604,7 +593,6 @@ describe('runPathseekerLayerBroker', () => {
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         onAgentEntry: jest.fn(),
         abortSignal: abortController.signal,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const persisted = proxy.getPersistedQuestJsons();

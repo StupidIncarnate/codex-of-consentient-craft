@@ -325,7 +325,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   `packages/orchestrator/src/statics/` (e.g., `pathseeker-prompt-statics.ts` — the PathSeeker parent —
   plus the minions it summons: `pathseeker-surface-minion-statics.ts`, `pathseeker-dedup-minion-statics.ts`,
   `pathseeker-assertion-correctness-minion-statics.ts`, `codeweaver-minion-statics.ts`,
-  `chaoswhisperer-gap-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents.
+  `lawbringer-minion-statics.ts`, `chaoswhisperer-gap-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents.
   A work-item role calls `get-agent-prompt({agent, questId, workItemId})`; a parent-summoned minion calls
   `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and is briefed inline by its parent.
 
@@ -365,7 +365,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   ├─ Ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
   ├─ Flowrider ───── one Task() per flow, chained; owns flows/startup files + their flow-perspective test suite (integration or e2e). Only when ≥1 flow/startup step exists.
   ├─ Siegemaster ─── one Task() per flow, chained (at most one at a time); manual QA + reviews flowrider's suite + TDD-fixes what it breaks
-  ├─ Lawbringer ──── one Task() per chunk; folder-type batch chunks (whole-diff review)
+  ├─ Lawbringer ──── one Task() per package (reviewable source pairs only); each parent fans out lawbringer-minion sub-agents per pair-group (whole-diff review for bug-hunt)
   ├─ Blightwarden ── single Task(); whole-diff cross-cutting audit
   ├─ Ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
   │
@@ -384,10 +384,12 @@ All execution is driven by `quest.workItems[]`. Each work item is a generic cont
   `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which then Task()s the agents or calls the
   `run-ward` MCP tool
 - **Concurrency**: intrinsic — `spiritmender` items return as one `spawn-agents` batch; the single `pathseeker`
-  item, the single `blightwarden` item, and everything else return one agent per response. PathSeeker AND
-  Blightwarden each fan out internally by summoning their minions as `Agent` sub-agents — that parallelism lives
-  inside the parent's turn, not in the work-item graph (PathSeeker summons surface/cleanup minions; Blightwarden
-  summons the five security/dedup/perf/integrity/dead-code minions). `slotManagerStatics` slot caps stay
+  item, the single `blightwarden` item, and everything else return one agent per response. PathSeeker,
+  Blightwarden, AND each per-package Lawbringer fan out internally by summoning their minions as `Agent`
+  sub-agents — that parallelism lives inside the parent's turn, not in the work-item graph (PathSeeker summons
+  surface/cleanup minions; Blightwarden summons the five security/dedup/perf/integrity/dead-code minions; each
+  Lawbringer partitions its package's reviewable pairs and summons `lawbringer-minion`s per pair-group).
+  `slotManagerStatics` slot caps stay
   configured but are not consulted by `get-next-step`.
 - **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
   `pathseeker` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
@@ -681,4 +683,5 @@ sub-agents call in parallel against the same MCP stdio child.
 | pathseeker-dedup                 | PathSeeker via the Agent tool (Wave B)            | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`. Returns a summary (no signal-back)                                              |
 | pathseeker-assertion-correctness | PathSeeker via the Agent tool (Wave B)            | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`. Returns a summary (no signal-back)   |
 | codeweaver-minion                | Codeweaver via the Agent tool (per isolated piece) | Focused TDD worker: builds one isolated step/file-group and returns a distilled artifact (working files + usage examples). No signal-back, no work item    |
+| lawbringer-minion                | Lawbringer via the Agent tool (per pair-group)    | Focused review-and-fix worker: reviews one tight group of impl+test pairs (rules + branch-coverage walk + it.each cleanup), fixes violations inline, returns a distilled artifact. No signal-back, no work item |
 | pesteater                        | `/dumpster-launch` via Task() (bug-hunt front)    | Single TDD bug-fix agent: root-cause → write the failing test FIRST → fix → verify via ward. Reads the bug report from the quest; no `modify-quest` writes |

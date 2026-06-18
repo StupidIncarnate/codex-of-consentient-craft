@@ -10,7 +10,6 @@ import {
   adapterResultContract,
   type AdapterResult,
   type FilePath,
-  type FolderTypeGroups,
   type GuildId,
   type QuestId,
   type WorkItem,
@@ -37,7 +36,6 @@ export const runPathseekerLayerBroker = async ({
   guildId,
   onAgentEntry,
   abortSignal,
-  batchGroups,
 }: {
   questId: QuestId;
   workItem: WorkItem;
@@ -45,7 +43,6 @@ export const runPathseekerLayerBroker = async ({
   guildId: GuildId;
   onAgentEntry: OnAgentEntryCallback;
   abortSignal: AbortSignal;
-  batchGroups: FolderTypeGroups;
 }): Promise<AdapterResult> => {
   const result = adapterResultContract.parse({ success: true });
   // Fetch quest upfront to resolve PathSeeker sessionId and reuse for post-completion paths
@@ -140,7 +137,6 @@ export const runPathseekerLayerBroker = async ({
       flows: postQuestResult.quest.flows,
       pathseekerWorkItemId: workItem.id,
       now,
-      batchGroups,
     });
     if (newItems.length > 0) {
       await questModifyBroker({

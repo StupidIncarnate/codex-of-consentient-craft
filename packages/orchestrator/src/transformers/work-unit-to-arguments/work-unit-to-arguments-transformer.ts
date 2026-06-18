@@ -157,7 +157,12 @@ export const workUnitToArgumentsTransformer = ({
     }
 
     case 'lawbringer': {
-      const { filePaths: lawbringerPaths, stepBoundaries, folderTypes: lawFolderTypes } = workUnit;
+      const {
+        filePaths: lawbringerPaths,
+        stepBoundaries,
+        folderTypes: lawFolderTypes,
+        questId: lawQuestId,
+      } = workUnit;
 
       if (workUnit.reviewMode === 'whole-diff') {
         const wholeDiffParts: ContentText[] = [
@@ -180,6 +185,9 @@ export const workUnitToArgumentsTransformer = ({
         for (const fp of lawbringerPaths) {
           lawParts.push(contentTextContract.parse(`  - ${fp}`));
         }
+        if (lawQuestId !== undefined) {
+          lawParts.push(contentTextContract.parse(`Quest ID: ${lawQuestId}`));
+        }
         return contentTextContract.parse(lawParts.join('\n'));
       }
 
@@ -199,6 +207,9 @@ export const workUnitToArgumentsTransformer = ({
           lawParts.push(contentTextContract.parse(`  - ${fp}`));
         }
       });
+      if (lawQuestId !== undefined) {
+        lawParts.push(contentTextContract.parse(`Quest ID: ${lawQuestId}`));
+      }
       return contentTextContract.parse(lawParts.join('\n'));
     }
 

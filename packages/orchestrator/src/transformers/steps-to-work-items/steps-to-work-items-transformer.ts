@@ -18,7 +18,6 @@ import { workItemContract } from '@dungeonmaster/shared/contracts';
 import type {
   DependencyStep,
   Flow,
-  FolderTypeGroups,
   QuestWorkItemId,
   StepId,
   WorkItem,
@@ -26,9 +25,9 @@ import type {
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { isFlowriderOwnedStepGuard } from '../../guards/is-flowrider-owned-step/is-flowrider-owned-step-guard';
+import { isLawbringerReviewableStepGuard } from '../../guards/is-lawbringer-reviewable-step/is-lawbringer-reviewable-step-guard';
 import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
 import { mergeCyclicStepChunksTransformer } from '../merge-cyclic-step-chunks/merge-cyclic-step-chunks-transformer';
-import { stepsToBatchChunksTransformer } from '../steps-to-batch-chunks/steps-to-batch-chunks-transformer';
 import { stepsToPackageChunksTransformer } from '../steps-to-package-chunks/steps-to-package-chunks-transformer';
 
 export const stepsToWorkItemsTransformer = ({
@@ -36,13 +35,11 @@ export const stepsToWorkItemsTransformer = ({
   flows,
   pathseekerWorkItemId,
   now,
-  batchGroups,
 }: {
   steps: DependencyStep[];
   flows: Flow[];
   pathseekerWorkItemId: QuestWorkItemId;
   now: IsoTimestamp;
-  batchGroups: FolderTypeGroups;
 }): WorkItem[] => {
   // Flow-test-owned steps are owned by flowrider (it writes their impl + flow/e2e/integration test
   // suite), not codeweaver. Partition them out so codeweaver chunks exclude them and flowrider items
@@ -164,7 +161,13 @@ export const stepsToWorkItemsTransformer = ({
   const lawbringerDependsOn: QuestWorkItemId[] =
     allSiegeIds.length > 0 ? [...allSiegeIds] : [wardItem.id];
 
-  const lawChunks = stepsToBatchChunksTransformer({ steps, batchGroups });
+  // Lawbringer mirrors codeweaver: one parent work item per package (it fans out lawbringer-minions
+  // per pair inside its own turn). Filter to reviewable source pairs first so a `[command]` / barrel /
+  // package.json step never spawns a reviewer with nothing to review. stepsToPackageChunksTransformer
+  // additionally excludes flowrider-owned steps. No cyclic merge: lawbringer items share one barrier
+  // dependsOn (the sieges/ward) with no inter-item edges.
+  const lawbringerSteps = steps.filter((step) => isLawbringerReviewableStepGuard({ step }));
+  const lawChunks = stepsToPackageChunksTransformer({ steps: lawbringerSteps });
   const lawItems: WorkItem[] = lawChunks.map((chunk) =>
     workItemContract.parse({
       id: crypto.randomUUID(),

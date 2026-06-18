@@ -30,7 +30,6 @@ import type {
 // questId, matching how QuestGetNextStepResponder builds the singleton facade).
 import {
   adapterResultContract,
-  folderTypeGroupsContract,
   getQuestInputContract,
   wardResultContract,
 } from '@dungeonmaster/shared/contracts';
@@ -212,7 +211,6 @@ export const smoketestInProcessDriverBroker = async ({
         await questPostWalkHookBroker({
           questId: instruction.questId,
           walkWorkItemId: instruction.workItemId,
-          batchGroups: folderTypeGroupsContract.parse(undefined),
         });
       }
     }),

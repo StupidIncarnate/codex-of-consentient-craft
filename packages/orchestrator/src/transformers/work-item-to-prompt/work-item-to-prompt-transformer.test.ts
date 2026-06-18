@@ -168,7 +168,11 @@ describe('workItemToPromptTransformer', () => {
         role: 'lawbringer',
         relatedDataItems: [RelatedDataItemStub({ value: 'steps/orchestrator-broker' })],
       });
-      const quest = QuestStub({ steps: [step], workItems: [workItem] });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        steps: [step],
+        workItems: [workItem],
+      });
 
       const result = workItemToPromptTransformer({
         quest,
@@ -176,7 +180,8 @@ describe('workItemToPromptTransformer', () => {
         agentName: AgentPromptNameStub({ value: 'lawbringer' }),
       });
 
-      const expectedArgs = 'Files to Review:\n  - src/broker.ts\n  - src/broker.test.ts';
+      const expectedArgs =
+        'Files to Review:\n  - src/broker.ts\n  - src/broker.test.ts\nQuest ID: my-quest';
 
       expect(result.prompt).toBe(
         lawbringerPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),

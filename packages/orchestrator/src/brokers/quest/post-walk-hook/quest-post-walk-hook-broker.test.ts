@@ -2,7 +2,6 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
-  FolderTypeGroupsStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -35,7 +34,6 @@ describe('questPostWalkHookBroker', () => {
       const result = await questPostWalkHookBroker({
         questId,
         walkWorkItemId: walkId,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual({ success: true });
@@ -62,7 +60,6 @@ describe('questPostWalkHookBroker', () => {
       const result = await questPostWalkHookBroker({
         questId,
         walkWorkItemId: walkId,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual({ success: true });
@@ -90,7 +87,6 @@ describe('questPostWalkHookBroker', () => {
         questPostWalkHookBroker({
           questId,
           walkWorkItemId: itemId,
-          batchGroups: FolderTypeGroupsStub({ value: [] }),
         }),
       ).rejects.toThrow(/Work item role is not pathseeker: pathseeker-surface/u);
     });
@@ -123,7 +119,6 @@ describe('questPostWalkHookBroker', () => {
         questPostWalkHookBroker({
           questId,
           walkWorkItemId: walkId,
-          batchGroups: FolderTypeGroupsStub({ value: [] }),
         }),
       ).rejects.toThrow(/Post-walk completeness validation failed/u);
     });
@@ -143,7 +138,6 @@ describe('questPostWalkHookBroker', () => {
         questPostWalkHookBroker({
           questId,
           walkWorkItemId: missingId,
-          batchGroups: FolderTypeGroupsStub({ value: [] }),
         }),
       ).rejects.toThrow(/PathSeeker work item not found/u);
     });

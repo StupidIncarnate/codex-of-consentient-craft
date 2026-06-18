@@ -493,15 +493,13 @@ These came out of smoke runs and belong on every checkpoint unless explicitly ov
   implementation details (folder types, batch groups, step counts) into the prompt. The feature should read like
   something a product owner would ask for.
 - **Feature shape — exercise batching (post-hoc check, not a prompt instruction):** Codeweaver and lawbringer
-  collapse steps whose focusFile folder types fall in the same batch group (default groups:
-  `[contracts, statics, errors]`, `[guards, transformers]`, `[state, middleware]`). To cover both paths in one
-  quest, the spec PathSeeker produces should end up with:
-    - At least 2 steps in the same batch group (e.g. 2 new contracts, or 1 guard + 1 transformer) — so the
-      batched codeweaver path runs. A batched work item carries `workUnit.steps.length > 1` and its prompt args
-      render `=== Step N of M ===` separators.
-    - At least 1 step in a folder type outside every batch group (e.g. a `responders/` file or a
-      `widgets/` file) — so the 1-step-per-agent fallback still runs. Those work items carry
-      `workUnit.steps.length === 1` and render the flat prompt shape.
+  chunk steps **by package** (capped at `codeweaverMaxFilesPerChunkStatics.value` ≈ 20). To cover both paths in
+  one quest, the spec PathSeeker produces should end up with:
+    - At least 2 steps in the same package — so the batched codeweaver path runs. A batched work item carries
+      `workUnit.steps.length > 1` and its prompt args render `=== Step N of M ===` separators.
+    - At least 1 step with no resolvable package (an operational `[command]`/`[sweep-check]` step) — so the
+      solo-chunk fallback still runs. Lawbringer additionally skips non-reviewable steps (operational / barrel /
+      package.json) and flowrider-owned steps, then fans out `lawbringer-minion` sub-agents per pair-group.
 
   **If the first spec (post Gate #2) lands entirely in one group OR entirely in solo folder types, abandon the
   quest and restart Run N+1 with a different feature description.** Do NOT reshape the prompt to name folder types
@@ -583,13 +581,13 @@ statuses and in planningNotes, not in the quest status.
     - Each lawbringer's `dependsOn` contains BOTH siegeIds
     - `blightwardenItem.dependsOn = allLawIds`
     - `finalWardItem.dependsOn = [blightwardenItem.id]`
-  - **Codeweaver/lawbringer batching.** Number of codeweaver work items M is not 1-per-step. Default batch groups
-    are `[contracts, statics, errors, guards, transformers, state, middleware, adapters]` and `[responders, flows]`;
-    steps whose focusFile folder types fall in the same group collapse into a single work item. Folder types
-    outside every group (brokers, bindings, widgets, migrations, assets) stay 1-step-per-agent. Lawbringers use
-    the identical chunking. Each chunk is additionally capped at `defaultMaxStepsPerChunkStatics.value` (= 6)
-    steps — any group accumulator larger than the cap is sliced into sub-chunks of size ≤ 6 preserving
-    insertion order. So 13 same-group steps produce 3 work items of `[6, 6, 1]` rather than one item of 13.
+  - **Codeweaver/lawbringer batching.** Number of codeweaver work items M is not 1-per-step. Both codeweaver and
+    lawbringer chunk steps **by package** (flowrider-owned steps excluded), capped at
+    `codeweaverMaxFilesPerChunkStatics.value` (≈ 20) — a package bucket larger than the cap is sliced into
+    sub-chunks preserving insertion order. Steps with no resolvable package (operational `[command]` steps) stay
+    solo. Lawbringer additionally filters to reviewable source pairs (operational / barrel / package.json
+    dropped) and fans out `lawbringer-minion` sub-agents per pair-group inside its turn, so a package with 6
+    reviewable pairs is ONE lawbringer work item, not six.
     - Each codeweaver work item has `relatedDataItems: ['steps/<id>', ...]` — **array, not single**. A batched
       item has length > 1 and ≤ 6. A solo-folder item has length 1.
     - Batched work item `dependsOn` is the **union** of every batched step's resolved step dependencies (dedupe'd),
@@ -636,13 +634,12 @@ statuses and in planningNotes, not in the quest status.
       **dedupe'd union** of every batched step's context — not just the first step's. Cannot observe this directly
       from quest.json; verify by reading the codeweaver session and confirming the prompt mentions contracts /
       observables from ALL batched steps, not just one.
-    - **Batch-group config resolves at work-item generation time.** The chunking groups are resolved when the post-walk
-      hook runs `stepsToWorkItemsTransformer` (it passes the parsed `folderTypeGroups`, defaulting via
-      `folderTypeGroupsContract`). A missing config falls back to the curated default. The only evidence at runtime is
-      that chunk shape matches config — not a live-observable metric.
+    - **Chunking resolves at work-item generation time.** Package chunks are computed when the post-walk hook runs
+      `stepsToWorkItemsTransformer` (by package, no config knob). The only evidence at runtime is that chunk shape
+      matches the steps' packages — not a live-observable metric.
 
 **→ FAIL no batched items in the quest:** the feature produced 0 batchable steps. ChaosWhisperer needs re-prompting
-to include at least 2 steps in the same batch group — abort Phase 1 and start a new run.
+to include at least 2 steps in the same package — abort Phase 1 and start a new run.
 **→ FAIL batched prompt missing separators:** fix `work-unit-to-arguments-transformer` codeweaver branch. Restart 1.5.
 **→ PASS:** continue.
 

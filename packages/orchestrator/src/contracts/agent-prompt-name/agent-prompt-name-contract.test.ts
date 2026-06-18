@@ -50,6 +50,14 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('lawbringer');
   });
 
+  it('VALID: {value: "lawbringer-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'lawbringer-minion' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('lawbringer-minion');
+  });
+
   it('VALID: {value: "spiritmender"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'spiritmender' });
 

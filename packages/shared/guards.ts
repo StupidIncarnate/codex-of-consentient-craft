@@ -42,9 +42,6 @@ export * from './src/guards/is-complete-work-item-status/is-complete-work-item-s
 export * from './src/guards/is-skipped-work-item-status/is-skipped-work-item-status-guard';
 export * from './src/guards/is-failure-work-item-status/is-failure-work-item-status-guard';
 
-// Folder Type Groups Guards
-export * from './src/guards/is-valid-folder-type-groups/is-valid-folder-type-groups-guard';
-
 // Boot-tree Guards
 export * from './src/guards/is-ws-subscriber-name/is-ws-subscriber-name-guard';
 export * from './src/guards/is-file-in-folder-type/is-file-in-folder-type-guard';

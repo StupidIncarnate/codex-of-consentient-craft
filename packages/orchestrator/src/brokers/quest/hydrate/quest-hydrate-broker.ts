@@ -12,7 +12,6 @@
 import {
   addQuestInputContract,
   fileContentsContract,
-  folderTypeGroupsContract,
   questContract,
   questIdContract,
   questWorkItemIdContract,
@@ -89,7 +88,6 @@ export const questHydrateBroker = async ({
       flows: blueprint.flows,
       pathseekerWorkItemId,
       now,
-      batchGroups: folderTypeGroupsContract.parse(undefined),
     });
 
     const filteredWorkItems = workItemsSkipRolesTransformer({

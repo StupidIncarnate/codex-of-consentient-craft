@@ -84,6 +84,7 @@ export const runLawbringerLayerBroker = async ({
     return buildWorkUnitForRoleTransformer({
       role: 'lawbringer',
       steps: resolvedSteps,
+      questId,
       ...(wi.smoketestPromptOverride === undefined
         ? {}
         : { smoketestPromptOverride: wi.smoketestPromptOverride }),

@@ -2,7 +2,7 @@
  * PURPOSE: Post-completion hook that fires when the `pathseeker` work item transitions to complete — runs the completeness scope of `questValidateSpecTransformer` against the freshly-authored quest (step contract refs resolve, new contracts have creating step, observables satisfied) and, when those pass, invokes `stepsToWorkItemsTransformer` against the quest's authored steps + flows and persists the resulting codeweaver/ward/siegemaster/lawbringer/blightwarden chain onto the quest via questModifyBroker. PathSeeker classifies scope, summons its minions, and runs the architect-review walk itself, then signals complete — this hook is the only point where the authored plan is fully assembled, so the whole-quest completeness check (which can't fire at a status transition under the always-`in_progress` dispatch-loop flow) runs here.
  *
  * USAGE:
- * await questPostWalkHookBroker({ questId, walkWorkItemId, batchGroups });
+ * await questPostWalkHookBroker({ questId, walkWorkItemId });
  * // Re-reads the quest, runs the completeness scope, then (on pass) generates downstream
  * // work items from quest.steps + quest.flows and persists them via questModifyBroker.
  * // Throws when the named work item is not the `pathseeker` planner, when the quest is not
@@ -12,7 +12,6 @@
 
 import type {
   AdapterResult,
-  FolderTypeGroups,
   ModifyQuestInput,
   QuestId,
   QuestWorkItemId,
@@ -28,11 +27,9 @@ import { questModifyBroker } from '../modify/quest-modify-broker';
 export const questPostWalkHookBroker = async ({
   questId,
   walkWorkItemId,
-  batchGroups,
 }: {
   questId: QuestId;
   walkWorkItemId: QuestWorkItemId;
-  batchGroups: FolderTypeGroups;
 }): Promise<AdapterResult> => {
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
@@ -69,7 +66,6 @@ export const questPostWalkHookBroker = async ({
     flows: quest.flows,
     pathseekerWorkItemId: walkWorkItemId,
     now,
-    batchGroups,
   });
 
   if (newItems.length > 0) {

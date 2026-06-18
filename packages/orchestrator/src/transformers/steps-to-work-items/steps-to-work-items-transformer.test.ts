@@ -2,7 +2,6 @@ import {
   DependencyStepStub,
   FlowIdStub,
   FlowStub,
-  FolderTypeGroupsStub,
   QuestWorkItemIdStub,
   StepFileReferenceStub,
   StepFocusActionStub,
@@ -58,7 +57,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       expect(result).toStrictEqual([
@@ -189,7 +187,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const codeweavers = result.filter((wi) => wi.role === 'codeweaver');
@@ -233,7 +230,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // No minion work items — blightwarden summons them as sub-agents itself.
@@ -263,7 +259,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // ward (#1) + siege (#2) + blightwarden (#3) + final ward (#4)
@@ -287,7 +282,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // codeweaver (#1) + ward (#2) + lawbringer (#3) + blightwarden (#4) + final ward (#5)
@@ -313,7 +307,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // ward (#1) + blightwarden (#2) + final ward (#3)
@@ -345,7 +338,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const codeweaverDeps = result
@@ -380,7 +372,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flowA, flowB, flowC],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // cw (#1) + ward (#2) + 3 sieges (#3-#5) + lawbringer (#6) + blightwarden (#7) + final ward (#8)
@@ -419,7 +410,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const codeweaverDeps = result
@@ -458,7 +448,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const codeweaverDeps = result
@@ -503,7 +492,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const codeweaverDeps = result
@@ -542,7 +530,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const codeweaverDeps = result
@@ -572,7 +559,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // Mutually-dependent chunks must run as one codeweaver; merging keeps the work-item graph acyclic.
@@ -598,8 +584,8 @@ describe('stepsToWorkItemsTransformer', () => {
   describe('cross-package forward-ref resolution', () => {
     it('VALID: {2 contract steps in different packages, step #2 depends on step #1} => one codeweaver per package; package-2 codeweaver depends on package-1 codeweaver', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 2 codeweaver + ward + siege + 1 lawbringer + 1 blightwarden + final ward = 7
-      proxy.setupUuids({ uuids: IDS.slice(0, 7) });
+      // 2 codeweaver + ward + siege + 2 lawbringer (one per package) + 1 blightwarden + final ward = 8
+      proxy.setupUuids({ uuids: IDS.slice(0, 8) });
 
       const step1Id = StepIdStub({ value: 'pkg-step-1' });
       const step2Id = StepIdStub({ value: 'pkg-step-2' });
@@ -627,16 +613,18 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [['contracts']] }),
       });
 
       const roles = result.map((wi) => wi.role);
 
+      // Lawbringer chunks by package (mirrors codeweaver), so two contracts in different packages
+      // yield one lawbringer parent each.
       expect(roles).toStrictEqual([
         'codeweaver',
         'codeweaver',
         'ward',
         'siegemaster',
+        'lawbringer',
         'lawbringer',
         'blightwarden',
         'ward',
@@ -658,7 +646,7 @@ describe('stepsToWorkItemsTransformer', () => {
   describe('flowrider routing (flow/startup steps)', () => {
     it('VALID: {one broker step + one flows step + one flow} => flowrider owns the flows step; codeweaver excludes it; siege depends on flowrider', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 1 blightwarden + ward = 8
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 1 lawbringer (flow step excluded) + 1 blightwarden + ward = 7
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
       const brokerStepId = StepIdStub({ value: 'broker-step' });
@@ -685,7 +673,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       // Codeweaver excludes the flows/ step — only the broker step remains.
@@ -711,7 +698,7 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {one broker step + one .e2e.ts step + one flow} => flowrider owns the e2e step; no codeweaver carries it', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 1 blightwarden + ward = 8
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 1 lawbringer (flow step excluded) + 1 blightwarden + ward = 7
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
       const brokerStepId = StepIdStub({ value: 'broker-step' });
@@ -738,7 +725,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const flowrider = result.find((wi) => wi.role === 'flowrider');
@@ -758,7 +744,7 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {one broker step + one .integration.test.ts step + one flow} => flowrider owns the integration step; no codeweaver carries it', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // 1 codeweaver + ward + 1 flowrider + 1 siege + 2 lawbringer + 1 blightwarden + ward = 8
+      // 1 codeweaver + ward + 1 flowrider + 1 siege + 1 lawbringer (flow step excluded) + 1 blightwarden + ward = 7
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
       const brokerStepId = StepIdStub({ value: 'broker-step' });
@@ -785,7 +771,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const flowrider = result.find((wi) => wi.role === 'flowrider');
@@ -804,8 +789,8 @@ describe('stepsToWorkItemsTransformer', () => {
 
     it('VALID: {e2e-only quest — one .e2e.ts step, one flow, no flows/ or startup/ impl step} => flowrider summoned', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
-      // ward + 1 flowrider + 1 siege + 1 lawbringer (e2e step is ungrouped) + 1 blightwarden +
-      // ward = 6 work items (no codeweaver — the only step is flowrider-owned). Provide spare ids.
+      // ward + 1 flowrider + 1 siege + 0 lawbringer (only step is flowrider-owned) + 1 blightwarden +
+      // ward = 5 work items (no codeweaver — the only step is flowrider-owned). Provide spare ids.
       proxy.setupUuids({ uuids: IDS.slice(0, 11) });
 
       const e2eStepId = StepIdStub({ value: 'e2e-only-step' });
@@ -825,7 +810,6 @@ describe('stepsToWorkItemsTransformer', () => {
         flows: [flow],
         pathseekerWorkItemId,
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const flowrider = result.find((wi) => wi.role === 'flowrider');
@@ -860,7 +844,6 @@ describe('stepsToWorkItemsTransformer', () => {
           value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
         }),
         now: NOW,
-        batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
       const flowriderRoles = result.filter((wi) => wi.role === 'flowrider').map((wi) => wi.role);
@@ -871,6 +854,79 @@ describe('stepsToWorkItemsTransformer', () => {
       const siege = result.find((wi) => wi.role === 'siegemaster');
 
       expect(siege?.dependsOn).toStrictEqual([ward?.id]);
+    });
+  });
+
+  describe('lawbringer package chunking + reviewable filter', () => {
+    it('VALID: {web impl steps across contracts/adapters/widgets + command/package.json/e2e steps} => one web lawbringer over only the reviewable impl pairs', () => {
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({ uuids: IDS });
+
+      const contractStep = DependencyStepStub({
+        id: StepIdStub({ value: 'web-observable-count-contract' }),
+        dependsOn: [],
+        focusFile: {
+          path: 'packages/web/src/contracts/observable-count/observable-count-contract.ts',
+        },
+      });
+      const adapterStep = DependencyStepStub({
+        id: StepIdStub({ value: 'web-elk-layout-adapter' }),
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/adapters/elk/layout/elk-layout-adapter.ts' },
+      });
+      const widgetStep = DependencyStepStub({
+        id: StepIdStub({ value: 'web-react-flow-diagram-widget' }),
+        dependsOn: [],
+        focusFile: {
+          path: 'packages/web/src/widgets/react-flow-diagram/react-flow-diagram-widget.tsx',
+        },
+      });
+      // Operational step: a command instruction whose text embeds a src/ path — not a reviewable pair.
+      const deleteStep = DependencyStepStub({
+        id: StepIdStub({ value: 'web-delete-mermaid-widget' }),
+        focusFile: undefined,
+        focusAction: StepFocusActionStub({
+          kind: 'command',
+          description: 'Delete packages/web/src/widgets/mermaid-diagram/ and all its files',
+        }),
+        dependsOn: [],
+      });
+      // package.json edit: resolves to no folder type — not a reviewable pair.
+      const packageJsonStep = DependencyStepStub({
+        id: StepIdStub({ value: 'web-update-package-json' }),
+        dependsOn: [],
+        focusFile: { path: 'packages/web/package.json' },
+      });
+      // e2e step: resolves to flows/ but is flowrider-owned — excluded by the package chunker.
+      const e2eStep = DependencyStepStub({
+        id: StepIdStub({ value: 'web-e2e-diagram' }),
+        dependsOn: [],
+        focusFile: { path: 'packages/web/src/flows/quest-chat/quest-spec-panel-diagram.e2e.ts' },
+      });
+
+      const flow = FlowStub({ id: FlowIdStub({ value: 'review-flows-diagram' }) });
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [contractStep, adapterStep, widgetStep, deleteStep, packageJsonStep, e2eStep],
+        flows: [flow],
+        pathseekerWorkItemId,
+        now: NOW,
+      });
+
+      const lawbringers = result.filter((wi) => wi.role === 'lawbringer');
+
+      // One web lawbringer parent, carrying only the three reviewable impl pairs (command +
+      // package.json dropped by the reviewable filter; e2e dropped as flowrider-owned).
+      expect(lawbringers.map((wi) => wi.relatedDataItems)).toStrictEqual([
+        [
+          `steps/${String(contractStep.id)}`,
+          `steps/${String(adapterStep.id)}`,
+          `steps/${String(widgetStep.id)}`,
+        ],
+      ]);
     });
   });
 });
