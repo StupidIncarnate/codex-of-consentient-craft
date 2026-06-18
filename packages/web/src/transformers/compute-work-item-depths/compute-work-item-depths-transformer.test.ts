@@ -77,6 +77,88 @@ describe('computeWorkItemDepthsTransformer', () => {
     });
   });
 
+  describe('dependency cycle (cycle-breaking longest path)', () => {
+    it('EDGE: {3-item cycle + downstream + tail} => cycle resolves to finite depths and downstream sorts after the cycle', () => {
+      // root → {x,y,z mutually cyclic} → downstream → tail. A naive Kahn topo-sort never dequeues the
+      // cycle members, so it collapses downstream + tail to depth 0 (they sort ABOVE the cycle).
+      // Cycle-breaking longest-path skips back-edges, so every node gets a finite depth and the
+      // downstream chain stays below the cycle.
+      const root = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'pathseeker',
+        status: 'complete',
+        dependsOn: [],
+      });
+      const x = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [root.id, 'a0000000-0000-0000-0000-000000000004'],
+      });
+      const y = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000003',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [root.id, x.id],
+      });
+      const z = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000004',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [root.id, y.id],
+      });
+      const downstream = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000005',
+        role: 'ward',
+        status: 'pending',
+        dependsOn: [x.id, y.id, z.id],
+      });
+      const tail = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000006',
+        role: 'flowrider',
+        status: 'pending',
+        dependsOn: [downstream.id],
+      });
+
+      const items = [root, x, y, z, downstream, tail];
+      const itemMap = new Map<WorkItem['id'], WorkItem>(items.map((i) => [i.id, i]));
+      const result = computeWorkItemDepthsTransformer({ items, itemMap });
+
+      expect(result).toStrictEqual(
+        new Map([
+          [root.id, 0],
+          [x.id, 3],
+          [y.id, 1],
+          [z.id, 2],
+          [downstream.id, 4],
+          [tail.id, 5],
+        ]),
+      );
+    });
+
+    it('EDGE: {2-item cycle with no other deps} => resolves to finite depths (no infinite recursion)', () => {
+      const p = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000001',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: ['a0000000-0000-0000-0000-000000000002'],
+      });
+      const qItem = WorkItemStub({
+        id: 'a0000000-0000-0000-0000-000000000002',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [p.id],
+      });
+
+      const items = [p, qItem];
+      const itemMap = new Map<WorkItem['id'], WorkItem>(items.map((i) => [i.id, i]));
+      const result = computeWorkItemDepthsTransformer({ items, itemMap });
+
+      expect(result.get(p.id)).toBe(1);
+      expect(result.get(qItem.id)).toBe(0);
+    });
+  });
+
   describe('diamond dependency', () => {
     it('VALID: {A→B, A→C, B→D, C→D diamond} => D has depth 2', () => {
       const a = WorkItemStub({

@@ -8,8 +8,6 @@
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { DependencyCount } from '../../contracts/dependency-count/dependency-count-contract';
-import { dependencyCountContract } from '../../contracts/dependency-count/dependency-count-contract';
 import type { TopologicalDepth } from '../../contracts/topological-depth/topological-depth-contract';
 import { topologicalDepthContract } from '../../contracts/topological-depth/topological-depth-contract';
 
@@ -20,65 +18,51 @@ export const computeWorkItemDepthsTransformer = ({
   items: WorkItem[];
   itemMap: Map<WorkItem['id'], WorkItem>;
 }): Map<WorkItem['id'], TopologicalDepth> => {
-  const depths = new Map<WorkItem['id'], TopologicalDepth>();
-  const zero = topologicalDepthContract.parse(0);
-
   const itemIds = new Set(items.map((i) => i.id));
-  const inDegree = new Map<WorkItem['id'], DependencyCount>();
-  const dependents = new Map<WorkItem['id'], WorkItem['id'][]>();
+  const depths = new Map<WorkItem['id'], TopologicalDepth>();
+  // Ids currently on the DFS stack — a dep that points back into this set is a back-edge (cycle).
+  const visiting = new Set<WorkItem['id']>();
 
+  // Iterative cycle-breaking longest-path DFS. depth = 1 + max(depth of in-set, non-back-edge deps);
+  // back-edges and out-of-set deps are skipped, so a dependency cycle resolves to a finite depth.
+  // A plain Kahn topo-sort would never dequeue cycle members and would collapse the cycle plus
+  // everything transitively downstream of it to depth 0 — inverting the floor order (e.g.
+  // flowrider/siegemaster/lawbringer/blightwarden rendering above codeweaver).
   for (const item of items) {
-    let count = dependencyCountContract.parse(0);
-    for (const depId of item.dependsOn) {
-      if (itemMap.has(depId) && itemIds.has(depId)) {
-        count = dependencyCountContract.parse(count + 1);
-        const existing = dependents.get(depId) ?? [];
-        existing.push(item.id);
-        dependents.set(depId, existing);
-      }
-    }
-    inDegree.set(item.id, count);
-    if (count === 0) {
-      depths.set(item.id, zero);
-    }
-  }
+    if (depths.has(item.id)) continue;
 
-  const queue: WorkItem['id'][] = [];
-  for (const [id, degree] of inDegree) {
-    if (degree === 0) {
-      queue.push(id);
-    }
-  }
-
-  while (queue.length > 0) {
-    const currentId = queue.shift();
-    if (!currentId) continue;
-    const currentDepth = depths.get(currentId) ?? zero;
-    const children = dependents.get(currentId) ?? [];
-
-    for (const childId of children) {
-      const childItem = itemMap.get(childId);
-      if (!childItem) continue;
-
-      const existingDepth = depths.get(childId);
-      const candidateDepth = topologicalDepthContract.parse(currentDepth + 1);
-
-      if (existingDepth === undefined || candidateDepth > existingDepth) {
-        depths.set(childId, candidateDepth);
+    const stack: WorkItem['id'][] = [item.id];
+    while (stack.length > 0) {
+      const id = stack[stack.length - 1];
+      if (id === undefined || depths.has(id)) {
+        stack.pop();
+        continue;
       }
 
-      const remaining = dependencyCountContract.parse((inDegree.get(childId) ?? 1) - 1);
-      inDegree.set(childId, remaining);
+      visiting.add(id);
+      const dependsOn = itemMap.get(id)?.dependsOn ?? [];
 
-      if (remaining === 0) {
-        queue.push(childId);
+      // Descend into the first in-set, non-back-edge dep that has not been resolved yet.
+      const unresolvedDepId = dependsOn.find(
+        (depId) =>
+          itemIds.has(depId) && itemMap.has(depId) && !visiting.has(depId) && !depths.has(depId),
+      );
+      if (unresolvedDepId !== undefined) {
+        stack.push(unresolvedDepId);
+        continue;
       }
-    }
-  }
 
-  for (const item of items) {
-    if (!depths.has(item.id)) {
-      depths.set(item.id, zero);
+      // All resolvable deps are settled — this node is the longest resolved dep path plus one.
+      let depth = 0;
+      for (const depId of dependsOn) {
+        if (!itemIds.has(depId) || !itemMap.has(depId) || visiting.has(depId)) continue;
+        const candidate = (depths.get(depId) ?? 0) + 1;
+        if (candidate > depth) depth = candidate;
+      }
+
+      depths.set(id, topologicalDepthContract.parse(depth));
+      visiting.delete(id);
+      stack.pop();
     }
   }
 

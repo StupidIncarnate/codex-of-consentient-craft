@@ -4,6 +4,8 @@ import {
   FlowStub,
   FolderTypeGroupsStub,
   QuestWorkItemIdStub,
+  StepFileReferenceStub,
+  StepFocusActionStub,
   StepIdStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -133,6 +135,82 @@ describe('stepsToWorkItemsTransformer', () => {
           retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',
           wardMode: 'full',
+        },
+      ]);
+    });
+  });
+
+  describe('cyclic chunk merge (acyclic codeweaver graph)', () => {
+    it('VALID: {package steps bracket a chain of solo focusAction steps} => codeweaver chunks merge into one acyclic item (no dependsOn cycle)', () => {
+      // Reproduces the real-world cycle: a package-bucket step (update package.json) depends on a
+      // no-focusFile sweep step (solo chunk), which transitively depends back on another
+      // package-bucket step (modify widget). Per-package + solo chunking would put the two ends in
+      // the same web chunk while the sweep steps land in solo chunks → web→solo→solo→web cycle.
+      const proxy = stepsToWorkItemsTransformerProxy();
+      proxy.setupUuids({ uuids: IDS });
+
+      const modifyWidget = DependencyStepStub({
+        id: StepIdStub({ value: 'aaaaaaaa-0000-4000-8000-000000000001' }),
+        focusFile: StepFileReferenceStub({
+          path: 'packages/web/src/widgets/quest-spec-panel/flows-layer-widget.tsx',
+        }),
+        dependsOn: [],
+      });
+      const deleteMermaid = DependencyStepStub({
+        id: StepIdStub({ value: 'aaaaaaaa-0000-4000-8000-000000000002' }),
+        focusFile: undefined,
+        focusAction: StepFocusActionStub({
+          kind: 'command',
+          description: 'Delete the mermaid-diagram widget directory',
+        }),
+        dependsOn: [modifyWidget.id],
+      });
+      const deletePanzoom = DependencyStepStub({
+        id: StepIdStub({ value: 'aaaaaaaa-0000-4000-8000-000000000003' }),
+        focusFile: undefined,
+        focusAction: StepFocusActionStub({
+          kind: 'command',
+          description: 'Delete the panzoom adapter directory',
+        }),
+        dependsOn: [deleteMermaid.id],
+      });
+      const updatePackageJson = DependencyStepStub({
+        id: StepIdStub({ value: 'aaaaaaaa-0000-4000-8000-000000000004' }),
+        focusFile: StepFileReferenceStub({ path: 'packages/web/package.json' }),
+        dependsOn: [deletePanzoom.id],
+      });
+
+      const pathseekerWorkItemId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+
+      const result = stepsToWorkItemsTransformer({
+        steps: [modifyWidget, deleteMermaid, deletePanzoom, updatePackageJson],
+        flows: [],
+        pathseekerWorkItemId,
+        now: NOW,
+        batchGroups: FolderTypeGroupsStub({ value: [] }),
+      });
+
+      const codeweavers = result.filter((wi) => wi.role === 'codeweaver');
+
+      expect(codeweavers).toStrictEqual([
+        {
+          id: IDS[0],
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [
+            `steps/${String(modifyWidget.id)}`,
+            `steps/${String(updatePackageJson.id)}`,
+            `steps/${String(deleteMermaid.id)}`,
+            `steps/${String(deletePanzoom.id)}`,
+          ],
+          dependsOn: [pathseekerWorkItemId],
+          maxAttempts: 1,
+          attempt: 0,
+          retryCount: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
         },
       ]);
     });
@@ -474,7 +552,7 @@ describe('stepsToWorkItemsTransformer', () => {
       expect(codeweaverDeps).toStrictEqual([[pathseekerWorkItemId]]);
     });
 
-    it('VALID: {circular dep — A depends on B, B depends on A} => both resolve (cycle not detected here) — documents current behavior', () => {
+    it('VALID: {circular dep — A depends on B, B depends on A} => the cyclic chunks merge into one acyclic codeweaver', () => {
       const proxy = stepsToWorkItemsTransformerProxy();
       proxy.setupUuids({ uuids: IDS.slice(0, 13) });
 
@@ -497,16 +575,22 @@ describe('stepsToWorkItemsTransformer', () => {
         batchGroups: FolderTypeGroupsStub({ value: [] }),
       });
 
-      const codeweaverDeps = result
-        .filter((wi) => wi.role === 'codeweaver')
-        .map((wi) => wi.dependsOn);
+      // Mutually-dependent chunks must run as one codeweaver; merging keeps the work-item graph acyclic.
+      const codeweavers = result.filter((wi) => wi.role === 'codeweaver');
 
-      // Cycle detection is a separate guard; this transformer wires deps regardless.
-      expect(codeweaverDeps).toStrictEqual([
-        // cw A (id #1) depends on pathseeker + cw B (id #2)
-        [pathseekerWorkItemId, IDS[1]],
-        // cw B (id #2) depends on pathseeker + cw A (id #1)
-        [pathseekerWorkItemId, IDS[0]],
+      expect(codeweavers).toStrictEqual([
+        {
+          id: IDS[0],
+          role: 'codeweaver',
+          status: 'pending',
+          spawnerType: 'agent',
+          relatedDataItems: [`steps/${String(stepAId)}`, `steps/${String(stepBId)}`],
+          dependsOn: [pathseekerWorkItemId],
+          maxAttempts: 1,
+          attempt: 0,
+          retryCount: 0,
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
       ]);
     });
   });

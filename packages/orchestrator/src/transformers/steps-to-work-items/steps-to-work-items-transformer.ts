@@ -27,6 +27,7 @@ import type {
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { isFlowriderOwnedStepGuard } from '../../guards/is-flowrider-owned-step/is-flowrider-owned-step-guard';
 import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
+import { mergeCyclicStepChunksTransformer } from '../merge-cyclic-step-chunks/merge-cyclic-step-chunks-transformer';
 import { stepsToBatchChunksTransformer } from '../steps-to-batch-chunks/steps-to-batch-chunks-transformer';
 import { stepsToPackageChunksTransformer } from '../steps-to-package-chunks/steps-to-package-chunks-transformer';
 
@@ -52,7 +53,12 @@ export const stepsToWorkItemsTransformer = ({
   // Pass 1: chunk the codeweaver steps (one chunk per package, flow/startup excluded) AND
   // pre-populate stepIdToCwId for every step across every chunk BEFORE pass 2 reads it. This is
   // required because a step in chunk N may depend on a step in chunk M where M > N.
-  const cwChunks = stepsToPackageChunksTransformer({ steps });
+  // mergeCyclicStepChunksTransformer collapses any chunks whose dependsOn edges form a cycle (a
+  // package-bucket step bracketing a chain through no-focusFile solo chunks) into one chunk, so the
+  // codeweaver work-item graph stays acyclic.
+  const cwChunks = mergeCyclicStepChunksTransformer({
+    chunks: stepsToPackageChunksTransformer({ steps }),
+  });
   const stepIdToCwId = new Map<StepId, QuestWorkItemId>();
   const assignedCwIds: QuestWorkItemId[] = cwChunks.map((chunk) => {
     const cwId = workItemContract.shape.id.parse(crypto.randomUUID());

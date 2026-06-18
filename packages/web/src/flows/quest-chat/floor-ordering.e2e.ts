@@ -151,6 +151,162 @@ test.describe('Floor Ordering', () => {
     expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[WARD]']);
   });
 
+  test('EDGE: codeweaver work items with a dependency cycle => FORGE still renders before the downstream floors (cycle does not invert order)', async ({
+    page,
+    request,
+  }) => {
+    // Regression guard for the cycle-inversion bug: when the codeweaver chunks carry a dependency
+    // cycle (cwA depends on cwB AND cwB depends on cwA), a naive Kahn topo-sort never resolves them,
+    // collapses every downstream role (ward/flowrider/siege/law/blight/full-ward) to depth 0, and
+    // floats them ABOVE the codeweavers — so FORGE rendered dead last. The cycle-breaking depth walk
+    // keeps FORGE ahead of the downstream floors even with the cycle present.
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Codeweaver Cycle Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const mainSessionId = `e2e-cw-cycle-${Date.now()}`;
+
+    sessions.createSessionFileForQuest({ sessionId: mainSessionId });
+
+    const created = await questHarness({ request }).createQuest({
+      guildId,
+      title: 'E2E Codeweaver Cycle Quest',
+      userRequest: 'Build the feature',
+    });
+    const { questId } = created;
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
+
+    const cwAId = crypto.randomUUID();
+    const cwBId = crypto.randomUUID();
+    const wardChangedId = crypto.randomUUID();
+    const flowriderId = crypto.randomUUID();
+    const siegeId = crypto.randomUUID();
+    const lawbringerId = crypto.randomUUID();
+    const blightwardenId = crypto.randomUUID();
+    const wardFullId = crypto.randomUUID();
+
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
+      status: 'in_progress',
+      steps: [
+        { id: 'step-1', name: 'Build module A' },
+        { id: 'step-2', name: 'Build module B' },
+      ],
+      workItems: [
+        {
+          id: crypto.randomUUID(),
+          role: 'chaoswhisperer',
+          sessionId: mainSessionId,
+          status: 'complete',
+          dependsOn: [],
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: cwAId,
+          role: 'codeweaver',
+          sessionId: mainSessionId,
+          status: 'pending',
+          relatedDataItems: ['steps/step-1'],
+          dependsOn: [cwBId],
+          createdAt: '2024-01-15T10:01:00.000Z',
+        },
+        {
+          id: cwBId,
+          role: 'codeweaver',
+          sessionId: mainSessionId,
+          status: 'pending',
+          relatedDataItems: ['steps/step-2'],
+          dependsOn: [cwAId],
+          createdAt: '2024-01-15T10:02:00.000Z',
+        },
+        {
+          id: wardChangedId,
+          role: 'ward',
+          sessionId: mainSessionId,
+          status: 'pending',
+          wardMode: 'changed',
+          dependsOn: [cwAId, cwBId],
+          createdAt: '2024-01-15T10:03:00.000Z',
+        },
+        {
+          id: flowriderId,
+          role: 'flowrider',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [wardChangedId],
+          createdAt: '2024-01-15T10:04:00.000Z',
+        },
+        {
+          id: siegeId,
+          role: 'siegemaster',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [flowriderId],
+          createdAt: '2024-01-15T10:05:00.000Z',
+        },
+        {
+          id: lawbringerId,
+          role: 'lawbringer',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [siegeId],
+          createdAt: '2024-01-15T10:06:00.000Z',
+        },
+        {
+          id: blightwardenId,
+          role: 'blightwarden',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [lawbringerId],
+          createdAt: '2024-01-15T10:07:00.000Z',
+        },
+        {
+          id: wardFullId,
+          role: 'ward',
+          sessionId: mainSessionId,
+          status: 'pending',
+          wardMode: 'full',
+          dependsOn: [blightwardenId],
+          createdAt: '2024-01-15T10:08:00.000Z',
+        },
+      ],
+    });
+
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+
+    const floorTexts = await getFloorHeaderTexts({ page });
+
+    // FORGE (both cyclic codeweavers) renders before MINI BOSS and every downstream floor — the cycle
+    // no longer sinks codeweaver below flowrider/siege/lawbringer/blightwarden.
+    expect(floorTexts).toStrictEqual([
+      'HOMEBASE',
+      'FLOOR 1: FORGE',
+      'FLOOR 2: FORGE',
+      'FLOOR 3: MINI BOSS',
+      'FLOOR 4: GLUEWORKS',
+      'FLOOR 5: ARENA',
+      'FLOOR 6: TRIBUNAL',
+      'FLOOR 7: QUARANTINE',
+      'FLOOR 8: FLOOR BOSS',
+    ]);
+
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 1 })).toStrictEqual(['[CODEWEAVER]']);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 2 })).toStrictEqual(['[CODEWEAVER]']);
+    expect(await getRoleBadgesUnderFloor({ page, floorIndex: 3 })).toStrictEqual(['[WARD]']);
+  });
+
   test('VALID: full pipeline with two ward modes => canonical floor order, full ward (FLOOR BOSS) last, flowrider after codeweaver', async ({
     page,
     request,
