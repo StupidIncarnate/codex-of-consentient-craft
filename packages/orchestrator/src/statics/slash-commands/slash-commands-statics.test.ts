@@ -199,5 +199,23 @@ describe('slashCommandsStatics', () => {
 
       expect(foundSlice).toBe(needle);
     });
+
+    it('VALID: dumpsterLaunch.body => idle branch instructs a backgrounded Bash sleep 1800', () => {
+      const needle = 'Bash `sleep 1800`** with `run_in_background: true`';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterLaunch.body => idle branch forbids ScheduleWakeup and other timer mechanisms', () => {
+      const needle = 'do NOT use ScheduleWakeup, a cron, or any other wakeup/timer mechanism';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
   });
 });
