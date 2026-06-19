@@ -6,19 +6,16 @@ describe('questStatusInputAllowlistStatics', () => {
       pending: {
         allowedFields: ['title', 'status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       created: {
         allowedFields: ['title', 'status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       explore_flows: {
         allowedFields: ['title', 'flows', 'designDecisions', 'status'],
         flowsRule: 'no-observables',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       review_flows: {
@@ -28,7 +25,6 @@ describe('questStatusInputAllowlistStatics', () => {
           fields: ['flows', 'designDecisions'],
         },
         flowsRule: 'no-observables',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       flows_approved: {
@@ -41,7 +37,6 @@ describe('questStatusInputAllowlistStatics', () => {
           'status',
         ],
         flowsRule: 'full',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       explore_observables: {
@@ -54,7 +49,6 @@ describe('questStatusInputAllowlistStatics', () => {
           'status',
         ],
         flowsRule: 'full',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       review_observables: {
@@ -70,19 +64,16 @@ describe('questStatusInputAllowlistStatics', () => {
           ],
         },
         flowsRule: 'full',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       approved: {
         allowedFields: ['status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       explore_design: {
         allowedFields: ['designDecisions', 'status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       review_design: {
@@ -92,19 +83,16 @@ describe('questStatusInputAllowlistStatics', () => {
           fields: ['designDecisions'],
         },
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       design_approved: {
         allowedFields: ['status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       seek_scope: {
         allowedFields: ['planningNotes', 'status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: ['scopeClassification'],
       },
       seek_synth: {
@@ -117,7 +105,6 @@ describe('questStatusInputAllowlistStatics', () => {
           'status',
         ],
         flowsRule: 'observable-wording-only',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
       },
       seek_walk: {
@@ -130,42 +117,31 @@ describe('questStatusInputAllowlistStatics', () => {
           'status',
         ],
         flowsRule: 'observable-wording-only',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: ['walkFindings'],
       },
       in_progress: {
         allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
         flowsRule: 'observable-wording-only',
-        blightReportsRule: 'full',
-        allowedPlanningNotesFields: [
-          'scopeClassification',
-          'blightReports',
-          'walkFindings',
-          'codeweaverPlans',
-        ],
+        allowedPlanningNotesFields: 'all',
       },
       paused: {
         allowedFields: ['status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       blocked: {
         allowedFields: ['status'],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       complete: {
         allowedFields: [],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       abandoned: {
         allowedFields: [],
         flowsRule: 'forbidden',
-        blightReportsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
     });
@@ -197,10 +173,6 @@ describe('questStatusInputAllowlistStatics', () => {
         'seek_walk',
       ].sort(),
     );
-  });
-
-  it('VALID: in_progress => allows planningNotes.blightReports via blightReportsRule', () => {
-    expect(questStatusInputAllowlistStatics.in_progress.blightReportsRule).toBe('full');
   });
 
   it('VALID: seek_scope => allowedPlanningNotesFields limits writes to scopeClassification', () => {
@@ -244,12 +216,7 @@ describe('questStatusInputAllowlistStatics', () => {
     ]);
   });
 
-  it('VALID: in_progress => allowedPlanningNotesFields permits scopeClassification (PathSeeker), blightReports (Blightwarden), walkFindings (pathseeker-walk), and codeweaverPlans (Codeweaver)', () => {
-    expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toStrictEqual([
-      'scopeClassification',
-      'blightReports',
-      'walkFindings',
-      'codeweaverPlans',
-    ]);
+  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; PathSeeker writes its whole planning lifecycle during in_progress)", () => {
+    expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
   });
 });
