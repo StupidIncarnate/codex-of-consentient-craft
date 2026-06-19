@@ -82,6 +82,27 @@ describe('questLoadBroker', () => {
       );
     });
 
+    it('ERROR: {status: "in-progress"} => throws error naming the offending field and reason', async () => {
+      const proxy = questLoadBrokerProxy();
+      const questFilePath = FilePathStub({ value: '/quests/bad-status.json' });
+      const questJson = JSON.stringify({
+        id: 'bad-status',
+        folder: '004-bad-status',
+        title: 'Quest With Hyphenated Status',
+        status: 'in-progress',
+        createdAt: '2024-01-01T00:00:00Z',
+        userRequest: 'Trigger an invalid enum value',
+        steps: [],
+        toolingRequirements: [],
+      });
+
+      proxy.setupQuestFile({ questJson });
+
+      await expect(questLoadBroker({ questFilePath })).rejects.toThrow(
+        /^Failed to parse quest file at \/quests\/bad-status\.json: status: Invalid enum value/u,
+      );
+    });
+
     it('ERROR: {questFilePath: "/missing.json"} => throws error when file does not exist', async () => {
       const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/missing.json' });
