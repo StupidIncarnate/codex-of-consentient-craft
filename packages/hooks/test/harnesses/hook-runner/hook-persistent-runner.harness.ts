@@ -21,7 +21,8 @@ type HookName =
   | 'start-pre-bash-hook'
   | 'start-post-edit-hook'
   | 'start-pre-edit-hook'
-  | 'start-session-snippet-hook';
+  | 'start-session-snippet-hook'
+  | 'start-subagent-stop-hook';
 
 const WORKER_PATH = path.join(__dirname, 'hook-persistent-worker.ts');
 

@@ -312,6 +312,32 @@ describe('pathseekerSurfaceMinionStatics', () => {
       expect(found).toBe(needle);
     });
 
+    it('VALID: template => forbids authoring a ward / quality-gate step', () => {
+      const needle = '- **Never author a ward / quality-gate step.**';
+      const { template } = pathseekerSurfaceMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => directs consolidating confirm-post-state checks into one focusAction step', () => {
+      const needle = '**Consolidate confirm-post-state checks into ONE `focusAction` step.**';
+      const { template } = pathseekerSurfaceMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: template => no longer offers "ward exit 0" as an operational predicate example', () => {
+      expect(pathseekerSurfaceMinionStatics.prompt.template.indexOf('ward exit 0')).toBe(-1);
+    });
+
     it('VALID: template => Quest Context section ends with $ARGUMENTS placeholder', () => {
       expect(pathseekerSurfaceMinionStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
     });

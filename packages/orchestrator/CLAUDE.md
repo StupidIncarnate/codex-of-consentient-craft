@@ -431,9 +431,15 @@ The `seek_scope` / `seek_synth` / `seek_walk` enum values remain on the contract
 transitions `approved → seek_scope → in_progress` on every Start because `approved`'s allowlist
 forbids `planningNotes`, so the auto-seed of `planningNotes.scopeClassification` lands in the
 transient `seek_scope` window, and the `seek_walk → in_progress` completeness gate still lives in
-`questSaveInvariantsTransformer` / `questCompletenessForTransitionTransformer`. `in_progress` ALSO
-accepts `scopeClassification` (alongside `blightReports` / `walkFindings` / `codeweaverPlans`), so
-PathSeeker can refine that auto-seed — or re-slice on walk-time scope creep — during its own run.
+`questSaveInvariantsTransformer` / `questCompletenessForTransitionTransformer`. Because PathSeeker
+runs its ENTIRE planning lifecycle while the quest stays `in_progress`, the `in_progress`
+write-allowlist imposes NO per-phase `planningNotes` sub-field gating
+(`allowedPlanningNotesFields: 'all'`): any sub-field — `scopeClassification` / `surfaceReports` /
+`synthesis` / `walkFindings`, plus the execution-phase `blightReports` (Blightwarden) and
+`codeweaverPlans` (Codeweaver) — is writable, so PathSeeker can write scope/surface/synthesis/walk
+artifacts (and re-slice on walk-time scope creep) during its own run. Only the statuses BEFORE
+`in_progress` — the spec/design phases plus the `seek_scope`/`seek_synth`/`seek_walk` planning phases —
+keep a per-phase sub-field allowlist, so each retains its write-discipline.
 What is gone is any quest that *settles* in a `seek_*` status: PathSeeker is a single `pathseeker`
 work item that runs entirely while the quest is `in_progress`; its scope → summon → walk phase
 boundaries live inside its own turn, tracked by `planningNotes` presence rather than quest status

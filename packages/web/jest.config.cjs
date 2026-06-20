@@ -1,5 +1,11 @@
-const { resolve } = require('path');
+const { resolve, dirname } = require('path');
 const baseConfig = require('../../jest.config.base.js');
+
+// Resolve react/react-dom to their actual install location so the test suite shares a
+// single React instance regardless of whether npm hoists them to the repo root or nests
+// them under packages/web. require.resolve follows npm's resolution from this package.
+const reactDir = dirname(require.resolve('react/package.json'));
+const reactDomDir = dirname(require.resolve('react-dom/package.json'));
 
 module.exports = {
   ...baseConfig,
@@ -25,13 +31,13 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '\\.(css|less|scss)$': '<rootDir>/src/__mocks__/style-mock.cjs',
-    '^react$': resolve(__dirname, 'node_modules/react'),
-    '^react-dom$': resolve(__dirname, 'node_modules/react-dom'),
-    '^react-dom/(.*)$': resolve(__dirname, 'node_modules/react-dom/$1'),
-    '^react/(.*)$': resolve(__dirname, 'node_modules/react/$1'),
-    '^mermaid$': '<rootDir>/src/__mocks__/mermaid-mock.cjs',
-    '^@panzoom/panzoom$': '<rootDir>/src/__mocks__/panzoom-mock.cjs',
+    '^react$': reactDir,
+    '^react-dom$': reactDomDir,
+    '^react-dom/(.*)$': `${reactDomDir}/$1`,
+    '^react/(.*)$': `${reactDir}/$1`,
+    '^elkjs$': '<rootDir>/src/__mocks__/elkjs-mock.cjs',
     '^@tabler/icons-react$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
+    '^@xyflow/react$': '<rootDir>/src/__mocks__/xyflow-react-mock.cjs',
   },
   transformIgnorePatterns: [
     '/dist/',

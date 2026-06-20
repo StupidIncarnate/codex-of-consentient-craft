@@ -9,7 +9,8 @@
     "dungeonmaster-post-edit-lint": "./dist/src/startup/start-post-edit-hook.js",
     "dungeonmaster-post-ask-question": "./dist/src/startup/start-post-ask-question-hook.js",
     "dungeonmaster-worktree-create": "./dist/src/startup/start-worktree-create-hook.js",
-    "dungeonmaster-session-snippet": "./dist/src/startup/start-session-snippet-hook.js"
+    "dungeonmaster-session-snippet": "./dist/src/startup/start-session-snippet-hook.js",
+    "dungeonmaster-subagent-stop": "./dist/src/startup/start-subagent-stop-hook.js"
   },
   "scripts": {
     "build": "tsc",

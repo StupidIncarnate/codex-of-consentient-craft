@@ -111,7 +111,7 @@ ChaosWhisperer made the flowType judgment and can override it — you are not th
 Look at the full set of observables per flow and ask:
 - Would a Siegemaster agent know how to verify this flow given these observables and this entry point? (If the entry point is a URL but every observable is a grep predicate, the flow is confused about what it is.)
 - Is every decision branch represented by at least one observable that describes the branch outcome?
-- Are there terminal nodes with observables that describe state rather than behavior? For a \`runtime\` flow, the terminal should describe what the user/caller sees. For an \`operational\` flow, the terminal describes the post-execution state (Ward green, grep zero, service healthy).
+- Are there terminal nodes with observables that describe state rather than behavior? For a \`runtime\` flow, the terminal should describe what the user/caller sees. For an \`operational\` flow, the terminal describes the post-execution state (grep zero, directory gone, service healthy) — NOT "ward passes" (see "Redundant ward/build observable" in Step 5).
 
 **Failure policy for operational flows.**
 
@@ -156,6 +156,9 @@ For each observable, scrutinize:
 - Does every non-trivial node have at least one observable?
 - Are decision branch outcomes covered (both the true and false paths)?
 - Are error nodes covered with observables?
+
+**Redundant ward/build observable.**
+- Flag as a **Warning** any observable whose outcome is "ward passes", "lint + typecheck + tests pass", or "npm run build exits 0" (e.g. \`{ type: "process-state", description: "npm run ward … exits 0 with zero failures across lint, typecheck, unit" }\`). Ward (a \`changed\`-scope run after the code is written and a \`full\` run at the very end) and the build run automatically in every quest's implementation workflow, with failures auto-routed to fixer agents — so such an observable is ALWAYS redundant and makes a downstream agent waste a build floor re-running it. Suggest removing it; operational acceptance should be the concrete end-state predicate (grep zero, directory gone, symbol absent), not "the quality gate passes".
 
 ### Step 6: Review Tangible Values
 

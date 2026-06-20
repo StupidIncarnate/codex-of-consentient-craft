@@ -37,7 +37,7 @@ describe('isLawbringerReviewableStepGuard', () => {
     it('INVALID: {focusFile [command] with embedded src/ path} => returns false', () => {
       const step = DependencyStepStub({
         focusFile: {
-          path: '[command] Delete directories: packages/shared/src/transformers/flow-to-mermaid/',
+          path: '[command] Delete directories: packages/shared/src/transformers/legacy-renderer/',
         },
       });
 

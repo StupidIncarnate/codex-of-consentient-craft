@@ -153,6 +153,16 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-subagent-stop"
+          }
+        ]
+      }
     ]
   },
   "permissions": {

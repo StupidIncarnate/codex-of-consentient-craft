@@ -349,8 +349,8 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('blightReportsRule: nested-path carveout', () => {
-    it('VALID: {in_progress + planningNotes.blightReports only} => permits (blightReportsRule: full)', () => {
+  describe('in_progress planningNotes ungating (allowedPlanningNotesFields: all)', () => {
+    it('VALID: {in_progress + planningNotes.blightReports only} => returns empty array (in_progress is ungated)', () => {
       const blight = PlanningBlightReportStub();
       const input = ModifyQuestInputStub({
         planningNotes: {
@@ -368,7 +368,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {in_progress + planningNotes with blightReports AND surfaceReports} => rejects only the forbidden surfaceReports sub-field by name', () => {
+    it('VALID: {in_progress + planningNotes with blightReports AND surfaceReports} => permits both (in_progress accepts the full planning lifecycle)', () => {
       const blight = PlanningBlightReportStub();
       const surface = PlanningSurfaceReportStub();
       const input = ModifyQuestInputStub({
@@ -385,12 +385,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Sub-field 'planningNotes.surfaceReports' not allowed in status 'in_progress'",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {created + planningNotes.blightReports only} => rejects (blightReportsRule: forbidden)', () => {
+    it('INVALID: {created + planningNotes.blightReports only} => rejects planningNotes wholesale (created forbids planningNotes)', () => {
       const blight = PlanningBlightReportStub();
       const input = ModifyQuestInputStub({
         planningNotes: {
@@ -598,6 +596,26 @@ describe('questInputForbiddenFieldsTransformer', () => {
           "Sub-field 'planningNotes.blightReports' not allowed in status 'seek_synth'",
         ]);
       });
+
+      it('INVALID: {seek_synth + planningNotes with surfaceReports AND blightReports} => rejects only the forbidden blightReports sub-field by name', () => {
+        const input = ModifyQuestInputStub({
+          planningNotes: {
+            surfaceReports: [PlanningSurfaceReportStub()],
+            blightReports: [PlanningBlightReportStub()],
+          },
+        });
+        const currentQuest = QuestStub({ status: 'seek_synth' });
+
+        const offenders = questInputForbiddenFieldsTransformer({
+          input,
+          currentQuest,
+          currentStatus: 'seek_synth',
+        });
+
+        expect(offenders.map((o) => String(o))).toStrictEqual([
+          "Sub-field 'planningNotes.blightReports' not allowed in status 'seek_synth'",
+        ]);
+      });
     });
 
     describe('seek_walk', () => {
@@ -695,8 +713,8 @@ describe('questInputForbiddenFieldsTransformer', () => {
       });
     });
 
-    describe('in_progress sub-field enforcement (alongside existing blight carveout)', () => {
-      it('VALID: {in_progress + planningNotes.blightReports} => returns empty array (blight carveout still works)', () => {
+    describe('in_progress sub-field acceptance (ungated — any planningNotes sub-field accepted)', () => {
+      it('VALID: {in_progress + planningNotes.blightReports} => returns empty array (in_progress is ungated)', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             blightReports: [PlanningBlightReportStub()],
@@ -747,7 +765,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         expect(offenders).toStrictEqual([]);
       });
 
-      it('INVALID: {in_progress + planningNotes.surfaceReports} => rejects the surfaceReports sub-field by name (not in in_progress allowlist)', () => {
+      it('VALID: {in_progress + planningNotes.surfaceReports} => returns empty array (PathSeeker surface phase runs during in_progress)', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             surfaceReports: [PlanningSurfaceReportStub()],
@@ -761,9 +779,24 @@ describe('questInputForbiddenFieldsTransformer', () => {
           currentStatus: 'in_progress',
         });
 
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.surfaceReports' not allowed in status 'in_progress'",
-        ]);
+        expect(offenders).toStrictEqual([]);
+      });
+
+      it('VALID: {in_progress + planningNotes.synthesis} => returns empty array (PathSeeker synthesis phase runs during in_progress)', () => {
+        const input = ModifyQuestInputStub({
+          planningNotes: {
+            synthesis: PlanningSynthesisStub(),
+          },
+        });
+        const currentQuest = QuestStub({ status: 'in_progress' });
+
+        const offenders = questInputForbiddenFieldsTransformer({
+          input,
+          currentQuest,
+          currentStatus: 'in_progress',
+        });
+
+        expect(offenders).toStrictEqual([]);
       });
     });
   });

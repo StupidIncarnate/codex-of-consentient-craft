@@ -46,11 +46,16 @@ const subagentStartHookContract = z.object({
   hooks: z.array(hookEntryContract),
 });
 
+const subagentStopHookContract = z.object({
+  hooks: z.array(hookEntryContract),
+});
+
 const hooksConfigContract = z.object({
   PreToolUse: z.array(preToolUseHookContract).optional(),
   PostToolUse: z.array(postToolUseHookContract).optional(),
   SessionStart: z.array(sessionStartHookContract).optional(),
   SubagentStart: z.array(subagentStartHookContract).optional(),
+  SubagentStop: z.array(subagentStopHookContract).optional(),
   WorktreeCreate: z.array(worktreeCreateHookContract).optional(),
 });
 
@@ -78,6 +83,7 @@ export type HookCommand = z.infer<typeof hookCommandContract>;
 export type PostToolUseHook = z.infer<typeof postToolUseHookContract>;
 export type WorktreeCreateHook = z.infer<typeof worktreeCreateHookContract>;
 export type SubagentStartHook = z.infer<typeof subagentStartHookContract>;
+export type SubagentStopHook = z.infer<typeof subagentStopHookContract>;
 export type HookMatcher = z.infer<typeof hookMatcherContract>;
 export type PermissionsConfig = z.infer<typeof permissionsConfigContract>;
 export type PermissionString = z.infer<typeof permissionStringContract>;
@@ -93,4 +99,5 @@ export type SettingsHookListEntry =
   | PostToolUseHook
   | SessionStartHook
   | SubagentStartHook
+  | SubagentStopHook
   | WorktreeCreateHook;

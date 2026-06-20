@@ -64,6 +64,8 @@ const PLANNING_NOTES_TOPLEVEL_CASES = WALK_PATH.map((toStatus) => {
 
 const PLANNING_NOTES_SUBFIELD_CASES = WALK_PATH.map((toStatus) => {
   const strategy = questHydrateStrategyStatics.strategies[toStatus];
+  // No walk-path step transitions FROM in_progress, so allowedSubs is always a finite array here
+  // (never the in_progress `'all'` sentinel) — the indexed-access type proves it.
   const allowedSubs =
     questStatusInputAllowlistStatics[strategy.fromStatus].allowedPlanningNotesFields;
   const missing = strategy.planningNotesFields.filter((f) => !allowedSubs.some((a) => a === f));

@@ -4,10 +4,8 @@
  * USAGE:
  * questStatusInputAllowlistStatics.explore_flows.allowedFields;
  * // Returns: ['title', 'flows', 'designDecisions', 'status']
- * questStatusInputAllowlistStatics.in_progress.flowsRule;
- * // Returns: 'observable-wording-only' (flows allowed only for in-place observable replacement)
- * questStatusInputAllowlistStatics.in_progress.blightReportsRule;
- * // Returns: 'full' (Blightwarden writes to planningNotes.blightReports during in_progress)
+ * questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields;
+ * // Returns: 'all' (in_progress accepts any planningNotes sub-field — no per-phase gating)
  * questStatusInputAllowlistStatics.seek_walk.allowedPlanningNotesFields;
  * // Returns: ['walkFindings'] (PathSeeker writes only walkFindings during seek_walk)
  *
@@ -21,15 +19,19 @@
  *     'observable-wording-only'  -> only in-place replacement on EXISTING flow/node/observable IDs:
  *                                   no flow add/delete, no node add/delete, no edge add/delete,
  *                                   no observable add/delete — only wording/type updates on existing observables
- * - blightReportsRule: nested-path rule for `planningNotes.blightReports` input (scoped to that sub-field only)
- *     'forbidden'                -> planningNotes.blightReports input is never allowed
- *     'full'                     -> any blightReports upsert (add/update/delete) allowed AND
- *                                   a blight-only planningNotes payload is permitted even if `planningNotes`
- *                                   is NOT in allowedFields at this status (top-level carveout).
- * - allowedPlanningNotesFields: sub-field positive allowlist for `planningNotes.*` — when `planningNotes`
- *                               input is present, every sub-field being written must appear in this array,
- *                               otherwise the write is rejected regardless of how the top-level field was
- *                               permitted (allowedFields entry OR blightReports carveout).
+ * - allowedPlanningNotesFields: per-status rule for `planningNotes.*` sub-field writes
+ *     readonly Field[]  -> sub-field allowlist: when `planningNotes` is written, every sub-field present must
+ *                          appear in this array, otherwise the write is rejected BY NAME (`Sub-field
+ *                          'planningNotes.<x>' not allowed`). An empty [] combined with `planningNotes` being
+ *                          absent from allowedFields rejects the whole field wholesale (`Field 'planningNotes'
+ *                          not allowed`). Every status BEFORE `in_progress` (spec/design phases plus the
+ *                          seek_scope/seek_synth/seek_walk planning phases) keeps its sub-field allowlist so
+ *                          each phase retains its write-discipline.
+ *     'all'             -> no sub-field gating: any `planningNotes` sub-field is writable, AND a `planningNotes`
+ *                          payload is accepted even though `planningNotes` is NOT in allowedFields. Only
+ *                          `in_progress` uses this — PathSeeker runs its ENTIRE planning lifecycle (scope →
+ *                          surface → synthesis → walk) while the quest stays `in_progress`, so the execution
+ *                          window imposes no per-phase planningNotes write-discipline.
  */
 
 export type QuestStatusFlowsRule =
@@ -37,8 +39,6 @@ export type QuestStatusFlowsRule =
   | 'full'
   | 'no-observables'
   | 'observable-wording-only';
-
-export type QuestStatusBlightReportsRule = 'forbidden' | 'full';
 
 export type QuestStatusPlanningNotesField =
   | 'scopeClassification'
@@ -52,19 +52,16 @@ export const questStatusInputAllowlistStatics = {
   pending: {
     allowedFields: ['title', 'status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   created: {
     allowedFields: ['title', 'status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   explore_flows: {
     allowedFields: ['title', 'flows', 'designDecisions', 'status'],
     flowsRule: 'no-observables',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   review_flows: {
@@ -74,7 +71,6 @@ export const questStatusInputAllowlistStatics = {
       fields: ['flows', 'designDecisions'],
     },
     flowsRule: 'no-observables',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   flows_approved: {
@@ -87,7 +83,6 @@ export const questStatusInputAllowlistStatics = {
       'status',
     ],
     flowsRule: 'full',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   explore_observables: {
@@ -100,7 +95,6 @@ export const questStatusInputAllowlistStatics = {
       'status',
     ],
     flowsRule: 'full',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   review_observables: {
@@ -110,19 +104,16 @@ export const questStatusInputAllowlistStatics = {
       fields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'packagesAffected'],
     },
     flowsRule: 'full',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   approved: {
     allowedFields: ['status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   explore_design: {
     allowedFields: ['designDecisions', 'status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   review_design: {
@@ -132,19 +123,16 @@ export const questStatusInputAllowlistStatics = {
       fields: ['designDecisions'],
     },
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   design_approved: {
     allowedFields: ['status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   seek_scope: {
     allowedFields: ['planningNotes', 'status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: ['scopeClassification'],
   },
   seek_synth: {
@@ -157,7 +145,6 @@ export const questStatusInputAllowlistStatics = {
       'status',
     ],
     flowsRule: 'observable-wording-only',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
   },
   seek_walk: {
@@ -170,42 +157,31 @@ export const questStatusInputAllowlistStatics = {
       'status',
     ],
     flowsRule: 'observable-wording-only',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: ['walkFindings'],
   },
   in_progress: {
     allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
     flowsRule: 'observable-wording-only',
-    blightReportsRule: 'full',
-    allowedPlanningNotesFields: [
-      'scopeClassification',
-      'blightReports',
-      'walkFindings',
-      'codeweaverPlans',
-    ],
+    allowedPlanningNotesFields: 'all',
   },
   paused: {
     allowedFields: ['status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   blocked: {
     allowedFields: ['status'],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   complete: {
     allowedFields: [],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   abandoned: {
     allowedFields: [],
     flowsRule: 'forbidden',
-    blightReportsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
 } as const;

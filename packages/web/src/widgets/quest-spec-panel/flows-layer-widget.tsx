@@ -1,26 +1,24 @@
 /**
- * PURPOSE: Renders the flows section within the quest spec panel with mermaid diagram visualization
+ * PURPOSE: Renders the flows section within the quest spec panel with an interactive React Flow diagram
  *
  * USAGE:
  * <FlowsLayerWidget flows={flows} editing={false} onChange={handleChange} />
- * // Renders flows with name, entry/exit points, scope, and generated mermaid diagram SVG
+ * // Renders flows with name, entry/exit points, scope, and an interactive React Flow diagram
  */
 
 import { Box, Group, Text } from '@mantine/core';
 
 import type { Flow, QuestContractEntry } from '@dungeonmaster/shared/contracts';
-import { flowToMermaidTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
 import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
 import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
-import type { MermaidDefinition } from '../../contracts/mermaid-definition/mermaid-definition-contract';
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormInputWidget } from '../form-input/form-input-widget';
-import { MermaidDiagramWidget } from '../mermaid-diagram/mermaid-diagram-widget';
 import { PlanSectionWidget } from '../plan-section/plan-section-widget';
+import { ReactFlowDiagramWidget } from '../react-flow-diagram/react-flow-diagram-widget';
 
 const FLOWS_LABEL = 'FLOWS' as SectionLabel;
 const NAME_PLACEHOLDER = 'Name' as FormPlaceholder;
@@ -179,13 +177,10 @@ export const FlowsLayerWidget = ({
                 exit: {flow.exitPoints.join(', ')}
               </Text>
               {flow.nodes.length > 0 ? (
-                <Box mt={FIELD_MARGIN_TOP} data-testid="FLOW_DIAGRAM">
-                  <MermaidDiagramWidget
-                    diagram={
-                      flowToMermaidTransformer(
-                        contracts === undefined ? { flow } : { flow, contracts },
-                      ) as unknown as MermaidDefinition
-                    }
+                <Box mt={FIELD_MARGIN_TOP}>
+                  <ReactFlowDiagramWidget
+                    flow={flow}
+                    {...(contracts === undefined ? {} : { contracts })}
                   />
                 </Box>
               ) : null}
