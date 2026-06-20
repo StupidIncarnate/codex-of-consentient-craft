@@ -42,7 +42,7 @@ export default defineConfig({
   },
   cacheDir: `node_modules/.vite-${basePort}`,
   optimizeDeps: {
-    include: [...sharedSubpaths, 'mermaid'],
+    include: [...sharedSubpaths],
     force: true,
   },
   build: {
