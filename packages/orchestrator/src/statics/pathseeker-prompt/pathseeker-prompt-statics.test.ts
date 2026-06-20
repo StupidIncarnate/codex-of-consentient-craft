@@ -99,6 +99,39 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: prompt template => forbids authoring a ward / quality-gate step', () => {
+    const needle = '**Do NOT author a step whose job is to run ward or any quality gate.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => the walk deletes ward-run steps', () => {
+    const needle = '- **Ward-run step.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => the walk consolidates scattered verification steps', () => {
+    const needle = '- **Scattered verification steps.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
   it('VALID: prompt template => does NOT revive the seek_scope status', () => {
     expect(pathseekerPromptStatics.prompt.template.indexOf('seek_scope')).toBe(-1);
   });

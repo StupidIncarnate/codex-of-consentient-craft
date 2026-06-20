@@ -210,7 +210,7 @@ Signals for \`operational\`:
 
 **Branching rules by flow type:**
 - \`runtime\` flows MUST include both happy and sad paths at every decision point. Error recovery paths must be explicit. Think through what realistically goes wrong (API returns 500, file doesn't exist, user cancels) rather than covering "every decision needs a branch" mechanically.
-- \`operational\` flows may be linear task sequences. Decision nodes are less common (usually "did it work? yes/no/retry"). Failure policies live in \`designDecisions\`, not as per-decision branches. A retry loop at the final verify step is a normal pattern (\`run ward → check → fix → run ward → done\`). Do not invent per-task failure branches that don't exist at runtime.
+- \`operational\` flows may be linear task sequences. Decision nodes are less common (usually "did it work? yes/no/retry"). Failure policies live in \`designDecisions\`, not as per-decision branches. A retry loop at the final verify step is a normal pattern (\`apply change → verify end state → fix → re-verify → done\`), where "verify end state" is the concrete acceptance predicate (grep returns zero, directory gone, symbol absent) — NOT "run ward". Ward runs automatically in the implementation workflow (see "Ward is automatic" below), so do not model a ward run as a flow node. Do not invent per-task failure branches that don't exist at runtime.
 
 **Other common mistakes:**
 - Overly abstract nodes ("Process data") instead of concrete actions ("Parse JSON response")
@@ -360,13 +360,14 @@ A flow whose observables are almost all \`ui-state\`/\`api-call\` tells Siegemas
 
 **Perspective matches flow type:**
 - \`runtime\` flows: write from the user's or caller's perspective — what a human, an HTTP client, or a message producer observes
-- \`operational\` flows: write from the verifier's perspective — what a grep, a Ward run, or a file-system check would confirm after the task sequence completes
+- \`operational\` flows: write from the verifier's perspective — what a grep or a file-system check would confirm after the task sequence completes (NOT "ward passes" — ward is automatic; see "Ward is automatic" below)
 
 **Operational observable conventions (examples to mirror):**
 - Grep predicate: \`{ type: "custom", description: "grep -r ': void' packages/*/src/adapters/**/*.ts returns zero matches on exported function signatures" }\`
-- Ward result: \`{ type: "process-state", description: "npm run ward -- -- packages/orchestrator exits 0 with zero failures across lint, typecheck, unit" }\`
 - Infrastructure health: \`{ type: "api-call", description: "curl http://localhost:4700/health returns 200 after deployment completes" }\`
 - Code invariant: \`{ type: "custom", description: "every file under packages/web/src/brokers/quest/**/*.ts that imports from @dungeonmaster/shared does NOT import QuestId" }\`
+
+**Ward is automatic — do NOT author a "ward passes" observable.** Every quest's implementation workflow runs ward twice on its own: a \`changed\`-scope ward after the code is written and a \`full\` monorepo ward at the very end (failures auto-route to fixer agents that repair and re-run). An observable like \`{ type: "process-state", description: "npm run ward … exits 0 with zero failures across lint, typecheck, unit" }\` — or any "lint + typecheck + tests all pass" outcome — is therefore ALWAYS redundant: it adds nothing the baked-in ward floors don't already enforce, and it makes a downstream agent burn a whole build floor re-running ward. Operational acceptance is the concrete end-state predicate (a grep returns zero, a directory is gone, a symbol is absent), never "the quality gate passes". Same for a standalone "npm run build exits 0" observable — building is part of the ward floors.
 
 **Each observable must be independently verifiable.** If an outcome has two parts, split them into separate observables.
 

@@ -126,6 +126,21 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
+  it('VALID: prompt template => forbids authoring a redundant "ward passes" observable', () => {
+    const needle = '**Ward is automatic — do NOT author a "ward passes" observable.**';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => no longer ships a "ward exits 0" example observable', () => {
+    const { template } = dumpsterCreatePromptStatics.prompt;
+
+    expect(template.indexOf('Ward result: `{ type: "process-state"')).toBe(-1);
+  });
+
   it('VALID: prompt template => explains that option label and description become the persisted rationale text', () => {
     const needle =
       'The option `label` and `description` values you write become the persisted `rationale` text on each design decision.';

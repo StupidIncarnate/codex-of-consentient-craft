@@ -11,4 +11,21 @@ describe('chaoswhispererGapMinionStatics', () => {
       },
     });
   });
+
+  it('VALID: prompt template => flags a redundant ward/build observable as a Warning', () => {
+    const needle = '**Redundant ward/build observable.**';
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => no longer treats "Ward green" as the expected operational terminal', () => {
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+
+    expect(template.indexOf('(Ward green, grep zero, service healthy)')).toBe(-1);
+  });
 });
