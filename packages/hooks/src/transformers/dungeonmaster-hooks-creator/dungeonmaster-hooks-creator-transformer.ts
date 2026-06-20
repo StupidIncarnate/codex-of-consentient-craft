@@ -22,6 +22,7 @@ export const dungeonmasterHooksCreatorTransformer = (): {
   PostToolUse: PostToolUseHook[];
   SessionStart: SessionStartHook[];
   SubagentStart: SessionStartHook[];
+  SubagentStop: SessionStartHook[];
   WorktreeCreate: WorktreeCreateHook[];
 } => {
   // Parse through contract to get branded types
@@ -57,6 +58,11 @@ export const dungeonmasterHooksCreatorTransformer = (): {
           hooks: [{ type: 'command', command: `dungeonmaster-session-snippet ${key}` }],
         })),
       ],
+      SubagentStop: [
+        {
+          hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }],
+        },
+      ],
       WorktreeCreate: [
         {
           hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
@@ -70,6 +76,7 @@ export const dungeonmasterHooksCreatorTransformer = (): {
     PostToolUse: parsed.hooks?.PostToolUse ?? [],
     SessionStart: parsed.hooks?.SessionStart ?? [],
     SubagentStart: parsed.hooks?.SubagentStart ?? [],
+    SubagentStop: parsed.hooks?.SubagentStop ?? [],
     WorktreeCreate: parsed.hooks?.WorktreeCreate ?? [],
   };
 };

@@ -69,6 +69,10 @@ export const InstallCreateSettingsResponder = async ({
           existing: existingHooks.SubagentStart ?? [],
           fresh: dungeonmasterHooks.SubagentStart,
         }),
+        SubagentStop: upsertDungeonmasterHookListTransformer({
+          existing: existingHooks.SubagentStop ?? [],
+          fresh: dungeonmasterHooks.SubagentStop,
+        }),
         WorktreeCreate: upsertDungeonmasterHookListTransformer({
           existing: existingHooks.WorktreeCreate ?? [],
           fresh: dungeonmasterHooks.WorktreeCreate,

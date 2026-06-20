@@ -103,6 +103,11 @@ describe('InstallFlow', () => {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
             },
           ],
+          SubagentStop: [
+            {
+              hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }],
+            },
+          ],
           WorktreeCreate: [
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],

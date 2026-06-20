@@ -67,7 +67,6 @@ not as code, so you load architecture and testing context but NOT syntax rules:
 `status: 'explore_flows'` and set a concise bug-describing title.
 
 **Work:** Capture the bug as TWO flows:
-
 - **Actual-state flow** — the reproduction path as it behaves today. Nodes trace how the user
   triggers the bug (entry point → the action → a terminal node where the wrong thing is
   observed). Keep it minimal — the path to the symptom, not the whole app.

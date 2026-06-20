@@ -20,6 +20,7 @@ type SessionSnippetFlow = (params: {
 interface FlowModule {
   HookPreEditFlow?: AsyncHookFlow;
   HookPostEditFlow?: AsyncHookFlow;
+  HookSubagentStopFlow?: AsyncHookFlow;
   HookPreBashFlow?: SyncHookFlow;
   HookSessionSnippetFlow?: SessionSnippetFlow;
 }
@@ -50,7 +51,8 @@ const processEnvelope = async (params: {
     return;
   }
 
-  const asyncFlow = flowModule.HookPreEditFlow ?? flowModule.HookPostEditFlow;
+  const asyncFlow =
+    flowModule.HookPreEditFlow ?? flowModule.HookPostEditFlow ?? flowModule.HookSubagentStopFlow;
   if (asyncFlow) {
     const result = await asyncFlow({ inputData });
     writeResult(result);

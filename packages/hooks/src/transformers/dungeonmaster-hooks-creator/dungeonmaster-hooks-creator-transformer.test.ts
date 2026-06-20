@@ -76,6 +76,11 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
             hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet packages' }],
           },
         ],
+        SubagentStop: [
+          {
+            hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }],
+          },
+        ],
         WorktreeCreate: [
           {
             hooks: [{ type: 'command', command: 'dungeonmaster-worktree-create' }],
@@ -142,6 +147,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
       const result = dungeonmasterHooksCreatorTransformer();
 
       expect(result.WorktreeCreate[0]?.hooks[0]?.command).toBe('dungeonmaster-worktree-create');
+    });
+
+    it('VALID: includes a single SubagentStop entry => dungeonmaster-subagent-stop command', () => {
+      const result = dungeonmasterHooksCreatorTransformer();
+
+      expect(result.SubagentStop).toStrictEqual([
+        { hooks: [{ type: 'command', command: 'dungeonmaster-subagent-stop' }] },
+      ]);
     });
 
     it('VALID: includes PostToolUse AskUserQuestion matcher => returns correct matcher', () => {
