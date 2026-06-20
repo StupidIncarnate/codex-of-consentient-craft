@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { FlowStub, FlowNodeStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
@@ -160,8 +160,9 @@ describe('FlowsLayerWidget', () => {
       expect(nameParent).toBe(badgeParent);
     });
 
-    it('VALID: {flows: [flow with nodes]} => renders mermaid diagram from flowToMermaidTransformer', () => {
-      FlowsLayerWidgetProxy();
+    it('VALID: {flows: [flow with nodes]} => renders React Flow FLOW_DIAGRAM', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
       const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
       const flow = FlowStub({
         nodes: [node],
@@ -172,12 +173,17 @@ describe('FlowsLayerWidget', () => {
         ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
       });
 
-      expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
-      expect(screen.getByTestId('MERMAID_CONTAINER')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('REACT_FLOW_CANVAS')).toBeInTheDocument();
+      expect(screen.queryByTestId('MERMAID_CONTAINER')).toBe(null);
     });
 
-    it('VALID: {flows: [flow with nodes], contracts: [linked]} => renders mermaid diagram with contracts', () => {
-      FlowsLayerWidgetProxy();
+    it('VALID: {flows: [flow with nodes], contracts: [linked]} => renders React Flow diagram with contracts', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
       const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
       const flow = FlowStub({
         nodes: [node],
@@ -199,12 +205,16 @@ describe('FlowsLayerWidget', () => {
         ),
       });
 
-      expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
-      expect(screen.getByTestId('MERMAID_CONTAINER')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('REACT_FLOW_CANVAS')).toBeInTheDocument();
     });
 
-    it('VALID: {flows: [flow with nodes], contracts: undefined} => renders mermaid diagram without contracts', () => {
-      FlowsLayerWidgetProxy();
+    it('VALID: {flows: [flow with nodes], contracts: undefined} => renders React Flow diagram without contracts', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
       const node = FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' });
       const flow = FlowStub({
         nodes: [node],
@@ -215,11 +225,14 @@ describe('FlowsLayerWidget', () => {
         ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
       });
 
-      expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
-      expect(screen.getByTestId('MERMAID_CONTAINER')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('REACT_FLOW_CANVAS')).toBeInTheDocument();
     });
 
-    it('VALID: {flows: [flow with empty nodes]} => does not render mermaid diagram', () => {
+    it('EMPTY: {flows: [flow with empty nodes]} => does not render FLOW_DIAGRAM', () => {
       FlowsLayerWidgetProxy();
       const flow = FlowStub({ nodes: [], edges: [] });
 
