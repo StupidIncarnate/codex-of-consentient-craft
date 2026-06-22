@@ -117,6 +117,10 @@ export const flowDiagramHarness = ({
   allNodesWithinCanvas: () => Promise<boolean>;
   zoomInGrowsScale: () => Promise<boolean>;
   zoomOutShrinksScale: () => Promise<boolean>;
+  canvasHasRenderableHeight: () => Promise<boolean>;
+  allEdgesRendered: () => Promise<boolean>;
+  branchLabelRendered: (params: { label: string }) => Promise<boolean>;
+  clickPaneBackground: () => Promise<void>;
 } => {
   // Internal (non-exported) helpers: return types are inferred from Playwright APIs so the
   // signature carries no raw-primitive annotation. The factory's public methods below all
@@ -166,10 +170,10 @@ export const flowDiagramHarness = ({
         userRequest: 'Build the feature',
       });
 
-      // Write the quest file as `approved` BEFORE navigating: an already-approved quest
-      // loaded on initial navigation renders the spec panel directly. The Begin Quest
-      // modal only pops up on a live WS transition INTO approved while the page is open
-      // (see quest-approved-modal.e2e.ts), which is not the case here.
+      // Write the quest file as `approved` BEFORE navigating so the spec panel (and its
+      // flow diagram) renders directly on load. An already-approved quest also surfaces the
+      // Begin Quest modal on load, which is dismissed below so its overlay doesn't intercept
+      // diagram interaction clicks.
       quests.writeQuestFile({
         questId: String(created.questId),
         questFolder: String(created.questFolder),
@@ -193,6 +197,19 @@ export const flowDiagramHarness = ({
       await page
         .getByTestId('QUEST_SPEC_PANEL')
         .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+
+      // An already-approved quest surfaces the "Begin Quest" modal on load; its overlay
+      // intercepts every diagram interaction click. A reviewer dismisses it via "Keep
+      // Chatting" to review the spec — do the same so the diagram is interactable. The
+      // modal is precondition state outside this flow's scope (its own e2e covers the
+      // Begin Quest button), so dismissing it here does not bypass the control under test.
+      const keepChatting = page.getByTestId('PIXEL_BTN').filter({ hasText: 'Keep Chatting' });
+      if (await keepChatting.isVisible().catch(() => false)) {
+        await keepChatting.click();
+        await page
+          .getByTestId('QUEST_APPROVED_MODAL_TITLE')
+          .waitFor({ state: 'hidden', timeout: PANEL_TIMEOUT });
+      }
       await page.getByTestId('FLOW_DIAGRAM').waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
       await page
         .getByTestId('REACT_FLOW_CANVAS')
@@ -257,6 +274,45 @@ export const flowDiagramHarness = ({
       await page.waitForFunction(VIEWPORT_SCALE_LT_BROWSER_FN, before, { timeout: PANEL_TIMEOUT });
       const after = await currentScale();
       return after < before;
+    },
+
+    // The React Flow canvas only renders a usable graph when its wrapper resolves a DEFINITE
+    // height — a bare maxHeight collapses to 0 because the absolutely positioned nodes don't
+    // contribute height. Asserts the REACT_FLOW_CANVAS occupies real vertical space.
+    canvasHasRenderableHeight: async (): Promise<boolean> => {
+      const box = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
+      if (box === null) {
+        throw new Error('REACT_FLOW_CANVAS has no bounding box');
+      }
+      return box.height >= EXPECTED_NODE_COUNT;
+    },
+
+    // Edges only render when the custom node card exposes React Flow connection handles.
+    // Without handles React Flow drops every edge ("source handle id: null"). Asserts one
+    // rendered edge path per flow edge.
+    allEdgesRendered: async (): Promise<boolean> => {
+      const expectedEdgeCount = DIAGRAM_FLOW.edges.length;
+      await page
+        .locator('.react-flow__edge-path')
+        .nth(expectedEdgeCount - 1)
+        .waitFor({ state: 'attached', timeout: CANVAS_TIMEOUT });
+      const renderedEdges = await page.locator('.react-flow__edge-path').count();
+      return renderedEdges === expectedEdgeCount;
+    },
+
+    // A labeled edge's branch text ('yes'/'no') renders only when the edge itself renders.
+    // The real React Flow paints edge labels as `.react-flow__edge-text`, not the unit
+    // mock's FLOW_EDGE_LABEL div — so this asserts the real-browser label element.
+    branchLabelRendered: async ({ label }: { label: string }): Promise<boolean> => {
+      const labelLocator = page.locator('.react-flow__edge-text', { hasText: label });
+      await labelLocator.first().waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      return (await labelLocator.count()) >= 1;
+    },
+
+    // The real React Flow pane is `.react-flow__pane` (no testid). Clicking it must deselect
+    // via React Flow's onPaneClick — a DOM-testid sniff would never fire in the real browser.
+    clickPaneBackground: async (): Promise<void> => {
+      await page.locator('.react-flow__pane').click({ position: { x: 5, y: 5 } });
     },
   };
 };

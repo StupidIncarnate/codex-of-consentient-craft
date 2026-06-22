@@ -28,6 +28,7 @@ export interface XyflowReactFlowAdapterProps {
   edges: Edge[];
   nodeTypes?: NodeTypes;
   onNodeClick?: (node: XyflowReactFlowAdapterNode) => void;
+  onPaneClick?: () => void;
 }
 
 export const xyflowReactFlowAdapter = ({
@@ -35,6 +36,7 @@ export const xyflowReactFlowAdapter = ({
   edges,
   nodeTypes,
   onNodeClick,
+  onPaneClick,
 }: XyflowReactFlowAdapterProps): React.ReactElement => {
   const reactFlowProps: ReactFlowProps<XyflowReactFlowAdapterNode> = {
     nodes,
@@ -42,6 +44,11 @@ export const xyflowReactFlowAdapter = ({
     ...(nodeTypes === undefined ? {} : { nodeTypes }),
     onNodeClick: (_event, node) => {
       onNodeClick?.(node);
+    },
+    // React Flow's native pane-click callback — the real pane is `.react-flow__pane`
+    // (no testid), so deselect must hook this API rather than sniffing a DOM testid.
+    onPaneClick: () => {
+      onPaneClick?.();
     },
     fitView: true,
   };

@@ -11,6 +11,7 @@ import { IconCircle, IconDiamond, IconPlayerPlay, IconSquare } from '@tabler/ico
 
 import type { FlowNodeType } from '@dungeonmaster/shared/contracts';
 
+import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
 import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 
@@ -57,6 +58,7 @@ export const FlowNodeCardLayerWidget = ({
         ...ringStyle,
       }}
     >
+      {xyflowNodeHandlesAdapter()}
       <div data-testid="FLOW_NODE_TYPE_ICON" style={{ color: accentColor, marginBottom: 4 }}>
         <TypeIcon size={14} />
       </div>

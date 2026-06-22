@@ -44,11 +44,24 @@ export default defineConfig({
   optimizeDeps: {
     include: [...sharedSubpaths],
     force: true,
+    // elkjs (lib/main.js) does a guarded `require('web-worker')` for its optional
+    // worker path. We run elk on the main thread (no workerUrl), so that require is
+    // never reached at runtime — but esbuild's static dep-optimizer still tries to
+    // resolve it and fails because `web-worker` is not installed. Mark it external so
+    // esbuild leaves the require in place instead of bundling it.
+    esbuildOptions: {
+      external: ['web-worker'],
+    },
   },
   build: {
     outDir: 'dist',
     commonjsOptions: {
       include: [/shared/u, /node_modules/u],
+    },
+    // Same reason as optimizeDeps above: keep `web-worker` external in the production
+    // rollup build so elkjs's optional-worker require doesn't break bundling.
+    rollupOptions: {
+      external: ['web-worker'],
     },
   },
 });

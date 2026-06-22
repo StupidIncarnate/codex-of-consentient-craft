@@ -57,6 +57,55 @@ test.describe('Flow Diagram Interaction', () => {
     expect(await diagram.zoomOutShrinksScale()).toBe(true);
   });
 
+  test('VALID: {flow rendered in browser} => REACT_FLOW_CANVAS has a non-zero renderable height', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Height Guild' });
+
+    // The canvas wrapper must resolve a definite height; a maxHeight-only wrapper collapses
+    // the React Flow canvas to 0px and the diagram is unusable despite nodes existing.
+    expect(await diagram.canvasHasRenderableHeight()).toBe(true);
+  });
+
+  test('VALID: {flow with edges rendered in browser} => one edge path per flow edge with branch labels visible', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Edges Guild' });
+
+    // Custom node cards must expose React Flow handles or every edge is dropped. Assert the
+    // edges render AND the labeled branch ('yes') paints its label text.
+    expect(await diagram.allEdgesRendered()).toBe(true);
+    expect(await diagram.branchLabelRendered({ label: 'yes' })).toBe(true);
+  });
+
+  test('VALID: {node selected then canvas background clicked} => pane click deselects and closes the panel', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Pane Deselect Guild' });
+
+    const openPageNode = page
+      .getByTestId('FLOW_NODE')
+      .filter({ has: page.getByText(FLOW_DIAGRAM_OPEN_PAGE_LABEL) });
+
+    await openPageNode.click();
+
+    const panel = page.getByTestId('FLOW_NODE_DETAIL_PANEL');
+    await expect(panel).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(openPageNode).toHaveAttribute('data-selected', 'true');
+
+    // Clicking the canvas pane background must dismiss the panel via React Flow's onPaneClick.
+    await diagram.clickPaneBackground();
+
+    await expect(panel).toHaveCount(0);
+    await expect(page.locator('[data-testid="FLOW_NODE"][data-selected="true"]')).toHaveCount(0);
+  });
+
   test('VALID: {node clicked then detail panel closed} => panel opens with node label and closes on deselect', async ({
     page,
     request,

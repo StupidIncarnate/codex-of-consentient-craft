@@ -152,15 +152,14 @@ export const ReactFlowDiagramWidget = ({
         data-testid="FLOW_DIAGRAM_CANVAS_WRAPPER"
         style={{
           flex: 1,
-          maxHeight: expanded ? undefined : MAX_HEIGHT,
+          // React Flow sizes its canvas to the parent's resolved height, so the wrapper
+          // needs a DEFINITE height — a bare maxHeight collapses to 0 (the absolutely
+          // positioned nodes don't contribute height) and React Flow renders an unusable
+          // 0px-tall canvas. Collapsed view pins to MAX_HEIGHT; expanded view grows to
+          // near-viewport via minHeight while letting content push it taller.
+          height: expanded ? undefined : MAX_HEIGHT,
           minHeight: expanded ? EXPANDED_MIN_HEIGHT : undefined,
           overflow: 'hidden',
-        }}
-        onClick={(e: React.MouseEvent) => {
-          const target = e.target as HTMLElement;
-          if (target.getAttribute('data-testid') === 'REACT_FLOW_PANE') {
-            setSelectedNodeId(null);
-          }
         }}
       >
         {React.createElement(
@@ -171,6 +170,9 @@ export const ReactFlowDiagramWidget = ({
             nodeTypes: NODE_TYPES,
             onNodeClick: (node: (typeof nodes)[0]) => {
               setSelectedNodeId(node.data.nodeId);
+            },
+            onPaneClick: () => {
+              setSelectedNodeId(null);
             },
           },
         )}

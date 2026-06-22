@@ -563,7 +563,12 @@ describe('ReactFlowDiagramWidget', () => {
 
       const wrapperBefore = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
 
-      expect(wrapperBefore.style.maxHeight).toBe('400px');
+      // Collapsed state pins a DEFINITE height so the React Flow canvas can size itself; a
+      // bare maxHeight collapses the canvas to 0px.
+      expect({
+        height: wrapperBefore.style.height,
+        minHeight: wrapperBefore.style.minHeight,
+      }).toStrictEqual({ height: '400px', minHeight: '' });
 
       await proxy.clickFullscreen();
 
@@ -571,11 +576,11 @@ describe('ReactFlowDiagramWidget', () => {
 
       expect({
         minHeight: wrapperAfter.style.minHeight,
-        maxHeight: wrapperAfter.style.maxHeight,
-      }).toStrictEqual({ minHeight: 'calc(100vh - 160px)', maxHeight: '' });
+        height: wrapperAfter.style.height,
+      }).toStrictEqual({ minHeight: 'calc(100vh - 160px)', height: '' });
     });
 
-    it('VALID: {fullscreen clicked twice} => canvas wrapper restores maxHeight 400', async () => {
+    it('VALID: {fullscreen clicked twice} => canvas wrapper restores definite height 400', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -597,7 +602,10 @@ describe('ReactFlowDiagramWidget', () => {
 
       const wrapper = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
 
-      expect(wrapper.style.maxHeight).toBe('400px');
+      expect({
+        height: wrapper.style.height,
+        minHeight: wrapper.style.minHeight,
+      }).toStrictEqual({ height: '400px', minHeight: '' });
     });
   });
 });
