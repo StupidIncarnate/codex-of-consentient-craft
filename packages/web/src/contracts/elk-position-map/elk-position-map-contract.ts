@@ -21,6 +21,3 @@ export const elkPositionMapContract = z
   .brand<'ElkPositionMap'>();
 
 export type ElkPositionMap = z.infer<typeof elkPositionMapContract>;
-export type ElkPositionEntry = z.infer<typeof elkPositionEntryContract>;
-export type ElkPositionX = z.infer<typeof elkPositionXContract>;
-export type ElkPositionY = z.infer<typeof elkPositionYContract>;

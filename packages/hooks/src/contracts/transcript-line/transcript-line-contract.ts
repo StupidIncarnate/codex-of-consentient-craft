@@ -29,4 +29,3 @@ export const transcriptLineContract = z
   .passthrough();
 
 export type TranscriptLine = z.infer<typeof transcriptLineContract>;
-export type TranscriptContentItem = z.infer<typeof transcriptContentItemContract>;
