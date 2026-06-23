@@ -51,6 +51,28 @@ describe('elkLayoutAdapter', () => {
 
       expect(result).toStrictEqual(ElkPositionMapStub({}));
     });
+
+    it('EDGE: {ELK result has no children field} => returns empty position map', async () => {
+      const proxy = elkLayoutAdapterProxy();
+      const node = FlowNodeStub({ id: 'login-page' });
+
+      proxy.returnsNoChildren();
+
+      const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
+
+      expect(result).toStrictEqual(ElkPositionMapStub({}));
+    });
+
+    it('EDGE: {child has undefined x and y} => position defaults to {x: 0, y: 0}', async () => {
+      const proxy = elkLayoutAdapterProxy();
+      const node = FlowNodeStub({ id: 'login-page' });
+
+      proxy.returnsPositions({ children: [{ id: 'login-page' }] });
+
+      const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
+
+      expect(result).toStrictEqual(ElkPositionMapStub({ 'login-page': { x: 0, y: 0 } }));
+    });
   });
 
   describe('error cases', () => {

@@ -6,8 +6,9 @@ export const elkLayoutAdapterProxy = (): {
   returnsPositions: ({
     children,
   }: {
-    children: readonly { id: string; x: number; y: number }[];
+    children: readonly { id: string; x?: number; y?: number }[];
   }) => void;
+  returnsNoChildren: () => void;
   throws: ({ error }: { error: Error }) => void;
 } => {
   const mockLayout = jest.fn();
@@ -21,9 +22,12 @@ export const elkLayoutAdapterProxy = (): {
     returnsPositions: ({
       children,
     }: {
-      children: readonly { id: string; x: number; y: number }[];
+      children: readonly { id: string; x?: number; y?: number }[];
     }): void => {
       mockLayout.mockResolvedValueOnce({ id: 'root', children: [...children] });
+    },
+    returnsNoChildren: (): void => {
+      mockLayout.mockResolvedValueOnce({ id: 'root' });
     },
     throws: ({ error }: { error: Error }): void => {
       mockLayout.mockRejectedValueOnce(error);

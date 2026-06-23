@@ -1,4 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { FlowStub, FlowNodeStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
@@ -292,6 +293,34 @@ describe('FlowsLayerWidget', () => {
       expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
     });
 
+    it('VALID: {runtime flow in edit mode} => badge text color matches primary theme color', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'runtime' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
+      });
+
+      const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
+
+      expect(badgeTextColor).toBe('rgb(255, 107, 53)');
+      expect(emberDepthsThemeStatics.colors.primary).toBe('#ff6b35');
+    });
+
+    it('VALID: {operational flow in edit mode} => badge text color matches loot-rare theme color', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ flowType: 'operational' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
+      });
+
+      const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
+
+      expect(badgeTextColor).toBe('rgb(232, 121, 249)');
+      expect(emberDepthsThemeStatics.colors['loot-rare']).toBe('#e879f9');
+    });
+
     it('VALID: {editing: true, flows: [], click add} => calls onChange with new flow carrying flowType "runtime"', async () => {
       const proxy = FlowsLayerWidgetProxy();
       const flows: Flow[] = [];
@@ -316,6 +345,65 @@ describe('FlowsLayerWidget', () => {
         nodes: [],
         edges: [],
       });
+    });
+
+    it('VALID: {editing: true, flows: [flowA, flowB], remove index 0} => calls onChange with [flowB]', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      const flowA = FlowStub({ id: 'flow-a' as never, name: 'Flow A' });
+      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Flow B' });
+      const onChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={true} onChange={onChange} />,
+      });
+
+      await proxy.clickRemove({ index: 0 });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange.mock.calls[0]![0] as Flow[]).toStrictEqual([flowB]);
+    });
+
+    it('VALID: {editing: true, flows: [flow], name change} => calls onChange with updated name', async () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ name: 'Old Name', entryPoint: '/entry' });
+      const onChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={onChange} />,
+      });
+
+      // Type one character into the name input — fires exactly one onChange call
+      const inputs = screen.getAllByTestId<HTMLInputElement>('FORM_INPUT');
+      const nameInput = inputs.find((el) => el.getAttribute('value') === 'Old Name')!;
+      await userEvent.type(nameInput, 'X');
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      const [updatedFlows] = onChange.mock.calls[0]! as [Flow[]];
+
+      expect(updatedFlows[0]!.name).toBe('Old NameX');
+    });
+
+    it('VALID: {editing: true, flows: [flow], entryPoint change} => calls onChange with updated entryPoint', async () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ name: 'Flow', entryPoint: '/entry' });
+      const onChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={onChange} />,
+      });
+
+      // Type one character into the entryPoint input — fires exactly one onChange call
+      const inputs = screen.getAllByTestId<HTMLInputElement>('FORM_INPUT');
+      // Second input is entryPoint (name is first, entryPoint is second in DOM order)
+      const entryInput = inputs[1]!;
+      await userEvent.type(entryInput, 'X');
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      const [updatedFlows] = onChange.mock.calls[0]! as [Flow[]];
+
+      expect(updatedFlows[0]!.entryPoint).toBe('/entryX');
     });
   });
 });

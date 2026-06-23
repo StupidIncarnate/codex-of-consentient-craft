@@ -29,6 +29,44 @@ describe('ReactFlowDiagramWidget', () => {
   });
 
   describe('non-empty flow', () => {
+    it('EMPTY: {positions not yet resolved} => renders nothing while layout is pending', () => {
+      ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      // No setupPositions call — the elk mock never resolves, so positions stay null.
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      expect(screen.queryByTestId('FLOW_DIAGRAM')).toBe(null);
+      expect(screen.queryByTestId('REACT_FLOW_CANVAS')).toBe(null);
+      expect(screen.queryByTestId('FLOW_DIAGRAM_ERROR')).toBe(null);
+    });
+
+    it('VALID: {node missing from position map} => falls back to {x:0,y:0} and still renders', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      // Return an empty children list — node id is absent from the position map.
+      proxy.setupPositions({ children: [] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('FLOW_NODE')).toBeInTheDocument();
+    });
+
     it('VALID: {flow with one node} => renders FLOW_DIAGRAM containing REACT_FLOW_CANVAS and FLOW_NODE', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const nodeId = FlowNodeIdStub({ value: 'login-page' });
@@ -105,93 +143,34 @@ describe('ReactFlowDiagramWidget', () => {
   });
 
   describe('node card accent colors by type', () => {
-    it('VALID: {decision node} => card accent style matches #f5a623', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'branch-node' }),
-        type: 'decision',
-        observables: [],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
+    it.each(
+      Object.keys(flowNodeStyleStatics.accent).map((nodeType) => ({
+        input: nodeType as keyof typeof flowNodeStyleStatics.accent,
+      })),
+    )(
+      'VALID: {$input node} => $input card accent color matches source-of-truth',
+      async ({ input }) => {
+        const proxy = ReactFlowDiagramWidgetProxy();
+        const node = FlowNodeStub({
+          id: FlowNodeIdStub({ value: input }),
+          type: input,
+          observables: [],
+        });
+        const flow = FlowStub({ nodes: [node], edges: [] });
 
-      proxy.setupPositions({ children: [{ id: 'branch-node', x: 0, y: 0 }] });
+        proxy.setupPositions({ children: [{ id: input, x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+        mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
 
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
-      });
+        await waitFor(() => {
+          expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+        });
 
-      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-accent-color')).toBe(
-        flowNodeStyleStatics.accent.decision,
-      );
-    });
-
-    it('VALID: {action node} => card accent style matches #4aa3df', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'fetch-action' }),
-        type: 'action',
-        observables: [],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
-
-      proxy.setupPositions({ children: [{ id: 'fetch-action', x: 0, y: 0 }] });
-
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
-      });
-
-      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-accent-color')).toBe(
-        flowNodeStyleStatics.accent.action,
-      );
-    });
-
-    it('VALID: {state node} => card accent style matches #8b9bb4', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'state-node' }),
-        type: 'state',
-        observables: [],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
-
-      proxy.setupPositions({ children: [{ id: 'state-node', x: 0, y: 0 }] });
-
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
-      });
-
-      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-accent-color')).toBe(
-        flowNodeStyleStatics.accent.state,
-      );
-    });
-
-    it('VALID: {terminal node} => card accent style matches #5bbf8a', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'end-node' }),
-        type: 'terminal',
-        observables: [],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
-
-      proxy.setupPositions({ children: [{ id: 'end-node', x: 0, y: 0 }] });
-
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
-      });
-
-      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-accent-color')).toBe(
-        flowNodeStyleStatics.accent.terminal,
-      );
-    });
+        expect(screen.getByTestId('FLOW_NODE').getAttribute('data-accent-color')).toBe(
+          flowNodeStyleStatics.accent[input],
+        );
+      },
+    );
   });
 
   describe('node badge', () => {
@@ -240,6 +219,42 @@ describe('ReactFlowDiagramWidget', () => {
   });
 
   describe('edge labels', () => {
+    it('EMPTY: {edge without label} => no FLOW_EDGE_LABEL rendered', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node1 = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const node2 = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'dashboard' }),
+        type: 'state',
+        observables: [],
+      });
+      const edge = FlowEdgeStub({
+        id: 'login-to-dash',
+        from: 'login-page',
+        to: 'dashboard',
+        label: undefined,
+      });
+      const flow = FlowStub({ nodes: [node1, node2], edges: [edge] });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'dashboard', x: 200, y: 0 },
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('FLOW_EDGE_LABEL')).toBe(null);
+    });
+
     it('VALID: {edge with label} => FLOW_EDGE_LABEL shows label text', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node1 = FlowNodeStub({
@@ -606,6 +621,60 @@ describe('ReactFlowDiagramWidget', () => {
         height: wrapper.style.height,
         minHeight: wrapper.style.minHeight,
       }).toStrictEqual({ height: '400px', minHeight: '' });
+    });
+  });
+
+  describe('contracts prop default', () => {
+    it('VALID: {contracts prop omitted} => renders without error (default = [])', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      // Panel renders the empty-state message (not a contract error) confirming contracts defaulted to [].
+      expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY')).toBeInTheDocument();
+    });
+  });
+
+  describe('useEffect hasRun guard', () => {
+    it('VALID: {layout resolves once then flow re-renders} => no second layout call, diagram stays visible', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      // Only one positions response is queued. If the guard is absent a second effect
+      // run would call the mock a second time with no configured return, reject, and
+      // flip the component to FLOW_DIAGRAM_ERROR.
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      const { rerender } = mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      rerender(<ReactFlowDiagramWidget flow={flow} />);
+
+      // Diagram remains visible; no error shown means the layout mock was not called again.
+      expect(screen.queryByTestId('FLOW_DIAGRAM_ERROR')).toBe(null);
+      expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
     });
   });
 });

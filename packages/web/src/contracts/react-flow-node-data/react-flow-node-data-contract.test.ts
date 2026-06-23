@@ -3,49 +3,19 @@ import { ReactFlowNodeDataStub } from './react-flow-node-data.stub';
 
 describe('reactFlowNodeDataContract', () => {
   describe('valid inputs', () => {
-    it('VALID: {nodeId, label, nodeType: state, observableCount} => parses to a valid ReactFlowNodeData object', () => {
-      const result = ReactFlowNodeDataStub();
+    it.each(['state', 'decision', 'action', 'terminal'] as const)(
+      'VALID: {nodeType: %s} => parses successfully',
+      (nodeType) => {
+        const result = ReactFlowNodeDataStub({ nodeType });
 
-      expect(result).toStrictEqual({
-        nodeId: 'login-page',
-        label: 'Login Page',
-        nodeType: 'state',
-        observableCount: 0,
-      });
-    });
-
-    it('VALID: {nodeType: decision} => parses successfully', () => {
-      const result = ReactFlowNodeDataStub({ nodeType: 'decision' });
-
-      expect(result).toStrictEqual({
-        nodeId: 'login-page',
-        label: 'Login Page',
-        nodeType: 'decision',
-        observableCount: 0,
-      });
-    });
-
-    it('VALID: {nodeType: action} => parses successfully', () => {
-      const result = ReactFlowNodeDataStub({ nodeType: 'action' });
-
-      expect(result).toStrictEqual({
-        nodeId: 'login-page',
-        label: 'Login Page',
-        nodeType: 'action',
-        observableCount: 0,
-      });
-    });
-
-    it('VALID: {nodeType: terminal} => parses successfully', () => {
-      const result = ReactFlowNodeDataStub({ nodeType: 'terminal' });
-
-      expect(result).toStrictEqual({
-        nodeId: 'login-page',
-        label: 'Login Page',
-        nodeType: 'terminal',
-        observableCount: 0,
-      });
-    });
+        expect(result).toStrictEqual({
+          nodeId: 'login-page',
+          label: 'Login Page',
+          nodeType,
+          observableCount: 0,
+        });
+      },
+    );
 
     it('VALID: returns a valid ReactFlowNodeData object', () => {
       const result = reactFlowNodeDataContract.parse({
