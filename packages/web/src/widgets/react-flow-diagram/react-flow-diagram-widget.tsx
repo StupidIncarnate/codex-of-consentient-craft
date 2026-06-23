@@ -30,6 +30,7 @@ import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { observableCountContract } from '../../contracts/observable-count/observable-count-contract';
+import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
@@ -40,7 +41,7 @@ export interface ReactFlowDiagramWidgetProps {
 }
 
 const MAX_HEIGHT = 400;
-const EXPANDED_MIN_HEIGHT = 'calc(100vh - 160px)';
+const EXPANDED_HEIGHT = 'calc(100vh - 160px)';
 const ICON_SIZE = 20;
 
 const NODE_TYPES = {
@@ -131,12 +132,21 @@ export const ReactFlowDiagramWidget = ({
     }),
   }));
 
-  const edges = flow.edges.map((e) => ({
-    id: String(e.id),
-    source: String(e.from),
-    target: String(e.to),
-    ...(e.label === undefined ? {} : { label: e.label }),
-  }));
+  const edges = flow.edges.map((e) => {
+    const base = { id: String(e.id), source: String(e.from), target: String(e.to) };
+    if (e.label === undefined) {
+      return base;
+    }
+    // React Flow paints the label centered on the edge midpoint; truncate long branch
+    // conditions so two sibling-branch labels never paint over each other (the target node
+    // carries the full wording).
+    const full = String(e.label);
+    const label =
+      full.length > elkLayoutStatics.edgeLabelMaxChars
+        ? `${full.slice(0, elkLayoutStatics.edgeLabelMaxChars - 1)}…`
+        : full;
+    return { ...base, label };
+  });
 
   const selectedNode: FlowNode | undefined = selectedNodeId
     ? flow.nodes.find((n) => String(n.id) === String(selectedNodeId))
@@ -152,19 +162,23 @@ export const ReactFlowDiagramWidget = ({
         data-testid="FLOW_DIAGRAM_CANVAS_WRAPPER"
         style={{
           flex: 1,
-          // React Flow sizes its canvas to the parent's resolved height, so the wrapper
-          // needs a DEFINITE height — a bare maxHeight collapses to 0 (the absolutely
-          // positioned nodes don't contribute height) and React Flow renders an unusable
-          // 0px-tall canvas. Collapsed view pins to MAX_HEIGHT; expanded view grows to
-          // near-viewport via minHeight while letting content push it taller.
-          height: expanded ? undefined : MAX_HEIGHT,
-          minHeight: expanded ? EXPANDED_MIN_HEIGHT : undefined,
+          // React Flow's canvas is height:100%, which resolves against the parent's `height`
+          // (NOT minHeight). The wrapper must therefore pin a DEFINITE height in BOTH states —
+          // a minHeight-only expanded wrapper leaves `height` auto, so the canvas collapses to
+          // 0px and the diagram renders as an empty (black) panel. Collapsed pins MAX_HEIGHT;
+          // expanded pins a near-viewport definite height.
+          height: expanded ? EXPANDED_HEIGHT : MAX_HEIGHT,
           overflow: 'hidden',
         }}
       >
         {React.createElement(
           xyflowReactFlowAdapter as unknown as React.ComponentType<Record<PropertyKey, unknown>>,
           {
+            // Remount React Flow when the canvas size changes (collapse <-> expand). A live
+            // instance does not re-fit when its container resizes, so it would leave the graph
+            // top-anchored in the taller viewport; a fresh mount runs fitView against the new
+            // size and centers the graph.
+            key: expanded ? 'rf-expanded' : 'rf-collapsed',
             nodes,
             edges,
             nodeTypes: NODE_TYPES,

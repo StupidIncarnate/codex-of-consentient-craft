@@ -59,7 +59,10 @@ export const xyflowReactFlowAdapter = ({
     React.createElement(
       ReactFlow<XyflowReactFlowAdapterNode>,
       reactFlowProps,
-      React.createElement(Controls),
+      // Controls stays mounted (the diagram widget's custom RPG buttons drive zoom/fit by
+      // clicking its actuator buttons) but is hidden so it doesn't paint a second control
+      // cluster on top of the custom one.
+      React.createElement(Controls, { style: { display: 'none' } }),
     ),
   );
 };

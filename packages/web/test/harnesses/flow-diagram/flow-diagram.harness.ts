@@ -20,22 +20,30 @@ import type { sessionHarness } from '../session/session.harness';
 const PANEL_TIMEOUT = 5_000;
 const CANVAS_TIMEOUT = 10_000;
 const FRAMING_EPSILON_PX = 1;
+// Expanded (fullscreen) canvas must resolve a tall definite height. The black-screen bug
+// collapses it to 0px, so any threshold well above 0 and below the real expanded height
+// (≈ viewport − 160px) distinguishes the bug from the fix across viewport sizes.
+const EXPANDED_CANVAS_MIN_PX = 300;
 
 // Node labels / observable text the scenario file asserts on. Exported as plain string
 // constants (not signature types) so the scenario can reference them without inlining.
 export const FLOW_DIAGRAM_OPEN_PAGE_LABEL = 'Open Page';
 export const FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE = 'The page renders the diagram canvas';
 
-// A flow with 3 nodes (action -> decision -> terminal) so FlowsLayerWidget renders the
-// ReactFlowDiagramWidget (it only renders when nodes.length > 0) and elk has a real
-// graph to lay out, exercising the geometry observables this e2e owns. One node carries
-// observables so the detail panel has content to show.
+// A branching flow (action -> decision -> two sibling terminals) so FlowsLayerWidget renders
+// the ReactFlowDiagramWidget (it only renders when nodes.length > 0) and elk has a real graph
+// to lay out, exercising the geometry observables this e2e owns. The two terminals sit on the
+// SAME elk layer (same y, adjacent x), so if a node card is allowed to balloon to its full
+// label width the siblings overlap horizontally and their branch-edge labels collide — the
+// real-quest symptom this flow reproduces. Their labels are intentionally long (full
+// sentences, like real quest flows) to force that overlap unless the card is sized to elk's
+// reserved box. open-page carries observables so the detail panel has content to show.
 const DIAGRAM_FLOW = {
   id: 'diagram-flow',
   name: 'Diagram Interaction Flow',
   flowType: 'runtime',
   entryPoint: 'open-page',
-  exitPoints: ['view-detail'],
+  exitPoints: ['view-detail', 'no-detail'],
   nodes: [
     {
       id: 'open-page',
@@ -57,7 +65,8 @@ const DIAGRAM_FLOW = {
     },
     {
       id: 'view-detail',
-      label: 'View Detail',
+      label:
+        'Yes — the detail panel renders the full node detail and the page settles into its terminal state where the reviewer can read every observable and contract without any further navigation',
       type: 'terminal',
       observables: [
         {
@@ -67,10 +76,25 @@ const DIAGRAM_FLOW = {
         },
       ],
     },
+    {
+      id: 'no-detail',
+      label:
+        'No — there is no detail available here, so the flow terminates right away and the reviewer is left on the canvas with the empty-state message instead of a populated detail panel',
+      type: 'terminal',
+      observables: [],
+    },
   ],
   edges: [
     { id: 'open-to-decision', from: 'open-page', to: 'has-detail' },
-    { id: 'decision-to-terminal', from: 'has-detail', to: 'view-detail', label: 'yes' },
+    // One short branch label and one long one: the long condition would paint across its
+    // sibling at the divergence point unless the diagram bounds (truncates) the label width.
+    { id: 'decision-to-view', from: 'has-detail', to: 'view-detail', label: 'yes' },
+    {
+      id: 'decision-to-no',
+      from: 'has-detail',
+      to: 'no-detail',
+      label: 'no — there is no detail to show for this node so the flow terminates immediately',
+    },
   ],
 };
 
@@ -120,7 +144,12 @@ export const flowDiagramHarness = ({
   canvasHasRenderableHeight: () => Promise<boolean>;
   allEdgesRendered: () => Promise<boolean>;
   branchLabelRendered: (params: { label: string }) => Promise<boolean>;
+  branchLabelsDoNotOverlap: () => Promise<boolean>;
   clickPaneBackground: () => Promise<void>;
+  nativeControlsPresentButHidden: () => Promise<boolean>;
+  customControlsVisible: () => Promise<boolean>;
+  expandToFullscreen: () => Promise<void>;
+  expandedCanvasIsTall: () => Promise<boolean>;
 } => {
   // Internal (non-exported) helpers: return types are inferred from Playwright APIs so the
   // signature carries no raw-primitive annotation. The factory's public methods below all
@@ -309,10 +338,81 @@ export const flowDiagramHarness = ({
       return (await labelLocator.count()) >= 1;
     },
 
+    // Branch-edge labels (`.react-flow__edge-text`) are painted at edge midpoints. A long
+    // condition on one branch must not paint over the sibling branch's label — the diagram
+    // truncates label width and spaces siblings so no two label boxes intersect.
+    branchLabelsDoNotOverlap: async (): Promise<boolean> => {
+      const labels = page.locator('.react-flow__edge-text');
+      const count = await labels.count();
+      const boxes = await Promise.all(
+        Array.from({ length: count }, async (_unused, index) => {
+          const box = await labels.nth(index).boundingBox();
+          if (box === null) {
+            throw new Error(`edge label at index ${index} has no bounding box`);
+          }
+          return { x: box.x, y: box.y, w: box.width, h: box.height };
+        }),
+      );
+      const overlapping = boxes.some((a, i) =>
+        boxes.some((b, j) => {
+          if (i >= j) {
+            return false;
+          }
+          return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        }),
+      );
+      return !overlapping;
+    },
+
     // The real React Flow pane is `.react-flow__pane` (no testid). Clicking it must deselect
     // via React Flow's onPaneClick — a DOM-testid sniff would never fire in the real browser.
     clickPaneBackground: async (): Promise<void> => {
       await page.locator('.react-flow__pane').click({ position: { x: 5, y: 5 } });
+    },
+
+    // The diagram ships ONE set of controls: the custom RPG buttons. React Flow's native
+    // `.react-flow__controls` panel must stay in the DOM (the custom buttons drive zoom/fit by
+    // clicking its hidden actuator buttons) but must NOT paint — otherwise two control clusters
+    // stack on top of each other. Asserts the native panel is attached but not visible.
+    nativeControlsPresentButHidden: async (): Promise<boolean> => {
+      const native = page.locator('.react-flow__controls');
+      await native.first().waitFor({ state: 'attached', timeout: CANVAS_TIMEOUT });
+      const present = (await native.count()) >= 1;
+      const visible = await native.first().isVisible();
+      return present && !visible;
+    },
+
+    customControlsVisible: async (): Promise<boolean> => {
+      const [zoomIn, zoomOut, fitView, fullscreen] = await Promise.all([
+        page.getByTestId('ZOOM_IN_BUTTON').isVisible(),
+        page.getByTestId('ZOOM_OUT_BUTTON').isVisible(),
+        page.getByTestId('FIT_VIEW_BUTTON').isVisible(),
+        page.getByTestId('FULLSCREEN_BUTTON').isVisible(),
+      ]);
+      return zoomIn && zoomOut && fitView && fullscreen;
+    },
+
+    // Toggles the fullscreen (expand) control and waits for the canvas to resolve its tall
+    // definite height. The black-screen bug leaves the canvas at 0px, so this wait would time
+    // out against unfixed source.
+    expandToFullscreen: async (): Promise<void> => {
+      await page.getByTestId('FULLSCREEN_BUTTON').click();
+      await page.waitForFunction(
+        (minPx) => {
+          const canvas = document.querySelector('[data-testid="REACT_FLOW_CANVAS"]');
+          return canvas !== null && canvas.getBoundingClientRect().height > minPx;
+        },
+        EXPANDED_CANVAS_MIN_PX,
+        { timeout: CANVAS_TIMEOUT },
+      );
+    },
+
+    expandedCanvasIsTall: async (): Promise<boolean> => {
+      const box = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
+      if (box === null) {
+        throw new Error('REACT_FLOW_CANVAS has no bounding box');
+      }
+      return box.height > EXPANDED_CANVAS_MIN_PX;
     },
   };
 };

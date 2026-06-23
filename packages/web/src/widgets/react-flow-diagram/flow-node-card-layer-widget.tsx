@@ -13,6 +13,7 @@ import type { FlowNodeType } from '@dungeonmaster/shared/contracts';
 
 import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
 import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
+import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 
 export interface FlowNodeCardLayerWidgetProps {
@@ -52,7 +53,11 @@ export const FlowNodeCardLayerWidget = ({
         border: `1px solid ${accentColor}`,
         borderRadius: 6,
         padding: '8px 12px',
-        minWidth: 120,
+        // Pin every card to elk's reserved box width (border-box) so a card never grows past
+        // the rectangle elk laid out for it — long-sentence labels wrap instead of ballooning,
+        // and adjacent cards can't overlap.
+        width: elkLayoutStatics.node.width,
+        boxSizing: 'border-box',
         color: '#e0cfc0',
         fontFamily: 'monospace',
         ...ringStyle,
@@ -62,7 +67,20 @@ export const FlowNodeCardLayerWidget = ({
       <div data-testid="FLOW_NODE_TYPE_ICON" style={{ color: accentColor, marginBottom: 4 }}>
         <TypeIcon size={14} />
       </div>
-      <div data-testid="FLOW_NODE_LABEL" style={{ fontSize: 12, fontWeight: 600 }}>
+      <div
+        data-testid="FLOW_NODE_LABEL"
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          // Clamp the label to a fixed line count so the card stays within elk's reserved
+          // height; the full text is shown in the detail panel when the node is clicked.
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: elkLayoutStatics.labelMaxLines,
+          overflow: 'hidden',
+          overflowWrap: 'break-word',
+        }}
+      >
         {label}
       </div>
       {observableCount > 0 ? (

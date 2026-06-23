@@ -46,6 +46,35 @@ test.describe('Flow Diagram Interaction', () => {
     expect(await diagram.allNodesWithinCanvas()).toBe(true);
   });
 
+  test('VALID: {diagram rendered} => only the custom controls paint; native React Flow controls stay hidden', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Controls Guild' });
+
+    // Exactly one visible control cluster: the custom RPG buttons. The native React Flow
+    // controls must remain in the DOM (they are the zoom/fit actuators) but must not paint, or
+    // two control clusters overlap.
+    expect(await diagram.customControlsVisible()).toBe(true);
+    expect(await diagram.nativeControlsPresentButHidden()).toBe(true);
+  });
+
+  test('VALID: {FULLSCREEN_BUTTON clicked} => canvas grows to a tall definite height with nodes still framed', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Fullscreen Guild' });
+
+    await diagram.expandToFullscreen();
+
+    // Expanding must resolve a tall definite canvas height (the black-screen bug collapses it to
+    // 0px) and re-fit so every node stays inside the now-taller viewport.
+    expect(await diagram.expandedCanvasIsTall()).toBe(true);
+    expect(await diagram.allNodesWithinCanvas()).toBe(true);
+  });
+
   test('VALID: {ZOOM_IN then ZOOM_OUT} => viewport scale grows on zoom-in and shrinks on zoom-out', async ({
     page,
     request,
@@ -80,6 +109,9 @@ test.describe('Flow Diagram Interaction', () => {
     // edges render AND the labeled branch ('yes') paints its label text.
     expect(await diagram.allEdgesRendered()).toBe(true);
     expect(await diagram.branchLabelRendered({ label: 'yes' })).toBe(true);
+    // The other branch carries a long condition; its label must be bounded so it does not paint
+    // over the 'yes' label.
+    expect(await diagram.branchLabelsDoNotOverlap()).toBe(true);
   });
 
   test('VALID: {node selected then canvas background clicked} => pane click deselects and closes the panel', async ({

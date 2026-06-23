@@ -559,7 +559,7 @@ describe('ReactFlowDiagramWidget', () => {
       expect(screen.getByTestId('FULLSCREEN_BUTTON')).toBeInTheDocument();
     });
 
-    it('VALID: {fullscreen clicked} => canvas wrapper switches to minHeight mode', async () => {
+    it('VALID: {fullscreen clicked} => canvas wrapper pins a DEFINITE near-viewport height', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -589,10 +589,12 @@ describe('ReactFlowDiagramWidget', () => {
 
       const wrapperAfter = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
 
+      // Expanded must ALSO pin a definite `height` (not minHeight) — React Flow's height:100%
+      // canvas resolves against `height`, so a minHeight-only wrapper collapses it to 0px.
       expect({
         minHeight: wrapperAfter.style.minHeight,
         height: wrapperAfter.style.height,
-      }).toStrictEqual({ minHeight: 'calc(100vh - 160px)', height: '' });
+      }).toStrictEqual({ minHeight: '', height: 'calc(100vh - 160px)' });
     });
 
     it('VALID: {fullscreen clicked twice} => canvas wrapper restores definite height 400', async () => {

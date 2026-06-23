@@ -33,6 +33,14 @@ export const elkLayoutAdapter = async ({
       'elk.algorithm': 'layered',
       'elk.direction': 'DOWN',
       'elk.layered.cycleBreaking.strategy': 'DEPTH_FIRST',
+      // Spread sibling branches and layers apart so adjacent cards — and the branch-edge labels
+      // painted at edge midpoints — have room and don't collide.
+      'elk.spacing.nodeNode': String(elkLayoutStatics.spacing.nodeNode),
+      'elk.layered.spacing.nodeNodeBetweenLayers': String(
+        elkLayoutStatics.spacing.nodeNodeBetweenLayers,
+      ),
+      'elk.spacing.edgeNode': String(elkLayoutStatics.spacing.edgeNode),
+      'elk.spacing.edgeEdge': String(elkLayoutStatics.spacing.edgeEdge),
     },
     children: nodes.map((n) => ({
       id: String(n.id),
