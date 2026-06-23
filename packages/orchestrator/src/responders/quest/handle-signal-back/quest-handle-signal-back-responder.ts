@@ -42,7 +42,7 @@ import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { isBlightwardenMinionRoleGuard } from '../../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
-import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
+import { questModifyOrThrowBroker } from '../../../brokers/quest/modify-or-throw/quest-modify-or-throw-broker';
 import { questPostWalkHookBroker } from '../../../brokers/quest/post-walk-hook/quest-post-walk-hook-broker';
 
 const PATHSEEKER_REPLAN_MAX_ATTEMPTS = 3;
@@ -59,18 +59,28 @@ export const QuestHandleSignalBackResponder = async ({
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
   if (!result.success || !result.quest) {
-    return adapterResultContract.parse({ success: true });
+    // The quest exists but could not be read/parsed (corrupt quest.json, transient I/O) — a
+    // `success: true` result always carries a quest, so a missing one is the same malformed-load
+    // case. Returning success here silently DROPS the agent's signal: the work item never
+    // transitions and the dispatch loop goes idle while every surface reports green. Throw so the
+    // failure rides the awaited signal-back path back to the MCP tool and the agent — visible and
+    // retryable — instead of vanishing.
+    throw new Error(
+      `signal-back could not load quest ${questId} to apply '${signal}' to work item ${workItemId}: ${result.error ?? 'unknown error'}`,
+    );
   }
 
   const workItem = result.quest.workItems.find((wi) => wi.id === workItemId);
   if (!workItem) {
+    // Quest loaded, but the work item genuinely isn't on it (double signal-back / unknown id).
+    // Nothing to transition — an idempotent no-op, safe to report success.
     return adapterResultContract.parse({ success: true });
   }
 
   const completedAt = new Date().toISOString();
 
   if (signal === 'complete') {
-    await questModifyBroker({
+    await questModifyOrThrowBroker({
       input: {
         questId,
         workItems: [{ id: workItemId, status: 'complete', completedAt }],
@@ -97,7 +107,7 @@ export const QuestHandleSignalBackResponder = async ({
         const errorMessage = errorMessageContract.parse(
           message.length > 0 ? message : 'post_walk_hook_failed',
         );
-        await questModifyBroker({
+        await questModifyOrThrowBroker({
           input: {
             questId,
             workItems: [{ id: workItemId, status: 'failed', completedAt, errorMessage }],
@@ -113,7 +123,7 @@ export const QuestHandleSignalBackResponder = async ({
   // work item terminates `complete` (satisfies the synthesizer's dependsOn) and the quest can
   // still complete. `actualSignal` preserves the real signal for audit.
   if (isBlightwardenMinionRoleGuard({ role: workItem.role })) {
-    await questModifyBroker({
+    await questModifyOrThrowBroker({
       input: {
         questId,
         workItems: [{ id: workItemId, status: 'complete', completedAt, actualSignal: signal }],
@@ -148,7 +158,7 @@ export const QuestHandleSignalBackResponder = async ({
       insertedBy: workItemId,
     });
 
-    await questModifyBroker({
+    await questModifyOrThrowBroker({
       input: {
         questId,
         workItems: [
@@ -168,7 +178,7 @@ export const QuestHandleSignalBackResponder = async ({
   }
 
   // signal === 'failed' from any non-minion agent role → BLOCK.
-  await questModifyBroker({
+  await questModifyOrThrowBroker({
     input: {
       questId,
       workItems: [{ id: workItemId, status: 'failed', completedAt }],

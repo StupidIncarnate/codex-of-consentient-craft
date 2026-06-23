@@ -3,7 +3,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { questBlockOnFailureBrokerProxy } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
-import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
+import { questModifyOrThrowBrokerProxy } from '../../../brokers/quest/modify-or-throw/quest-modify-or-throw-broker.proxy';
 import { questPostWalkHookBrokerProxy } from '../../../brokers/quest/post-walk-hook/quest-post-walk-hook-broker.proxy';
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 
@@ -13,13 +13,15 @@ type Parsed = ReturnType<typeof questContract.parse>;
 export const QuestHandleSignalBackResponderProxy = (): {
   callResponder: typeof QuestHandleSignalBackResponder;
   setupQuest: (params: { quest: Quest }) => void;
+  setupQuestUnreadable: () => void;
+  setupQuestModifyFails: (params: { quest: Quest }) => void;
   setupQuestBlockPassthrough: (params: { quest: Quest }) => void;
   setupWalkHookUuids: (params: { uuids: readonly string[] }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Parsed;
 } => {
   const getProxy = questGetBrokerProxy();
-  const modifyProxy = questModifyBrokerProxy();
+  const modifyProxy = questModifyOrThrowBrokerProxy();
   const hookProxy = questPostWalkHookBrokerProxy();
   // BLOCK path (lawbringer/codeweaver/siege/spiritmender/blightwarden/pathseeker-*/pesteater
   // failures) routes through questBlockOnFailureBroker. By default it is stubbed (setupBlocked)
@@ -34,6 +36,19 @@ export const QuestHandleSignalBackResponderProxy = (): {
       modifyProxy.setupQuestFound({ quest });
       hookProxy.setupQuest({ quest });
       blockProxy.setupBlocked();
+    },
+    // questGetBroker returns { success: false } when the quest file cannot be loaded — a corrupt
+    // quest.json (the real incident: a stray character mid-flight) or an unresolvable path both land
+    // here. The responder must surface this, not silently report success and drop the agent's signal.
+    setupQuestUnreadable: (): void => {
+      getProxy.setupEmptyFolder();
+    },
+    // Quest loads fine and the work item is found, but the terminal-transition persist resolves
+    // { success: false } (questModifyBroker swallows I/O / validation failures into a falsy result).
+    // The responder must surface this rather than report success on a dropped write.
+    setupQuestModifyFails: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupFailure();
     },
     setupQuestBlockPassthrough: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });

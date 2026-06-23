@@ -19,6 +19,7 @@ import {
   FileNameStub,
   FilePathStub,
   GuildIdStub,
+  ModifyQuestResultStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import {
@@ -43,6 +44,8 @@ export const questModifyBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
   setupReject: (params: { error: Error }) => void;
+  setupResolveSuccessOnce: () => void;
+  setupResolveFailureOnce: () => void;
   setupContractSourceResolvesOnce: () => void;
   setupAssertionIds: (params: {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
@@ -126,6 +129,23 @@ export const questModifyBrokerProxy = (): {
     setupReject: ({ error }: { error: Error }): void => {
       (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockRejectedValueOnce(
         error,
+      );
+    },
+
+    // Resolve { success: true } for the next call without running the real read-modify-write —
+    // isolates a caller's handling of a successful persist.
+    setupResolveSuccessOnce: (): void => {
+      (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockResolvedValueOnce(
+        ModifyQuestResultStub(),
+      );
+    },
+
+    // Resolve { success: false } for the next call — questModifyBroker swallows I/O and validation
+    // failures into a falsy result rather than throwing, so callers that must not silently drop a
+    // failed persist are tested against this resolved-failure shape (not a rejection).
+    setupResolveFailureOnce: (): void => {
+      (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mockResolvedValueOnce(
+        ModifyQuestResultStub({ success: false }),
       );
     },
 

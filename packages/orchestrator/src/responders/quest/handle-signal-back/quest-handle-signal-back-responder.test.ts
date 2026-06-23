@@ -466,6 +466,50 @@ describe('QuestHandleSignalBackResponder', () => {
     });
   });
 
+  describe('quest load failure', () => {
+    it('ERROR: {quest cannot be loaded (corrupt quest.json)} => throws instead of silently returning success', async () => {
+      // Regression: a stray character corrupted quest.json mid-flight, so when a 33-minute
+      // siegemaster run signalled complete, questGetBroker returned { success: false } (parse
+      // failure). The responder returned success and wrote NOTHING — the work item stayed
+      // in_progress, the dispatch loop went idle, and the completion was lost with zero error
+      // surfaced. A read/parse failure must throw so it rides the awaited signal-back path back to
+      // the MCP tool and the agent, never silently dropping the signal.
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const itemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      proxy.setupQuestUnreadable();
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).rejects.toThrow(/could not load quest/u);
+    });
+
+    it('ERROR: {persist of the complete transition resolves success:false} => throws instead of reporting success', async () => {
+      // questModifyBroker swallows I/O / validation failures into { success: false } rather than
+      // throwing. The responder previously ignored that result and returned success — a second
+      // silent-drop path: the work item never reaches `complete` even though the agent and tool
+      // both saw success. The persist must be surfaced, not dropped.
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const itemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const item = WorkItemStub({ id: itemId, role: 'siegemaster', status: 'in_progress' });
+      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [item] });
+      proxy.setupQuestModifyFails({ quest });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).rejects.toThrow(/quest modify failed to persist/u);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {workItem not in quest} => no-op, returns success without throwing', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
