@@ -9,9 +9,6 @@
  * USAGE:
  * elkLayoutStatics.node.width;
  * // Returns 240
- *
- * elkLayoutStatics.node.height;
- * // Returns 150
  */
 
 export const elkLayoutStatics = {
