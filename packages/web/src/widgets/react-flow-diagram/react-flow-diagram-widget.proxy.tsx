@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { elkLayoutAdapterProxy } from '../../adapters/elk/layout/elk-layout-adapter.proxy';
+import { xyflowEdgeAdapterProxy } from '../../adapters/xyflow/edge/xyflow-edge-adapter.proxy';
 import { xyflowReactFlowAdapterProxy } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter.proxy';
 import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.proxy';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
@@ -26,6 +27,7 @@ interface ReactFlowDiagramWidgetProxyResult {
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
   const elkProxy = elkLayoutAdapterProxy();
   xyflowReactFlowAdapterProxy();
+  xyflowEdgeAdapterProxy();
   FlowNodeCardLayerWidgetProxy();
   FlowNodeDetailPanelLayerWidgetProxy();
   const user = userEvent.setup();

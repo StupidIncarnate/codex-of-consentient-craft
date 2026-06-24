@@ -174,6 +174,17 @@ export const QuestSpecPanelWidget = ({
           </Box>
         ) : null}
 
+        <DesignDecisionsLayerWidget
+          designDecisions={draftDesignDecisions}
+          editing={editing}
+          onChange={(designDecisions) => {
+            setDraftModifications((prev) => ({
+              ...prev,
+              designDecisions,
+            }));
+          }}
+        />
+
         <FlowsLayerWidget
           flows={draftFlows}
           contracts={draftContracts}
@@ -182,17 +193,6 @@ export const QuestSpecPanelWidget = ({
             setDraftModifications((prev) => ({
               ...prev,
               flows,
-            }));
-          }}
-        />
-
-        <DesignDecisionsLayerWidget
-          designDecisions={draftDesignDecisions}
-          editing={editing}
-          onChange={(designDecisions) => {
-            setDraftModifications((prev) => ({
-              ...prev,
-              designDecisions,
             }));
           }}
         />

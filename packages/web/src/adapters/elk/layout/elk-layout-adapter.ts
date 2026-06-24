@@ -42,11 +42,23 @@ export const elkLayoutAdapter = async ({
       'elk.spacing.edgeNode': String(elkLayoutStatics.spacing.edgeNode),
       'elk.spacing.edgeEdge': String(elkLayoutStatics.spacing.edgeEdge),
     },
-    children: nodes.map((n) => ({
-      id: String(n.id),
-      width: elkLayoutStatics.node.width,
-      height: elkLayoutStatics.node.height,
-    })),
+    children: nodes.map((n) => {
+      // Reserve a box tall enough for the node's FULL wrapped label so stacked rows never
+      // overlap. charsPerLine is deliberately low (over-counts wrapped lines), making the
+      // reserved height an upper bound on the rendered card height.
+      const { labelEstimate } = elkLayoutStatics;
+      const lines = Math.max(1, Math.ceil(String(n.label).length / labelEstimate.charsPerLine));
+      const badgeHeight = n.observables.length > 0 ? labelEstimate.badgeHeight : 0;
+      return {
+        id: String(n.id),
+        width: elkLayoutStatics.node.width,
+        height:
+          labelEstimate.chromeHeight +
+          lines * labelEstimate.lineHeight +
+          badgeHeight +
+          labelEstimate.buffer,
+      };
+    }),
     edges: edges.map((e) => ({
       id: String(e.id),
       sources: [String(e.from)],

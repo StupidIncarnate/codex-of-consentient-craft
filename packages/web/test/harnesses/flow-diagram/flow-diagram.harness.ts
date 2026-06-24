@@ -59,7 +59,8 @@ const DIAGRAM_FLOW = {
     },
     {
       id: 'has-detail',
-      label: 'Has Detail',
+      label:
+        'Has detail to show — the reviewer can drill into this node observables and contracts, but the flow first decides whether any detail exists for this node at all before it branches to a terminal',
       type: 'decision',
       observables: [],
     },
@@ -100,6 +101,30 @@ const DIAGRAM_FLOW = {
 
 const EXPECTED_NODE_COUNT = DIAGRAM_FLOW.nodes.length;
 
+// A second flow so the spec panel renders a tab per flow. Its node ids are DISTINCT from the
+// first flow's — switching to its tab must re-run the layout for THESE ids, or every node falls
+// back to {0,0} and piles up (the bug this guards). One node carries the label below so the
+// switch can wait for the second flow's diagram to paint.
+const SECOND_FLOW_FIRST_NODE_LABEL = 'Begin Review';
+const SECOND_DIAGRAM_FLOW = {
+  id: 'second-diagram-flow',
+  name: 'Second Review Flow',
+  flowType: 'operational',
+  entryPoint: 'review-start',
+  exitPoints: ['review-done'],
+  nodes: [
+    { id: 'review-start', label: SECOND_FLOW_FIRST_NODE_LABEL, type: 'action', observables: [] },
+    { id: 'review-check', label: 'Looks Good?', type: 'decision', observables: [] },
+    { id: 'review-done', label: 'Approved', type: 'terminal', observables: [] },
+  ],
+  edges: [
+    { id: 'review-start-to-check', from: 'review-start', to: 'review-check' },
+    { id: 'review-check-to-done', from: 'review-check', to: 'review-done', label: 'ok' },
+  ],
+};
+
+const SECOND_FLOW_NODE_COUNT = SECOND_DIAGRAM_FLOW.nodes.length;
+
 // Browser-evaluated predicates: read the React Flow viewport's x-scale from its CSS
 // matrix transform and compare against a baseline. They run inside page.waitForFunction
 // (browser context) and return a boolean, so the harness signature exposes no raw number.
@@ -138,6 +163,7 @@ export const flowDiagramHarness = ({
   hasExpectedNodeCount: () => Promise<boolean>;
   nodesHaveDistinctCoordinates: () => Promise<boolean>;
   nodesDoNotOverlap: () => Promise<boolean>;
+  nodeLabelsFullyVisible: () => Promise<boolean>;
   allNodesWithinCanvas: () => Promise<boolean>;
   zoomInGrowsScale: () => Promise<boolean>;
   zoomOutShrinksScale: () => Promise<boolean>;
@@ -150,6 +176,8 @@ export const flowDiagramHarness = ({
   customControlsVisible: () => Promise<boolean>;
   expandToFullscreen: () => Promise<void>;
   expandedCanvasIsTall: () => Promise<boolean>;
+  switchToSecondFlowTab: () => Promise<void>;
+  hasExpectedSecondFlowNodeCount: () => Promise<boolean>;
 } => {
   // Internal (non-exported) helpers: return types are inferred from Playwright APIs so the
   // signature carries no raw-primitive annotation. The factory's public methods below all
@@ -215,7 +243,7 @@ export const flowDiagramHarness = ({
             sessionId,
           },
         ],
-        flows: [DIAGRAM_FLOW],
+        flows: [DIAGRAM_FLOW, SECOND_DIAGRAM_FLOW],
       });
 
       const urlSlug = String(guild.urlSlug ?? guild.name)
@@ -274,6 +302,20 @@ export const flowDiagramHarness = ({
       return !overlapping;
     },
 
+    // The full node label must be readable on the card itself (no clamp/ellipsis). A clamped
+    // label clips its overflow, so scrollHeight exceeds clientHeight; asserts no label box is
+    // clipped.
+    nodeLabelsFullyVisible: async (): Promise<boolean> => {
+      const labels = page.getByTestId('FLOW_NODE_LABEL');
+      const count = await labels.count();
+      const clippedFlags = await Promise.all(
+        Array.from({ length: count }, async (_unused, index) =>
+          labels.nth(index).evaluate((el) => el.scrollHeight > el.clientHeight + 1),
+        ),
+      );
+      return clippedFlags.every((isClipped) => !isClipped);
+    },
+
     allNodesWithinCanvas: async (): Promise<boolean> => {
       const canvasBox = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
       if (canvasBox === null) {
@@ -329,20 +371,19 @@ export const flowDiagramHarness = ({
       return renderedEdges === expectedEdgeCount;
     },
 
-    // A labeled edge's branch text ('yes'/'no') renders only when the edge itself renders.
-    // The real React Flow paints edge labels as `.react-flow__edge-text`, not the unit
-    // mock's FLOW_EDGE_LABEL div — so this asserts the real-browser label element.
+    // The custom edge renders its label as a FLOW_EDGE_LABEL HTML box (full text, wrapped) at
+    // the edge midpoint. Asserts the branch label box with the given text is painted.
     branchLabelRendered: async ({ label }: { label: string }): Promise<boolean> => {
-      const labelLocator = page.locator('.react-flow__edge-text', { hasText: label });
+      const labelLocator = page.getByTestId('FLOW_EDGE_LABEL').filter({ hasText: label });
       await labelLocator.first().waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
       return (await labelLocator.count()) >= 1;
     },
 
-    // Branch-edge labels (`.react-flow__edge-text`) are painted at edge midpoints. A long
-    // condition on one branch must not paint over the sibling branch's label — the diagram
-    // truncates label width and spaces siblings so no two label boxes intersect.
+    // Branch-edge labels (FLOW_EDGE_LABEL boxes) are painted at edge midpoints. A long condition
+    // on one branch must not paint over the sibling branch's label — the diagram bounds each
+    // label box width and spaces siblings so no two label boxes intersect.
     branchLabelsDoNotOverlap: async (): Promise<boolean> => {
-      const labels = page.locator('.react-flow__edge-text');
+      const labels = page.getByTestId('FLOW_EDGE_LABEL');
       const count = await labels.count();
       const boxes = await Promise.all(
         Array.from({ length: count }, async (_unused, index) => {
@@ -413,6 +454,26 @@ export const flowDiagramHarness = ({
         throw new Error('REACT_FLOW_CANVAS has no bounding box');
       }
       return box.height > EXPANDED_CANVAS_MIN_PX;
+    },
+
+    // Clicks the second flow's tab and waits for its diagram to re-lay-out and paint (the second
+    // flow's first node label appears, and all its nodes render).
+    switchToSecondFlowTab: async (): Promise<void> => {
+      await page.getByTestId('FLOW_TAB').nth(1).click();
+      await page
+        .getByTestId('FLOW_NODE_LABEL')
+        .filter({ hasText: SECOND_FLOW_FIRST_NODE_LABEL })
+        .first()
+        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      await page
+        .getByTestId('FLOW_NODE')
+        .nth(SECOND_FLOW_NODE_COUNT - 1)
+        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    },
+
+    hasExpectedSecondFlowNodeCount: async (): Promise<boolean> => {
+      const count = await page.getByTestId('FLOW_NODE').count();
+      return count === SECOND_FLOW_NODE_COUNT;
     },
   };
 };

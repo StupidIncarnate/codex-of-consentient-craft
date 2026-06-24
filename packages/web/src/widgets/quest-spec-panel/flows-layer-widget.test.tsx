@@ -91,8 +91,9 @@ describe('FlowsLayerWidget', () => {
       expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
     });
 
-    it('VALID: {flows: [runtime, operational]} => renders both FLOW_TYPE_BADGE labels', () => {
+    it('VALID: {flows: [runtime, operational]} => one tab per flow; active tab badge switches on click', async () => {
       FlowsLayerWidgetProxy();
+      const user = userEvent.setup();
       const runtimeFlow = FlowStub({
         id: 'runtime-flow' as never,
         name: 'Runtime Flow',
@@ -114,9 +115,29 @@ describe('FlowsLayerWidget', () => {
         ),
       });
 
-      const badges = screen.getAllByTestId('FLOW_TYPE_BADGE');
+      // One tab per flow; only the active flow's content (badge) is shown.
+      expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
+        'Runtime Flow',
+        'Operational Flow',
+      ]);
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('runtime');
 
-      expect(badges.map((badge) => badge.textContent)).toStrictEqual(['runtime', 'operational']);
+      // Clicking the second tab switches the active flow.
+      await user.click(screen.getAllByTestId('FLOW_TAB')[1]!);
+
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
+    });
+
+    it('VALID: {flows: [single flow]} => renders no tab bar (content shown directly)', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ name: 'Solo Flow' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.queryByTestId('FLOW_TABS')).toBe(null);
+      expect(screen.getByTestId('FLOW_NAME').textContent).toBe('Solo Flow');
     });
 
     it('VALID: {runtime flow in read mode} => badge text color matches primary theme color', () => {

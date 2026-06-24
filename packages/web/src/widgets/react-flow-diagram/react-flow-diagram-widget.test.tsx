@@ -583,7 +583,7 @@ describe('ReactFlowDiagramWidget', () => {
       expect({
         height: wrapperBefore.style.height,
         minHeight: wrapperBefore.style.minHeight,
-      }).toStrictEqual({ height: '400px', minHeight: '' });
+      }).toStrictEqual({ height: '800px', minHeight: '' });
 
       await proxy.clickFullscreen();
 
@@ -622,7 +622,7 @@ describe('ReactFlowDiagramWidget', () => {
       expect({
         height: wrapper.style.height,
         minHeight: wrapper.style.minHeight,
-      }).toStrictEqual({ height: '400px', minHeight: '' });
+      }).toStrictEqual({ height: '800px', minHeight: '' });
     });
   });
 

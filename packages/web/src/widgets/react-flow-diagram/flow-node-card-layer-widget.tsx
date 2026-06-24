@@ -72,12 +72,10 @@ export const FlowNodeCardLayerWidget = ({
         style={{
           fontSize: 12,
           fontWeight: 600,
-          // Clamp the label to a fixed line count so the card stays within elk's reserved
-          // height; the full text is shown in the detail panel when the node is clicked.
-          display: '-webkit-box',
-          WebkitBoxOrient: 'vertical',
-          WebkitLineClamp: elkLayoutStatics.labelMaxLines,
-          overflow: 'hidden',
+          // Show the FULL label on the card — wrap it (elk reserves a box tall enough for every
+          // line, so the card never overflows its row). The detail panel adds observables and
+          // contracts, but the main text is always readable without clicking.
+          whiteSpace: 'normal',
           overflowWrap: 'break-word',
         }}
       >

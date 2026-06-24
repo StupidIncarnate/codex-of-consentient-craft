@@ -26,11 +26,11 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutAdapter } from '../../adapters/elk/layout/elk-layout-adapter';
+import { xyflowEdgeAdapter } from '../../adapters/xyflow/edge/xyflow-edge-adapter';
 import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { observableCountContract } from '../../contracts/observable-count/observable-count-contract';
-import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
@@ -40,7 +40,7 @@ export interface ReactFlowDiagramWidgetProps {
   contracts?: readonly QuestContractEntry[];
 }
 
-const MAX_HEIGHT = 400;
+const MAX_HEIGHT = 800;
 const EXPANDED_HEIGHT = 'calc(100vh - 160px)';
 const ICON_SIZE = 20;
 
@@ -49,6 +49,12 @@ const NODE_TYPES = {
   decision: FlowNodeCardLayerWidget as React.ComponentType<never>,
   action: FlowNodeCardLayerWidget as React.ComponentType<never>,
   terminal: FlowNodeCardLayerWidget as React.ComponentType<never>,
+};
+
+// Single custom edge type: renders the full branch label as a wrapping HTML box (see
+// xyflowEdgeAdapter) instead of React Flow's truncation-prone single-line SVG label.
+const EDGE_TYPES = {
+  flow: xyflowEdgeAdapter as React.ComponentType<never>,
 };
 
 const { colors } = emberDepthsThemeStatics;
@@ -133,19 +139,14 @@ export const ReactFlowDiagramWidget = ({
   }));
 
   const edges = flow.edges.map((e) => {
-    const base = { id: String(e.id), source: String(e.from), target: String(e.to) };
+    // type 'flow' selects the custom edge (xyflowEdgeAdapter) which renders the FULL label as a
+    // wrapping box. `data.label` is what the custom edge reads; the top-level `label` is kept
+    // only so the jsdom test mock (which renders FLOW_EDGE_LABEL from `edge.label`) still works.
+    const base = { id: String(e.id), source: String(e.from), target: String(e.to), type: 'flow' };
     if (e.label === undefined) {
       return base;
     }
-    // React Flow paints the label centered on the edge midpoint; truncate long branch
-    // conditions so two sibling-branch labels never paint over each other (the target node
-    // carries the full wording).
-    const full = String(e.label);
-    const label =
-      full.length > elkLayoutStatics.edgeLabelMaxChars
-        ? `${full.slice(0, elkLayoutStatics.edgeLabelMaxChars - 1)}…`
-        : full;
-    return { ...base, label };
+    return { ...base, label: e.label, data: { label: e.label } };
   });
 
   const selectedNode: FlowNode | undefined = selectedNodeId
@@ -182,6 +183,7 @@ export const ReactFlowDiagramWidget = ({
             nodes,
             edges,
             nodeTypes: NODE_TYPES,
+            edgeTypes: EDGE_TYPES,
             onNodeClick: (node: (typeof nodes)[0]) => {
               setSelectedNodeId(node.data.nodeId);
             },

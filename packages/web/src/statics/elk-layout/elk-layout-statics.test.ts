@@ -5,16 +5,21 @@ describe('elkLayoutStatics', () => {
     expect(elkLayoutStatics).toStrictEqual({
       node: {
         width: 240,
-        height: 150,
       },
-      labelMaxLines: 4,
+      labelEstimate: {
+        charsPerLine: 18,
+        lineHeight: 16,
+        chromeHeight: 40,
+        badgeHeight: 22,
+        buffer: 12,
+      },
       spacing: {
-        nodeNode: 160,
-        nodeNodeBetweenLayers: 90,
+        nodeNode: 180,
+        nodeNodeBetweenLayers: 110,
         edgeNode: 30,
         edgeEdge: 20,
       },
-      edgeLabelMaxChars: 22,
+      edgeLabelMaxWidth: 160,
     });
   });
 });

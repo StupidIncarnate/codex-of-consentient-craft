@@ -17,7 +17,7 @@ import React from 'react';
 
 import { Controls, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { Node, Edge, NodeTypes, ReactFlowProps } from '@xyflow/react';
+import type { Node, Edge, NodeTypes, EdgeTypes, ReactFlowProps } from '@xyflow/react';
 
 import type { ReactFlowNodeData } from '../../../contracts/react-flow-node-data/react-flow-node-data-contract';
 
@@ -27,6 +27,7 @@ export interface XyflowReactFlowAdapterProps {
   nodes: XyflowReactFlowAdapterNode[];
   edges: Edge[];
   nodeTypes?: NodeTypes;
+  edgeTypes?: EdgeTypes;
   onNodeClick?: (node: XyflowReactFlowAdapterNode) => void;
   onPaneClick?: () => void;
 }
@@ -35,6 +36,7 @@ export const xyflowReactFlowAdapter = ({
   nodes,
   edges,
   nodeTypes,
+  edgeTypes,
   onNodeClick,
   onPaneClick,
 }: XyflowReactFlowAdapterProps): React.ReactElement => {
@@ -42,6 +44,7 @@ export const xyflowReactFlowAdapter = ({
     nodes,
     edges,
     ...(nodeTypes === undefined ? {} : { nodeTypes }),
+    ...(edgeTypes === undefined ? {} : { edgeTypes }),
     onNodeClick: (_event, node) => {
       onNodeClick?.(node);
     },
