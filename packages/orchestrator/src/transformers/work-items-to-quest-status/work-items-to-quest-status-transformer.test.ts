@@ -1,43 +1,23 @@
 import { QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from './work-items-to-quest-status-transformer';
 
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+
+const PRE_EXECUTION_STATUSES = (
+  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
+).filter((s) => questStatusMetadataStatics.statuses[s].isPreExecution);
+
 describe('workItemsToQuestStatusTransformer', () => {
   describe('pre-execution statuses', () => {
-    it('VALID: {currentStatus: "created"} => unchanged', () => {
+    it.each(PRE_EXECUTION_STATUSES)('VALID: {currentStatus: %s} => unchanged', (status) => {
       const result = workItemsToQuestStatusTransformer({
         workItems: [],
-        currentStatus: 'created',
+        currentStatus: status,
       });
 
-      expect(result).toBe('created');
-    });
-
-    it('VALID: {currentStatus: "explore_flows"} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'explore_flows',
-      });
-
-      expect(result).toBe('explore_flows');
-    });
-
-    it('VALID: {currentStatus: "approved"} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'approved',
-      });
-
-      expect(result).toBe('approved');
-    });
-
-    it('VALID: {currentStatus: "design_approved"} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'design_approved',
-      });
-
-      expect(result).toBe('design_approved');
+      expect(result).toBe(status);
     });
   });
 
@@ -305,9 +285,6 @@ describe('workItemsToQuestStatusTransformer', () => {
     });
 
     it('VALID: {all terminal, failed item with NO superseding retry, no pending} => blocked', () => {
-      // Every item is terminal and an unsuperseded failure remains with nothing left to dispatch:
-      // the quest is blocked. (This is the case the orchestration loop used to force to `blocked`
-      // by hand; the transformer now derives it directly.)
       const failedId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -472,6 +449,17 @@ describe('workItemsToQuestStatusTransformer', () => {
       });
 
       expect(result).toBe('paused');
+    });
+  });
+
+  describe('empty work items list with execution status', () => {
+    it('EDGE: {workItems: [], currentStatus: "in_progress"} => complete (vacuous all-terminal)', () => {
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('complete');
     });
   });
 });

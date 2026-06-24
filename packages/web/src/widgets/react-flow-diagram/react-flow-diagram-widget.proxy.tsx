@@ -22,6 +22,7 @@ interface ReactFlowDiagramWidgetProxyResult {
   hasCanvas: () => boolean;
   hasError: () => boolean;
   hasDetailPanel: () => boolean;
+  isExpanded: () => boolean;
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
@@ -61,5 +62,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     hasCanvas: (): boolean => screen.queryByTestId('REACT_FLOW_CANVAS') !== null,
     hasError: (): boolean => screen.queryByTestId('FLOW_DIAGRAM_ERROR') !== null,
     hasDetailPanel: (): boolean => screen.queryByTestId('FLOW_NODE_DETAIL_PANEL') !== null,
+    isExpanded: (): boolean =>
+      screen.getByTestId('FULLSCREEN_BUTTON').getAttribute('data-expanded') === 'true',
   };
 };

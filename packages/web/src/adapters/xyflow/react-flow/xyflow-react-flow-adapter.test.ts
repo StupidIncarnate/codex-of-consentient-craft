@@ -138,6 +138,7 @@ describe('xyflowReactFlowAdapter', () => {
       await userEvent.click(screen.getByTestId('REACT_FLOW_PANE'));
 
       expect(onPaneClick).toHaveBeenCalledTimes(1);
+      expect(onPaneClick).toHaveBeenCalledWith();
     });
 
     it('EDGE: {click pane, onPaneClick undefined} => does not throw', async () => {

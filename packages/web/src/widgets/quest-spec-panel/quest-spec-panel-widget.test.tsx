@@ -783,12 +783,10 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(proxy.hasBanner()).toBe(true);
 
-      const callsBeforeReload = onDismissUpdate.mock.calls.length;
-
       await proxy.clickReload();
 
       expect(proxy.hasBanner()).toBe(false);
-      expect(onDismissUpdate.mock.calls.length).toBeGreaterThan(callsBeforeReload);
+      expect(onDismissUpdate).toHaveBeenCalledWith();
     });
 
     it('VALID: {KEEP EDITING clicked} => dismisses without clearing draft', async () => {
@@ -811,11 +809,9 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(proxy.hasBanner()).toBe(true);
 
-      const callsBeforeKeep = onDismissUpdate.mock.calls.length;
-
       await proxy.clickKeepEditing();
 
-      expect(onDismissUpdate.mock.calls.length).toBeGreaterThan(callsBeforeKeep);
+      expect(onDismissUpdate).toHaveBeenCalledWith();
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EDITING SPEC');
     });
 
@@ -836,6 +832,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(onDismissUpdate).toHaveBeenCalledTimes(1);
+      expect(onDismissUpdate).toHaveBeenCalledWith();
       expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBe(null);
     });
   });
@@ -895,6 +892,7 @@ describe('QuestSpecPanelWidget', () => {
       await proxy.clickConfirmAbandon();
 
       expect(onAbandon).toHaveBeenCalledTimes(1);
+      expect(onAbandon).toHaveBeenCalledWith();
     });
 
     it('VALID: {click CANCEL after ABANDON} => returns to ABANDON QUEST button, does not call onAbandon', async () => {

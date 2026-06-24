@@ -624,6 +624,48 @@ describe('ReactFlowDiagramWidget', () => {
         minHeight: wrapper.style.minHeight,
       }).toStrictEqual({ height: '800px', minHeight: '' });
     });
+
+    it('VALID: {diagram collapsed} => FULLSCREEN_BUTTON data-expanded is false', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.isExpanded()).toBe(false);
+    });
+
+    it('VALID: {fullscreen clicked} => FULLSCREEN_BUTTON data-expanded is true', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      await proxy.clickFullscreen();
+
+      expect(proxy.isExpanded()).toBe(true);
+    });
   });
 
   describe('contracts prop default', () => {
@@ -647,7 +689,9 @@ describe('ReactFlowDiagramWidget', () => {
       await proxy.clickNode({ nodeId: 'login-page' });
 
       // Panel renders the empty-state message (not a contract error) confirming contracts defaulted to [].
-      expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY')).toBeInTheDocument();
+      expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY').textContent).toBe(
+        'No observables or contracts for this node',
+      );
     });
   });
 

@@ -84,4 +84,29 @@ describe('xyflowEdgeAdapter', () => {
       expect(screen.queryByTestId('FLOW_EDGE_LABEL')).toBe(null);
     });
   });
+
+  describe('markerEnd prop', () => {
+    it('VALID: {markerEnd provided} => label still renders correctly', () => {
+      xyflowEdgeAdapterProxy();
+      const { label } = FlowEdgeStub({ label: 'yes' });
+
+      render(
+        React.createElement(EdgeComponent, {
+          id: 'edge-1',
+          source: 'node-a',
+          target: 'node-b',
+          sourceX: 0,
+          sourceY: 0,
+          targetX: 20,
+          targetY: 40,
+          sourcePosition: 'bottom',
+          targetPosition: 'top',
+          markerEnd: 'url(#arrowclosed)',
+          data: { label },
+        }),
+      );
+
+      expect(screen.getByTestId('FLOW_EDGE_LABEL').textContent).toBe(label);
+    });
+  });
 });

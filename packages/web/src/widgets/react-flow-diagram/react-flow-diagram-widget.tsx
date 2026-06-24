@@ -247,6 +247,7 @@ export const ReactFlowDiagramWidget = ({
           variant="filled"
           size={32}
           data-testid="FULLSCREEN_BUTTON"
+          data-expanded={expanded}
           onClick={() => {
             setExpanded((prev) => !prev);
           }}

@@ -10,6 +10,11 @@ import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
 type Flow = ReturnType<typeof FlowStub>;
 
+// Empty name is a valid in-memory state during editing (before the user types). FlowStub calls
+// flowContract.parse() which enforces min(1), so we override after the stub call via Object.assign.
+const EmptyNameFlowStub = ({ id }: { id: string }): Flow =>
+  Object.assign(FlowStub({ id: id as never }), { name: '' }) as Flow;
+
 describe('FlowsLayerWidget', () => {
   describe('read mode', () => {
     it('VALID: {flows: [flow]} => renders flow name', () => {
@@ -138,6 +143,37 @@ describe('FlowsLayerWidget', () => {
 
       expect(screen.queryByTestId('FLOW_TABS')).toBe(null);
       expect(screen.getByTestId('FLOW_NAME').textContent).toBe('Solo Flow');
+    });
+
+    it('EDGE: {flows: [flow with empty name]} => tab label falls back to "Flow 1"', () => {
+      FlowsLayerWidgetProxy();
+      const flowA = EmptyNameFlowStub({ id: 'flow-a' });
+      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
+        'Flow 1',
+        'Other',
+      ]);
+    });
+
+    it('VALID: {flows: [flow with name > 28 chars]} => tab label is truncated with ellipsis', () => {
+      FlowsLayerWidgetProxy();
+      const longName = 'A'.repeat(30);
+      const flowA = FlowStub({ id: 'flow-a' as never, name: longName });
+      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
+        `${'A'.repeat(27)}…`,
+        'Other',
+      ]);
     });
 
     it('VALID: {runtime flow in read mode} => badge text color matches primary theme color', () => {
