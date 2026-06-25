@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Renders the right-side detail panel showing observables and contracts for a selected flow node.
+ * PURPOSE: Renders the right-side detail panel listing the contracts anchored to a selected flow
+ * node. Assertions (observables) render as their own nodes on the canvas, so the panel is the
+ * contract reference only.
  *
  * USAGE:
  * <FlowNodeDetailPanelLayerWidget node={flowNode} contracts={contracts} onClose={() => setSelectedId(null)} />
- * // Renders FLOW_NODE_DETAIL_PANEL with observables, contract entries, and a close button
+ * // Renders FLOW_NODE_DETAIL_PANEL with contract entries and a close button
  */
 
 import { ActionIcon } from '@mantine/core';
@@ -26,7 +28,7 @@ export const FlowNodeDetailPanelLayerWidget = ({
 }: FlowNodeDetailPanelLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const matchingContracts = contracts.filter((c) => String(c.nodeId) === String(node.id));
-  const hasContent = node.observables.length > 0 || matchingContracts.length > 0;
+  const hasContent = matchingContracts.length > 0;
 
   return (
     <div
@@ -71,38 +73,9 @@ export const FlowNodeDetailPanelLayerWidget = ({
 
       {hasContent ? null : (
         <div data-testid="FLOW_DETAIL_PANEL_EMPTY" style={{ color: colors['text-dim'] }}>
-          No observables or contracts for this node
+          No contracts for this node
         </div>
       )}
-
-      {node.observables.length > 0 ? (
-        <div data-testid="FLOW_DETAIL_PANEL_OBSERVABLES" style={{ marginBottom: 12 }}>
-          {node.observables.map((obs) => (
-            <div
-              key={String(obs.id)}
-              data-testid="FLOW_DETAIL_PANEL_OBSERVABLE_ROW"
-              style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'flex-start' }}
-            >
-              <span
-                data-testid="FLOW_DETAIL_PANEL_OBSERVABLE_TYPE"
-                style={{
-                  background: colors['bg-deep'],
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: 4,
-                  padding: '1px 6px',
-                  fontSize: 10,
-                  color: colors.primary,
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
-              >
-                {obs.type}
-              </span>
-              <span data-testid="FLOW_DETAIL_PANEL_OBSERVABLE_DESCRIPTION">{obs.description}</span>
-            </div>
-          ))}
-        </div>
-      ) : null}
 
       {matchingContracts.length > 0 ? (
         <div data-testid="FLOW_DETAIL_PANEL_CONTRACTS">

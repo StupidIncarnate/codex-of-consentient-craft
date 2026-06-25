@@ -10,6 +10,6 @@ export const ReactFlowNodeDataStub = ({
     nodeId: 'login-page',
     label: 'Login Page',
     nodeType: 'state',
-    observableCount: 0,
+    contractCount: 0,
     ...props,
   });

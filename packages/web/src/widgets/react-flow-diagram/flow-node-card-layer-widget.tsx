@@ -37,7 +37,7 @@ export const FlowNodeCardLayerWidget = ({
   data,
   selected,
 }: FlowNodeCardLayerWidgetProps): React.JSX.Element => {
-  const { nodeType, label, observableCount } = data;
+  const { nodeType, label, contractCount } = data;
   const accentColor = flowNodeStyleStatics.accent[nodeType];
   const TypeIcon = NODE_TYPE_ICONS[nodeType];
 
@@ -81,9 +81,10 @@ export const FlowNodeCardLayerWidget = ({
       >
         {label}
       </div>
-      {observableCount > 0 ? (
+      {contractCount > 0 ? (
         <div
           data-testid="FLOW_NODE_BADGE"
+          title="contracts"
           style={{
             background: accentColor,
             color: '#0d0907',
@@ -94,7 +95,7 @@ export const FlowNodeCardLayerWidget = ({
             marginTop: 4,
           }}
         >
-          {String(observableCount)}
+          {String(contractCount)}
         </div>
       ) : null}
     </div>

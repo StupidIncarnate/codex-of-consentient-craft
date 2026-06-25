@@ -28,12 +28,16 @@ import type {
 import { elkLayoutAdapter } from '../../adapters/elk/layout/elk-layout-adapter';
 import { xyflowEdgeAdapter } from '../../adapters/xyflow/edge/xyflow-edge-adapter';
 import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter';
+import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
+import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
-import { observableCountContract } from '../../contracts/observable-count/observable-count-contract';
+import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
+import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
 
 export interface ReactFlowDiagramWidgetProps {
   flow: Flow;
@@ -49,6 +53,8 @@ const NODE_TYPES = {
   decision: FlowNodeCardLayerWidget as React.ComponentType<never>,
   action: FlowNodeCardLayerWidget as React.ComponentType<never>,
   terminal: FlowNodeCardLayerWidget as React.ComponentType<never>,
+  // Assertion (observable) cards that branch off to the right of each flow node.
+  observable: FlowObservableNodeLayerWidget as React.ComponentType<never>,
 };
 
 // Single custom edge type: renders the full branch label as a wrapping HTML box (see
@@ -125,7 +131,7 @@ export const ReactFlowDiagramWidget = ({
     return null;
   }
 
-  const nodes = flow.nodes.map((n) => ({
+  const flowNodes = flow.nodes.map((n) => ({
     id: String(n.id),
     type: n.type,
     position: positions[String(n.id)] ?? { x: 0, y: 0 },
@@ -134,11 +140,49 @@ export const ReactFlowDiagramWidget = ({
       nodeId: n.id,
       label: n.label,
       nodeType: n.type,
-      observableCount: observableCountContract.parse(n.observables.length),
+      // Badge counts the contracts anchored to this node — the same nodeId match the detail panel
+      // uses. Contract arrays are small, so a per-node filter is fine.
+      contractCount: contractCountContract.parse(
+        contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
+      ),
     }),
   }));
 
-  const edges = flow.edges.map((e) => {
+  // Each observable becomes its own card stacked into a column to the RIGHT of its flow node, so a
+  // reviewer reads every assertion on the canvas. Positions are computed relative to the flow
+  // node's ELK position; ELK reserves each node enough height to clear its whole column.
+  const observableNodes = flow.nodes.flatMap((n) => {
+    const base = positions[String(n.id)] ?? { x: 0, y: 0 };
+    const { observable } = elkLayoutStatics;
+    const columnX = base.x + elkLayoutStatics.node.width + observable.gap;
+    let cursorY = 0;
+    return n.observables.map((obs) => {
+      const obsLines = Math.max(
+        1,
+        Math.ceil(String(obs.description).length / observable.labelEstimate.charsPerLine),
+      );
+      const obsCardHeight =
+        observable.labelEstimate.chromeHeight +
+        obsLines * observable.labelEstimate.lineHeight +
+        observable.labelEstimate.buffer;
+      const y = base.y + cursorY;
+      cursorY += obsCardHeight + observable.rowGap;
+      return {
+        id: `obs:${String(n.id)}:${String(obs.id)}`,
+        type: 'observable',
+        position: { x: columnX, y },
+        data: flowObservableNodeDataContract.parse({
+          observableId: obs.id,
+          outcomeType: obs.type,
+          description: obs.description,
+        }),
+      };
+    });
+  });
+
+  const nodes = [...flowNodes, ...observableNodes];
+
+  const flowEdges = flow.edges.map((e) => {
     // type 'flow' selects the custom edge (xyflowEdgeAdapter) which renders the FULL label as a
     // wrapping box. `data.label` is what the custom edge reads; the top-level `label` is kept
     // only so the jsdom test mock (which renders FLOW_EDGE_LABEL from `edge.label`) still works.
@@ -148,6 +192,19 @@ export const ReactFlowDiagramWidget = ({
     }
     return { ...base, label: e.label, data: { label: e.label } };
   });
+
+  // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so the
+  // column reads as branching off that node. No label, so the jsdom mock (label-only) skips them.
+  const observableEdges = flow.nodes.flatMap((n) =>
+    n.observables.map((obs) => ({
+      id: `obs-edge:${String(n.id)}:${String(obs.id)}`,
+      source: String(n.id),
+      sourceHandle: flowHandleStatics.observableSourceId,
+      target: `obs:${String(n.id)}:${String(obs.id)}`,
+    })),
+  );
+
+  const edges = [...flowEdges, ...observableEdges];
 
   const selectedNode: FlowNode | undefined = selectedNodeId
     ? flow.nodes.find((n) => String(n.id) === String(selectedNodeId))
@@ -185,7 +242,12 @@ export const ReactFlowDiagramWidget = ({
             nodeTypes: NODE_TYPES,
             edgeTypes: EDGE_TYPES,
             onNodeClick: (node: (typeof nodes)[0]) => {
-              setSelectedNodeId(node.data.nodeId);
+              // Resolve the clicked node by its id against the flow nodes only — clicking an
+              // assertion (observable) node finds nothing and leaves the selection unchanged.
+              const clicked = flow.nodes.find((fn) => String(fn.id) === node.id);
+              if (clicked !== undefined) {
+                setSelectedNodeId(clicked.id);
+              }
             },
             onPaneClick: () => {
               setSelectedNodeId(null);

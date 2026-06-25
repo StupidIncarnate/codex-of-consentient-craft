@@ -6,6 +6,7 @@ import { xyflowEdgeAdapterProxy } from '../../adapters/xyflow/edge/xyflow-edge-a
 import { xyflowReactFlowAdapterProxy } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter.proxy';
 import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.proxy';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
+import { FlowObservableNodeLayerWidgetProxy } from './flow-observable-node-layer-widget.proxy';
 
 type ProxyInstance = ReturnType<typeof elkLayoutAdapterProxy>;
 type ReturnsPositionsArgs = Parameters<ProxyInstance['returnsPositions']>[0];
@@ -18,6 +19,9 @@ interface ReactFlowDiagramWidgetProxyResult {
   pressEsc: () => Promise<void>;
   clickFullscreen: () => Promise<void>;
   getDetailPanelHeading: () => HTMLElement | null;
+  getObservableNodes: () => HTMLElement[];
+  getObservableTypeTags: () => HTMLElement[];
+  getObservableDescriptions: () => HTMLElement[];
   hasDiagram: () => boolean;
   hasCanvas: () => boolean;
   hasError: () => boolean;
@@ -31,6 +35,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   xyflowEdgeAdapterProxy();
   FlowNodeCardLayerWidgetProxy();
   FlowNodeDetailPanelLayerWidgetProxy();
+  FlowObservableNodeLayerWidgetProxy();
   const user = userEvent.setup();
 
   return {
@@ -58,6 +63,11 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     },
     getDetailPanelHeading: (): HTMLElement | null =>
       screen.queryByTestId('FLOW_DETAIL_PANEL_HEADING'),
+    getObservableNodes: (): HTMLElement[] => screen.queryAllByTestId('FLOW_OBSERVABLE_NODE'),
+    getObservableTypeTags: (): HTMLElement[] =>
+      screen.queryAllByTestId('FLOW_OBSERVABLE_NODE_TYPE'),
+    getObservableDescriptions: (): HTMLElement[] =>
+      screen.queryAllByTestId('FLOW_OBSERVABLE_NODE_DESC'),
     hasDiagram: (): boolean => screen.queryByTestId('FLOW_DIAGRAM') !== null,
     hasCanvas: (): boolean => screen.queryByTestId('REACT_FLOW_CANVAS') !== null,
     hasError: (): boolean => screen.queryByTestId('FLOW_DIAGRAM_ERROR') !== null,

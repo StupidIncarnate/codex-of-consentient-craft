@@ -80,7 +80,7 @@ describe('xyflowReactFlowAdapter', () => {
       const clickedData = ReactFlowNodeDataStub({
         nodeId: 'click-target',
         label: 'Click Me',
-        observableCount: 2,
+        contractCount: 2,
       });
 
       render(

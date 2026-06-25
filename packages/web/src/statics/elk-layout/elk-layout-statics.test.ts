@@ -13,13 +13,27 @@ describe('elkLayoutStatics', () => {
         badgeHeight: 22,
         buffer: 12,
       },
+      observable: {
+        width: 220,
+        gap: 56,
+        rowGap: 12,
+        labelEstimate: {
+          charsPerLine: 26,
+          lineHeight: 15,
+          chromeHeight: 30,
+          buffer: 10,
+        },
+      },
       spacing: {
-        nodeNode: 180,
-        nodeNodeBetweenLayers: 110,
+        nodeNode: 300,
+        nodeNodeBetweenLayers: 140,
         edgeNode: 30,
         edgeEdge: 20,
       },
       edgeLabelMaxWidth: 160,
+      viewport: {
+        minZoom: 0.1,
+      },
     });
   });
 });

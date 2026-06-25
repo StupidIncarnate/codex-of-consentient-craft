@@ -25,8 +25,10 @@ const FRAMING_EPSILON_PX = 1;
 // (≈ viewport − 160px) distinguishes the bug from the fix across viewport sizes.
 const EXPANDED_CANVAS_MIN_PX = 300;
 
-// Node labels / observable text the scenario file asserts on. Exported as plain string
+// Node labels / assertion text the scenario file asserts on. Exported as plain string
 // constants (not signature types) so the scenario can reference them without inlining.
+// FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE renders as a FLOW_OBSERVABLE_NODE card on the canvas (the
+// detail panel is contracts-only), so the scenario asserts it on the canvas, not in the panel.
 export const FLOW_DIAGRAM_OPEN_PAGE_LABEL = 'Open Page';
 export const FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE = 'The page renders the diagram canvas';
 
@@ -37,7 +39,8 @@ export const FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE = 'The page renders the diagram c
 // label width the siblings overlap horizontally and their branch-edge labels collide — the
 // real-quest symptom this flow reproduces. Their labels are intentionally long (full
 // sentences, like real quest flows) to force that overlap unless the card is sized to elk's
-// reserved box. open-page carries observables so the detail panel has content to show.
+// reserved box. open-page and view-detail each carry one observable, so the canvas renders two
+// FLOW_OBSERVABLE_NODE assertion cards branching off to the right of those nodes.
 const DIAGRAM_FLOW = {
   id: 'diagram-flow',
   name: 'Diagram Interaction Flow',
@@ -101,6 +104,13 @@ const DIAGRAM_FLOW = {
 
 const EXPECTED_NODE_COUNT = DIAGRAM_FLOW.nodes.length;
 
+// Each observable becomes its own FLOW_OBSERVABLE_NODE card branching to the right of its flow
+// node, wired by one connector edge. Both counts drive the assertion-node and edge-count checks.
+const EXPECTED_OBSERVABLE_COUNT = DIAGRAM_FLOW.nodes.reduce(
+  (sum, node) => sum + node.observables.length,
+  0,
+);
+
 // A second flow so the spec panel renders a tab per flow. Its node ids are DISTINCT from the
 // first flow's — switching to its tab must re-run the layout for THESE ids, or every node falls
 // back to {0,0} and piles up (the bug this guards). One node carries the label below so the
@@ -124,6 +134,62 @@ const SECOND_DIAGRAM_FLOW = {
 };
 
 const SECOND_FLOW_NODE_COUNT = SECOND_DIAGRAM_FLOW.nodes.length;
+
+// A deliberately TALL flow: a vertical chain whose middle nodes each carry many observables, so
+// their assertion columns stack into a graph far taller than the collapsed (800px) canvas. This
+// reproduces the real-quest symptom — a large assertion-rich flow whose fit-view could not shrink
+// the whole graph into the collapsed canvas (it only appeared once expanded to fullscreen). The
+// fix lowers the React Flow minZoom so fit-view frames the entire graph even when collapsed. Each
+// big node gets 7 assertions via an inline Array.from (kept inline so the flow stays a plain
+// literal with no raw-primitive type annotation).
+const LARGE_FLOW_FIRST_NODE_LABEL = 'Large Graph Entry';
+const LARGE_DIAGRAM_FLOW = {
+  id: 'large-diagram-flow',
+  name: 'Large Assertion Flow',
+  flowType: 'runtime',
+  entryPoint: 'large-entry',
+  exitPoints: ['large-end'],
+  nodes: [
+    {
+      id: 'large-entry',
+      label: LARGE_FLOW_FIRST_NODE_LABEL,
+      type: 'action',
+      observables: Array.from({ length: 7 }, (_unused, i) => ({
+        id: `entry-assertion-${i + 1}`,
+        type: 'ui-state',
+        description: `entry assertion ${i + 1} renders its outcome row and stays readable`,
+      })),
+    },
+    {
+      id: 'large-step-a',
+      label: 'Stage A',
+      type: 'state',
+      observables: Array.from({ length: 7 }, (_unused, i) => ({
+        id: `a-assertion-${i + 1}`,
+        type: 'ui-state',
+        description: `stage A assertion ${i + 1} renders its outcome row and stays readable`,
+      })),
+    },
+    {
+      id: 'large-step-b',
+      label: 'Stage B',
+      type: 'state',
+      observables: Array.from({ length: 7 }, (_unused, i) => ({
+        id: `b-assertion-${i + 1}`,
+        type: 'ui-state',
+        description: `stage B assertion ${i + 1} renders its outcome row and stays readable`,
+      })),
+    },
+    { id: 'large-end', label: 'Large Graph Exit', type: 'terminal', observables: [] },
+  ],
+  edges: [
+    { id: 'large-entry-to-a', from: 'large-entry', to: 'large-step-a' },
+    { id: 'large-a-to-b', from: 'large-step-a', to: 'large-step-b' },
+    { id: 'large-b-to-end', from: 'large-step-b', to: 'large-end' },
+  ],
+};
+
+const LARGE_FLOW_NODE_COUNT = LARGE_DIAGRAM_FLOW.nodes.length;
 
 // Browser-evaluated predicates: read the React Flow viewport's x-scale from its CSS
 // matrix transform and compare against a baseline. They run inside page.waitForFunction
@@ -171,6 +237,9 @@ export const flowDiagramHarness = ({
   allEdgesRendered: () => Promise<boolean>;
   branchLabelRendered: (params: { label: string }) => Promise<boolean>;
   branchLabelsDoNotOverlap: () => Promise<boolean>;
+  assertionNodeRendered: (params: { text: string }) => Promise<boolean>;
+  hasExpectedAssertionCount: () => Promise<boolean>;
+  assertionNodesBranchRightOfFlowNodes: () => Promise<boolean>;
   clickPaneBackground: () => Promise<void>;
   nativeControlsPresentButHidden: () => Promise<boolean>;
   customControlsVisible: () => Promise<boolean>;
@@ -178,6 +247,9 @@ export const flowDiagramHarness = ({
   expandedCanvasIsTall: () => Promise<boolean>;
   switchToSecondFlowTab: () => Promise<void>;
   hasExpectedSecondFlowNodeCount: () => Promise<boolean>;
+  switchToLargeFlowTab: () => Promise<void>;
+  hasExpectedLargeFlowNodeCount: () => Promise<boolean>;
+  allAssertionNodesWithinCanvas: () => Promise<boolean>;
 } => {
   // Internal (non-exported) helpers: return types are inferred from Playwright APIs so the
   // signature carries no raw-primitive annotation. The factory's public methods below all
@@ -243,7 +315,7 @@ export const flowDiagramHarness = ({
             sessionId,
           },
         ],
-        flows: [DIAGRAM_FLOW, SECOND_DIAGRAM_FLOW],
+        flows: [DIAGRAM_FLOW, SECOND_DIAGRAM_FLOW, LARGE_DIAGRAM_FLOW],
       });
 
       const urlSlug = String(guild.urlSlug ?? guild.name)
@@ -359,10 +431,10 @@ export const flowDiagramHarness = ({
     },
 
     // Edges only render when the custom node card exposes React Flow connection handles.
-    // Without handles React Flow drops every edge ("source handle id: null"). Asserts one
-    // rendered edge path per flow edge.
+    // Without handles React Flow drops every edge ("source handle id: null"). One path renders
+    // per flow edge PLUS one connector per observable (flow card right handle -> assertion card).
     allEdgesRendered: async (): Promise<boolean> => {
-      const expectedEdgeCount = DIAGRAM_FLOW.edges.length;
+      const expectedEdgeCount = DIAGRAM_FLOW.edges.length + EXPECTED_OBSERVABLE_COUNT;
       await page
         .locator('.react-flow__edge-path')
         .nth(expectedEdgeCount - 1)
@@ -403,6 +475,44 @@ export const flowDiagramHarness = ({
         }),
       );
       return !overlapping;
+    },
+
+    // Each assertion (observable) renders as its own FLOW_OBSERVABLE_NODE card on the canvas —
+    // always visible, no click needed. Asserts the given assertion text is painted as a card.
+    assertionNodeRendered: async ({ text }: { text: string }): Promise<boolean> => {
+      const node = page.getByTestId('FLOW_OBSERVABLE_NODE').filter({ hasText: text });
+      await node.first().waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      return (await node.count()) >= 1;
+    },
+
+    hasExpectedAssertionCount: async (): Promise<boolean> => {
+      const count = await page.getByTestId('FLOW_OBSERVABLE_NODE').count();
+      return count === EXPECTED_OBSERVABLE_COUNT;
+    },
+
+    // Every assertion card sits clear to the RIGHT of a flow node (its parent) and overlaps no
+    // flow node — proving assertions branch off to the side rather than stacking on the spine.
+    assertionNodesBranchRightOfFlowNodes: async (): Promise<boolean> => {
+      const flowBoxes = await getBoundingBoxes();
+      const obsNodes = page.getByTestId('FLOW_OBSERVABLE_NODE');
+      const obsCount = await obsNodes.count();
+      const obsBoxes = await Promise.all(
+        Array.from({ length: obsCount }, async (_unused, index) => {
+          const box = await obsNodes.nth(index).boundingBox();
+          if (box === null) {
+            throw new Error(`FLOW_OBSERVABLE_NODE at index ${index} has no bounding box`);
+          }
+          return { x: box.x, y: box.y, w: box.width, h: box.height };
+        }),
+      );
+      return obsBoxes.every((obs) => {
+        const overlapsFlowNode = flowBoxes.some(
+          (f) =>
+            obs.x < f.x + f.w && obs.x + obs.w > f.x && obs.y < f.y + f.h && obs.y + obs.h > f.y,
+        );
+        const hasParentToLeft = flowBoxes.some((f) => f.x + f.w <= obs.x + FRAMING_EPSILON_PX);
+        return !overlapsFlowNode && hasParentToLeft;
+      });
     },
 
     // The real React Flow pane is `.react-flow__pane` (no testid). Clicking it must deselect
@@ -474,6 +584,56 @@ export const flowDiagramHarness = ({
     hasExpectedSecondFlowNodeCount: async (): Promise<boolean> => {
       const count = await page.getByTestId('FLOW_NODE').count();
       return count === SECOND_FLOW_NODE_COUNT;
+    },
+
+    // Clicks the large (tall, assertion-heavy) flow's tab and waits for its diagram to re-lay-out
+    // and paint. Switching tabs remounts the diagram so fit-view runs fresh against the collapsed
+    // canvas for THIS large graph — the exact path that left the diagram blank before the minZoom
+    // fix.
+    switchToLargeFlowTab: async (): Promise<void> => {
+      await page.getByTestId('FLOW_TAB').nth(2).click();
+      await page
+        .getByTestId('FLOW_NODE_LABEL')
+        .filter({ hasText: LARGE_FLOW_FIRST_NODE_LABEL })
+        .first()
+        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      await page
+        .getByTestId('FLOW_NODE')
+        .nth(LARGE_FLOW_NODE_COUNT - 1)
+        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    },
+
+    hasExpectedLargeFlowNodeCount: async (): Promise<boolean> => {
+      const count = await page.getByTestId('FLOW_NODE').count();
+      return count === LARGE_FLOW_NODE_COUNT;
+    },
+
+    // Every assertion card must sit inside the canvas after fit-view — a collapsed canvas that
+    // cannot shrink the tall graph leaves the assertion cards (and flow nodes) outside its bounds,
+    // which reads as "the diagram does not render unless fullscreen".
+    allAssertionNodesWithinCanvas: async (): Promise<boolean> => {
+      const canvasBox = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
+      if (canvasBox === null) {
+        throw new Error('REACT_FLOW_CANVAS has no bounding box');
+      }
+      const obsNodes = page.getByTestId('FLOW_OBSERVABLE_NODE');
+      const obsCount = await obsNodes.count();
+      const obsBoxes = await Promise.all(
+        Array.from({ length: obsCount }, async (_unused, index) => {
+          const box = await obsNodes.nth(index).boundingBox();
+          if (box === null) {
+            throw new Error(`FLOW_OBSERVABLE_NODE at index ${index} has no bounding box`);
+          }
+          return { x: box.x, y: box.y, w: box.width, h: box.height };
+        }),
+      );
+      return obsBoxes.every(
+        (box) =>
+          box.x >= canvasBox.x - FRAMING_EPSILON_PX &&
+          box.y >= canvasBox.y - FRAMING_EPSILON_PX &&
+          box.x + box.w <= canvasBox.x + canvasBox.width + FRAMING_EPSILON_PX &&
+          box.y + box.h <= canvasBox.y + canvasBox.height + FRAMING_EPSILON_PX,
+      );
     },
   };
 };

@@ -12,7 +12,7 @@ describe('reactFlowNodeDataContract', () => {
           nodeId: 'login-page',
           label: 'Login Page',
           nodeType,
-          observableCount: 0,
+          contractCount: 0,
         });
       },
     );
@@ -22,21 +22,21 @@ describe('reactFlowNodeDataContract', () => {
         nodeId: 'checkout-page',
         label: 'Checkout Page',
         nodeType: 'state',
-        observableCount: 5,
+        contractCount: 5,
       });
 
       expect(result).toStrictEqual({
         nodeId: 'checkout-page',
         label: 'Checkout Page',
         nodeType: 'state',
-        observableCount: 5,
+        contractCount: 5,
       });
     });
   });
 
   describe('invalid inputs', () => {
-    it('INVALID: {observableCount: -1} => throws for negative observableCount', () => {
-      expect(() => ReactFlowNodeDataStub({ observableCount: -1 as never })).toThrow(
+    it('INVALID: {contractCount: -1} => throws for negative contractCount', () => {
+      expect(() => ReactFlowNodeDataStub({ contractCount: -1 as never })).toThrow(
         /Number must be greater than or equal to 0/u,
       );
     });
