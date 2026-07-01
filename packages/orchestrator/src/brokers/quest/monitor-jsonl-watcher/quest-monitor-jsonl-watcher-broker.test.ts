@@ -3,6 +3,7 @@ import {
   FilePathStub,
   ProcessIdStub,
   QuestIdStub,
+  QuestWorkItemIdStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -364,6 +365,411 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       ]);
     });
+
+    it('VALID: {nested sub-agent B spawned by sub-agent A, only A has a work item} => B emit carries A workItemId and parentAgentId stamped', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-nested' });
+      const activeQuestId = QuestIdStub({ value: 'nested-ancestor-quest' });
+      const wiA = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      // Only sub-agent A has a work item, keyed on its realAgentId. Nested B is absent from
+      // the map (its lookup returns undefined), so the broker must walk B -> A and route
+      // B's transcript to A's work item.
+      const workItemByAgent = new Map([['real-a', wiA]]);
+
+      // tails come from agent-detected, not dir scan
+      proxy.setupSubagentDirEmpty();
+
+      // ROUND 1: main processes A_TOOLRESULT → registers real-a→toolu_chainA in processor
+      // maps → emits agent-detected(real-a) → starts A's tail
+      const A_TOOLRESULT =
+        '{"type":"user","uuid":"a-result-1","timestamp":"2026-05-13T10:00:10.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_chainA","content":"done"}]},"tool_use_result":{"agentId":"real-a","status":"completed"}}';
+
+      // ROUND 2: A's tail processes B_TOOLRESULT → registers real-b→toolu_chainB +
+      // parentChain[toolu_chainB]=toolu_chainA in processor maps → emits
+      // agent-detected(real-b) → starts B's tail
+      const B_TOOLRESULT =
+        '{"type":"user","uuid":"b-result-1","timestamp":"2026-05-13T10:00:20.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_chainB","content":"done"}]},"tool_use_result":{"agentId":"real-b","status":"completed"}}';
+
+      // ROUND 3: B's tail processes B_TEXT → entry stamped parentAgentId=toolu_chainA →
+      // emits with workItemId=wiA (ancestor walk: real-b→null→real-a→wiA)
+      const B_TEXT =
+        '{"type":"assistant","uuid":"b-text","timestamp":"2026-05-13T10:00:30.000Z","message":{"content":[{"type":"text","text":"nested B output"}]}}';
+
+      const emitted: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        workItemIdForAgent: ({ agentId }) => workItemByAgent.get(String(agentId)),
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => true,
+      });
+
+      // Round 1 — watcher order: [main]. main gets A_TOOLRESULT.
+      proxy.setupLines({ lines: [A_TOOLRESULT] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Round 2 — watcher order: [main, A-tail].
+      // main gets empty; A-tail gets B_TOOLRESULT.
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [B_TOOLRESULT] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Round 3 — watcher order: [main, A-tail, B-tail].
+      // main empty, A-tail empty, B-tail gets B_TEXT.
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [B_TEXT] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Three emits in causal order: main's A tool_result (no routing keys), A-tail's B
+      // tool_result (routed to A's own work item wiA), then B-tail's text — the nested
+      // entry carrying parentAgentId=toolu_chainA and routed to the ANCESTOR work item wiA.
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_chainA',
+              content: 'done',
+              source: 'session',
+              uuid: 'a-result-1:0',
+              timestamp: '2026-05-13T10:00:10.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_chainB',
+              content: 'done',
+              source: 'subagent',
+              agentId: 'toolu_chainA',
+              uuid: 'b-result-1:0',
+              timestamp: '2026-05-13T10:00:20.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+          workItemId: wiA,
+        },
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'nested B output',
+              source: 'subagent',
+              agentId: 'toolu_chainB',
+              parentAgentId: 'toolu_chainA',
+              uuid: 'b-text:0',
+              timestamp: '2026-05-13T10:00:30.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+          workItemId: wiA,
+        },
+      ]);
+    });
+
+    it('VALID: {depth-1 sub-agent whose realAgentId has no work item and no ancestor} => emit omits workItemId (ancestor walk finds none)', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-no-wi' });
+      const activeQuestId = QuestIdStub({ value: 'no-wi-quest' });
+      // Resolver is supplied (seeded with an unrelated agent so the Map type infers), but the
+      // depth-1 sub-agent X is absent from it and has no parent chain — so the walk bottoms
+      // out at null and the emit carries no workItemId.
+      const workItemByAgent = new Map([
+        ['unrelated-agent', QuestWorkItemIdStub({ value: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d480' })],
+      ]);
+
+      proxy.setupSubagentDirEmpty();
+
+      const X_TOOLRESULT =
+        '{"type":"user","uuid":"x-result","timestamp":"2026-05-13T10:00:40.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_X","content":"done"}]},"tool_use_result":{"agentId":"real-x","status":"completed"}}';
+      const X_TEXT =
+        '{"type":"assistant","uuid":"x-text","timestamp":"2026-05-13T10:00:50.000Z","message":{"content":[{"type":"text","text":"depth1 X output"}]}}';
+
+      const emitted: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        workItemIdForAgent: ({ agentId }) => workItemByAgent.get(String(agentId)),
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => true,
+      });
+
+      // Round 1 — [main]: main gets X_TOOLRESULT → registers real-x→toolu_X, starts X's tail.
+      proxy.setupLines({ lines: [X_TOOLRESULT] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Round 2 — [main, X-tail]: main empty, X-tail gets X_TEXT.
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [X_TEXT] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_X',
+              content: 'done',
+              source: 'session',
+              uuid: 'x-result:0',
+              timestamp: '2026-05-13T10:00:40.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'depth1 X output',
+              source: 'subagent',
+              agentId: 'toolu_X',
+              uuid: 'x-text:0',
+              timestamp: '2026-05-13T10:00:50.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+      ]);
+    });
+
+    it('VALID: {agent-detected on main JSONL, isAgentIdActive returns false} => sub-agent tail not started, no sub-agent entries emitted', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-inactive-agent' });
+      const activeQuestId = QuestIdStub({ value: 'inactive-agent-quest' });
+
+      proxy.setupSubagentDirEmpty();
+
+      // A tool_result line that normally triggers an agent-detected output — which causes
+      // startSubagentTailLayerBroker to be called. With isAgentIdActive: () => false the
+      // agent-detected handling is skipped (continue), so no sub-agent tail is registered.
+      const TOOL_RESULT =
+        '{"type":"user","uuid":"inactive-result","timestamp":"2026-05-13T10:01:00.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_inactive","content":"done"}]},"tool_use_result":{"agentId":"real-inactive","status":"completed"}}';
+
+      const emitted: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => false,
+      });
+
+      // Round 1: main tail processes TOOL_RESULT. The entries output is emitted; the
+      // agent-detected output is skipped (isAgentIdActive: false). No sub-agent tail starts.
+      proxy.setupLines({ lines: [TOOL_RESULT] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Round 2: set up a batch that would be consumed by a sub-agent tail IF one had been
+      // registered (it fires as the first watcher callback). Since no sub-agent tail exists,
+      // only the main callback fires and consumes the single empty batch — the sub-agent
+      // content batch is never touched and produces no emission.
+      proxy.setupLines({ lines: [] }); // main: empty
+      proxy.setupLines({
+        lines: [
+          '{"type":"assistant","uuid":"inactive-sub-line","timestamp":"2026-05-13T10:01:10.000Z","message":{"content":[{"type":"text","text":"should not appear"}]}}',
+        ],
+      }); // would only be consumed if a sub-agent tail existed
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Only the tool_result entry from the main tail should appear.
+      // No sub-agent entries because the tail was never started.
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_inactive',
+              content: 'done',
+              source: 'session',
+              uuid: 'inactive-result:0',
+              timestamp: '2026-05-13T10:01:00.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+      ]);
+    });
+  });
+
+  describe('pruneStaleTails()', () => {
+    it('VALID: {agent becomes inactive} => stale tail handle stopped, no further emissions from it', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-prune-stale' });
+      const activeQuestId = QuestIdStub({ value: 'prune-stale-quest' });
+
+      let agentActive = true;
+
+      // Pre-existing sub-agent in dir. Watcher registration order: sub-agent tail first
+      // (initial scan), main tail second. So the first setupLines batch goes to the
+      // sub-agent and the second goes to main.
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-prune-1.jsonl' })],
+      });
+      proxy.setupLines({
+        lines: [
+          '{"type":"assistant","uuid":"pre-prune-line","timestamp":"2026-05-13T10:02:00.000Z","message":{"content":[{"type":"text","text":"before prune"}]}}',
+        ],
+      }); // sub-agent initial drain
+      proxy.setupLines({ lines: [] }); // main initial drain
+
+      const emitted: unknown[] = [];
+
+      const handle = questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => agentActive,
+      });
+
+      // Round 1: sub-agent emits its first line (before pruning).
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Mark agent as inactive and prune. The sub-agent handle is stopped and removed from
+      // the internal subagentHandles map.
+      agentActive = false;
+      handle.pruneStaleTails();
+
+      // Round 2: the sub-agent's watch callback still fires (watchCallbacks is shared), but
+      // the real adapter is stopped so it does not call createReadStream. We set up no new
+      // batches — no queue item is consumed, no further emissions appear.
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'before prune',
+              source: 'subagent',
+              agentId: 'prune-1',
+              uuid: 'pre-prune-line:0',
+              timestamp: '2026-05-13T10:02:00.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+      ]);
+    });
+
+    it('VALID: {all agents remain active} => no handles stopped, subsequent emissions continue', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-prune-active' });
+      const activeQuestId = QuestIdStub({ value: 'prune-active-quest' });
+
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-keep-1.jsonl' })],
+      });
+      proxy.setupLines({ lines: [] }); // sub-agent initial drain (empty)
+      proxy.setupLines({ lines: [] }); // main initial drain (empty)
+
+      const emitted: unknown[] = [];
+
+      const handle = questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => true,
+      });
+
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // pruneStaleTails with all agents active: the if-branch is never taken → no-op.
+      handle.pruneStaleTails();
+
+      // Sub-agent tail is still alive; its next batch emits normally.
+      proxy.setupLines({
+        lines: [
+          '{"type":"assistant","uuid":"keep-line-1","timestamp":"2026-05-13T10:02:20.000Z","message":{"content":[{"type":"text","text":"still alive"}]}}',
+        ],
+      }); // sub-agent second drain
+      proxy.setupLines({ lines: [] }); // main second drain
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'still alive',
+              source: 'subagent',
+              agentId: 'keep-1',
+              uuid: 'keep-line-1:0',
+              timestamp: '2026-05-13T10:02:20.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+      ]);
+    });
   });
 
   describe('stop()', () => {
@@ -396,6 +802,50 @@ describe('questMonitorJsonlWatcherBroker', () => {
           '{"type":"assistant","uuid":"after-stop","timestamp":"2026-05-13T10:00:07.000Z","message":{"content":[{"type":"text","text":"too late"}]}}',
         ],
       });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([]);
+    });
+
+    it('VALID: {stop called with active sub-agent handles} => sub-agent handles stopped alongside main, no further emissions', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-stop-with-subs' });
+      const activeQuestId = QuestIdStub({ value: 'stop-with-subs-quest' });
+
+      // Pre-existing sub-agent so subagentHandles is non-empty when stop() is called,
+      // exercising the for-of loop over subagentHandles.values() in stop().
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-stop-1.jsonl' })],
+      });
+      proxy.setupLines({ lines: [] }); // sub-agent initial drain
+      proxy.setupLines({ lines: [] }); // main initial drain
+
+      const emitted: unknown[] = [];
+
+      const handle = questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => true,
+      });
+
+      // Drain initial empty batches (establishes both watchers are registered).
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Stop all handles: poll + main + every subagentHandles entry.
+      handle.stop();
+
+      // After stop, trigger change with no new batches queued. Both the sub-agent and main
+      // callbacks fire but their adapters are stopped, so no createReadStream calls are made
+      // and no lines are consumed or emitted.
       proxy.triggerChange();
       await flushImmediate();
 

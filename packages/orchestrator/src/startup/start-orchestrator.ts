@@ -40,6 +40,7 @@ import type {
   RateLimitsSnapshot,
   SessionId,
   UrlSlug,
+  WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
 import type { NextStep } from '../contracts/next-step/next-step-contract';
@@ -321,11 +322,14 @@ export const StartOrchestrator = {
     questId,
     workItemId,
     signal,
+    summary,
   }: {
     questId: QuestId;
     workItemId: QuestWorkItemId;
     signal: 'complete' | 'failed' | 'failed-replan';
-  }): Promise<AdapterResult> => QuestFlow.handleSignalBack({ questId, workItemId, signal }),
+    summary?: WorkItem['summary'];
+  }): Promise<AdapterResult> =>
+    QuestFlow.handleSignalBack({ questId, workItemId, signal, summary }),
 
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)
   getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),

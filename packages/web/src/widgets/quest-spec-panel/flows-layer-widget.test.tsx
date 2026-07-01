@@ -10,6 +10,11 @@ import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
 type Flow = ReturnType<typeof FlowStub>;
 
+// Empty name is a valid in-memory state during editing (before the user types). FlowStub calls
+// flowContract.parse() which enforces min(1), so we override after the stub call via Object.assign.
+const EmptyNameFlowStub = ({ id }: { id: string }): Flow =>
+  Object.assign(FlowStub({ id: id as never }), { name: '' }) as Flow;
+
 describe('FlowsLayerWidget', () => {
   describe('read mode', () => {
     it('VALID: {flows: [flow]} => renders flow name', () => {
@@ -91,8 +96,9 @@ describe('FlowsLayerWidget', () => {
       expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
     });
 
-    it('VALID: {flows: [runtime, operational]} => renders both FLOW_TYPE_BADGE labels', () => {
+    it('VALID: {flows: [runtime, operational]} => one tab per flow; active tab badge switches on click', async () => {
       FlowsLayerWidgetProxy();
+      const user = userEvent.setup();
       const runtimeFlow = FlowStub({
         id: 'runtime-flow' as never,
         name: 'Runtime Flow',
@@ -114,9 +120,60 @@ describe('FlowsLayerWidget', () => {
         ),
       });
 
-      const badges = screen.getAllByTestId('FLOW_TYPE_BADGE');
+      // One tab per flow; only the active flow's content (badge) is shown.
+      expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
+        'Runtime Flow',
+        'Operational Flow',
+      ]);
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('runtime');
 
-      expect(badges.map((badge) => badge.textContent)).toStrictEqual(['runtime', 'operational']);
+      // Clicking the second tab switches the active flow.
+      await user.click(screen.getAllByTestId('FLOW_TAB')[1]!);
+
+      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
+    });
+
+    it('VALID: {flows: [single flow]} => renders no tab bar (content shown directly)', () => {
+      FlowsLayerWidgetProxy();
+      const flow = FlowStub({ name: 'Solo Flow' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.queryByTestId('FLOW_TABS')).toBe(null);
+      expect(screen.getByTestId('FLOW_NAME').textContent).toBe('Solo Flow');
+    });
+
+    it('EDGE: {flows: [flow with empty name]} => tab label falls back to "Flow 1"', () => {
+      FlowsLayerWidgetProxy();
+      const flowA = EmptyNameFlowStub({ id: 'flow-a' });
+      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
+        'Flow 1',
+        'Other',
+      ]);
+    });
+
+    it('VALID: {flows: [flow with name > 28 chars]} => tab label is truncated with ellipsis', () => {
+      FlowsLayerWidgetProxy();
+      const longName = 'A'.repeat(30);
+      const flowA = FlowStub({ id: 'flow-a' as never, name: longName });
+      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={false} onChange={jest.fn()} />,
+      });
+
+      expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
+        `${'A'.repeat(27)}…`,
+        'Other',
+      ]);
     });
 
     it('VALID: {runtime flow in read mode} => badge text color matches primary theme color', () => {

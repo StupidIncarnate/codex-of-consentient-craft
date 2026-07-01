@@ -9,14 +9,22 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { AdapterResult, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  QuestId,
+  QuestWorkItemId,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 export const orchestratorHandleSignalBackAdapter = async ({
   questId,
   workItemId,
   signal,
+  summary,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
   signal: 'complete' | 'failed' | 'failed-replan';
-}): Promise<AdapterResult> => StartOrchestrator.handleSignalBack({ questId, workItemId, signal });
+  summary?: WorkItem['summary'];
+}): Promise<AdapterResult> =>
+  StartOrchestrator.handleSignalBack({ questId, workItemId, signal, summary });

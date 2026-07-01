@@ -10,7 +10,10 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  AssistantTextChatEntryStub,
+  TaskToolUseChatEntryStub,
+} from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionPanelWidget } from './execution-panel-widget';
@@ -1617,6 +1620,74 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
+  describe('nested sub-agent entries', () => {
+    it('VALID: {parent row whose transcript spawns a nested sub-agent whose own entries live only in the session pool} => nested chain shows its real entry count and renders its entries', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const sessionId = SessionIdStub({ value: '5e5510a4-0000-0000-0000-000000000abc' });
+      const parentWorkItemId = QuestWorkItemIdStub({
+        value: 'b0000000-0000-0000-0000-0000000000aa',
+      });
+
+      // The parent (pathseeker) transcript: a Task tool_use line that spawned the nested
+      // sub-agent. This is the only entry routed to the parent's own work-item bucket.
+      const nestedTaskToolUse = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
+
+      // The nested sub-agent's OWN transcript entries. They arrive bucketed under the
+      // session pool (sessionEntries), NOT the parent's work-item bucket.
+      const nestedEntry1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'minion-1',
+        content: 'nested line one',
+      });
+      const nestedEntry2 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'minion-1',
+        content: 'nested line two',
+      });
+      const nestedEntry3 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'minion-1',
+        content: 'nested line three',
+      });
+
+      const workItemEntries = new Map([[parentWorkItemId, [nestedTaskToolUse]]]);
+      const sessionEntries = new Map([
+        [sessionId, [nestedTaskToolUse, nestedEntry1, nestedEntry2, nestedEntry3]],
+      ]);
+
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        steps: [],
+        workItems: [
+          WorkItemStub({
+            id: parentWorkItemId,
+            role: 'pathseeker',
+            status: 'complete',
+            sessionId,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            sessionEntries={sessionEntries}
+            workItemEntries={workItemEntries}
+          />
+        ),
+      });
+
+      const chainHeader = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect(chainHeader.textContent).toBe('▾ SUB-AGENT"Run tests" (3 entries)');
+
+      const messages = proxy.getExecutionMessages();
+
+      expect(messages.map((m) => m.textContent)).toStrictEqual(['SUB-AGENTnested line three']);
+    });
+  });
+
   describe('step row session entries', () => {
     it('VALID: {step with work item sessionId and matching sessionEntries} => shows session logs on expand', async () => {
       const proxy = ExecutionPanelWidgetProxy();
@@ -2509,13 +2580,27 @@ describe('ExecutionPanelWidget', () => {
   });
 
   describe('pause/resume button visibility matrix', () => {
+    type PauseResumeStatusKey = keyof typeof questStatusMetadataStatics.statuses;
+    const ALL_QUEST_STATUSES = Object.keys(
+      questStatusMetadataStatics.statuses,
+    ) as PauseResumeStatusKey[];
+
+    const PAUSE_VISIBLE_STATUSES = ALL_QUEST_STATUSES.filter(
+      (s) => questStatusMetadataStatics.statuses[s].isAnyAgentRunning,
+    ).map((status) => ({ status }));
+
+    const RESUME_VISIBLE_STATUSES = ALL_QUEST_STATUSES.filter(
+      (s) => questStatusMetadataStatics.statuses[s].isResumable,
+    ).map((status) => ({ status }));
+
+    const NEITHER_BUTTON_STATUSES = ALL_QUEST_STATUSES.filter(
+      (s) =>
+        !questStatusMetadataStatics.statuses[s].isAnyAgentRunning &&
+        !questStatusMetadataStatics.statuses[s].isResumable,
+    ).map((status) => ({ status }));
+
     describe('PAUSE button visible (seek_* and in_progress)', () => {
-      it.each([
-        { status: 'seek_scope' },
-        { status: 'seek_synth' },
-        { status: 'seek_walk' },
-        { status: 'in_progress' },
-      ] as const)(
+      it.each(PAUSE_VISIBLE_STATUSES)(
         'VALID: {status: $status} => PAUSE button visible, RESUME button not visible',
         ({ status }) => {
           const proxy = ExecutionPanelWidgetProxy();
@@ -2540,7 +2625,7 @@ describe('ExecutionPanelWidget', () => {
     });
 
     describe('RESUME button visible (paused and blocked)', () => {
-      it.each([{ status: 'paused' }, { status: 'blocked' }] as const)(
+      it.each(RESUME_VISIBLE_STATUSES)(
         'VALID: {status: $status} => RESUME button visible, PAUSE button not visible',
         ({ status }) => {
           const proxy = ExecutionPanelWidgetProxy();
@@ -2565,21 +2650,7 @@ describe('ExecutionPanelWidget', () => {
     });
 
     describe('no pause/resume buttons (pre-execution, terminal)', () => {
-      it.each([
-        { status: 'pending' },
-        { status: 'created' },
-        { status: 'explore_flows' },
-        { status: 'review_flows' },
-        { status: 'flows_approved' },
-        { status: 'explore_observables' },
-        { status: 'review_observables' },
-        { status: 'approved' },
-        { status: 'explore_design' },
-        { status: 'review_design' },
-        { status: 'design_approved' },
-        { status: 'complete' },
-        { status: 'abandoned' },
-      ] as const)(
+      it.each(NEITHER_BUTTON_STATUSES)(
         'EMPTY: {status: $status} => neither PAUSE nor RESUME button visible',
         ({ status }) => {
           const proxy = ExecutionPanelWidgetProxy();

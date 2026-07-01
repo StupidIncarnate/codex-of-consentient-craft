@@ -92,7 +92,7 @@ describe('stepsToWorkItemsTransformer', () => {
           spawnerType: 'agent',
           relatedDataItems: ['flows/login-flow'],
           dependsOn: [IDS[1]],
-          maxAttempts: 1,
+          maxAttempts: 3,
           attempt: 0,
           retryCount: 0,
           createdAt: '2024-01-15T10:00:00.000Z',

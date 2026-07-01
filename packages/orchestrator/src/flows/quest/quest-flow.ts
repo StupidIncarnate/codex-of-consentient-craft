@@ -109,8 +109,9 @@ export const QuestFlow = {
     questId,
     workItemId,
     signal,
+    summary,
   }: HandleSignalBackParams): Promise<HandleSignalBackResult> =>
-    QuestHandleSignalBackResponder({ questId, workItemId, signal }),
+    QuestHandleSignalBackResponder({ questId, workItemId, signal, summary }),
 
   getServerConfig: (): GetServerConfigResult => QuestGetServerConfigResponder(),
 

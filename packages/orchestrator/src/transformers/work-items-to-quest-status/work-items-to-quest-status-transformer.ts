@@ -42,15 +42,23 @@ export const workItemsToQuestStatusTransformer = ({
   const supersededIds = new Set(
     workItems.map((item) => item.insertedBy).filter((id) => id !== undefined),
   );
-  const hasUnresolvedFailure = workItems.some(
-    (item) => isFailureWorkItemStatusGuard({ status: item.status }) && !supersededIds.has(item.id),
+  // Sink work items are the ones nothing else depends on (their id never appears in another
+  // item's dependsOn). Completion keys on the sink: a failed item whose dependents all
+  // progressed past it (so it is NOT a sink) does not block. Only an unresolved failure that
+  // IS a sink — nothing overtook it and no retry was spliced for it — blocks.
+  const dependedOnIds = new Set(workItems.flatMap((item) => item.dependsOn));
+  const hasUnresolvedSinkFailure = workItems.some(
+    (item) =>
+      isFailureWorkItemStatusGuard({ status: item.status }) &&
+      !supersededIds.has(item.id) &&
+      !dependedOnIds.has(item.id),
   );
 
-  // Every item terminal => the quest is done: `blocked` when a failure was never recovered,
-  // `complete` otherwise. (This is the sole place the "all terminal with a dead failure" case
-  // becomes `blocked`; callers no longer force it.)
+  // Every item terminal => the quest is done: `blocked` when a sink failure was never recovered,
+  // `complete` otherwise. (This is the sole place the "all terminal with a dead sink failure"
+  // case becomes `blocked`; callers no longer force it.)
   if (workItems.every((item) => isTerminalWorkItemStatusGuard({ status: item.status }))) {
-    return hasUnresolvedFailure ? 'blocked' : 'complete';
+    return hasUnresolvedSinkFailure ? 'blocked' : 'complete';
   }
 
   // Something is still running => in_progress.

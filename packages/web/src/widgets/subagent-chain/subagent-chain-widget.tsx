@@ -10,7 +10,11 @@ import { Box, Text } from '@mantine/core';
 import { useState } from 'react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
+import type {
+  ChatEntryGroup,
+  SingleGroup,
+  SubagentChainGroup,
+} from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
@@ -90,7 +94,9 @@ export const SubagentChainWidget = ({
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
           {(() => {
-            const singleEntries = group.innerGroups.map((ig) => ig.entry);
+            const singleEntries = group.innerGroups
+              .filter((ig): ig is SingleGroup => ig.kind === 'single')
+              .map((ig) => ig.entry);
             const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
             const tailStartIndex = Number(
@@ -178,6 +184,11 @@ export const SubagentChainWidget = ({
               </>
             );
           })()}
+          {group.innerGroups
+            .filter((ig): ig is SubagentChainGroup => ig.kind === 'subagent-chain')
+            .map((nested, index) => (
+              <SubagentChainWidget key={`nested-chain-${String(index)}`} group={nested} />
+            ))}
           {group.taskNotification === null ? null : (
             <ChatMessageWidget entry={group.taskNotification} />
           )}

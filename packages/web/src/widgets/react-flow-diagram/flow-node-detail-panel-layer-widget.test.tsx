@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import {
   FlowNodeIdStub,
   FlowNodeStub,
-  FlowObservableStub,
   QuestContractEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -31,7 +30,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
       expect(proxy.getHeading()?.textContent).toBe('Login Page');
     });
 
-    it('EMPTY: {no observables, no contracts} => shows empty message', () => {
+    it('EMPTY: {no contracts} => shows empty message', () => {
       const proxy = FlowNodeDetailPanelLayerWidgetProxy();
       const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
       const onClose = jest.fn();
@@ -40,40 +39,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
         ui: <FlowNodeDetailPanelLayerWidget node={node} contracts={[]} onClose={onClose} />,
       });
 
-      expect(proxy.getEmpty()?.textContent).toBe('No observables or contracts for this node');
-    });
-  });
-
-  describe('observables', () => {
-    it('VALID: {node with observables} => shows observable type and description', () => {
-      const proxy = FlowNodeDetailPanelLayerWidgetProxy();
-      const observable = FlowObservableStub({
-        type: 'ui-state',
-        description: 'redirects to dashboard',
-      });
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'login-page' }),
-        observables: [observable],
-      });
-      const onClose = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <FlowNodeDetailPanelLayerWidget node={node} contracts={[]} onClose={onClose} />,
-      });
-
-      expect(proxy.getEmpty()).toBe(null);
-
-      const rows = proxy.getObservableRows();
-
-      expect(rows?.length).toBe(1);
-
-      const typeTag = screen.getByTestId('FLOW_DETAIL_PANEL_OBSERVABLE_TYPE');
-
-      expect(typeTag.textContent).toBe('ui-state');
-
-      const desc = screen.getByTestId('FLOW_DETAIL_PANEL_OBSERVABLE_DESCRIPTION');
-
-      expect(desc.textContent).toBe('redirects to dashboard');
+      expect(proxy.getEmpty()?.textContent).toBe('No contracts for this node');
     });
   });
 
@@ -126,7 +92,7 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
         ui: <FlowNodeDetailPanelLayerWidget node={node} contracts={[contract]} onClose={onClose} />,
       });
 
-      expect(proxy.getEmpty()?.textContent).toBe('No observables or contracts for this node');
+      expect(proxy.getEmpty()?.textContent).toBe('No contracts for this node');
     });
   });
 

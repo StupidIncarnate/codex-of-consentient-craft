@@ -6,6 +6,7 @@ import {
   AssistantToolUseChatEntryStub,
   ChatEntryStub,
   SystemErrorChatEntryStub,
+  TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
 } from './chat-entry.stub';
 
@@ -131,24 +132,6 @@ describe('chatEntryContract', () => {
         timestamp: FIXED_TS,
       });
     });
-
-    it('VALID: {role: "assistant", type: "tool_use", no toolUseId} => toolUseId is optional', () => {
-      const entry = AssistantToolUseChatEntryStub({
-        uuid: FIXED_UUID,
-        timestamp: FIXED_TS,
-      } as never);
-
-      const result = chatEntryContract.parse(entry);
-
-      expect(result).toStrictEqual({
-        role: 'assistant',
-        type: 'tool_use',
-        toolName: 'read_file',
-        toolInput: '{"path":"/test"}',
-        uuid: FIXED_UUID,
-        timestamp: FIXED_TS,
-      });
-    });
   });
 
   describe('assistant tool_result entries', () => {
@@ -169,6 +152,26 @@ describe('chatEntryContract', () => {
         timestamp: FIXED_TS,
       });
     });
+
+    it('VALID: {role: "assistant", type: "tool_result", isError: true} => parses with isError', () => {
+      const entry = AssistantToolResultChatEntryStub({
+        isError: true,
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_result',
+        toolName: 'read_file',
+        content: 'file contents here',
+        isError: true,
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
   });
 
   describe('system error entries', () => {
@@ -181,6 +184,54 @@ describe('chatEntryContract', () => {
         role: 'system',
         type: 'error',
         content: 'Something went wrong',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+  });
+
+  describe('task notification entries', () => {
+    it('VALID: {role: "system", type: "task_notification"} => parses successfully', () => {
+      const entry = TaskNotificationChatEntryStub({
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'system',
+        type: 'task_notification',
+        taskId: 'task-001',
+        status: 'completed',
+        summary: 'Agent completed the task',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+
+    it('VALID: {task_notification with result, totalTokens, toolUses, durationMs} => parses with optional metrics', () => {
+      const entry = TaskNotificationChatEntryStub({
+        result: 'All tests passed',
+        totalTokens: 1500,
+        toolUses: 12,
+        durationMs: 45000,
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'system',
+        type: 'task_notification',
+        taskId: 'task-001',
+        status: 'completed',
+        summary: 'Agent completed the task',
+        result: 'All tests passed',
+        totalTokens: 1500,
+        toolUses: 12,
+        durationMs: 45000,
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
       });
@@ -482,6 +533,110 @@ describe('chatEntryContract', () => {
           timestamp: 'yesterday',
         });
       }).toThrow(/Invalid datetime/u);
+    });
+  });
+
+  describe('parentAgentId field', () => {
+    it('VALID: {role: "user", parentAgentId: "parent-1"} => parses with parentAgentId', () => {
+      const entry = ChatEntryStub({
+        parentAgentId: 'parent-1',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
+        parentAgentId: 'parent-1',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+
+    it('VALID: {role: "assistant", type: "tool_use", parentAgentId: "parent-2"} => parses with parentAgentId', () => {
+      const entry = AssistantToolUseChatEntryStub({
+        parentAgentId: 'parent-2',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'tool_use',
+        toolName: 'read_file',
+        toolInput: '{"path":"/test"}',
+        parentAgentId: 'parent-2',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+
+    it('VALID: {role: "user", no parentAgentId} => parses without parentAgentId (optional)', () => {
+      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+  });
+
+  describe('source field', () => {
+    it('VALID: {user entry with source: "session"} => parses with source', () => {
+      const entry = ChatEntryStub({
+        source: 'session',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'user',
+        content: 'Hello world',
+        source: 'session',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+
+    it('VALID: {assistant text entry with source: "subagent"} => parses with source', () => {
+      const entry = AssistantTextChatEntryStub({
+        source: 'subagent',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      } as never);
+
+      const result = chatEntryContract.parse(entry);
+
+      expect(result).toStrictEqual({
+        role: 'assistant',
+        type: 'text',
+        content: 'Hello from assistant',
+        source: 'subagent',
+        uuid: FIXED_UUID,
+        timestamp: FIXED_TS,
+      });
+    });
+
+    it('INVALID: {source: "unknown"} => throws validation error', () => {
+      expect(() => {
+        chatEntryContract.parse({
+          role: 'user',
+          content: 'Hello world',
+          source: 'unknown',
+          uuid: FIXED_UUID,
+          timestamp: FIXED_TS,
+        });
+      }).toThrow(/Invalid input/u);
     });
   });
 

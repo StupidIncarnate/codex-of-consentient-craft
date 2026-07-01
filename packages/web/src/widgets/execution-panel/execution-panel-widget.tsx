@@ -45,6 +45,7 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
 import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
@@ -106,17 +107,6 @@ export const ExecutionPanelWidget = ({
   const isTerminalQuest = isTerminalQuestStatusGuard({ status: quest.status });
   const isPlanning = steps.length === 0 && !isTerminalQuest;
   const hasWorkItemsOnly = steps.length === 0 && isTerminalQuest && quest.workItems.length > 0;
-
-  const stepWorkItemMap = new Map<StepId, WorkItem>();
-  for (const step of steps) {
-    const stepRef = `steps/${step.id}`;
-    const matchingItem = quest.workItems.find((wi) =>
-      wi.relatedDataItems.some((ref) => ref === stepRef),
-    );
-    if (matchingItem) {
-      stepWorkItemMap.set(step.id, matchingItem);
-    }
-  }
 
   const stepsById = new Map(steps.map((s) => [s.id, s]));
 
@@ -270,10 +260,14 @@ export const ExecutionPanelWidget = ({
                         : {})}
                     />
                     {group.workItems.map((wi, wiIndex) => {
-                      const wiEntries =
+                      const wiOwnEntries =
                         workItemEntries.get(wi.id) ??
                         (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
                         [];
+                      const wiEntries = mergeDescendantSubagentEntriesTransformer({
+                        ownEntries: wiOwnEntries,
+                        poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
+                      });
                       const wiDepLabels = wi.dependsOn
                         .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                         .filter((label) => label.length > 0);
@@ -321,10 +315,14 @@ export const ExecutionPanelWidget = ({
                         : {})}
                     />
                     {group.workItems.map((wi, wiIndex) => {
-                      const wiEntries =
+                      const wiOwnEntries =
                         workItemEntries.get(wi.id) ??
                         (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
                         [];
+                      const wiEntries = mergeDescendantSubagentEntriesTransformer({
+                        ownEntries: wiOwnEntries,
+                        poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
+                      });
                       const wiDepLabels = wi.dependsOn
                         .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                         .filter((label) => label.length > 0);
@@ -391,10 +389,14 @@ export const ExecutionPanelWidget = ({
                           : {})}
                       />
                       {nonStepItems.map((wi, wiIndex) => {
-                        const wiEntries =
+                        const wiOwnEntries =
                           workItemEntries.get(wi.id) ??
                           (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
                           [];
+                        const wiEntries = mergeDescendantSubagentEntriesTransformer({
+                          ownEntries: wiOwnEntries,
+                          poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
+                        });
                         const wiDepLabels = wi.dependsOn
                           .map((depId) => workItemIdToLabel.get(depId) ?? depId)
                           .filter((label) => label.length > 0);
@@ -447,10 +449,14 @@ export const ExecutionPanelWidget = ({
                           : undefined;
                         const step = stepId ? stepsById.get(stepId) : undefined;
                         const wiStatus = wi.status as ExecutionStepStatus;
-                        const stepEntries =
+                        const stepOwnEntries =
                           workItemEntries.get(wi.id) ??
                           (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
                           [];
+                        const stepEntries = mergeDescendantSubagentEntriesTransformer({
+                          ownEntries: stepOwnEntries,
+                          poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
+                        });
                         const wardRefs = wi.relatedDataItems.filter((ref) =>
                           ref.startsWith('wardResults/'),
                         );

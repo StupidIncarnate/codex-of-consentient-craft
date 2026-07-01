@@ -16,18 +16,19 @@ const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
 // The per-role routing table's BLOCK set: every agent role this responder routes to BLOCK on
 // a `failed` signal. `lawbringer` is included — it fixes its findings inline, so a `failed`
 // signal means something genuinely unfixable, the same BLOCK semantics as every other role.
-// `pathseeker` is the active planner: its `complete` fires the post-walk hook, its `failed`
-// routes to BLOCK like any other agent. `ward` is excluded (command role, terminal status set by
-// run-ward, never reaches this responder); chat roles (`chaoswhisperer`/`glyphsmith`) never
-// signal-back. The deprecated `pathseeker-surface`/`-dedup`/`-assertion-correctness`/`-walk` roles
-// are no longer seeded (PathSeeker summons them as sub-agents) but still route to BLOCK if an old
-// quest.json work item under those roles signals `failed`. WorkItemRole value-import is banned in
-// test files, so the routing-table subset is enumerated explicitly.
+// `siegemaster` is NOT here — a siege `failed` RECOVERs (spiritmender fix + fresh siege re-verify)
+// via questRecoverSiegeBroker, covered separately below. `pathseeker` is the active planner: its
+// `complete` fires the post-walk hook, its `failed` routes to BLOCK like any other agent. `ward` is
+// excluded (command role, terminal status set by run-ward, never reaches this responder); chat roles
+// (`chaoswhisperer`/`glyphsmith`) never signal-back. The deprecated
+// `pathseeker-surface`/`-dedup`/`-assertion-correctness`/`-walk` roles are no longer seeded
+// (PathSeeker summons them as sub-agents) but still route to BLOCK if an old quest.json work item
+// under those roles signals `failed`. WorkItemRole value-import is banned in test files, so the
+// routing-table subset is enumerated explicitly.
 const BLOCK_ROLES = [
   'lawbringer',
   'codeweaver',
   'flowrider',
-  'siegemaster',
   'spiritmender',
   'blightwarden',
   'pathseeker',

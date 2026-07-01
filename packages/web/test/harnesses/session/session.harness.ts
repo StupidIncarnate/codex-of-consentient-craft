@@ -120,6 +120,7 @@ export const sessionHarness = ({
 }: {
   guildPath: string;
 }): {
+  beforeEach: () => void;
   afterEach: () => void;
   createSessionFile: (params: { sessionId: string; userMessage: string }) => void;
   createMultiEntrySessionFile: (params: { sessionId: string; lines: string[] }) => void;
@@ -186,6 +187,28 @@ export const sessionHarness = ({
     taskDescription: string;
     notificationSummary: string;
     notificationResult: string;
+  }) => void;
+  // Pre-seeds a depth-2 nested sub-agent session on disk: sub-agent A (spawned by the
+  // main session) itself spawns sub-agent B. The main `<sessionId>.jsonl` fires Task(A)
+  // and completes it (registers realA->toolUseIdA). `subagents/agent-<realA>.jsonl` carries
+  // A's own text PLUS the Task(B) launch and B's completion (registers realB->toolUseIdB and
+  // the nested parent-chain link). `subagents/agent-<realB>.jsonl` carries B's nested marker
+  // text. On replay the broker's PASS 1a/1c pre-scan resolves both translations + the nested
+  // parent-chain so B's entries (and the Task(B) launcher) attach to chain B nested inside
+  // chain A. Timestamps are monotonically increasing across all three files so the replay's
+  // timestamp sort produces Task(A) < Task(B) < B-marker in PASS 2 (chain A must exist before
+  // chain B reparents under it).
+  createNestedSubagentSessionFiles: (params: {
+    sessionId: string;
+    parentRealAgentId: string;
+    nestedRealAgentId: string;
+    parentToolUseId: string;
+    nestedToolUseId: string;
+    userMessage: string;
+    parentDescription: string;
+    nestedDescription: string;
+    parentText: string;
+    nestedText: string;
   }) => void;
   // Creates ONLY the sub-agent JSONL (no main session file) so streaming tests can
   // pre-seed what chatSubagentTailBroker will read once agentId correlation fires.
@@ -758,6 +781,162 @@ export const sessionHarness = ({
     );
   };
 
+  const createNestedSubagentSessionFiles = ({
+    sessionId,
+    parentRealAgentId,
+    nestedRealAgentId,
+    parentToolUseId,
+    nestedToolUseId,
+    userMessage,
+    parentDescription,
+    nestedDescription,
+    parentText,
+    nestedText,
+  }: {
+    sessionId: string;
+    parentRealAgentId: string;
+    nestedRealAgentId: string;
+    parentToolUseId: string;
+    nestedToolUseId: string;
+    userMessage: string;
+    parentDescription: string;
+    nestedDescription: string;
+    parentText: string;
+    nestedText: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+
+    // Monotonically increasing timestamps across all three files. The replay broker sorts
+    // every line across main + subagent JSONLs into one timestamp-ordered PASS 2 stream, so
+    // Task(A) must sort before Task(B) which must sort before B's marker for chain A to exist
+    // when chain B reparents under it. Completion tool_results sort LAST — their realAgentId
+    // pairings are registered in the pre-scan (PASS 1a/1c) before PASS 2 regardless of order.
+    const baseEpoch = new Date('2026-05-13T20:00:00.000Z').getTime();
+    const tsFor = (offsetSeconds: number) =>
+      new Date(baseEpoch + offsetSeconds * 1000).toISOString();
+
+    // MAIN session JSONL: user kickoff, the Task(A) launch, then A's completion tool_result.
+    const mainLines = [
+      JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: userMessage } }),
+        uuid: `${sessionId}-user`,
+        timestamp: tsFor(0),
+      }),
+      JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: parentToolUseId,
+                name: 'Agent',
+                input: {
+                  description: parentDescription,
+                  prompt: 'Parent prompt',
+                  subagent_type: 'general-purpose',
+                },
+              },
+            ],
+          },
+        }),
+        uuid: `${sessionId}-task-a`,
+        timestamp: tsFor(1),
+      }),
+      JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: parentToolUseId, content: 'done' }],
+          },
+          toolUseResult: { agentId: parentRealAgentId },
+        }),
+        uuid: `${sessionId}-task-a-result`,
+        timestamp: tsFor(10),
+      }),
+    ];
+
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+
+    const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
+    fs.mkdirSync(subagentDir, { recursive: true });
+
+    // Sub-agent A's JSONL: the nested Task(B) launch, A's own text, then B's completion
+    // tool_result (carries tool_use_result.agentId = realB; lives in A's file so the replay
+    // pre-scan tags it as a nested parent-chain candidate keyed on container = realA).
+    const agentALines = [
+      JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: nestedToolUseId,
+                name: 'Agent',
+                input: {
+                  description: nestedDescription,
+                  prompt: 'Nested prompt',
+                  subagent_type: 'general-purpose',
+                },
+              },
+            ],
+          },
+        }),
+        uuid: `${sessionId}-task-b`,
+        timestamp: tsFor(2),
+      }),
+      JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: parentText }],
+            usage: { input_tokens: 60, output_tokens: 20 },
+          },
+        }),
+        uuid: `${sessionId}-agent-a-text`,
+        timestamp: tsFor(3),
+      }),
+      JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: nestedToolUseId, content: 'done' }],
+          },
+          toolUseResult: { agentId: nestedRealAgentId },
+        }),
+        uuid: `${sessionId}-task-b-result`,
+        timestamp: tsFor(5),
+      }),
+    ];
+
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${parentRealAgentId}.jsonl`),
+      `${agentALines.join('\n')}\n`,
+    );
+
+    // Sub-agent B's JSONL: the nested marker text only.
+    const agentBLines = [
+      JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [{ type: 'text', text: nestedText }],
+            usage: { input_tokens: 40, output_tokens: 15 },
+          },
+        }),
+        uuid: `${sessionId}-agent-b-marker`,
+        timestamp: tsFor(4),
+      }),
+    ];
+
+    fs.writeFileSync(
+      path.join(subagentDir, `agent-${nestedRealAgentId}.jsonl`),
+      `${agentBLines.join('\n')}\n`,
+    );
+  };
+
   const createSubagentTailOnly = ({
     sessionId,
     agentId,
@@ -907,12 +1086,14 @@ export const sessionHarness = ({
     fs.existsSync(path.join(getJsonlDir(), `${sessionId}.jsonl`));
 
   return {
+    beforeEach: cleanSessionDirectory,
     afterEach: cleanSessionDirectory,
     createSessionFile,
     createMultiEntrySessionFile,
     createSubagentSessionFiles,
     createInFlightSubagentSessionFiles,
     createMultiSubagentSessionFiles,
+    createNestedSubagentSessionFiles,
     createSubagentSessionWithInternalTool,
     createSubagentTailOnly,
     createSubagentTailMultiEntry,

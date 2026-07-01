@@ -8,9 +8,11 @@
 
 import { z } from 'zod';
 
+import { taskAgentToolPromptContract } from '../task-agent-tool-prompt/task-agent-tool-prompt-contract';
+
 export const taskAgentToolInputContract = z
   .object({
-    prompt: z.string().min(1).brand<'TaskAgentToolPrompt'>(),
+    prompt: taskAgentToolPromptContract,
   })
   .passthrough();
 

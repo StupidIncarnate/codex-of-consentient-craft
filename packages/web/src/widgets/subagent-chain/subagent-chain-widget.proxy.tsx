@@ -7,6 +7,7 @@ import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
 
 export const SubagentChainWidgetProxy = (): {
   clickHeader: () => Promise<void>;
+  clickHeaderAt: (params: { index: number }) => Promise<void>;
   clickShowEarlier: () => Promise<void>;
   isHeaderVisible: () => boolean;
   isBadgeVisible: () => boolean;
@@ -20,6 +21,13 @@ export const SubagentChainWidgetProxy = (): {
   return {
     clickHeader: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('SUBAGENT_CHAIN_HEADER'));
+    },
+    clickHeaderAt: async ({ index }: { index: number }): Promise<void> => {
+      const headers = screen.getAllByTestId('SUBAGENT_CHAIN_HEADER');
+      const header = headers[index];
+      if (header === undefined)
+        throw new Error(`No SUBAGENT_CHAIN_HEADER at index ${String(index)}`);
+      await userEvent.click(header);
     },
     clickShowEarlier: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE'));

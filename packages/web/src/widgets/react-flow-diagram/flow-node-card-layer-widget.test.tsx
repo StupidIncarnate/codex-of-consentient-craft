@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { ObservableCountStub } from '../../contracts/observable-count/observable-count.stub';
+import { ContractCountStub } from '../../contracts/contract-count/contract-count.stub';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
@@ -17,7 +17,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -37,7 +37,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'branch-node' }),
         label: 'Branch',
         nodeType: 'decision',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -57,7 +57,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'fetch-node' }),
         label: 'Fetch Data',
         nodeType: 'action',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -75,7 +75,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'state-node' }),
         label: 'State Node',
         nodeType: 'state',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -93,7 +93,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'end-node' }),
         label: 'End',
         nodeType: 'terminal',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -108,14 +108,14 @@ describe('FlowNodeCardLayerWidget', () => {
     });
   });
 
-  describe('observable badge', () => {
-    it('VALID: {observableCount > 0} => shows FLOW_NODE_BADGE with count', () => {
+  describe('contract badge', () => {
+    it('VALID: {contractCount > 0} => shows FLOW_NODE_BADGE with count', () => {
       FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        observableCount: ObservableCountStub({ value: 3 }),
+        contractCount: ContractCountStub({ value: 3 }),
       });
 
       mantineRenderAdapter({
@@ -125,13 +125,13 @@ describe('FlowNodeCardLayerWidget', () => {
       expect(screen.getByTestId('FLOW_NODE_BADGE').textContent).toBe('3');
     });
 
-    it('EMPTY: {observableCount === 0} => no FLOW_NODE_BADGE', () => {
+    it('EMPTY: {contractCount === 0} => no FLOW_NODE_BADGE', () => {
       FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -149,7 +149,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({
@@ -165,7 +165,7 @@ describe('FlowNodeCardLayerWidget', () => {
         nodeId: FlowNodeIdStub({ value: 'login-page' }),
         label: 'Login Page',
         nodeType: 'state',
-        observableCount: ObservableCountStub({ value: 0 }),
+        contractCount: ContractCountStub({ value: 0 }),
       });
 
       mantineRenderAdapter({

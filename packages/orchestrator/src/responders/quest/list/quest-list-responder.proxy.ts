@@ -7,6 +7,7 @@ export const QuestListResponderProxy = (): {
   setupQuestDirectories: ReturnType<typeof questListBrokerProxy>['setupQuestDirectories'];
   setupQuestFilePath: ReturnType<typeof questListBrokerProxy>['setupQuestFilePath'];
   setupQuestFile: ReturnType<typeof questListBrokerProxy>['setupQuestFile'];
+  setupDirectList: ReturnType<typeof questListBrokerProxy>['setupDirectList'];
 } => {
   const brokerProxy = questListBrokerProxy();
 
@@ -16,5 +17,6 @@ export const QuestListResponderProxy = (): {
     setupQuestDirectories: brokerProxy.setupQuestDirectories,
     setupQuestFilePath: brokerProxy.setupQuestFilePath,
     setupQuestFile: brokerProxy.setupQuestFile,
+    setupDirectList: brokerProxy.setupDirectList,
   };
 };

@@ -148,7 +148,9 @@ export const stepsToWorkItemsTransformer = ({
       spawnerType: 'agent',
       relatedDataItems: [`flows/${String(flow.id)}`],
       dependsOn: siegeDependsOn,
-      maxAttempts: 1,
+      // Recovery budget: a siege `failed` splices a spiritmender + ward + a fresh siege retry until
+      // this many total attempts are spent, then BLOCKs (questRecoverSiegeBroker).
+      maxAttempts: slotManagerStatics.siegemaster.maxAttempts,
       createdAt: now,
     });
     return [...acc, siegeItem];

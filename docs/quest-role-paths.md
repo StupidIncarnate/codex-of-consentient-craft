@@ -292,16 +292,16 @@ Agents report via the `signal-back` MCP tool. The live handler is
    NON-BLOCKING); every other role terminates `failed`. Stamps `completedAt`.
 2. If the item is `pathseeker-walk` **and** the signal is `complete`, fires the post-walk hook to
    generate the downstream chain.
-3. On a `failed` signal, every non-minion agent role blocks the quest (see the failure table under
-   "Invariants" → "Failure recovery & blocking"). On `failed-replan` (only the blightwarden
-   synthesizer emits it), the handler splices a `pathseeker-walk` replan instead of blocking.
+3. On a `failed` signal, most non-minion agent roles block the quest (see the failure table under
+   "Invariants" → "Failure recovery & blocking"); `siegemaster` is the exception — it RECOVERs
+   (spiritmender fix + fresh siege re-verify). On `failed-replan` (only the blightwarden synthesizer
+   emits it), the handler splices a `pathseeker-walk` replan instead of blocking.
 
 Terminal-failure routing lives in the two places that set terminal status:
 
 - **`run-ward` broker (`quest-run-ward-broker.ts`)** routes a non-zero ward exit: with retry budget
   remaining it splices a spiritmender batch + a ward-retry (`questSpliceFixerBroker`) and rewires
   downstream onto the retry; with retries exhausted it blocks the quest (`questBlockOnFailureBroker`).
-  This is the only RECOVER path and the only place spiritmenders are spawned.
 - **`signal-back` handler** routes agent failures:
   - **Blightwarden minion `failed` / `failed-replan` → NON-BLOCKING.** The minion's work item
     terminates `complete` so the synthesizer's `dependsOn` stays satisfiable; the failure lives in
@@ -310,7 +310,13 @@ Terminal-failure routing lives in the two places that set terminal status:
     by `insertedBy`), drains pending items to `skipped`, and splices a `pathseeker-walk` replan
     (`dependsOn: []`) that re-fires the post-walk hook on completion, regenerating the whole chain.
     The quest stays `in_progress`.
-  - **All other `failed` signals** (`lawbringer` / `codeweaver` / `siegemaster` / `spiritmender` /
+  - **Siegemaster `failed` / `failed-replan` → RECOVER.** Splices a `spiritmender` (fed the manual-QA
+    finding from the signal-back `summary` via a `spiritmender-batches/<id>.json` sidecar) + a
+    `ward(changed)` gate + a fresh `siegemaster` retry (`attempt + 1`, same flow ref), rewiring
+    downstream onto the fresh siege (`questRecoverSiegeBroker`). Budget
+    `slotManagerStatics.siegemaster.maxAttempts`; exhausted → BLOCK. Spiritmenders are spawned here
+    and on the ward RECOVER path.
+  - **All other `failed` signals** (`lawbringer` / `codeweaver` / `flowrider` / `spiritmender` /
     `blightwarden` synthesizer hard-fail / `pathseeker-*` / `pesteater`) block the quest.
 
 A blocked quest sets status `blocked` and marks every still-`pending` item `skipped`. A recovered
@@ -377,19 +383,20 @@ These hold under the current model and are the right things to assert in integra
 Terminal-failure routing is driven by the failing item's `role`. Recoverable failures splice fixer
 items + a retry into `quest.workItems[]`; all other failures block the quest. The per-role table:
 
-| Failing item                                | Behavior                                                                   |
-|---------------------------------------------|----------------------------------------------------------------------------|
-| `ward` (retry budget remains)               | **RECOVER** — splice spiritmender(s) + ward-retry, rewire downstream       |
-| `ward` (retries exhausted)                  | **BLOCK**                                                                  |
-| `lawbringer`                                | **BLOCK** (fixes findings inline; `failed` = unfixable)                    |
-| `codeweaver`                                | **BLOCK**                                                                  |
-| `siegemaster`                               | **BLOCK**                                                                  |
-| `spiritmender`                              | **BLOCK**                                                                  |
-| `blightwarden-*-minion` (`failed` / `failed-replan`) | **NON-BLOCKING** — minion terminates `complete`, failure recorded in its report |
-| `blightwarden` synthesizer (`failed-replan`)| **REPLAN** — splice a `pathseeker-walk` replan, quest stays `in_progress`   |
-| `blightwarden` synthesizer (`failed`)       | **BLOCK**                                                                  |
-| `pathseeker-*`                              | **BLOCK**                                                                  |
-| `pesteater`                                 | **BLOCK**                                                                  |
+| Failing item                                         | Behavior                                                                                                   |
+|------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| `ward` (retry budget remains)                        | **RECOVER** — splice spiritmender(s) + ward-retry, rewire downstream                                       |
+| `ward` (retries exhausted)                           | **BLOCK**                                                                                                  |
+| `lawbringer`                                         | **BLOCK** (fixes findings inline; `failed` = unfixable)                                                    |
+| `codeweaver`                                         | **BLOCK**                                                                                                  |
+| `siegemaster` (retry budget remains)                 | **RECOVER** — splice spiritmender (fed the finding) + ward(changed) + fresh siege retry, rewire downstream |
+| `siegemaster` (budget exhausted)                     | **BLOCK**                                                                                                  |
+| `spiritmender`                                       | **BLOCK**                                                                                                  |
+| `blightwarden-*-minion` (`failed` / `failed-replan`) | **NON-BLOCKING** — minion terminates `complete`, failure recorded in its report                            |
+| `blightwarden` synthesizer (`failed-replan`)         | **REPLAN** — splice a `pathseeker-walk` replan, quest stays `in_progress`                                  |
+| `blightwarden` synthesizer (`failed`)                | **BLOCK**                                                                                                  |
+| `pathseeker-*`                                       | **BLOCK**                                                                                                  |
+| `pesteater`                                          | **BLOCK**                                                                                                  |
 
 - **REC-1 — Ward failure splices spiritmenders + retry.** A `ward` item that fails with retry budget
   remaining (`attempt < maxAttempts - 1`) splices one or more `spiritmender` items plus a `ward`-retry
@@ -409,10 +416,17 @@ items + a retry into `quest.workItems[]`; all other failures block the quest. Th
   item is `skipped`, and a `pathseeker-walk` replan (`dependsOn: []`) is appended. On its completion
   the post-walk hook re-fires and regenerates the whole downstream chain. The quest stays
   `in_progress` (a bare workItems write never derives `blocked`).
+- **REC-5 — Siegemaster failure splices spiritmender + ward + a fresh siege.** A `siegemaster` item
+  that fails with retry budget remaining (`attempt < maxAttempts - 1`) splices a `spiritmender` (fed
+  the manual-QA finding from the signal-back `summary` via a `spiritmender-batches/<id>.json` sidecar)
+    + a `ward(changed)` gate + a fresh `siegemaster` retry (`attempt + 1`, same `flows/<id>` ref) via
+      `questRecoverSiegeBroker`, rewiring downstream onto the fresh siege. Budget is
+      `slotManagerStatics.siegemaster.maxAttempts`. Exhausted → BLOCK.
 - **BLK-1 — Pathseeker-routed failures block + skip pending.** A failure that routes to block
-  (`codeweaver` / `siegemaster` / `spiritmender` / `blightwarden` synthesizer hard-`failed` /
-  `pathseeker-*` / `pesteater`, and `ward` when retries are exhausted) sets quest status `blocked` and
-  marks every still-`pending` item `skipped`, so nothing dispatches on the broken state.
+  (`codeweaver` / `spiritmender` / `blightwarden` synthesizer hard-`failed` / `pathseeker-*` /
+  `pesteater`, `siegemaster` when its budget is exhausted, and `ward` when retries are exhausted) sets
+  quest status `blocked` and marks every still-`pending` item `skipped`, so nothing dispatches on the
+  broken state.
 - **BLK-2 — A `blocked` quest is not dispatched.** `loadActiveQuestsLayerBroker` filters on
   `isActivelyExecutingQuestStatusGuard` (`== in_progress`), so a `blocked` quest is not scanned by
   `get-next-step` and dispatch halts.

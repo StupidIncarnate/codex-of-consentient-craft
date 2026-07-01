@@ -32,6 +32,8 @@ test.describe('Flow Diagram Interaction', () => {
     expect(await diagram.hasExpectedNodeCount()).toBe(true);
     expect(await diagram.nodesHaveDistinctCoordinates()).toBe(true);
     expect(await diagram.nodesDoNotOverlap()).toBe(true);
+    // The full label must be shown on the card itself (no clamp), even for the long-label nodes.
+    expect(await diagram.nodeLabelsFullyVisible()).toBe(true);
   });
 
   test('VALID: {FIT_VIEW_BUTTON clicked} => every FLOW_NODE is within the visible canvas bounds', async ({
@@ -43,6 +45,51 @@ test.describe('Flow Diagram Interaction', () => {
 
     await page.getByTestId('FIT_VIEW_BUTTON').click();
 
+    expect(await diagram.allNodesWithinCanvas()).toBe(true);
+  });
+
+  test('VALID: {switch to second flow tab} => the second flow re-lays out (nodes distinct, no pile-up at 0,0)', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Tabs Guild' });
+
+    await diagram.switchToSecondFlowTab();
+
+    // Switching tabs must mount a fresh diagram and re-run ELK for the second flow's node ids;
+    // otherwise every node falls back to {0,0} and piles up (distinct coords + overlap fail).
+    expect(await diagram.hasExpectedSecondFlowNodeCount()).toBe(true);
+    expect(await diagram.nodesHaveDistinctCoordinates()).toBe(true);
+    expect(await diagram.nodesDoNotOverlap()).toBe(true);
+  });
+
+  test('VALID: {diagram rendered} => only the custom controls paint; native React Flow controls stay hidden', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Controls Guild' });
+
+    // Exactly one visible control cluster: the custom RPG buttons. The native React Flow
+    // controls must remain in the DOM (they are the zoom/fit actuators) but must not paint, or
+    // two control clusters overlap.
+    expect(await diagram.customControlsVisible()).toBe(true);
+    expect(await diagram.nativeControlsPresentButHidden()).toBe(true);
+  });
+
+  test('VALID: {FULLSCREEN_BUTTON clicked} => canvas grows to a tall definite height with nodes still framed', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Fullscreen Guild' });
+
+    await diagram.expandToFullscreen();
+
+    // Expanding must resolve a tall definite canvas height (the black-screen bug collapses it to
+    // 0px) and re-fit so every node stays inside the now-taller viewport.
+    expect(await diagram.expandedCanvasIsTall()).toBe(true);
     expect(await diagram.allNodesWithinCanvas()).toBe(true);
   });
 
@@ -80,6 +127,43 @@ test.describe('Flow Diagram Interaction', () => {
     // edges render AND the labeled branch ('yes') paints its label text.
     expect(await diagram.allEdgesRendered()).toBe(true);
     expect(await diagram.branchLabelRendered({ label: 'yes' })).toBe(true);
+    // The other branch carries a long condition. Its label must render IN FULL (the wrapping box
+    // shows the trailing words, not an ellipsis) AND must not paint over the 'yes' label.
+    expect(await diagram.branchLabelRendered({ label: 'terminates immediately' })).toBe(true);
+    expect(await diagram.branchLabelsDoNotOverlap()).toBe(true);
+  });
+
+  test('VALID: {flow with observables} => each assertion renders as its own node branching to the right, no click needed', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Assertions Guild' });
+
+    // Assertions are always visible on the canvas (no popup): the open-page observable renders as
+    // its own FLOW_OBSERVABLE_NODE card, every observable gets one, and each branches off to the
+    // RIGHT of its flow node without overlapping the spine.
+    expect(await diagram.assertionNodeRendered({ text: FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE })).toBe(
+      true,
+    );
+    expect(await diagram.hasExpectedAssertionCount()).toBe(true);
+    expect(await diagram.assertionNodesBranchRightOfFlowNodes()).toBe(true);
+  });
+
+  test('VALID: {large assertion-heavy flow} => the whole diagram renders within the COLLAPSED canvas (no fullscreen needed)', async ({
+    page,
+    request,
+  }) => {
+    const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await diagram.seedAndOpen({ guildName: 'Diagram Large Guild' });
+    await diagram.switchToLargeFlowTab();
+
+    expect(await diagram.hasExpectedLargeFlowNodeCount()).toBe(true);
+    // The collapsed canvas must frame the ENTIRE tall graph. Before the minZoom fix, fit-view
+    // could not shrink it below the default 0.5 floor, so flow nodes and assertion cards fell
+    // outside the 800px canvas and the diagram looked blank until fullscreen.
+    expect(await diagram.allNodesWithinCanvas()).toBe(true);
+    expect(await diagram.allAssertionNodesWithinCanvas()).toBe(true);
   });
 
   test('VALID: {node selected then canvas background clicked} => pane click deselects and closes the panel', async ({
@@ -116,19 +200,18 @@ test.describe('Flow Diagram Interaction', () => {
     // diagram-only terminal: no detail panel before any node is clicked.
     await expect(page.getByTestId('FLOW_NODE_DETAIL_PANEL')).toHaveCount(0);
 
-    // click-node branch: click the node that carries observables so the panel has content.
+    // click-node branch: click the open-page node to open its detail panel.
     const openPageNode = page
       .getByTestId('FLOW_NODE')
       .filter({ has: page.getByText(FLOW_DIAGRAM_OPEN_PAGE_LABEL) });
 
     await openPageNode.click();
 
-    // detail-shown terminal: panel opens with the node label as heading and its observable.
+    // detail-shown terminal: the contracts-only panel opens with the node label as heading.
     const panel = page.getByTestId('FLOW_NODE_DETAIL_PANEL');
 
     await expect(panel).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(panel).toContainText(FLOW_DIAGRAM_OPEN_PAGE_LABEL);
-    await expect(panel).toContainText(FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE);
 
     // selected-node-highlight: the clicked node is marked selected.
     await expect(openPageNode).toHaveAttribute('data-selected', 'true');

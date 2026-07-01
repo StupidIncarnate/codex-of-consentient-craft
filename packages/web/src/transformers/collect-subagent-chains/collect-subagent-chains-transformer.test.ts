@@ -162,31 +162,39 @@ describe('collectSubagentChainsTransformer', () => {
       ]);
     });
 
-    it('VALID: {task_notification with matching taskId} => included in chain', () => {
-      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
-      const subagentEntry = AssistantTextChatEntryStub({
-        source: 'subagent',
-        agentId: 'agent-001',
-      });
-      const taskNotification = TaskNotificationChatEntryStub({ taskId: 'agent-001' });
-
-      const result = collectSubagentChainsTransformer({
-        entries: [taskToolUse, subagentEntry, taskNotification],
-      });
-
-      expect(result).toStrictEqual([
-        {
-          kind: 'subagent-chain',
+    it.each([
+      ['taskId (legacy path)', TaskNotificationChatEntryStub({ taskId: 'agent-001' })],
+      [
+        'agentId (converged path)',
+        TaskNotificationChatEntryStub({ taskId: 'task-fallback', agentId: 'agent-001' }),
+      ],
+    ])(
+      'VALID: {task_notification matched by %s} => included in chain',
+      (_label, taskNotification) => {
+        const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+        const subagentEntry = AssistantTextChatEntryStub({
+          source: 'subagent',
           agentId: 'agent-001',
-          description: 'Run tests',
-          taskToolUse,
-          innerGroups: [{ kind: 'single', entry: subagentEntry }],
-          taskNotification,
-          entryCount: 1,
-          contextTokens: null,
-        },
-      ]);
-    });
+        });
+
+        const result = collectSubagentChainsTransformer({
+          entries: [taskToolUse, subagentEntry, taskNotification],
+        });
+
+        expect(result).toStrictEqual([
+          {
+            kind: 'subagent-chain',
+            agentId: 'agent-001',
+            description: 'Run tests',
+            taskToolUse,
+            innerGroups: [{ kind: 'single', entry: subagentEntry }],
+            taskNotification,
+            entryCount: 1,
+            contextTokens: null,
+          },
+        ]);
+      },
+    );
   });
 
   describe('mixed entries', () => {
@@ -261,6 +269,37 @@ describe('collectSubagentChainsTransformer', () => {
   });
 
   describe('subagent chain context delta', () => {
+    it('VALID: {single subagent entry with usage} => contextTokens = 0 (first === last, no delta)', () => {
+      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+      const subEntry = AssistantToolUseChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-001',
+        usage: {
+          inputTokens: 10000,
+          outputTokens: 100,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2000,
+        },
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskToolUse, subEntry],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-001',
+          description: 'Run tests',
+          taskToolUse,
+          innerGroups: [{ kind: 'single', entry: subEntry }],
+          taskNotification: null,
+          entryCount: 1,
+          contextTokens: 0,
+        },
+      ]);
+    });
+
     it('VALID: {subagent chain with usage on inner entries} => computes contextTokens delta', () => {
       const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
       const subEntry1 = AssistantToolUseChatEntryStub({
@@ -394,69 +433,42 @@ describe('collectSubagentChainsTransformer', () => {
   });
 
   describe('task completion tool_result pinning', () => {
-    it('VALID: {tool_result with toolName === Task.agentId and no agentId} => pinned to chain (fallback path)', () => {
-      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
-      const subagentEntry = AssistantTextChatEntryStub({
-        source: 'subagent',
-        agentId: 'agent-001',
-      });
-      // Simulates the post-convergence wire shape: tool_result created from a user
-      // tool_result content item whose tool_use_id is the Task's toolUseId (stamped
-      // into `toolName` by mapContentItemToChatEntryTransformer), and whose outer line
-      // has parent_tool_use_id: null so no agentId stamp happens.
-      const taskCompletionToolResult = AssistantToolResultChatEntryStub({
-        toolName: 'agent-001',
-        content: 'Task completed',
-      });
-
-      const result = collectSubagentChainsTransformer({
-        entries: [taskToolUse, subagentEntry, taskCompletionToolResult],
-      });
-
-      expect(result).toStrictEqual([
-        {
-          kind: 'subagent-chain',
+    it.each([
+      // post-convergence wire shape: tool_result created from a user tool_result content
+      // item whose tool_use_id is the Task's toolUseId (stamped into `toolName` by
+      // mapContentItemToChatEntryTransformer); outer line has parent_tool_use_id: null
+      // so no agentId stamp happens.
+      ['toolName match (fallback path)', { toolName: 'agent-001', content: 'Task completed' }],
+      // streaming-source path: tool_result carried parent_tool_use_id and got stamped
+      // with agentId = Task's toolUseId.
+      ['agentId match (backward-compat path)', { agentId: 'agent-001', content: 'Task completed' }],
+    ])(
+      'VALID: {tool_result with %s} => pinned to chain (consumed, absent from innerGroups)',
+      (_label, resultProps) => {
+        const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
+        const subagentEntry = AssistantTextChatEntryStub({
+          source: 'subagent',
           agentId: 'agent-001',
-          description: 'Run tests',
-          taskToolUse,
-          innerGroups: [{ kind: 'single', entry: subagentEntry }],
-          taskNotification: null,
-          entryCount: 1,
-          contextTokens: null,
-        },
-      ]);
-    });
+        });
 
-    it('VALID: {tool_result with agentId === Task.agentId} => pinned to chain (backward-compat path)', () => {
-      const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
-      const subagentEntry = AssistantTextChatEntryStub({
-        source: 'subagent',
-        agentId: 'agent-001',
-      });
-      // Streaming-source path: the tool_result carried parent_tool_use_id and got
-      // stamped with agentId = Task's toolUseId.
-      const taskCompletionToolResult = AssistantToolResultChatEntryStub({
-        agentId: 'agent-001',
-        content: 'Task completed',
-      });
+        const result = collectSubagentChainsTransformer({
+          entries: [taskToolUse, subagentEntry, AssistantToolResultChatEntryStub(resultProps)],
+        });
 
-      const result = collectSubagentChainsTransformer({
-        entries: [taskToolUse, subagentEntry, taskCompletionToolResult],
-      });
-
-      expect(result).toStrictEqual([
-        {
-          kind: 'subagent-chain',
-          agentId: 'agent-001',
-          description: 'Run tests',
-          taskToolUse,
-          innerGroups: [{ kind: 'single', entry: subagentEntry }],
-          taskNotification: null,
-          entryCount: 1,
-          contextTokens: null,
-        },
-      ]);
-    });
+        expect(result).toStrictEqual([
+          {
+            kind: 'subagent-chain',
+            agentId: 'agent-001',
+            description: 'Run tests',
+            taskToolUse,
+            innerGroups: [{ kind: 'single', entry: subagentEntry }],
+            taskNotification: null,
+            entryCount: 1,
+            contextTokens: null,
+          },
+        ]);
+      },
+    );
 
     it('EDGE: {tool_result with source: subagent and matching toolName but no agentId} => NOT pinned to chain', () => {
       const taskToolUse = TaskToolUseChatEntryStub({ agentId: 'agent-001' });
@@ -573,6 +585,264 @@ describe('collectSubagentChainsTransformer', () => {
           ],
           taskNotification: null,
           entryCount: 4,
+          contextTokens: null,
+        },
+      ]);
+    });
+  });
+
+  describe('nested sub-agent chains', () => {
+    it('VALID: {taskA + 2 singles A + taskB(parent:agent-a) + 1 single B} => chainB nested under chainA, not at top level', () => {
+      const taskA = TaskToolUseChatEntryStub({ agentId: 'agent-a' });
+      const singleA1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-a',
+        content: 'a1',
+      });
+      const singleA2 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-a',
+        content: 'a2',
+      });
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-a',
+        source: 'subagent',
+      });
+      const singleB1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-b',
+        content: 'b1',
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskA, singleA1, singleA2, taskB, singleB1],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-a',
+          description: 'Run tests',
+          taskToolUse: taskA,
+          innerGroups: [
+            { kind: 'single', entry: singleA1 },
+            { kind: 'single', entry: singleA2 },
+            {
+              kind: 'subagent-chain',
+              agentId: 'agent-b',
+              description: 'Run tests',
+              taskToolUse: taskB,
+              innerGroups: [{ kind: 'single', entry: singleB1 }],
+              taskNotification: null,
+              entryCount: 1,
+              contextTokens: null,
+            },
+          ],
+          taskNotification: null,
+          entryCount: 2,
+          contextTokens: null,
+        },
+      ]);
+    });
+
+    it('EDGE: {taskB(parent:agent-missing) with no agent-missing chain} => chainB falls back to top level', () => {
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-missing',
+        source: 'subagent',
+      });
+
+      const result = collectSubagentChainsTransformer({ entries: [taskB] });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-b',
+          description: 'Run tests',
+          taskToolUse: taskB,
+          innerGroups: [],
+          taskNotification: null,
+          entryCount: 0,
+          contextTokens: null,
+        },
+      ]);
+    });
+
+    it('VALID: {two independent chains without parentAgentId} => both at top level in original order', () => {
+      const taskA = TaskToolUseChatEntryStub({ agentId: 'agent-a' });
+      const singleA = AssistantTextChatEntryStub({ source: 'subagent', agentId: 'agent-a' });
+      const taskB = TaskToolUseChatEntryStub({ agentId: 'agent-b' });
+      const singleB = AssistantTextChatEntryStub({ source: 'subagent', agentId: 'agent-b' });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskA, singleA, taskB, singleB],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-a',
+          description: 'Run tests',
+          taskToolUse: taskA,
+          innerGroups: [{ kind: 'single', entry: singleA }],
+          taskNotification: null,
+          entryCount: 1,
+          contextTokens: null,
+        },
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-b',
+          description: 'Run tests',
+          taskToolUse: taskB,
+          innerGroups: [{ kind: 'single', entry: singleB }],
+          taskNotification: null,
+          entryCount: 1,
+          contextTokens: null,
+        },
+      ]);
+    });
+
+    it('VALID: {chainA 2 usage singles + nested chainB} => chainA.contextTokens=2900 from singles only, nested chainB excluded from delta', () => {
+      const taskA = TaskToolUseChatEntryStub({ agentId: 'agent-a' });
+      const subEntry1 = AssistantToolUseChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-a',
+        usage: {
+          inputTokens: 10000,
+          outputTokens: 100,
+          cacheCreationInputTokens: 3000,
+          cacheReadInputTokens: 2000,
+        },
+      });
+      const subEntry2 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'agent-a',
+        usage: {
+          inputTokens: 12000,
+          outputTokens: 200,
+          cacheCreationInputTokens: 3500,
+          cacheReadInputTokens: 2400,
+        },
+      });
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-a',
+        source: 'subagent',
+      });
+
+      const result = collectSubagentChainsTransformer({
+        entries: [taskA, subEntry1, subEntry2, taskB],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-a',
+          description: 'Run tests',
+          taskToolUse: taskA,
+          innerGroups: [
+            { kind: 'single', entry: subEntry1 },
+            { kind: 'single', entry: subEntry2 },
+            {
+              kind: 'subagent-chain',
+              agentId: 'agent-b',
+              description: 'Run tests',
+              taskToolUse: taskB,
+              innerGroups: [],
+              taskNotification: null,
+              entryCount: 0,
+              contextTokens: null,
+            },
+          ],
+          taskNotification: null,
+          entryCount: 2,
+          contextTokens: 2900,
+        },
+      ]);
+    });
+
+    it('EDGE: {taskB(parent:agent-a, source:subagent) as only B entry} => chainB.taskToolUse=taskB but taskB absent from chainB.innerGroups', () => {
+      const taskA = TaskToolUseChatEntryStub({ agentId: 'agent-a' });
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-a',
+        source: 'subagent',
+      });
+
+      const result = collectSubagentChainsTransformer({ entries: [taskA, taskB] });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-a',
+          description: 'Run tests',
+          taskToolUse: taskA,
+          innerGroups: [
+            {
+              kind: 'subagent-chain',
+              agentId: 'agent-b',
+              description: 'Run tests',
+              taskToolUse: taskB,
+              innerGroups: [],
+              taskNotification: null,
+              entryCount: 0,
+              contextTokens: null,
+            },
+          ],
+          taskNotification: null,
+          entryCount: 0,
+          contextTokens: null,
+        },
+      ]);
+    });
+
+    it('VALID: {taskA + taskB(parent:A) + taskC(parent:B)} => 3-level nesting A > B > C with no depth cap', () => {
+      const taskA = TaskToolUseChatEntryStub({ agentId: 'agent-a' });
+      const taskB = TaskToolUseChatEntryStub({
+        agentId: 'agent-b',
+        parentAgentId: 'agent-a',
+        source: 'subagent',
+      });
+      const taskC = TaskToolUseChatEntryStub({
+        agentId: 'agent-c',
+        parentAgentId: 'agent-b',
+        source: 'subagent',
+      });
+
+      const result = collectSubagentChainsTransformer({ entries: [taskA, taskB, taskC] });
+
+      expect(result).toStrictEqual([
+        {
+          kind: 'subagent-chain',
+          agentId: 'agent-a',
+          description: 'Run tests',
+          taskToolUse: taskA,
+          innerGroups: [
+            {
+              kind: 'subagent-chain',
+              agentId: 'agent-b',
+              description: 'Run tests',
+              taskToolUse: taskB,
+              innerGroups: [
+                {
+                  kind: 'subagent-chain',
+                  agentId: 'agent-c',
+                  description: 'Run tests',
+                  taskToolUse: taskC,
+                  innerGroups: [],
+                  taskNotification: null,
+                  entryCount: 0,
+                  contextTokens: null,
+                },
+              ],
+              taskNotification: null,
+              entryCount: 0,
+              contextTokens: null,
+            },
+          ],
+          taskNotification: null,
+          entryCount: 0,
           contextTokens: null,
         },
       ]);

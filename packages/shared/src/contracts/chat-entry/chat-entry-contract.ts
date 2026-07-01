@@ -47,6 +47,7 @@ const userEntryContract = z.object({
   isInjectedPrompt: z.boolean().optional(),
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });
@@ -59,6 +60,7 @@ const assistantTextEntryContract = z.object({
   usage: chatUsageContract.optional(),
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });
@@ -73,6 +75,7 @@ const assistantToolUseEntryContract = z.object({
   usage: chatUsageContract.optional(),
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });
@@ -84,6 +87,7 @@ const assistantThinkingEntryContract = z.object({
   model: modelContract,
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });
@@ -96,6 +100,7 @@ const assistantToolResultEntryContract = z.object({
   isError: z.boolean().optional(),
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });
@@ -112,6 +117,7 @@ const taskNotificationEntryContract = z.object({
   durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });
@@ -122,6 +128,7 @@ const systemErrorEntryContract = z.object({
   content: z.string().min(1).brand<'ErrorContent'>(),
   source: sourceContract,
   agentId: agentIdContract,
+  parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
 });

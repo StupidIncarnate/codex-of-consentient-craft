@@ -12,6 +12,7 @@ import {
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
 import { ChatLineSourceStub } from '../../contracts/chat-line-source/chat-line-source.stub';
+import { TaskAgentToolPromptStub } from '../../contracts/task-agent-tool-prompt/task-agent-tool-prompt.stub';
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from './chat-line-process-transformer';
 import { chatLineProcessTransformerProxy } from './chat-line-process-transformer.proxy';
@@ -20,6 +21,7 @@ const normalize = (value: unknown): unknown => snakeKeysToCamelKeysTransformer({
 
 const UUID1 = '00000000-0000-4000-8000-000000000001';
 const UUID2 = '00000000-0000-4000-8000-000000000002';
+const UUID3 = '00000000-0000-4000-8000-000000000003';
 const TS = '1970-01-01T00:00:00.000Z';
 
 describe('chatLineProcessTransformer', () => {
@@ -561,6 +563,68 @@ describe('chatLineProcessTransformer', () => {
     });
   });
 
+  describe('user tool_result with non-object toolUseResult', () => {
+    it('VALID: {toolUseResult as string} => emits entries but no agent-detected', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const parsed = normalize({
+        ...SuccessfulToolResultStreamLineStub(),
+        toolUseResult: 'completed',
+      });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+              source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {toolUseResult as array} => emits entries but no agent-detected', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const parsed = normalize({
+        ...SuccessfulToolResultStreamLineStub(),
+        toolUseResult: ['completed'],
+      });
+
+      const result = processor.processLine({ parsed, source });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_result',
+              toolName: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+              content: 'File contents retrieved successfully',
+              source: 'session',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe('file-path sub-agent translation via the reverse agentId map', () => {
     it('VALID: {sub-agent line arrives with real agentId param after user tool_result registered that agentId} => translates to parent_tool_use_id shape and sets source=subagent', () => {
       // This is the file-replay path: the sub-agent JSONL line is tagged with the real
@@ -1038,6 +1102,366 @@ describe('chatLineProcessTransformer', () => {
         },
       ]);
     });
+
+    it('VALID: {user taskNotification with non-numeric totalTokens string} => keeps it a string so the numeric field is dropped downstream', () => {
+      // Covers the `Number.isNaN(num)` true branch in the numeric-key coercion loop: a
+      // numeric-keyed field whose string value is not parseable as a number is left as the
+      // raw string. parse-user-stream-entry then drops it (its `typeof totalTokens ===
+      // 'number'` guard is false), so only the parseable toolUses/durationMs survive as
+      // coerced numbers.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({
+        parsed: {
+          type: 'user',
+          message: {
+            role: 'user',
+            content: {
+              taskNotification: {
+                taskId: 'acfc7f06a8ac21baf',
+                status: 'completed',
+                totalTokens: 'not-a-number',
+                toolUses: '3',
+                durationMs: '9033',
+              },
+            },
+          },
+        },
+        source,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'system',
+              type: 'task_notification',
+              taskId: 'acfc7f06a8ac21baf',
+              status: 'completed',
+              toolUses: 3,
+              durationMs: 9033,
+              source: 'session',
+              uuid: `${UUID1}:task-notification`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {user content object with null taskNotification} => skips lifting, emits empty entries', () => {
+      // Branch 7a-ii: inflatedTaskNotificationContentContract.safeParse succeeds because
+      // content is an object (passthrough schema accepts any object), but `taskNotification`
+      // is null so the guard `typeof taskNotification === 'object' && taskNotification !== null`
+      // evaluates to false. No lifting occurs. parseUserStreamEntryTransformer sees the raw
+      // object content (not a string, not an array) and returns [].
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({
+        parsed: {
+          type: 'user',
+          message: {
+            role: 'user',
+            content: { taskNotification: null },
+          },
+        },
+        source,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [],
+        },
+      ]);
+    });
+  });
+
+  describe('nested sub-agent parentAgentId chain nesting', () => {
+    it('VALID: {session tool_result(A), A-subagent tool_result(B), B-subagent text} => B entry carries parentAgentId=toolu_chain_a', () => {
+      // Depth-2 nesting: sub-agent A spawns sub-agent B. B's transcript lines must carry
+      // parentAgentId = toolu_chain_a (A's chain key) so the web can group B under A's chain.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2, UUID3] });
+      const processor = chatLineProcessTransformer();
+
+      const toluA = ToolUseIdStub({ value: 'toolu_chain_a' });
+      const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
+      const realA = AgentIdStub({ value: 'real-a' });
+      const realB = AgentIdStub({ value: 'real-b' });
+      const sessionSource = ChatLineSourceStub({ value: 'session' });
+      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+
+      // Step 1: establish A's chain via the session's completion tool_result for A
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toluA, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realA },
+        }),
+        source: sessionSource,
+      });
+
+      // Step 2: A's transcript contains B's spawn tool_result — processed as A's subagent line
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toluB, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realB },
+        }),
+        source: subagentSource,
+        agentId: realA,
+      });
+
+      // Step 3: B's own transcript line — should carry parentAgentId = A's chain key
+      const result = processor.processLine({
+        parsed: normalize(AssistantTextStreamLineStub()),
+        source: subagentSource,
+        agentId: realB,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'Hello, I can help with that.',
+              source: 'subagent',
+              agentId: 'toolu_chain_b',
+              parentAgentId: 'toolu_chain_a',
+              uuid: `${UUID3}:0`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {depth-1 sub-agent assistant text (parentChainMap empty for A)} => entry has agentId=toolu_chain_a and no parentAgentId', () => {
+      // Depth-1 sub-agent lines (A spawned directly by the parent session) have no
+      // parentChainMap entry, so parentAgentId must be absent from the emitted entry.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
+      const processor = chatLineProcessTransformer();
+
+      const toluA = ToolUseIdStub({ value: 'toolu_chain_a' });
+      const realA = AgentIdStub({ value: 'real-a' });
+      const sessionSource = ChatLineSourceStub({ value: 'session' });
+      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+
+      // Establish A's chain
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toluA, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realA },
+        }),
+        source: sessionSource,
+      });
+
+      const result = processor.processLine({
+        parsed: normalize(AssistantTextStreamLineStub()),
+        source: subagentSource,
+        agentId: realA,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'Hello, I can help with that.',
+              source: 'subagent',
+              agentId: 'toolu_chain_a',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {registerAgentTranslation + registerParentChain pre-seeded, then B text line} => entry carries agentId=toolu_chain_b and parentAgentId=toolu_chain_a', () => {
+      // Replay pre-scan path: registerAgentTranslation and registerParentChain are both
+      // called before pass 2 begins, so nested lines are correctly stamped even though
+      // the completion tool_result hasn't been processed yet.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+
+      const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
+      const realB = AgentIdStub({ value: 'real-b' });
+      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+
+      processor.registerAgentTranslation({ agentId: realB, toolUseId: toluB });
+      processor.registerParentChain({
+        childToolUseId: ToolUseIdStub({ value: 'toolu_chain_b' }),
+        parentAgentId: AgentIdStub({ value: 'toolu_chain_a' }),
+      });
+
+      const result = processor.processLine({
+        parsed: normalize(AssistantTextStreamLineStub()),
+        source: subagentSource,
+        agentId: realB,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'Hello, I can help with that.',
+              source: 'subagent',
+              agentId: 'toolu_chain_b',
+              parentAgentId: 'toolu_chain_a',
+              uuid: `${UUID1}:0`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {sub-agent A assistant Task line dispatching B, A chain established} => Task entry gets agentId=toolu_chain_b and parentAgentId=toolu_chain_a', () => {
+      // Branch 12a: ownChainKey (=toluA, A's chain) is set on the line, but the Task entry's
+      // eagerly-stamped agentId is toluB (B's chain). Since entryAgentIdRaw !== ownChainKey,
+      // the entry is re-parsed with parentAgentId = ownChainKey so the web groups B under A.
+      // Without this branch the Task entry would lose the parentAgentId link, and B's chain
+      // would render at A's level rather than nested under it.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
+      const processor = chatLineProcessTransformer();
+
+      const toluA = ToolUseIdStub({ value: 'toolu_chain_a' });
+      const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
+      const realA = AgentIdStub({ value: 'real-a' });
+      const sessionSource = ChatLineSourceStub({ value: 'session' });
+      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+
+      // Establish A's chain via the session tool_result (reverse map: realA → toluA)
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toluA, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realA },
+        }),
+        source: sessionSource,
+      });
+
+      // A's own assistant line dispatching B: agentId=realA → translates to ownChainKey=toluA.
+      // taskToolUseIdsFromContentTransformer eagerly stamps agentId=toluB on the Task item.
+      // Branch 12a fires: entryAgentIdRaw(toluB) !== ownChainKey(toluA) → parentAgentId=toluA.
+      const result = processor.processLine({
+        parsed: normalize(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [{ type: 'tool_use', id: toluB, name: 'Task', input: {} }],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+        source: subagentSource,
+        agentId: realA,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_use',
+              toolUseId: 'toolu_chain_b',
+              toolName: 'Task',
+              toolInput: '{}',
+              source: 'subagent',
+              // Eagerly stamped: B's chain key (the Task's own toolUseId).
+              agentId: 'toolu_chain_b',
+              // Branch 12a: parentAgentId = A's chain key so the web nests B under A.
+              parentAgentId: 'toolu_chain_a',
+              uuid: `${UUID2}:0`,
+              timestamp: TS,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('VALID: {live nested setup realA→toluA, realB→toluB, parentChain toluB→toluA} => resolveParentRealAgentId walks chain correctly', () => {
+      // resolveParentRealAgentId must traverse realChild → childChainKey → parentChainKey →
+      // parentRealId. Depth-1 agents and unknown ids return undefined.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
+      const processor = chatLineProcessTransformer();
+
+      const toluA = ToolUseIdStub({ value: 'toolu_chain_a' });
+      const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
+      const realA = AgentIdStub({ value: 'real-a' });
+      const realB = AgentIdStub({ value: 'real-b' });
+      const unknownId = AgentIdStub({ value: 'never-seen' });
+      const sessionSource = ChatLineSourceStub({ value: 'session' });
+      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+
+      // Establish A's chain and then B's chain via A's transcript tool_result
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toluA, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realA },
+        }),
+        source: sessionSource,
+      });
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toluB, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realB },
+        }),
+        source: subagentSource,
+        agentId: realA,
+      });
+
+      expect(processor.resolveParentRealAgentId({ agentId: realB })).toBe('real-a');
+      expect(processor.resolveParentRealAgentId({ agentId: realA })).toBe(undefined);
+      expect(processor.resolveParentRealAgentId({ agentId: unknownId })).toBe(undefined);
+    });
   });
 
   describe('empty thinking sanitization', () => {
@@ -1135,6 +1559,212 @@ describe('chatLineProcessTransformer', () => {
           entries: [],
         },
       ]);
+    });
+
+    it('EDGE: {assistant content has a non-object item that fails content-item parse} => keeps it untouched and emits no entries', () => {
+      // Covers the `!itemParse.success` branch in the thinking sanitizer: a bare string is not
+      // a valid content item (normalizedStreamLineContentItemContract is a zod object), so the
+      // filter callback returns true and leaves it in place rather than treating it as an empty
+      // thinking block. The downstream entry mapper then skips the unparseable item, so no
+      // ChatEntry is produced.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+
+      const result = processor.processLine({
+        parsed: {
+          type: 'assistant',
+          message: {
+            role: 'assistant',
+            content: ['not-a-content-item-object'],
+          },
+        },
+        source,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'entries',
+          entries: [],
+        },
+      ]);
+    });
+  });
+
+  describe('pairSubagentByPrompt (live nested-sub-agent correlation)', () => {
+    it('VALID: {assistant Task tool_use seen, then pair its prompt} => registers realAgentId -> Task toolUseId', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const taskToolUseId = ToolUseIdStub({ value: 'toolu_pair_01' });
+      const realAgentId = AgentIdStub({ value: 'real-paired-agent' });
+
+      processor.processLine({
+        parsed: normalize(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: taskToolUseId,
+                  name: 'Agent',
+                  input: { prompt: 'pair me' },
+                },
+              ],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+        source,
+      });
+
+      const paired = processor.pairSubagentByPrompt({
+        agentId: realAgentId,
+        prompt: TaskAgentToolPromptStub({ value: 'pair me' }),
+      });
+
+      expect(paired).toBe(true);
+      expect(processor.resolveToolUseIdForAgent({ agentId: realAgentId })).toBe('toolu_pair_01');
+    });
+
+    it('EMPTY: {no outstanding Task matches the prompt} => returns false and registers nothing', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const realAgentId = AgentIdStub({ value: 'real-unmatched' });
+
+      const paired = processor.pairSubagentByPrompt({
+        agentId: realAgentId,
+        prompt: TaskAgentToolPromptStub({ value: 'no such task' }),
+      });
+
+      expect(paired).toBe(false);
+      expect(processor.resolveToolUseIdForAgent({ agentId: realAgentId })).toBe(undefined);
+    });
+
+    it('VALID: {agentId already paired} => returns true without an outstanding Task', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1] });
+      const processor = chatLineProcessTransformer();
+      const taskToolUseId = ToolUseIdStub({ value: 'toolu_pair_already' });
+      const realAgentId = AgentIdStub({ value: 'real-already' });
+
+      processor.registerAgentTranslation({ agentId: realAgentId, toolUseId: taskToolUseId });
+
+      const paired = processor.pairSubagentByPrompt({
+        agentId: realAgentId,
+        prompt: TaskAgentToolPromptStub({ value: 'whatever' }),
+      });
+
+      expect(paired).toBe(true);
+    });
+
+    it('VALID: {Task completion tool_result processed} => Task is no longer pairable by prompt', () => {
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2] });
+      const processor = chatLineProcessTransformer();
+      const source = ChatLineSourceStub({ value: 'session' });
+      const taskToolUseId = ToolUseIdStub({ value: 'toolu_pair_done' });
+      const completedReal = AgentIdStub({ value: 'real-completed' });
+      const lateReal = AgentIdStub({ value: 'real-late' });
+
+      processor.processLine({
+        parsed: normalize(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: taskToolUseId,
+                  name: 'Agent',
+                  input: { prompt: 'finishes fast' },
+                },
+              ],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+        source,
+      });
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: taskToolUseId, content: 'done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: completedReal },
+        }),
+        source,
+      });
+
+      const paired = processor.pairSubagentByPrompt({
+        agentId: lateReal,
+        prompt: TaskAgentToolPromptStub({ value: 'finishes fast' }),
+      });
+
+      expect(paired).toBe(false);
+    });
+
+    it('VALID: {nested Task spawned by a sub-agent} => pairing registers the parent-chain link to the spawning sub-agent', () => {
+      // A's chain is established (realA -> toolA via A's completion). A's tail then processes A's
+      // Task(B) line (subagent source, agentId = realA), so B's outstanding Task carries
+      // containerChainKey = toolA. Pairing B's prompt registers realB -> toolB AND the
+      // parent-chain link, so resolveParentRealAgentId(realB) walks back to realA.
+      const proxy = chatLineProcessTransformerProxy();
+      proxy.setupUuids({ uuids: [UUID1, UUID2, UUID3] });
+      const processor = chatLineProcessTransformer();
+      const sessionSource = ChatLineSourceStub({ value: 'session' });
+      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const toolA = ToolUseIdStub({ value: 'toolu_parent_a' });
+      const realA = AgentIdStub({ value: 'real-parent-a' });
+      const toolB = ToolUseIdStub({ value: 'toolu_child_b' });
+      const realB = AgentIdStub({ value: 'real-child-b' });
+
+      // A's completion in the main session registers realA -> toolA.
+      processor.processLine({
+        parsed: normalize({
+          ...SuccessfulToolResultStreamLineStub({
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: toolA, content: 'A done' }],
+            },
+          } as Parameters<typeof SuccessfulToolResultStreamLineStub>[0]),
+          toolUseResult: { agentId: realA },
+        }),
+        source: sessionSource,
+      });
+      // A's tail processes A's Task(B) line — agentId param = realA translates to toolA.
+      processor.processLine({
+        parsed: normalize(
+          AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: toolB,
+                  name: 'Agent',
+                  input: { prompt: 'nested slice B' },
+                },
+              ],
+            },
+          } as Parameters<typeof AssistantToolUseStreamLineStub>[0]),
+        ),
+        source: subagentSource,
+        agentId: realA,
+      });
+
+      const paired = processor.pairSubagentByPrompt({
+        agentId: realB,
+        prompt: TaskAgentToolPromptStub({ value: 'nested slice B' }),
+      });
+
+      expect(paired).toBe(true);
+      expect(processor.resolveParentRealAgentId({ agentId: realB })).toBe('real-parent-a');
     });
   });
 });

@@ -855,6 +855,145 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('siegemaster failure RECOVERs (manual-QA finding → spiritmender → fresh siege)', () => {
+    it('VALID: {siegemaster signals failed with budget remaining} => splices spiritmender + ward(changed) + fresh siege, feeds the finding to the spiritmender prompt, quest stays in_progress', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-siege-recover' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Siege Recover Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'Siege Recover Quest',
+        userRequest: 'Drives a siegemaster failure through the spiritmender + fresh-siege recovery',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      // Seed: mark every pre-existing item complete, add a siegemaster (the one that fails) and a
+      // downstream lawbringer that depends on it — proving the rewire onto the fresh siege.
+      const siegeId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const lawId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const siegeItem = WorkItemStub({
+        id: siegeId,
+        role: 'siegemaster',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        relatedDataItems: ['flows/login-flow'],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const lawItem = WorkItemStub({
+        id: lawId,
+        role: 'lawbringer',
+        status: 'pending',
+        spawnerType: 'agent',
+        dependsOn: [siegeId],
+        maxAttempts: 1,
+        createdAt: new Date().toISOString(),
+      });
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...existingComplete, siegeItem, lawItem],
+        }),
+      });
+
+      const finding = WorkItemStub({
+        summary: 'FLOW: login-flow\nFAILED OBSERVABLES:\n- obs-login: dashboard vs error toast',
+      }).summary;
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: siegeId,
+        signal: 'failed',
+        summary: finding,
+      });
+
+      const afterRecover = await QuestGetResponder({ questId });
+      const items = afterRecover.quest!.workItems;
+      const spliced = items.filter((wi) => wi.insertedBy === siegeId);
+      const spiritmenderItem = spliced.find((wi) => wi.role === 'spiritmender');
+      const wardItem = spliced.find((wi) => wi.role === 'ward');
+      const freshSiege = spliced.find((wi) => wi.role === 'siegemaster');
+      const law = items.find((wi) => wi.id === lawId);
+      const siege = items.find((wi) => wi.id === siegeId);
+
+      expect({
+        questStatus: afterRecover.quest!.status,
+        failedSiegeStatus: siege!.status,
+        spiritmenderDependsOn: spiritmenderItem!.dependsOn,
+        wardMode: wardItem!.wardMode,
+        wardDependsOn: wardItem!.dependsOn,
+        freshSiegeDependsOn: freshSiege!.dependsOn,
+        freshSiegeAttempt: freshSiege!.attempt,
+        freshSiegeRelatedDataItems: freshSiege!.relatedDataItems,
+        lawRewiredOntoFreshSiege: law!.dependsOn,
+      }).toStrictEqual({
+        questStatus: 'in_progress',
+        failedSiegeStatus: 'failed',
+        spiritmenderDependsOn: [siegeId],
+        wardMode: 'changed',
+        wardDependsOn: [spiritmenderItem!.id],
+        freshSiegeDependsOn: [wardItem!.id],
+        freshSiegeAttempt: 1,
+        freshSiegeRelatedDataItems: ['flows/login-flow'],
+        lawRewiredOntoFreshSiege: [freshSiege!.id],
+      });
+
+      // The spiritmender's BUILT prompt carries the manual-QA finding + the siegemasterFailure
+      // context preamble from the sidecar — proving the finding reaches the fixer.
+      const spiritmenderPrompt = await AgentPromptFlow.get({
+        agent: 'spiritmender',
+        questId,
+        workItemId: spiritmenderItem!.id,
+      });
+      const promptText = String(spiritmenderPrompt.prompt);
+
+      // get-next-step dispatches the spiritmender (ready: its only dep is the failed siege).
+      const nextStep = await QuestFlow.getNextStep();
+
+      testbed.cleanup();
+
+      expect(
+        /FAILED OBSERVABLES:\n- obs-login: dashboard vs error toast/u.exec(promptText)?.[0],
+      ).toBe('FAILED OBSERVABLES:\n- obs-login: dashboard vs error toast');
+      expect(/A manual-QA agent \(Siegemaster\)/u.exec(promptText)?.[0]).toBe(
+        'A manual-QA agent (Siegemaster)',
+      );
+      expect(nextStep).toStrictEqual({
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'spiritmender',
+            workItemId: spiritmenderItem!.id,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "spiritmender",\n  workItemId: "${String(spiritmenderItem!.id)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(spiritmenderItem!.id)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+          },
+        ],
+      });
+    });
+  });
+
   describe('post-walk hook — pathseeker completion hands off to codeweaver', () => {
     // Regression: completing the pathseeker planner momentarily leaves every
     // work item terminal, so the quest derives `complete`. The post-walk hook then appends the

@@ -33,12 +33,48 @@ export const elkLayoutAdapter = async ({
       'elk.algorithm': 'layered',
       'elk.direction': 'DOWN',
       'elk.layered.cycleBreaking.strategy': 'DEPTH_FIRST',
+      // Spread sibling branches and layers apart so adjacent cards — and the branch-edge labels
+      // painted at edge midpoints — have room and don't collide.
+      'elk.spacing.nodeNode': String(elkLayoutStatics.spacing.nodeNode),
+      'elk.layered.spacing.nodeNodeBetweenLayers': String(
+        elkLayoutStatics.spacing.nodeNodeBetweenLayers,
+      ),
+      'elk.spacing.edgeNode': String(elkLayoutStatics.spacing.edgeNode),
+      'elk.spacing.edgeEdge': String(elkLayoutStatics.spacing.edgeEdge),
     },
-    children: nodes.map((n) => ({
-      id: String(n.id),
-      width: elkLayoutStatics.node.width,
-      height: elkLayoutStatics.node.height,
-    })),
+    children: nodes.map((n) => {
+      // Reserve a box tall enough for the node's FULL wrapped label so stacked rows never
+      // overlap. charsPerLine is deliberately low (over-counts wrapped lines), making the
+      // reserved height an upper bound on the rendered card height. The contract badge height is
+      // reserved unconditionally — the badge (contract count) is rendered by the card from data
+      // this layout never sees, so over-reserving keeps the box an upper bound.
+      const { labelEstimate, observable } = elkLayoutStatics;
+      const lines = Math.max(1, Math.ceil(String(n.label).length / labelEstimate.charsPerLine));
+      const cardHeight =
+        labelEstimate.chromeHeight +
+        lines * labelEstimate.lineHeight +
+        labelEstimate.badgeHeight +
+        labelEstimate.buffer;
+      // Assertion cards branch into a column to the right of the card; reserve the column's full
+      // height so it never overlaps a lower node. Each card's height is estimated from its
+      // description length (low charsPerLine over-counts wrapped lines), summed with rowGaps.
+      const columnHeight = n.observables.reduce((sum, obs, index) => {
+        const obsLines = Math.max(
+          1,
+          Math.ceil(String(obs.description).length / observable.labelEstimate.charsPerLine),
+        );
+        const obsCardHeight =
+          observable.labelEstimate.chromeHeight +
+          obsLines * observable.labelEstimate.lineHeight +
+          observable.labelEstimate.buffer;
+        return sum + (index === 0 ? 0 : observable.rowGap) + obsCardHeight;
+      }, 0);
+      return {
+        id: String(n.id),
+        width: elkLayoutStatics.node.width,
+        height: Math.max(cardHeight, columnHeight),
+      };
+    }),
     edges: edges.map((e) => ({
       id: String(e.id),
       sources: [String(e.from)],

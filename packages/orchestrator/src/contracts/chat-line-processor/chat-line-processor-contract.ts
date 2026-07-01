@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines the interface for a stateful chat line processor that consumes pre-normalized Claude line objects, emits enriched entries + agent-detected signals, and exposes a realAgentId→toolUseId translation map
+ * PURPOSE: Defines the interface for a stateful chat line processor that consumes pre-normalized Claude line objects, emits enriched entries + agent-detected signals, exposes a realAgentId→toolUseId translation map, and tracks parent-chain links for nested sub-agents so emitted entries carry parentAgentId
  *
  * WHY THE TRANSLATION MAP API:
  * Claude CLI emits sub-agent activity in TWO incompatible shapes. Streaming stdout tags every
@@ -12,6 +12,12 @@
  * earlier than their completion tool_result and otherwise wouldn't find a translation when
  * they arrive). See `packages/orchestrator/CLAUDE.md` → "Two-source sub-agent correlation".
  *
+ * WHY PARENT-CHAIN NESTING:
+ * A sub-agent B spawned by sub-agent A (depth ≥ 2) needs its entries stamped with
+ * `parentAgentId = A's chain key` so the web can group B's chain under A's chain header.
+ * `registerParentChain` pre-seeds this link for the replay path; `resolveParentRealAgentId`
+ * lets the live watcher route a nested sub-agent's transcript tail to the nearest ancestor.
+ *
  * USAGE:
  * const processor: ChatLineProcessor = chatLineProcessTransformer();
  * processor.processLine({ parsed, source: chatLineSourceContract.parse('session') });
@@ -22,6 +28,7 @@ import { z } from 'zod';
 import type { AgentId } from '../agent-id/agent-id-contract';
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';
 import type { ChatLineSource } from '../chat-line-source/chat-line-source-contract';
+import type { TaskAgentToolPrompt } from '../task-agent-tool-prompt/task-agent-tool-prompt-contract';
 import type { ToolUseId } from '../tool-use-id/tool-use-id-contract';
 
 export const chatLineProcessorContract = z.object({
@@ -58,4 +65,40 @@ export interface ChatLineProcessor {
     agentId: AgentId;
     toolUseId: ToolUseId;
   }) => void;
+
+  // Register the parent-chain link for a nested sub-agent: the child sub-agent's chain key
+  // (childToolUseId) maps to its parent sub-agent's chain key (parentAgentId, toolUseId-form).
+  // The replay pre-scan calls this before pass 2 so nested entries can be stamped with
+  // parentAgentId even though the child's lines sort earlier than the spawn tool_result.
+  registerParentChain: ({
+    childToolUseId,
+    parentAgentId,
+  }: {
+    childToolUseId: ToolUseId;
+    parentAgentId: AgentId;
+  }) => void;
+
+  // Given a sub-agent's REAL internal agentId, return its PARENT sub-agent's REAL internal
+  // agentId by walking realChild -> childChainKey -> parentChainKey -> parentReal through the
+  // translation maps. Returns undefined for a top-level (depth-1) sub-agent or an unknown id.
+  // The live watcher uses this to route a nested sub-agent's transcript to the nearest
+  // ancestor work item.
+  resolveParentRealAgentId: ({ agentId }: { agentId: AgentId }) => AgentId | undefined;
+
+  // Pair an in-flight sub-agent's real agentId to its spawning Task by byte-equal prompt match.
+  // Claude CLI writes the Task's input.prompt verbatim as the sub-agent JSONL's first user-text
+  // line, so a prompt match is an id-equivalent pairing (the same one the replay path's PASS 1b
+  // does in batch). When `prompt` matches an OUTSTANDING (not-yet-completed) Task, the
+  // realAgentId->toolUseId translation — and the parent-chain link when that Task was itself
+  // spawned by a sub-agent — is registered, then the Task is claimed so a sibling file with the
+  // same prompt pairs to a different Task. Lets the live watcher start tailing a nested sub-agent
+  // BEFORE its completion tool_result lands instead of waiting for it to finish. Returns true if
+  // `agentId` is now (or was already) paired, false if no outstanding Task matched.
+  pairSubagentByPrompt: ({
+    agentId,
+    prompt,
+  }: {
+    agentId: AgentId;
+    prompt: TaskAgentToolPrompt;
+  }) => boolean;
 }

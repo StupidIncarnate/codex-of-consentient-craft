@@ -124,19 +124,19 @@ For each `spawn-agents` agent, `/dumpster-launch` `Task()`s a sub-agent that fir
 
 ## 6. Result handoff — `signal-back`
 
-When the agent finishes it calls `signal-back({ questId, workItemId, signal })`, `signal ∈ complete | failed |
+When the agent finishes it calls `signal-back({ questId, workItemId, signal, summary? })`, `signal ∈ complete | failed |
 failed-replan`. The handler marks the item terminal (`complete`, or `failed` for failed/failed-replan) + stamps
 `completedAt`, then **routes by role + signal**:
 
-| signal                   | role              | effect                                                                                                    |
-|--------------------------|-------------------|-----------------------------------------------------------------------------------------------------------|
-| `complete`               | `pathseeker-walk` | item `complete`; **fires the post-walk hook** (§7)                                                        |
-| `complete`               | any other         | item `complete`                                                                                           |
-| `failed`/`failed-replan` | `lawbringer`      | **RECOVER**: splice 1 `spiritmender` + 1 `lawbringer` retry; rewire downstream; quest stays `in_progress` |
-| `failed`/`failed-replan` | everything else   | **BLOCK**: item `failed`, all still-`pending` items → `skipped`, quest `status: blocked`                  |
+| signal                   | role            | effect                                                                                                                                                                                                                            |
+|--------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `complete`               | `pathseeker`    | item `complete`; **fires the post-walk hook** (§7)                                                                                                                                                                                |
+| `complete`               | any other       | item `complete`                                                                                                                                                                                                                   |
+| `failed`/`failed-replan` | `siegemaster`   | **RECOVER**: splice 1 `spiritmender` (fed the manual-QA `summary`) + `ward(changed)` + 1 fresh `siegemaster` retry; rewire downstream; quest stays `in_progress`. Budget `slotManagerStatics.siegemaster.maxAttempts`, then BLOCK |
+| `failed`/`failed-replan` | everything else | **BLOCK**: item `failed`, all still-`pending` items → `skipped`, quest `status: blocked` (lawbringer/flowrider/blightwarden fix inline, so `failed` = unfixable)                                                                  |
 
-> `signal-back` persists ONLY `status` + `completedAt`. The `summary` you pass is validated then dropped — it does NOT
-> land on the work item today.
+> `signal-back`'s `summary` now threads through to the handler: it is stamped onto the failed work item and, for a
+> `siegemaster` failure, written into the spiritmender's recovery sidecar so the fixer acts on the actual finding.
 
 ---
 

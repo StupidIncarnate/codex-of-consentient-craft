@@ -7,6 +7,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
+import { ChatLineSourceStub } from '../../../contracts/chat-line-source/chat-line-source.stub';
 
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
@@ -39,7 +40,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
 
-    scanSubagentsDirLayerBroker({
+    await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       sessionFilePath,
       parentSessionId,
@@ -76,7 +77,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     ]);
   });
 
-  it('EMPTY: {readdir throws ENOENT} => returns success without throwing, emit never called', () => {
+  it('EMPTY: {readdir throws ENOENT} => returns success without throwing, emit never called', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = FilePathStub({
       value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
@@ -89,7 +90,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
 
-    const result = scanSubagentsDirLayerBroker({
+    const result = await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       sessionFilePath,
       parentSessionId,
@@ -132,7 +133,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
 
-    scanSubagentsDirLayerBroker({
+    await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       sessionFilePath,
       parentSessionId,
@@ -195,7 +196,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const emitted: unknown[] = [];
     const handles = new Map();
 
-    scanSubagentsDirLayerBroker({
+    await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       sessionFilePath,
       parentSessionId,
@@ -231,5 +232,96 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
     ]);
     expect(handles.size).toBe(1);
+  });
+
+  it('VALID: {non-active file whose first-line prompt matches an outstanding Task} => paired and tailed even though isAgentIdActive is false', async () => {
+    const proxy = scanSubagentsDirLayerBrokerProxy();
+    const sessionFilePath = FilePathStub({
+      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+    });
+    const parentSessionId = SessionIdStub({ value: 'abc-123' });
+    const chatProcessId = ProcessIdStub({ value: 'scan-proc-nested' });
+    const activeQuestId = QuestIdStub({ value: 'quest-scan-nested' });
+
+    // Shared processor pre-seeded with an OUTSTANDING Agent Task (a parent sub-agent spawned a
+    // nested sub-agent). Its prompt is the byte-equal pairing key the nested file carries.
+    const processor = chatLineProcessTransformer();
+    processor.processLine({
+      parsed: {
+        type: 'assistant',
+        uuid: 'nested-parent-task-uuid',
+        timestamp: '2026-05-13T10:00:00.000Z',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_nested_parent',
+              name: 'Agent',
+              input: { prompt: 'nested slice prompt' },
+            },
+          ],
+        },
+      },
+      source: ChatLineSourceStub({ value: 'session' }),
+    });
+
+    // The nested sub-agent's realAgentId is NOT a stamped work-item agentId, so the active-set
+    // predicate returns false for it — the OLD gate would skip it entirely.
+    proxy.setupSubagentDirFiles({ files: [FileNameStub({ value: 'agent-realnestedb.jsonl' })] });
+    // First-line read: Claude CLI writes the Task prompt verbatim as the sub-agent JSONL's
+    // first user-text line.
+    proxy.setupFirstLineRead({
+      content:
+        '{"type":"user","uuid":"nested-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"nested slice prompt"}}',
+    });
+    // Tail drain: the nested sub-agent's own activity once tailed.
+    proxy.setupLines({
+      lines: [
+        '{"type":"assistant","uuid":"nested-text-line","timestamp":"2026-05-13T10:00:02.000Z","message":{"content":[{"type":"text","text":"nested activity"}]}}',
+      ],
+    });
+
+    const emitted: unknown[] = [];
+    const handles = new Map();
+
+    await scanSubagentsDirLayerBroker({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      sessionFilePath,
+      parentSessionId,
+      processor,
+      chatProcessId,
+      activeQuestIdGetter: () => activeQuestId,
+      emit: (call) => {
+        emitted.push(call);
+      },
+      isAgentIdActive: () => false,
+      subagentHandles: handles,
+    });
+
+    proxy.triggerChange();
+    await flushImmediate();
+
+    expect(handles.size).toBe(1);
+    expect(emitted).toStrictEqual([
+      {
+        chatProcessId,
+        entries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'nested activity',
+            // realnestedb -> toolu_nested_parent via the prompt pairing, so the nested entry
+            // carries the Task toolUseId the web groups the chain on.
+            agentId: 'toolu_nested_parent',
+            source: 'subagent',
+            uuid: 'nested-text-line:0',
+            timestamp: '2026-05-13T10:00:02.000Z',
+          },
+        ],
+        questId: activeQuestId,
+        sessionId: parentSessionId,
+      },
+    ]);
   });
 });

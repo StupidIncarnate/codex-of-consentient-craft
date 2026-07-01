@@ -5,6 +5,7 @@ import { questBlockOnFailureBrokerProxy } from '../../../brokers/quest/block-on-
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyOrThrowBrokerProxy } from '../../../brokers/quest/modify-or-throw/quest-modify-or-throw-broker.proxy';
 import { questPostWalkHookBrokerProxy } from '../../../brokers/quest/post-walk-hook/quest-post-walk-hook-broker.proxy';
+import { questRecoverSiegeBrokerProxy } from '../../../brokers/quest/recover-siege/quest-recover-siege-broker.proxy';
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -23,11 +24,15 @@ export const QuestHandleSignalBackResponderProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyOrThrowBrokerProxy();
   const hookProxy = questPostWalkHookBrokerProxy();
-  // BLOCK path (lawbringer/codeweaver/siege/spiritmender/blightwarden/pathseeker-*/pesteater
-  // failures) routes through questBlockOnFailureBroker. By default it is stubbed (setupBlocked)
-  // so the status-transition tests don't drive the real block flow; setupQuestBlockPassthrough
-  // swaps in the real broker so a test can assert the actual blocked + skipped persisted outcome.
+  // BLOCK path (lawbringer/codeweaver/spiritmender/blightwarden/pathseeker-*/pesteater failures)
+  // routes through questBlockOnFailureBroker. By default it is stubbed (setupBlocked) so the
+  // status-transition tests don't drive the real block flow; setupQuestBlockPassthrough swaps in the
+  // real broker so a test can assert the actual blocked + skipped persisted outcome.
   const blockProxy = questBlockOnFailureBrokerProxy();
+  // RECOVER path (siegemaster failed) delegates to questRecoverSiegeBroker. Its end-to-end behavior
+  // is covered by quest-flow.integration.test (real brokers); created here so the responder proxy
+  // declares its child per enforce-proxy-child-creation.
+  questRecoverSiegeBrokerProxy();
 
   return {
     callResponder: QuestHandleSignalBackResponder,

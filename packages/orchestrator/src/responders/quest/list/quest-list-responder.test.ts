@@ -28,6 +28,41 @@ describe('QuestListResponder', () => {
     });
   });
 
+  describe('recency ordering', () => {
+    it('VALID: {quests out of order} => returns them most-recent-first by updatedAt ?? createdAt', async () => {
+      const guildId = GuildIdStub();
+
+      // older: created early, never modified → recency key = createdAt
+      const older = QuestStub({
+        id: 'quest-older',
+        title: 'Older',
+        createdAt: '2024-01-01T00:00:00.000Z',
+      });
+      // newest: modified most recently → recency key = updatedAt (beats both)
+      const newest = QuestStub({
+        id: 'quest-newest',
+        title: 'Newest',
+        createdAt: '2024-01-02T00:00:00.000Z',
+        updatedAt: '2024-01-20T00:00:00.000Z',
+      });
+      // middle: created latest but modified before newest → recency key = updatedAt
+      const middle = QuestStub({
+        id: 'quest-middle',
+        title: 'Middle',
+        createdAt: '2024-01-10T00:00:00.000Z',
+        updatedAt: '2024-01-15T00:00:00.000Z',
+      });
+
+      const proxy = QuestListResponderProxy();
+      // Broker hands them back in a non-recency order (mirrors arbitrary readdir order).
+      proxy.setupDirectList({ guildId, quests: [older, newest, middle] });
+
+      const result = await proxy.callResponder({ guildId });
+
+      expect(result.map((item) => item.id)).toStrictEqual([newest.id, middle.id, older.id]);
+    });
+  });
+
   describe('empty list', () => {
     it('EMPTY: {guildId with no quests} => returns empty array', async () => {
       const guildId = GuildIdStub();

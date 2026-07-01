@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const sessions = await sessionListBroker({ guildId, getCache, setCache });
- * // Returns sorted session entries with optional quest correlation
+ * // Returns session entries sorted most-recently-active-first (by JSONL mtime) with optional quest correlation
  */
 
 import {
@@ -122,6 +122,10 @@ export const sessionListBroker = async ({
     return true;
   });
 
+  // Sort key for the home Sessions list: last-activity time (JSONL mtime), captured per
+  // session below so the most-recently-active sessions sort to the top.
+  const mtimeBySessionId = new Map<SessionId, MtimeMs>();
+
   const diskResults = await Promise.all(
     dedupedFiles.map(async (filePath) => {
       const fileName = String(filePath).split('/').pop() ?? '';
@@ -132,6 +136,7 @@ export const sessionListBroker = async ({
         const startedAt = isoTimestampContract.parse(stats.birthtime.toISOString());
 
         const mtimeMs = mtimeMsContract.parse(stats.mtimeMs);
+        mtimeBySessionId.set(diskSessionId, mtimeMs);
         const cached = getCache({ sessionId: diskSessionId, mtimeMs });
         const diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer> =
           await (async (): Promise<ReturnType<typeof extractSessionFileSummaryTransformer>> => {
@@ -203,7 +208,11 @@ export const sessionListBroker = async ({
     };
   });
 
-  allSessions.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  allSessions.sort((a, b) => {
+    const aMtime = mtimeBySessionId.get(a.sessionId) ?? 0;
+    const bMtime = mtimeBySessionId.get(b.sessionId) ?? 0;
+    return bMtime - aMtime;
+  });
 
   return allSessions;
 };

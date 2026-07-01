@@ -4,6 +4,7 @@
  * USAGE:
  * const group: ChatEntryGroup = { kind: 'single', entry: chatEntry };
  * // Or: { kind: 'subagent-chain', agentId, description, taskToolUse, innerGroups, taskNotification, entryCount, contextTokens }
+ * // innerGroups is recursive — a sub-agent chain can contain nested sub-agent chains with no depth cap
  */
 
 import { z } from 'zod';
@@ -16,22 +17,33 @@ const singleGroupContract = z.object({
   entry: chatEntryContract,
 });
 
-const subagentChainGroupContract = z.object({
+const baseSubagentChainGroupContract = z.object({
   kind: z.literal('subagent-chain'),
   agentId: z.string().min(1).brand<'ChainAgentId'>(),
   description: z.string().brand<'ChainDescription'>(),
   taskToolUse: chatEntryContract.nullable(),
-  innerGroups: z.array(singleGroupContract),
   taskNotification: chatEntryContract.nullable(),
   entryCount: z.number().int().nonnegative().brand<'ChainEntryCount'>(),
   contextTokens: contextTokenCountContract.nullable(),
 });
 
-export const chatEntryGroupContract = z.discriminatedUnion('kind', [
-  singleGroupContract,
-  subagentChainGroupContract,
-]);
-
-export type ChatEntryGroup = z.infer<typeof chatEntryGroupContract>;
 export type SingleGroup = z.infer<typeof singleGroupContract>;
-export type SubagentChainGroup = z.infer<typeof subagentChainGroupContract>;
+export type SubagentChainGroup = z.infer<typeof baseSubagentChainGroupContract> & {
+  innerGroups: ChatEntryGroup[];
+};
+export type ChatEntryGroup = SingleGroup | SubagentChainGroup;
+
+type SubagentChainGroupInput = z.input<typeof baseSubagentChainGroupContract> & {
+  innerGroups: ChatEntryGroupInput[];
+};
+type ChatEntryGroupInput = z.input<typeof singleGroupContract> | SubagentChainGroupInput;
+
+export const chatEntryGroupContract: z.ZodType<ChatEntryGroup, z.ZodTypeDef, ChatEntryGroupInput> =
+  z.lazy(() =>
+    z.union([
+      singleGroupContract,
+      baseSubagentChainGroupContract.extend({
+        innerGroups: z.array(chatEntryGroupContract),
+      }),
+    ]),
+  ) as unknown as z.ZodType<ChatEntryGroup, z.ZodTypeDef, ChatEntryGroupInput>;

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Factory that creates a stateful per-session processor for pre-normalized Claude line objects, reconciling the two Claude CLI sub-agent source formats (streaming stdout with `parent_tool_use_id`, and JSONL files keyed by real internal agentId) into a single `ChatEntry[]` shape where the Task toolUseId is the wire-level chain key. Also lifts inflated <task-notification> XML and emits `agent-detected` signals so the sub-agent JSONL tail can bootstrap itself.
+ * PURPOSE: Factory that creates a stateful per-session processor for pre-normalized Claude line objects, reconciling the two Claude CLI sub-agent source formats (streaming stdout with `parent_tool_use_id`, and JSONL files keyed by real internal agentId) into a single `ChatEntry[]` shape where the Task toolUseId is the wire-level chain key. Also lifts inflated <task-notification> XML, emits `agent-detected` signals so the sub-agent JSONL tail can bootstrap itself, and stamps `parentAgentId` on entries from nested sub-agents (depth ≥ 2).
  *
  * USAGE:
  * const processor = chatLineProcessTransformer();
@@ -21,6 +21,8 @@
  * that normalization step, downstream code never has to know the source format.
  */
 
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
+
 import { agentIdContract } from '../../contracts/agent-id/agent-id-contract';
 import type { AgentId } from '../../contracts/agent-id/agent-id-contract';
 import { chatLineOutputContract } from '../../contracts/chat-line-output/chat-line-output-contract';
@@ -33,8 +35,11 @@ import {
   normalizedStreamLineContract,
   type NormalizedStreamLine,
 } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
+import type { TaskAgentToolPrompt } from '../../contracts/task-agent-tool-prompt/task-agent-tool-prompt-contract';
+import { toolUseIdContract } from '../../contracts/tool-use-id/tool-use-id-contract';
 import type { ToolUseId } from '../../contracts/tool-use-id/tool-use-id-contract';
 import { streamJsonToChatEntryTransformer } from '../stream-json-to-chat-entry/stream-json-to-chat-entry-transformer';
+import { taskPromptsFromContentTransformer } from '../task-prompts-from-content/task-prompts-from-content-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { toolUseIdsFromContentTransformer } from '../tool-use-ids-from-content/tool-use-ids-from-content-transformer';
 
@@ -46,8 +51,47 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
   // Reverse map: realAgentId → toolUseId, kept in sync so file-sourced sub-agent lines
   // (tagged with realAgentId) can resolve back to the Task toolUseId in O(1).
   const reverseAgentIdMap = new Map<AgentId, ToolUseId>();
+  // Parent-chain map: childChainKey (ToolUseId) → parentChainKey (AgentId, toolUseId-form).
+  // Populated live when a nested tool_result is processed and by registerParentChain for replay.
+  const parentChainMap = new Map<ToolUseId, AgentId>();
+
+  // Outstanding Task prompts: toolUseId → { prompt, containerChainKey }. A Task is "outstanding"
+  // from the moment its assistant tool_use line is processed until its completion tool_result
+  // lands. `pairSubagentByPrompt` matches an in-flight sub-agent JSONL's first-line prompt against
+  // these so the live watcher can correlate (and start tailing) a nested sub-agent BEFORE it
+  // finishes. `containerChainKey` is the chain key of the line that spawned the Task (undefined
+  // for top-level Tasks in the main session, set when one sub-agent spawned another) so the pair
+  // can also register the parent-chain link for nested grouping.
+  const outstandingTasks = new Map<
+    ToolUseId,
+    { prompt: TaskAgentToolPrompt; containerChainKey: AgentId | undefined }
+  >();
 
   return {
+    pairSubagentByPrompt: ({
+      agentId: realAgentId,
+      prompt,
+    }: {
+      agentId: AgentId;
+      prompt: TaskAgentToolPrompt;
+    }): boolean => {
+      if (reverseAgentIdMap.has(realAgentId)) {
+        return true;
+      }
+      for (const [toolUseId, info] of outstandingTasks) {
+        if (info.prompt !== prompt) continue;
+        // Claim the Task so a sibling file with an identical prompt pairs to a different Task
+        // (matches replay PASS 1b's first-unclaimed semantics).
+        outstandingTasks.delete(toolUseId);
+        agentIdMap.set(toolUseId, realAgentId);
+        reverseAgentIdMap.set(realAgentId, toolUseId);
+        if (info.containerChainKey !== undefined) {
+          parentChainMap.set(toolUseId, info.containerChainKey);
+        }
+        return true;
+      }
+      return false;
+    },
     resolveToolUseIdForAgent: ({
       agentId: realAgentId,
     }: {
@@ -62,6 +106,26 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
     }): void => {
       agentIdMap.set(toolUseId, realAgentId);
       reverseAgentIdMap.set(realAgentId, toolUseId);
+    },
+    registerParentChain: ({
+      childToolUseId,
+      parentAgentId,
+    }: {
+      childToolUseId: ToolUseId;
+      parentAgentId: AgentId;
+    }): void => {
+      parentChainMap.set(childToolUseId, parentAgentId);
+    },
+    resolveParentRealAgentId: ({
+      agentId: realChild,
+    }: {
+      agentId: AgentId;
+    }): AgentId | undefined => {
+      const childChainKey = reverseAgentIdMap.get(realChild);
+      if (childChainKey === undefined) return undefined;
+      const parentChainKey = parentChainMap.get(childChainKey);
+      if (parentChainKey === undefined) return undefined;
+      return agentIdMap.get(toolUseIdContract.parse(String(parentChainKey)));
     },
     processLine: ({
       parsed,
@@ -139,11 +203,20 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
             const parsedAgentId = agentIdContract.parse(resultAgentId);
             const toolUseIds = toolUseIdsFromContentTransformer({ entry: original });
             for (const toolUseId of toolUseIds) {
+              // This Task has completed — drop it from the outstanding pool so a late-arriving
+              // sub-agent file with the same prompt no longer pairs to a finished Task.
+              outstandingTasks.delete(toolUseId);
               // Update BOTH maps — the reverse map is the hot path for sub-agent lines
               // arriving from the file source (tagged with realAgentId from the JSONL
               // filename) that need translation back to the Task toolUseId.
               agentIdMap.set(toolUseId, parsedAgentId);
               reverseAgentIdMap.set(parsedAgentId, toolUseId);
+              // If the current line is itself from a sub-agent (its own chain key is set),
+              // record that the child sub-agent's chain key links to this sub-agent's chain
+              // key so nested entries can be stamped with parentAgentId.
+              if (typeof original.agentId === 'string' && String(original.agentId).length > 0) {
+                parentChainMap.set(toolUseId, agentIdContract.parse(String(original.agentId)));
+              }
               outputs.push(
                 chatLineOutputContract.parse({
                   type: 'agent-detected',
@@ -200,6 +273,21 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
           original.agentId = agentId as unknown as NormalizedStreamLine['agentId'];
         }
 
+        // Record each Task/Agent this line spawned as outstanding so an in-flight sub-agent
+        // JSONL can be paired to it by prompt (pairSubagentByPrompt) before its completion
+        // tool_result lands. The container chain key is THIS line's own chain key — undefined for
+        // a top-level Task in the main session, set when one sub-agent spawned another (so the
+        // pair can register the parent-chain link for nested grouping).
+        const containerChainKey =
+          typeof original.agentId === 'string' && String(original.agentId).length > 0
+            ? agentIdContract.parse(String(original.agentId))
+            : undefined;
+        for (const { toolUseId, prompt } of taskPromptsFromContentTransformer({
+          entry: original,
+        })) {
+          outstandingTasks.set(toolUseId, { prompt, containerChainKey });
+        }
+
         // Strip content items that carry extended-thinking blocks with empty text.
         // Claude CLI redacts the reasoning text when extended thinking is enabled — it
         // emits `{ type: 'thinking', thinking: '', signature: '<encrypted>' }` so the
@@ -224,8 +312,44 @@ export const chatLineProcessTransformer = (): ChatLineProcessor => {
         }
       }
 
+      const ownChainKeyRaw = original.agentId;
+      const ownChainKey =
+        typeof ownChainKeyRaw === 'string' && String(ownChainKeyRaw).length > 0
+          ? String(ownChainKeyRaw)
+          : undefined;
+      const parentAgentIdVal =
+        ownChainKey === undefined
+          ? undefined
+          : parentChainMap.get(toolUseIdContract.parse(ownChainKey));
+
       const { entries } = streamJsonToChatEntryTransformer({ parsed: original });
-      outputs.push(chatLineOutputContract.parse({ type: 'entries', entries }));
+      const stampedEntries = entries.map((entry) => {
+        const entryAgentIdRaw =
+          'agentId' in entry && typeof entry.agentId === 'string' && entry.agentId.length > 0
+            ? String(entry.agentId)
+            : undefined;
+        // A nested Task/Agent tool_use entry's own agentId is the chain it LAUNCHES (the
+        // Task's toolUseId), which differs from this line's chain key (ownChainKey). Its
+        // PARENT is the chain this line belongs to, so stamp parentAgentId = ownChainKey —
+        // the linkage the web's recursive grouping reparents the launched chain on. Without
+        // this the launched chain renders at the top level instead of nested under its
+        // spawning sub-agent. Top-level Tasks (ownChainKey undefined) get no parentAgentId,
+        // leaving their chain at the top level.
+        if (
+          ownChainKey !== undefined &&
+          entryAgentIdRaw !== undefined &&
+          entryAgentIdRaw !== ownChainKey
+        ) {
+          return chatEntryContract.parse({ ...entry, parentAgentId: ownChainKey });
+        }
+        // Every other entry shares this line's chain key — it gets this chain's own parent
+        // link (set for depth ≥ 2 sub-agents, absent for top-level chains).
+        if (parentAgentIdVal === undefined) {
+          return entry;
+        }
+        return chatEntryContract.parse({ ...entry, parentAgentId: parentAgentIdVal });
+      });
+      outputs.push(chatLineOutputContract.parse({ type: 'entries', entries: stampedEntries }));
 
       return outputs;
     },

@@ -1,25 +1,44 @@
 /**
- * PURPOSE: Boundary wrapper around @xyflow/react Handle — renders the target (top) and
- * source (bottom) connection handles a custom React Flow node needs so edges can attach.
- * Without these handles React Flow drops every edge ("source handle id: null") and the
- * diagram renders disconnected node cards with no connecting lines or branch labels.
+ * PURPOSE: Boundary wrapper around @xyflow/react Handle — renders the connection handles a custom
+ * React Flow node needs so edges can attach. Without handles React Flow drops every edge ("source
+ * handle id: null") and the diagram renders disconnected cards with no connecting lines.
+ *
+ * The `flow-node` variant (default) renders a top target + bottom source (the top-down main flow)
+ * plus a RIGHT source handle (`flowHandleStatics.observableSourceId`) that assertion connector
+ * edges attach to, so an assertion column branches off the card's right side. The `observable`
+ * variant renders a single LEFT target handle for the assertion card those connectors point at.
  *
  * USAGE:
- * React.createElement(FlowNodeCardLayerWidget, props,
- *   React.createElement(xyflowNodeHandlesAdapter),
- * );
- * // Renders an invisible target handle on top and source handle on bottom, matching the
- * // elk top-down ('DOWN') layout so edges flow from a node's bottom to the next node's top.
+ * React.createElement(FlowNodeCardLayerWidget, props, xyflowNodeHandlesAdapter());
+ * // Flow card: invisible top-target, bottom-source, and right-source handles.
+ * xyflowNodeHandlesAdapter({ variant: 'observable' });
+ * // Assertion card: a single invisible left-target handle.
  */
 
 import React from 'react';
 
 import { Handle, Position } from '@xyflow/react';
 
+import { flowHandleStatics } from '../../../statics/flow-handle/flow-handle-statics';
+
 const HIDDEN_HANDLE_STYLE = { opacity: 0 } as const;
 
-export const xyflowNodeHandlesAdapter = (): React.JSX.Element =>
-  React.createElement(
+export const xyflowNodeHandlesAdapter = ({
+  variant = 'flow-node',
+}: { variant?: 'flow-node' | 'observable' } = {}): React.JSX.Element => {
+  if (variant === 'observable') {
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement(Handle, {
+        type: 'target',
+        position: Position.Left,
+        style: HIDDEN_HANDLE_STYLE,
+      }),
+    );
+  }
+
+  return React.createElement(
     React.Fragment,
     null,
     React.createElement(Handle, {
@@ -32,4 +51,11 @@ export const xyflowNodeHandlesAdapter = (): React.JSX.Element =>
       position: Position.Bottom,
       style: HIDDEN_HANDLE_STYLE,
     }),
+    React.createElement(Handle, {
+      type: 'source',
+      position: Position.Right,
+      id: flowHandleStatics.observableSourceId,
+      style: HIDDEN_HANDLE_STYLE,
+    }),
   );
+};

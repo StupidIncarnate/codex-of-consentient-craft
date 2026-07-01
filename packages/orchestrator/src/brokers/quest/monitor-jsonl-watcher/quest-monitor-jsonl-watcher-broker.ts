@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Tails the registered monitor session's main JSONL plus every `subagents/agent-*.jsonl` sibling under `<projectDir>/subagents/`, feeds each line through the existing `chatLineProcessTransformer`, and emits the resulting ChatEntry batches via a caller-supplied `emit` callback. New sub-agent files that appear post-start are picked up via two paths: a 1s poll re-scan of the subagents directory (covers mid-flight Task() dispatches whose parent `user.tool_result` line has not landed yet) and the processor's `agent-detected` outputs (covers Task completion, where the parent line that registers the realAgentId is also when the processor learns the toolUseId↔realAgentId pair).
+ * PURPOSE: Tails the registered monitor session's main JSONL plus every `subagents/agent-*.jsonl` sibling under `<projectDir>/subagents/`, feeds each line through the existing `chatLineProcessTransformer`, and emits the resulting ChatEntry batches via a caller-supplied `emit` callback. New sub-agent files that appear post-start are picked up via two paths: a 1s poll re-scan of the subagents directory (covers mid-flight Task() dispatches whose parent `user.tool_result` line has not landed yet) and the processor's `agent-detected` outputs (covers Task completion, where the parent line that registers the realAgentId is also when the processor learns the toolUseId↔realAgentId pair). Nested sub-agents (spawned by a sub-agent rather than the main session) are routed to the nearest ancestor work item by walking the processor's parent-chain maps via `resolveParentRealAgentId`.
  *
  * USAGE:
  * const handle = questMonitorJsonlWatcherBroker({
@@ -59,9 +59,9 @@ export const questMonitorJsonlWatcherBroker = ({
   activeQuestIdGetter: () => QuestId | null;
   // Resolves the owning work item id for a sub-agent's realAgentId. Forwarded to each
   // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript
-  // to its own execution row instead of the merged parent-session bucket. Optional:
-  // omitted by tests.
-  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null;
+  // to its own execution row instead of the merged parent-session bucket. A null OR
+  // undefined return both mean "no work item for this agent". Optional: omitted by tests.
+  workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null | undefined;
   chatProcessId: ProcessId;
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
   // buckets them under the same key that `wi.sessionId` resolves to via
@@ -87,6 +87,26 @@ export const questMonitorJsonlWatcherBroker = ({
   // must carry across both sources or sub-agent lines arrive keyed by realAgentId instead
   // of the Task's toolUseId and the web's chain grouping breaks.
   const processor = chatLineProcessTransformer();
+
+  // A nested sub-agent has no work item of its own. Route its transcript to the nearest
+  // ancestor work item by walking realChild -> realParent (via the processor's chain maps)
+  // until workItemIdForAgent resolves a non-null id. Depth-1 sub-agents resolve on the first
+  // hop; top-level (no ancestor work item) resolve to null and emit without a workItemId.
+  const resolveAncestorWorkItemId:
+    | ((params: { agentId: AgentId }) => QuestWorkItemId | null)
+    | undefined =
+    workItemIdForAgent === undefined
+      ? undefined
+      : ({ agentId }: { agentId: AgentId }): QuestWorkItemId | null => {
+          const direct = workItemIdForAgent({ agentId });
+          if (direct !== null && direct !== undefined) return direct;
+          const parentReal = processor.resolveParentRealAgentId({ agentId });
+          // resolveAncestorWorkItemId is always defined here (we are inside it); the guard
+          // only narrows its optional declared type so the recursive call type-checks.
+          if (parentReal === undefined || resolveAncestorWorkItemId === undefined) return null;
+          return resolveAncestorWorkItemId({ agentId: parentReal });
+        };
+
   const sessionSource = chatLineSourceContract.parse('session');
 
   const subagentHandles = new Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>();
@@ -117,23 +137,32 @@ export const questMonitorJsonlWatcherBroker = ({
     processor,
     chatProcessId,
     activeQuestIdGetter,
-    ...(workItemIdForAgent === undefined ? {} : { workItemIdForAgent }),
+    ...(resolveAncestorWorkItemId === undefined
+      ? {}
+      : { workItemIdForAgent: resolveAncestorWorkItemId }),
     emit,
     isAgentIdActive,
     subagentHandles,
   };
 
-  scanSubagentsDirLayerBroker(scanArgs);
+  // Fire-and-forget: the scan tails active sub-agents synchronously (before its first await)
+  // and prompt-pairs non-active nested sub-agents asynchronously; the watcher does not await it.
+  scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
+    process.stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
+  });
 
   // Periodic re-scan so sub-agent JSONL files created AFTER startup get a tail before the
   // parent's `user.tool_result` line fires `agent-detected`. Real-world flow: /dumpster-launch
   // Task()s pathseeker-surface; Claude CLI starts writing `subagents/agent-<id>.jsonl`
   // immediately; the completion `user.tool_result` only lands minutes later. Without this
   // poll, the sub-agent's live activity is invisible to the web until the user refreshes
-  // (replay path reads the full JSONL from disk).
+  // (replay path reads the full JSONL from disk). The poll also re-reads not-yet-paired
+  // nested sub-agent files until their spawning Task is observed.
   const pollHandle = timerSetIntervalAdapter({
     callback: (): void => {
-      scanSubagentsDirLayerBroker(scanArgs);
+      scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
+        process.stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
+      });
     },
     intervalMs: SUBAGENT_DIR_POLL_INTERVAL_MS,
   });
@@ -171,7 +200,9 @@ export const questMonitorJsonlWatcherBroker = ({
           processor,
           chatProcessId,
           activeQuestIdGetter,
-          ...(workItemIdForAgent === undefined ? {} : { workItemIdForAgent }),
+          ...(resolveAncestorWorkItemId === undefined
+            ? {}
+            : { workItemIdForAgent: resolveAncestorWorkItemId }),
           emit,
           subagentHandles,
         });

@@ -18,6 +18,7 @@ describe('slotManagerStatics', () => {
         maxRetries: 2,
         maxDispatchDepth: 3,
         maxFollowupDepth: 3,
+        maxAttempts: 3,
       },
       lawbringer: {
         concurrentLimit: 3,

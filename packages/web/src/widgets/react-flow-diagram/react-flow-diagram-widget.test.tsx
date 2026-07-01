@@ -174,21 +174,19 @@ describe('ReactFlowDiagramWidget', () => {
   });
 
   describe('node badge', () => {
-    it('VALID: {node with 2 observables} => FLOW_NODE_BADGE shows "2"', async () => {
+    it('VALID: {node with 2 contracts} => FLOW_NODE_BADGE shows "2"', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'login-page' }),
-        type: 'state',
-        observables: [
-          FlowObservableStub({ description: 'shows login form' }),
-          FlowObservableStub({ description: 'shows error on bad creds' }),
-        ],
-      });
+      const nodeId = FlowNodeIdStub({ value: 'login-page' });
+      const node = FlowNodeStub({ id: nodeId, type: 'state', observables: [] });
       const flow = FlowStub({ nodes: [node], edges: [] });
+      const contracts = [
+        QuestContractEntryStub({ id: 'login-credentials', nodeId, name: 'LoginCredentials' }),
+        QuestContractEntryStub({ id: 'auth-login-endpoint', nodeId, name: 'AuthLoginEndpoint' }),
+      ];
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} contracts={contracts} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE_BADGE')).toBeInTheDocument();
@@ -197,7 +195,7 @@ describe('ReactFlowDiagramWidget', () => {
       expect(screen.getByTestId('FLOW_NODE_BADGE').textContent).toBe('2');
     });
 
-    it('EMPTY: {node with 0 observables} => no FLOW_NODE_BADGE', async () => {
+    it('EMPTY: {node with 0 contracts} => no FLOW_NODE_BADGE', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -208,7 +206,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} contracts={[]} /> });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -399,35 +397,6 @@ describe('ReactFlowDiagramWidget', () => {
   });
 
   describe('panel content', () => {
-    it('VALID: {node with observable} => panel shows observable type and description', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const observable = FlowObservableStub({
-        type: 'ui-state',
-        description: 'redirects to dashboard',
-      });
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'login-page' }),
-        type: 'state',
-        observables: [observable],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
-
-      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
-
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
-      });
-
-      await proxy.clickNode({ nodeId: 'login-page' });
-
-      expect(screen.getByTestId('FLOW_DETAIL_PANEL_OBSERVABLE_TYPE').textContent).toBe('ui-state');
-      expect(screen.getByTestId('FLOW_DETAIL_PANEL_OBSERVABLE_DESCRIPTION').textContent).toBe(
-        'redirects to dashboard',
-      );
-    });
-
     it('VALID: {node with matching contract} => panel shows contract name and property as "name: type"', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const nodeId = FlowNodeIdStub({ value: 'login-page' });
@@ -457,7 +426,7 @@ describe('ReactFlowDiagramWidget', () => {
       );
     });
 
-    it('EMPTY: {node with no observables, no contracts} => panel shows empty message', async () => {
+    it('EMPTY: {node with no contracts} => panel shows empty message', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const nodeId = FlowNodeIdStub({ value: 'login-page' });
       const node = FlowNodeStub({ id: nodeId, type: 'state', observables: [] });
@@ -474,8 +443,82 @@ describe('ReactFlowDiagramWidget', () => {
       await proxy.clickNode({ nodeId: 'login-page' });
 
       expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY').textContent).toBe(
-        'No observables or contracts for this node',
+        'No contracts for this node',
       );
+    });
+  });
+
+  describe('assertion nodes', () => {
+    it('VALID: {node with 3 observables} => all 3 assertion cards branch onto the canvas', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'shows-form',
+            type: 'ui-state',
+            description: 'shows login form',
+          }),
+          FlowObservableStub({
+            id: 'posts-creds',
+            type: 'api-call',
+            description: 'POSTs credentials',
+          }),
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(proxy.getObservableDescriptions().map((el) => el.textContent)).toStrictEqual([
+          'shows login form',
+          'POSTs credentials',
+          'redirects to dashboard',
+        ]);
+      });
+
+      expect(proxy.getObservableTypeTags().map((el) => el.textContent)).toStrictEqual([
+        'ui-state',
+        'api-call',
+        'ui-state',
+      ]);
+    });
+
+    it('VALID: {assertion node clicked} => detail panel does not open', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'obs:login-page:redirects' });
+
+      expect(proxy.hasDetailPanel()).toBe(false);
     });
   });
 
@@ -559,7 +602,7 @@ describe('ReactFlowDiagramWidget', () => {
       expect(screen.getByTestId('FULLSCREEN_BUTTON')).toBeInTheDocument();
     });
 
-    it('VALID: {fullscreen clicked} => canvas wrapper switches to minHeight mode', async () => {
+    it('VALID: {fullscreen clicked} => canvas wrapper pins a DEFINITE near-viewport height', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -583,16 +626,18 @@ describe('ReactFlowDiagramWidget', () => {
       expect({
         height: wrapperBefore.style.height,
         minHeight: wrapperBefore.style.minHeight,
-      }).toStrictEqual({ height: '400px', minHeight: '' });
+      }).toStrictEqual({ height: '800px', minHeight: '' });
 
       await proxy.clickFullscreen();
 
       const wrapperAfter = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
 
+      // Expanded must ALSO pin a definite `height` (not minHeight) — React Flow's height:100%
+      // canvas resolves against `height`, so a minHeight-only wrapper collapses it to 0px.
       expect({
         minHeight: wrapperAfter.style.minHeight,
         height: wrapperAfter.style.height,
-      }).toStrictEqual({ minHeight: 'calc(100vh - 160px)', height: '' });
+      }).toStrictEqual({ minHeight: '', height: 'calc(100vh - 160px)' });
     });
 
     it('VALID: {fullscreen clicked twice} => canvas wrapper restores definite height 400', async () => {
@@ -620,7 +665,49 @@ describe('ReactFlowDiagramWidget', () => {
       expect({
         height: wrapper.style.height,
         minHeight: wrapper.style.minHeight,
-      }).toStrictEqual({ height: '400px', minHeight: '' });
+      }).toStrictEqual({ height: '800px', minHeight: '' });
+    });
+
+    it('VALID: {diagram collapsed} => FULLSCREEN_BUTTON data-expanded is false', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.isExpanded()).toBe(false);
+    });
+
+    it('VALID: {fullscreen clicked} => FULLSCREEN_BUTTON data-expanded is true', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      await proxy.clickFullscreen();
+
+      expect(proxy.isExpanded()).toBe(true);
     });
   });
 
@@ -645,7 +732,9 @@ describe('ReactFlowDiagramWidget', () => {
       await proxy.clickNode({ nodeId: 'login-page' });
 
       // Panel renders the empty-state message (not a contract error) confirming contracts defaulted to [].
-      expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY')).toBeInTheDocument();
+      expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY').textContent).toBe(
+        'No contracts for this node',
+      );
     });
   });
 

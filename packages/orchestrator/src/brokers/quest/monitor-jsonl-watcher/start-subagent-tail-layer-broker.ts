@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — starts a single `fsWatchTailAdapter` on `<projectDir>/subagents/agent-<agentId>.jsonl`, wires the tail's onLine through the shared chat-line processor with `source: 'subagent'`, and registers the resulting tail handle in the caller-supplied handles map. Idempotent: if a tail for `agentId` already exists in the map, the call is a no-op.
+ * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — starts a single `fsWatchTailAdapter` on `<projectDir>/subagents/agent-<agentId>.jsonl`, wires the tail's onLine through the shared chat-line processor with `source: 'subagent'`, registers the resulting tail handle in the caller-supplied handles map, and recursively starts tails for any nested sub-agents detected via `agent-detected` outputs. Idempotent: if a tail for `agentId` already exists in the map, the call is a no-op.
  *
  * USAGE:
  * startSubagentTailLayerBroker({
@@ -100,6 +100,23 @@ export const startSubagentTailLayerBroker = ({
             questId: activeQuestIdGetter(),
             sessionId: parentSessionId,
             ...(workItemId === null ? {} : { workItemId }),
+          });
+        }
+        // Nested sub-agents (B dispatched by A) emit `agent-detected` on the SUB-AGENT tail,
+        // not on the main tail. Start a tail for each detected child so its transcript is
+        // captured and routed (the shared processor already stamped the parent-chain link
+        // via `parentChainMap`, so parentAgentId and ancestor workItemId resolution work).
+        if (output.type === 'agent-detected') {
+          startSubagentTailLayerBroker({
+            agentId: output.agentId,
+            sessionFilePath,
+            parentSessionId,
+            processor,
+            chatProcessId,
+            activeQuestIdGetter,
+            ...(workItemIdForAgent === undefined ? {} : { workItemIdForAgent }),
+            emit,
+            subagentHandles,
           });
         }
       }

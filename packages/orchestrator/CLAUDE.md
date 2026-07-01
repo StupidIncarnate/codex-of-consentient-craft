@@ -588,9 +588,10 @@ Agents report via the `signal-back` MCP tool. The live handler is
    **or** `failed-replan` — and stamps `completedAt`.
 2. If the item is `pathseeker` AND the signal is `complete`, fires `questPostWalkHookBroker` to
    generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
-3. On a `failed` / `failed-replan` signal, every agent role blocks the quest (see "Failure handling").
-   Lawbringer is included — it fixes findings inline, so its `failed` signal is an unfixable-issue
-   block, not a recover.
+3. On a `failed` / `failed-replan` signal, most agent roles block the quest (see "Failure handling").
+   `siegemaster` is the exception — a siege `failed` RECOVERs (spiritmender fixes the
+   implementation/test, then a fresh siege re-verifies). Lawbringer fixes findings inline, so its
+   `failed` signal is an unfixable-issue block, not a recover.
 
 ### Failure handling
 
@@ -607,12 +608,19 @@ or **BLOCK** (set status `blocked`, halt dispatch).
   and delivered through per-item `spiritmender-batches/<id>.json` sidecars. The splice rewires
   downstream siege/chain dependents off the failed ward onto the retry. When ward's retries are
   exhausted, the failure routes to BLOCK instead.
-- **All agent `failed` / `failed-replan` → BLOCK.** `lawbringer`, `codeweaver`, `flowrider`,
-  `siegemaster`, `spiritmender`, `blightwarden`, `pathseeker-*`, and `pesteater` failures route through
-  `questBlockOnFailureBroker`. Lawbringer, flowrider, siegemaster, and blightwarden fix what they find
-  inline during their own run (blightwarden routes semantic findings out via `failed-replan`); a
-  `failed` signal from any of them means a genuinely unfixable issue, so it BLOCKS rather than spawning
-  a fixer. The broker sets quest status `blocked` and marks every still-`pending` item `skipped`.
+- **siege-fail → RECOVER.** A `siegemaster` `failed` signal splices a `spiritmender` (fed the
+  manual-QA finding via a `spiritmender-batches/<id>.json` sidecar built from the agent's signal-back
+  `summary`) + a `ward(changed)` gate + a fresh `siegemaster` retry (`attempt + 1`, same flow ref)
+  via `questSpliceFixerBroker` (`questRecoverSiegeBroker`). Siegemaster changes no files — it reports
+  the break (or a false-positive green test), the spiritmender fixes the implementation/test
+  red-first, and the fresh siege re-runs the manual-QA pass. Budget is
+  `slotManagerStatics.siegemaster.maxAttempts`; when exhausted the failure routes to BLOCK.
+- **All other agent `failed` / `failed-replan` → BLOCK.** `lawbringer`, `codeweaver`, `flowrider`,
+  `spiritmender`, `blightwarden`, `pathseeker-*`, and `pesteater` failures route through
+  `questBlockOnFailureBroker`. Lawbringer, flowrider, and blightwarden fix what they find inline
+  during their own run (blightwarden routes semantic findings out via `failed-replan`); a `failed`
+  signal from any of them means a genuinely unfixable issue, so it BLOCKS rather than spawning a
+  fixer. The broker sets quest status `blocked` and marks every still-`pending` item `skipped`.
   `failed-replan` (Blightwarden) is treated as `failed` for status, then routed by the same table
   (→ BLOCK). A `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on
   `in_progress`), so dispatch halts.

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Replays a Claude session's JSONL history by reading main + subagent files, processing each line, and emitting fully-parsed ChatEntry arrays via callbacks. Does a two-pass scan so the processor's realAgentId→toolUseId translation map is fully populated BEFORE any sub-agent JSONL line is processed — which is required because sub-agent file lines arrive in timestamp order BEFORE the main JSONL's completion tool_use_result that defines the translation.
+ * PURPOSE: Replays a Claude session's JSONL history by reading main + subagent files, processing each line, and emitting fully-parsed ChatEntry arrays via callbacks. Does a three-pass pre-scan (PASS 1a: realAgentId→toolUseId registrations; PASS 1b: prompt-text pairing for in-flight Tasks; PASS 1c: nested parent-chain links for depth ≥ 2 sub-agents) BEFORE PASS 2 emits lines in timestamp order. The pre-scans are required because sub-agent file lines arrive in timestamp order BEFORE the completion tool_results that carry the correlation ids.
  *
  * USAGE:
  * await chatHistoryReplayBroker({
@@ -16,6 +16,13 @@
  * all lines in timestamp order. When a sub-agent line arrives tagged with its real agentId, the
  * processor's normalizer translates it to the streaming wire shape (`parent_tool_use_id = toolUseId`)
  * so the ChatEntry it emits is indistinguishable from a streaming-sourced one.
+ *
+ * PASS 1c pre-registers parent-chain links for nested sub-agents (a sub-agent B spawned by
+ * sub-agent A). B's completion tool_result lives in A's subagent JSONL; PASS 1a collects it
+ * as a candidate (container = A's realAgentId). PASS 1c then resolves A's chain key from the
+ * reverse map (fully populated by PASS 1a) and calls registerParentChain so PASS 2 stamps B's
+ * entries with parentAgentId = A's chain key — even though B's lines sort BEFORE A's
+ * tool_result-for-B in timestamp order.
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
@@ -23,28 +30,28 @@ import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shar
 import {
   absoluteFilePathContract,
   adapterResultContract,
+  arrayIndexContract,
+  fileNameContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type {
   AdapterResult,
   AgentId,
+  ArrayIndex,
   ChatEntry,
   GuildId,
   SessionId,
+  StreamJsonLine,
 } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import type { ArrayIndex, StreamJsonLine } from '@dungeonmaster/shared/contracts';
-import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
-
 import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { chatReplayJsonlReadBroker } from '../replay-jsonl-read/chat-replay-jsonl-read-broker';
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -56,6 +63,7 @@ import { chatLineProcessTransformer } from '../../../transformers/chat-line-proc
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
+import { scopeSubagentFilesToDescendantsLayerBroker } from './scope-subagent-files-to-descendants-layer-broker';
 
 export const chatHistoryReplayBroker = async ({
   sessionId,
@@ -134,14 +142,22 @@ export const chatHistoryReplayBroker = async ({
         }),
       })),
     );
-    // Per-work-item replay scopes to a single sub-agent: keep only the matching file.
-    // Without the filter, every sub-agent under the parent session would surface under
-    // this work item's replay channel.
-    const scoped =
-      filterAgentId === undefined
-        ? results
-        : results.filter((f) => String(f.agentId) === String(filterAgentId));
-    subagentFiles.push(...scoped);
+    // Per-work-item replay scopes to a single sub-agent AND every nested sub-agent it
+    // spawned. A nested sub-agent B (spawned by A) writes its own subagents/agent-<B>.jsonl;
+    // an exact-match filter on A's agentId would drop B's file and the web row would render
+    // the nested chain as '(0 entries)'. The layer broker walks the spawn graph (built from
+    // each file's completion tool_results) and keeps the transitive descendant closure of
+    // filterAgentId; unrelated sibling sub-agents stay excluded.
+    if (filterAgentId === undefined) {
+      subagentFiles.push(...results);
+    } else {
+      subagentFiles.push(
+        ...scopeSubagentFilesToDescendantsLayerBroker({
+          files: results,
+          rootAgentId: agentIdContract.parse(String(filterAgentId)),
+        }),
+      );
+    }
   } catch {
     // subagents directory may not exist
   }
@@ -200,44 +216,70 @@ export const chatHistoryReplayBroker = async ({
   // that realAgentId↔toolUseId pair, so the helper's own lines translate to the helper's toolUseId
   // on replay instead of orphaning. (The live path already covers this because the processor's
   // reverse map is populated source-agnostically and shared across every tail.)
+  //
+  // allScanLines is the flat union used by PASS 1b (prompt-text pairing for in-flight Tasks).
+  // scanSources is the per-source view used by PASS 1a to also collect nested parent-chain
+  // candidates: when a tool_result lives in a sub-agent JSONL (container !== null), the child
+  // sub-agent B's completion tool_result reveals that B was spawned by the container sub-agent A.
+  // PASS 1c then resolves A's chain key and calls registerParentChain for B.
   const allScanLines: StreamJsonLine[] = [
     ...sessionLines,
     ...subagentFiles.flatMap((f) => f.lines),
   ];
+  const scanSources: {
+    lines: StreamJsonLine[];
+    container: ReturnType<typeof agentIdContract.parse> | null;
+  }[] = [
+    { lines: sessionLines, container: null },
+    ...subagentFiles.map((f) => ({ lines: f.lines, container: f.agentId })),
+  ];
+  const childParentCandidates: {
+    childToolUseId: ReturnType<typeof toolUseIdContract.parse>;
+    container: ReturnType<typeof agentIdContract.parse>;
+  }[] = [];
 
   // PASS 1a: scan every user tool_result for `tool_use_result.agentId` paired with the content
   // item's `tool_use_id`. Register each mapping with the processor BEFORE we emit any sub-agent
   // lines. Without this pre-scan, sub-agent lines that sort earlier than their completion
   // tool_result can't translate their realAgentId to a Task toolUseId, so the web's chain grouping
   // would key on realAgentId for those lines and on toolUseId for the eagerly-stamped Task entry —
-  // a permanent mismatch that looks like "(0 entries)".
-  for (const line of allScanLines) {
-    const parsed = claudeLineNormalizeBroker({ rawLine: line });
-    const lineParse = normalizedStreamLineContract.safeParse(parsed);
-    if (!lineParse.success) continue;
-    const lineData = lineParse.data;
-    if (lineData.type !== 'user') continue;
-    const { toolUseResult } = lineData;
-    if (toolUseResult === undefined) continue;
-    if (typeof toolUseResult === 'string') continue;
-    if (Array.isArray(toolUseResult)) continue;
-    const realAgentIdRaw = toolUseResult.agentId;
-    if (typeof realAgentIdRaw !== 'string' || realAgentIdRaw.length === 0) continue;
-    const msg = lineData.message;
-    if (msg === undefined) continue;
-    const items = msg.content;
-    if (!Array.isArray(items)) continue;
-    for (const rawItem of items) {
-      const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
-      if (!itemParse.success) continue;
-      const item = itemParse.data;
-      if (item.type !== 'tool_result') continue;
-      const tuid = item.toolUseId;
-      if (typeof tuid !== 'string' || tuid.length === 0) continue;
-      processor.registerAgentTranslation({
-        agentId: agentIdContract.parse(realAgentIdRaw),
-        toolUseId: toolUseIdContract.parse(tuid),
-      });
+  // a permanent mismatch that looks like "(0 entries)". Also collect nested parent-chain candidates
+  // when the tool_result lives in a sub-agent JSONL (container !== null) for PASS 1c.
+  for (const { lines, container } of scanSources) {
+    for (const line of lines) {
+      const parsed = claudeLineNormalizeBroker({ rawLine: line });
+      const lineParse = normalizedStreamLineContract.safeParse(parsed);
+      if (!lineParse.success) continue;
+      const lineData = lineParse.data;
+      if (lineData.type !== 'user') continue;
+      const { toolUseResult } = lineData;
+      if (toolUseResult === undefined) continue;
+      if (typeof toolUseResult === 'string') continue;
+      if (Array.isArray(toolUseResult)) continue;
+      const realAgentIdRaw = toolUseResult.agentId;
+      if (typeof realAgentIdRaw !== 'string' || realAgentIdRaw.length === 0) continue;
+      const msg = lineData.message;
+      if (msg === undefined) continue;
+      const items = msg.content;
+      if (!Array.isArray(items)) continue;
+      for (const rawItem of items) {
+        const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
+        if (!itemParse.success) continue;
+        const item = itemParse.data;
+        if (item.type !== 'tool_result') continue;
+        const tuid = item.toolUseId;
+        if (typeof tuid !== 'string' || tuid.length === 0) continue;
+        processor.registerAgentTranslation({
+          agentId: agentIdContract.parse(realAgentIdRaw),
+          toolUseId: toolUseIdContract.parse(tuid),
+        });
+        if (container !== null) {
+          childParentCandidates.push({
+            childToolUseId: toolUseIdContract.parse(tuid),
+            container,
+          });
+        }
+      }
     }
   }
 
@@ -297,6 +339,20 @@ export const chatHistoryReplayBroker = async ({
       }
     }
   }
+
+  // PASS 1c: register nested parent-chain links. A nested sub-agent B's completion tool_result
+  // lives in its SPAWNER A's subagent JSONL (container = A's realAgentId). Resolve A's chain key
+  // via the reverse map (fully populated by PASS 1a) and register B's chain key -> A's chain key
+  // so PASS 2 stamps B's entries with parentAgentId = A's chain key even though B's lines sort
+  // earlier than A's tool_result-for-B.
+  childParentCandidates.forEach(({ childToolUseId, container }) => {
+    const parentChainKey = processor.resolveToolUseIdForAgent({ agentId: container });
+    if (parentChainKey === undefined) return;
+    processor.registerParentChain({
+      childToolUseId,
+      parentAgentId: agentIdContract.parse(String(parentChainKey)),
+    });
+  });
 
   taggedLines.sort((a, b) => {
     const timeCompare = a.timestamp.localeCompare(b.timestamp);

@@ -535,4 +535,54 @@ describe('sessionListBroker', () => {
       ]);
     });
   });
+
+  describe('recency ordering', () => {
+    it('VALID: {multiple sessions} => returns most-recently-active (highest mtime) first', async () => {
+      const proxy = sessionListBrokerProxy();
+      const guildId = GuildIdStub();
+      const guild = GuildStub({ path: '/home/user/my-guild' });
+      const birthtime = new Date('2025-01-15T10:00:00.000Z');
+
+      proxy.setupGuild({ guild });
+      proxy.setupHomeDir({ path: '/home/user' });
+      // stale.jsonl resolves first (older mtime); fresh.jsonl second (newer mtime). Their
+      // filesystem order is the OPPOSITE of the expected recency order, so a passthrough or
+      // start-time sort would not produce [fresh, stale].
+      proxy.setupGlobFiles({
+        files: [
+          '/home/user/.claude/projects/-home-user-my-guild/stale.jsonl',
+          '/home/user/.claude/projects/-home-user-my-guild/fresh.jsonl',
+        ],
+      });
+      proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
+      proxy.setupFileStat({ birthtime, mtimeMs: 1708560000000 });
+      proxy.setupFileContent({ content: '{"type":"summary","summary":"Stale session"}' });
+      proxy.setupFileContent({ content: '{"type":"summary","summary":"Fresh session"}' });
+      proxy.setupQuests({ quests: [] });
+
+      const getCacheMock = jest.fn().mockReturnValue({ hit: false });
+      const setCacheMock = jest.fn();
+
+      const result = await sessionListBroker({
+        guildId,
+        getCache: getCacheMock as (params: { sessionId: unknown; mtimeMs: unknown }) => {
+          hit: false;
+        },
+        setCache: setCacheMock,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          sessionId: 'fresh',
+          startedAt: undefined,
+          summary: 'Fresh session',
+        },
+        {
+          sessionId: 'stale',
+          startedAt: undefined,
+          summary: 'Stale session',
+        },
+      ]);
+    });
+  });
 });

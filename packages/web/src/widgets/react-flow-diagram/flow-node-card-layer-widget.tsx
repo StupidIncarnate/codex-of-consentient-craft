@@ -13,6 +13,7 @@ import type { FlowNodeType } from '@dungeonmaster/shared/contracts';
 
 import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
 import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
+import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 
 export interface FlowNodeCardLayerWidgetProps {
@@ -36,7 +37,7 @@ export const FlowNodeCardLayerWidget = ({
   data,
   selected,
 }: FlowNodeCardLayerWidgetProps): React.JSX.Element => {
-  const { nodeType, label, observableCount } = data;
+  const { nodeType, label, contractCount } = data;
   const accentColor = flowNodeStyleStatics.accent[nodeType];
   const TypeIcon = NODE_TYPE_ICONS[nodeType];
 
@@ -52,7 +53,11 @@ export const FlowNodeCardLayerWidget = ({
         border: `1px solid ${accentColor}`,
         borderRadius: 6,
         padding: '8px 12px',
-        minWidth: 120,
+        // Pin every card to elk's reserved box width (border-box) so a card never grows past
+        // the rectangle elk laid out for it — long-sentence labels wrap instead of ballooning,
+        // and adjacent cards can't overlap.
+        width: elkLayoutStatics.node.width,
+        boxSizing: 'border-box',
         color: '#e0cfc0',
         fontFamily: 'monospace',
         ...ringStyle,
@@ -62,12 +67,24 @@ export const FlowNodeCardLayerWidget = ({
       <div data-testid="FLOW_NODE_TYPE_ICON" style={{ color: accentColor, marginBottom: 4 }}>
         <TypeIcon size={14} />
       </div>
-      <div data-testid="FLOW_NODE_LABEL" style={{ fontSize: 12, fontWeight: 600 }}>
+      <div
+        data-testid="FLOW_NODE_LABEL"
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          // Show the FULL label on the card — wrap it (elk reserves a box tall enough for every
+          // line, so the card never overflows its row). The detail panel adds observables and
+          // contracts, but the main text is always readable without clicking.
+          whiteSpace: 'normal',
+          overflowWrap: 'break-word',
+        }}
+      >
         {label}
       </div>
-      {observableCount > 0 ? (
+      {contractCount > 0 ? (
         <div
           data-testid="FLOW_NODE_BADGE"
+          title="contracts"
           style={{
             background: accentColor,
             color: '#0d0907',
@@ -78,7 +95,7 @@ export const FlowNodeCardLayerWidget = ({
             marginTop: 4,
           }}
         >
-          {String(observableCount)}
+          {String(contractCount)}
         </div>
       ) : null}
     </div>

@@ -17,16 +17,22 @@ import React from 'react';
 
 import { Controls, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { Node, Edge, NodeTypes, ReactFlowProps } from '@xyflow/react';
+import type { Node, Edge, NodeTypes, EdgeTypes, ReactFlowProps } from '@xyflow/react';
 
+import type { FlowObservableNodeData } from '../../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import type { ReactFlowNodeData } from '../../../contracts/react-flow-node-data/react-flow-node-data-contract';
+import { elkLayoutStatics } from '../../../statics/elk-layout/elk-layout-statics';
 
-export type XyflowReactFlowAdapterNode = Node<ReactFlowNodeData>;
+// The canvas holds two node shapes: flow cards (ReactFlowNodeData) and the assertion cards that
+// branch off to their right (FlowObservableNodeData). Both carry a string `id`, which is all the
+// click handler reads to resolve the clicked node back to a flow node.
+export type XyflowReactFlowAdapterNode = Node<ReactFlowNodeData> | Node<FlowObservableNodeData>;
 
 export interface XyflowReactFlowAdapterProps {
   nodes: XyflowReactFlowAdapterNode[];
   edges: Edge[];
   nodeTypes?: NodeTypes;
+  edgeTypes?: EdgeTypes;
   onNodeClick?: (node: XyflowReactFlowAdapterNode) => void;
   onPaneClick?: () => void;
 }
@@ -35,6 +41,7 @@ export const xyflowReactFlowAdapter = ({
   nodes,
   edges,
   nodeTypes,
+  edgeTypes,
   onNodeClick,
   onPaneClick,
 }: XyflowReactFlowAdapterProps): React.ReactElement => {
@@ -42,6 +49,7 @@ export const xyflowReactFlowAdapter = ({
     nodes,
     edges,
     ...(nodeTypes === undefined ? {} : { nodeTypes }),
+    ...(edgeTypes === undefined ? {} : { edgeTypes }),
     onNodeClick: (_event, node) => {
       onNodeClick?.(node);
     },
@@ -51,6 +59,11 @@ export const xyflowReactFlowAdapter = ({
       onPaneClick?.();
     },
     fitView: true,
+    // Lower the zoom floor (and fit-view's own floor) below React Flow's 0.5 default so fit-view
+    // can shrink a tall assertion-rich graph into the collapsed canvas instead of clamping and
+    // leaving the graph partly outside the viewport (which reads as "blank until fullscreen").
+    minZoom: elkLayoutStatics.viewport.minZoom,
+    fitViewOptions: { minZoom: elkLayoutStatics.viewport.minZoom },
   };
 
   return React.createElement(
@@ -59,7 +72,10 @@ export const xyflowReactFlowAdapter = ({
     React.createElement(
       ReactFlow<XyflowReactFlowAdapterNode>,
       reactFlowProps,
-      React.createElement(Controls),
+      // Controls stays mounted (the diagram widget's custom RPG buttons drive zoom/fit by
+      // clicking its actuator buttons) but is hidden so it doesn't paint a second control
+      // cluster on top of the custom one.
+      React.createElement(Controls, { style: { display: 'none' } }),
     ),
   );
 };

@@ -42,5 +42,25 @@ describe('chatLineProcessorContract', () => {
 
       expect(processor.registerAgentTranslation).toHaveBeenCalledWith({ agentId, toolUseId });
     });
+
+    it('VALID: resolveParentRealAgentId({agentId}) => undefined (empty parent-chain map)', () => {
+      const processor = ChatLineProcessorStub();
+
+      const result = processor.resolveParentRealAgentId({
+        agentId: agentIdContract.parse('agent-abc'),
+      });
+
+      expect(result).toBe(undefined);
+    });
+
+    it('VALID: registerParentChain({childToolUseId, parentAgentId}) => noop, recorded on jest.fn', () => {
+      const processor = ChatLineProcessorStub();
+      const childToolUseId = toolUseIdContract.parse('toolu_01EaCJyt5y8gzMNyGYarwUDZ');
+      const parentAgentId = agentIdContract.parse('agent-parent-123');
+
+      processor.registerParentChain({ childToolUseId, parentAgentId });
+
+      expect(processor.registerParentChain).toHaveBeenCalledWith({ childToolUseId, parentAgentId });
+    });
   });
 });

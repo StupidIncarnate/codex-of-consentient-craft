@@ -10,6 +10,10 @@ export const ChatLineProcessorStub = ({
   const resolveToolUseIdForAgent =
     props.resolveToolUseIdForAgent ?? jest.fn().mockReturnValue(undefined);
   const registerAgentTranslation = props.registerAgentTranslation ?? jest.fn();
+  const registerParentChain = props.registerParentChain ?? jest.fn();
+  const resolveParentRealAgentId =
+    props.resolveParentRealAgentId ?? jest.fn().mockReturnValue(undefined);
+  const pairSubagentByPrompt = props.pairSubagentByPrompt ?? jest.fn().mockReturnValue(false);
 
   const validated = chatLineProcessorContract.parse({ processLine });
 
@@ -19,5 +23,9 @@ export const ChatLineProcessorStub = ({
       resolveToolUseIdForAgent as ChatLineProcessor['resolveToolUseIdForAgent'],
     registerAgentTranslation:
       registerAgentTranslation as ChatLineProcessor['registerAgentTranslation'],
+    registerParentChain: registerParentChain as ChatLineProcessor['registerParentChain'],
+    resolveParentRealAgentId:
+      resolveParentRealAgentId as ChatLineProcessor['resolveParentRealAgentId'],
+    pairSubagentByPrompt: pairSubagentByPrompt as ChatLineProcessor['pairSubagentByPrompt'],
   };
 };

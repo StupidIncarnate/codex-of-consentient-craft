@@ -43,6 +43,7 @@ export const InteractionHandleResponder = async ({
         questId: result.signal.questId,
         workItemId: result.signal.workItemId,
         signal: result.signal.signal,
+        summary: result.signal.summary,
       });
     }
 

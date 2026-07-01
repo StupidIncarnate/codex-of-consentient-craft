@@ -4,14 +4,17 @@ import {
   cwdResolveBrokerProxy,
   osUserHomedirAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import type { FileName } from '@dungeonmaster/shared/contracts';
+import type { FileNameStub } from '@dungeonmaster/shared/contracts';
 import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
+
+type FileName = ReturnType<typeof FileNameStub>;
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
 import { chatReplayJsonlReadBrokerProxy } from '../replay-jsonl-read/chat-replay-jsonl-read-broker.proxy';
+import { scopeSubagentFilesToDescendantsLayerBrokerProxy } from './scope-subagent-files-to-descendants-layer-broker.proxy';
 
 type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfig']>[0]['config'];
 
@@ -35,6 +38,9 @@ export const chatHistoryReplayBrokerProxy = (): {
   // Wired to satisfy enforce-proxy-child-creation; the readJsonlProxy above already
   // mocks the underlying readFile that the replay broker delegates to.
   chatReplayJsonlReadBrokerProxy();
+  // Layer broker that scopes per-work-item replay to a sub-agent's descendant closure. Its
+  // own proxy sets up claudeLineNormalizeBroker for the real edge-extraction normalize.
+  scopeSubagentFilesToDescendantsLayerBrokerProxy();
 
   // chat-history-replay-broker walks up from the guild path to the repo root via
   // cwdResolveBroker so the encoded JSONL path matches the spawn cwd of the agent that

@@ -15,9 +15,12 @@
  *   resumes off `planningNotes` (steps already present → re-walks), and on `complete` re-fires the
  *   post-walk hook, regenerating the whole downstream chain. The quest stays `in_progress` (a bare
  *   workItems write never derives `blocked`).
+ * - `failed` from `siegemaster` → RECOVER via `questRecoverSiegeBroker` (splice a spiritmender fed
+ *   the manual-QA finding + a ward(changed) gate + a fresh siege retry; exhausted budget BLOCKs).
+ *   Siegemaster changes no files — it reports, the spiritmender fixes, a fresh siege re-verifies.
  * - `failed` from any other agent role → BLOCK via `questBlockOnFailureBroker` (drains pending
- *   items to `skipped`, sets status `blocked`). Lawbringer/siegemaster/blightwarden fix what they
- *   find inline, so a `failed` signal means a genuinely unfixable issue.
+ *   items to `skipped`, sets status `blocked`). Lawbringer/blightwarden fix what they find inline,
+ *   so a `failed` signal means a genuinely unfixable issue.
  *
  * USAGE:
  * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete' });
@@ -30,6 +33,7 @@ import type {
   ModifyQuestInput,
   QuestId,
   QuestWorkItemId,
+  WorkItem,
 } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
@@ -44,6 +48,7 @@ import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failu
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyOrThrowBroker } from '../../../brokers/quest/modify-or-throw/quest-modify-or-throw-broker';
 import { questPostWalkHookBroker } from '../../../brokers/quest/post-walk-hook/quest-post-walk-hook-broker';
+import { questRecoverSiegeBroker } from '../../../brokers/quest/recover-siege/quest-recover-siege-broker';
 
 const PATHSEEKER_REPLAN_MAX_ATTEMPTS = 3;
 
@@ -51,10 +56,12 @@ export const QuestHandleSignalBackResponder = async ({
   questId,
   workItemId,
   signal,
+  summary,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
   signal: 'complete' | 'failed' | 'failed-replan';
+  summary?: WorkItem['summary'];
 }): Promise<AdapterResult> => {
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
@@ -137,10 +144,10 @@ export const QuestHandleSignalBackResponder = async ({
   // `pathseeker-walk` replan that re-fires the post-walk hook on completion. The replan depends on
   // nothing so it is immediately dispatchable and not dead-ended on the failed item.
   if (signal === 'failed-replan') {
-    const summary = workItem.summary === undefined ? undefined : String(workItem.summary);
+    const replanSummary = workItem.summary === undefined ? undefined : String(workItem.summary);
     const errorMessage =
-      summary !== undefined && summary.length > 0
-        ? errorMessageContract.parse(summary)
+      replanSummary !== undefined && replanSummary.length > 0
+        ? errorMessageContract.parse(replanSummary)
         : errorMessageContract.parse('blightwarden_replan_requested');
 
     const pendingSkips = result.quest.workItems
@@ -177,13 +184,30 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  // signal === 'failed' from any non-minion agent role → BLOCK.
+  // signal === 'failed' from a non-minion agent role. Mark the item failed (persisting the agent's
+  // finding so it is durable + readable), then route by role: siegemaster RECOVERs (manual-QA
+  // finding → spiritmender fix → fresh siege re-verification), every other role BLOCKs.
   await questModifyOrThrowBroker({
     input: {
       questId,
-      workItems: [{ id: workItemId, status: 'failed', completedAt }],
+      workItems: [
+        {
+          id: workItemId,
+          status: 'failed',
+          completedAt,
+          ...(summary === undefined ? {} : { summary }),
+        },
+      ],
     } as ModifyQuestInput,
   });
+
+  if (workItem.role === 'siegemaster') {
+    // RECOVER: splice a spiritmender (fed the finding) + ward(changed) + a fresh siege retry, or
+    // BLOCK when the siege retry budget is exhausted. The broker reloads the quest fresh.
+    await questRecoverSiegeBroker({ questId, failedWorkItemId: workItemId, finding: summary });
+    return adapterResultContract.parse({ success: true });
+  }
+
   await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
 
   return adapterResultContract.parse({ success: true });

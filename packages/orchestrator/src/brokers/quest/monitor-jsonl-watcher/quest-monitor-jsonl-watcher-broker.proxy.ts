@@ -1,5 +1,7 @@
-import type { FileName } from '@dungeonmaster/shared/contracts';
+import type { FileNameStub } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+
+type FileName = ReturnType<typeof FileNameStub>;
 
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { timerSetIntervalAdapterProxy } from '../../../adapters/timer/set-interval/timer-set-interval-adapter.proxy';

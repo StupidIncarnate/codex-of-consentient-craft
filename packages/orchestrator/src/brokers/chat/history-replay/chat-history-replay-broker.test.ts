@@ -1128,6 +1128,202 @@ describe('chatHistoryReplayBroker', () => {
       expect(helperProjection).toStrictEqual([{ agentId: helperToolUseId, source: 'subagent' }]);
     });
 
+    it('VALID: {depth-2 nested B spawned by sub-agent A, B completion tool_result in A subagent JSONL} => B text entry carries agentId = B Task toolUseId AND parentAgentId = A Task toolUseId', async () => {
+      // Three-level nesting. The main session dispatches A (a Task); A then spawns B (another
+      // Task). B's completion tool_result is written to A's OWN subagent JSONL. B's text lines
+      // sort BEFORE A's tool_result-for-B. PASS 1c must pre-register the parent-chain link
+      // (B's chain key → A's chain key) so PASS 2 stamps B's text entry with
+      // parentAgentId = A's Task toolUseId.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-depth2-parentchain' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const aToolUseId = 'toolu_01ParentA';
+      const aReal = 'realparenta';
+      const bToolUseId = 'toolu_01ChildB';
+      const bReal = 'realchildb';
+
+      // Main session: kickoff user line + A's Task dispatch + A's completion tool_result.
+      // A's completion lives in the main JSONL and carries toolUseResult.agentId = aReal.
+      const mainUserLine = JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'kickoff' } }),
+        uuid: 'depth2-main-user-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+      const aTaskLine = JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: aToolUseId,
+                name: 'Agent',
+                input: { description: 'agent-A', prompt: 'do slice A' },
+              },
+            ],
+          },
+        }),
+        uuid: 'depth2-a-task-uuid',
+        timestamp: '2025-01-01T00:00:01.000Z',
+      });
+      const aResultLine = JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: aToolUseId, content: 'A done' }],
+          },
+          toolUseResult: { agentId: aReal },
+        }),
+        uuid: 'depth2-a-result-uuid',
+        timestamp: '2025-01-01T00:00:10.000Z',
+      });
+
+      // A's subagent file: B's Task dispatch + B's completion tool_result.
+      // B's completion lives in A's JSONL; its container = aReal.
+      const bTaskLine = JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: bToolUseId,
+                name: 'Agent',
+                input: { description: 'agent-B', prompt: 'do slice B' },
+              },
+            ],
+          },
+        }),
+        uuid: 'depth2-b-task-uuid',
+        timestamp: '2025-01-01T00:00:03.000Z',
+      });
+      const bResultLine = JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: bToolUseId, content: 'B done' }],
+          },
+          toolUseResult: { agentId: bReal },
+        }),
+        uuid: 'depth2-b-result-uuid',
+        timestamp: '2025-01-01T00:00:08.000Z',
+      });
+
+      // B's subagent file: a single assistant text line.
+      // Timestamp 05 sorts BEFORE B's result (08) and A's result (10), verifying that PASS 1c
+      // pre-registers the parent-chain link before PASS 2 processes B's text.
+      const bTextLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'B_NESTED_TEXT' }] },
+        }),
+        uuid: 'depth2-b-text-uuid',
+        timestamp: '2025-01-01T00:00:05.000Z',
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({ content: [mainUserLine, aTaskLine, aResultLine].join('\n') });
+      proxy.setupSubagentDir({
+        files: [
+          FileNameStub({ value: `agent-${aReal}.jsonl` }),
+          FileNameStub({ value: `agent-${bReal}.jsonl` }),
+        ],
+      });
+      // FIFO: agent-realA file content first, agent-realB file content second (matching files order).
+      proxy.setupSubagentFile({ content: [bTaskLine, bResultLine].join('\n') });
+      proxy.setupSubagentFile({ content: bTextLine });
+
+      const allEntries: unknown[] = [];
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntries: ({ entries }) => {
+          allEntries.push(...entries);
+        },
+      });
+
+      // Project only B's text entry. Invariant: B's entry must carry BOTH agentId = bToolUseId
+      // (resolved via reverse map from bReal) AND parentAgentId = aToolUseId (registered by
+      // PASS 1c: B's completion tool_result in A's JSONL → container = aReal → A's chain key
+      // = aToolUseId).
+      const bProjection = allEntries
+        .map((e) => e as Record<PropertyKey, unknown>)
+        .filter((e) => e.content === 'B_NESTED_TEXT')
+        .map((e) => ({ agentId: e.agentId, parentAgentId: e.parentAgentId, source: e.source }));
+
+      expect(bProjection).toStrictEqual([
+        { agentId: bToolUseId, parentAgentId: aToolUseId, source: 'subagent' },
+      ]);
+    });
+
+    it('EDGE: {sub-agent JSONL carries a nested tool_result but its own spawn was never registered} => PASS 1c skips the unresolved parent-chain; broker completes and the sub-agent entries fall through as orphans', async () => {
+      // A sub-agent A's JSONL contains a completion tool_result for a grandchild B, but A's
+      // own realAgentId was never paired (no main-session tool_result for A, no prompt match).
+      // PASS 1c's container lookup (resolveToolUseIdForAgent(aReal)) misses, so no parent-chain
+      // link is registered — the broker must still finish and emit A's lines as orphans.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-unresolved-container' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const aReal = 'unregisteredparent';
+      const bToolUseId = 'toolu_01GrandchildB99';
+      const bReal = 'grandchildreal';
+
+      const mainUserLine = JSON.stringify({
+        ...UserTextStringStreamLineStub({ message: { role: 'user', content: 'hi' } }),
+        uuid: 'unresolved-user-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
+      });
+      // A's JSONL: a tool_result for grandchild B (ts 02), then an assistant text line (ts 03).
+      const bResultInA = JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: bToolUseId, content: 'B done' }],
+          },
+          toolUseResult: { agentId: bReal },
+        }),
+        uuid: 'unresolved-b-result-uuid',
+        timestamp: '2025-01-01T00:00:02.000Z',
+      });
+      const aTextLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'ORPHAN_PARENT_TEXT' }] },
+        }),
+        uuid: 'unresolved-a-text-uuid',
+        timestamp: '2025-01-01T00:00:03.000Z',
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupMainSession({ content: mainUserLine });
+      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${aReal}.jsonl` })] });
+      proxy.setupSubagentFile({ content: [bResultInA, aTextLine].join('\n') });
+
+      const allEntries: unknown[] = [];
+      await chatHistoryReplayBroker({
+        sessionId,
+        guildId,
+        onEntries: ({ entries }) => {
+          allEntries.push(...entries);
+        },
+      });
+
+      // A's text entry falls through as an orphan (agentId = aReal from the filename, no
+      // parentAgentId) because PASS 1c could not resolve aReal to a chain key.
+      const aProjection = allEntries
+        .map((e) => e as Record<PropertyKey, unknown>)
+        .filter((e) => e.content === 'ORPHAN_PARENT_TEXT')
+        .map((e) => ({ agentId: e.agentId, parentAgentId: e.parentAgentId, source: e.source }));
+
+      expect(aProjection).toStrictEqual([
+        { agentId: aReal, parentAgentId: undefined, source: 'subagent' },
+      ]);
+    });
+
     it('VALID: {agentId param} => emits ONLY the matching sub-agent JSONL; other sub-agents skipped', async () => {
       const proxy = chatHistoryReplayBrokerProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -1197,6 +1393,95 @@ describe('chatHistoryReplayBroker', () => {
           },
         ],
       ]);
+    });
+
+    it('VALID: {agentId param scopes to A, A subagent JSONL spawns descendant B} => B descendant entries ALSO emit under A scope', async () => {
+      // Per-work-item replay (filterAgentId = A's realAgentId) must surface A's DESCENDANT
+      // sub-agents too, not just A's own file. A nested sub-agent B (spawned by A) writes its
+      // own subagents/agent-<B>.jsonl; A's JSONL holds B's completion tool_result. Scoping to
+      // an EXACT agentId match drops B's file and the web row renders the nested chain as
+      // '(0 entries)'. The descendant closure walk (A -> B via the tool_result agentId edge)
+      // pulls B's file in so PASS 1a translates B's lines to B's Task toolUseId.
+      const proxy = chatHistoryReplayBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const sessionId = SessionIdStub({ value: 'test-session-descendant-scope' });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
+      const config = GuildConfigStub({ guilds: [guild] });
+
+      const aReal = 'descendantparenta';
+      const bToolUseId = 'toolu_01DescendantChildB1';
+      const bReal = 'descendantchildb';
+
+      // A's subagent JSONL: A spawns B (Task) and receives B's completion tool_result, whose
+      // toolUseResult.agentId = bReal — the edge A -> B the descendant walk follows.
+      const bTaskLine = JSON.stringify({
+        ...AssistantTaskToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: bToolUseId,
+                name: 'Agent',
+                input: { description: 'agent-B', prompt: 'do slice B' },
+              },
+            ],
+          },
+        }),
+        uuid: 'descendant-b-task-uuid',
+        timestamp: '2025-01-01T00:00:01.000Z',
+      });
+      const bResultLine = JSON.stringify({
+        ...TaskToolResultStreamLineStub({
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: bToolUseId, content: 'B done' }],
+          },
+          toolUseResult: { agentId: bReal },
+        }),
+        uuid: 'descendant-b-result-uuid',
+        timestamp: '2025-01-01T00:00:08.000Z',
+      });
+
+      // B's subagent JSONL: a single assistant text line.
+      const bTextLine = JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text: 'B_DESCENDANT_TEXT' }] },
+        }),
+        uuid: 'descendant-b-text-uuid',
+        timestamp: '2025-01-01T00:00:05.000Z',
+      });
+
+      proxy.setupGuild({ config, homeDir: '/home/user' });
+      // Main JSONL read is skipped when agentId is supplied — do not queue main content.
+      proxy.setupSubagentDir({
+        files: [
+          FileNameStub({ value: `agent-${aReal}.jsonl` }),
+          FileNameStub({ value: `agent-${bReal}.jsonl` }),
+        ],
+      });
+      // FIFO: A's file content first, B's file content second (matching files order).
+      proxy.setupSubagentFile({ content: [bTaskLine, bResultLine].join('\n') });
+      proxy.setupSubagentFile({ content: bTextLine });
+
+      const allEntries: unknown[] = [];
+      await chatHistoryReplayBroker({
+        sessionId,
+        agentId: AgentIdStub({ value: aReal }),
+        guildId,
+        onEntries: ({ entries }) => {
+          allEntries.push(...entries);
+        },
+      });
+
+      // B's descendant text must emit, carrying agentId = B's Task toolUseId (resolved via the
+      // reverse map PASS 1a populated from A's JSONL tool_result for B).
+      const bProjection = allEntries
+        .map((e) => e as Record<PropertyKey, unknown>)
+        .filter((e) => e.content === 'B_DESCENDANT_TEXT')
+        .map((e) => ({ agentId: e.agentId, source: e.source }));
+
+      expect(bProjection).toStrictEqual([{ agentId: bToolUseId, source: 'subagent' }]);
     });
   });
 });

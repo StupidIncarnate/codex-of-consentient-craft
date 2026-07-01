@@ -1,43 +1,23 @@
 import { QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from './work-items-to-quest-status-transformer';
 
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+
+const PRE_EXECUTION_STATUSES = (
+  Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
+).filter((s) => questStatusMetadataStatics.statuses[s].isPreExecution);
+
 describe('workItemsToQuestStatusTransformer', () => {
   describe('pre-execution statuses', () => {
-    it('VALID: {currentStatus: "created"} => unchanged', () => {
+    it.each(PRE_EXECUTION_STATUSES)('VALID: {currentStatus: %s} => unchanged', (status) => {
       const result = workItemsToQuestStatusTransformer({
         workItems: [],
-        currentStatus: 'created',
+        currentStatus: status,
       });
 
-      expect(result).toBe('created');
-    });
-
-    it('VALID: {currentStatus: "explore_flows"} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'explore_flows',
-      });
-
-      expect(result).toBe('explore_flows');
-    });
-
-    it('VALID: {currentStatus: "approved"} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'approved',
-      });
-
-      expect(result).toBe('approved');
-    });
-
-    it('VALID: {currentStatus: "design_approved"} => unchanged', () => {
-      const result = workItemsToQuestStatusTransformer({
-        workItems: [],
-        currentStatus: 'design_approved',
-      });
-
-      expect(result).toBe('design_approved');
+      expect(result).toBe(status);
     });
   });
 
@@ -305,9 +285,6 @@ describe('workItemsToQuestStatusTransformer', () => {
     });
 
     it('VALID: {all terminal, failed item with NO superseding retry, no pending} => blocked', () => {
-      // Every item is terminal and an unsuperseded failure remains with nothing left to dispatch:
-      // the quest is blocked. (This is the case the orchestration loop used to force to `blocked`
-      // by hand; the transformer now derives it directly.)
       const failedId = QuestWorkItemIdStub({
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
@@ -320,6 +297,69 @@ describe('workItemsToQuestStatusTransformer', () => {
 
       const result = workItemsToQuestStatusTransformer({
         workItems: [failedItem, completeItem],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('blocked');
+    });
+  });
+
+  describe('sink-based completion (failed item overtaken by completed dependents)', () => {
+    it('VALID: {all terminal, sink complete, earlier failed item whose dependents all completed} => complete', () => {
+      // Mirrors quest 520b526b: an early ward (failedWardId) failed, but the flowriders that
+      // depended on it all completed (the pipeline progressed past it), and the terminal sink
+      // ward (sinkId — nothing depends on it) is complete. No item carries
+      // insertedBy === failedWardId. Completion keys on the sink, so the failed-but-overtaken
+      // item must NOT force `blocked`.
+      const failedWardId = QuestWorkItemIdStub({
+        value: '7bc1aeef-0000-4000-8000-000000000001',
+      });
+      const failedWard = WorkItemStub({ id: failedWardId, status: 'failed' });
+      // The flowrider that depended on the failed ward — it completed anyway.
+      const flowriderId = QuestWorkItemIdStub({
+        value: '7bc1aeef-0000-4000-8000-000000000002',
+      });
+      const flowrider = WorkItemStub({
+        id: flowriderId,
+        status: 'complete',
+        dependsOn: [failedWardId],
+      });
+      // The terminal sink ward — nothing depends on it — completed.
+      const sinkId = QuestWorkItemIdStub({
+        value: '31991369-0000-4000-8000-000000000003',
+      });
+      const sinkWard = WorkItemStub({
+        id: sinkId,
+        status: 'complete',
+        dependsOn: [flowriderId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [failedWard, flowrider, sinkWard],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('complete');
+    });
+
+    it('VALID: {all terminal, sink work item itself failed} => blocked', () => {
+      // When the sink work item (nothing depends on it) is the failure, completion cannot be
+      // declared — the quest derives `blocked` so recovery can splice an ad-hoc retry.
+      const completeId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const completeItem = WorkItemStub({ id: completeId, status: 'complete' });
+      const sinkId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      });
+      const failedSink = WorkItemStub({
+        id: sinkId,
+        status: 'failed',
+        dependsOn: [completeId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, failedSink],
         currentStatus: 'in_progress',
       });
 
@@ -409,6 +449,17 @@ describe('workItemsToQuestStatusTransformer', () => {
       });
 
       expect(result).toBe('paused');
+    });
+  });
+
+  describe('empty work items list with execution status', () => {
+    it('EDGE: {workItems: [], currentStatus: "in_progress"} => complete (vacuous all-terminal)', () => {
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('complete');
     });
   });
 });

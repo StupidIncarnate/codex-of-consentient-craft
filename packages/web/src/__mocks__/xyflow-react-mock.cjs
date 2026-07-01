@@ -109,7 +109,10 @@ const useReactFlow = jest.fn(() => ({
   zoomOut: jest.fn(),
 }));
 
-const getBezierPath = jest.fn(() => ['M0 0', 0, 0, 0, 0]);
+// Plain function (not jest.fn) so the global auto-reset can't wipe its implementation and
+// leave the custom edge's `const [path, labelX, labelY] = getBezierPath(...)` destructure
+// reading from undefined.
+const getBezierPath = () => ['M0 0', 0, 0, 0, 0];
 
 module.exports = {
   __esModule: true,

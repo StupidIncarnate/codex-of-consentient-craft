@@ -29,6 +29,7 @@ export const collectSubagentChainsTransformer = ({
   const subagentMap = indexSubagentEntriesTransformer({ entries });
   const consumed = new Set<ChatEntry>();
   const groups: ChatEntryGroup[] = [];
+  const chainsByAgentId = new Map<ChainAgentId, SubagentChainGroup>();
   let normalBuffer: ChatEntry[] = [];
 
   for (const entry of entries) {
@@ -37,10 +38,13 @@ export const collectSubagentChainsTransformer = ({
     }
 
     if (isTaskToolUseGuard({ entry })) {
-      const agentId = String(('agentId' in entry && entry.agentId) || '') as ChainAgentId;
-      const subagentEntries = subagentMap.get(agentId) ?? [];
+      const agentId = (
+        'agentId' in entry && entry.agentId !== undefined ? String(entry.agentId) : ''
+      ) as ChainAgentId;
+      const fullBucket = subagentMap.get(agentId) ?? [];
+      const subagentEntries = fullBucket.filter((e) => e !== entry);
 
-      for (const subEntry of subagentEntries) {
+      for (const subEntry of fullBucket) {
         consumed.add(subEntry);
       }
 
@@ -95,51 +99,17 @@ export const collectSubagentChainsTransformer = ({
 
       const description = extractTaskDescriptionTransformer({ entry });
 
-      const flushedSingles: SingleGroup[] = normalBuffer.map(
-        (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
-      );
-      groups.push(...flushedSingles);
-      normalBuffer = [];
-
-      const innerGroups: SingleGroup[] = subagentEntries.map(
+      const innerGroups: ChatEntryGroup[] = subagentEntries.map(
         (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
       );
 
-      groups.push({
-        kind: 'subagent-chain',
-        agentId,
-        description,
-        taskToolUse: entry,
-        innerGroups,
-        taskNotification,
-        entryCount: subagentEntries.length,
-        contextTokens: null,
-      } as ChatEntryGroup);
-    } else {
-      normalBuffer.push(entry);
-    }
-  }
-
-  const trailingSingles: SingleGroup[] = normalBuffer.map(
-    (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
-  );
-  groups.push(...trailingSingles);
-
-  for (let gi = 0; gi < groups.length; gi++) {
-    const group = groups[gi];
-
-    if (group === undefined) {
-      continue;
-    }
-
-    if (group.kind === 'subagent-chain') {
-      const innerEntries = group.innerGroups.map((g) => g.entry);
-
+      // Compute contextTokens delta from the SingleGroup entries at creation time so
+      // nested chains pushed into innerGroups later do not affect the calculation.
       let firstContext: ContextTokenCount | null = null;
       let lastContext: ContextTokenCount | null = null;
 
-      for (const innerEntry of innerEntries) {
-        const ctx = computeEntryContextTransformer({ entry: innerEntry });
+      for (const subEntry of subagentEntries) {
+        const ctx = computeEntryContextTransformer({ entry: subEntry });
 
         if (ctx !== null) {
           if (firstContext === null) {
@@ -150,16 +120,51 @@ export const collectSubagentChainsTransformer = ({
         }
       }
 
-      if (firstContext !== null && lastContext !== null) {
-        const delta = Number(lastContext) - Number(firstContext);
+      const contextTokens =
+        firstContext !== null && lastContext !== null
+          ? contextTokenCountContract.parse(Math.max(0, Number(lastContext) - Number(firstContext)))
+          : null;
 
-        groups[gi] = {
-          ...group,
-          contextTokens: contextTokenCountContract.parse(Math.max(0, delta)),
-        } as ChatEntryGroup;
+      const chain = {
+        kind: 'subagent-chain' as const,
+        agentId,
+        description,
+        taskToolUse: entry,
+        innerGroups,
+        taskNotification,
+        entryCount: subagentEntries.length,
+        contextTokens,
+      } as SubagentChainGroup;
+
+      chainsByAgentId.set(agentId, chain);
+
+      const parentKey =
+        'parentAgentId' in entry && entry.parentAgentId !== undefined
+          ? String(entry.parentAgentId)
+          : '';
+
+      const parentChain =
+        parentKey === '' ? undefined : chainsByAgentId.get(parentKey as ChainAgentId);
+
+      if (parentChain === undefined) {
+        const flushedSingles: SingleGroup[] = normalBuffer.map(
+          (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
+        );
+        groups.push(...flushedSingles);
+        normalBuffer = [];
+        groups.push(chain as ChatEntryGroup);
+      } else {
+        parentChain.innerGroups.push(chain);
       }
+    } else {
+      normalBuffer.push(entry);
     }
   }
+
+  const trailingSingles: SingleGroup[] = normalBuffer.map(
+    (e) => ({ kind: 'single' as const, entry: e }) satisfies SingleGroup,
+  );
+  groups.push(...trailingSingles);
 
   return groups;
 };
