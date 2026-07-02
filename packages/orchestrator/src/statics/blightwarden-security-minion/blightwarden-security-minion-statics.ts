@@ -81,7 +81,7 @@ modify-quest({
         status: "active",
         findings: [
           {
-            file: "packages/{pkg}/src/{path}",
+            file: "./packages/{pkg}/src/{path}",
             line: 42,
             category: "unvalidated-source",
             evidence: "body from req.body at responder.ts:15 reaches fs.writeFile at broker.ts:42 without contract parse",

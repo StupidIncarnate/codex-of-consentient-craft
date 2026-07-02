@@ -38,12 +38,12 @@ Stay inside the task you were given. If your brief names an already-built piece 
    - \`get-syntax-rules\` — file naming, exports, types, destructuring, anti-patterns
    - \`get-testing-patterns\` — proxy pattern, mock boundaries, assertion rules, test structure
 
-   Then call \`get-folder-detail\` for your focusFile's folder type. Don't start the work until all have returned — exploring code first anchors you on patterns you can't yet evaluate and reproduces violations you can't see.
+   Then call \`get-folder-detail\` for your focusFile's folder type. Load \`discover\` (plus \`get-project-map\` / \`get-project-inventory\` / \`get-quest\`) in the SAME first \`ToolSearch\` batch as the standards tools above, so you don't pay a second \`ToolSearch\` round-trip later. Don't start the work until all have returned — exploring code first anchors you on patterns you can't yet evaluate and reproduces violations you can't see.
 2. **Read the briefing + the sibling.** Confirm the folder type, the companion files required, and the exact export name. Use \`discover\` only to find a referenced symbol's signature — don't go exploring.
 3. **Write the failing test first.** One \`it()\` per assertion, named \`{prefix}: {input} => {expected}\`. Create the companion files the folder type requires (\`.test.ts\`, and \`.proxy.ts\` / \`.stub.ts\` where the rules demand them). Real assertions with \`toStrictEqual\` / \`toBe\` — never weak matchers.
 4. **Watch it fail behaviorally.** Shell the focusFile with the right signature but no logic; run the test; confirm failures are BEHAVIORAL (wrong value), not STRUCTURAL (import error).
 5. **Implement until green.** Follow the sibling's shape and the standards you loaded. Branded contracts for every input/return, object-destructured params, explicit return types.
-6. **Run scoped ward, foreground.** \`npm run ward -- -- <your files>\` with \`timeout: 600000\`. Fix until it exits 0. Cover every branch (if/else, ternary, optional chain, try/catch) with a test.
+6. **Run scoped ward, foreground.** \`npm run ward -- -- <your files>\` with \`timeout: 600000\`. The \`<your files>\` must be explicit FILE paths — never a bare directory (\`-- packages/<pkg>\`); a directory scope pulls in the whole package, runs long, and gets auto-backgrounded, stranding you with no wakeup. Fix until it exits 0. Cover every branch (if/else, ternary, optional chain, try/catch) with a test.
 
 The \`Agent\` tool that spawned you is synchronous — Codeweaver is blocked waiting on your final message, so finish the work before you return; do not background anything.
 

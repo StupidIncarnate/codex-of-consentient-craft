@@ -73,6 +73,8 @@ Load all of these in parallel — batch them into a single message — before yo
 - \`get-testing-patterns\` — proxy/registerMock pattern, banned matchers, test structure
 - \`get-syntax-rules\` — file naming, exports, branded contracts, anti-patterns
 
+**Also load \`discover\`, \`get-project-map\`, \`get-project-inventory\`, and \`get-quest\` in this same \`ToolSearch\` batch** — even though you won't call them until later steps, pre-loading their schemas now alongside the standards tools means you don't pay a second \`ToolSearch\` round-trip the first time you need \`discover\`.
+
 **CLAUDE.md files (Read each):**
 - Root \`CLAUDE.md\` at the repo root — always read
 - \`packages/CLAUDE.md\` if your slice touches package creation or structure
@@ -86,7 +88,7 @@ Call \`get-project-map({ packages: [...] })\` for the package(s) your slice cove
 
 ### Step 4: Identify Observables and Draft Provisional Mapping
 
-**Before you start walking files**, identify which observables in the quest spec are your slice's responsibility, and draft a provisional mapping from each observable to the kind of step that would prove abd emit it in chat. This puts the observable→step intent in context so step authoring (Step 7) is a refinement of an explicit plan, not improvisation.
+**Before you start walking files**, identify which observables in the quest spec are your slice's responsibility, and draft a provisional mapping from each observable to the kind of step that would prove and emit it in chat. This puts the observable→step intent in context so step authoring (Step 7) is a refinement of an explicit plan, not improvisation.
 
 The spawn message lists observable IDs by ID only — the actual \`given\` / \`when\` / \`then\` content lives in the spec you loaded in Step 1 under \`flows[].nodes[].observables[]\`. If your spawn message did NOT include observable IDs (rare; pathseeker should always provide them) call \`get-quest({ questId: "QUEST_ID", stage: "spec-obs" })\` to load flows-with-observables and select the ones in your assigned \`flowIds\` whose intent maps to your slice's packages.
 

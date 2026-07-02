@@ -120,4 +120,39 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => hardcodes no UI package path', () => {
     expect(flowriderPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
+
+  it('VALID: template => licenses forward-fixing genuine non-flow integration gaps', () => {
+    const needle = '## Forward-Fixing Non-Flow Implementation Gaps';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => forbids failing for a fixable seam since failed blocks the quest', () => {
+    const needle =
+      'Do NOT signal `failed` for a fixable seam — a `failed` signal BLOCKs the whole quest, and a genuine, fixable gap is not a blocker.';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => cautions that Explore agents do not reliably audit line-level semantics', () => {
+    const needle =
+      'an `Explore` agent finds files and usages but does NOT reliably audit line-level semantics';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
 });

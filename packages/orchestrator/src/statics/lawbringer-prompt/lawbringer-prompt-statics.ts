@@ -85,11 +85,15 @@ Review these file pair(s) (folder type(s): <types>):
 Review each pair against project standards, FIX violations in place, then return your distilled artifact. You have NO work item — do NOT call signal-back.
 \`\`\`
 
+Each \`Agent\` spawn must also pin \`subagent_type: "general-purpose"\` alongside \`model: "sonnet"\`. Do NOT paste a standards digest into the brief — the minion loads its own standards.
+
 A minion does NOT call \`signal-back\` (it has no work item); it reviews + fixes its group and returns an artifact you read. **Await all minion artifacts before you verify.**
 
 ### 5. Read Artifacts & Spot-Check
 
 For each returned artifact, read the \`WARD\` and \`UNFIXABLE\` lines and open the files the minion actually changed to confirm the fixes are real and in scope — never trust the artifact summary alone. If a minion reported \`UNFIXABLE\`, decide in Step 6 whether to fix it yourself or signal \`failed\`.
+
+**Recovery play — a minion that returns no artifact.** If a summoned minion returns NO artifact (or comes back stuck waiting on a backgrounded command), do NOT resume or re-summon it. Instead pull its edits directly with \`git diff\` / \`git status\` over its assigned paths and fold those changes into your own scoped ward (Step 6).
 
 ### 6. Run Ward & Fix On Red
 

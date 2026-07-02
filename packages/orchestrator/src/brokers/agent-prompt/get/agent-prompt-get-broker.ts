@@ -67,7 +67,7 @@ export const agentPromptGetBroker = async ({
   const base = agentNameToPromptTransformer({ agent: parsedAgent });
 
   // Minion-fetch: a parent-summoned sub-agent minion (gap, pathseeker-surface/dedup/assertion,
-  // codeweaver-minion) has no work item of its own. It fetches its served methodology with
+  // codeweaver-minion, lawbringer-minion, blightwarden-*-minion) has no work item of its own. It fetches its served methodology with
   // { agent, questId } only; the parent briefs slice/task context inline in its Agent dispatch.
   // No quest load, no work-item context block. A ROLE name (dispatched as its own work item by
   // /dumpster-launch) MUST supply a workItemId — reject one that omits it.

@@ -49,6 +49,30 @@ describe('agentOperatingRulesStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: markdown => forbids a bare-directory ward scope and requires explicit file paths', () => {
+    const needle =
+      'Those `<paths>` MUST be explicit FILE paths (`-- <file1> <file2>`), NEVER a bare directory (`-- packages/<pkg>`)';
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: markdown => warns a sub-agent that a backgrounded ward yields no wakeup', () => {
+    const needle =
+      'a minion or sub-agent that kicks off a broad `npm run ward` (whole-repo OR a bare `-- packages/<pkg>` directory) will watch it get auto-backgrounded and then hang forever';
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
   it('VALID: markdown => clarifies the Agent/Task tool is synchronous and awaiting a helper is allowed', () => {
     const needle =
       '**4. The `Agent`/Task tool is SYNCHRONOUS — awaiting a helper you spawn is allowed and does NOT violate Rule 2.**';

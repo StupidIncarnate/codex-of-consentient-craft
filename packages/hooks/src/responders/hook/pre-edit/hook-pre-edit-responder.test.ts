@@ -49,7 +49,7 @@ describe('HookPreEditResponder', () => {
         '     This rule violation should be fixed to maintain code quality.\n' +
         '     Line 1:1 - Unexpected console statement\n' +
         '\n' +
-        'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+        'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
     });
   });
 
@@ -75,7 +75,7 @@ describe('HookPreEditResponder', () => {
         '     This rule violation should be fixed to maintain code quality.\n' +
         '     Line 1:1 - Unexpected console statement\n' +
         '\n' +
-        'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+        'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
     });
   });
 

@@ -80,7 +80,7 @@ modify-quest({
         status: "active",
         findings: [
           {
-            file: "packages/{pkg}/src/{path}",
+            file: "./packages/{pkg}/src/{path}",
             line: 12,
             category: "orphan-export",
             evidence: "exported formatUserName at transformer.ts:12, zero importers outside its own test",

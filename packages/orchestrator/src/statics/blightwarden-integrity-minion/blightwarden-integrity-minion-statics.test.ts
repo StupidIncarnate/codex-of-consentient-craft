@@ -40,6 +40,12 @@ describe('blightwardenIntegrityMinionStatics', () => {
     );
   });
 
+  it('VALID: template => finding example uses a ./-prefixed relative path (valid FilePath)', () => {
+    expect(blightwardenIntegrityMinionStatics.prompt.template).toMatch(
+      /^ {12}file: "\.\/packages\/\{pkg\}\/src\/\{path\}",$/mu,
+    );
+  });
+
   it('VALID: template => return summary section instructs no signal-back', () => {
     expect(blightwardenIntegrityMinionStatics.prompt.template).toMatch(
       /^You have no work item, so do NOT call `signal-back`\. Return a one-line summary as your final message for the synthesizer to read:$/mu,

@@ -76,7 +76,7 @@ modify-quest({
         status: "active",
         findings: [
           {
-            file: "packages/{pkg}/src/{path}",
+            file: "./packages/{pkg}/src/{path}",
             line: 12,
             category: "missed-existing-duplicate",
             evidence: "New transformer reimplements existing userNormalizeTransformer at shared/src/transformers/user-normalize/",

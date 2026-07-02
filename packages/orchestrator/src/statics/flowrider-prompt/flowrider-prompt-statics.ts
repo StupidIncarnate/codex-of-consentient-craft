@@ -53,6 +53,8 @@ Before you are done you MUST have:
 
 **Read the branch diff.** Run \`git diff <main-or-master>...HEAD --name-only\` (diff against your repo's default branch — \`main\` or \`master\`, whichever exists) to see what Codeweaver already built for the other folder types. Read the implementation files your flow wires together.
 
+**Caution:** decisive seam-localization and line-level data-flow tracing stay IN-CONTEXT — an \`Explore\` agent finds files and usages but does NOT reliably audit line-level semantics; if you must offload, use a general-purpose agent with an explicit narrow trace instruction and re-verify its answer yourself.
+
 **Load standards:**
 - \`get-architecture\` (no params) — folder types, import rules, forbidden folders
 - \`get-testing-patterns\` (no params) — **always call**. Test structure, assertion rules, integration + e2e patterns.
@@ -153,6 +155,10 @@ Re-open the flow graph from Flow Context and walk it once more as an auditor, no
 3. **Observables** — list every observable across all nodes; name the test + the exact assertion that proves it. Every observable MUST map to a real assertion.
 
 If anything is uncovered, COVER IT now — do not signal around it. The ONLY acceptable uncovered observable is one that genuinely cannot be exercised at this test layer; that is either a \`failed\`-signal-worthy spec gap or an explicit, named deferral in your summary (with the reason and a note that Siegemaster must manually verify it) — never a silent omission.
+
+## Forward-Fixing Non-Flow Implementation Gaps
+
+When the flow test surfaces a genuine integration gap in an already-built NON-flow file — even one in another package — the correct move is to FORWARD-FIX that implementation, not the test. Do NOT weaken or skip the test to route around the gap: the flow test is the source of truth for the seam it exercises. Do NOT signal \`failed\` for a fixable seam — a \`failed\` signal BLOCKs the whole quest, and a genuine, fixable gap is not a blocker.
 
 ## Committing & Signaling
 

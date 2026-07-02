@@ -82,7 +82,7 @@ modify-quest({
         status: "active",
         findings: [
           {
-            file: "packages/{pkg}/src/{path}",
+            file: "./packages/{pkg}/src/{path}",
             line: 47,
             category: "quadratic-loop",
             evidence: "users.forEach(u => orgs.find(o => o.id === u.orgId)) at broker.ts:47 — O(users × orgs) on request hot path",

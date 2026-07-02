@@ -27,4 +27,10 @@ describe('sessionSnippetStatics', () => {
       expect(value).toBe(null);
     },
   );
+
+  it('VALID: discover snippet => flags shell grep/find/sed as blocked and points to ToolSearch', () => {
+    expect(sessionSnippetStatics.discover).toMatch(
+      /^`discover` is the ONLY way to search this codebase\. Native Glob, Grep, Search, and Find tools — plus shell `grep`\/`find`\/`sed` — are blocked by hooks\. `discover` and `get-project-map` are MCP \*\*tools\*\*: load them via `ToolSearch`, never as shell commands or skills\.$/mu,
+    );
+  });
 });

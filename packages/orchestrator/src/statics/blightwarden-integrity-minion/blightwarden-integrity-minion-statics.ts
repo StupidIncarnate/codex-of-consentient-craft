@@ -81,7 +81,7 @@ modify-quest({
         status: "active",
         findings: [
           {
-            file: "packages/{pkg}/src/{path}",
+            file: "./packages/{pkg}/src/{path}",
             line: 24,
             category: "stale-consumer",
             evidence: "userFetchBroker signature now requires {includeCompany} — consumer at responders/user-get/user-get-responder.ts:24 still calls with {userId} only",

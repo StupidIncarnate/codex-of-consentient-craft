@@ -82,6 +82,14 @@ describe('isMinionAgentPromptNameGuard', () => {
         }),
       ).toBe(true);
     });
+
+    it('VALID: {agentName: "lawbringer-minion"} => returns true (summoned by Lawbringer)', () => {
+      expect(
+        isMinionAgentPromptNameGuard({
+          agentName: AgentPromptNameStub({ value: 'lawbringer-minion' }),
+        }),
+      ).toBe(true);
+    });
   });
 
   describe('role names', () => {

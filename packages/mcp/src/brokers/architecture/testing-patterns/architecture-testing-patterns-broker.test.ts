@@ -278,6 +278,25 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => includes the edit-blocking lint rules section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+      const messageNeedle = 're-submit the ENTIRE corrected edit, not a surgical follow-up';
+      const ruleNeedle = '`@dungeonmaster/ban-primitives`';
+
+      expect(result).toMatch(/^## Lint Rules That BLOCK Your Edit \(pre-edit hook\)$/mu);
+      expect(
+        result.slice(
+          result.indexOf(messageNeedle),
+          result.indexOf(messageNeedle) + messageNeedle.length,
+        ),
+      ).toBe(messageNeedle);
+      expect(
+        result.slice(result.indexOf(ruleNeedle), result.indexOf(ruleNeedle) + ruleNeedle.length),
+      ).toBe(ruleNeedle);
+    });
+
     it('VALID: {} => includes proxy encapsulation rule', () => {
       architectureTestingPatternsBrokerProxy();
 

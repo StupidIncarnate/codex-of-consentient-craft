@@ -37,7 +37,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           '     Using type "any" violates TypeScript\'s type safety rules. Go explore types for this project and use a known or make a new type to use.\n' +
           '     Line 5:10 - Unexpected any\n' +
           '\n' +
-          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
 
@@ -52,7 +52,7 @@ describe('violationMessageFormatFullTransformer()', () => {
       });
 
       expect(result).toBe(
-        '🛑 New code quality violations detected:\n\nThese rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+        '🛑 New code quality violations detected:\n\nYour edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
   });
@@ -94,7 +94,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           '     This rule violation should be fixed to maintain code quality.\n' +
           '     Line 5:10 - Custom violation\n' +
           '\n' +
-          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
   });
@@ -136,7 +136,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           '     This is a custom message explaining the rule.\n' +
           '     Line 5:10 - Custom violation\n' +
           '\n' +
-          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
 
@@ -180,7 +180,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           '     Dynamic message for {"test":"data"}\n' +
           '     Line 5:10 - Custom violation\n' +
           '\n' +
-          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
 
@@ -222,7 +222,7 @@ describe('violationMessageFormatFullTransformer()', () => {
           '     Custom message function failed: Function failed\n' +
           '     Line 5:10 - Custom violation\n' +
           '\n' +
-          'These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
+          'Your edit was NOT applied — the file is unchanged. Re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was written, so a patch targeting your intended new text will not match). These rules help maintain code quality and safety. The write/edit/multi edit operation has been blocked for this change. Please submit the correct change after understanding what changes need to be made',
       );
     });
   });

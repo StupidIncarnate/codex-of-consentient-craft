@@ -182,6 +182,9 @@ export * from './src/contracts/slice-name/slice-name.stub';
 export * from './src/contracts/step-assertion/step-assertion-contract';
 export * from './src/contracts/step-assertion/step-assertion.stub';
 
+export * from './src/contracts/step-assertion-object/step-assertion-object-contract';
+export * from './src/contracts/step-assertion-object/step-assertion-object.stub';
+
 export * from './src/contracts/step-file-reference/step-file-reference-contract';
 export * from './src/contracts/step-file-reference/step-file-reference.stub';
 

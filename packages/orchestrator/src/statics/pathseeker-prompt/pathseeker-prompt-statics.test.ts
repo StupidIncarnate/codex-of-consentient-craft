@@ -132,6 +132,18 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: prompt template => auto-seeded scopeClassification (empty flowIds) re-runs Phase 1 instead of skipping to Wave A', () => {
+    const needle =
+      'every slice in `scopeClassification.slices` has an empty `flowIds` array (`flowIds: []`)';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
   it('VALID: prompt template => does NOT revive the seek_scope status', () => {
     expect(pathseekerPromptStatics.prompt.template.indexOf('seek_scope')).toBe(-1);
   });

@@ -1017,6 +1017,14 @@ Integration tests that spawn processes or poll for state can time out silently �
 4. **Grep dist/ for stale references:** If a contract schema changed, \`grep -r 'oldFieldName' packages/*/dist/\` reveals consumers that weren't rebuilt.
 5. **Check poll helpers:** If the test uses \`pollForStatus\` or similar, the poll may be waiting for a status that the system will never reach (e.g., polling for \`complete\` when the quest went to \`blocked\`).`;
 
+  // Lint rules that BLOCK the edit (pre-edit hook)
+  const editBlockingRules = `The pre-edit-lint hook runs these rules BEFORE your Edit/Write lands. A violation BLOCKS the edit — the file is NOT written, so re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was applied). Top offenders when writing tests:
+
+- **Conditionals in tests** (\`jest/no-conditional-in-test\`, upstream): no \`if\`/ternary/\`&&\`/\`switch\`/\`try-catch\` in a test body — split into \`it\` blocks or \`it.each\`.
+- **Ad-hoc / inline structural types** (\`@dungeonmaster/ban-adhoc-types\`): no local \`interface\` and no \`x as { foo: string }\` — define types in contracts/ and import them.
+- **Non-exported / nested functions** (\`@dungeonmaster/forbid-non-exported-functions\`): every function must be the file's primary export — no helper declared inside a test or proxy.
+- **Raw primitives** (\`@dungeonmaster/ban-primitives\`): return types must be branded; to test invalid inputs use \`as never\`, never \`as string\`.`;
+
   // No Hooks or Conditionals
   const noHooksConditionals = `**CRITICAL:** \`beforeEach\`, \`afterEach\`, \`beforeAll\`, \`afterAll\` are forbidden. All setup and teardown must be inline in each test.
 
@@ -1199,6 +1207,10 @@ ${e2eTesting}
 ## Test Infrastructure (Harness Pattern)
 
 ${harnessPattern}
+
+## Lint Rules That BLOCK Your Edit (pre-edit hook)
+
+${editBlockingRules}
 
 ## Common Anti-Patterns
 

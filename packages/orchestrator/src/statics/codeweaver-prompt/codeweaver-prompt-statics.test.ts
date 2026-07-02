@@ -121,4 +121,51 @@ describe('codeweaverPromptStatics', () => {
 
     expect(found).toBe(needle);
   });
+
+  it('VALID: prompt template => forbids pasting a standards digest into the minion brief', () => {
+    const needle =
+      'Do NOT paste a standards digest into the brief — the minion loads its own standards.';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => pins subagent_type general-purpose on each Agent spawn', () => {
+    const needle = 'subagent_type: "general-purpose"';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => recovery play pulls a struggling minion edits via git', () => {
+    const needle =
+      'If a minion returns no artifact or is stuck on a backgrounded command, do NOT resume it';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => cautions against offloading verification to an Explore agent', () => {
+    const needle =
+      'an `Explore` agent finds files and usages but does NOT reliably audit line-level semantics';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
 });

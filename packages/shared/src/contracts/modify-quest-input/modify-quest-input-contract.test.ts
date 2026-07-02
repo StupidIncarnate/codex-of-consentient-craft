@@ -196,4 +196,62 @@ describe('modifyQuestInputContract', () => {
       });
     }).toThrow(/Required|Invalid/u);
   });
+
+  it('VALID: {steps partial-patch: id + assertions patched by id} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      steps: [
+        {
+          id: 'web-update-widget',
+          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', expected: 'returns 220' }],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      steps: [
+        {
+          id: 'web-update-widget',
+          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', expected: 'returns 220' }],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {steps partial-patch: assertion delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      steps: [
+        {
+          id: 'web-update-widget',
+          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', _delete: true }],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      steps: [
+        {
+          id: 'web-update-widget',
+          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', _delete: true }],
+        },
+      ],
+    });
+  });
+
+  it('INVALID: {steps partial-patch: assertion missing id} => throws validation error', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        steps: [
+          {
+            id: 'web-update-widget',
+            assertions: [{ expected: 'orphan assertion patch' } as never],
+          },
+        ],
+      });
+    }).toThrow(/Required|Invalid/u);
+  });
 });

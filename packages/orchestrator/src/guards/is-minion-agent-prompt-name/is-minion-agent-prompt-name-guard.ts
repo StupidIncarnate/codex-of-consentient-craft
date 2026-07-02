@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Tests whether an `AgentPromptName` belongs to the parent-summoned minion class
  * (chaoswhisperer-gap-minion, the pathseeker surface/dedup/assertion-correctness minions,
- * codeweaver-minion, blightwarden-*-minion). Minions are summoned by their parent agent via the
- * Agent tool and fetch their served prompt with no work item of their own.
+ * codeweaver-minion, lawbringer-minion, blightwarden-*-minion). Minions are summoned by their parent
+ * agent via the Agent tool and fetch their served prompt with no work item of their own.
  *
  * USAGE:
  * isMinionAgentPromptNameGuard({ agentName });

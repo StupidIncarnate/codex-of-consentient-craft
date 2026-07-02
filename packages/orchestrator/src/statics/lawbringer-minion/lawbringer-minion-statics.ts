@@ -45,7 +45,7 @@ Before you read any code, call ALL THREE convention tools — they override your
 - \`get-syntax-rules\` — file naming, exports, types, destructuring, anti-patterns
 - \`get-testing-patterns\` — proxy pattern, mock boundaries, assertion rules, test structure
 
-Then call \`get-folder-detail\` once per distinct folder type across your group (your pairs may span more than one). Don't review from memory — the tools define the rules.
+Then call \`get-folder-detail\` once per distinct folder type across your group (your pairs may span more than one). Load \`discover\` (plus \`get-project-map\` / \`get-project-inventory\` / \`get-quest\`) in the SAME first \`ToolSearch\` batch as the standards tools above, so you don't pay a second \`ToolSearch\` round-trip later. Don't review from memory — the tools define the rules.
 
 ### 2. Review the implementation file
 
@@ -84,6 +84,8 @@ Run ward over every file across the pairs in your group (plus anything else you 
 \`\`\`bash
 npm run ward -- -- path/to/impl.ts path/to/impl.test.ts path/to/other-pair.ts path/to/other-pair.test.ts
 \`\`\`
+
+These paths must be explicit FILE paths — never a bare directory (\`-- packages/<pkg>\`); a directory scope pulls in the whole package, runs long, and gets auto-backgrounded, stranding you with no wakeup.
 
 Fix until it exits 0. Use \`npm run ward -- detail <runId> <filePath>\` for full error output.
 

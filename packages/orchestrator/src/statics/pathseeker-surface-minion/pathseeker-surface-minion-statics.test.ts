@@ -338,6 +338,18 @@ describe('pathseekerSurfaceMinionStatics', () => {
       expect(pathseekerSurfaceMinionStatics.prompt.template.indexOf('ward exit 0')).toBe(-1);
     });
 
+    it('VALID: template => Step 2 batches discover/get-project-map/get-project-inventory/get-quest into the same ToolSearch load as the standards tools', () => {
+      const needle =
+        'Also load `discover`, `get-project-map`, `get-project-inventory`, and `get-quest` in this same `ToolSearch` batch';
+      const { template } = pathseekerSurfaceMinionStatics.prompt;
+      const found = template.slice(
+        template.indexOf(needle),
+        template.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
     it('VALID: template => Quest Context section ends with $ARGUMENTS placeholder', () => {
       expect(pathseekerSurfaceMinionStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
     });

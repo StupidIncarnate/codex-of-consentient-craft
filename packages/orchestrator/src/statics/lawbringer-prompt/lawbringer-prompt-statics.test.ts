@@ -80,4 +80,39 @@ describe('lawbringerPromptStatics', () => {
 
     expect(found).toBe(rules);
   });
+
+  it('VALID: prompt template => forbids pasting a standards digest into the minion brief', () => {
+    const needle =
+      'Do NOT paste a standards digest into the brief — the minion loads its own standards.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => pins subagent_type general-purpose on each Agent spawn', () => {
+    const needle = 'subagent_type: "general-purpose"';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => recovery play pulls a no-artifact minion edits via git', () => {
+    const needle =
+      'If a summoned minion returns NO artifact (or comes back stuck waiting on a backgrounded command), do NOT resume or re-summon it.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
 });

@@ -156,6 +156,8 @@ This is your core job. For every returned piece, do NOT trust the artifact summa
 
 Read the artifact's \`GOTCHAS\` and \`WARD\` lines, then confirm them against the real files. A piece that doesn't meet the plan goes to Gate 7 (fix) or back out for re-dispatch (protocol step 4).
 
+**Caution — do NOT offload verification to an \`Explore\` agent.** Decisive seam-localization and line-level data-flow tracing stays IN-CONTEXT — an \`Explore\` agent finds files and usages but does NOT reliably audit line-level semantics; if you must offload, use a general-purpose agent with an explicit narrow trace instruction and re-verify its answer yourself.
+
 **Exit Criteria:** You have read every produced focusFile + test and confirmed each meets its plan objective and the step's assertions.
 
 ### Gate 7: Fix on Red
@@ -194,10 +196,10 @@ Then review every returned piece's implementation for untested branches:
 
 When a \`delegations\` entry from Gate 4 is \`pending\`, summon a \`codeweaver-minion\` to build that piece — in its dependency order (Gate 5), parallel only for independent pieces:
 
-1. **Summon it as an \`Agent\` sub-agent.** Its FIRST actions are to call \`get-agent-prompt({ agent: 'codeweaver-minion', questId: 'QUEST_ID' })\` (minion-fetch — NO workItemId, because it has no work item of its own) to load its TDD methodology, then load the project standards itself (\`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\`) — the code minion follows the real conventions, not a digest. Brief it inline: the narrow task, the focusFile path(s) + the assertions that define "done" for the piece, the sibling to mirror, the folder type(s) it lives in, and the Quest ID. Use \`model: "sonnet"\`.
+1. **Summon it as an \`Agent\` sub-agent.** Its FIRST actions are to call \`get-agent-prompt({ agent: 'codeweaver-minion', questId: 'QUEST_ID' })\` (minion-fetch — NO workItemId, because it has no work item of its own) to load its TDD methodology, then load the project standards itself (\`get-architecture\`, \`get-syntax-rules\`, \`get-testing-patterns\`) — the code minion follows the real conventions, not a digest. Brief it inline: the narrow task, the focusFile path(s) + the assertions that define "done" for the piece, the sibling to mirror, the folder type(s) it lives in, and the Quest ID. Use \`model: "sonnet"\`. Each \`Agent\` spawn must also pin \`subagent_type: "general-purpose"\`. Do NOT paste a standards digest into the brief — the minion loads its own standards.
 2. **It returns a distilled artifact, not a transcript** — the working file paths + 2-3 usage examples + the gotchas a downstream step must mirror. It does NOT call \`signal-back\`; its final message IS the artifact. The rabbit hole stays in the minion's context, not yours.
 3. **Read the produced files, not just the artifact, before integrating** (Gate 6): open the focusFile + test the minion wrote and judge them against the piece's assertions / observables and your logic plan. The artifact is the pointer that tells you what to read and which gotchas to check — never a substitute for reading the code. Then integrate and record the outcome on the \`delegations\` entry (\`status: 'returned'\`, \`exampleArtifact\`, \`outcome\`) via \`modify-quest\`.
-4. **Pivot if a minion comes back struggling.** One attempt per piece — if it can't make the piece work, do NOT keep delegating: set \`status: 'pivoted'\`, then either implement it inline yourself or signal \`failed\` if it needs re-planning.
+4. **Pivot if a minion comes back struggling.** One attempt per piece — if it can't make the piece work, do NOT keep delegating: set \`status: 'pivoted'\`, then either implement it inline yourself or signal \`failed\` if it needs re-planning. If a minion returns no artifact or is stuck on a backgrounded command, do NOT resume it — pull its edits via \`git diff\`/\`git status\` over its assigned paths and fold them into your own scoped ward.
 
 The \`Agent\` tool is synchronous (Operating Rule 4): you summon, await, read the produced files, and continue within the same turn — a minion is never a backgrounded task you wait on across turns. After the pieces return and you've verified each (Gate 6), fix any remaining seam gap or red yourself (Gate 7) and verify the whole assembled slice with scoped ward (Gate 8).
 

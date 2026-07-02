@@ -34,6 +34,8 @@ import { planningWalkFindingsContract } from '../planning-walk-findings/planning
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { stepAssertionIdContract } from '../step-assertion-id/step-assertion-id-contract';
+import { stepAssertionObjectContract } from '../step-assertion-object/step-assertion-object-contract';
 import { stepIdContract } from '../step-id/step-id-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
@@ -77,6 +79,13 @@ const deletableFlowContract = z.union([
   z.object({ id: flowIdContract, _delete: deleteMarker }),
 ]);
 
+const fullStepAssertion = stepAssertionObjectContract.extend({ _delete: z.boolean().optional() });
+const deletableAssertionContract = z.union([
+  fullStepAssertion,
+  fullStepAssertion.partial().required({ id: true }),
+  z.object({ id: stepAssertionIdContract, _delete: deleteMarker }),
+]);
+
 const fullDesignDecision = designDecisionContract.extend({ _delete: z.boolean().optional() });
 const fullDependencyStep = dependencyStepContract.extend({ _delete: z.boolean().optional() });
 const fullToolingRequirement = toolingRequirementContract.extend({
@@ -111,12 +120,17 @@ export const modifyQuestInputContract = z
       .array(
         z.union([
           fullDependencyStep,
-          fullDependencyStep.partial().required({ id: true }),
+          fullDependencyStep
+            .partial()
+            .required({ id: true })
+            .extend({
+              assertions: z.array(deletableAssertionContract).optional(),
+            }),
           z.object({ id: stepIdContract, _delete: deleteMarker }),
         ]),
       )
       .describe(
-        'Dependency steps to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing step without clobbering other fields (assertions, instructions, contracts left untouched)',
+        'Dependency steps to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing step without clobbering other fields (instructions, contracts left untouched). Patch assertions[] the same way — send { id, ...changed } per assertion to edit one without restating the array, or { id, _delete: true } to remove one',
       )
       .optional(),
     toolingRequirements: z

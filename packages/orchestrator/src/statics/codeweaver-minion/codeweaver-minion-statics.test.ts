@@ -92,4 +92,28 @@ describe('codeweaverMinionStatics', () => {
   it('VALID: template => Briefing section ends with $ARGUMENTS placeholder', () => {
     expect(codeweaverMinionStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
   });
+
+  it('VALID: template => loads discover + project-map/inventory/quest in the same first ToolSearch batch as the standards tools', () => {
+    const needle =
+      "in the SAME first `ToolSearch` batch as the standards tools above, so you don't pay a second `ToolSearch` round-trip later.";
+    const { template } = codeweaverMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => ward paths must be explicit files, never a bare directory scope', () => {
+    const needle =
+      'a directory scope pulls in the whole package, runs long, and gets auto-backgrounded, stranding you with no wakeup.';
+    const { template } = codeweaverMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
 });

@@ -10,52 +10,22 @@
  * without clobbering the others' observablesSatisfied / field values.
  */
 
-import { z } from 'zod';
+import type { z } from 'zod';
 
-import { observableIdContract } from '../observable-id/observable-id-contract';
-import { stepAssertionIdContract } from '../step-assertion-id/step-assertion-id-contract';
+import { stepAssertionObjectContract } from '../step-assertion-object/step-assertion-object-contract';
 
-const stepAssertionPrefixContract = z.enum([
-  'VALID',
-  'INVALID',
-  'INVALID_MULTIPLE',
-  'ERROR',
-  'EDGE',
-  'EMPTY',
-]);
-
-export type StepAssertionPrefix = z.infer<typeof stepAssertionPrefixContract>;
-
-export const stepAssertionContract = z
-  .object({
-    id: stepAssertionIdContract
-      .optional()
-      .describe(
-        'Server-stamped identifier. Omitted by authors; assigned on first write so the modify-quest upsert can merge assertions[] by id rather than replacing the whole array.',
-      ),
-    prefix: stepAssertionPrefixContract,
-    field: z.string().min(1).brand<'AssertionField'>().optional(),
-    input: z.string().min(1).brand<'AssertionInput'>(),
-    expected: z.string().min(1).brand<'AssertionExpected'>(),
-    observablesSatisfied: z
-      .array(observableIdContract)
-      .optional()
-      .describe(
-        'Observables proven by this specific assertion. Validator V8 unions step-level and assertion-level observable claims when checking coverage.',
-      ),
-  })
-  .refine(
-    (data) => {
-      const fieldAllowedPrefixes = new Set(['INVALID', 'INVALID_MULTIPLE']);
-      const fieldRequiredPrefixes = new Set(['INVALID']);
-      if (fieldRequiredPrefixes.has(data.prefix)) return data.field !== undefined;
-      if (!fieldAllowedPrefixes.has(data.prefix)) return data.field === undefined;
-      return true;
-    },
-    {
-      message:
-        'field is required for INVALID prefix and forbidden for non-INVALID/INVALID_MULTIPLE prefixes',
-    },
-  );
+export const stepAssertionContract = stepAssertionObjectContract.refine(
+  (data) => {
+    const fieldAllowedPrefixes = new Set(['INVALID', 'INVALID_MULTIPLE']);
+    const fieldRequiredPrefixes = new Set(['INVALID']);
+    if (fieldRequiredPrefixes.has(data.prefix)) return data.field !== undefined;
+    if (!fieldAllowedPrefixes.has(data.prefix)) return data.field === undefined;
+    return true;
+  },
+  {
+    message:
+      'field is required for INVALID prefix and forbidden for non-INVALID/INVALID_MULTIPLE prefixes',
+  },
+);
 
 export type StepAssertion = z.infer<typeof stepAssertionContract>;
