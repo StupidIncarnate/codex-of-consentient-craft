@@ -295,6 +295,59 @@ describe('HomeContentWidget', () => {
   });
 
   describe('navigation', () => {
+    it('VALID: {click queue link} => navigates to /queue', async () => {
+      const proxy = HomeContentWidgetProxy();
+      proxy.clearStorage();
+      const guild = GuildListItemStub({ name: 'Queue Guild' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <>
+                        <HomeContentWidget />
+                        <LocationProbe />
+                      </>
+                    }
+                  />
+                  <Route path="/queue" element={<LocationProbe />} />
+                </Routes>
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.isQueueLinkVisible()).toBe(true);
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await proxy.clickQueueLink();
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        const el = screen.getByTestId('LOCATION');
+
+        expect(el.textContent).toBe('/queue');
+      });
+
+      const finalEl = screen.getByTestId('LOCATION');
+
+      expect(finalEl.textContent).toBe('/queue');
+    });
+
     it('VALID: {click session add button} => navigates to /:guildSlug/quest (no session)', async () => {
       const proxy = HomeContentWidgetProxy();
       proxy.clearStorage();

@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Box, Center, Group, Text } from '@mantine/core';
 
@@ -131,6 +131,25 @@ export const HomeContentWidget = (): React.JSX.Element => {
                 setInternalView('new-guild');
               }}
             />
+            <Link
+              to="/queue"
+              data-testid="HOME_QUEUE_LINK"
+              style={{
+                display: 'block',
+                marginTop: 16,
+                padding: '4px 12px',
+                fontFamily: 'monospace',
+                fontSize: 11,
+                textAlign: 'center',
+                textDecoration: 'none',
+                color: colors.text,
+                backgroundColor: colors['bg-raised'],
+                border: `1px solid ${colors.border}`,
+                borderRadius: 2,
+              }}
+            >
+              ⚔ EXECUTION QUEUE
+            </Link>
           </Box>
           <Box style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
             {selectedGuildId ? (

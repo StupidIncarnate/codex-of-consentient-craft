@@ -59,6 +59,8 @@ export const HomeContentWidgetProxy = (): {
   clickCancelGuild: () => Promise<void>;
   clickSessionItem: (params: { testId: string }) => Promise<void>;
   selectAllSessionsFilter: () => Promise<void>;
+  isQueueLinkVisible: () => boolean;
+  clickQueueLink: () => Promise<void>;
   setupConsoleErrorCapture: () => SpyOnHandle;
   setupCreateGuildError: () => void;
   clearStorage: () => void;
@@ -144,6 +146,10 @@ export const HomeContentWidgetProxy = (): {
     },
     selectAllSessionsFilter: async (): Promise<void> => {
       await sessionList.clickFilterOption({ label: 'All' });
+    },
+    isQueueLinkVisible: (): boolean => screen.queryByTestId('HOME_QUEUE_LINK') !== null,
+    clickQueueLink: async (): Promise<void> => {
+      await userEvent.click(screen.getByTestId('HOME_QUEUE_LINK'));
     },
     setupConsoleErrorCapture: (): SpyOnHandle => {
       const handle = registerSpyOn({ object: globalThis.console, method: 'error' });
