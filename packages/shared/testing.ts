@@ -60,3 +60,5 @@ export * from './src/brokers/locations/claude-sessions-dir-find/locations-claude
 export * from './src/brokers/locations/rate-limits-snapshot-path-find/locations-rate-limits-snapshot-path-find-broker.proxy';
 export * from './src/brokers/locations/rate-limits-snapshot-tmp-path-find/locations-rate-limits-snapshot-tmp-path-find-broker.proxy';
 export * from './src/brokers/locations/rate-limits-history-path-find/locations-rate-limits-history-path-find-broker.proxy';
+export * from './src/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker.proxy';
+export * from './src/brokers/locations/dispatch-state-tmp-path-find/locations-dispatch-state-tmp-path-find-broker.proxy';

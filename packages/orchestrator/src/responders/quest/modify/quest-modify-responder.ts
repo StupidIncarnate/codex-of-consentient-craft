@@ -52,7 +52,7 @@ export const QuestModifyResponder = async ({
           },
         });
 
-        // Per-slot sessionId memo — see RunOrchestrationLoopLayerResponder for rationale.
+        // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.
         const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
 
         questFindQuestPathBroker({ questId: typedQuestId })

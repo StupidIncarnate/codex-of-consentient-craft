@@ -38,6 +38,8 @@ export const locationsStatics = {
     dir: '.dungeonmaster',
     guildsDir: 'guilds',
     eventOutbox: 'event-outbox.jsonl',
+    dispatchState: 'dispatch-state.json',
+    dispatchStateTmp: 'dispatch-state.json.tmp',
     guildConfigFile: 'guild.json',
     rateLimitsSnapshot: 'rate-limits.json',
     rateLimitsSnapshotTmp: 'rate-limits.json.tmp',

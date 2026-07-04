@@ -29,7 +29,6 @@ registerModuleMock({
       recoverActiveQuests: jest.fn(),
       removeGuild: jest.fn(),
       replayChatHistory: jest.fn(),
-      setWebPresence: jest.fn(),
       startChat: jest.fn(),
       startDesignChat: jest.fn(),
       startQuest: jest.fn(),

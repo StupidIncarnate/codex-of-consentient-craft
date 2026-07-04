@@ -237,6 +237,30 @@ describe('webSocketChannelState', () => {
       expect(emitted).toBe(true);
     });
 
+    it('VALID: {dispatch-state-changed ws message} => dispatchStateChanged$ emits undefined', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      let emitted = false;
+      const sub = webSocketChannelState.dispatchStateChanged$().subscribe(() => {
+        emitted = true;
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'dispatch-state-changed',
+          payload: {},
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(emitted).toBe(true);
+    });
+
     it('VALID: {ward-detail-response message (NO ws envelope)} => wardDetailResponse$ emits parsed payload', () => {
       const proxy = webSocketChannelStateProxy();
       proxy.setupEmpty();

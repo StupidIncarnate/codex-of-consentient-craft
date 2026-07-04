@@ -471,6 +471,10 @@ export * from './src/contracts/smoketest-run-id/smoketest-run-id.stub';
 export * from './src/contracts/quest-queue-entry/quest-queue-entry-contract';
 export * from './src/contracts/quest-queue-entry/quest-queue-entry.stub';
 
+// Dispatch State Contracts (Node dispatcher play/pause + MCP loop heartbeat)
+export * from './src/contracts/dispatch-state/dispatch-state-contract';
+export * from './src/contracts/dispatch-state/dispatch-state.stub';
+
 // Typed CWD Brand Contracts (Layer 3 — Stroustrup locations)
 export * from './src/contracts/repo-root-cwd/repo-root-cwd-contract';
 export * from './src/contracts/repo-root-cwd/repo-root-cwd.stub';

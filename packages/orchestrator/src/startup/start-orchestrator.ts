@@ -20,6 +20,7 @@ import type {
   AgentId,
   AgentPromptResult,
   DirectoryEntry,
+  DispatchState,
   GetQuestResult,
   Guild,
   GuildId,
@@ -43,6 +44,7 @@ import type {
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
+import type { DispatchPlayResponse } from '../contracts/dispatch-play-response/dispatch-play-response-contract';
 import type { NextStep } from '../contracts/next-step/next-step-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 import type { QuestRunWardResult } from '../contracts/quest-run-ward-result/quest-run-ward-result-contract';
@@ -58,6 +60,7 @@ import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-star
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { ExecutionQueueFlow } from '../flows/execution-queue/execution-queue-flow';
 import { GuildFlow } from '../flows/guild/guild-flow';
+import { OrchestrationDispatchFlow } from '../flows/orchestration-dispatch/orchestration-dispatch-flow';
 import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { ProcessStaleWatchFlow } from '../flows/process-stale-watch/process-stale-watch-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
@@ -71,6 +74,11 @@ ExecutionQueueFlow.bootstrap();
 // Bootstrap the queue sync listener on module load. Keeps queue entries in sync with
 // quest file changes (abandon/complete/delete) so the runner can always advance. Idempotent.
 ExecutionQueueFlow.bootstrapSyncListener();
+
+// Bootstrap the Node dispatch runner on module load. Normalizes the persisted play/pause
+// state to paused (never auto-plays across a restart) and wires the runner's wake sources.
+// Idempotent.
+OrchestrationDispatchFlow.bootstrap();
 
 // Bootstrap the smoketest post-terminal listener on module load. Idempotent.
 SmoketestFlow.bootstrap();
@@ -278,8 +286,19 @@ export const StartOrchestrator = {
   // Execution queue
   getExecutionQueue: async (): Promise<readonly QuestQueueEntry[]> => ExecutionQueueFlow.getAll(),
 
-  setWebPresence: ({ isPresent }: { isPresent: boolean }): AdapterResult =>
-    ExecutionQueueFlow.setWebPresence({ isPresent }),
+  // Node dispatcher play/pause (the /queue page's control surface)
+  getDispatchState: async (): Promise<DispatchState> => OrchestrationDispatchFlow.get(),
+
+  playDispatch: async ({ force }: { force?: boolean }): Promise<DispatchPlayResponse> =>
+    OrchestrationDispatchFlow.play({ ...(force !== undefined && { force }) }),
+
+  pauseDispatch: async (): Promise<DispatchState> => OrchestrationDispatchFlow.pause(),
+
+  // Server-boot-only: rewrites a persisted node-playing mode to paused. Called by the HTTP
+  // server's StartServer, never by MCP children (their StartOrchestrator load must not flip
+  // the shared dispatch state mid-play).
+  normalizeDispatchBoot: async (): Promise<DispatchState> =>
+    OrchestrationDispatchFlow.normalizeBoot(),
 
   // Rate limits
   getRateLimits: (): RateLimitsSnapshot | null => RateLimitsFlow.get(),

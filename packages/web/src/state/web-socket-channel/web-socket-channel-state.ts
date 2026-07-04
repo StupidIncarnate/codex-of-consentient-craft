@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Single shared WebSocket connection per browser tab. All five WS-consuming bindings (chat, queue, rate-limits, session-replay, ward-detail) subscribe to typed observables on this state instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
+ * PURPOSE: Single shared WebSocket connection per browser tab. All WS-consuming bindings (chat, queue, rate-limits, dispatch-state, session-replay, ward-detail) subscribe to typed observables on this state instead of opening their own sockets. Inbound frames are parsed once at the channel boundary and routed to per-concern Subjects so consumers never see event-type discriminator strings. Owns the connection lifecycle and reconnect.
  *
  * USAGE:
  * webSocketChannelState.connect({ url: WsUrlStub({ value: 'ws://host/ws' }) });
@@ -56,6 +56,7 @@ const internalState: {
   questUpdatedSubject: SubjectAdapter<Quest>;
   executionQueueChangedSubject: SubjectAdapter<undefined>;
   rateLimitsChangedSubject: SubjectAdapter<undefined>;
+  dispatchStateChangedSubject: SubjectAdapter<undefined>;
   wardDetailResponseSubject: SubjectAdapter<WardDetailResponse>;
   opensSubject: SubjectAdapter<undefined>;
 } = {
@@ -70,6 +71,7 @@ const internalState: {
   questUpdatedSubject: rxjsSubjectAdapter<Quest>(),
   executionQueueChangedSubject: rxjsSubjectAdapter<undefined>(),
   rateLimitsChangedSubject: rxjsSubjectAdapter<undefined>(),
+  dispatchStateChangedSubject: rxjsSubjectAdapter<undefined>(),
   wardDetailResponseSubject: rxjsSubjectAdapter<WardDetailResponse>(),
   opensSubject: rxjsSubjectAdapter<undefined>(),
 };
@@ -163,6 +165,10 @@ export const webSocketChannelState = {
     }
     if (envelope.data.type === 'rate-limits-updated') {
       internalState.rateLimitsChangedSubject.next(undefined);
+      return;
+    }
+    if (envelope.data.type === 'dispatch-state-changed') {
+      internalState.dispatchStateChangedSubject.next(undefined);
     }
   },
 
@@ -179,6 +185,8 @@ export const webSocketChannelState = {
     internalState.executionQueueChangedSubject.observable,
   rateLimitsChanged$: (): ChannelObservable<undefined> =>
     internalState.rateLimitsChangedSubject.observable,
+  dispatchStateChanged$: (): ChannelObservable<undefined> =>
+    internalState.dispatchStateChangedSubject.observable,
   wardDetailResponse$: (): ChannelObservable<WardDetailResponse> =>
     internalState.wardDetailResponseSubject.observable,
 

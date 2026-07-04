@@ -8,10 +8,13 @@ that the user's interactive Claude session writes) is translated into structured
 **If you're adding logic that parses a string format, filters stream content, or converts
 one shape into another — it goes here.**
 
-The translation pipeline is driven by `quest-monitor-jsonl-watcher-broker`, which tails the
-`/dumpster-launch` session JSONL plus its `subagents/agent-*.jsonl` siblings as they appear
-on disk. There is no orchestrator-spawned Claude process — the user's own session writes the
-JSONL files and the watcher feeds them through the funnel below.
+The translation pipeline is driven by `quest-monitor-jsonl-watcher-broker`, which tails each
+active session's JSONL plus its `subagents/agent-*.jsonl` siblings as they appear on disk.
+The session is either the user's own `/dumpster-launch` session (MCP dispatch mode) or a
+headless child the Node dispatcher spawned (see "Two dispatchers" below) — in both modes the
+watcher keys on `workItems[].sessionId` and feeds the files through the funnel below. The
+Node dispatcher deliberately does NOT wire its children's stdout into the chat pipeline;
+the file tail is the single rendering source, so lines are never double-emitted.
 
 DO NOT ADD MIGRATION LOGIC! THIS PACKAGE IS STILL GREENFIELD!
 
@@ -53,13 +56,10 @@ The handle broker owns the per-handle lifecycle:
 - `stop()` to compose into teardown callbacks; `initialDrains()` to await pre-existing
   sub-agent JSONL drain before declaring catch-up complete
 
-`quest-monitor-jsonl-watcher-broker` constructs one handle for the registered
-`/dumpster-launch` session and keeps it alive for the session's lifetime. The legacy spawn
-brokers (`chatSpawnBroker`, `runOrchestrationLoopLayerResponder`,
-`orchestrationResumeResponder`, `recoverGuildLayerResponder`) remain on disk and still wire
-through the same handle shape for any code path that hasn't moved to the
-`/dumpster-launch` flow; the convergence below depends on every feeder following this
-shape.
+`quest-monitor-jsonl-watcher-broker` constructs one handle per active session and keeps it
+alive for the session's lifetime. The chat spawn surfaces (`chatSpawnBroker`,
+`orchestrationResumeResponder`, `recoverGuildLayerResponder`) wire through the same handle
+shape; the convergence below depends on every feeder following this shape.
 
 ### Two-source sub-agent correlation (READ THIS IF YOU ARE TOUCHING SUB-AGENT CODE)
 
@@ -665,15 +665,41 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 - NEVER call `fsWriteFileAdapter` directly for quest files — always use `questPersistBroker`
 - Transient chat events stay on in-memory bus (single-process, high-frequency)
 
+## Two dispatchers, one state machine
+
+`quest-get-next-step-broker` is the single dispatch brain. Two dispatchers drive it:
+
+- **MCP mode (`/dumpster-launch`)** — the user's interactive Claude session polls the
+  `get-next-step` MCP tool and dispatches via Task() sub-agents. Runs under the user's plan.
+- **Node mode (the `/queue` page's play button)** — the server's Node dispatch runner
+  (`quest-node-dispatch-runner-broker` + `quest-node-dispatch-loop-broker`, bootstrapped by
+  `OrchestrationDispatchBootstrapResponder`) calls the same broker in-process and dispatches by
+  spawning headless `claude -p` children (one per SpawnInstruction, same `taskPrompt` stub) via
+  `agentSpawnUnifiedBroker`. The spawn-batch layer pre-stamps each work item `in_progress`
+  before spawning and stamps `sessionId` from the child's init line (which activates the
+  quest-driven watcher tail for live chat; `agentId` stays unset for top-level sessions).
+  Pause is graceful: `isPlaying()` is checked between steps, in-flight children finish.
+
+**Exclusivity** is file-backed at `<dungeonmasterHome>/dispatch-state.json`
+(`dispatchStateContract`) because the MCP server is a separate OS process: every MCP
+`get-next-step` call writes an `mcpHeartbeatAt` heartbeat; while the file says `node-playing`,
+the MCP responder returns `{ type: 'idle', reason }` so `/dumpster-launch` reports why and
+stops. The play gate (`dispatch-state-play-gate-broker`) refuses to play while the heartbeat
+is fresh OR any active quest has an `in_progress` work item with `agentId` stamped (a
+Task-dispatched agent mid-flight); `force: true` overrides for a crashed launch loop. The
+state normalizes to `paused` on server boot — the Node dispatcher never auto-plays after a
+restart.
+
 ## Quest Kickoff Surfaces
 
 | Surface                                | Purpose                                                                                                                                                                   |
 |----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `/dumpster-create` slash command       | Primary entry point (feature). Runs ChaosWhisperer in the user's Claude session; creates the new quest via MCP as its first action.                                       |
 | `/dumpster-hunt` slash command         | Primary entry point (bug-hunt). Runs the BugHunt intake; first action is `create-quest` with `questType: 'bug-hunt'`, then captures the repro flow + expected observable. |
-| `/dumpster-launch` slash command       | Primary entry point. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → Task() / `run-ward` → await → repeat across all approved quests.    |
+| `/dumpster-launch` slash command       | MCP dispatch mode. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → Task() / `run-ward` → await → repeat across all approved quests.      |
+| Web UI `/queue` page play button       | Node dispatch mode. `POST /api/orchestration/dispatch/play` starts the server-side runner (headless `claude -p` children); pause stops new dispatches gracefully.         |
 | MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer/BugHunt). Accepts optional `questType` so `/dumpster-hunt` births a `bug-hunt` quest.                                 |
-| MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — `/dumpster-launch` picks the quest up on its next pass).                                 |
+| MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — the active dispatcher picks the quest up on its next pass).                              |
 | Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything.                                          |
 
 ## Agents (MCP-Delivered)

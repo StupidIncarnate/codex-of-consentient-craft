@@ -38,7 +38,6 @@ registerModuleMock({
       recoverActiveQuests: jest.fn(),
       removeGuild: jest.fn(),
       replayChatHistory: jest.fn(),
-      setWebPresence: jest.fn(),
       startChat: jest.fn(),
       startDesignChat: jest.fn(),
       startQuest: jest.fn(),
@@ -65,7 +64,6 @@ import { orchestratorEventsOnAdapterProxy } from '../../../adapters/orchestrator
 import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
 import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter.proxy';
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
-import { orchestratorSetWebPresenceAdapterProxy } from '../../../adapters/orchestrator/set-web-presence/orchestrator-set-web-presence-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
@@ -95,7 +93,6 @@ export const ServerInitResponderProxy = (): {
     onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
     onError: ((args: { error: unknown }) => void) | undefined;
   };
-  getSetWebPresenceCalls: () => unknown[];
   getReplayChatHistoryCalls: () => unknown[];
   setupFindQuestPathSuccess: (params: { questPath: AbsoluteFilePath; guildId: GuildId }) => void;
 } => {
@@ -111,7 +108,6 @@ export const ServerInitResponderProxy = (): {
   const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
   const replayProxy = orchestratorReplayChatHistoryAdapterProxy();
   const outboxWatchProxy = orchestratorOutboxWatchAdapterProxy();
-  const setWebPresenceProxy = orchestratorSetWebPresenceAdapterProxy();
   orchestratorStopAllChatsAdapterProxy();
   const devLogProxy = processDevLogAdapterProxy();
   pathJoinAdapterProxy();
@@ -183,7 +179,6 @@ export const ServerInitResponderProxy = (): {
       devLogProxy.enableVerbose();
     },
     getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
-    getSetWebPresenceCalls: (): unknown[] => setWebPresenceProxy.getAllCalledArgs(),
     getReplayChatHistoryCalls: (): unknown[] => replayProxy.getAllCalledArgs(),
     setupFindQuestPathSuccess: ({
       questPath,

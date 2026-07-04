@@ -7,6 +7,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { OrchestrationStartResponderProxy } from './orchestration-start-responder.proxy';
 
@@ -510,6 +511,23 @@ describe('OrchestrationStartResponder', () => {
       const entries = questExecutionQueueState.getAll();
 
       expect(entries[0]?.status).toBe('approved');
+    });
+
+    it('VALID: {registered placeholder process killed after start (pause path)} => queue entry SURVIVES', async () => {
+      questExecutionQueueState.clear();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const quest = QuestStub({ id: questId, status: 'approved', title: 'Add Authentication' });
+      const proxy = OrchestrationStartResponderProxy();
+      proxy.setupQuestApproved({ quest });
+
+      const processId = await proxy.callResponder({ questId });
+      // questPauseBroker kills the quest's registered process on pause — that kill must
+      // NOT dequeue the entry, or a paused quest silently vanishes from the queue.
+      orchestrationProcessesState.kill({ processId });
+
+      const entries = questExecutionQueueState.getAll();
+
+      expect(entries.map((e) => e.questId)).toStrictEqual([questId]);
     });
   });
 });

@@ -28,6 +28,9 @@ describe('webConfigStatics', () => {
           toolingSmoketestRun: '/api/tooling/smoketest/run',
           toolingSmoketestState: '/api/tooling/smoketest/state',
           rateLimits: '/api/rate-limits',
+          orchestrationDispatch: '/api/orchestration/dispatch',
+          orchestrationDispatchPlay: '/api/orchestration/dispatch/play',
+          orchestrationDispatchPause: '/api/orchestration/dispatch/pause',
         },
       },
       polling: {

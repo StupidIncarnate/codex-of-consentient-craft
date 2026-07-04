@@ -27,6 +27,9 @@ export const nextStepContract = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('idle'),
+    // Set when idle is forced rather than organic — e.g. the Node dispatcher owns the queue,
+    // so /dumpster-launch's poll is told why nothing will ever be returned.
+    reason: z.string().min(1).brand<'IdleReason'>().optional(),
   }),
 ]);
 

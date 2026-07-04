@@ -217,5 +217,15 @@ describe('slashCommandsStatics', () => {
 
       expect(foundSlice).toBe(needle);
     });
+
+    it('VALID: dumpsterLaunch.body => idle branch instructs stopping when result.reason is present', () => {
+      const needle =
+        'FIRST check `result.reason` — if present, the queue is owned by another dispatcher';
+      const { body } = slashCommandsStatics.dumpsterLaunch;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
   });
 });

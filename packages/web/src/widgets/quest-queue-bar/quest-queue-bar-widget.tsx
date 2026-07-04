@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Top-sticky cross-guild quest execution queue bar. Collapsed view shows `Quest N/M — <title>` + optional error badge; expanded view lists every queued entry as a Link to `/:guildSlug/quest/:questId`.
+ * PURPOSE: Top-sticky cross-guild quest execution queue bar. Collapsed view shows `Quest N/M — <title>` + optional error badge plus a QUEUE link to the /queue page; expanded view lists every queued entry as a Link to `/:guildSlug/quest/:questId`.
  *
  * USAGE:
  * <QuestQueueBarWidget />
@@ -104,6 +104,19 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
           </Text>
         </UnstyledButton>
         <Group gap="md">
+          <Link
+            to="/queue"
+            data-testid="QUEST_QUEUE_BAR_QUEUE_LINK"
+            style={{
+              color: colors['text-dim'],
+              fontFamily: 'monospace',
+              fontSize: ROW_FONT_SIZE,
+              textDecoration: 'none',
+              fontWeight: 600,
+            }}
+          >
+            QUEUE ▸
+          </Link>
           <Link
             to={openHref}
             data-testid="QUEST_QUEUE_BAR_OPEN_LINK"

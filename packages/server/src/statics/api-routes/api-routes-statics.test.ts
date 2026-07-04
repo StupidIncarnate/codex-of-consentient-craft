@@ -47,6 +47,11 @@ describe('apiRoutesStatics', () => {
       rateLimits: {
         get: '/api/rate-limits',
       },
+      orchestration: {
+        dispatch: '/api/orchestration/dispatch',
+        dispatchPlay: '/api/orchestration/dispatch/play',
+        dispatchPause: '/api/orchestration/dispatch/pause',
+      },
     });
   });
 });

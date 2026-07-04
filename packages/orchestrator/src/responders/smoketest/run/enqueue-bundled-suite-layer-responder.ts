@@ -57,10 +57,7 @@ export const EnqueueBundledSuiteLayerResponder = async ({
   const { questId } = await questHydrateBroker({ blueprint, guildId, questSource });
 
   // Pre-register an orchestration processId tied to this smoketest's questId so the
-  // get-quest-status MCP probe has a live id to query at runtime. The queue runner's
-  // RunOrchestrationLoopLayerResponder adopts existing `proc-` prefix entries (and not
-  // `proc-queue-` / `proc-recovery-`), so this pre-registration deduplicates with the
-  // loop's own registration when it picks the quest up.
+  // get-quest-status MCP probe has a live id to query at runtime.
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
   orchestrationProcessesState.register({
     orchestrationProcess: {

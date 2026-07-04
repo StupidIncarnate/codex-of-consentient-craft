@@ -11,6 +11,24 @@ describe('nextStepContract', () => {
 
       expect(result).toStrictEqual({ type: 'idle' });
     });
+
+    it('VALID: {type: idle, reason} => parses forced-idle reason', () => {
+      const result = nextStepContract.parse({
+        type: 'idle',
+        reason: 'Node dispatcher is playing',
+      });
+
+      expect(result).toStrictEqual({
+        type: 'idle',
+        reason: 'Node dispatcher is playing',
+      });
+    });
+
+    it('INVALID: {type: idle, reason: ""} => throws min-length error', () => {
+      expect(() => nextStepContract.parse({ type: 'idle', reason: '' })).toThrow(
+        /String must contain at least 1 character/u,
+      );
+    });
   });
 
   describe('spawn-agents variant', () => {

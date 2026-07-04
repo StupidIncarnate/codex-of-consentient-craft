@@ -26,6 +26,7 @@ describe('orchestrationEventTypeContract', () => {
     'execution-queue-updated',
     'execution-queue-error',
     'rate-limits-updated',
+    'dispatch-state-changed',
   ] as const)('VALID: {value: %s} => parses successfully', (type) => {
     expect(orchestrationEventTypeContract.parse(type)).toBe(type);
   });

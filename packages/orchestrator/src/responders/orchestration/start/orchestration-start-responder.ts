@@ -201,15 +201,16 @@ export const OrchestrationStartResponder = async ({
   });
 
   // Register the processId so callers can poll /api/process/:processId for status
-  // immediately after start. The queue runner picks the quest up later and registers
-  // its own running-loop process under the same questId; that registration overrides
-  // this entry so kill/abandon flows hit the live AbortController.
+  // immediately after start. Start spawns nothing, so there is no process to kill — the
+  // kill hook must NOT touch the queue entry: pause kills this registration to stop any
+  // running work, and the paused quest must STAY queued so resume/dispatch can pick it
+  // back up. Queue-entry removal is owned by the sync listener (terminal status / delete).
   orchestrationProcessesState.register({
     orchestrationProcess: {
       processId,
       questId,
       kill: (): void => {
-        questExecutionQueueState.removeByQuestId({ questId });
+        // No-op — nothing was spawned at start.
       },
     },
   });

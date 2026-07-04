@@ -51,6 +51,7 @@ export const questModifyBrokerProxy = (): {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
   getAllPersistedContents: () => readonly unknown[];
+  getCallInputs: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   // Server-stamped assertion ids come from crypto.randomUUID. Passthrough so every test gets a real
@@ -166,6 +167,13 @@ export const questModifyBrokerProxy = (): {
         uuidSpy.mockReturnValueOnce(id);
       }
     },
+
+    // Raw `input` argument of every questModifyBroker call this test made — works whether the
+    // call ran the real implementation or a queued setupResolve*Once value.
+    getCallInputs: (): readonly unknown[] =>
+      (questModifyBroker as jest.MockedFunction<typeof questModifyBroker>).mock.calls.map(
+        (call) => call[0].input,
+      ),
 
     getAllPersistedContents: (): readonly unknown[] =>
       persistProxy

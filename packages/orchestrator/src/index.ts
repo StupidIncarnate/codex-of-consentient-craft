@@ -48,6 +48,8 @@ export { questGetServerConfigResultContract } from './contracts/quest-get-server
 export type { QuestGetServerConfigResult } from './contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 export { spawnInstructionContract } from './contracts/spawn-instruction/spawn-instruction-contract';
 export type { SpawnInstruction } from './contracts/spawn-instruction/spawn-instruction-contract';
+export { dispatchPlayResponseContract } from './contracts/dispatch-play-response/dispatch-play-response-contract';
+export type { DispatchPlayResponse } from './contracts/dispatch-play-response/dispatch-play-response-contract';
 
 // Prompt statics - re-exported for CLI package
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';

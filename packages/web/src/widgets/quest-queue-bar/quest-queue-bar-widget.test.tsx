@@ -117,6 +117,27 @@ describe('QuestQueueBarWidget', () => {
     });
   });
 
+  describe('queue link', () => {
+    it('VALID: {1 entry} => QUEUE link href targets /queue', async () => {
+      const proxy = QuestQueueBarWidgetProxy();
+      const entries = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'Alpha' })];
+      proxy.setupEntries({ entries });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestQueueBarWidget />
+          </MemoryRouter>
+        ),
+      });
+
+      const queueLink = await findByTestId('QUEST_QUEUE_BAR_QUEUE_LINK');
+
+      expect(queueLink.getAttribute('href')).toBe('/queue');
+      expect(queueLink.textContent).toBe('QUEUE ▸');
+    });
+  });
+
   describe('open link', () => {
     it('VALID: {head entry} => OPEN link href targets that quest', async () => {
       const proxy = QuestQueueBarWidgetProxy();

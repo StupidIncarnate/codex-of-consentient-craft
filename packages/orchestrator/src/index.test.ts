@@ -35,6 +35,7 @@ describe('orchestrator', () => {
       'agentRoleContract',
       'agentSlotContract',
       'codeweaverPromptStatics',
+      'dispatchPlayResponseContract',
       'dumpsterCreatePromptStatics',
       'flowriderPromptStatics',
       'followupDepthContract',

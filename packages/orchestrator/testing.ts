@@ -35,3 +35,4 @@ export { NextStepStub } from './src/contracts/next-step/next-step.stub';
 export { QuestRunWardResultStub } from './src/contracts/quest-run-ward-result/quest-run-ward-result.stub';
 export { QuestGetServerConfigResultStub } from './src/contracts/quest-get-server-config-result/quest-get-server-config-result.stub';
 export { SpawnInstructionStub } from './src/contracts/spawn-instruction/spawn-instruction.stub';
+export { DispatchPlayResponseStub } from './src/contracts/dispatch-play-response/dispatch-play-response.stub';

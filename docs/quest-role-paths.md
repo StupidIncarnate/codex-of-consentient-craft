@@ -13,14 +13,18 @@ control flow.
 
 ## The model in one paragraph
 
-The orchestrator does **not** spawn agents. The **MCP server is the state machine**; the user's own
-Claude session is the execution engine. The user runs a spec-conversation slash command
-(`/dumpster-create` for a feature, `/dumpster-hunt` for a bug) that builds a validated quest, then
-`/dumpster-launch` — a brainless dispatch loop: it calls `get-next-step()`, dispatches whatever the
-server tells it to (`Task()` for agents, the `run-ward` MCP tool for ward), awaits, and repeats. All
-"what runs next" decisions live server-side in `quest.workItems[]` and the `get-next-step` broker.
-The orchestrator watches the JSONL files the user's session writes to disk — there is no
-orchestrator-spawned Claude process.
+The **`get-next-step` broker is the single state machine**; all "what runs next" decisions live
+server-side in `quest.workItems[]`. Two interchangeable dispatchers drive it. **MCP mode:** the user
+runs a spec-conversation slash command (`/dumpster-create` for a feature, `/dumpster-hunt` for a
+bug) that builds a validated quest, then `/dumpster-launch` — a brainless dispatch loop in their own
+Claude session: it calls `get-next-step()`, dispatches whatever the server tells it to (`Task()` for
+agents, the `run-ward` MCP tool for ward), awaits, and repeats. **Node mode:** the play button on
+the web UI's `/queue` page starts the server-side Node dispatch runner, which calls the same broker
+in-process and dispatches by spawning headless `claude -p` children with the same `taskPrompt`
+stubs; pause stops new dispatches gracefully (in-flight children finish). The two modes are mutually
+exclusive via `<dungeonmasterHome>/dispatch-state.json` (MCP polls heartbeat vs `node-playing`
+mode — see "Two dispatchers, one state machine" in `packages/orchestrator/CLAUDE.md`). In both
+modes the orchestrator watches session JSONL files on disk to render live chat.
 
 ---
 
@@ -48,12 +52,13 @@ and its `lawbringer` runs in **whole-diff mode** (reviews the diff against the r
 
 ## Entry points
 
-| Surface                          | Role               | What it is                                                                                                                                                                                                                                                                   |
-|----------------------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/dumpster-create` slash command | **ChaosWhisperer** | Interactive feature spec-writing conversation. First action: `create-quest`. Walks the status lifecycle through two approval gates.                                                                                                                                          |
-| `/dumpster-hunt` slash command   | **BugHunt**        | Interactive bug-report intake (`questType: 'bug-hunt'`). Captures the reproduction path as a flow + the expected behavior as an observable, through the same two approval gates.                                                                                             |
-| `/dumpster-launch` slash command | **The dispatcher** | Long-lived loop across ALL approved quests: `get-next-step()` → `Task()` / `run-ward()` → await → repeat. Never decides anything.                                                                                                                                            |
-| Web UI "Start Quest" button      | —                  | Calls `orchestration-start-responder`, which flips quest status to `in_progress` and seeds the **type-appropriate** work-item graph (PathSeeker for feature, the PestEater chain for bug-hunt). **Spawns nothing** — `/dumpster-launch` picks the quest up on its next scan. |
+| Surface                          | Role                           | What it is                                                                                                                                                                                                                                                                      |
+|----------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/dumpster-create` slash command | **ChaosWhisperer**             | Interactive feature spec-writing conversation. First action: `create-quest`. Walks the status lifecycle through two approval gates.                                                                                                                                             |
+| `/dumpster-hunt` slash command   | **BugHunt**                    | Interactive bug-report intake (`questType: 'bug-hunt'`). Captures the reproduction path as a flow + the expected behavior as an observable, through the same two approval gates.                                                                                                |
+| `/dumpster-launch` slash command | **The dispatcher (MCP mode)**  | Long-lived loop across ALL approved quests: `get-next-step()` → `Task()` / `run-ward()` → await → repeat. Never decides anything.                                                                                                                                               |
+| Web UI `/queue` page play button | **The dispatcher (Node mode)** | `POST /api/orchestration/dispatch/play` — the server-side runner loops the same `get-next-step` broker and spawns headless `claude -p` children per SpawnInstruction. Refused (409 + reason) while a `/dumpster-launch` loop is active; `force` overrides.                      |
+| Web UI "Start Quest" button      | —                              | Calls `orchestration-start-responder`, which flips quest status to `in_progress` and seeds the **type-appropriate** work-item graph (PathSeeker for feature, the PestEater chain for bug-hunt). **Spawns nothing** — the active dispatcher picks the quest up on its next scan. |
 
 `/dumpster-launch`'s entire contract (`.claude/commands/dumpster-launch.md`):
 

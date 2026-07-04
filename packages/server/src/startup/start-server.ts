@@ -14,6 +14,8 @@ import { ProcessFlow } from '../flows/process/process-flow';
 import { SessionFlow } from '../flows/session/session-flow';
 import { DirectoryFlow } from '../flows/directory/directory-flow';
 import { HealthFlow } from '../flows/health/health-flow';
+import { OrchestrationBootFlow } from '../flows/orchestration-boot/orchestration-boot-flow';
+import { OrchestrationFlow } from '../flows/orchestration/orchestration-flow';
 import { QuestDrivenWatchersFlow } from '../flows/quest-driven-watchers/quest-driven-watchers-flow';
 import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { ServerFlow } from '../flows/server/server-flow';
@@ -26,6 +28,11 @@ export const StartServer = (): AdapterResult => {
   // is the on-disk quest files — no global "monitor session" file is consulted.
   QuestDrivenWatchersFlow.bootstrap();
 
+  // Normalize the Node-dispatcher state at server boot: a persisted 'node-playing' mode is
+  // rewritten to 'paused' so a restarted server never auto-plays. Server-process only — MCP
+  // children load StartOrchestrator too and must not run this.
+  OrchestrationBootFlow.bootstrap();
+
   return ServerFlow({
     subApps: [
       GuildFlow(),
@@ -37,6 +44,7 @@ export const StartServer = (): AdapterResult => {
       DesignFlow(),
       ToolingFlow(),
       RateLimitsFlow(),
+      OrchestrationFlow(),
     ],
   });
 };
