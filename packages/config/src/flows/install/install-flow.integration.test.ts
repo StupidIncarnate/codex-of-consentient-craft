@@ -35,7 +35,11 @@ describe('install-flow integration', () => {
       testbed.cleanup();
 
       expect(configContent).toBe(
-        JSON.stringify({ framework: 'node-library', schema: 'zod' }, null, 2),
+        JSON.stringify(
+          { framework: 'node-library', schema: 'zod', orchestrationMode: 'node' },
+          null,
+          2,
+        ),
       );
     });
 

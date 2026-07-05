@@ -5,7 +5,8 @@
  * USAGE:
  * const orchestrationApp = OrchestrationFlow();
  * app.route('', orchestrationApp);
- * // Registers GET /api/orchestration/dispatch, POST .../dispatch/play, POST .../dispatch/pause
+ * // Registers GET /api/orchestration/dispatch, POST .../dispatch/play, POST .../dispatch/pause,
+ * //   GET /api/orchestration/mode
  */
 
 import { Hono } from 'hono';
@@ -14,6 +15,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { OrchestrationDispatchGetResponder } from '../../responders/orchestration/dispatch-get/orchestration-dispatch-get-responder';
 import { OrchestrationDispatchPauseResponder } from '../../responders/orchestration/dispatch-pause/orchestration-dispatch-pause-responder';
 import { OrchestrationDispatchPlayResponder } from '../../responders/orchestration/dispatch-play/orchestration-dispatch-play-responder';
+import { OrchestrationModeGetResponder } from '../../responders/orchestration/mode-get/orchestration-mode-get-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
 export const OrchestrationFlow = (): Hono => {
@@ -32,6 +34,11 @@ export const OrchestrationFlow = (): Hono => {
 
   app.post(apiRoutesStatics.orchestration.dispatchPause, async (c) => {
     const result = await OrchestrationDispatchPauseResponder();
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.orchestration.mode, async (c) => {
+    const result = await OrchestrationModeGetResponder();
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

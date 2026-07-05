@@ -7,8 +7,8 @@
  * // questId set → live workspace. The binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase). Execution view shows a `/dumpster-launch` banner.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Box, Stack, Text } from '@mantine/core';
 
@@ -21,6 +21,7 @@ import type {
   UrlSlug,
   UserInput,
 } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
   isUserPausedQuestStatusGuard,
@@ -29,13 +30,16 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 
+import { useOrchestrationModeBinding } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
+import { questNewBroker } from '../../brokers/quest/new/quest-new-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
+import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
@@ -63,15 +67,22 @@ export interface QuestChatContentLayerWidgetProps {
 
 export const QuestChatContentLayerWidget = ({
   questId,
+  guildId,
   guildSlug,
 }: QuestChatContentLayerWidgetProps): React.JSX.Element => {
-  // `?chat=hidden` suppresses the ChatPanel sub-tree while leaving the chat
-  // binding subscribed (it's called below at this layer, above the panel).
-  // Only the exact string `hidden` triggers — any other value renders normally.
-  // Used by /dumpster-create so the user's terminal session owns the chat
-  // surface while the web UI continues to render spec/execution panels.
+  // orchestrationMode gates the create-quest surface: `node` = web-driven (chat + dumpster loader,
+  // first message creates the quest and launches ChaosWhisperer); `claude` = terminal-driven via
+  // /dumpster-create (placeholder banner + ?chat=hidden honored).
+  const { mode, isLoading: modeLoading } = useOrchestrationModeBinding();
+  const isNodeMode = mode === 'node';
+
+  // `?chat=hidden` suppresses the ChatPanel sub-tree while leaving the chat binding subscribed (it's
+  // called below at this layer, above the panel). Honored by default so the /dumpster-create flow's
+  // terminal session owns the chat surface; only ignored in `node` mode where the web owns it.
   const location = useLocation();
-  const chatHidden = new URLSearchParams(location.search).get('chat') === 'hidden';
+  const chatHidden = !isNodeMode && new URLSearchParams(location.search).get('chat') === 'hidden';
+
+  const navigate = useNavigate();
 
   // Calls below are unconditional so the hooks rule stays satisfied even when
   // questId is null. The binding tolerates a null questId by returning an
@@ -87,13 +98,79 @@ export const QuestChatContentLayerWidget = ({
     stopChat,
   } = useQuestChatBinding({ questId });
 
+  // Node-mode first-message flow: the user's first message lives in localEntries until the binding's
+  // replay catches up (the binding boots fresh entries on each questId change, so without this the
+  // message would vanish during the questId param transition after quest creation). `submitting`
+  // covers the gap from "user clicks send on the new-chat surface" until the binding shows activity.
+  const [localEntries, setLocalEntries] = useState<ChatEntry[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (submitting && (isStreaming || entriesBySession.size > 0)) {
+      setSubmitting(false);
+    }
+  }, [submitting, isStreaming, entriesBySession]);
+
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];
     for (const list of entriesBySession.values()) {
       all.push(...list);
     }
-    return sortChatEntriesByTimestampTransformer({ entries: all });
-  }, [entriesBySession]);
+    const localFiltered = localEntries.filter(
+      (entry) => !hasEquivalentChatEntryGuard({ entry, among: all }),
+    );
+    return sortChatEntriesByTimestampTransformer({ entries: [...localFiltered, ...all] });
+  }, [entriesBySession, localEntries]);
+
+  const handleStop = useCallback((): void => {
+    // Clear submitting alongside stopChat so a first-message STOP that fires before any assistant
+    // output returns the input to the SEND state instead of showing STOP forever.
+    setSubmitting(false);
+    stopChat();
+  }, [stopChat]);
+
+  const handleSend = useCallback(
+    ({ message }: { message: UserInput }): void => {
+      if (questId !== null) {
+        // Normal path — binding handles user message, resume-if-paused, POST.
+        sendMessage({ message });
+        return;
+      }
+      // First-message path — create the quest, then replace-navigate so the SAME component instance
+      // keeps rendering with questId set; localEntries keeps the message visible until replay catches up.
+      if (submitting) return;
+      const userEntry = chatEntryContract.parse({
+        role: 'user',
+        content: message,
+        uuid: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+      });
+      setLocalEntries((prev) => [...prev, userEntry]);
+      setSubmitting(true);
+      questNewBroker({ guildId, message })
+        .then(({ questId: newQuestId }) => {
+          const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
+          if (result instanceof Promise) {
+            result.catch((navError: unknown) => {
+              globalThis.console.error('[quest-chat] new-chat navigate failed', navError);
+            });
+          }
+        })
+        .catch((err: unknown) => {
+          setSubmitting(false);
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const errorEntry = chatEntryContract.parse({
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
+            uuid: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+          });
+          setLocalEntries((prev) => [...prev, errorEntry]);
+        });
+    },
+    [questId, sendMessage, submitting, guildId, guildSlug, navigate],
+  );
 
   const [externalUpdatePending, setExternalUpdatePending] = useState(false);
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
@@ -128,39 +205,55 @@ export const QuestChatContentLayerWidget = ({
 
   const { colors } = emberDepthsThemeStatics;
 
-  // No questId in the URL — render the placeholder banner pointing at
-  // `/dumpster-create`. Quest creation is owned by the user's Claude
-  // session via the ChaosWhisperer slash command, not the web UI.
-  if (questId === null) {
-    return (
-      <Box
-        data-testid="QUEST_CHAT"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-          minHeight: 0,
-          padding: 16,
-        }}
-      >
-        <Stack gap="md" data-testid="QUEST_CHAT_NO_QUEST_PLACEHOLDER">
-          <DumpsterCommandBannerWidget
-            message={NO_QUEST_BANNER_MESSAGE}
-            command={DUMPSTER_CREATE_COMMAND}
-          />
-          <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
-            The spec conversation runs in your Claude session. Once the quest is created, this page
-            will open to its spec view automatically.
-          </Text>
-        </Stack>
-      </Box>
-    );
-  }
-
-  // questId is set but replay hasn't delivered the quest object yet —
-  // render an awaiting surface with the chat panel still mounted so live
-  // chat-output entries appear as they arrive.
+  // No quest object yet. Three cases, gated by orchestrationMode:
+  //  - mode still loading → full-panel dumpster loader (avoids flashing the wrong create surface).
+  //  - claude mode + no questId → the /dumpster-create placeholder banner (terminal owns creation).
+  //  - otherwise (node mode either questId case; claude mode with questId set but quest not replayed)
+  //    → the dual-panel chat surface. In node mode the first message creates the quest (handleSend)
+  //    and the right panel is the dumpster loader; in claude mode it's the "Awaiting..." box.
   if (quest === null) {
+    if (modeLoading) {
+      return (
+        <Box
+          data-testid="QUEST_CHAT"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          <DumpsterRaccoonWidget />
+        </Box>
+      );
+    }
+
+    if (!isNodeMode && questId === null) {
+      return (
+        <Box
+          data-testid="QUEST_CHAT"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            padding: 16,
+          }}
+        >
+          <Stack gap="md" data-testid="QUEST_CHAT_NO_QUEST_PLACEHOLDER">
+            <DumpsterCommandBannerWidget
+              message={NO_QUEST_BANNER_MESSAGE}
+              command={DUMPSTER_CREATE_COMMAND}
+            />
+            <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
+              The spec conversation runs in your Claude session. Once the quest is created, this
+              page will open to its spec view automatically.
+            </Text>
+          </Stack>
+        </Box>
+      );
+    }
+
     return (
       <Box
         data-testid="QUEST_CHAT"
@@ -176,11 +269,9 @@ export const QuestChatContentLayerWidget = ({
             <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <ChatPanelWidget
                 entries={flattenedEntries}
-                isStreaming={isStreaming}
-                onSendMessage={({ message }): void => {
-                  sendMessage({ message });
-                }}
-                onStopChat={stopChat}
+                isStreaming={submitting || isStreaming}
+                onSendMessage={handleSend}
+                onStopChat={handleStop}
               />
             </Box>
             <div
@@ -202,9 +293,13 @@ export const QuestChatContentLayerWidget = ({
             flexDirection: 'column',
           }}
         >
-          <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
-            Awaiting quest activity...
-          </Text>
+          {isNodeMode ? (
+            <DumpsterRaccoonWidget />
+          ) : (
+            <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], padding: 16 }}>
+              Awaiting quest activity...
+            </Text>
+          )}
         </Box>
       </Box>
     );

@@ -82,6 +82,7 @@ describe('configResolveBroker', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         routing: 'react-router-dom',
         schema: 'zod',
         architecture: {
@@ -134,6 +135,7 @@ describe('configResolveBroker', () => {
 
       expect(result).toStrictEqual({
         framework: 'express',
+        orchestrationMode: 'claude',
         schema: 'zod',
         architecture: {
           booleanFunctionPrefixes: ['is', 'has'],
@@ -170,6 +172,7 @@ describe('configResolveBroker', () => {
 
       expect(result).toStrictEqual({
         framework: 'node-library',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });

@@ -31,6 +31,7 @@ describe('webConfigStatics', () => {
           orchestrationDispatch: '/api/orchestration/dispatch',
           orchestrationDispatchPlay: '/api/orchestration/dispatch/play',
           orchestrationDispatchPause: '/api/orchestration/dispatch/pause',
+          orchestrationMode: '/api/orchestration/mode',
         },
       },
       polling: {

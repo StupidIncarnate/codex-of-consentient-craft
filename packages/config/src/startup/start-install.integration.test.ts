@@ -27,7 +27,11 @@ describe('start-install integration', () => {
         action: 'created',
       });
       expect(configContent).toBe(
-        JSON.stringify({ framework: 'node-library', schema: 'zod' }, null, 2),
+        JSON.stringify(
+          { framework: 'node-library', schema: 'zod', orchestrationMode: 'node' },
+          null,
+          2,
+        ),
       );
     });
   });

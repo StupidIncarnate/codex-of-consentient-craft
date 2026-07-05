@@ -44,7 +44,7 @@ test.describe('Not Found', () => {
     await expect(page.getByTestId('CHAT_INPUT')).not.toBeVisible();
   });
 
-  test('EDGE: valid guild slug renders /dumpster-create placeholder (no false positive)', async ({
+  test('EDGE: valid guild slug renders the node create-quest chat surface (no false positive)', async ({
     page,
     request,
   }) => {
@@ -62,15 +62,12 @@ test.describe('Not Found', () => {
     await page.goto(`/${urlSlug}/quest`);
     await guildsResponsePromise;
 
-    // The no-questId route renders the `/dumpster-create` placeholder banner.
-    // Quest creation runs in the user's Claude session via the slash command;
-    // the web UI no longer has a CHAT_INPUT on this route. Asserting the
-    // placeholder + the literal `/dumpster-create` command text proves the
-    // route is recognized (and is the inverse of the NOT_FOUND surface).
-    await expect(page.getByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')).toBeVisible();
-    await expect(page.getByTestId('DUMPSTER_COMMAND_BANNER_COMMAND')).toHaveText(
-      '/dumpster-create',
-    );
+    // The repo runs in `node` orchestrationMode, so the no-questId route renders the web-driven
+    // create-quest surface: a chat panel (with CHAT_INPUT) on the left where the first message
+    // creates the quest and launches ChaosWhisperer. Asserting the QUEST_CHAT workspace + the
+    // chat input proves the route is recognized (the inverse of the NOT_FOUND surface).
+    await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
+    await expect(page.getByTestId('CHAT_INPUT')).toBeVisible();
     await expect(page.getByTestId('NOT_FOUND')).not.toBeVisible();
   });
 

@@ -90,6 +90,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'vue',
+        orchestrationMode: 'claude',
         schema: 'zod',
         routing: 'vue-router',
       });
@@ -113,6 +114,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         schema: 'zod',
         routing: 'react-router-dom',
       });
@@ -136,6 +138,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         schema: ['zod'],
         routing: 'react-router-dom',
       });
@@ -445,6 +448,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         schema: ['zod'],
       });
     });
@@ -492,6 +496,7 @@ describe('mergeConfigsTransformer', () => {
 
       expect(result).toStrictEqual({
         framework: 'node-library',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });

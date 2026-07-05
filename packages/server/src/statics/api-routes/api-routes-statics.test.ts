@@ -51,6 +51,7 @@ describe('apiRoutesStatics', () => {
         dispatch: '/api/orchestration/dispatch',
         dispatchPlay: '/api/orchestration/dispatch/play',
         dispatchPause: '/api/orchestration/dispatch/pause',
+        mode: '/api/orchestration/mode',
       },
     });
   });

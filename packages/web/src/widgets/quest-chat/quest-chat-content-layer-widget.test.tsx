@@ -1,19 +1,25 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { GuildIdStub, ProcessIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  ProcessIdStub,
+  QuestIdStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 import { QuestChatContentLayerWidgetProxy } from './quest-chat-content-layer-widget.proxy';
 
 describe('QuestChatContentLayerWidget', () => {
-  describe('no-questId placeholder surface', () => {
-    it('VALID: {questId null} => renders the /dumpster-create placeholder banner', () => {
-      QuestChatContentLayerWidgetProxy();
+  describe('no-questId placeholder surface (claude mode)', () => {
+    it('VALID: {claude mode, questId null} => renders the /dumpster-create placeholder banner', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -25,19 +31,19 @@ describe('QuestChatContentLayerWidget', () => {
         ),
       });
 
-      expect(queryByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')?.getAttribute('data-testid')).toBe(
-        'QUEST_CHAT_NO_QUEST_PLACEHOLDER',
-      );
+      await findByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER');
+
       expect(queryByTestId('DUMPSTER_COMMAND_BANNER_COMMAND')?.textContent).toBe(
         '/dumpster-create',
       );
     });
 
-    it('VALID: {questId null} => does NOT mount the chat panel, divider, or activity column (Create-Quest entry point moved to /dumpster-create)', () => {
-      QuestChatContentLayerWidgetProxy();
+    it('VALID: {claude mode, questId null} => does NOT mount the chat panel, divider, or activity column (Create-Quest entry point moved to /dumpster-create)', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -48,6 +54,8 @@ describe('QuestChatContentLayerWidget', () => {
           </MemoryRouter>
         ),
       });
+
+      await findByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER');
 
       expect(queryByTestId('CHAT_PANEL')).toBe(null);
       expect(queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
@@ -55,12 +63,80 @@ describe('QuestChatContentLayerWidget', () => {
     });
   });
 
+  describe('node mode create-quest surface', () => {
+    it('VALID: {node mode, questId null} => renders chat panel + dumpster raccoon column, not the /dumpster-create banner', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      const guildId = GuildIdStub({ value: '44444444-5555-6666-7777-888888888888' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('CHAT_PANEL');
+
+      expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
+        'QUEST_CHAT_ACTIVITY',
+      );
+      expect(queryByTestId('dumpster-raccoon-widget')?.getAttribute('data-testid')).toBe(
+        'dumpster-raccoon-widget',
+      );
+      expect(queryByTestId('QUEST_CHAT_NO_QUEST_PLACEHOLDER')).toBe(null);
+    });
+
+    it('VALID: {node mode, questId null, first message sent} => POSTs quest-new and renders the typed message', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupNewQuest({
+        questId: QuestIdStub({ value: 'q-created' }),
+        chatProcessId: ProcessIdStub({ value: 'proc-created' }),
+      });
+      const guildId = GuildIdStub({ value: '55555555-6666-7777-8888-999999999999' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+      await proxy.typeMessage({ text: 'Add auth' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      const messageTexts = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .map((m) => String(m.textContent));
+      const typedIdx = messageTexts.findIndex((t) => t.includes('Add auth'));
+
+      expect(typedIdx).toBe(0);
+    });
+  });
+
   describe('live workspace (questId set)', () => {
-    it('VALID: {no quest yet from binding} => renders new-chat-style awaiting surface', () => {
-      QuestChatContentLayerWidgetProxy();
+    it('VALID: {claude mode, no quest yet from binding} => renders new-chat-style awaiting surface', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'cccccccc-dddd-eeee-ffff-aaaaaaaaaaaa' });
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -72,6 +148,8 @@ describe('QuestChatContentLayerWidget', () => {
         ),
       });
 
+      await findByTestId('CHAT_PANEL');
+
       expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
         'QUEST_CHAT_ACTIVITY',
       );
@@ -81,6 +159,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {quest at review_flows} => renders chat panel + spec panel', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb' });
       const quest = QuestStub({
         id: 'q-pre',
@@ -119,6 +198,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {quest at in_progress} => renders execution panel + dumpster raccoon column (no chat-entry feed)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-cccccccccccc' });
       const quest = QuestStub({
         id: 'q-exec',
@@ -166,6 +246,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {clarification-request WS event} => panel renders questions and submit calls clarify broker', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: 'ffffffff-aaaa-bbbb-cccc-dddddddddddd' });
       const quest = QuestStub({ id: 'q-clarify', status: 'review_flows' });
       const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
@@ -227,6 +308,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {?chat=hidden, quest at review_flows} => CHAT_PANEL not in DOM, binding still subscribed (spec panel renders from WS quest-modified)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '11111111-2222-3333-4444-555555555555' });
       const quest = QuestStub({ id: 'q-hidden', status: 'review_flows' });
 
@@ -266,11 +348,12 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('CHAT_PANEL')).toBe(null);
     });
 
-    it('VALID: {?chat=hidden, no quest yet (loading)} => CHAT_PANEL not in DOM, awaiting activity column still renders', () => {
-      QuestChatContentLayerWidgetProxy();
+    it('VALID: {claude mode, ?chat=hidden, no quest yet (loading)} => CHAT_PANEL not in DOM, awaiting activity column still renders', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '22222222-3333-4444-5555-666666666666' });
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
           <MemoryRouter initialEntries={['/test-guild/quest/q-loading?chat=hidden']}>
             <Routes>
@@ -289,6 +372,8 @@ describe('QuestChatContentLayerWidget', () => {
         ),
       });
 
+      await findByTestId('QUEST_CHAT_ACTIVITY');
+
       expect(queryByTestId('CHAT_PANEL')).toBe(null);
       expect(queryByTestId('QUEST_CHAT_DIVIDER')).toBe(null);
       expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
@@ -299,6 +384,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {?chat=visible, quest at review_flows} => CHAT_PANEL still in DOM (only exact `hidden` triggers)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '33333333-4444-5555-6666-777777777777' });
       const quest = QuestStub({ id: 'q-visible', status: 'review_flows' });
 
@@ -341,6 +427,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {clarify answered between two agent batches with different sessionIds} => user answer renders BETWEEN earlier and later agent messages (cross-session timestamp order)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '99999999-aaaa-bbbb-cccc-dddddddddddd' });
       const quest = QuestStub({ id: 'q-clarify-order', status: 'review_flows' });
       const chatProcessId = ProcessIdStub({ value: 'proc-clarify-order' });

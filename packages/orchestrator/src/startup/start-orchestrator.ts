@@ -29,6 +29,7 @@ import type {
   GuildPath,
   ModifyQuestInput,
   ModifyQuestResult,
+  OrchestrationMode,
   OrchestrationStatus,
   ProcessId,
   Quest,
@@ -293,6 +294,10 @@ export const StartOrchestrator = {
     OrchestrationDispatchFlow.play({ ...(force !== undefined && { force }) }),
 
   pauseDispatch: async (): Promise<DispatchState> => OrchestrationDispatchFlow.pause(),
+
+  // Declared orchestrationMode (claude | node) from .dungeonmaster.json — the web reads this to decide
+  // whether the create-quest surface is web-driven (node) or terminal-driven via /dumpster-create (claude).
+  getOrchestrationMode: async (): Promise<OrchestrationMode> => OrchestrationDispatchFlow.getMode(),
 
   // Server-boot-only: rewrites a persisted node-playing mode to paused. Called by the HTTP
   // server's StartServer, never by MCP children (their StartOrchestrator load must not flip

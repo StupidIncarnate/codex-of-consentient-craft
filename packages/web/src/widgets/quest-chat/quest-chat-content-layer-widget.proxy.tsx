@@ -1,9 +1,11 @@
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
+import { useOrchestrationModeBindingProxy } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding.proxy';
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-abandon-broker.proxy';
 import { questModifyBrokerProxy } from '../../brokers/quest/modify/quest-modify-broker.proxy';
+import { questNewBrokerProxy } from '../../brokers/quest/new/quest-new-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { questStartBrokerProxy } from '../../brokers/quest/start/quest-start-broker.proxy';
@@ -29,6 +31,9 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupChat: (params: { chatProcessId: ProcessId }) => void;
   setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupPause: () => void;
+  setupMode: (params: { mode: OrchestrationMode }) => void;
+  setupNewQuest: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  setupNewQuestError: () => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
@@ -38,8 +43,12 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getChatRequestCount: () => RequestCount;
   getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
+  getNewQuestRequestCount: () => RequestCount;
 } => {
   const binding = useQuestChatBindingProxy();
+  // Every rendering test must call setupMode before render to configure the declared-mode endpoint.
+  const mode = useOrchestrationModeBindingProxy();
+  const questNew = questNewBrokerProxy();
   const chatPanel = ChatPanelWidgetProxy();
   questAbandonBrokerProxy();
   questModifyBrokerProxy();
@@ -57,6 +66,16 @@ export const QuestChatContentLayerWidgetProxy = (): {
     setupConnectedChannel: () => {
       binding.setupConnectedChannel();
     },
+    setupMode: ({ mode: nextMode }) => {
+      mode.setupMode({ mode: nextMode });
+    },
+    setupNewQuest: ({ questId, chatProcessId }) => {
+      questNew.setupNew({ questId, chatProcessId });
+    },
+    setupNewQuestError: () => {
+      questNew.setupError();
+    },
+    getNewQuestRequestCount: () => questNew.getRequestCount(),
     deliverWsMessage: ({ data }) => {
       binding.deliverWsMessage({ data });
     },

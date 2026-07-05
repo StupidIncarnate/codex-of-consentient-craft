@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Orchestration flow exposing the Node dispatcher — bootstrap wiring, the server-boot
- * normalization, plus the play/pause/get surface the HTTP server calls.
+ * normalization, the play/pause/get surface the HTTP server calls, plus the declared orchestrationMode
+ * read (claude | node) from `.dungeonmaster.json`.
  *
  * USAGE:
  * OrchestrationDispatchFlow.bootstrap();
@@ -8,9 +9,14 @@
  * const state = await OrchestrationDispatchFlow.get();
  * const response = await OrchestrationDispatchFlow.play({ force: false });
  * const paused = await OrchestrationDispatchFlow.pause();
+ * const mode = await OrchestrationDispatchFlow.getMode();
  */
 
-import type { AdapterResult, DispatchState } from '@dungeonmaster/shared/contracts';
+import type {
+  AdapterResult,
+  DispatchState,
+  OrchestrationMode,
+} from '@dungeonmaster/shared/contracts';
 
 import type { DispatchPlayResponse } from '../../contracts/dispatch-play-response/dispatch-play-response-contract';
 import { OrchestrationDispatchBootstrapResponder } from '../../responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder';
@@ -18,6 +24,7 @@ import { OrchestrationDispatchGetResponder } from '../../responders/orchestratio
 import { OrchestrationDispatchNormalizeBootResponder } from '../../responders/orchestration-dispatch/normalize-boot/orchestration-dispatch-normalize-boot-responder';
 import { OrchestrationDispatchPauseResponder } from '../../responders/orchestration-dispatch/pause/orchestration-dispatch-pause-responder';
 import { OrchestrationDispatchPlayResponder } from '../../responders/orchestration-dispatch/play/orchestration-dispatch-play-responder';
+import { OrchestrationModeGetResponder } from '../../responders/orchestration-mode/get/orchestration-mode-get-responder';
 
 export const OrchestrationDispatchFlow = {
   bootstrap: (): AdapterResult => OrchestrationDispatchBootstrapResponder(),
@@ -30,4 +37,6 @@ export const OrchestrationDispatchFlow = {
     OrchestrationDispatchPlayResponder({ ...(force === undefined ? {} : { force }) }),
 
   pause: async (): Promise<DispatchState> => OrchestrationDispatchPauseResponder(),
+
+  getMode: async (): Promise<OrchestrationMode> => OrchestrationModeGetResponder(),
 };

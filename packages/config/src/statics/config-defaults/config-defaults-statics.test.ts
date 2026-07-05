@@ -7,6 +7,9 @@ describe('configDefaultsStatics', () => {
         allowedRootFiles: ['global.d.ts'],
         booleanFunctionPrefixes: ['is', 'has', 'can', 'should', 'will', 'was'],
       },
+      orchestrationMode: {
+        default: 'claude',
+      },
       orchestration: {
         slotCount: {
           min: 1,

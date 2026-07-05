@@ -11,6 +11,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         routing: 'react-router-dom',
         schema: 'zod',
       });
@@ -24,6 +25,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'express',
+        orchestrationMode: 'claude',
         routing: 'express',
         schema: 'zod',
       });
@@ -36,6 +38,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'node-library',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });
@@ -135,6 +138,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(parsed).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         routing: 'react-router-dom',
         schema: ['zod'],
         architecture: {
@@ -182,6 +186,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(parsed).toStrictEqual({
         framework: 'fastify',
+        orchestrationMode: 'claude',
         routing: 'fastify',
         schema: 'zod',
         architecture: {
@@ -222,6 +227,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(parsed).toStrictEqual({
         framework: 'node-library',
+        orchestrationMode: 'claude',
         schema: ['zod'],
         architecture: {
           overrides: {
@@ -248,6 +254,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'angular',
+        orchestrationMode: 'claude',
         routing: '@angular/router',
         schema: 'zod',
       });
@@ -261,6 +268,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'vue',
+        orchestrationMode: 'claude',
         routing: 'vue-router',
         schema: 'zod',
       });
@@ -273,6 +281,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'svelte',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });
@@ -284,6 +293,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'cli',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });
@@ -295,6 +305,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'ink-cli',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });
@@ -306,6 +317,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(config).toStrictEqual({
         framework: 'monorepo',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });
@@ -321,6 +333,7 @@ describe('dungeonmaster-config-contract', () => {
 
       expect(result).toStrictEqual({
         framework: 'react',
+        orchestrationMode: 'claude',
         schema: 'zod',
       });
     });
@@ -558,6 +571,34 @@ describe('dungeonmaster-config-contract', () => {
           },
         });
       }).toThrow(/invalid_type/u);
+    });
+  });
+
+  describe('orchestrationMode', () => {
+    it('VALID: config without orchestrationMode => defaults to "claude"', () => {
+      const config = DungeonmasterConfigStub({ framework: 'react', schema: 'zod' });
+
+      expect(config.orchestrationMode).toBe('claude');
+    });
+
+    it('VALID: {orchestrationMode: "node"} => parses as "node"', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        orchestrationMode: 'node',
+      });
+
+      expect(parsed.orchestrationMode).toBe('node');
+    });
+
+    it('INVALID: {orchestrationMode: "hybrid"} => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          orchestrationMode: 'hybrid',
+        });
+      }).toThrow(/Invalid enum value/u);
     });
   });
 

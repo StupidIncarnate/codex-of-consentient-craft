@@ -475,6 +475,10 @@ export * from './src/contracts/quest-queue-entry/quest-queue-entry.stub';
 export * from './src/contracts/dispatch-state/dispatch-state-contract';
 export * from './src/contracts/dispatch-state/dispatch-state.stub';
 
+// Orchestration Mode Contract (declared claude | node from .dungeonmaster.json)
+export * from './src/contracts/orchestration-mode/orchestration-mode-contract';
+export * from './src/contracts/orchestration-mode/orchestration-mode.stub';
+
 // Typed CWD Brand Contracts (Layer 3 — Stroustrup locations)
 export * from './src/contracts/repo-root-cwd/repo-root-cwd-contract';
 export * from './src/contracts/repo-root-cwd/repo-root-cwd.stub';

@@ -1,6 +1,7 @@
 {
   "framework": "monorepo",
   "schema": "zod",
+  "orchestrationMode": "node",
   "dungeonmaster": {
     "port": 4800
   },

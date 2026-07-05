@@ -41,7 +41,11 @@ export const InstallCreateConfigResponder = async ({
       message: installMessageContract.parse('Config already exists'),
     };
   } catch {
-    const defaultConfig = { framework: 'node-library', schema: 'zod' };
+    const defaultConfig = {
+      framework: 'node-library',
+      schema: 'zod',
+      orchestrationMode: 'node',
+    };
     const contents = fileContentsContract.parse(
       JSON.stringify(defaultConfig, null, JSON_INDENT_SPACES),
     );

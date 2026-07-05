@@ -12,6 +12,9 @@ export const configDefaultsStatics = {
     allowedRootFiles: ['global.d.ts'] as const,
     booleanFunctionPrefixes: ['is', 'has', 'can', 'should', 'will', 'was'] as const,
   },
+  orchestrationMode: {
+    default: 'claude',
+  },
   orchestration: {
     slotCount: {
       min: 1,
