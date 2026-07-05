@@ -33,7 +33,12 @@ allowed-tools: mcp__dungeonmaster__*, Bash, Read, Glob, Grep, Edit, Write, Task
 export const slashCommandsStatics = {
   dumpsterCreate: {
     fileName: 'dumpster-create.md',
-    body: `${DUMPSTER_CREATE_FRONTMATTER}\n\n${dumpsterCreatePromptStatics.prompt.template}\n`,
+    // The slash command runs in the user's interactive terminal, so ChaosWhisperer uses the native
+    // AskUserQuestion tool — substitute the native clarify instruction into the template placeholder.
+    body: `${DUMPSTER_CREATE_FRONTMATTER}\n\n${dumpsterCreatePromptStatics.prompt.template.replace(
+      dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+      dumpsterCreatePromptStatics.clarifyInstructions.native,
+    )}\n`,
   },
   dumpsterHunt: {
     fileName: 'dumpster-hunt.md',

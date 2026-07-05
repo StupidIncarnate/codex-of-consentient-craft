@@ -504,6 +504,7 @@ describe('McpServerFlow', () => {
       'get-quest-planning-notes',
       'get-agent-prompt',
       'run-ward',
+      'ask-user-question',
       // Mutating actions, not reference content
       'modify-quest',
       'start-quest',

@@ -4,12 +4,12 @@ import { InteractionFlow } from './interaction-flow';
 
 describe('InteractionFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 2 registrations with correct tool names', () => {
+    it('VALID: returns 3 registrations with correct tool names', () => {
       const registrations = InteractionFlow();
 
       const names = registrations.map(({ name }) => name);
 
-      expect(names).toStrictEqual(['signal-back', 'get-agent-prompt']);
+      expect(names).toStrictEqual(['signal-back', 'ask-user-question', 'get-agent-prompt']);
     });
 
     it('VALID: each registration has a handler function', () => {
@@ -17,7 +17,7 @@ describe('InteractionFlow', () => {
 
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
-      expect(handlerTypes).toStrictEqual(['function', 'function']);
+      expect(handlerTypes).toStrictEqual(['function', 'function', 'function']);
     });
 
     it('VALID: each registration has a non-empty description', () => {
@@ -27,6 +27,7 @@ describe('InteractionFlow', () => {
 
       expect(descriptions).toStrictEqual([
         'Signals the CLI with step completion status, progress, or blocking conditions',
+        "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The questions are surfaced to the user's browser and their answers arrive as the next user message in the session. Use when running headless (no interactive terminal).",
         'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.',
       ]);
     });
@@ -36,7 +37,7 @@ describe('InteractionFlow', () => {
 
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
-      expect(schemaTypes).toStrictEqual(['object', 'object']);
+      expect(schemaTypes).toStrictEqual(['object', 'object', 'object']);
     });
   });
 
@@ -61,8 +62,8 @@ describe('InteractionFlow', () => {
       const spreads = [...source.matchAll(spreadPattern)];
 
       expect({ destructures: destructures.length, spreads: spreads.length }).toStrictEqual({
-        destructures: 2,
-        spreads: 2,
+        destructures: 3,
+        spreads: 3,
       });
     });
   });

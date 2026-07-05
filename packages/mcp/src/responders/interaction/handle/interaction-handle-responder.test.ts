@@ -46,6 +46,35 @@ describe('InteractionHandleResponder', () => {
     });
   });
 
+  describe('ask-user-question', () => {
+    it('VALID: {questions} => returns the wait-for-next-message instruction', async () => {
+      const proxy = InteractionHandleResponderProxy();
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'ask-user-question' }),
+        args: {
+          questions: [
+            {
+              question: 'Which database?',
+              header: 'Database',
+              options: [{ label: 'Postgres', description: 'Relational DB' }],
+              multiSelect: false,
+            },
+          ],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: "Questions sent to the user. Their answers will arrive as your next user message. Do NOT continue generating — wait for the session to resume with the user's response.",
+          },
+        ],
+      });
+    });
+  });
+
   describe('get-agent-prompt', () => {
     it('VALID: {agent, questId, workItemId} => returns augmented prompt from adapter', async () => {
       const proxy = InteractionHandleResponderProxy();

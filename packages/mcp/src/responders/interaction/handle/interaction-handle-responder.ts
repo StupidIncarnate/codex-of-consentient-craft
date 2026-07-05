@@ -8,6 +8,7 @@
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
+import { askUserQuestionBroker } from '../../../brokers/ask/user-question/ask-user-question-broker';
 import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broker';
 import { orchestratorGetAgentPromptAdapter } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter';
 import { orchestratorHandleSignalBackAdapter } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter';
@@ -52,6 +53,22 @@ export const InteractionHandleResponder = async ({
         {
           type: 'text',
           text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
+        },
+      ],
+    };
+  }
+
+  if (tool === 'ask-user-question') {
+    // Fire-and-forget: validate the questions and instruct the agent to wait. The web surfaces the
+    // questions to the browser clarify panel by scanning the session stream for this tool call; the
+    // user's answers arrive as the agent's next user message when the session resumes.
+    const result = askUserQuestionBroker({ input: args });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: result,
         },
       ],
     };

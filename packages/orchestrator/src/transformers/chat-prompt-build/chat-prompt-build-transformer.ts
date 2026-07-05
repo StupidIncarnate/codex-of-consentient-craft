@@ -36,5 +36,15 @@ export const chatPromptBuildTransformer = ({
     promptText = promptText.replace(statics.prompt.placeholders.questId, questId);
   }
 
+  if (role === 'chaoswhisperer') {
+    // This is the headless spawn path (node orchestrationMode): ChaosWhisperer runs without an
+    // interactive TTY, so it must use the MCP ask-user-question tool (native AskUserQuestion is
+    // unavailable). The /dumpster-create slash-command build substitutes the native variant instead.
+    promptText = promptText.replace(
+      dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+      dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+    );
+  }
+
   return promptTextContract.parse(promptText);
 };

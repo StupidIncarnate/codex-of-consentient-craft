@@ -86,6 +86,11 @@ export const smoketestProbeArgsStatics = {
     args: {},
     summary: 'mcp-list-guilds-probe-ok',
   },
+  'ask-user-question': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-ask-user-question-not-in-mcp-suite',
+    note: 'ask-user-question is fire-and-forget clarification that funnels questions to the browser and waits for a human reply — not exercisable from the automated smoketest harness.',
+  },
   'get-agent-prompt': {
     mode: 'call',
     args: { agent: 'chaoswhisperer-gap-minion' },

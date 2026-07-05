@@ -33,13 +33,24 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterCreate.body => embeds the dumpster-create prompt template verbatim', () => {
+    it('VALID: dumpsterCreate.body => embeds the dumpster-create prompt template with the native clarify instruction substituted', () => {
       const { body } = slashCommandsStatics.dumpsterCreate;
-      const { template } = dumpsterCreatePromptStatics.prompt;
-      const foundIndex = body.indexOf(template);
+      const expected = dumpsterCreatePromptStatics.prompt.template.replace(
+        dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+        dumpsterCreatePromptStatics.clarifyInstructions.native,
+      );
+      const foundIndex = body.indexOf(expected);
 
       expect(foundIndex).toBeGreaterThan(0);
-      expect(body.slice(foundIndex, foundIndex + template.length)).toBe(template);
+      expect(body.slice(foundIndex, foundIndex + expected.length)).toBe(expected);
+    });
+
+    it('VALID: dumpsterCreate.body => uses the native AskUserQuestion clarify tool, not the MCP tool, with no unresolved placeholder', () => {
+      const { body } = slashCommandsStatics.dumpsterCreate;
+
+      expect(body.indexOf('$CLARIFY_INSTRUCTION')).toBe(-1);
+      expect(body.indexOf('mcp__dungeonmaster__ask-user-question')).toBe(-1);
+      expect(body.indexOf('use the native `AskUserQuestion` tool')).toBeGreaterThan(-1);
     });
 
     it('VALID: dumpsterCreate.body => contains the create-quest instruction from the chaos prompt', () => {

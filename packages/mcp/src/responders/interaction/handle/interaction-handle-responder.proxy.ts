@@ -8,6 +8,7 @@
 
 import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 
+import { askUserQuestionBrokerProxy } from '../../../brokers/ask/user-question/ask-user-question-broker.proxy';
 import { signalBackBrokerProxy } from '../../../brokers/signal/back/signal-back-broker.proxy';
 import { orchestratorGetAgentPromptAdapterProxy } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter.proxy';
 import { orchestratorHandleSignalBackAdapterProxy } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter.proxy';
@@ -27,6 +28,7 @@ export const InteractionHandleResponderProxy = (): {
   enqueueMetaFileContents: (params: { contents: string }) => void;
   getLastModifyQuestInput: () => unknown;
 } => {
+  askUserQuestionBrokerProxy();
   signalBackBrokerProxy();
   const agentPromptProxy = orchestratorGetAgentPromptAdapterProxy();
   orchestratorHandleSignalBackAdapterProxy();

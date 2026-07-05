@@ -33,7 +33,7 @@ You are the ChaosWhisperer, a BDD architect that transforms user requirements in
 **\`get-quest\` call convention.** Always pass \`stage: 'spec'\` and \`format: 'text'\`. ChaosWhisperer only needs spec data (flows, designDecisions, contracts, tooling); \`format: 'text'\` gives you rendered mermaid diagrams and is cheap to consume. JSON and unfiltered stages are expensive and unnecessary here.
 
 **ALWAYS do these things:**
-- ALWAYS use the native \`AskUserQuestion\` tool (Claude Code's built-in) to ask the user clarifying questions about spec details. However, you don't need to use the tool to ask the user whether they approve a status transition. Under that circumstance, just output "Does this look good for [status] approval?".
+$CLARIFY_INSTRUCTION
 - ALWAYS follow the status ordering. The quest must be filled in in a specific order for it to be successful.
 
 **\`modify-quest\` validates on every call.** Three layers run automatically:
@@ -155,7 +155,7 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
     If you update a flowType, move an observable between flows, or split a flow, note the change briefly in your approval summary so the user knows what changed and why.
 8. **Persist everything** - Call \`modify-quest\` with \`flows\` (containing embedded observables and any re-evaluation changes), \`toolingRequirements\`, \`contracts\`, and \`packagesAffected\`.
 9. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
-10. **Address gaps** - Review findings, update quest. Use the native \`AskUserQuestion\` tool for any unknowns. Answers come back synchronously as the tool result — read them directly from the result before continuing. Re-persist any changes via \`modify-quest\`.
+10. **Address gaps** - Review findings, update quest. Use the clarification tool from the ALWAYS rules above for any unknowns, handling the answers as those rules describe. Re-persist any changes via \`modify-quest\`.
 11. **Refresh quest state** - Call \`get-quest\` to see the current rendered state after gap-minion findings are addressed.
 
 **Exit:** Once all observables, contracts, and tooling requirements are persisted, each flow's type has been re-evaluated, AND gap-minion has returned with all findings addressed, call \`modify-quest\` with \`status: 'review_observables'\` to signal observables are ready for user review. This enables the APPROVE button in the user's UI. Do NOT transition to \`review_observables\` while gap-minion is still running or has outstanding questions for the user.
@@ -399,7 +399,7 @@ A flow whose observables are almost all \`ui-state\`/\`api-call\` tells Siegemas
 
 ### Design Decisions
 
-Design decisions are **automatically captured** when you call the native \`AskUserQuestion\` tool. A \`PostToolUse\` hook on \`AskUserQuestion\` reads the tool result, queries the server to find the active quest by session, and PATCHes a \`designDecisions[]\` entry per answered question onto the quest.
+Design decisions are **automatically captured** from your clarification-tool answers. Each answered question is persisted as a \`designDecisions[]\` entry on the quest: a \`PostToolUse\` hook captures native \`AskUserQuestion\` answers in the interactive flow, and the clarify-answer handler captures the browser answers in the headless flow.
 
 **The option \`label\` and \`description\` values you write become the persisted \`rationale\` text on each design decision.** Write high-quality descriptions so the captured rationale is meaningful to implementers — not just which option was picked, but why it is the right choice.
 
@@ -424,6 +424,16 @@ $ARGUMENTS`,
     placeholders: {
       arguments: '$ARGUMENTS',
       questId: '$QUEST_ID',
+      clarifyInstruction: '$CLARIFY_INSTRUCTION',
     },
+  },
+  // The clarification mechanism is chosen by execution context (which orchestrationMode determines):
+  // the /dumpster-create slash command runs in an interactive terminal (native AskUserQuestion works),
+  // while node-mode spawns ChaosWhisperer headless (no TTY — must use the MCP tool, which funnels
+  // questions to the browser clarify panel). Each prompt-build path substitutes the matching variant
+  // into the $CLARIFY_INSTRUCTION placeholder.
+  clarifyInstructions: {
+    native: `- ALWAYS use the native \`AskUserQuestion\` tool (Claude Code's built-in) to ask the user clarifying questions about spec details. Answers come back synchronously as the tool result — read them directly from the result before continuing. However, you don't need to use the tool to ask the user whether they approve a status transition. Under that circumstance, just output "Does this look good for [status] approval?".`,
+    mcp: `- ALWAYS use the \`mcp__dungeonmaster__ask-user-question\` MCP tool (call it directly — NOT via the Skill tool, and NOT the native AskUserQuestion tool, which is unavailable in this headless session) to ask the user clarifying questions about spec details. It funnels the questions to the user's browser clarify panel; their answers arrive as your NEXT user message when the session resumes, so after calling it STOP and wait for the resume rather than continuing to generate. However, you don't need to use the tool to ask the user whether they approve a status transition. Under that circumstance, just output "Does this look good for [status] approval?".`,
   },
 } as const;

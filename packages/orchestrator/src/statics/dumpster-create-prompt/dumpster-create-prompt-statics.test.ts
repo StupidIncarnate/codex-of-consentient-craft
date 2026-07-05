@@ -8,7 +8,12 @@ describe('dumpsterCreatePromptStatics', () => {
         placeholders: {
           arguments: '$ARGUMENTS',
           questId: '$QUEST_ID',
+          clarifyInstruction: '$CLARIFY_INSTRUCTION',
         },
+      },
+      clarifyInstructions: {
+        native: expect.stringMatching(/^.+$/su),
+        mcp: expect.stringMatching(/^.+$/su),
       },
     });
   });
@@ -99,26 +104,38 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => uses native AskUserQuestion tool, not the MCP ask-user-question tool', () => {
+  it('VALID: prompt template => defers the clarify tool choice to a $CLARIFY_INSTRUCTION placeholder', () => {
     const { template } = dumpsterCreatePromptStatics.prompt;
+    const { native, mcp } = dumpsterCreatePromptStatics.clarifyInstructions;
 
-    expect(template.indexOf('mcp__dungeonmaster__ask-user-question')).toBe(-1);
-    expect(template.indexOf('AskUserQuestion')).toBeGreaterThan(-1);
+    expect(template.indexOf('$CLARIFY_INSTRUCTION')).toBeGreaterThan(-1);
+    expect(native.indexOf('AskUserQuestion')).toBeGreaterThan(-1);
+    expect(native.indexOf('mcp__dungeonmaster__ask-user-question')).toBe(-1);
+    expect(mcp.indexOf('mcp__dungeonmaster__ask-user-question')).toBeGreaterThan(-1);
   });
 
-  it('VALID: prompt template => instructs reading AskUserQuestion answers synchronously from the tool result', () => {
+  it('VALID: native clarify instruction => reads AskUserQuestion answers synchronously from the tool result', () => {
     const needle =
       'Answers come back synchronously as the tool result — read them directly from the result before continuing.';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const { native } = dumpsterCreatePromptStatics.clarifyInstructions;
+    const foundIndex = native.indexOf(needle);
+    const foundSlice = native.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => explains that a PostToolUse hook on AskUserQuestion captures design decisions', () => {
+  it('VALID: mcp clarify instruction => tells the agent the answers arrive as the next user message on resume', () => {
+    const needle = 'their answers arrive as your NEXT user message when the session resumes';
+    const { mcp } = dumpsterCreatePromptStatics.clarifyInstructions;
+    const foundIndex = mcp.indexOf(needle);
+    const foundSlice = mcp.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => explains design decisions are captured from clarification answers in both flows', () => {
     const needle =
-      'A `PostToolUse` hook on `AskUserQuestion` reads the tool result, queries the server to find the active quest by session, and PATCHes a `designDecisions[]` entry per answered question onto the quest.';
+      'a `PostToolUse` hook captures native `AskUserQuestion` answers in the interactive flow, and the clarify-answer handler captures the browser answers in the headless flow.';
     const { template } = dumpsterCreatePromptStatics.prompt;
     const foundIndex = template.indexOf(needle);
     const foundSlice = template.slice(foundIndex, foundIndex + needle.length);

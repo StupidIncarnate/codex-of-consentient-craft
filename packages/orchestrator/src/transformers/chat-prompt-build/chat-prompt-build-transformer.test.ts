@@ -19,7 +19,11 @@ describe('chatPromptBuildTransformer', () => {
 
       const expected = dumpsterCreatePromptStatics.prompt.template
         .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, 'Build auth')
-        .replace(dumpsterCreatePromptStatics.prompt.placeholders.questId, 'abc-123');
+        .replace(dumpsterCreatePromptStatics.prompt.placeholders.questId, 'abc-123')
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+          dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+        );
 
       expect(result).toBe(expected);
     });
@@ -49,10 +53,12 @@ describe('chatPromptBuildTransformer', () => {
         questId: null,
       });
 
-      const expected = dumpsterCreatePromptStatics.prompt.template.replace(
-        dumpsterCreatePromptStatics.prompt.placeholders.arguments,
-        'Build auth',
-      );
+      const expected = dumpsterCreatePromptStatics.prompt.template
+        .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, 'Build auth')
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+          dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+        );
 
       expect(result).toBe(expected);
     });
