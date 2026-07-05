@@ -224,7 +224,7 @@ This registers `dungeonmaster` and all `@dungeonmaster/*` packages globally.
 
 ```bash
 cd /path/to/your-test-project
-npm link dungeonmaster @dungeonmaster/cli @dungeonmaster/config @dungeonmaster/eslint-plugin @dungeonmaster/hooks @dungeonmaster/orchastrator @dungeonmaster/shared @dungeonmaster/standards @dungeonmaster/testing @dungeonmaster/tooling
+npm link dungeonmaster @dungeonmaster/cli @dungeonmaster/config @dungeonmaster/eslint-plugin @dungeonmaster/hooks @dungeonmaster/local-eslint @dungeonmaster/mcp @dungeonmaster/orchestrator @dungeonmaster/server @dungeonmaster/shared @dungeonmaster/testing @dungeonmaster/tooling @dungeonmaster/ward @dungeonmaster/web
 ```
 
 ### Step 3: Verify the links
