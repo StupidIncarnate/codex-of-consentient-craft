@@ -21,7 +21,11 @@ import { RateLimitsFlow } from '../flows/rate-limits/rate-limits-flow';
 import { ServerFlow } from '../flows/server/server-flow';
 import { ToolingFlow } from '../flows/tooling/tooling-flow';
 
-export const StartServer = (): AdapterResult => {
+export const StartServer = ({
+  serveWebBundle = false,
+}: {
+  serveWebBundle?: boolean;
+} = {}): AdapterResult => {
   // Start the quest-driven JSONL watcher reactor BEFORE the HTTP server begins listening.
   // It tails one JSONL per distinct sessionId stamped onto an in-progress workItem across
   // all active quests, reconciling on every quest-modified outbox event. Source of truth
@@ -46,5 +50,6 @@ export const StartServer = (): AdapterResult => {
       RateLimitsFlow(),
       OrchestrationFlow(),
     ],
+    serveWebBundle,
   });
 };

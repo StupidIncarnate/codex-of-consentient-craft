@@ -12,13 +12,19 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 
-export const ServerFlow = ({ subApps }: { subApps: Hono[] }): AdapterResult => {
+export const ServerFlow = ({
+  subApps,
+  serveWebBundle = false,
+}: {
+  subApps: Hono[];
+  serveWebBundle?: boolean;
+}): AdapterResult => {
   const app = new Hono();
 
   for (const sub of subApps) {
     app.route('', sub);
   }
 
-  ServerInitResponder({ app });
+  ServerInitResponder({ app, serveWebBundle });
   return adapterResultContract.parse({ success: true });
 };

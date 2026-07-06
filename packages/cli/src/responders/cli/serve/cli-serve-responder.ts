@@ -18,11 +18,15 @@ const SERVER_MODULE_NAME = '@dungeonmaster/server';
 
 export const CliServeResponder = async (): Promise<AdapterResult> => {
   const serverPath = filePathContract.parse(require.resolve(SERVER_MODULE_NAME));
-  const serverModule = await runtimeDynamicImportAdapter<{ StartServer: () => AdapterResult }>({
+  const serverModule = await runtimeDynamicImportAdapter<{
+    StartServer: (args?: { serveWebBundle?: boolean }) => AdapterResult;
+  }>({
     path: serverPath,
   });
 
-  serverModule.StartServer();
+  // Published single-port launch: no separate vite server exists, so the HTTP server serves the
+  // built @dungeonmaster/web bundle itself for non-API routes.
+  serverModule.StartServer({ serveWebBundle: true });
   const port = Number(portResolveBroker());
   const serverUrl = `http://${environmentStatics.hostname}:${port}`;
   process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);

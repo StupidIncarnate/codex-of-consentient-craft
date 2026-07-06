@@ -14,6 +14,16 @@ describe('CliServeResponder', () => {
       expect(StartServer).toHaveBeenCalledTimes(1);
     });
 
+    it('VALID: {default config} => starts the server in web-bundle serving mode', async () => {
+      const StartServer = jest.fn();
+      const proxy = CliServeResponderProxy({ StartServer });
+      proxy.setupPlatform({ platform: 'linux' });
+
+      await proxy.callResponder();
+
+      expect(StartServer).toHaveBeenCalledWith({ serveWebBundle: true });
+    });
+
     it('VALID: {default config} => writes server URL to stdout', async () => {
       const StartServer = jest.fn();
       const proxy = CliServeResponderProxy({ StartServer });

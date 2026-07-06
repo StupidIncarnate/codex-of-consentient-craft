@@ -1,6 +1,7 @@
 import {
   AbsoluteFilePathStub,
   AgentIdStub,
+  FileContentsStub,
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
@@ -854,6 +855,85 @@ describe('ServerInitResponder', () => {
       // sees it, so the request is never redirected to the web UI port. The invariant
       // under test is the absence of a redirect Location header, not the exact status.
       expect(response.headers.get('location')).toBe(null);
+    });
+  });
+
+  describe('single-port web bundle serving (serveWebBundle=true)', () => {
+    it('VALID: {GET /} => 200 serving index.html from the built web bundle (no redirect)', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setupWebBundleFile({
+        contents: FileContentsStub({ value: '<!doctype html><title>DM</title>' }),
+      });
+      proxy.callResponder({ serveWebBundle: true });
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:3737/',
+      });
+      const text = await response.text();
+
+      expect({
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        location: response.headers.get('location'),
+        text,
+      }).toStrictEqual({
+        status: 200,
+        contentType: 'text/html; charset=utf-8',
+        location: null,
+        text: '<!doctype html><title>DM</title>',
+      });
+    });
+
+    it('VALID: {GET /codex/quest/<id>?chat=hidden} => 200 index.html SPA fallback (not redirected)', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setupWebBundleFile({ contents: FileContentsStub({ value: '<!doctype html>' }) });
+      proxy.callResponder({ serveWebBundle: true });
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:3737/codex/quest/abc-123?chat=hidden',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+        contentType: response.headers.get('content-type'),
+      }).toStrictEqual({
+        status: 200,
+        location: null,
+        contentType: 'text/html; charset=utf-8',
+      });
+    });
+
+    it('VALID: {GET /assets/index-abc.js} => 200 serving the JS asset', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setupWebBundleFile({ contents: FileContentsStub({ value: 'console.log(1)' }) });
+      proxy.callResponder({ serveWebBundle: true });
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:3737/assets/index-abc.js',
+      });
+      const text = await response.text();
+
+      expect({
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        text,
+      }).toStrictEqual({
+        status: 200,
+        contentType: 'text/javascript; charset=utf-8',
+        text: 'console.log(1)',
+      });
+    });
+
+    it('VALID: {GET /api/quests in bundle mode} => 404 (not served as an SPA route)', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.callResponder({ serveWebBundle: true });
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:3737/api/quests',
+      });
+
+      expect(response.status).toBe(404);
     });
   });
 });

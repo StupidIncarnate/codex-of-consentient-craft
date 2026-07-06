@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
+  FileContents,
   GuildId,
   OrchestrationEventType,
   ProcessId,
@@ -66,6 +67,7 @@ import { orchestratorOutboxWatchAdapterProxy } from '../../../adapters/orchestra
 import { orchestratorReplayChatHistoryAdapterProxy } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter.proxy';
 import { orchestratorStopAllChatsAdapterProxy } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter.proxy';
 import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy';
+import { webBundleResponseBrokerProxy } from '../../../brokers/web-bundle/response/web-bundle-response-broker.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
@@ -76,9 +78,10 @@ type Quest = ReturnType<typeof QuestStub>;
 type EventHandler = (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
 
 export const ServerInitResponderProxy = (): {
-  callResponder: () => void;
+  callResponder: (params?: { serveWebBundle?: boolean }) => void;
   dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
   setServerPort: (params: { value: string }) => void;
+  setupWebBundleFile: (params: { contents: FileContents }) => void;
   simulateConnection: (params: { client: WsClient }) => void;
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
   simulateDisconnect: (params: { ws: WsClient }) => void;
@@ -120,17 +123,21 @@ export const ServerInitResponderProxy = (): {
   orchestratorFindQuestByWorkItemIdAdapterProxy();
   wsEventRelayBroadcastBrokerProxy();
   questWaitForSessionStampBrokerProxy();
+  const webBundleProxy = webBundleResponseBrokerProxy();
   designProcessStateProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });
 
   return {
-    callResponder: (): void => {
+    callResponder: ({ serveWebBundle = false }: { serveWebBundle?: boolean } = {}): void => {
       // Clean up leftover signal handlers from previous tests to prevent listener leaks.
       // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
       process.removeAllListeners('SIGTERM');
       process.removeAllListeners('SIGINT');
-      ServerInitResponder({ app: new Hono() });
+      ServerInitResponder({ app: new Hono(), serveWebBundle });
+    },
+    setupWebBundleFile: ({ contents }: { contents: FileContents }): void => {
+      webBundleProxy.setupFileContents({ contents });
     },
     dispatchRequest: async ({
       url,
