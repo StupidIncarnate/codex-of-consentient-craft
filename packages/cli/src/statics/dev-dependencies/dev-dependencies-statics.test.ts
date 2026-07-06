@@ -4,6 +4,12 @@ describe('devDependenciesStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(devDependenciesStatics).toStrictEqual({
       packages: {
+        '@dungeonmaster/eslint-plugin': '*',
+        '@dungeonmaster/hooks': '*',
+        '@dungeonmaster/mcp': '*',
+        '@dungeonmaster/shared': '*',
+        '@dungeonmaster/testing': '*',
+        '@dungeonmaster/ward': '*',
         '@eslint/compat': '^1.3.1',
         '@eslint/eslintrc': '^3.3.1',
         '@playwright/test': '^1.58.2',

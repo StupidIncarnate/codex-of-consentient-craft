@@ -9,7 +9,7 @@ import { InstallFlow } from './install-flow';
 
 describe('install-flow integration', () => {
   describe('InstallFlow', () => {
-    it('VALID: {context: no existing config} => creates .dungeonmaster config', async () => {
+    it('VALID: {context: no existing config} => creates .dungeonmaster.json config', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'create-config' }),
       });
@@ -25,18 +25,31 @@ describe('install-flow integration', () => {
         packageName: '@dungeonmaster/config',
         success: true,
         action: 'created',
-        message: 'Created .dungeonmaster config',
+        message: 'Created .dungeonmaster.json',
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster' }),
+        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
       });
 
       testbed.cleanup();
 
       expect(configContent).toBe(
         JSON.stringify(
-          { framework: 'node-library', schema: 'zod', orchestrationMode: 'node' },
+          {
+            framework: 'monorepo',
+            orchestrationMode: 'node',
+            schema: 'zod',
+            orchestration: { slotCount: 3, timeoutMs: 900000 },
+            dungeonmaster: { port: 3737 },
+            devServer: {
+              devCommand: 'npm run dev',
+              port: 3738,
+              buildCommand: 'npm run build',
+              readinessPath: '/',
+              readinessTimeoutMs: 30000,
+            },
+          },
           null,
           2,
         ),
@@ -49,7 +62,7 @@ describe('install-flow integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster' }),
+        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
         content: FileContentStub({
           value: JSON.stringify({ framework: 'custom', schema: 'yup' }, null, 2),
         }),
@@ -66,11 +79,11 @@ describe('install-flow integration', () => {
         packageName: '@dungeonmaster/config',
         success: true,
         action: 'skipped',
-        message: 'Config already exists',
+        message: '.dungeonmaster.json already exists',
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster' }),
+        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
       });
 
       testbed.cleanup();

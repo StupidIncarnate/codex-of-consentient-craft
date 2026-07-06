@@ -19,7 +19,7 @@ import { folderConfigTransformer } from '../../../transformers/folder-config/fol
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
-import { nodeBuiltinStatics } from '../../../statics/node-builtin/node-builtin-statics';
+import { validateExternalImportLayerBroker } from './validate-external-import-layer-broker';
 
 export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -37,8 +37,6 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
           'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
         unnecessaryCategoryInPath:
           'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
-        forbiddenSharedRootImport:
-          'Cannot import from "@dungeonmaster/shared" directly. Use subpath imports like "@dungeonmaster/shared/contracts" instead.',
       },
       schema: [],
     },
@@ -68,74 +66,6 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
         const importSource = node.source?.value;
 
         if (typeof importSource !== 'string') {
-          return;
-        }
-
-        // Check for @dungeonmaster/shared imports - treat them like local folder imports
-        if (importSource.startsWith('@dungeonmaster/shared/')) {
-          // Extract the folder type from the subpath (e.g., "contracts" from "@dungeonmaster/shared/contracts")
-          const subpath = importSource.replace('@dungeonmaster/shared/', '');
-          const [sharedFolderType] = subpath.split('/');
-
-          // If no folder type found, skip validation
-          if (!sharedFolderType) {
-            return;
-          }
-
-          // Exception: @dungeonmaster/shared/@types imports are allowed for all folders (type definitions)
-          if (sharedFolderType === '@types') {
-            return;
-          }
-
-          // Exception: Test files and stub files can import from @dungeonmaster/shared/contracts
-          // Test files need stubs (exported via barrel) and stub files need other stubs
-          const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
-          const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
-          const isFromContracts = sharedFolderType === 'contracts';
-
-          if ((isTestFile || isCurrentFileStub) && isFromContracts) {
-            // Allow test files and stub files to import from @dungeonmaster/shared/contracts
-            return;
-          }
-
-          // Check if this folder type is in the allowed imports.
-          // Accepts either the short folder name ('adapters/') or the full shared subpath
-          // ('@dungeonmaster/shared/adapters') so callers can be explicit about which
-          // cross-package shared subpath they need without opening up all local folder imports.
-          const isAllowed = allowedImports.some((allowed: string) => {
-            if (allowed === 'node_modules') {
-              return false;
-            }
-
-            // Full-path match: '@dungeonmaster/shared/adapters' in allowedImports
-            if (allowed === importSource) {
-              return true;
-            }
-
-            const folderName = allowed.endsWith('/') ? allowed.slice(0, -1) : allowed;
-            return sharedFolderType === folderName;
-          });
-
-          if (!isAllowed) {
-            ctx.report({
-              node,
-              messageId: 'forbiddenImport',
-              data: {
-                folderType,
-                importedFolder: sharedFolderType,
-                allowed: allowedImports.join(', '),
-              },
-            });
-          }
-          return;
-        }
-
-        // Forbid importing from @dungeonmaster/shared root
-        if (importSource === '@dungeonmaster/shared') {
-          ctx.report({
-            node,
-            messageId: 'forbiddenSharedRootImport',
-          });
           return;
         }
 
@@ -268,62 +198,18 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
               },
             });
           }
-        } else {
-          // Check if external imports are allowed
-          // Note: Check raw string literals against the array (which has specific literal types from statics)
-          const canImportExternal = (allowedImports as readonly unknown[]).includes('node_modules');
-
-          // Check if this specific package is explicitly allowed
-          const isSpecificPackageAllowed = allowedImports.some((allowed: string) => {
-            // Don't treat folder paths as package names
-            if (allowed.endsWith('/') || allowed === 'node_modules') {
-              return false;
-            }
-            // Check if the import source matches the allowed package name
-            return importSource === allowed || importSource.startsWith(`${allowed}/`);
-          });
-
-          // Exception: Test files can import @dungeonmaster/testing (workspace test infrastructure)
-          // but NOT contracts — those must come from @dungeonmaster/shared/contracts
-          const isTestFileForExternal = isTestFileGuard({ filename: ctx.filename ?? '' });
-          const isDungeonmasterTesting =
-            importSource === '@dungeonmaster/testing' ||
-            importSource.startsWith('@dungeonmaster/testing/');
-
-          if (isTestFileForExternal && isDungeonmasterTesting) {
-            const importsContract = node.specifiers?.some((specifier) => {
-              const name = specifier.imported?.name;
-              return typeof name === 'string' && name.endsWith('Contract');
-            });
-
-            if (!importsContract) {
-              return;
-            }
-          }
-
-          // Exception: Integration test files can import Node builtins (fs, path, crypto, etc.)
-          // Integration tests run real subprocesses and file I/O without mocking
-          const isIntegrationTest = (ctx.filename ?? '').includes('.integration.test.');
-          const bareModule = importSource.startsWith('node:')
-            ? importSource.slice('node:'.length)
-            : importSource;
-          const isNodeBuiltin = nodeBuiltinStatics.modules.some((mod) => mod === bareModule);
-
-          if (isIntegrationTest && isNodeBuiltin) {
-            return;
-          }
-
-          if (!canImportExternal && !isSpecificPackageAllowed) {
-            ctx.report({
-              node,
-              messageId: 'forbiddenExternalImport',
-              data: {
-                folderType,
-                packageName: importSource,
-              },
-            });
-          }
+          return;
         }
+
+        // Non-relative import (external package or cross-package folder-typed import): gated by the
+        // SAME folder rules as local cross-folder imports — folder type, not package name, decides.
+        validateExternalImportLayerBroker({
+          node,
+          context: ctx,
+          folderType,
+          allowedImports,
+          importSource,
+        });
       },
     };
   },

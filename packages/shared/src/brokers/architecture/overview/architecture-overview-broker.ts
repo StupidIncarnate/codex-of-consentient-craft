@@ -177,6 +177,37 @@ Only **entry files** can be imported across domain folders.
 
 **Layer files** (\`-layer-\` in filename) are internal implementation details - they can ONLY be imported within their own domain folder, never across domains.
 
+## Cross-Package Public API
+
+Packages expose their public surface through **root barrel files named per folder type** — one \`.ts\` file at the package root per folder (\`contracts.ts\`, \`brokers.ts\`, \`guards.ts\`, …). Each barrel line re-exports one entry file (an \`export *\` of, e.g., \`./src/contracts/user/user-contract\`).
+
+- Root barrels live **outside \`src/\`**, matched by tsconfig \`include: ["*.ts"]\`, so they are exempt from \`enforce-implementation-colocation\` (no \`.test.ts\` needed). A \`src/index.ts\` barrel is NOT exempt and gets flagged — keep barrels at the package root.
+- \`package.json\` \`exports\` maps each subpath (\`./contracts\`) to \`source\` (\`./contracts.ts\`), \`require\`/\`import\` (\`./dist/contracts.js\`), and \`types\` (\`./dist/contracts.d.ts\`).
+- **node10 resolution** (\`moduleResolution: "node"\`, used everywhere) ignores the \`exports\` map and resolves the root \`contracts.ts\` **source** directly for typecheck + lint (no build needed), while Node at **runtime** honors \`exports\` to hit \`dist/contracts.js\`. Load-bearing: editing a contract lets downstream packages typecheck against the new source immediately, but they must rebuild before running.
+
+### Consuming another package's API
+
+Import by a **folder-type subpath** (\`@scope/pkg/contracts\`) or from the **main barrel** (\`@scope/pkg\`). Cross-package imports obey the SAME folder rules as local cross-folder imports — the **folder type**, not the package name, decides what is allowed:
+
+- Subpath import → classified by the subpath segment (\`@scope/pkg/contracts\` is a \`contracts\` import).
+- Main-barrel import → classified by each imported name's suffix (\`…Contract\` → contracts, \`…Broker\` → brokers, \`…Guard\` → guards, \`…Adapter\` → adapters, \`…Widget\` → widgets, …).
+
+A \`brokers/\` file may import another package's \`contracts\`/\`adapters\`/\`brokers\` but not its \`flows\`/\`responders\`/\`widgets\`; a \`contracts/\` file may import only \`contracts\`/\`statics\`/\`errors\`; another package's \`flows/\` is importable only from a \`flows/\` file. \`adapters/\` (which alone allow \`node_modules\`) are the sanctioned boundary for anything else.
+
+### Consumer TypeScript config
+
+Each package \`tsconfig.json\` extends the published base and adds only per-package keys:
+
+\`\`\`json
+{
+  "extends": "@dungeonmaster/eslint-plugin/tsconfig",
+  "compilerOptions": { "outDir": "./dist", "rootDir": "./", "composite": true, "declaration": true },
+  "include": ["src/**/*", "*.ts"]
+}
+\`\`\`
+
+The base carries the load-bearing options — \`moduleResolution: "node"\` (the node10 source-resolution rule above), the strict flags, \`esModuleInterop\`, \`resolveJsonModule\`. \`include: ["*.ts"]\` is what compiles the root barrels.
+
 ## Layer Files - Decomposing Complex Components
 
 **Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.

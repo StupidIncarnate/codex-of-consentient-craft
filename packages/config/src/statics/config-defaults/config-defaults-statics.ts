@@ -28,10 +28,12 @@ export const configDefaultsStatics = {
   },
   devServer: {
     buildCommand: 'npm run build',
+    devCommand: 'npm run dev',
     readinessPath: '/',
     port: {
       min: 1,
       max: 65535,
+      default: 3738,
     },
     readinessTimeoutMs: {
       min: 1000,

@@ -17,7 +17,7 @@ describe('start-install integration', () => {
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster' }),
+        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
       });
 
       testbed.cleanup();
@@ -28,7 +28,20 @@ describe('start-install integration', () => {
       });
       expect(configContent).toBe(
         JSON.stringify(
-          { framework: 'node-library', schema: 'zod', orchestrationMode: 'node' },
+          {
+            framework: 'monorepo',
+            orchestrationMode: 'node',
+            schema: 'zod',
+            orchestration: { slotCount: 3, timeoutMs: 900000 },
+            dungeonmaster: { port: 3737 },
+            devServer: {
+              devCommand: 'npm run dev',
+              port: 3738,
+              buildCommand: 'npm run build',
+              readinessPath: '/',
+              readinessTimeoutMs: 30000,
+            },
+          },
           null,
           2,
         ),

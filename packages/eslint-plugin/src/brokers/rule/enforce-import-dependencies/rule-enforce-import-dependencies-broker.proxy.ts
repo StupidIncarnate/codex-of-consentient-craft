@@ -1,4 +1,5 @@
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { validateExternalImportLayerBrokerProxy } from './validate-external-import-layer-broker.proxy';
 
 /**
  * Proxy for enforce-import-dependencies rule broker.
@@ -6,9 +7,13 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
  */
 export const ruleEnforceImportDependenciesBrokerProxy = (): {
   createContext: () => EslintContext;
-} => ({
-  createContext: (): EslintContext => ({
-    filename: undefined,
-    report: jest.fn(),
-  }),
-});
+} => {
+  validateExternalImportLayerBrokerProxy();
+
+  return {
+    createContext: (): EslintContext => ({
+      filename: undefined,
+      report: jest.fn(),
+    }),
+  };
+};

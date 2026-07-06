@@ -3,7 +3,7 @@ import { InstallCreateConfigResponderProxy } from './install-create-config-respo
 
 describe('InstallCreateConfigResponder', () => {
   describe('no existing config', () => {
-    it('VALID: {context: no existing config} => creates .dungeonmaster config', async () => {
+    it('VALID: {context: no existing config} => creates .dungeonmaster.json config', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
       proxy.setupConfigNotExists();
@@ -19,7 +19,7 @@ describe('InstallCreateConfigResponder', () => {
         packageName: '@dungeonmaster/config',
         success: true,
         action: 'created',
-        message: 'Created .dungeonmaster config',
+        message: 'Created .dungeonmaster.json',
       });
     });
   });
@@ -41,7 +41,7 @@ describe('InstallCreateConfigResponder', () => {
         packageName: '@dungeonmaster/config',
         success: true,
         action: 'skipped',
-        message: 'Config already exists',
+        message: '.dungeonmaster.json already exists',
       });
     });
   });

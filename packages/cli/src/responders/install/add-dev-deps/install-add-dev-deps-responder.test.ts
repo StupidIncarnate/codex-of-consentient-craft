@@ -1,5 +1,6 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstallAddDevDepsResponderProxy } from './install-add-dev-deps-responder.proxy';
+import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
 
 describe('InstallAddDevDepsResponder', () => {
   describe('no package.json', () => {
@@ -94,38 +95,23 @@ describe('InstallAddDevDepsResponder', () => {
       const writtenFiles = proxy.getWrittenFiles();
 
       expect(writtenFiles[0]?.path).toBe('/project/package.json');
-      expect(JSON.parse(String(writtenFiles[0]?.content))).toStrictEqual({
-        name: 'test-project',
-        version: '1.0.0',
-        devDependencies: {
-          '@eslint/compat': '^1.3.1',
-          '@eslint/eslintrc': '^3.3.1',
-          '@playwright/test': '^1.58.2',
-          '@types/debug': '^4.1.12',
-          '@types/eslint': '^9.0.0',
-          '@types/jest': '^30.0.0',
-          '@types/node': '^24.0.15',
-          '@types/prettier': '^2.7.3',
-          '@typescript-eslint/eslint-plugin': '^8.35.1',
-          '@typescript-eslint/parser': '^8.35.1',
-          eslint: '^9.36.0',
-          'eslint-config-prettier': '^10.1.5',
-          'eslint-plugin-eslint-comments': '^3.2.0',
-          'eslint-plugin-jest': '^29.0.1',
-          'eslint-plugin-prettier': '^5.5.1',
-          jest: '^30.0.4',
-          prettier: '^3.6.2',
-          'ts-jest': '^29.4.0',
-          'ts-node': '^10.9.2',
-          tsx: '^4.0.0',
-          typescript: '^5.8.3',
-        },
-      });
+      // Derive from statics so the required set (incl. @dungeonmaster/* tooling) stays in sync.
+      expect(String(writtenFiles[0]?.content)).toBe(
+        JSON.stringify(
+          {
+            name: 'test-project',
+            version: '1.0.0',
+            devDependencies: { ...devDependenciesStatics.packages },
+          },
+          null,
+          2,
+        ),
+      );
     });
   });
 
   describe('partial devDependencies', () => {
-    it('VALID: {some devDependencies exist} => preserves existing and adds missing', async () => {
+    it('VALID: {devDependencies present before nothing} => keeps name first, preserves + merges', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
       proxy.setupFileExists();
@@ -133,6 +119,7 @@ describe('InstallAddDevDepsResponder', () => {
         content: JSON.stringify({
           name: 'test-project',
           devDependencies: { typescript: '^5.0.0' },
+          license: 'MIT',
         }),
       });
 
@@ -150,32 +137,19 @@ describe('InstallAddDevDepsResponder', () => {
         message: 'Added devDependencies to package.json',
       });
 
-      expect(JSON.parse(String(proxy.getWrittenFiles()[0]?.content))).toStrictEqual({
-        name: 'test-project',
-        devDependencies: {
-          typescript: '^5.0.0',
-          '@eslint/compat': '^1.3.1',
-          '@eslint/eslintrc': '^3.3.1',
-          '@playwright/test': '^1.58.2',
-          '@types/debug': '^4.1.12',
-          '@types/eslint': '^9.0.0',
-          '@types/jest': '^30.0.0',
-          '@types/node': '^24.0.15',
-          '@types/prettier': '^2.7.3',
-          '@typescript-eslint/eslint-plugin': '^8.35.1',
-          '@typescript-eslint/parser': '^8.35.1',
-          eslint: '^9.36.0',
-          'eslint-config-prettier': '^10.1.5',
-          'eslint-plugin-eslint-comments': '^3.2.0',
-          'eslint-plugin-jest': '^29.0.1',
-          'eslint-plugin-prettier': '^5.5.1',
-          jest: '^30.0.4',
-          prettier: '^3.6.2',
-          'ts-jest': '^29.4.0',
-          'ts-node': '^10.9.2',
-          tsx: '^4.0.0',
-        },
-      });
+      // String-exact: proves top-level order is preserved (name/devDependencies/license), not
+      // hoisted. The merged devDependencies keep the statics order with typescript's value overridden.
+      expect(String(proxy.getWrittenFiles()[0]?.content)).toBe(
+        JSON.stringify(
+          {
+            name: 'test-project',
+            devDependencies: { ...devDependenciesStatics.packages, typescript: '^5.0.0' },
+            license: 'MIT',
+          },
+          null,
+          2,
+        ),
+      );
     });
   });
 
@@ -187,29 +161,7 @@ describe('InstallAddDevDepsResponder', () => {
       proxy.setupReadFile({
         content: JSON.stringify({
           name: 'test-project',
-          devDependencies: {
-            '@eslint/compat': '^1.3.1',
-            '@eslint/eslintrc': '^3.3.1',
-            '@playwright/test': '^1.58.2',
-            '@types/debug': '^4.1.12',
-            '@types/eslint': '^9.0.0',
-            '@types/jest': '^30.0.0',
-            '@types/node': '^24.0.15',
-            '@types/prettier': '^2.7.3',
-            '@typescript-eslint/eslint-plugin': '^8.35.1',
-            '@typescript-eslint/parser': '^8.35.1',
-            eslint: '^9.36.0',
-            'eslint-config-prettier': '^10.1.5',
-            'eslint-plugin-eslint-comments': '^3.2.0',
-            'eslint-plugin-jest': '^29.0.1',
-            'eslint-plugin-prettier': '^5.5.1',
-            jest: '^30.0.4',
-            prettier: '^3.6.2',
-            'ts-jest': '^29.4.0',
-            'ts-node': '^10.9.2',
-            tsx: '^4.0.0',
-            typescript: '^5.8.3',
-          },
+          devDependencies: { ...devDependenciesStatics.packages },
         }),
       });
 

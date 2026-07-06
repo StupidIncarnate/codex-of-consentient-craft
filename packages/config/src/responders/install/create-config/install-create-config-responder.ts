@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Checks for existing .dungeonmaster config file and creates one with defaults if missing
+ * PURPOSE: Checks for an existing .dungeonmaster.json config file and creates one with full defaults if missing
  *
  * USAGE:
  * const result = await InstallCreateConfigResponder({ context });
- * // Creates .dungeonmaster config or skips if already present
+ * // Creates .dungeonmaster.json (framework/schema/orchestrationMode/ports/orchestration/devServer) or skips if present
  */
 
 import {
@@ -13,12 +13,14 @@ import {
   packageNameContract,
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { locationsStatics, environmentStatics } from '@dungeonmaster/shared/statics';
+import { dungeonmasterConfigContract } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import { configDefaultsStatics } from '../../../statics/config-defaults/config-defaults-statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
-const CONFIG_FILENAME = locationsStatics.dungeonmasterHome.dir;
+const CONFIG_FILENAME = locationsStatics.repoRoot.config;
 const PACKAGE_NAME = '@dungeonmaster/config';
 const JSON_INDENT_SPACES = 2;
 const F_OK = 0;
@@ -38,23 +40,33 @@ export const InstallCreateConfigResponder = async ({
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('Config already exists'),
+      message: installMessageContract.parse('.dungeonmaster.json already exists'),
     };
   } catch {
-    const defaultConfig = {
-      framework: 'node-library',
+    // Full working default: everything past framework/schema is optional-with-defaults, so
+    // seed the load-bearing knobs (ports, orchestration, devServer) rather than a bare stub.
+    // Parsing fills the remaining defaults and enforces the port-collision refine at write time.
+    const validated = dungeonmasterConfigContract.parse({
+      framework: 'monorepo',
       schema: 'zod',
       orchestrationMode: 'node',
-    };
+      dungeonmaster: { port: environmentStatics.defaultPort },
+      orchestration: {},
+      devServer: {
+        devCommand: configDefaultsStatics.devServer.devCommand,
+        port: configDefaultsStatics.devServer.port.default,
+      },
+    });
+
     const contents = fileContentsContract.parse(
-      JSON.stringify(defaultConfig, null, JSON_INDENT_SPACES),
+      JSON.stringify(validated, null, JSON_INDENT_SPACES),
     );
     await fsWriteFileAdapter({ filepath: configPath, contents });
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,
       action: 'created',
-      message: installMessageContract.parse('Created .dungeonmaster config'),
+      message: installMessageContract.parse('Created .dungeonmaster.json'),
     };
   }
 };

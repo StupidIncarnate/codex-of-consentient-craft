@@ -14,6 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { InstallAddDevDepsResponder } from '../../responders/install/add-dev-deps/install-add-dev-deps-responder';
 import { InstallCreatePlaywrightResponder } from '../../responders/install/create-playwright/install-create-playwright-responder';
+import { InstallCreateTsconfigResponder } from '../../responders/install/create-tsconfig/install-create-tsconfig-responder';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 
@@ -24,16 +25,20 @@ export const InstallFlow = async ({
 }): Promise<InstallResult> => {
   const devDepsResult = await InstallAddDevDepsResponder({ context });
   const playwrightResult = await InstallCreatePlaywrightResponder({ context });
+  const tsconfigResult = await InstallCreateTsconfigResponder({ context });
 
-  const success = devDepsResult.success && playwrightResult.success;
-  const created = devDepsResult.action === 'created' || playwrightResult.action === 'created';
+  const success = devDepsResult.success && playwrightResult.success && tsconfigResult.success;
+  const created =
+    devDepsResult.action === 'created' ||
+    playwrightResult.action === 'created' ||
+    tsconfigResult.action === 'created';
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success,
     action: created ? 'created' : 'skipped',
     message: installMessageContract.parse(
-      `${String(devDepsResult.message)}; ${String(playwrightResult.message)}`,
+      `${String(devDepsResult.message)}; ${String(playwrightResult.message)}; ${String(tsconfigResult.message)}`,
     ),
   };
 };

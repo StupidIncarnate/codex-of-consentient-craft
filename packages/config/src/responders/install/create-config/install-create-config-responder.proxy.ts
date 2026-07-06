@@ -23,7 +23,7 @@ export const InstallCreateConfigResponderProxy = (): {
     setupConfigNotExists: (): void => {
       accessProxy.rejects({ error: new Error('ENOENT') });
       writeProxy.succeeds({
-        filepath: FilePathStub({ value: '/project/.dungeonmaster' }),
+        filepath: FilePathStub({ value: '/project/.dungeonmaster.json' }),
         contents: FileContentsStub({ value: '{}' }),
       });
     },

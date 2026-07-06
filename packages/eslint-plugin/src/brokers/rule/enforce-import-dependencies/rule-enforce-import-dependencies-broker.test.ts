@@ -98,6 +98,25 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/contracts/path/path-contract.ts',
     },
 
+    // Root-barrel imports are classified by the imported name's suffix (single-barrel packages)
+    {
+      code: 'import { filePathContract } from "@dungeonmaster/shared";',
+      filename: '/project/src/adapters/path/path-adapter.ts',
+    },
+    {
+      code: 'import { filePathContract } from "@dungeonmaster/shared";',
+      filename: '/project/src/brokers/config/load/config-load-broker.ts',
+    },
+    // Cross-package imports from any scope are gated by folder type, not package name
+    {
+      code: 'import { paymentContract } from "@acme/domain/contracts";',
+      filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
+    },
+    {
+      code: 'import { paymentContract } from "@acme/core";',
+      filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
+    },
+
     // Test files can import .stub.ts files from contracts (local imports)
     {
       code: 'import { UserStub } from "../../../contracts/user/user.stub";',
@@ -1113,22 +1132,33 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
         },
       ],
     },
-    // Cannot import from @dungeonmaster/shared root - must use subpaths
+    // Cross-package subpath imports are gated by folder type (any scope)
     {
-      code: 'import { filePathContract } from "@dungeonmaster/shared";',
-      filename: '/project/src/adapters/path/path-adapter.ts',
+      code: 'import { checkoutFlow } from "@acme/domain/flows";',
+      filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
       errors: [
         {
-          messageId: 'forbiddenSharedRootImport',
+          messageId: 'forbiddenImport',
+          data: {
+            folderType: 'brokers',
+            importedFolder: 'flows',
+            allowed:
+              'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
+          },
         },
       ],
     },
+    // Root-barrel import of a disallowed folder type falls through to the external-import block
     {
-      code: 'import { filePathContract } from "@dungeonmaster/shared";',
-      filename: '/project/src/brokers/config/load/config-load-broker.ts',
+      code: 'import { checkoutFlow } from "@acme/domain";',
+      filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
       errors: [
         {
-          messageId: 'forbiddenSharedRootImport',
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'brokers',
+            packageName: '@acme/domain',
+          },
         },
       ],
     },

@@ -130,4 +130,27 @@ describe('architectureOverviewBroker', () => {
       expect(result).toMatch(/^\*\*Pattern:\*\* `\[folder-path\]-\[folder-suffix\]\.ts`$/mu);
     });
   });
+
+  describe('cross-package public API documentation', () => {
+    it('VALID: {} => includes cross-package API section and subsections', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(/^## Cross-Package Public API$/mu);
+      expect(result).toMatch(/^### Consuming another package's API$/mu);
+      expect(result).toMatch(/^### Consumer TypeScript config$/mu);
+    });
+
+    it('VALID: {} => documents the node10 source-resolution rule and base tsconfig extends', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^- \*\*node10 resolution\*\* \(`moduleResolution: "node"`.*rebuild before running\.$/mu,
+      );
+      expect(result).toMatch(/^ {2}"extends": "@dungeonmaster\/eslint-plugin\/tsconfig",$/mu);
+    });
+  });
 });
