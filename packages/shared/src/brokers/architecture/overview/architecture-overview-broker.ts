@@ -208,6 +208,10 @@ Each package \`tsconfig.json\` extends the published base and adds only per-pack
 
 The base carries the load-bearing options — \`moduleResolution: "node"\` (the node10 source-resolution rule above), the strict flags, \`esModuleInterop\`, \`resolveJsonModule\`. \`include: ["*.ts"]\` is what compiles the root barrels.
 
+### Consumer jest config
+
+Each package's \`jest.config.js\` spreads the published base \`@dungeonmaster/testing/jest-config-base\` (adding \`roots: ["<rootDir>/src"]\`), which registers the ts-jest AST transformers (so \`registerMock\` / proxy files work) and the auto-reset setup (clears mocks, bans \`.skip\`/\`.todo\`, fails assertion-less tests).
+
 ## Layer Files - Decomposing Complex Components
 
 **Purpose:** Decompose complex files (>300 lines) into focused, testable layers while maintaining domain context.

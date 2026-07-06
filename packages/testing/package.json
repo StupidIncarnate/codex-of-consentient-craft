@@ -40,7 +40,8 @@
       "import": "./dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.js",
       "require": "./dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.js",
       "types": "./dist/src/transformers/quest-gate-content-seed/quest-gate-content-seed-transformer.d.ts"
-    }
+    },
+    "./jest-config-base": "./jest-config-base.js"
   },
   "scripts": {
     "build": "tsc",

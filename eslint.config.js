@@ -56,6 +56,7 @@ module.exports = [
       'eslint.config.js',
       '**/jest.config.js',
       'jest.config.base.js',
+      '**/jest-config-base.js',
       '**/jest.setup.js',
       '**/configs/**/*.js',
     ],

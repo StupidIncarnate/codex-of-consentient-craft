@@ -140,6 +140,7 @@ describe('architectureOverviewBroker', () => {
       expect(result).toMatch(/^## Cross-Package Public API$/mu);
       expect(result).toMatch(/^### Consuming another package's API$/mu);
       expect(result).toMatch(/^### Consumer TypeScript config$/mu);
+      expect(result).toMatch(/^### Consumer jest config$/mu);
     });
 
     it('VALID: {} => documents the node10 source-resolution rule and base tsconfig extends', () => {

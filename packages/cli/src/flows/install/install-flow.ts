@@ -15,6 +15,7 @@ import {
 import { InstallAddDevDepsResponder } from '../../responders/install/add-dev-deps/install-add-dev-deps-responder';
 import { InstallCreatePlaywrightResponder } from '../../responders/install/create-playwright/install-create-playwright-responder';
 import { InstallCreateTsconfigResponder } from '../../responders/install/create-tsconfig/install-create-tsconfig-responder';
+import { InstallCreateJestResponder } from '../../responders/install/create-jest/install-create-jest-responder';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 
@@ -26,19 +27,25 @@ export const InstallFlow = async ({
   const devDepsResult = await InstallAddDevDepsResponder({ context });
   const playwrightResult = await InstallCreatePlaywrightResponder({ context });
   const tsconfigResult = await InstallCreateTsconfigResponder({ context });
+  const jestResult = await InstallCreateJestResponder({ context });
 
-  const success = devDepsResult.success && playwrightResult.success && tsconfigResult.success;
+  const success =
+    devDepsResult.success &&
+    playwrightResult.success &&
+    tsconfigResult.success &&
+    jestResult.success;
   const created =
     devDepsResult.action === 'created' ||
     playwrightResult.action === 'created' ||
-    tsconfigResult.action === 'created';
+    tsconfigResult.action === 'created' ||
+    jestResult.action === 'created';
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success,
     action: created ? 'created' : 'skipped',
     message: installMessageContract.parse(
-      `${String(devDepsResult.message)}; ${String(playwrightResult.message)}; ${String(tsconfigResult.message)}`,
+      `${String(devDepsResult.message)}; ${String(playwrightResult.message)}; ${String(tsconfigResult.message)}; ${String(jestResult.message)}`,
     ),
   };
 };

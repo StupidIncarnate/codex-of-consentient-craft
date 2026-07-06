@@ -27,7 +27,7 @@ describe('StartInstall', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json',
+          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);

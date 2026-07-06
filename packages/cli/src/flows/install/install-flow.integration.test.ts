@@ -36,7 +36,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json',
+          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
@@ -76,6 +76,10 @@ export default defineConfig({ testMatch: '**/*.e2e.ts', timeout: 30_000 });
         relativePath: RelativePathStub({ value: 'tsconfig.json' }),
         content: FileContentStub({ value: '{}\n' }),
       });
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'jest.config.js' }),
+        content: FileContentStub({ value: '// existing jest config\n' }),
+      });
 
       const result = await InstallFlow({
         context: {
@@ -95,7 +99,7 @@ export default defineConfig({ testMatch: '**/*.e2e.ts', timeout: 30_000 });
         success: true,
         action: 'skipped',
         message:
-          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists',
+          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists',
       });
       expect(playwrightConfigContent).toBe('// existing user config\n');
     });
