@@ -53,19 +53,51 @@ export const elkLayoutStatics = {
   // Layout spacing handed to ELK (px). React Flow paints each branch-edge label centered on the
   // edge's geometric midpoint, so two sibling branches sit `nodeNode/2 + node.width/2` apart at
   // their label row. nodeNode is sized so that gap exceeds both an edge-label box
-  // (`edgeLabelMaxWidth`) AND an assertion column (`observable.gap + observable.width`) so neither
+  // (`edgeLabel.maxWidth`) AND an assertion column (`observable.gap + observable.width`) so neither
   // branch labels nor assertion columns collide between same-layer siblings; nodeNodeBetweenLayers
   // gives a wrapped multi-line label vertical room between layers.
+  //
+  // edgeNode is the gap ELK keeps between a node and an edge routed past it. It is wide because a
+  // reconverging "skip" edge (e.g. a decision's straight-down branch that rejoins below the node
+  // its sibling feeds) is drawn by React Flow as a STRAIGHT line down the decision's spine, while
+  // ELK only guarantees clearance for its own routed path. A tight edgeNode lets ELK park the
+  // sibling branch node so its far edge pokes across that straight spine; the wide value pushes the
+  // branch node fully into its own lane so the spine never cuts through the card.
   spacing: {
     nodeNode: 300,
     nodeNodeBetweenLayers: 140,
-    edgeNode: 30,
+    edgeNode: 120,
     edgeEdge: 20,
   },
-  // Max width (px) of the wrapping branch-edge label box. The full label wraps to as many lines
-  // as it needs within this width; bounding the width keeps two sibling labels — centered
-  // `(node.width + nodeNode)/2` apart — from overlapping no matter how long the text is.
-  edgeLabelMaxWidth: 160,
+  // Wrapping branch-edge label box.
+  //  - `maxWidth` bounds the box's width so its text wraps rather than running arbitrarily wide.
+  //  - `skipLayerThreshold`/`skipLayerDrop` govern where a label anchors: a branch whose vertical
+  //    span exceeds `skipLayerThreshold` (2× a between-layer gap) reconverges past an intervening
+  //    layer, so its geometric midpoint would hide behind that layer's card; such a label is
+  //    anchored `skipLayerDrop` px below the source instead — inside the first inter-layer gap
+  //    (half of `spacing.nodeNodeBetweenLayers`), where no card can occlude it.
+  //  - `spineClearance` is the minimum horizontal px between a branch label's center and the
+  //    decision's own vertical spine. flowBranchLabelOffsetsTransformer pushes every branch label
+  //    at least this far off the spine (onto its side) so a label never sits on the reconvergence
+  //    line and read as belonging to it. It exceeds `maxWidth`/2 so even a full-width box clears.
+  //    Labels whose natural midpoint is already further out keep tracking their edge.
+  //  - `minSiblingSeparation` is the minimum horizontal px between the centers of two labels that
+  //    land on the SAME side of the spine; they stack outward at this gap so they never overlap.
+  edgeLabel: {
+    maxWidth: 160,
+    skipLayerDrop: 70,
+    skipLayerThreshold: 280,
+    spineClearance: 140,
+    minSiblingSeparation: 180,
+  },
+  // A back-edge (loop) rejoins a node ABOVE its source — e.g. a per-file processing loop that jumps
+  // from the tail of the pipeline back to "process next file". React Flow would draw it as a
+  // straight line UP through the whole stack of intermediate nodes. Instead the custom edge bows it
+  // out to the side by `loop.detour` px past the stack's spine (which sits at node center ± width/2)
+  // so the loop reads as a clear arc around the pipeline rather than a line through every card.
+  loop: {
+    detour: 240,
+  },
   // React Flow viewport zoom floor. fit-view clamps the fit zoom to >= minZoom; React Flow's
   // default 0.5 is too high for tall assertion-rich graphs — fit-view can't shrink the whole
   // graph into the collapsed (800px) canvas, so the diagram only appears once fullscreen enlarges

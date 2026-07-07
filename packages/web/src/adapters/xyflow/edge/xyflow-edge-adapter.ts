@@ -23,7 +23,7 @@ const { colors } = emberDepthsThemeStatics;
 
 const LABEL_BOX_STYLE = {
   position: 'absolute',
-  maxWidth: elkLayoutStatics.edgeLabelMaxWidth,
+  maxWidth: elkLayoutStatics.edgeLabel.maxWidth,
   background: colors['bg-raised'],
   color: colors.text,
   border: `1px solid ${colors.border}`,
@@ -49,7 +49,13 @@ export const xyflowEdgeAdapter = ({
   markerEnd,
   data,
 }: EdgeProps): React.ReactElement => {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  // A back-edge (loop) targets a node ABOVE its source — e.g. a per-file processing loop that jumps
+  // from the tail of the pipeline back to its head. getBezierPath would draw it as a straight line
+  // UP through every intermediate card; instead bow it out to the side of the stack (past the node
+  // spine by `loop.detour`) so it reads as an arc around the pipeline.
+  const isLoop = sourceY - targetY > elkLayoutStatics.spacing.nodeNodeBetweenLayers;
+
+  let [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -57,9 +63,39 @@ export const xyflowEdgeAdapter = ({
     targetY,
     targetPosition,
   });
+  if (isLoop) {
+    const detourX = Math.max(sourceX, targetX) + elkLayoutStatics.loop.detour;
+    edgePath = `M${sourceX},${sourceY} C${detourX},${sourceY} ${detourX},${targetY} ${targetX},${targetY}`;
+    labelX = detourX;
+    labelY = [sourceY, targetY].reduce((sum, y) => sum + y, 0) / [sourceY, targetY].length;
+  }
 
   const rawLabel = data?.label;
   const label = typeof rawLabel === 'string' ? rawLabel : undefined;
+
+  // React Flow paints the label at the edge's geometric midpoint. Three cases override that:
+  //  0. Loop — the label sits on the detour arc (labelX/labelY above), off the stack entirely.
+  //  1. Sibling spreading — when a decision has 2+ labeled branches,
+  //     flowBranchLabelOffsetsTransformer hands each edge a horizontal `labelOffsetX` that pushes
+  //     crowded siblings apart into one aligned row at the fork (0 when already clear).
+  //  2. Lone skip edge — a single branch that reconverges more than one layer down
+  //     (span > skipLayerThreshold) would have its midpoint land on the intervening card; anchor
+  //     it in the inter-layer gap just below the source, interpolated along the source→target line.
+  const { skipLayerDrop, skipLayerThreshold } = elkLayoutStatics.edgeLabel;
+  const rawOffset = data?.labelOffsetX;
+  const siblingOffsetX = typeof rawOffset === 'number' ? rawOffset : undefined;
+  const verticalSpan = targetY - sourceY;
+  const skipsLayer = verticalSpan > skipLayerThreshold;
+
+  let positionX = labelX;
+  let positionY = labelY;
+  if (!isLoop && siblingOffsetX !== undefined) {
+    positionX = labelX + siblingOffsetX;
+    positionY = sourceY + skipLayerDrop;
+  } else if (!isLoop && skipsLayer) {
+    positionX = sourceX + (skipLayerDrop / verticalSpan) * (targetX - sourceX);
+    positionY = sourceY + skipLayerDrop;
+  }
 
   return React.createElement(
     React.Fragment,
@@ -80,7 +116,7 @@ export const xyflowEdgeAdapter = ({
               title: label,
               style: {
                 ...LABEL_BOX_STYLE,
-                transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+                transform: `translate(-50%, -50%) translate(${positionX}px, ${positionY}px)`,
               },
             },
             label,

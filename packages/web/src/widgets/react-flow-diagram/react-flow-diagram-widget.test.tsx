@@ -120,6 +120,43 @@ describe('ReactFlowDiagramWidget', () => {
     });
   });
 
+  describe('cross-flow edges', () => {
+    it('VALID: {edge targets a node in another flow} => renders a FLOW_PORTAL_NODE for the off-flow target instead of erroring', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'run-compile' }),
+        label: 'Run Compile flow',
+        type: 'action',
+        observables: [],
+      });
+      const crossEdge = FlowEdgeStub({
+        id: 'run-compile-invokes',
+        from: 'run-compile',
+        to: 'compile-flow:compile-entry',
+        label: 'invokes',
+      });
+      const flow = FlowStub({ nodes: [node], edges: [crossEdge] });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'run-compile', x: 0, y: 0 },
+          { id: 'compile-flow:compile-entry', x: 0, y: 200 },
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('FLOW_DIAGRAM_ERROR')).toBe(null);
+      expect(screen.getByTestId('FLOW_PORTAL_NODE_LABEL').textContent).toBe(
+        '↗ compile-flow → compile-entry',
+      );
+    });
+  });
+
   describe('error handling', () => {
     it('ERROR: {elk layout rejects} => shows FLOW_DIAGRAM_ERROR with exact text, no canvas', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
@@ -251,6 +288,53 @@ describe('ReactFlowDiagramWidget', () => {
       });
 
       expect(screen.queryByTestId('FLOW_EDGE_LABEL')).toBe(null);
+    });
+
+    it('VALID: {two branches reconverge and crowd} => their labels get opposite spine-clearing offsets', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const decision = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'dec' }),
+        type: 'decision',
+        observables: [],
+      });
+      const left = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'left' }),
+        type: 'action',
+        observables: [],
+      });
+      const down = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'down' }),
+        type: 'action',
+        observables: [],
+      });
+      const toLeft = FlowEdgeStub({ id: 'dec-missing', from: 'dec', to: 'left', label: 'missing' });
+      const toDown = FlowEdgeStub({ id: 'dec-loads', from: 'dec', to: 'down', label: 'loads ok' });
+      const flow = FlowStub({ nodes: [decision, left, down], edges: [toLeft, toDown] });
+
+      // dec centered over "down" (straight-down spine) with "missing" peeling left: the transformer
+      // pushes "missing" off the spine to the left (-40 from its midpoint) and the straight-down
+      // "loads ok" clear to the right (+140 from the spine).
+      proxy.setupPositions({
+        children: [
+          { id: 'dec', x: 200, y: 0 },
+          { id: 'left', x: 0, y: 200 },
+          { id: 'down', x: 200, y: 400 },
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      const offsetByEdge = Object.fromEntries(
+        screen
+          .getAllByTestId('FLOW_EDGE_LABEL')
+          .map((el) => [el.getAttribute('data-edge-id'), el.getAttribute('data-label-offset-x')]),
+      );
+
+      expect(offsetByEdge).toStrictEqual({ 'dec-missing': '-40', 'dec-loads': '140' });
     });
 
     it('VALID: {edge with label} => FLOW_EDGE_LABEL shows label text', async () => {

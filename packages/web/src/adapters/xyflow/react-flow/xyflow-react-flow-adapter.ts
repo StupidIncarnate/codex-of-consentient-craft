@@ -20,13 +20,18 @@ import '@xyflow/react/dist/style.css';
 import type { Node, Edge, NodeTypes, EdgeTypes, ReactFlowProps } from '@xyflow/react';
 
 import type { FlowObservableNodeData } from '../../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
+import type { FlowPortalNodeData } from '../../../contracts/flow-portal-node-data/flow-portal-node-data-contract';
 import type { ReactFlowNodeData } from '../../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../../statics/elk-layout/elk-layout-statics';
 
-// The canvas holds two node shapes: flow cards (ReactFlowNodeData) and the assertion cards that
-// branch off to their right (FlowObservableNodeData). Both carry a string `id`, which is all the
-// click handler reads to resolve the clicked node back to a flow node.
-export type XyflowReactFlowAdapterNode = Node<ReactFlowNodeData> | Node<FlowObservableNodeData>;
+// The canvas holds three node shapes: flow cards (ReactFlowNodeData), the assertion cards that
+// branch off to their right (FlowObservableNodeData), and portal stand-ins for cross-flow edge
+// endpoints (FlowPortalNodeData). All carry a string `id`, which is all the click handler reads to
+// resolve the clicked node back to a flow node.
+export type XyflowReactFlowAdapterNode =
+  | Node<ReactFlowNodeData>
+  | Node<FlowObservableNodeData>
+  | Node<FlowPortalNodeData>;
 
 export interface XyflowReactFlowAdapterProps {
   nodes: XyflowReactFlowAdapterNode[];

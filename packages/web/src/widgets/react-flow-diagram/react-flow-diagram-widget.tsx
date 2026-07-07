@@ -35,9 +35,12 @@ import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
+import { flowBranchLabelOffsetsTransformer } from '../../transformers/flow-branch-label-offsets/flow-branch-label-offsets-transformer';
+import { flowCrossFlowPortalsTransformer } from '../../transformers/flow-cross-flow-portals/flow-cross-flow-portals-transformer';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
+import { FlowPortalNodeLayerWidget } from './flow-portal-node-layer-widget';
 
 export interface ReactFlowDiagramWidgetProps {
   flow: Flow;
@@ -55,6 +58,8 @@ const NODE_TYPES = {
   terminal: FlowNodeCardLayerWidget as React.ComponentType<never>,
   // Assertion (observable) cards that branch off to the right of each flow node.
   observable: FlowObservableNodeLayerWidget as React.ComponentType<never>,
+  // Portal stand-ins for edges that cross into another flow (a `flowId:nodeId` reference).
+  portal: FlowPortalNodeLayerWidget as React.ComponentType<never>,
 };
 
 // Single custom edge type: renders the full branch label as a wrapping HTML box (see
@@ -90,7 +95,10 @@ export const ReactFlowDiagramWidget = ({
     if (hasRun.current) return;
     hasRun.current = true;
 
-    elkLayoutAdapter({ nodes: flow.nodes, edges: flow.edges })
+    // Portals stand in for edges whose endpoint lives in another flow — ELK needs them as graph
+    // children or it throws on the unresolvable endpoint.
+    const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
+    elkLayoutAdapter({ nodes: flow.nodes, edges: flow.edges, portals })
       .then((pos) => {
         setPositions(pos);
       })
@@ -180,7 +188,23 @@ export const ReactFlowDiagramWidget = ({
     });
   });
 
-  const nodes = [...flowNodes, ...observableNodes];
+  // Portal stand-ins for edges that hand off to a node in another flow. Their id is the raw
+  // `flowId:nodeId` reference so the cross-flow edge (source/target = String(e.to)) resolves to
+  // this node instead of dangling. Clicking one is a no-op — onNodeClick only matches flow.nodes.
+  const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
+  const portalNodes = portals.map((portal) => ({
+    id: String(portal.reference),
+    type: 'portal',
+    position: positions[String(portal.reference)] ?? { x: 0, y: 0 },
+    data: portal,
+  }));
+
+  const nodes = [...flowNodes, ...observableNodes, ...portalNodes];
+
+  // Branch labels that share a decision are spread into one aligned row at the fork — otherwise a
+  // reconverging branch's label stacks on top of its sibling's near the spine. The transformer
+  // returns a horizontal offset per crowded edge; the custom edge applies it (see xyflowEdgeAdapter).
+  const branchLabelOffsets = flowBranchLabelOffsetsTransformer({ edges: flow.edges, positions });
 
   const flowEdges = flow.edges.map((e) => {
     // type 'flow' selects the custom edge (xyflowEdgeAdapter) which renders the FULL label as a
@@ -190,7 +214,9 @@ export const ReactFlowDiagramWidget = ({
     if (e.label === undefined) {
       return base;
     }
-    return { ...base, label: e.label, data: { label: e.label } };
+    const labelOffsetX = branchLabelOffsets[String(e.id)];
+    const data = labelOffsetX === undefined ? { label: e.label } : { label: e.label, labelOffsetX };
+    return { ...base, label: e.label, data };
   });
 
   // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so the

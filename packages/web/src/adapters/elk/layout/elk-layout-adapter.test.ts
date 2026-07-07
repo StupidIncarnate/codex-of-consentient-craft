@@ -1,6 +1,7 @@
 import { FlowEdgeStub, FlowNodeStub } from '@dungeonmaster/shared/contracts';
 
 import { ElkPositionMapStub } from '../../../contracts/elk-position-map/elk-position-map.stub';
+import { FlowPortalNodeDataStub } from '../../../contracts/flow-portal-node-data/flow-portal-node-data.stub';
 import { elkLayoutAdapter } from './elk-layout-adapter';
 import { elkLayoutAdapterProxy } from './elk-layout-adapter.proxy';
 
@@ -61,6 +62,44 @@ describe('elkLayoutAdapter', () => {
       const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
 
       expect(result).toStrictEqual(ElkPositionMapStub({}));
+    });
+
+    it('VALID: {cross-flow edge + portal} => portal reference is added as a graph child so ELK resolves the edge', async () => {
+      const proxy = elkLayoutAdapterProxy();
+      const node = FlowNodeStub({ id: 'run-compile' });
+      const crossEdge = FlowEdgeStub({
+        id: 'invokes',
+        from: 'run-compile',
+        to: 'compile-flow:compile-entry',
+        label: 'invokes',
+      });
+      const portal = FlowPortalNodeDataStub({
+        reference: 'compile-flow:compile-entry',
+        label: '↗ compile-flow → compile-entry',
+      });
+
+      proxy.returnsPositions({
+        children: [
+          { id: 'run-compile', x: 0, y: 0 },
+          { id: 'compile-flow:compile-entry', x: 0, y: 200 },
+        ],
+      });
+
+      const result = await elkLayoutAdapter({
+        nodes: [node],
+        edges: [crossEdge],
+        portals: [portal],
+      });
+
+      // The portal id must be a graph child — otherwise real ELK throws on the unresolvable
+      // edge target (the crash this fix repairs).
+      expect(proxy.getGraphChildIds()).toStrictEqual(['run-compile', 'compile-flow:compile-entry']);
+      expect(result).toStrictEqual(
+        ElkPositionMapStub({
+          'run-compile': { x: 0, y: 0 },
+          'compile-flow:compile-entry': { x: 0, y: 200 },
+        }),
+      );
     });
 
     it('EDGE: {child has undefined x and y} => position defaults to {x: 0, y: 0}', async () => {

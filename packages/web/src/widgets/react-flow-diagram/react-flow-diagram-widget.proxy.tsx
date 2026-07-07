@@ -7,6 +7,7 @@ import { xyflowReactFlowAdapterProxy } from '../../adapters/xyflow/react-flow/xy
 import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.proxy';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
 import { FlowObservableNodeLayerWidgetProxy } from './flow-observable-node-layer-widget.proxy';
+import { FlowPortalNodeLayerWidgetProxy } from './flow-portal-node-layer-widget.proxy';
 
 type ProxyInstance = ReturnType<typeof elkLayoutAdapterProxy>;
 type ReturnsPositionsArgs = Parameters<ProxyInstance['returnsPositions']>[0];
@@ -36,6 +37,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   FlowNodeCardLayerWidgetProxy();
   FlowNodeDetailPanelLayerWidgetProxy();
   FlowObservableNodeLayerWidgetProxy();
+  FlowPortalNodeLayerWidgetProxy();
   const user = userEvent.setup();
 
   return {
