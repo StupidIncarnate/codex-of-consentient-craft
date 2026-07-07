@@ -1,21 +1,26 @@
 /**
- * PURPOSE: Wraps elkjs to compute x/y positions for flow graph nodes using the layered algorithm
+ * PURPOSE: Wraps elkjs to lay out a flow graph — returns both the x/y position of every node AND
+ * the routed path (start, bend points, end) ELK computes for every edge. ELK's layered algorithm
+ * routes edges AROUND the nodes, so a consumer that draws each edge along its route keeps it clear
+ * of intervening cards without any hand-rolled overlap avoidance.
  *
  * USAGE:
- * const positions = await elkLayoutAdapter({ nodes, edges });
+ * const { positions, routes } = await elkLayoutAdapter({ nodes, edges });
  * // positions['login-page'] => { x: 0, y: 0 }
- * // positions['dashboard'] => { x: 0, y: 120 }
+ * // routes['login-to-dash'] => [{ x, y }, ...]  (points to draw the edge through)
  *
  * WHEN-TO-USE: Before rendering a flow graph — call once per layout pass to get node coordinates
  * WHEN-NOT-TO-USE: Do not call inside React render; call in an effect or event handler
  */
 
-import ELK from 'elkjs';
+import ELK, { type ElkNode } from 'elkjs';
 
 import type { FlowEdge, FlowNode } from '@dungeonmaster/shared/contracts';
 
 import { elkPositionMapContract } from '../../../contracts/elk-position-map/elk-position-map-contract';
 import type { ElkPositionMap } from '../../../contracts/elk-position-map/elk-position-map-contract';
+import { flowEdgeRouteMapContract } from '../../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
+import type { FlowEdgeRouteMap } from '../../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import type { FlowPortalNodeData } from '../../../contracts/flow-portal-node-data/flow-portal-node-data-contract';
 import { elkLayoutStatics } from '../../../statics/elk-layout/elk-layout-statics';
 
@@ -29,7 +34,7 @@ export const elkLayoutAdapter = async ({
   // Cross-flow portal stand-ins. Their `reference` becomes a graph child id so an edge whose
   // endpoint lives in another flow resolves — without them elk throws on the unknown endpoint.
   portals?: readonly FlowPortalNodeData[];
-}): Promise<ElkPositionMap> => {
+}): Promise<{ positions: ElkPositionMap; routes: FlowEdgeRouteMap }> => {
   const elk = new ELK();
 
   const nodeChildren = nodes.map((n) => {
@@ -85,6 +90,10 @@ export const elkLayoutAdapter = async ({
       'elk.algorithm': 'layered',
       'elk.direction': 'DOWN',
       'elk.layered.cycleBreaking.strategy': 'DEPTH_FIRST',
+      // Route each edge around the nodes (right-angle segments with the bend points ELK returns in
+      // edge.sections). Consumers draw the edge along that route instead of a straight line, so a
+      // skip/loop edge bends around intervening cards rather than cutting through them.
+      'elk.edgeRouting': 'ORTHOGONAL',
       // Spread sibling branches and layers apart so adjacent cards — and the branch-edge labels
       // painted at edge midpoints — have room and don't collide.
       'elk.spacing.nodeNode': String(elkLayoutStatics.spacing.nodeNode),
@@ -102,11 +111,26 @@ export const elkLayoutAdapter = async ({
     })),
   };
 
-  const result = await elk.layout(graph);
+  // elk.layout preserves the input graph's type; annotate the result as ElkNode so its computed
+  // fields (children x/y, edge sections) are typed instead of the bare input shape.
+  const result: ElkNode = await elk.layout(graph);
 
   const positionEntries = Object.fromEntries(
     (result.children ?? []).map((child) => [child.id, { x: child.x ?? 0, y: child.y ?? 0 }]),
   );
 
-  return elkPositionMapContract.parse(positionEntries);
+  // ELK returns one routed section per edge: its startPoint, ordered bendPoints, and endPoint.
+  // Flatten each into the ordered point list a consumer draws the edge through.
+  const routeEntries = (result.edges ?? []).map((edge) => {
+    const [section] = edge.sections ?? [];
+    const points = section
+      ? [section.startPoint, ...(section.bendPoints ?? []), section.endPoint]
+      : [];
+    return [edge.id, points];
+  });
+
+  return {
+    positions: elkPositionMapContract.parse(positionEntries),
+    routes: flowEdgeRouteMapContract.parse(Object.fromEntries(routeEntries)),
+  };
 };

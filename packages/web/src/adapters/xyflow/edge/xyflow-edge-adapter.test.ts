@@ -85,47 +85,81 @@ describe('xyflowEdgeAdapter', () => {
     });
   });
 
-  describe('skip-layer label positioning', () => {
-    it('VALID: {edge spans multiple layers (large vertical drop)} => label anchors in the inter-layer gap below the source, not the geometric midpoint', () => {
+  describe('ELK route rendering', () => {
+    it('VALID: {data.route with a bend} => label rides the middle segment of the routed path', () => {
       xyflowEdgeAdapterProxy();
-      const { label } = FlowEdgeStub({ label: 'yes' });
+      const { label } = FlowEdgeStub({ label: 'more files' });
 
-      // A reconverging "yes" branch: from the decision (source) straight down to a node two
-      // layers below (target), diagonally offset. The geometric midpoint (labelX/labelY from
-      // getBezierPath) would land on the intervening card; the label must instead sit in the
-      // clear gap just below the source. Drop = 400 > one layer, so the skip-layer rule fires:
-      // labelY = sourceY + nodeNodeBetweenLayers/2 (70); labelX interpolated at 70/400 = 0.175.
+      // An L-shaped route (down, then across). midIndex = (3-1)>>1 = 1, so the label sits at the
+      // midpoint of segment [pt1 -> pt2] = ((100+100)/2, (0+80)/2) = (100, 40).
       render(
         React.createElement(EdgeComponent, {
           id: 'edge-1',
-          source: 'decision',
-          target: 'reconverge',
+          source: 'node-a',
+          target: 'node-b',
           sourceX: 0,
           sourceY: 0,
-          targetX: 400,
-          targetY: 400,
+          targetX: 100,
+          targetY: 80,
           sourcePosition: 'bottom',
           targetPosition: 'top',
-          data: { label },
+          data: {
+            label,
+            route: [
+              { x: 0, y: 0 },
+              { x: 100, y: 0 },
+              { x: 100, y: 80 },
+            ],
+          },
         }),
       );
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
-        /^translate\(-50%, -50%\) translate\(70px, 70px\)$/u,
+        /^translate\(-50%, -50%\) translate\(100px, 40px\)$/u,
       );
     });
 
-    it('VALID: {short adjacent-layer edge} => label stays at the geometric midpoint', () => {
+    it('VALID: {straight two-point route} => label sits at that segment midpoint', () => {
       xyflowEdgeAdapterProxy();
-      const { label } = FlowEdgeStub({ label: 'no' });
+      const { label } = FlowEdgeStub({ label: 'yes' });
 
-      // Drop = 40 (well under one layer), so the midpoint is kept. The mock's getBezierPath
-      // returns labelX = labelY = 0, so the transform pins the geometric midpoint (0, 0).
+      // Two points, one segment. midIndex = (2-1)>>1 = 0, midpoint of [pt0 -> pt1] = (30, 0).
       render(
         React.createElement(EdgeComponent, {
           id: 'edge-1',
-          source: 'decision',
-          target: 'branch',
+          source: 'node-a',
+          target: 'node-b',
+          sourceX: 0,
+          sourceY: 0,
+          targetX: 60,
+          targetY: 0,
+          sourcePosition: 'bottom',
+          targetPosition: 'top',
+          data: {
+            label,
+            route: [
+              { x: 0, y: 0 },
+              { x: 60, y: 0 },
+            ],
+          },
+        }),
+      );
+
+      expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
+        /^translate\(-50%, -50%\) translate\(30px, 0px\)$/u,
+      );
+    });
+
+    it('VALID: {no data.route} => label falls back to the geometric bezier midpoint', () => {
+      xyflowEdgeAdapterProxy();
+      const { label } = FlowEdgeStub({ label: 'no' });
+
+      // No route, so the mock's getBezierPath (labelX = labelY = 0) pins the midpoint at (0, 0).
+      render(
+        React.createElement(EdgeComponent, {
+          id: 'edge-1',
+          source: 'node-a',
+          target: 'node-b',
           sourceX: 0,
           sourceY: 0,
           targetX: 20,
@@ -138,91 +172,6 @@ describe('xyflowEdgeAdapter', () => {
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
         /^translate\(-50%, -50%\) translate\(0px, 0px\)$/u,
-      );
-    });
-  });
-
-  describe('sibling label spreading', () => {
-    it('VALID: {data.labelOffsetX present} => label anchors at midpoint+offset in the fork-row gap', () => {
-      xyflowEdgeAdapterProxy();
-      const { label } = FlowEdgeStub({ label: 'loads ok' });
-
-      // The widget's flowBranchLabelOffsetsTransformer supplies a +90px horizontal offset to push
-      // this label off its crowded sibling. The label sits at the mocked midpoint (0) + 90, on the
-      // aligned fork row (sourceY 0 + skipLayerDrop 70). The offset wins even though this short
-      // edge is not itself a skip.
-      render(
-        React.createElement(EdgeComponent, {
-          id: 'edge-1',
-          source: 'decision',
-          target: 'branch',
-          sourceX: 0,
-          sourceY: 0,
-          targetX: 20,
-          targetY: 40,
-          sourcePosition: 'bottom',
-          targetPosition: 'top',
-          data: { label, labelOffsetX: 90 },
-        }),
-      );
-
-      expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
-        /^translate\(-50%, -50%\) translate\(90px, 70px\)$/u,
-      );
-    });
-  });
-
-  describe('loop (back-edge) routing', () => {
-    it('VALID: {target sits far above source} => label rides the side-detour arc, not the straight midpoint', () => {
-      xyflowEdgeAdapterProxy();
-      const { label } = FlowEdgeStub({ label: 'more files' });
-
-      // A back-edge: target is 400px ABOVE the source (> one layer), so it is bowed out to the side
-      // (detourX = max(sourceX, targetX) + loop.detour = 0 + 240) instead of drawn straight up
-      // through the stack. The label sits on that arc at its vertical midpoint (400+0)/2 = 200.
-      render(
-        React.createElement(EdgeComponent, {
-          id: 'loop-1',
-          source: 'tail',
-          target: 'head',
-          sourceX: 0,
-          sourceY: 400,
-          targetX: 0,
-          targetY: 0,
-          sourcePosition: 'bottom',
-          targetPosition: 'top',
-          data: { label },
-        }),
-      );
-
-      expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
-        /^translate\(-50%, -50%\) translate\(240px, 200px\)$/u,
-      );
-    });
-
-    it('VALID: {back-edge that also carries a sibling offset} => loop routing wins (offset ignored)', () => {
-      xyflowEdgeAdapterProxy();
-      const { label } = FlowEdgeStub({ label: 'retry' });
-
-      // Even with a labelOffsetX present, a back-edge takes the loop path — the label stays on the
-      // detour arc (240, 200) rather than being pulled to midpoint+offset in the fork row.
-      render(
-        React.createElement(EdgeComponent, {
-          id: 'loop-2',
-          source: 'tail',
-          target: 'head',
-          sourceX: 0,
-          sourceY: 400,
-          targetX: 0,
-          targetY: 0,
-          sourcePosition: 'bottom',
-          targetPosition: 'top',
-          data: { label, labelOffsetX: 90 },
-        }),
-      );
-
-      expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
-        /^translate\(-50%, -50%\) translate\(240px, 200px\)$/u,
       );
     });
   });

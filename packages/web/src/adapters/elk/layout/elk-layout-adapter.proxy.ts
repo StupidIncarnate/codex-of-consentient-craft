@@ -20,8 +20,17 @@ const capturedCallSchema = z.tuple([capturedGraphSchema]);
 export const elkLayoutAdapterProxy = (): {
   returnsPositions: ({
     children,
+    edges,
   }: {
     children: readonly { id: string; x?: number; y?: number }[];
+    edges?: readonly {
+      id: string;
+      sections: readonly {
+        startPoint: { x: number; y: number };
+        bendPoints?: readonly { x: number; y: number }[];
+        endPoint: { x: number; y: number };
+      }[];
+    }[];
   }) => void;
   returnsNoChildren: () => void;
   throws: ({ error }: { error: Error }) => void;
@@ -37,10 +46,19 @@ export const elkLayoutAdapterProxy = (): {
   return {
     returnsPositions: ({
       children,
+      edges = [],
     }: {
       children: readonly { id: string; x?: number; y?: number }[];
+      edges?: readonly {
+        id: string;
+        sections: readonly {
+          startPoint: { x: number; y: number };
+          bendPoints?: readonly { x: number; y: number }[];
+          endPoint: { x: number; y: number };
+        }[];
+      }[];
     }): void => {
-      mockLayout.mockResolvedValueOnce({ id: 'root', children: [...children] });
+      mockLayout.mockResolvedValueOnce({ id: 'root', children: [...children], edges: [...edges] });
     },
     returnsNoChildren: (): void => {
       mockLayout.mockResolvedValueOnce({ id: 'root' });

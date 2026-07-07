@@ -56,17 +56,7 @@ const ReactFlow = ({ nodes, edges, nodeTypes, onNodeClick, onPaneClick, children
     .map((edge) =>
       React.createElement(
         'div',
-        {
-          key: edge.id,
-          'data-testid': 'FLOW_EDGE_LABEL',
-          'data-edge-id': edge.id,
-          // Surface the sibling-spread offset the widget threads onto branch edges so tests can
-          // assert the transformer → edge.data wiring (undefined omits the attribute).
-          'data-label-offset-x':
-            edge.data && typeof edge.data.labelOffsetX === 'number'
-              ? String(edge.data.labelOffsetX)
-              : undefined,
-        },
+        { key: edge.id, 'data-testid': 'FLOW_EDGE_LABEL', 'data-edge-id': edge.id },
         String(edge.label),
       ),
     );

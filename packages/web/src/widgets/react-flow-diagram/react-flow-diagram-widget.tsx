@@ -30,12 +30,12 @@ import { xyflowEdgeAdapter } from '../../adapters/xyflow/edge/xyflow-edge-adapte
 import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter';
 import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
+import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
-import { flowBranchLabelOffsetsTransformer } from '../../transformers/flow-branch-label-offsets/flow-branch-label-offsets-transformer';
 import { flowCrossFlowPortalsTransformer } from '../../transformers/flow-cross-flow-portals/flow-cross-flow-portals-transformer';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
@@ -80,6 +80,7 @@ export const ReactFlowDiagramWidget = ({
   contracts = [],
 }: ReactFlowDiagramWidgetProps): React.JSX.Element | null => {
   const [positions, setPositions] = useState<ElkPositionMap | null>(null);
+  const [routes, setRoutes] = useState<FlowEdgeRouteMap | null>(null);
   const [error, setError] = useState<boolean>(false);
   const [selectedNodeId, setSelectedNodeId] = useState<FlowNodeId | null>(null);
   const [expanded, setExpanded] = useState<boolean>(false);
@@ -99,8 +100,9 @@ export const ReactFlowDiagramWidget = ({
     // children or it throws on the unresolvable endpoint.
     const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
     elkLayoutAdapter({ nodes: flow.nodes, edges: flow.edges, portals })
-      .then((pos) => {
-        setPositions(pos);
+      .then((layout) => {
+        setPositions(layout.positions);
+        setRoutes(layout.routes);
       })
       .catch(() => {
         setError(true);
@@ -201,22 +203,19 @@ export const ReactFlowDiagramWidget = ({
 
   const nodes = [...flowNodes, ...observableNodes, ...portalNodes];
 
-  // Branch labels that share a decision are spread into one aligned row at the fork — otherwise a
-  // reconverging branch's label stacks on top of its sibling's near the spine. The transformer
-  // returns a horizontal offset per crowded edge; the custom edge applies it (see xyflowEdgeAdapter).
-  const branchLabelOffsets = flowBranchLabelOffsetsTransformer({ edges: flow.edges, positions });
-
   const flowEdges = flow.edges.map((e) => {
-    // type 'flow' selects the custom edge (xyflowEdgeAdapter) which renders the FULL label as a
-    // wrapping box. `data.label` is what the custom edge reads; the top-level `label` is kept
-    // only so the jsdom test mock (which renders FLOW_EDGE_LABEL from `edge.label`) still works.
-    const base = { id: String(e.id), source: String(e.from), target: String(e.to), type: 'flow' };
+    // type 'flow' selects the custom edge (xyflowEdgeAdapter). `data.route` is the ELK-computed
+    // path the edge draws itself along (routed clear of the cards); `data.label` is the wrapping
+    // label box. The top-level `label` is kept only so the jsdom test mock (which renders
+    // FLOW_EDGE_LABEL from `edge.label`) still works.
+    const id = String(e.id);
+    const route = routes?.[id];
+    const routeData = route === undefined ? {} : { route };
+    const base = { id, source: String(e.from), target: String(e.to), type: 'flow' };
     if (e.label === undefined) {
-      return base;
+      return { ...base, data: routeData };
     }
-    const labelOffsetX = branchLabelOffsets[String(e.id)];
-    const data = labelOffsetX === undefined ? { label: e.label } : { label: e.label, labelOffsetX };
-    return { ...base, label: e.label, data };
+    return { ...base, label: e.label, data: { label: e.label, ...routeData } };
   });
 
   // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so the

@@ -1,14 +1,14 @@
 /**
- * PURPOSE: Custom @xyflow/react edge that renders the bezier path AND the branch label as a
- * bounded-width WRAPPING HTML box (via EdgeLabelRenderer) instead of React Flow's default
- * single-line SVG label. The full condition text is shown (wrapped over several lines, plus a
- * hover title) and the bounded width keeps two sibling-branch labels from painting over each
- * other at the edge midpoint.
+ * PURPOSE: Custom @xyflow/react edge that draws itself along the ELK-computed route — the ordered
+ * bend points ELK returns for the edge, which go AROUND the cards — instead of a straight line
+ * through them. The branch label renders as a bounded-width WRAPPING HTML box (via
+ * EdgeLabelRenderer) on that route's middle segment. Edges the layout did not route (e.g. jsdom
+ * tests) fall back to a straight bezier.
  *
  * USAGE:
  * // Registered as an edgeTypes entry and referenced by edge.type:
  * const EDGE_TYPES = { flow: xyflowEdgeAdapter };
- * // <ReactFlow edgeTypes={EDGE_TYPES} edges=[{ ..., type: 'flow', data: { label } }] />
+ * // <ReactFlow edgeTypes={EDGE_TYPES} edges=[{ ..., type: 'flow', data: { label, route } }] />
  */
 
 import React from 'react';
@@ -49,13 +49,12 @@ export const xyflowEdgeAdapter = ({
   markerEnd,
   data,
 }: EdgeProps): React.ReactElement => {
-  // A back-edge (loop) targets a node ABOVE its source — e.g. a per-file processing loop that jumps
-  // from the tail of the pipeline back to its head. getBezierPath would draw it as a straight line
-  // UP through every intermediate card; instead bow it out to the side of the stack (past the node
-  // spine by `loop.detour`) so it reads as an arc around the pipeline.
-  const isLoop = sourceY - targetY > elkLayoutStatics.spacing.nodeNodeBetweenLayers;
+  const rawLabel = data?.label;
+  const label = typeof rawLabel === 'string' ? rawLabel : undefined;
 
-  let [edgePath, labelX, labelY] = getBezierPath({
+  // Fallback path for an edge the layout did not route: a straight bezier with the label at its
+  // geometric midpoint.
+  const [bezierPath, bezierLabelX, bezierLabelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -63,39 +62,38 @@ export const xyflowEdgeAdapter = ({
     targetY,
     targetPosition,
   });
-  if (isLoop) {
-    const detourX = Math.max(sourceX, targetX) + elkLayoutStatics.loop.detour;
-    edgePath = `M${sourceX},${sourceY} C${detourX},${sourceY} ${detourX},${targetY} ${targetX},${targetY}`;
-    labelX = detourX;
-    labelY = [sourceY, targetY].reduce((sum, y) => sum + y, 0) / [sourceY, targetY].length;
-  }
 
-  const rawLabel = data?.label;
-  const label = typeof rawLabel === 'string' ? rawLabel : undefined;
+  // ELK route (data.route): the ordered points ELK routed the edge through, already clear of every
+  // card. ELK sizes nodes from an over-estimate, so its own endpoints can float in the reserved gap
+  // beside/below a shorter rendered card — snap them to React Flow's actual source/target handles so
+  // the edge always touches both cards, and keep ELK's interior bend points for the routing between.
+  const rawRoute = data?.route;
+  const elkPoints =
+    Array.isArray(rawRoute) && rawRoute.length > 1
+      ? rawRoute.map((point) => {
+          const p = point as { x?: unknown; y?: unknown };
+          return { x: Number(p.x), y: Number(p.y) };
+        })
+      : [];
+  const routed = elkPoints.length > 1;
+  const points = routed
+    ? [{ x: sourceX, y: sourceY }, ...elkPoints.slice(1, -1), { x: targetX, y: targetY }]
+    : [];
 
-  // React Flow paints the label at the edge's geometric midpoint. Three cases override that:
-  //  0. Loop — the label sits on the detour arc (labelX/labelY above), off the stack entirely.
-  //  1. Sibling spreading — when a decision has 2+ labeled branches,
-  //     flowBranchLabelOffsetsTransformer hands each edge a horizontal `labelOffsetX` that pushes
-  //     crowded siblings apart into one aligned row at the fork (0 when already clear).
-  //  2. Lone skip edge — a single branch that reconverges more than one layer down
-  //     (span > skipLayerThreshold) would have its midpoint land on the intervening card; anchor
-  //     it in the inter-layer gap just below the source, interpolated along the source→target line.
-  const { skipLayerDrop, skipLayerThreshold } = elkLayoutStatics.edgeLabel;
-  const rawOffset = data?.labelOffsetX;
-  const siblingOffsetX = typeof rawOffset === 'number' ? rawOffset : undefined;
-  const verticalSpan = targetY - sourceY;
-  const skipsLayer = verticalSpan > skipLayerThreshold;
+  const edgePath = routed
+    ? points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ')
+    : bezierPath;
 
-  let positionX = labelX;
-  let positionY = labelY;
-  if (!isLoop && siblingOffsetX !== undefined) {
-    positionX = labelX + siblingOffsetX;
-    positionY = sourceY + skipLayerDrop;
-  } else if (!isLoop && skipsLayer) {
-    positionX = sourceX + (skipLayerDrop / verticalSpan) * (targetX - sourceX);
-    positionY = sourceY + skipLayerDrop;
-  }
+  const midIndex = Math.floor((points.length - 1) / elkLayoutStatics.edgeLabel.midpointDivisor);
+  const segStart = points[midIndex];
+  const segEnd = points[midIndex + 1];
+  const onRoute = routed && segStart !== undefined && segEnd !== undefined;
+  const labelX = onRoute
+    ? [segStart.x, segEnd.x].reduce((sum, v) => sum + v, 0) / [segStart.x, segEnd.x].length
+    : bezierLabelX;
+  const labelY = onRoute
+    ? [segStart.y, segEnd.y].reduce((sum, v) => sum + v, 0) / [segStart.y, segEnd.y].length
+    : bezierLabelY;
 
   return React.createElement(
     React.Fragment,
@@ -116,7 +114,7 @@ export const xyflowEdgeAdapter = ({
               title: label,
               style: {
                 ...LABEL_BOX_STYLE,
-                transform: `translate(-50%, -50%) translate(${positionX}px, ${positionY}px)`,
+                transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               },
             },
             label,

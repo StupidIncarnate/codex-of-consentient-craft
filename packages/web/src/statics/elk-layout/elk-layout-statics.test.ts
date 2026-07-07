@@ -27,18 +27,12 @@ describe('elkLayoutStatics', () => {
       spacing: {
         nodeNode: 300,
         nodeNodeBetweenLayers: 140,
-        edgeNode: 120,
+        edgeNode: 30,
         edgeEdge: 20,
       },
       edgeLabel: {
         maxWidth: 160,
-        skipLayerDrop: 70,
-        skipLayerThreshold: 280,
-        spineClearance: 140,
-        minSiblingSeparation: 180,
-      },
-      loop: {
-        detour: 240,
+        midpointDivisor: 2,
       },
       viewport: {
         minZoom: 0.1,

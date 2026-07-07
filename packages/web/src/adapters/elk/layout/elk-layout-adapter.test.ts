@@ -1,6 +1,7 @@
 import { FlowEdgeStub, FlowNodeStub } from '@dungeonmaster/shared/contracts';
 
 import { ElkPositionMapStub } from '../../../contracts/elk-position-map/elk-position-map.stub';
+import { FlowEdgeRouteMapStub } from '../../../contracts/flow-edge-route-map/flow-edge-route-map.stub';
 import { FlowPortalNodeDataStub } from '../../../contracts/flow-portal-node-data/flow-portal-node-data.stub';
 import { elkLayoutAdapter } from './elk-layout-adapter';
 import { elkLayoutAdapterProxy } from './elk-layout-adapter.proxy';
@@ -22,12 +23,61 @@ describe('elkLayoutAdapter', () => {
 
       const result = await elkLayoutAdapter({ nodes: [nodeA, nodeB], edges: [edge] });
 
-      expect(result).toStrictEqual(
+      expect(result.positions).toStrictEqual(
         ElkPositionMapStub({
           'login-page': { x: 0, y: 0 },
           dashboard: { x: 0, y: 120 },
         }),
       );
+    });
+
+    it('VALID: {ELK returns edge sections} => routes flatten each section into start, bends, end', async () => {
+      const proxy = elkLayoutAdapterProxy();
+      const nodeA = FlowNodeStub({ id: 'login-page' });
+      const nodeB = FlowNodeStub({ id: 'dashboard' });
+      const edge = FlowEdgeStub({ id: 'login-to-dashboard', from: 'login-page', to: 'dashboard' });
+
+      proxy.returnsPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'dashboard', x: 0, y: 120 },
+        ],
+        edges: [
+          {
+            id: 'login-to-dashboard',
+            sections: [
+              {
+                startPoint: { x: 0, y: 40 },
+                bendPoints: [{ x: 0, y: 80 }],
+                endPoint: { x: 60, y: 120 },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await elkLayoutAdapter({ nodes: [nodeA, nodeB], edges: [edge] });
+
+      expect(result.routes).toStrictEqual(
+        FlowEdgeRouteMapStub({
+          'login-to-dashboard': [
+            { x: 0, y: 40 },
+            { x: 0, y: 80 },
+            { x: 60, y: 120 },
+          ],
+        }),
+      );
+    });
+
+    it('EMPTY: {no edges in ELK result} => routes is an empty map', async () => {
+      const proxy = elkLayoutAdapterProxy();
+      const node = FlowNodeStub({ id: 'login-page' });
+
+      proxy.returnsPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
+
+      expect(result.routes).toStrictEqual(FlowEdgeRouteMapStub({}));
     });
 
     it('VALID: {1 node, x=45, y=90} => returned position has exact numeric x and y', async () => {
@@ -40,7 +90,9 @@ describe('elkLayoutAdapter', () => {
 
       const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
 
-      expect(result).toStrictEqual(ElkPositionMapStub({ 'login-page': { x: 45, y: 90 } }));
+      expect(result.positions).toStrictEqual(
+        ElkPositionMapStub({ 'login-page': { x: 45, y: 90 } }),
+      );
     });
 
     it('EMPTY: {0 nodes, 0 edges} => returns empty position map', async () => {
@@ -50,7 +102,7 @@ describe('elkLayoutAdapter', () => {
 
       const result = await elkLayoutAdapter({ nodes: [], edges: [] });
 
-      expect(result).toStrictEqual(ElkPositionMapStub({}));
+      expect(result.positions).toStrictEqual(ElkPositionMapStub({}));
     });
 
     it('EDGE: {ELK result has no children field} => returns empty position map', async () => {
@@ -61,7 +113,7 @@ describe('elkLayoutAdapter', () => {
 
       const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
 
-      expect(result).toStrictEqual(ElkPositionMapStub({}));
+      expect(result.positions).toStrictEqual(ElkPositionMapStub({}));
     });
 
     it('VALID: {cross-flow edge + portal} => portal reference is added as a graph child so ELK resolves the edge', async () => {
@@ -94,7 +146,7 @@ describe('elkLayoutAdapter', () => {
       // The portal id must be a graph child — otherwise real ELK throws on the unresolvable
       // edge target (the crash this fix repairs).
       expect(proxy.getGraphChildIds()).toStrictEqual(['run-compile', 'compile-flow:compile-entry']);
-      expect(result).toStrictEqual(
+      expect(result.positions).toStrictEqual(
         ElkPositionMapStub({
           'run-compile': { x: 0, y: 0 },
           'compile-flow:compile-entry': { x: 0, y: 200 },
@@ -110,7 +162,7 @@ describe('elkLayoutAdapter', () => {
 
       const result = await elkLayoutAdapter({ nodes: [node], edges: [] });
 
-      expect(result).toStrictEqual(ElkPositionMapStub({ 'login-page': { x: 0, y: 0 } }));
+      expect(result.positions).toStrictEqual(ElkPositionMapStub({ 'login-page': { x: 0, y: 0 } }));
     });
   });
 
