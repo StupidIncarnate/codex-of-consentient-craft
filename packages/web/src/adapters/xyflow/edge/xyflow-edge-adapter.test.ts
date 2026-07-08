@@ -176,6 +176,35 @@ describe('xyflowEdgeAdapter', () => {
     });
   });
 
+  describe('back-edge (loop) rendering', () => {
+    it('VALID: {source below target} => drawn as a right-side rectangular loop, label on its vertical run', () => {
+      xyflowEdgeAdapterProxy();
+      const { label } = FlowEdgeStub({ label: 'more files' });
+
+      // Source (400) sits below target (0), so it is a loop: it arcs out to the right by loop.detour
+      // (max(0,0)+60 = 60), giving points [(0,400),(60,400),(60,0),(0,0)]. The label rides the
+      // vertical run at x=60, y=(400+0)/2 = 200.
+      render(
+        React.createElement(EdgeComponent, {
+          id: 'loop-1',
+          source: 'tail',
+          target: 'head',
+          sourceX: 0,
+          sourceY: 400,
+          targetX: 0,
+          targetY: 0,
+          sourcePosition: 'right',
+          targetPosition: 'right',
+          data: { label },
+        }),
+      );
+
+      expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
+        /^translate\(-50%, -50%\) translate\(60px, 200px\)$/u,
+      );
+    });
+  });
+
   describe('markerEnd prop', () => {
     it('VALID: {markerEnd provided} => label still renders correctly', () => {
       xyflowEdgeAdapterProxy();

@@ -12,4 +12,9 @@
 
 export const flowHandleStatics = {
   observableSourceId: 'flow-node-observable-source',
+  // Right-side handles a back-edge (loop) attaches to so it exits and re-enters from the SIDE of
+  // the card — visually distinct from the top/bottom downward flow. A loop's source uses
+  // `loopSourceId`, its target uses `loopTargetId`.
+  loopSourceId: 'flow-node-loop-source',
+  loopTargetId: 'flow-node-loop-target',
 } as const;

@@ -8,7 +8,7 @@ import { xyflowNodeHandlesAdapterProxy } from './xyflow-node-handles-adapter.pro
 
 describe('xyflowNodeHandlesAdapter', () => {
   describe('flow-node variant', () => {
-    it('VALID: {} => top target, bottom source, and right observable source handle', () => {
+    it('VALID: {} => top target, bottom source, right observable source, and right loop handles', () => {
       xyflowNodeHandlesAdapterProxy();
 
       const element = xyflowNodeHandlesAdapter();
@@ -16,7 +16,7 @@ describe('xyflowNodeHandlesAdapter', () => {
       const children = React.Children.toArray(fragmentProps.children) as React.ReactElement<{
         type: 'source' | 'target';
         position: Position;
-        id?: typeof flowHandleStatics.observableSourceId;
+        id?: (typeof flowHandleStatics)[keyof typeof flowHandleStatics];
       }>[];
 
       const handleSummaries = children.map((child) => ({
@@ -34,6 +34,18 @@ describe('xyflowNodeHandlesAdapter', () => {
           handleType: 'source',
           position: Position.Right,
           id: flowHandleStatics.observableSourceId,
+        },
+        {
+          isHandle: true,
+          handleType: 'source',
+          position: Position.Right,
+          id: flowHandleStatics.loopSourceId,
+        },
+        {
+          isHandle: true,
+          handleType: 'target',
+          position: Position.Right,
+          id: flowHandleStatics.loopTargetId,
         },
       ]);
     });

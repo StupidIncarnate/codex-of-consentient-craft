@@ -211,7 +211,16 @@ export const ReactFlowDiagramWidget = ({
     const id = String(e.id);
     const route = routes?.[id];
     const routeData = route === undefined ? {} : { route };
-    const base = { id, source: String(e.from), target: String(e.to), type: 'flow' };
+    // A back-edge (target laid out ABOVE the source) is a loop; attach it to the side loop handles
+    // so it exits/re-enters from the RIGHT of the cards instead of the top/bottom.
+    const isLoop = (positions[String(e.to)]?.y ?? 0) < (positions[String(e.from)]?.y ?? 0);
+    const loopHandles = isLoop
+      ? {
+          sourceHandle: flowHandleStatics.loopSourceId,
+          targetHandle: flowHandleStatics.loopTargetId,
+        }
+      : {};
+    const base = { id, source: String(e.from), target: String(e.to), type: 'flow', ...loopHandles };
     if (e.label === undefined) {
       return { ...base, data: routeData };
     }

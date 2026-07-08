@@ -63,10 +63,15 @@ export const xyflowEdgeAdapter = ({
     targetPosition,
   });
 
-  // ELK route (data.route): the ordered points ELK routed the edge through, already clear of every
+  // A back-edge (loop) has its target laid out ABOVE its source, so React Flow gives it a larger
+  // sourceY than targetY. It attaches to the right-side loop handles; draw it as a clean rectangular
+  // arc out to the right (dashed, below) so it reads as a return path, not part of the flow.
+  const isBackEdge = sourceY > targetY;
+
+  // ELK route (data.route): the ordered points ELK routed a FORWARD edge through, clear of every
   // card. ELK sizes nodes from an over-estimate, so its own endpoints can float in the reserved gap
-  // beside/below a shorter rendered card — snap them to React Flow's actual source/target handles so
-  // the edge always touches both cards, and keep ELK's interior bend points for the routing between.
+  // beside a shorter card — snap them to React Flow's actual handles so the edge always touches both
+  // cards, and keep ELK's interior bend points for the routing between.
   const rawRoute = data?.route;
   const elkPoints =
     Array.isArray(rawRoute) && rawRoute.length > 1
@@ -75,10 +80,20 @@ export const xyflowEdgeAdapter = ({
           return { x: Number(p.x), y: Number(p.y) };
         })
       : [];
-  const routed = elkPoints.length > 1;
-  const points = routed
-    ? [{ x: sourceX, y: sourceY }, ...elkPoints.slice(1, -1), { x: targetX, y: targetY }]
-    : [];
+
+  const loopDetourX = Math.max(sourceX, targetX) + elkLayoutStatics.loop.detour;
+  const loopPoints = [
+    { x: sourceX, y: sourceY },
+    { x: loopDetourX, y: sourceY },
+    { x: loopDetourX, y: targetY },
+    { x: targetX, y: targetY },
+  ];
+  const routedPoints =
+    elkPoints.length > 1
+      ? [{ x: sourceX, y: sourceY }, ...elkPoints.slice(1, -1), { x: targetX, y: targetY }]
+      : [];
+  const points = isBackEdge ? loopPoints : routedPoints;
+  const routed = points.length > 1;
 
   const edgePath = routed
     ? points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ')
@@ -101,6 +116,7 @@ export const xyflowEdgeAdapter = ({
     React.createElement(BaseEdge, {
       path: edgePath,
       ...(markerEnd === undefined ? {} : { markerEnd }),
+      ...(isBackEdge ? { style: { strokeDasharray: '6 4' } } : {}),
     }),
     label === undefined
       ? null

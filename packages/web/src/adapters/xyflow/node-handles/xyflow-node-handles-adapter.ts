@@ -57,5 +57,19 @@ export const xyflowNodeHandlesAdapter = ({
       id: flowHandleStatics.observableSourceId,
       style: HIDDEN_HANDLE_STYLE,
     }),
+    // Loop (back-edge) handles on the RIGHT side, so an upward route exits/re-enters from the side
+    // of the card rather than the top/bottom — visually distinct from the downward flow.
+    React.createElement(Handle, {
+      type: 'source',
+      position: Position.Right,
+      id: flowHandleStatics.loopSourceId,
+      style: HIDDEN_HANDLE_STYLE,
+    }),
+    React.createElement(Handle, {
+      type: 'target',
+      position: Position.Right,
+      id: flowHandleStatics.loopTargetId,
+      style: HIDDEN_HANDLE_STYLE,
+    }),
   );
 };

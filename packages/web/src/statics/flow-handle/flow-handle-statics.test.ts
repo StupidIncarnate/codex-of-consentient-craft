@@ -4,6 +4,8 @@ describe('flowHandleStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(flowHandleStatics).toStrictEqual({
       observableSourceId: 'flow-node-observable-source',
+      loopSourceId: 'flow-node-loop-source',
+      loopTargetId: 'flow-node-loop-target',
     });
   });
 });

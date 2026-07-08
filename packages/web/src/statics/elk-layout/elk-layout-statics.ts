@@ -59,7 +59,7 @@ export const elkLayoutStatics = {
   spacing: {
     nodeNode: 300,
     nodeNodeBetweenLayers: 140,
-    edgeNode: 30,
+    edgeNode: 90,
     edgeEdge: 20,
   },
   // Wrapping branch-edge label box: `maxWidth` bounds the box's width so its text wraps rather than
@@ -69,6 +69,12 @@ export const elkLayoutStatics = {
   edgeLabel: {
     maxWidth: 160,
     midpointDivisor: 2,
+  },
+  // A back-edge (loop) attaches to the RIGHT-side handles and is drawn as a clean rectangular arc
+  // out to the side: `detour` px right of the card's right edge, up, and back in. Dashed so it
+  // reads as a return path, not part of the downward flow.
+  loop: {
+    detour: 60,
   },
   // React Flow viewport zoom floor. fit-view clamps the fit zoom to >= minZoom; React Flow's
   // default 0.5 is too high for tall assertion-rich graphs — fit-view can't shrink the whole
