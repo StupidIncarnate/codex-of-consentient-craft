@@ -8,8 +8,13 @@ describe('dumpsterCreatePromptStatics', () => {
         placeholders: {
           arguments: '$ARGUMENTS',
           questId: '$QUEST_ID',
+          questBootstrap: '$QUEST_BOOTSTRAP',
           clarifyInstruction: '$CLARIFY_INSTRUCTION',
         },
+      },
+      questBootstrap: {
+        mint: expect.stringMatching(/^.+$/su),
+        preCreated: expect.stringMatching(/^.+$/su),
       },
       clarifyInstructions: {
         native: expect.stringMatching(/^.+$/su),
@@ -59,49 +64,70 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => instructs ChaosWhisperer to create the quest as its first action', () => {
+  it('VALID: mint bootstrap => instructs ChaosWhisperer to create the quest as its first action', () => {
     const needle = 'call `mcp__dungeonmaster__create-quest` to create the new quest';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const { mint } = dumpsterCreatePromptStatics.questBootstrap;
+    const foundIndex = mint.indexOf(needle);
+    const foundSlice = mint.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => instructs passing the user request verbatim as the userRequest arg to create-quest', () => {
+  it('VALID: mint bootstrap => instructs passing the user request verbatim as the userRequest arg to create-quest', () => {
     const needle = "passing the user's original request verbatim as the `userRequest` argument";
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const { mint } = dumpsterCreatePromptStatics.questBootstrap;
+    const foundIndex = mint.indexOf(needle);
+    const foundSlice = mint.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => instructs opening the web UI spec view with chat hidden after quest creation', () => {
+  it('VALID: mint bootstrap => instructs opening the web UI spec view with chat hidden after quest creation', () => {
     const needle = '?chat=hidden';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const { mint } = dumpsterCreatePromptStatics.questBootstrap;
+    const foundIndex = mint.indexOf(needle);
+    const foundSlice = mint.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => instructs calling get-server-config before opening the URL', () => {
+  it('VALID: mint bootstrap => instructs calling get-server-config before opening the URL', () => {
     const needle = 'mcp__dungeonmaster__get-server-config()';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const { mint } = dumpsterCreatePromptStatics.questBootstrap;
+    const foundIndex = mint.indexOf(needle);
+    const foundSlice = mint.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => instructs opening the URL via xdg-open / open Bash fallback', () => {
+  it('VALID: mint bootstrap => instructs opening the URL via xdg-open / open Bash fallback', () => {
     const needle = 'xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true';
-    const { template } = dumpsterCreatePromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+    const { mint } = dumpsterCreatePromptStatics.questBootstrap;
+    const foundIndex = mint.indexOf(needle);
+    const foundSlice = mint.slice(foundIndex, foundIndex + needle.length);
 
     expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => defers the quest bootstrap to a $QUEST_BOOTSTRAP placeholder', () => {
+    const { template } = dumpsterCreatePromptStatics.prompt;
+
+    expect(template.indexOf('$QUEST_BOOTSTRAP')).toBeGreaterThan(-1);
+    expect(
+      template.indexOf('call `mcp__dungeonmaster__create-quest` to create the new quest'),
+    ).toBe(-1);
+  });
+
+  it('VALID: preCreated bootstrap => forbids create-quest and loads the pre-created quest by $QUEST_ID', () => {
+    const { preCreated } = dumpsterCreatePromptStatics.questBootstrap;
+    const forbidNeedle = 'Do NOT call `mcp__dungeonmaster__create-quest`';
+    const forbidIndex = preCreated.indexOf(forbidNeedle);
+
+    expect(preCreated.slice(forbidIndex, forbidIndex + forbidNeedle.length)).toBe(forbidNeedle);
+    expect(preCreated.indexOf('get-quest` with `questId: $QUEST_ID')).toBeGreaterThan(-1);
+    expect(
+      preCreated.indexOf('call `mcp__dungeonmaster__create-quest` to create the new quest'),
+    ).toBe(-1);
   });
 
   it('VALID: prompt template => defers the clarify tool choice to a $CLARIFY_INSTRUCTION placeholder', () => {

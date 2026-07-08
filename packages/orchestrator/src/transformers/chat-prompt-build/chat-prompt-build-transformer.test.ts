@@ -19,13 +19,37 @@ describe('chatPromptBuildTransformer', () => {
 
       const expected = dumpsterCreatePromptStatics.prompt.template
         .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, 'Build auth')
-        .replace(dumpsterCreatePromptStatics.prompt.placeholders.questId, 'abc-123')
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+          dumpsterCreatePromptStatics.questBootstrap.preCreated,
+        )
+        .split(dumpsterCreatePromptStatics.prompt.placeholders.questId)
+        .join('abc-123')
         .replace(
           dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
           dumpsterCreatePromptStatics.clarifyInstructions.mcp,
         );
 
       expect(result).toBe(expected);
+    });
+
+    it('VALID: {chaoswhisperer + questId} => embeds the pre-created questId and does NOT tell the agent to mint a new quest', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const questId = QuestIdStub({ value: 'abc-123' });
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: 'Build auth',
+        questId,
+      });
+
+      const idIndex = result.indexOf('abc-123');
+
+      expect(result.slice(idIndex, idIndex + 'abc-123'.length)).toBe('abc-123');
+      expect(
+        result.indexOf('call `mcp__dungeonmaster__create-quest` to create the new quest'),
+      ).toBe(-1);
     });
 
     it('VALID: {chaoswhisperer + sessionId} => returns raw message as prompt', () => {
@@ -43,7 +67,7 @@ describe('chatPromptBuildTransformer', () => {
       expect(result).toBe('Continue working');
     });
 
-    it('VALID: {chaoswhisperer + no questId} => returns template without quest ID replaced', () => {
+    it('VALID: {chaoswhisperer + no questId} => uses the mint bootstrap with no quest ID to fill', () => {
       chatPromptBuildTransformerProxy();
       const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
 
@@ -55,6 +79,10 @@ describe('chatPromptBuildTransformer', () => {
 
       const expected = dumpsterCreatePromptStatics.prompt.template
         .replace(dumpsterCreatePromptStatics.prompt.placeholders.arguments, 'Build auth')
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+          dumpsterCreatePromptStatics.questBootstrap.mint,
+        )
         .replace(
           dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
           dumpsterCreatePromptStatics.clarifyInstructions.mcp,

@@ -33,12 +33,17 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterCreate.body => embeds the dumpster-create prompt template with the native clarify instruction substituted', () => {
+    it('VALID: dumpsterCreate.body => embeds the dumpster-create prompt template with the mint bootstrap and native clarify instruction substituted', () => {
       const { body } = slashCommandsStatics.dumpsterCreate;
-      const expected = dumpsterCreatePromptStatics.prompt.template.replace(
-        dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
-        dumpsterCreatePromptStatics.clarifyInstructions.native,
-      );
+      const expected = dumpsterCreatePromptStatics.prompt.template
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+          dumpsterCreatePromptStatics.questBootstrap.mint,
+        )
+        .replace(
+          dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+          dumpsterCreatePromptStatics.clarifyInstructions.native,
+        );
       const foundIndex = body.indexOf(expected);
 
       expect(foundIndex).toBeGreaterThan(0);
@@ -49,6 +54,7 @@ describe('slashCommandsStatics', () => {
       const { body } = slashCommandsStatics.dumpsterCreate;
 
       expect(body.indexOf('$CLARIFY_INSTRUCTION')).toBe(-1);
+      expect(body.indexOf('$QUEST_BOOTSTRAP')).toBe(-1);
       expect(body.indexOf('mcp__dungeonmaster__ask-user-question')).toBe(-1);
       expect(body.indexOf('use the native `AskUserQuestion` tool')).toBeGreaterThan(-1);
     });

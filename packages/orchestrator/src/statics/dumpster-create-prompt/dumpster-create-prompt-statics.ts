@@ -1,14 +1,17 @@
 /**
  * PURPOSE: Defines the ChaosWhisperer (Dumpster spec) prompt that drives the user's interactive
  * `/dumpster-create` Claude session. The slash command body wraps this template with YAML
- * frontmatter; the same template is also reused by the legacy `chatPromptBuildTransformer`
- * spawn path until it is fully retired.
+ * frontmatter; the node-mode headless spawn reuses it via `chatPromptBuildTransformer`. The
+ * template's opening `$QUEST_BOOTSTRAP` placeholder is filled with one of two `questBootstrap`
+ * variants so the same body serves both entry points: `mint` (the agent creates its own quest —
+ * the slash-command path) or `preCreated` (the agent adopts the server-minted quest by its
+ * `$QUEST_ID` — the headless web-chat path). `$CLARIFY_INSTRUCTION` is filled the same way.
  *
  * USAGE:
  * dumpsterCreatePromptStatics.prompt.template;
- * // Returns the ChaosWhisperer prompt template that:
- * // 1. Creates the new quest via MCP as its first action.
- * // 2. Opens the web UI spec view (chat hidden) so the user can watch quest state live.
+ * // Returns the ChaosWhisperer prompt template that, once its placeholders are filled:
+ * // 1. Bootstraps the quest — mints a new one, OR adopts the pre-created one by id.
+ * // 2. Opens/reviews the web UI spec view so the user can watch quest state live.
  * // 3. Engages in Socratic dialogue, builds flows + observables, drives status transitions.
  */
 
@@ -22,11 +25,7 @@ You are the ChaosWhisperer, a BDD architect that transforms user requirements in
 
 ## EXECUTION PROTOCOL
 
-**Start here.** Your VERY FIRST action: call \`mcp__dungeonmaster__create-quest\` to create the new quest, passing the user's original request verbatim as the \`userRequest\` argument (the request text appears in the "User Request" section at the bottom of this prompt — copy it exactly, do NOT paraphrase or summarize). The user never passes a questId — you mint it. Capture the returned \`questId\` and \`guildSlug\` for the next step.
-
-**Open the web UI immediately after quest creation.** Call \`mcp__dungeonmaster__get-server-config()\` to learn the server's \`baseUrl\`, then open the spec view with chat hidden so the user can watch quest state live without a duplicate chat panel: \`<baseUrl>/<guildSlug>/quest/<questId>?chat=hidden\`. Open it via Bash: \`xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true\`. Do this exactly once, before any further spec work. The user does not need to manually navigate.
-
-**Then load the quest.** Call \`get-quest\` with the \`questId\` you just minted. The quest begins at status \`created\`. You drive it through the status lifecycle below, transitioning via \`modify-quest\`.
+$QUEST_BOOTSTRAP
 
 **Do NOT create a task list.** The status sections below ARE your checklist, and quest status is durable across restarts. If you backpedal to an earlier status (e.g., user requests flow changes during \`review_flows\`), return to that status's section and continue its work — the section tells you what to do regardless of how you got there.
 
@@ -424,8 +423,26 @@ $ARGUMENTS`,
     placeholders: {
       arguments: '$ARGUMENTS',
       questId: '$QUEST_ID',
+      questBootstrap: '$QUEST_BOOTSTRAP',
       clarifyInstruction: '$CLARIFY_INSTRUCTION',
     },
+  },
+  // The quest-bootstrap block differs by entry point. The `/dumpster-create` slash command runs
+  // with no pre-created quest, so ChaosWhisperer mints one itself (`mint`). The node-mode headless
+  // spawn pre-creates the quest server-side — so the browser has a URL to land on the moment the
+  // chat opens — and threads its id into the prompt; ChaosWhisperer MUST adopt that quest, not mint
+  // a second one, or every flow/observable/decision lands on an invisible duplicate while the user
+  // stares at the empty pre-created quest (`preCreated`). `chatPromptBuildTransformer` selects the
+  // variant by questId presence and fills every `$QUEST_ID`; `slashCommandsStatics` always uses `mint`.
+  questBootstrap: {
+    mint: `**Start here.** Your VERY FIRST action: call \`mcp__dungeonmaster__create-quest\` to create the new quest, passing the user's original request verbatim as the \`userRequest\` argument (the request text appears in the "User Request" section at the bottom of this prompt — copy it exactly, do NOT paraphrase or summarize). The user never passes a questId — you mint it. Capture the returned \`questId\` and \`guildSlug\` for the next step.
+
+**Open the web UI immediately after quest creation.** Call \`mcp__dungeonmaster__get-server-config()\` to learn the server's \`baseUrl\`, then open the spec view with chat hidden so the user can watch quest state live without a duplicate chat panel: \`<baseUrl>/<guildSlug>/quest/<questId>?chat=hidden\`. Open it via Bash: \`xdg-open <url> 2>/dev/null || open <url> 2>/dev/null || true\`. Do this exactly once, before any further spec work. The user does not need to manually navigate.
+
+**Then load the quest.** Call \`get-quest\` with the \`questId\` you just minted. The quest begins at status \`created\`. You drive it through the status lifecycle below, transitioning via \`modify-quest\`.`,
+    preCreated: `**Start here.** The quest already exists — its ID is \`$QUEST_ID\` and it is already open in the user's browser. Do NOT call \`mcp__dungeonmaster__create-quest\`: you did not mint this quest, and a second one would strand the user on an empty spec view while every flow, observable, and design decision you write lands on an invisible duplicate. Do NOT open a browser tab either — the user is already watching this quest.
+
+**Then load the quest.** Your VERY FIRST action: call \`get-quest\` with \`questId: $QUEST_ID\`. The quest begins at status \`created\`. You drive it through the status lifecycle below, always passing \`questId: $QUEST_ID\` to \`modify-quest\`.`,
   },
   // The clarification mechanism is chosen by execution context (which orchestrationMode determines):
   // the /dumpster-create slash command runs in an interactive terminal (native AskUserQuestion works),

@@ -32,8 +32,24 @@ export const chatPromptBuildTransformer = ({
 
   let promptText = statics.prompt.template.replace(statics.prompt.placeholders.arguments, message);
 
+  if (role === 'chaoswhisperer') {
+    // Splice the quest-bootstrap block BEFORE filling $QUEST_ID — the preCreated variant embeds
+    // $QUEST_ID tokens the substitution below must reach. A questId means the server already minted
+    // this quest (headless node-mode spawn), so ChaosWhisperer adopts it instead of creating a
+    // duplicate; no questId is the mint path (only reached if a caller spawns without pre-creating).
+    const bootstrap = questId
+      ? dumpsterCreatePromptStatics.questBootstrap.preCreated
+      : dumpsterCreatePromptStatics.questBootstrap.mint;
+    promptText = promptText.replace(
+      dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+      bootstrap,
+    );
+  }
+
   if (questId) {
-    promptText = promptText.replace(statics.prompt.placeholders.questId, questId);
+    // split/join replaces EVERY $QUEST_ID occurrence — the preCreated bootstrap references it more
+    // than once, and String.replace(string, string) would swap only the first.
+    promptText = promptText.split(statics.prompt.placeholders.questId).join(questId);
   }
 
   if (role === 'chaoswhisperer') {

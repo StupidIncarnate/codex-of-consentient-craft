@@ -33,12 +33,18 @@ allowed-tools: mcp__dungeonmaster__*, Bash, Read, Glob, Grep, Edit, Write, Task
 export const slashCommandsStatics = {
   dumpsterCreate: {
     fileName: 'dumpster-create.md',
-    // The slash command runs in the user's interactive terminal, so ChaosWhisperer uses the native
-    // AskUserQuestion tool — substitute the native clarify instruction into the template placeholder.
-    body: `${DUMPSTER_CREATE_FRONTMATTER}\n\n${dumpsterCreatePromptStatics.prompt.template.replace(
-      dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
-      dumpsterCreatePromptStatics.clarifyInstructions.native,
-    )}\n`,
+    // The slash command runs in the user's interactive terminal with no pre-created quest, so
+    // ChaosWhisperer mints its own quest (the `mint` bootstrap) and uses the native AskUserQuestion
+    // tool (the `native` clarify instruction). Both are substituted into the template placeholders.
+    body: `${DUMPSTER_CREATE_FRONTMATTER}\n\n${dumpsterCreatePromptStatics.prompt.template
+      .replace(
+        dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+        dumpsterCreatePromptStatics.questBootstrap.mint,
+      )
+      .replace(
+        dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
+        dumpsterCreatePromptStatics.clarifyInstructions.native,
+      )}\n`,
   },
   dumpsterHunt: {
     fileName: 'dumpster-hunt.md',
