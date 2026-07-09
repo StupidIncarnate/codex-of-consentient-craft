@@ -13,6 +13,8 @@ export const fsWatchTailAdapterProxy = (): {
   setupStreamError: (params: { error: Error }) => void;
   setupStatError: (params: { error: Error }) => void;
   setupFileMissing: () => void;
+  setupFileMissingUntilCreated: () => void;
+  markFileCreated: () => void;
   setupExistingFileWithContent: () => void;
   lastStartPositionWasFromFileEnd: () => boolean;
   lastStartPositionWasZero: () => boolean;
@@ -23,8 +25,11 @@ export const fsWatchTailAdapterProxy = (): {
   const mockExistsSync: MockHandle = registerMock({ fn: existsSync });
   const mockCreateInterface: MockHandle = registerMock({ fn: createInterface });
 
-  // Default: file always exists. Tests opt into the missing-file path via setupFileMissing.
-  mockExistsSync.mockReturnValue(true);
+  // Default: file always exists. Tests opt into the missing-file path via setupFileMissing
+  // (one-shot ENOENT at setup) or setupFileMissingUntilCreated + markFileCreated (the
+  // awaitCreate path, where the file appears a beat after construction).
+  const existsState = { exists: true };
+  mockExistsSync.mockImplementation(() => existsState.exists);
 
   const watchEmitter = Object.assign(new EventEmitter(), {
     close: jest.fn(),
@@ -104,6 +109,14 @@ export const fsWatchTailAdapterProxy = (): {
 
     setupFileMissing: (): void => {
       mockExistsSync.mockReturnValueOnce(false);
+    },
+
+    setupFileMissingUntilCreated: (): void => {
+      existsState.exists = false;
+    },
+
+    markFileCreated: (): void => {
+      existsState.exists = true;
     },
 
     setupExistingFileWithContent: (): void => {

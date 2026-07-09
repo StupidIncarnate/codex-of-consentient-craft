@@ -126,6 +126,11 @@ export const QuestFlow = {
   startMonitorWatcher: async ({
     parentSessionId,
     projectDir,
+    workerWorkItemId,
   }: StartMonitorWatcherParams): Promise<StartMonitorWatcherResult> =>
-    QuestMonitorWatcherStartResponder({ parentSessionId, projectDir }),
+    QuestMonitorWatcherStartResponder({
+      parentSessionId,
+      projectDir,
+      ...(workerWorkItemId === undefined ? {} : { workerWorkItemId }),
+    }),
 };

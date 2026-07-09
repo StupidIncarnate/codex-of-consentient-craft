@@ -76,11 +76,24 @@ export const elkLayoutStatics = {
   loop: {
     detour: 60,
   },
-  // React Flow viewport zoom floor. fit-view clamps the fit zoom to >= minZoom; React Flow's
-  // default 0.5 is too high for tall assertion-rich graphs — fit-view can't shrink the whole
-  // graph into the collapsed (800px) canvas, so the diagram only appears once fullscreen enlarges
-  // the canvas. A low floor lets fit-view frame the entire graph even when collapsed.
+  // React Flow viewport knobs. On load the diagram frames itself top-anchored and horizontally
+  // centered on the entry node: the first step (the single node every flow starts with) sits in the
+  // horizontal middle near the top, and the reviewer scrolls down for the rest — instead of the
+  // whole tall graph being shrunk to fit and vertically centered (which reads as "zoomed way out,
+  // first node lost in the middle").
+  //   - `minZoom` is the zoom floor for both the user's manual zoom-out and the top-align fit, so a
+  //     very wide graph can still shrink into the canvas. React Flow's default 0.5 is too high for
+  //     wide assertion-rich graphs.
+  //   - `maxZoom` caps the top-align fit so a narrow graph renders its cards at natural size instead
+  //     of being blown up.
+  //   - `topPadding` / `sidePadding` are the px gaps kept above the entry node and on each side.
+  //   - `centerDivisor` halves spans/dimensions when centering the entry node (named so the layout
+  //     math carries no bare `2`, mirroring `edgeLabel.midpointDivisor`).
   viewport: {
     minZoom: 0.1,
+    maxZoom: 1,
+    topPadding: 24,
+    sidePadding: 24,
+    centerDivisor: 2,
   },
 } as const;

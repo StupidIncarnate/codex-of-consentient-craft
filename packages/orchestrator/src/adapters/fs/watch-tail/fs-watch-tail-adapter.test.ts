@@ -330,6 +330,69 @@ describe('fsWatchTailAdapter', () => {
     });
   });
 
+  describe('awaitCreate parameter', () => {
+    // Node-dispatch worker sessions: spawn-batch captures the child's sessionId from its
+    // stdout init line and stamps it, which starts this tail — but Claude CLI writes the
+    // `<sessionId>.jsonl` to disk a fraction of a second LATER. Without awaitCreate the tail
+    // hits the ENOENT no-op path and never recovers (reconcile marks the session watched and
+    // never retries), so the worker's whole transcript streams to nobody. awaitCreate watches
+    // the parent dir until the file appears, then drains it from the beginning.
+    it('VALID: {awaitCreate: true, file missing at construction then created} => waits, then drains content without ENOENT', async () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/late-created.jsonl' });
+      const onLine = jest.fn();
+      const onError = jest.fn();
+
+      proxy.setupFileMissingUntilCreated();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError,
+        awaitCreate: true,
+      });
+
+      // File absent at construction: no ENOENT surfaced, nothing drained yet.
+      expect(onError).toHaveBeenCalledTimes(0);
+      expect(onLine).toHaveBeenCalledTimes(0);
+
+      // Claude CLI creates the session JSONL a beat later and the parent-dir watch fires.
+      proxy.markFileCreated();
+      proxy.setupLines({ lines: ['first-real-line'] });
+      proxy.triggerChange();
+      proxy.triggerChange();
+      await flushPromises();
+      // Tear down the (real) await-timeout timer before asserting; the drain already ran.
+      handle.stop();
+
+      expect(onError).toHaveBeenCalledTimes(0);
+      expect(onLine).toHaveBeenCalledTimes(1);
+      expect(onLine).toHaveBeenNthCalledWith(1, { line: 'first-real-line' });
+    });
+
+    it('EDGE: {awaitCreate omitted, file missing} => still surfaces ENOENT (orphan-reference behavior preserved)', () => {
+      const proxy = fsWatchTailAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/tmp/missing-no-await.jsonl' });
+      const onLine = jest.fn();
+      const onError = jest.fn();
+
+      proxy.setupFileMissing();
+
+      const handle = fsWatchTailAdapter({
+        filePath,
+        onLine,
+        onError,
+      });
+      handle.stop();
+
+      expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenNthCalledWith(1, {
+        error: new Error('ENOENT: file does not exist: /tmp/missing-no-await.jsonl'),
+      });
+      expect(onLine).toHaveBeenCalledTimes(0);
+    });
+  });
+
   describe('initialDrain promise', () => {
     // The initialDrain contract closes the resolve-race in chat-start-responder.onComplete
     // — onComplete must NOT iterate stop handles until every in-flight tail's drain has

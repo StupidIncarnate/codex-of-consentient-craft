@@ -132,6 +132,38 @@ describe('computeNextStepFromQuestLayerBroker', () => {
     });
   });
 
+  it('VALID: {feature quest in_progress, chaoswhisperer complete, pathseeker pending depends on it} => spawn-agents pathseeker (regression: a ready pathseeker must dispatch)', () => {
+    computeNextStepFromQuestLayerBrokerProxy();
+    const questId = QuestIdStub({ value: '4226b8d1-2827-4250-8d82-c278d66bcd2d' });
+    const chaosId = QuestWorkItemIdStub({ value: '53e47119-0000-4000-8000-000000000000' });
+    const pathseekerId = QuestWorkItemIdStub({ value: '8c858ffd-e132-4cf6-8d2c-defbeec99810' });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      workItems: [
+        WorkItemStub({ id: chaosId, role: 'chaoswhisperer', status: 'complete', dependsOn: [] }),
+        WorkItemStub({
+          id: pathseekerId,
+          role: 'pathseeker',
+          status: 'pending',
+          dependsOn: [chaosId],
+        }),
+      ],
+    });
+
+    expect(computeNextStepFromQuestLayerBroker({ quest })).toStrictEqual({
+      type: 'spawn-agents',
+      agents: [
+        {
+          questId,
+          role: 'pathseeker',
+          workItemId: pathseekerId,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pathseeker",\n  workItemId: "${String(pathseekerId)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(pathseekerId)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+        },
+      ],
+    });
+  });
+
   it('VALID: {ready ward with no wardMode set} => defaults to changed', () => {
     computeNextStepFromQuestLayerBrokerProxy();
     const questId = QuestIdStub({ value: 'q-ward-default' });

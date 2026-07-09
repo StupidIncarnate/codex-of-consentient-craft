@@ -39,6 +39,10 @@ describe('elkLayoutStatics', () => {
       },
       viewport: {
         minZoom: 0.1,
+        maxZoom: 1,
+        topPadding: 24,
+        sidePadding: 24,
+        centerDivisor: 2,
       },
     });
   });

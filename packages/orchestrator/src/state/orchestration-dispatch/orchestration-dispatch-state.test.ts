@@ -44,7 +44,7 @@ describe('orchestrationDispatchState', () => {
       expect(handler.mock.calls).toStrictEqual([[{ isPlaying: true }]]);
     });
 
-    it('VALID: {handler registered; setPlaying to same value} => does NOT fire handler', () => {
+    it('VALID: {handler registered; setPlaying to same value} => still fires handler (every play/pause press notifies subscribers)', () => {
       const proxy = orchestrationDispatchStateProxy();
       proxy.setupEmpty();
       const handler = jest.fn();
@@ -52,7 +52,22 @@ describe('orchestrationDispatchState', () => {
       orchestrationDispatchState.onChange(handler);
       orchestrationDispatchState.setPlaying({ isPlaying: false });
 
-      expect(handler.mock.calls).toStrictEqual([]);
+      expect(handler.mock.calls).toStrictEqual([[{ isPlaying: false }]]);
+    });
+
+    it('VALID: {already playing; setPlaying true again} => fires onChange again so a re-play re-kicks the node dispatcher (regression: stuck pathseeker on unpause)', () => {
+      const proxy = orchestrationDispatchStateProxy();
+      proxy.setupEmpty();
+      const handler = jest.fn();
+
+      // Dispatcher already playing (e.g. it played once, found nothing ready, and a quest
+      // became ready afterward). Pressing play/resume again must re-notify subscribers so the
+      // runner re-scans — not swallow it as an unchanged no-op.
+      orchestrationDispatchState.setPlaying({ isPlaying: true });
+      orchestrationDispatchState.onChange(handler);
+      orchestrationDispatchState.setPlaying({ isPlaying: true });
+
+      expect(handler.mock.calls).toStrictEqual([[{ isPlaying: true }]]);
     });
 
     it('VALID: {handler registered; true then false} => fires twice with correct values', () => {

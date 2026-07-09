@@ -5,7 +5,7 @@ import { questListBrokerProxy } from '../list/quest-list-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
-export const loadActiveQuestsLayerBrokerProxy = (): {
+export const questActiveQuestsBrokerProxy = (): {
   setupGuildsAndQuests: (params: {
     guildItems: readonly GuildListItem[];
     questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];

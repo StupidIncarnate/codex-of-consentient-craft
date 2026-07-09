@@ -54,6 +54,7 @@ export const questMonitorJsonlWatcherBroker = ({
   workItemIdForAgent,
   emit,
   isAgentIdActive,
+  mainSessionWorkItemId,
 }: {
   sessionFilePath: FilePath;
   activeQuestIdGetter: () => QuestId | null;
@@ -66,8 +67,10 @@ export const questMonitorJsonlWatcherBroker = ({
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
   // buckets them under the same key that `wi.sessionId` resolves to via
   // chat-replay-responder + the MCP get-agent-prompt stamp. Main-session tail emits
-  // (the parent /dumpster-launch dispatcher) omit `sessionId` — those frames are
-  // dispatcher chatter, not per-row content.
+  // for a /dumpster-launch DISPATCHER session omit `sessionId` — those frames are
+  // dispatcher chatter, not per-row content. For a node-dispatch WORKER session (see
+  // `mainSessionWorkItemId` below) the main session IS the per-row content, so those
+  // emits DO carry `sessionId` + `workItemId`.
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
@@ -80,6 +83,13 @@ export const questMonitorJsonlWatcherBroker = ({
   // Stale subagent JSONLs left on disk from prior /dumpster-launch runs return
   // false and are never tailed.
   isAgentIdActive: (params: { agentId: AgentId }) => boolean;
+  // Set when the tailed session is a top-level node-dispatch worker: its own agent
+  // (pathseeker/codeweaver/…) writes its work to the MAIN session JSONL — there is no
+  // dispatcher above it. Main-session tail emits then carry `sessionId: parentSessionId`
+  // + this `workItemId`, so the web routes them to the worker's execution row exactly as
+  // the replay path does. Omitted for /dumpster-launch dispatcher sessions, whose
+  // main-session lines are dispatcher chatter dropped by the server's parent-source filter.
+  mainSessionWorkItemId?: QuestWorkItemId;
 }): { stop: () => void; pruneStaleTails: () => void } => {
   // ONE processor instance is shared across the main JSONL tail AND every sub-agent JSONL
   // tail this broker spawns, mirroring the architecture invariant documented in
@@ -174,6 +184,11 @@ export const questMonitorJsonlWatcherBroker = ({
   const mainJsonlPath = absoluteFilePathContract.parse(String(sessionFilePath));
   const mainHandle = fsWatchTailAdapter({
     filePath: mainJsonlPath,
+    // The session JSONL may not exist yet: a node-dispatch worker's sessionId reaches the
+    // reactor via the child's stdout init line and starts this tail a beat before Claude CLI
+    // flushes `<sessionId>.jsonl` to disk. `awaitCreate` watches the parent dir until the
+    // file appears instead of stranding a dead tail on the ENOENT no-op path.
+    awaitCreate: true,
     onLine: ({ line }) => {
       const parsed = claudeLineNormalizeBroker({ rawLine: line });
       const outputs = processor.processLine({
@@ -183,7 +198,17 @@ export const questMonitorJsonlWatcherBroker = ({
       for (const output of outputs) {
         if (output.type === 'entries') {
           if (output.entries.length > 0) {
-            emit({ chatProcessId, entries: output.entries, questId: activeQuestIdGetter() });
+            emit({
+              chatProcessId,
+              entries: output.entries,
+              questId: activeQuestIdGetter(),
+              // Worker session: stamp sessionId + workItemId so the web routes the main
+              // session's own transcript to the worker's execution row. Dispatcher session:
+              // omit both — these are filtered as parent-source chatter server-side.
+              ...(mainSessionWorkItemId === undefined
+                ? {}
+                : { sessionId: parentSessionId, workItemId: mainSessionWorkItemId }),
+            });
           }
           continue;
         }

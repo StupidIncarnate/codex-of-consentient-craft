@@ -378,9 +378,14 @@ export const StartOrchestrator = {
   startMonitorWatcher: async ({
     parentSessionId,
     projectDir,
+    ...workerParams
   }: {
     parentSessionId: string;
     projectDir: string;
+    // Present when the tailed session is a top-level node-dispatch worker (work item has
+    // a sessionId but no agentId). Routes its main-session output to the work item's row
+    // instead of dropping it as /dumpster-launch dispatcher chatter.
+    workerWorkItemId?: string;
   }): Promise<{ stop: () => void }> =>
-    QuestFlow.startMonitorWatcher({ parentSessionId, projectDir }),
+    QuestFlow.startMonitorWatcher({ parentSessionId, projectDir, ...workerParams }),
 };

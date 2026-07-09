@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { DispatchToggleWidget } from '../dispatch-toggle/dispatch-toggle-widget';
 
 const BAR_HEIGHT = 48;
 const ROW_FONT_SIZE = 13;
@@ -104,6 +105,7 @@ export const QuestQueueBarWidget = (): React.JSX.Element | null => {
           </Text>
         </UnstyledButton>
         <Group gap="md">
+          <DispatchToggleWidget />
           <Link
             to="/queue"
             data-testid="QUEST_QUEUE_BAR_QUEUE_LINK"

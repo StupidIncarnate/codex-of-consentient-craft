@@ -13,7 +13,12 @@ import {
   reconcileWatchersResultContract,
   type ReconcileWatchersResult,
 } from '../../../contracts/reconcile-watchers-result/reconcile-watchers-result-contract';
-import type { GuildPath, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildPath,
+  QuestId,
+  QuestWorkItemId,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
@@ -73,6 +78,13 @@ export const ReconcileWatchersLayerResponder = async ({
 
   const target = new Set<SessionId>();
   const projectDirBySessionId = new Map<SessionId, GuildPath>();
+  // Sessions whose active work item carries a sessionId but NO agentId are top-level
+  // node-dispatch workers (spawn-batch stamps sessionId, never agentId; /dumpster-launch
+  // get-agent-prompt stamps BOTH). Their own agent (pathseeker/codeweaver/…) writes the
+  // MAIN session JSONL, so the watcher must route that content to the work item's row
+  // instead of dropping it as dispatcher chatter. Keyed sessionId → owning workItemId;
+  // dispatcher (/dumpster-launch parent) sessions never appear here.
+  const workerWorkItemIdBySessionId = new Map<SessionId, QuestWorkItemId>();
   for (const quest of loadedQuests) {
     const questProjectDir = guildPathByQuestId.get(quest.id);
     for (const wi of quest.workItems) {
@@ -81,6 +93,9 @@ export const ReconcileWatchersLayerResponder = async ({
       target.add(wi.sessionId);
       if (questProjectDir !== undefined && !projectDirBySessionId.has(wi.sessionId)) {
         projectDirBySessionId.set(wi.sessionId, questProjectDir);
+      }
+      if (wi.agentId === undefined && !workerWorkItemIdBySessionId.has(wi.sessionId)) {
+        workerWorkItemIdBySessionId.set(wi.sessionId, wi.id);
       }
     }
   }
@@ -100,9 +115,11 @@ export const ReconcileWatchersLayerResponder = async ({
   const startResults = await Promise.all(
     sessionsToStart.map(async (sessionId) => {
       try {
+        const workerWorkItemId = workerWorkItemIdBySessionId.get(sessionId);
         const handle = await orchestratorStartMonitorWatcherAdapter({
           parentSessionId: String(sessionId),
           projectDir: projectDirBySessionId.get(sessionId) ?? projectDir,
+          ...(workerWorkItemId === undefined ? {} : { workerWorkItemId: String(workerWorkItemId) }),
         });
         return { sessionId, handle };
       } catch (error: unknown) {

@@ -5,6 +5,13 @@
  * <dungeonmasterHome>/dispatch-state.json stays the cross-process source of truth; this mirror
  * exists so the loop never has to hit disk per step.
  *
+ * setPlaying notifies onChange subscribers on EVERY call, not only on a value transition. Play is
+ * a command, not just a state edge: a quest can become ready (e.g. its dependency completes) while
+ * the dispatcher is already 'playing', so pressing play/resume again must re-notify subscribers so
+ * the runner re-scans. Swallowing an already-playing press left ready work items stuck until the
+ * next unrelated wake. Redundant notifications are idempotent downstream (the runner's kick is
+ * single-flight; the loop returns immediately when paused; the WS broadcast re-sends the same state).
+ *
  * USAGE:
  * orchestrationDispatchState.setPlaying({ isPlaying: true });
  * orchestrationDispatchState.getIsPlaying();
@@ -24,9 +31,6 @@ const state: {
 
 export const orchestrationDispatchState = {
   setPlaying: ({ isPlaying }: { isPlaying: boolean }): void => {
-    if (state.isPlaying === isPlaying) {
-      return;
-    }
     state.isPlaying = isPlaying;
     for (const handler of state.handlers) {
       handler({ isPlaying });

@@ -12,8 +12,15 @@
  */
 
 import { watch, createReadStream, statSync, existsSync } from 'fs';
+import { dirname } from 'path';
 import { createInterface } from 'readline';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+
+// Safety bound for `awaitCreate`: if a session file never appears (e.g. the spawned child
+// died before Claude CLI wrote its JSONL), stop watching the parent dir after this window
+// and surface ENOENT rather than leaking a directory watcher forever. Comfortably longer
+// than the observed sub-second gap between the child's stdout init line and the on-disk file.
+const AWAIT_CREATE_TIMEOUT_MS = 120_000;
 
 export interface FsWatchTailHandle {
   stop: () => void;
@@ -34,11 +41,19 @@ export const fsWatchTailAdapter = ({
   onLine,
   onError,
   startPosition,
+  awaitCreate,
 }: {
   filePath: AbsoluteFilePath;
   onLine: (params: { line: string }) => void;
   onError: (params: { error: unknown }) => void;
   startPosition?: 'beginning' | 'end';
+  // When the file is missing at construction: default (false) surfaces ENOENT immediately —
+  // the caller wants to know (orphan sub-agent reference). `true` instead watches the parent
+  // directory until the file appears, then tails it from the beginning. Use for a top-level
+  // session JSONL the spawned child WILL write imminently: the child's sessionId reaches us
+  // via its stdout init line and starts this tail a beat before Claude CLI flushes the file
+  // to disk, so a plain existsSync check races the write and would strand a dead tail.
+  awaitCreate?: boolean;
 }): FsWatchTailHandle => {
   // `beginning` (default) — drain any existing content before watching, then keep
   // watching for appends. Used by the sub-agent tail. There are two cases:
@@ -79,11 +94,111 @@ export const fsWatchTailAdapter = ({
   // but the live-orphan case we care about has the file missing for seconds-to-minutes,
   // so there's no realistic race.
   if (!existsSync(filePath)) {
-    onError({ error: new Error(`ENOENT: file does not exist: ${String(filePath)}`) });
-    resolveInitialDrainRef.current?.();
+    // Default: surface ENOENT so the caller can react (orphan sub-agent reference). With
+    // `awaitCreate`, instead watch the parent dir until the file appears, then delegate to a
+    // normal tail. Tailing from the beginning means every line written during the create gap
+    // is recovered, so no worker transcript is lost even though the tail started early.
+    if (awaitCreate !== true) {
+      onError({ error: new Error(`ENOENT: file does not exist: ${String(filePath)}`) });
+      resolveInitialDrainRef.current?.();
+      return {
+        stop: (): void => {
+          // No watcher was created; nothing to tear down.
+        },
+        initialDrain,
+      };
+    }
+
+    const awaitState: { stopped: boolean; inner: FsWatchTailHandle | null } = {
+      stopped: false,
+      inner: null,
+    };
+    let dirWatcher: ReturnType<typeof watch> | null = null;
+    let awaitTimer: ReturnType<typeof setTimeout> | null = null;
+
+    try {
+      // The first parent-dir change after the file exists delegates to a normal tail. The
+      // callback is idempotent (guards on `inner` + existsSync) so repeated dir events and
+      // the synthetic TOCTOU emit below all collapse to a single delegated tail.
+      dirWatcher = watch(dirname(String(filePath)), (): void => {
+        if (awaitState.stopped || awaitState.inner !== null || !existsSync(filePath)) {
+          return;
+        }
+        if (dirWatcher !== null) {
+          dirWatcher.close();
+          dirWatcher = null;
+        }
+        if (awaitTimer !== null) {
+          clearTimeout(awaitTimer);
+          awaitTimer = null;
+        }
+        const inner = fsWatchTailAdapter({
+          filePath,
+          onLine,
+          onError,
+          ...(startPosition === undefined ? {} : { startPosition }),
+        });
+        awaitState.inner = inner;
+        // Forward the delegated tail's drain completion to OUR initialDrain. It only ever
+        // resolves, but a bubbling catch keeps the promise handled (never silently swallowed).
+        inner.initialDrain
+          .then((): void => {
+            resolveInitialDrainRef.current?.();
+          })
+          .catch((forwardError: unknown): void => {
+            onError({ error: forwardError });
+          });
+      });
+    } catch (dirWatchError: unknown) {
+      onError({ error: dirWatchError });
+      resolveInitialDrainRef.current?.();
+      return {
+        stop: (): void => {
+          // No watcher was created; nothing to tear down.
+        },
+        initialDrain,
+      };
+    }
+
+    dirWatcher.on('error', (dirError: unknown): void => {
+      if (!awaitState.stopped) {
+        onError({ error: dirError });
+      }
+    });
+
+    awaitTimer = setTimeout((): void => {
+      if (awaitState.stopped || awaitState.inner !== null) {
+        return;
+      }
+      onError({
+        error: new Error(`ENOENT: file did not appear within timeout: ${String(filePath)}`),
+      });
+      resolveInitialDrainRef.current?.();
+      if (dirWatcher !== null) {
+        dirWatcher.close();
+        dirWatcher = null;
+      }
+    }, AWAIT_CREATE_TIMEOUT_MS);
+    awaitTimer.unref();
+
+    // TOCTOU: the file may have appeared between the existsSync check above and the dir
+    // watch being armed — fire the watch callback once so we don't wait on a change that
+    // already happened. The callback's existsSync guard makes this a no-op if it hasn't.
+    dirWatcher.emit('change', 'rename', String(filePath));
+
     return {
       stop: (): void => {
-        // No watcher was created; nothing to tear down.
+        awaitState.stopped = true;
+        if (dirWatcher !== null) {
+          dirWatcher.close();
+          dirWatcher = null;
+        }
+        if (awaitTimer !== null) {
+          clearTimeout(awaitTimer);
+          awaitTimer = null;
+        }
+        awaitState.inner?.stop();
+        resolveInitialDrainRef.current?.();
       },
       initialDrain,
     };

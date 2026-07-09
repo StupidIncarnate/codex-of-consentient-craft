@@ -24,6 +24,15 @@ const FRAMING_EPSILON_PX = 1;
 // collapses it to 0px, so any threshold well above 0 and below the real expanded height
 // (≈ viewport − 160px) distinguishes the bug from the fix across viewport sizes.
 const EXPANDED_CANVAS_MIN_PX = 300;
+// When the collapsed canvas top-anchors a flow, the entry node's top sits ~topPadding (24px) below
+// the canvas top. This bound is generous enough to absorb borders/subpixels across zoom levels yet
+// tight enough to prove the entry node is pinned near the top, not centered.
+const TOP_ANCHOR_MAX_PX = 100;
+// Top-anchored framing centers the entry node horizontally: its center lands on the canvas center
+// line. This bound absorbs subpixel/border rounding while still failing a left/right-shoved node.
+const HORIZONTAL_CENTER_MAX_PX = 40;
+// Halves a dimension when computing a box center (named so the assertion math carries no bare `2`).
+const HALF_DIVISOR = 2;
 
 // Node labels / assertion text the scenario file asserts on. Exported as plain string
 // constants (not signature types) so the scenario can reference them without inlining.
@@ -136,13 +145,13 @@ const SECOND_DIAGRAM_FLOW = {
 const SECOND_FLOW_NODE_COUNT = SECOND_DIAGRAM_FLOW.nodes.length;
 
 // A deliberately TALL flow: a vertical chain whose middle nodes each carry many observables, so
-// their assertion columns stack into a graph far taller than the collapsed (800px) canvas. This
-// reproduces the real-quest symptom — a large assertion-rich flow whose fit-view could not shrink
-// the whole graph into the collapsed canvas (it only appeared once expanded to fullscreen). The
-// fix lowers the React Flow minZoom so fit-view frames the entire graph even when collapsed. Each
-// big node gets 7 assertions via an inline Array.from (kept inline so the flow stays a plain
-// literal with no raw-primitive type annotation).
-const LARGE_FLOW_FIRST_NODE_LABEL = 'Large Graph Entry';
+// their assertion columns stack into a graph far taller than the collapsed (800px) canvas. It
+// exercises the collapsed diagram's top-anchored framing: on load the entry node is pinned near the
+// top and the graph is zoomed to fit WIDTH, so the tall graph overflows the canvas downward (the
+// reader scrolls) rather than being shrunk until every node is a speck. Each big node gets 7
+// assertions via an inline Array.from (kept inline so the flow stays a plain literal with no
+// raw-primitive type annotation).
+export const LARGE_FLOW_FIRST_NODE_LABEL = 'Large Graph Entry';
 const LARGE_DIAGRAM_FLOW = {
   id: 'large-diagram-flow',
   name: 'Large Assertion Flow',
@@ -249,7 +258,9 @@ export const flowDiagramHarness = ({
   hasExpectedSecondFlowNodeCount: () => Promise<boolean>;
   switchToLargeFlowTab: () => Promise<void>;
   hasExpectedLargeFlowNodeCount: () => Promise<boolean>;
-  allAssertionNodesWithinCanvas: () => Promise<boolean>;
+  firstNodeNearCanvasTop: (params: { label: string }) => Promise<boolean>;
+  firstNodeHorizontallyCentered: (params: { label: string }) => Promise<boolean>;
+  graphExceedsCanvasHeight: () => Promise<boolean>;
 } => {
   // Internal (non-exported) helpers: return types are inferred from Playwright APIs so the
   // signature carries no raw-primitive annotation. The factory's public methods below all
@@ -587,9 +598,9 @@ export const flowDiagramHarness = ({
     },
 
     // Clicks the large (tall, assertion-heavy) flow's tab and waits for its diagram to re-lay-out
-    // and paint. Switching tabs remounts the diagram so fit-view runs fresh against the collapsed
-    // canvas for THIS large graph — the exact path that left the diagram blank before the minZoom
-    // fix.
+    // and paint. Switching tabs remounts the diagram so the collapsed top-anchored framing runs
+    // fresh against THIS large graph — the exact path the reviewer takes when clicking between flow
+    // tabs.
     switchToLargeFlowTab: async (): Promise<void> => {
       await page.getByTestId('FLOW_TAB').nth(2).click();
       await page
@@ -608,32 +619,56 @@ export const flowDiagramHarness = ({
       return count === LARGE_FLOW_NODE_COUNT;
     },
 
-    // Every assertion card must sit inside the canvas after fit-view — a collapsed canvas that
-    // cannot shrink the tall graph leaves the assertion cards (and flow nodes) outside its bounds,
-    // which reads as "the diagram does not render unless fullscreen".
-    allAssertionNodesWithinCanvas: async (): Promise<boolean> => {
+    // Top-anchored framing pins the named (entry) node near the top of the canvas: its top edge
+    // sits within TOP_ANCHOR_MAX_PX of the canvas top and it stays horizontally within the canvas.
+    // This is how a reviewer starts reading at the first node instead of hunting for it.
+    firstNodeNearCanvasTop: async ({ label }: { label: string }): Promise<boolean> => {
       const canvasBox = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
       if (canvasBox === null) {
         throw new Error('REACT_FLOW_CANVAS has no bounding box');
       }
-      const obsNodes = page.getByTestId('FLOW_OBSERVABLE_NODE');
-      const obsCount = await obsNodes.count();
-      const obsBoxes = await Promise.all(
-        Array.from({ length: obsCount }, async (_unused, index) => {
-          const box = await obsNodes.nth(index).boundingBox();
-          if (box === null) {
-            throw new Error(`FLOW_OBSERVABLE_NODE at index ${index} has no bounding box`);
-          }
-          return { x: box.x, y: box.y, w: box.width, h: box.height };
-        }),
+      const node = page.getByTestId('FLOW_NODE').filter({ has: page.getByText(label) });
+      const box = await node.first().boundingBox();
+      if (box === null) {
+        throw new Error(`FLOW_NODE with label "${label}" has no bounding box`);
+      }
+      const offsetTop = box.y - canvasBox.y;
+      return (
+        offsetTop >= -FRAMING_EPSILON_PX &&
+        offsetTop <= TOP_ANCHOR_MAX_PX &&
+        box.x >= canvasBox.x - FRAMING_EPSILON_PX &&
+        box.x + box.width <= canvasBox.x + canvasBox.width + FRAMING_EPSILON_PX
       );
-      return obsBoxes.every(
-        (box) =>
-          box.x >= canvasBox.x - FRAMING_EPSILON_PX &&
-          box.y >= canvasBox.y - FRAMING_EPSILON_PX &&
-          box.x + box.w <= canvasBox.x + canvasBox.width + FRAMING_EPSILON_PX &&
-          box.y + box.h <= canvasBox.y + canvasBox.height + FRAMING_EPSILON_PX,
-      );
+    },
+
+    // Top-anchored framing centers the entry node horizontally: the named node's center sits on the
+    // canvas center line (within HORIZONTAL_CENTER_MAX_PX). A left/right-shoved first node fails.
+    firstNodeHorizontallyCentered: async ({ label }: { label: string }): Promise<boolean> => {
+      const canvasBox = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
+      if (canvasBox === null) {
+        throw new Error('REACT_FLOW_CANVAS has no bounding box');
+      }
+      const node = page.getByTestId('FLOW_NODE').filter({ has: page.getByText(label) });
+      const box = await node.first().boundingBox();
+      if (box === null) {
+        throw new Error(`FLOW_NODE with label "${label}" has no bounding box`);
+      }
+      const nodeCenter = box.x + box.width / HALF_DIVISOR;
+      const canvasCenter = canvasBox.x + canvasBox.width / HALF_DIVISOR;
+      return Math.abs(nodeCenter - canvasCenter) <= HORIZONTAL_CENTER_MAX_PX;
+    },
+
+    // A tall graph that is zoomed-in (fit-width, top-anchored) overflows the collapsed canvas
+    // downward: the lowest flow node's bottom extends past the canvas bottom. This proves the graph
+    // was NOT shrunk to fit the whole thing (which would leave every node inside the canvas).
+    graphExceedsCanvasHeight: async (): Promise<boolean> => {
+      const canvasBox = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
+      if (canvasBox === null) {
+        throw new Error('REACT_FLOW_CANVAS has no bounding box');
+      }
+      const boxes = await getBoundingBoxes();
+      const maxBottom = Math.max(...boxes.map((box) => box.y + box.h));
+      return maxBottom > canvasBox.y + canvasBox.height + FRAMING_EPSILON_PX;
     },
   };
 };

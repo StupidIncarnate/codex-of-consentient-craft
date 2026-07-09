@@ -15,9 +15,11 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 export const QuestMonitorWatcherStartResponder = async ({
   parentSessionId,
   projectDir,
+  workerWorkItemId,
 }: {
   parentSessionId: string;
   projectDir: string;
+  workerWorkItemId?: string;
 }): Promise<{ stop: () => void }> =>
   questMonitorWatcherStartBroker({
     parentSessionId,
@@ -25,4 +27,5 @@ export const QuestMonitorWatcherStartResponder = async ({
     emit: ({ type, processId, payload }): void => {
       orchestrationEventsState.emit({ type, processId, payload });
     },
+    ...(workerWorkItemId === undefined ? {} : { workerWorkItemId }),
   });

@@ -1,99 +1,52 @@
 import {
+  GuildListItemStub,
   QuestIdStub,
-  QuestQueueEntryStub,
   QuestStub,
-  QuestWorkItemIdStub,
   SessionIdStub,
+  UrlSlugStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { ExecutionQueueGetAllResponder } from './execution-queue-get-all-responder';
 import { ExecutionQueueGetAllResponderProxy } from './execution-queue-get-all-responder.proxy';
-import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 
 describe('ExecutionQueueGetAllResponder', () => {
-  it('EMPTY: {no entries} => returns empty array', async () => {
+  it('EMPTY: {no guilds} => returns []', async () => {
     const proxy = ExecutionQueueGetAllResponderProxy();
-    proxy.setupEmpty();
+    proxy.setupNoGuilds();
 
     await expect(ExecutionQueueGetAllResponder()).resolves.toStrictEqual([]);
   });
 
-  it('VALID: {entry without cached activeSessionId, quest has in-progress codeweaver} => returns entry with re-derived activeSessionId', async () => {
+  it('VALID: {in_progress quest on disk, nothing enqueued in memory} => derives the queue entry from disk with its live session', async () => {
     const proxy = ExecutionQueueGetAllResponderProxy();
-    proxy.setupEmpty();
-
-    const questId = QuestIdStub({ value: 'add-auth' });
-    const sessionId = SessionIdStub({ value: '73b3df26-bef0-491b-ae00-201e4a655dff' });
-    const workItem = WorkItemStub({
-      id: QuestWorkItemIdStub(),
-      role: 'codeweaver',
+    const guildSlug = UrlSlugStub({ value: 'my-guild' });
+    const guild = GuildListItemStub({ urlSlug: guildSlug });
+    const sessionId = SessionIdStub({ value: '9aadbf63-1111-4111-8111-111111111111' });
+    const quest = QuestStub({
+      id: QuestIdStub({ value: '4226b8d1-2827-4250-8d82-c278d66bcd2d' }),
       status: 'in_progress',
-      sessionId,
+      createdAt: '2026-07-08T21:00:00.000Z',
+      workItems: [
+        WorkItemStub({ role: 'chaoswhisperer', status: 'complete' }),
+        WorkItemStub({ role: 'pathseeker', status: 'in_progress', sessionId }),
+      ],
     });
-    const quest = QuestStub({ id: questId, workItems: [workItem] });
-    proxy.setupQuestFound({ quest });
-
-    const entry = QuestQueueEntryStub({ questId });
-    questExecutionQueueState.enqueue({ entry });
-
-    const result = await ExecutionQueueGetAllResponder();
-
-    expect(result).toStrictEqual([{ ...entry, activeSessionId: sessionId }]);
-  });
-
-  it('VALID: {entry has stale activeSessionId, quest has fresh codeweaver session} => overrides with re-derived value', async () => {
-    const proxy = ExecutionQueueGetAllResponderProxy();
-    proxy.setupEmpty();
-
-    const questId = QuestIdStub({ value: 'add-auth' });
-    const staleSessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
-    const freshSessionId = SessionIdStub({ value: '73b3df26-bef0-491b-ae00-201e4a655dff' });
-    const workItem = WorkItemStub({
-      id: QuestWorkItemIdStub(),
-      role: 'codeweaver',
-      status: 'in_progress',
-      sessionId: freshSessionId,
+    proxy.setupActiveQuests({
+      guildItems: [guild],
+      questsByGuildId: [{ guildId: guild.id, quests: [quest] }],
     });
-    const quest = QuestStub({ id: questId, workItems: [workItem] });
-    proxy.setupQuestFound({ quest });
 
-    const entry = QuestQueueEntryStub({ questId, activeSessionId: staleSessionId });
-    questExecutionQueueState.enqueue({ entry });
-
-    const result = await ExecutionQueueGetAllResponder();
-
-    expect(result).toStrictEqual([{ ...entry, activeSessionId: freshSessionId }]);
-  });
-
-  it('VALID: {entry has cached activeSessionId, quest has no session-bearing workItems} => strips activeSessionId', async () => {
-    const proxy = ExecutionQueueGetAllResponderProxy();
-    proxy.setupEmpty();
-
-    const questId = QuestIdStub({ value: 'add-auth' });
-    const cachedSessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
-    const quest = QuestStub({ id: questId, workItems: [] });
-    proxy.setupQuestFound({ quest });
-
-    const entry = QuestQueueEntryStub({ questId, activeSessionId: cachedSessionId });
-    questExecutionQueueState.enqueue({ entry });
-
-    const [first] = await ExecutionQueueGetAllResponder();
-
-    expect(first?.activeSessionId).toBe(undefined);
-  });
-
-  it('VALID: {quest load fails} => falls back to entry as-is without throwing', async () => {
-    const proxy = ExecutionQueueGetAllResponderProxy();
-    proxy.setupEmpty();
-    proxy.setupQuestNotFound();
-
-    const cachedSessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
-    const entry = QuestQueueEntryStub({ activeSessionId: cachedSessionId });
-    questExecutionQueueState.enqueue({ entry });
-
-    const result = await ExecutionQueueGetAllResponder();
-
-    expect(result).toStrictEqual([entry]);
+    await expect(ExecutionQueueGetAllResponder()).resolves.toStrictEqual([
+      {
+        questId: quest.id,
+        guildId: guild.id,
+        guildSlug,
+        questTitle: quest.title,
+        status: 'in_progress',
+        enqueuedAt: quest.createdAt,
+        activeSessionId: sessionId,
+      },
+    ]);
   });
 });

@@ -16,6 +16,12 @@
  *   `sessionId` is observed on an in-progress workItem in any active quest.
  * WHEN-NOT-TO-USE: Anywhere expecting single-launcher semantics — multiple instances of
  *   this watcher coexist (one per active parent session in the quest graph).
+ *
+ * `workerWorkItemId` distinguishes the two session kinds this watcher tails: pass it for a
+ * top-level node-dispatch worker (its own agent writes the MAIN session — content, not
+ * chatter) so the tail uses a `proc-worker-` chatProcessId and stamps the work item on its
+ * main-session emits; omit it for a /dumpster-launch dispatcher session, whose main-session
+ * lines are chatter that the server's parent-source filter drops.
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
@@ -23,6 +29,7 @@ import {
   absoluteFilePathContract,
   filePathContract,
   processIdContract,
+  questWorkItemIdContract,
   sessionIdContract,
   type ChatEntry,
   type OrchestrationEventType,
@@ -46,6 +53,7 @@ export const questMonitorWatcherStartBroker = async ({
   parentSessionId,
   projectDir,
   emit,
+  workerWorkItemId,
 }: {
   parentSessionId: string;
   projectDir: string;
@@ -54,6 +62,11 @@ export const questMonitorWatcherStartBroker = async ({
     processId: ProcessId;
     payload: Record<string, unknown>;
   }) => void;
+  // Set when the tailed session is a top-level node-dispatch worker (spawn-batch stamps
+  // `sessionId` on the work item but NOT `agentId`). The worker's own output lives in the
+  // MAIN session JSONL, so it must NOT be filtered as dispatcher chatter and must route to
+  // this work item's execution row. Omitted for /dumpster-launch dispatcher sessions.
+  workerWorkItemId?: string;
 }): Promise<{ stop: () => void }> => {
   const homeDir = osUserHomedirAdapter();
   const projectPath = absoluteFilePathContract.parse(projectDir);
@@ -84,7 +97,15 @@ export const questMonitorWatcherStartBroker = async ({
     sessionId,
   });
 
-  const chatProcessId: ProcessId = processIdContract.parse(`proc-monitor-${parentSessionId}`);
+  // A top-level node-dispatch worker session uses a `proc-worker-` chatProcessId so the
+  // server's parent-source dispatcher-chatter filter (gated on the `proc-monitor-` prefix)
+  // leaves its main-session content intact — that content is the worker's actual output,
+  // not dispatcher chatter. Dispatcher (/dumpster-launch) sessions keep `proc-monitor-`.
+  const mainSessionWorkItemId: QuestWorkItemId | undefined =
+    workerWorkItemId === undefined ? undefined : questWorkItemIdContract.parse(workerWorkItemId);
+  const chatProcessId: ProcessId = processIdContract.parse(
+    `${mainSessionWorkItemId === undefined ? 'proc-monitor' : 'proc-worker'}-${parentSessionId}`,
+  );
 
   const watcherHandle = questMonitorJsonlWatcherBroker({
     sessionFilePath: filePathContract.parse(String(sessionFilePath)),
@@ -123,6 +144,7 @@ export const questMonitorWatcherStartBroker = async ({
       }
       return false;
     },
+    ...(mainSessionWorkItemId === undefined ? {} : { mainSessionWorkItemId }),
   });
 
   // Periodic refresh keeps the active-agentId set current. Once per second, walk every

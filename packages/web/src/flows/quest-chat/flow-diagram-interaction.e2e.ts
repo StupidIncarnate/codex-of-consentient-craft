@@ -6,6 +6,7 @@ import {
   flowDiagramHarness,
   FLOW_DIAGRAM_OPEN_PAGE_LABEL,
   FLOW_DIAGRAM_OPEN_PAGE_OBSERVABLE,
+  LARGE_FLOW_FIRST_NODE_LABEL,
 } from '../../../test/harnesses/flow-diagram/flow-diagram.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-flow-diagram-interaction';
@@ -150,7 +151,7 @@ test.describe('Flow Diagram Interaction', () => {
     expect(await diagram.assertionNodesBranchRightOfFlowNodes()).toBe(true);
   });
 
-  test('VALID: {large assertion-heavy flow} => the whole diagram renders within the COLLAPSED canvas (no fullscreen needed)', async ({
+  test('VALID: {switch to large assertion-heavy flow} => the collapsed canvas top-anchors the entry node zoomed-in (not shrunk to fit)', async ({
     page,
     request,
   }) => {
@@ -159,11 +160,16 @@ test.describe('Flow Diagram Interaction', () => {
     await diagram.switchToLargeFlowTab();
 
     expect(await diagram.hasExpectedLargeFlowNodeCount()).toBe(true);
-    // The collapsed canvas must frame the ENTIRE tall graph. Before the minZoom fix, fit-view
-    // could not shrink it below the default 0.5 floor, so flow nodes and assertion cards fell
-    // outside the 800px canvas and the diagram looked blank until fullscreen.
-    expect(await diagram.allNodesWithinCanvas()).toBe(true);
-    expect(await diagram.allAssertionNodesWithinCanvas()).toBe(true);
+    // On load the collapsed canvas frames the graph top-anchored, horizontally centered on the
+    // entry (first) node: the entry sits near the top AND on the canvas center line, so the reader
+    // starts there. It must NOT be shrunk to fit the whole tall graph — the graph is zoomed-in and
+    // therefore overflows the collapsed canvas downward (the reader scrolls for the rest), instead
+    // of the entry node being a speck in the vertical middle.
+    expect(await diagram.firstNodeNearCanvasTop({ label: LARGE_FLOW_FIRST_NODE_LABEL })).toBe(true);
+    expect(
+      await diagram.firstNodeHorizontallyCentered({ label: LARGE_FLOW_FIRST_NODE_LABEL }),
+    ).toBe(true);
+    expect(await diagram.graphExceedsCanvasHeight()).toBe(true);
   });
 
   test('VALID: {node selected then canvas background clicked} => pane click deselects and closes the panel', async ({

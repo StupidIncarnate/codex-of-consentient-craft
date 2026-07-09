@@ -6,10 +6,12 @@
  * // Returns: NextStep | null — null triggers the long-poll retry in the parent broker.
  */
 
+import { isActivelyExecutingQuestStatusGuard } from '@dungeonmaster/shared/guards';
+
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
+import { questActiveQuestsBroker } from '../active-quests/quest-active-quests-broker';
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
-import { loadActiveQuestsLayerBroker } from './load-active-quests-layer-broker';
 import { questHasIncompleteWorkLayerBroker } from './quest-has-incomplete-work-layer-broker';
 import { recoverOrphanedWorkItemsLayerBroker } from './recover-orphaned-work-items-layer-broker';
 
@@ -18,23 +20,25 @@ export const scanOnceLayerBroker = async ({
 }: {
   activeQuest: ActiveQuestFacade;
 }): Promise<NextStep | null> => {
-  const activeQuests = await loadActiveQuestsLayerBroker();
-  if (activeQuests.length === 0) {
-    activeQuest.clear();
-    return null;
-  }
-
-  // FIFO by createdAt — quest with oldest createdAt that has incomplete work goes first.
-  // ISO-8601 timestamps sort lexicographically.
-  const sortedQuests = [...activeQuests].sort((a, b) =>
-    String(a.createdAt).localeCompare(String(b.createdAt)),
+  // Shared discovery: FIFO-ordered (oldest createdAt first) active quests, re-read from disk on
+  // every scan. /queue renders this same list; here we dispatch the head with incomplete work.
+  const activeEntries = await questActiveQuestsBroker();
+  // The shared discovery also carries user-paused quests (so /queue lists them). The dispatcher
+  // only runs quests that are actively executing — a paused quest stays visible but idle.
+  const dispatchable = activeEntries.filter((e) =>
+    isActivelyExecutingQuestStatusGuard({ status: e.quest.status }),
   );
-
-  const quest = sortedQuests.find((q) => questHasIncompleteWorkLayerBroker({ quest: q }));
-  if (!quest) {
+  if (dispatchable.length === 0) {
     activeQuest.clear();
     return null;
   }
+
+  const entry = dispatchable.find((e) => questHasIncompleteWorkLayerBroker({ quest: e.quest }));
+  if (!entry) {
+    activeQuest.clear();
+    return null;
+  }
+  const { quest } = entry;
 
   // When the FIFO quest has incomplete work but yields nothing dispatchable, its only
   // non-terminal items are orphaned in_progress work: the /dumpster-launch loop only calls

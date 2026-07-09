@@ -114,6 +114,56 @@ describe('questMonitorJsonlWatcherBroker', () => {
       ]);
     });
 
+    it('VALID: {main JSONL entry, mainSessionWorkItemId set (node worker)} => emit stamps sessionId + workItemId so the row renders live', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'proc-worker-abc-123' });
+
+      proxy.setupSubagentDirEmpty();
+      proxy.setupLines({
+        lines: [
+          '{"type":"assistant","uuid":"worker-line","timestamp":"2026-05-13T10:00:03.000Z","message":{"content":[{"type":"text","text":"pathseeker reading files"}]}}',
+        ],
+      });
+
+      const emitted: unknown[] = [];
+
+      questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => null,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => true,
+        mainSessionWorkItemId: QuestWorkItemIdStub(),
+      });
+
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'pathseeker reading files',
+              source: 'session',
+              uuid: 'worker-line:0',
+              timestamp: '2026-05-13T10:00:03.000Z',
+            },
+          ],
+          questId: null,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+          workItemId: QuestWorkItemIdStub(),
+        },
+      ]);
+    });
+
     it('VALID: {two emissions with different active quest between them} => each batch tagged with the questId at its emit time', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
       const sessionFilePath = FilePathStub({

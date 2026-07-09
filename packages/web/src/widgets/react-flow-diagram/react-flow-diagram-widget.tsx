@@ -267,14 +267,16 @@ export const ReactFlowDiagramWidget = ({
           xyflowReactFlowAdapter as unknown as React.ComponentType<Record<PropertyKey, unknown>>,
           {
             // Remount React Flow when the canvas size changes (collapse <-> expand). A live
-            // instance does not re-fit when its container resizes, so it would leave the graph
-            // top-anchored in the taller viewport; a fresh mount runs fitView against the new
-            // size and centers the graph.
+            // instance does not re-frame when its container resizes, so it would keep the old
+            // framing in the resized viewport; a fresh mount re-frames against the new size.
             key: expanded ? 'rf-expanded' : 'rf-collapsed',
             nodes,
             edges,
             nodeTypes: NODE_TYPES,
             edgeTypes: EDGE_TYPES,
+            // Collapsed: top-anchor so switching flow tabs starts the reader at the entry node,
+            // zoomed-in. Fullscreen: fit the whole graph as an overview.
+            topAlign: !expanded,
             onNodeClick: (node: (typeof nodes)[0]) => {
               // Resolve the clicked node by its id against the flow nodes only — clicking an
               // assertion (observable) node finds nothing and leaves the selection unchanged.

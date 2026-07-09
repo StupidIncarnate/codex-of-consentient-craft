@@ -152,5 +152,56 @@ describe('questMonitorWatcherStartBroker', () => {
         },
       ]);
     });
+
+    it('VALID: {node-dispatch worker session (workerWorkItemId set), main JSONL emits entries} => chat-output uses proc-worker- prefix and stamps sessionId + workItemId so the row renders live', async () => {
+      const proxy = questMonitorWatcherStartBrokerProxy();
+      proxy.setupHomeDir({ path: '/home/user' });
+
+      const parentSessionId = '77777777-7777-7777-7777-777777777777';
+      const workerWorkItemId = String(WorkItemStub().id);
+
+      proxy.setupSubagentDirFiles({ files: [] });
+      proxy.setupLines({
+        lines: [
+          '{"type":"assistant","uuid":"worker-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"pathseeker work"}]}}',
+        ],
+      });
+
+      const emitted: EmitParam[] = [];
+
+      await questMonitorWatcherStartBroker({
+        parentSessionId,
+        projectDir: '/home/user/p',
+        workerWorkItemId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+      });
+
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          type: 'chat-output',
+          processId: `proc-worker-${parentSessionId}`,
+          payload: {
+            chatProcessId: `proc-worker-${parentSessionId}`,
+            entries: [
+              {
+                role: 'assistant',
+                type: 'text',
+                content: 'pathseeker work',
+                source: 'session',
+                uuid: 'worker-line:0',
+                timestamp: '2026-05-13T10:00:00.000Z',
+              },
+            ],
+            sessionId: SessionIdStub({ value: parentSessionId }),
+            workItemId: WorkItemStub().id,
+          },
+        },
+      ]);
+    });
   });
 });
