@@ -10,7 +10,9 @@
  *   review_observables                    -> flow-completeness + spec-completeness (cumulative)
  *   seek_synth | seek_walk                -> no additional checks (presence gates live in
  *                                             hasQuestGateContentGuard)
- *   in_progress (FROM seek_walk only)     -> spec-completeness fold + inline step-structure checks
+ *   in_progress (FROM a pathseeker-       -> spec-completeness fold + inline step-structure checks
+ *     running status: seek_scope/            (PathSeeker drives this transition to promote its
+ *     seek_synth/seek_walk)                   finished plan; the gate is retryable)
  *   in_progress (FROM any other status)   -> no checks (preserves blocked/paused → in_progress
  *                                             resume paths)
  *   any other status                      -> []
@@ -23,6 +25,7 @@ import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
+import { isPathseekerRunningQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { questCyclicStepDepsTransformer } from '../quest-cyclic-step-deps/quest-cyclic-step-deps-transformer';
 import { questIntegrationStepsMissingPackageDepsTransformer } from '../quest-integration-steps-missing-package-deps/quest-integration-steps-missing-package-deps-transformer';
 import { questStepsMissingFocusTargetTransformer } from '../quest-steps-missing-focus-target/quest-steps-missing-focus-target-transformer';
@@ -52,7 +55,10 @@ export const questCompletenessForTransitionTransformer = ({
     return [...flowChecks, ...specChecks].filter((check) => !check.passed);
   }
 
-  if (nextStatus === 'in_progress' && quest.status === 'seek_walk') {
+  if (
+    nextStatus === 'in_progress' &&
+    isPathseekerRunningQuestStatusGuard({ status: quest.status })
+  ) {
     const results: VerifyQuestCheck[] = [];
 
     // Fold: spec-completeness scope covers the spec structural invariants that must still

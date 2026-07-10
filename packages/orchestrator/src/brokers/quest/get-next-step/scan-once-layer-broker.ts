@@ -6,7 +6,7 @@
  * // Returns: NextStep | null — null triggers the long-poll retry in the parent broker.
  */
 
-import { isActivelyExecutingQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import { isAnyAgentRunningQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
@@ -24,9 +24,11 @@ export const scanOnceLayerBroker = async ({
   // every scan. /queue renders this same list; here we dispatch the head with incomplete work.
   const activeEntries = await questActiveQuestsBroker();
   // The shared discovery also carries user-paused quests (so /queue lists them). The dispatcher
-  // only runs quests that are actively executing — a paused quest stays visible but idle.
+  // runs any quest with an agent role active — PathSeeker planning (seek_scope/seek_synth/seek_walk,
+  // where the pathseeker work item rests while it plans) as well as in_progress execution — but not
+  // a paused quest (it stays visible but idle).
   const dispatchable = activeEntries.filter((e) =>
-    isActivelyExecutingQuestStatusGuard({ status: e.quest.status }),
+    isAnyAgentRunningQuestStatusGuard({ status: e.quest.status }),
   );
   if (dispatchable.length === 0) {
     activeQuest.clear();

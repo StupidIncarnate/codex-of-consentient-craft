@@ -428,7 +428,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
         expect(offenders).toStrictEqual([]);
       });
 
-      it('INVALID: {seek_scope + planningNotes.surfaceReports} => rejects surfaceReports sub-field', () => {
+      // seek_scope is the PathSeeker planning workspace (allowedPlanningNotesFields: 'all') — the
+      // quest rests there while PathSeeker writes its whole lifecycle, so every planningNotes
+      // sub-field is accepted.
+      it('VALID: {seek_scope + planningNotes.surfaceReports} => returns empty array', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             surfaceReports: [PlanningSurfaceReportStub()],
@@ -442,12 +445,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
           currentStatus: 'seek_scope',
         });
 
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.surfaceReports' not allowed in status 'seek_scope'",
-        ]);
+        expect(offenders).toStrictEqual([]);
       });
 
-      it('INVALID: {seek_scope + planningNotes.synthesis} => rejects synthesis sub-field', () => {
+      it('VALID: {seek_scope + planningNotes.synthesis} => returns empty array', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             synthesis: PlanningSynthesisStub(),
@@ -461,12 +462,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
           currentStatus: 'seek_scope',
         });
 
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.synthesis' not allowed in status 'seek_scope'",
-        ]);
+        expect(offenders).toStrictEqual([]);
       });
 
-      it('INVALID: {seek_scope + planningNotes.walkFindings} => rejects walkFindings sub-field', () => {
+      it('VALID: {seek_scope + planningNotes.walkFindings} => returns empty array', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             walkFindings: PlanningWalkFindingsStub(),
@@ -480,12 +479,10 @@ describe('questInputForbiddenFieldsTransformer', () => {
           currentStatus: 'seek_scope',
         });
 
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.walkFindings' not allowed in status 'seek_scope'",
-        ]);
+        expect(offenders).toStrictEqual([]);
       });
 
-      it('INVALID: {seek_scope + planningNotes.blightReports} => rejects blightReports sub-field', () => {
+      it('VALID: {seek_scope + planningNotes.blightReports} => returns empty array', () => {
         const input = ModifyQuestInputStub({
           planningNotes: {
             blightReports: [PlanningBlightReportStub()],
@@ -499,9 +496,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
           currentStatus: 'seek_scope',
         });
 
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.blightReports' not allowed in status 'seek_scope'",
-        ]);
+        expect(offenders).toStrictEqual([]);
       });
     });
 

@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react';
 
+import { FloorNameStub } from '@dungeonmaster/shared/contracts';
+
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { FloorNameStub } from '../../contracts/floor-name/floor-name.stub';
 import { FloorNumberStub } from '../../contracts/floor-number/floor-number.stub';
 import { SlotCountStub } from '../../contracts/slot-count/slot-count.stub';
 import { FloorHeaderLayerWidget } from './floor-header-layer-widget';

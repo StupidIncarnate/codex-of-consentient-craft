@@ -192,7 +192,10 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('VALID: Begin Quest transitions quest into in_progress', async ({ page, request }) => {
+  test('VALID: Begin Quest rests the quest at seek_scope (PathSeeker planning)', async ({
+    page,
+    request,
+  }) => {
     const sessionId = `e2e-execution-${Date.now()}`;
     const { questId, urlSlug, quests } = await modalHarness.setupTest({
       request,
@@ -219,11 +222,9 @@ test.describe('Quest Approved Modal', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions approved → in_progress directly so /dumpster-launch
-    // picks the quest up on its next pass. The seek_* statuses are dead enum values
-    // under the dispatch-loop model; the responder briefly passes through seek_scope
-    // internally to satisfy the planningNotes allowlist, but the final persisted
-    // status is always in_progress.
+    // start-quest leaves a PathSeeker-planned feature quest RESTING at seek_scope: the pathseeker
+    // work item dispatches there and PathSeeker drives the seek_scope → in_progress completeness
+    // gate itself. No dispatcher runs in e2e, so the quest stays at seek_scope.
     await expect
       .poll(
         async () => {
@@ -236,6 +237,6 @@ test.describe('Quest Approved Modal', () => {
         },
         { timeout: PANEL_TIMEOUT },
       )
-      .toBe('in_progress');
+      .toBe('seek_scope');
   });
 });

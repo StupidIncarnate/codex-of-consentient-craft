@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Shared quest-execution discovery — loads every valid guild's quests from disk and
  * returns the FIFO-ordered (oldest `createdAt` first) list of quests that are in the execution
- * queue — `in_progress` (actively executing) OR `paused` (user-paused but still queued) — each
+ * queue — any status with an agent role active (PathSeeker planning `seek_scope`/`seek_synth`/
+ * `seek_walk`, or `in_progress` execution) OR `paused` (user-paused but still queued) — each
  * paired with its guild context. This is the SINGLE discovery both the execution queue
  * and the dispatcher share: `/queue` (ExecutionQueueGetAllResponder) renders the whole array, and
  * `questGetNextStepBroker` dispatches the head. There is no in-memory or JSON-file queue — every
@@ -15,7 +16,7 @@
  */
 
 import {
-  isActivelyExecutingQuestStatusGuard,
+  isAnyAgentRunningQuestStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
@@ -36,7 +37,7 @@ export const questActiveQuestsBroker = async (): Promise<ActiveQuestEntry[]> => 
           return quests
             .filter(
               (q) =>
-                isActivelyExecutingQuestStatusGuard({ status: q.status }) ||
+                isAnyAgentRunningQuestStatusGuard({ status: q.status }) ||
                 isUserPausedQuestStatusGuard({ status: q.status }),
             )
             .map((quest) => ({ quest, guildId: g.id, guildSlug }));

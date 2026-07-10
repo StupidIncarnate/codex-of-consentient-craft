@@ -22,7 +22,7 @@ test.describe('Quest Begin Transition', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: clicking Begin Quest sends POST to transition quest status into in_progress', async ({
+  test('VALID: clicking Begin Quest sends POST to /start and rests the quest at seek_scope', async ({
     page,
     request,
   }) => {
@@ -95,13 +95,11 @@ test.describe('Quest Begin Transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions approved → in_progress directly so /dumpster-launch's
-    // questGetNextStepBroker picks the quest up on its next pass. The seek_* statuses
-    // are dead enum values under the dispatch-loop model; the responder briefly passes
-    // through seek_scope internally to satisfy the planningNotes allowlist, but the
-    // final persisted status is always in_progress. The UI MUST swap the spec panel
-    // for the execution panel live via the quest-modified WS event — no page reload
-    // required.
+    // start-quest leaves a PathSeeker-planned feature quest RESTING at seek_scope: the pathseeker
+    // work item dispatches there and PathSeeker drives the seek_scope → in_progress completeness
+    // gate itself. No dispatcher runs in e2e, so the quest stays at seek_scope. The UI MUST still
+    // swap the spec panel for the execution panel live via the quest-modified WS event (seek_scope
+    // renders the execution panel) — no page reload required.
     await expect
       .poll(
         async () => {
@@ -114,7 +112,7 @@ test.describe('Quest Begin Transition', () => {
         },
         { timeout: PATHSEEKER_TIMEOUT },
       )
-      .toBe('in_progress');
+      .toBe('seek_scope');
 
     // UI panel swap must happen live (WS-driven) — no reload.
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
@@ -123,7 +121,7 @@ test.describe('Quest Begin Transition', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
-  test('VALID: Begin Quest from review_observables transitions quest into in_progress and promotes chaoswhisperer work item', async ({
+  test('VALID: Begin Quest from review_observables rests the quest at seek_scope and promotes chaoswhisperer work item', async ({
     page,
     request,
   }) => {
@@ -193,13 +191,12 @@ test.describe('Quest Begin Transition', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions approved → in_progress directly so /dumpster-launch
-    // picks the quest up on its next pass. We assert three OrchestrationStartResponder
-    // effects on the persisted quest:
-    //   1. status is set to in_progress (final persisted state)
+    // start-quest leaves a PathSeeker-planned feature quest RESTING at seek_scope (PathSeeker
+    // drives seek_scope → in_progress itself; no dispatcher runs in e2e). We assert three
+    // OrchestrationStartResponder effects on the persisted quest:
+    //   1. status is set to seek_scope (the planning workspace the quest rests in)
     //   2. the pending chaoswhisperer work item is promoted to complete
-    //   3. pathseeker work items are added (their runtime status depends on subsequent
-    //      pipeline execution, which is deferred to Phase C manual verification)
+    //   3. a single pathseeker work item is added
     await expect
       .poll(
         async () => {
@@ -212,7 +209,7 @@ test.describe('Quest Begin Transition', () => {
         },
         { timeout: PATHSEEKER_TIMEOUT },
       )
-      .toBe('in_progress');
+      .toBe('seek_scope');
 
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
@@ -236,11 +233,11 @@ test.describe('Quest Begin Transition', () => {
     // Under the `/dumpster-launch` model, Begin Quest mutates quest state only —
     // OrchestrationStartResponder calls questBuildPathseekerGraphBroker to insert the single
     // `pathseeker` planning work item, promotes the chaoswhisperer chat item to
-    // complete, and transitions the quest to in_progress. The orchestrator does
-    // NOT spawn anything; `/dumpster-launch` running in the user's Claude session
-    // calls get-next-step() to pick the work up on its next pass. This test
-    // exercises the post-Begin-Quest persisted graph shape, which is the new
-    // observable replacing the old "[PATHSEEKER] row streams via spawn pipeline"
+    // complete, and leaves the quest RESTING at seek_scope (PathSeeker drives the
+    // seek_scope → in_progress gate itself). The orchestrator does NOT spawn anything;
+    // `/dumpster-launch` running in the user's Claude session calls get-next-step() to pick the
+    // work up on its next pass. This test exercises the post-Begin-Quest persisted graph shape,
+    // which is the new observable replacing the old "[PATHSEEKER] row streams via spawn pipeline"
     // surface that the chat-start spawn pipeline used to drive.
     const guild = await guildHarness({ request }).createGuild({
       name: 'Pathseeker Graph Begin Guild',
@@ -298,8 +295,9 @@ test.describe('Quest Begin Transition', () => {
 
     await startPromise;
 
-    // Wait for in_progress — proves OrchestrationStartResponder finished its
-    // three-stage modify pipeline (approved → seek_scope → in_progress).
+    // Wait for seek_scope — proves OrchestrationStartResponder finished its modify pipeline
+    // (approved → seek_scope + scopeClassification seed) and left the feature quest resting there
+    // for PathSeeker (no Start promote to in_progress).
     await expect
       .poll(
         async () => {
@@ -312,7 +310,7 @@ test.describe('Quest Begin Transition', () => {
         },
         { timeout: PATHSEEKER_TIMEOUT },
       )
-      .toBe('in_progress');
+      .toBe('seek_scope');
 
     // Inspect the persisted work-item graph. PathSeeker is a single `pathseeker` planning work
     // item that depends on the prior chat work item (chaoswhisperer here); it summons its

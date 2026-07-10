@@ -46,11 +46,14 @@ export const questPostWalkHookBroker = async ({
     throw new Error(`Work item role is not pathseeker: ${pathseekerItem.role}`);
   }
 
-  // Run the completeness scope explicitly — this used to fire at the
-  // `seek_walk → in_progress` status hop inside `questSaveInvariantsTransformer`, but
-  // under the `/dumpster-launch` flow that hop fires BEFORE pathseeker-walk runs, so the
-  // only point at which the plan is fully assembled is here, after pathseeker-walk has
-  // signalled complete.
+  // Backstop completeness check. The primary gate is retryable and fires earlier: PathSeeker
+  // drives the `seek_scope → in_progress` transition itself, and `questSaveInvariantsTransformer`
+  // runs this same scope on that hop — a failure there rejects the `modify-quest` write so
+  // PathSeeker fixes the data and re-issues (see quest-save-invariants-transformer.ts). By the
+  // time PathSeeker signals complete the quest is already `in_progress` and the plan already
+  // cleared the gate, so this re-run should pass. It stays as a defensive floor: if any future
+  // path reaches signal-back with an unpromoted or incomplete plan, this throws → BLOCK rather
+  // than generating a chain over a broken plan.
   const completenessChecks = questValidateSpecTransformer({ quest, scope: 'completeness' });
   const completenessFailures = completenessChecks.filter((check) => !check.passed);
   if (completenessFailures.length > 0) {

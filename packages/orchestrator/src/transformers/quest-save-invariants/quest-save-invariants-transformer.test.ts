@@ -70,11 +70,36 @@ describe('questSaveInvariantsTransformer', () => {
     ]);
   });
 
-  it('VALID: {currentStatus: approved, nextStatus: in_progress, quest with unsatisfied observable} => returns empty array (completeness only fires on seek_walk → in_progress)', () => {
-    // Under the /dumpster-launch flow the start-quest hop transitions approved → in_progress
-    // before pathseeker-walk runs (steps/contracts/observables are populated later by the
-    // pathseeker-walk work item). Completeness MUST NOT fire on this transition —
-    // the post-walk hook invokes it explicitly after the plan is assembled.
+  it('INVALID: {currentStatus: seek_scope, nextStatus: in_progress, quest with unsatisfied observable} => returns the completeness failure (gate fires on any pathseeker-running status → in_progress)', () => {
+    // PathSeeker rests the quest at seek_scope for its whole run and drives the terminal
+    // seek_scope → in_progress transition itself. The completeness scope must fire on that
+    // transition (retryable modify-quest rejection), not only on the legacy seek_walk edge.
+    const observable = FlowObservableStub({ id: 'login-redirects-to-dashboard' as never });
+    const node = FlowNodeStub({ id: 'login-page' as never, observables: [observable] });
+    const quest = QuestStub({
+      flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
+    });
+
+    const failures = questSaveInvariantsTransformer({
+      quest,
+      currentStatus: 'seek_scope',
+      nextStatus: 'in_progress',
+    });
+
+    expect(failures).toStrictEqual([
+      {
+        name: 'Observables Are Satisfied',
+        passed: false,
+        details:
+          "Unsatisfied observables: observable 'login-redirects-to-dashboard' (flow 'login-flow', node 'login-page') is not claimed by any step.observablesSatisfied or step.assertions[].observablesSatisfied",
+      },
+    ]);
+  });
+
+  it('VALID: {currentStatus: approved, nextStatus: in_progress, quest with unsatisfied observable} => returns empty array (completeness only fires from a pathseeker-running status)', () => {
+    // `approved` is not a pathseeker-running status, so completeness does NOT fire on this
+    // transition — it fires only from seek_scope/seek_synth/seek_walk. This keeps
+    // blocked/paused → in_progress resume paths ungated.
     const observable = FlowObservableStub({ id: 'login-redirects-to-dashboard' as never });
     const node = FlowNodeStub({ id: 'login-page' as never, observables: [observable] });
     const quest = QuestStub({

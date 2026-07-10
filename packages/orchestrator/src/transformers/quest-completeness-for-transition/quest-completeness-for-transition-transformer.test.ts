@@ -171,7 +171,7 @@ describe('questCompletenessForTransitionTransformer', () => {
     });
   });
 
-  describe('seek_walk -> in_progress composite check', () => {
+  describe('pathseeker-running -> in_progress composite check', () => {
     it('VALID: {step-structure clean, spec clean} => returns empty array', () => {
       const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
       const observable = FlowObservableStub({ id: 'obs-ok' as never });
@@ -306,9 +306,41 @@ describe('questCompletenessForTransitionTransformer', () => {
         },
       ]);
     });
+
+    it('INVALID: {currentStatus: seek_scope, step missing focus} => composite check fires (PathSeeker rests at seek_scope and drives seek_scope → in_progress)', () => {
+      const terminal = FlowNodeStub({ id: 'done' as never, type: 'terminal' });
+      const observable = FlowObservableStub({ id: 'obs-ok' as never });
+      Object.assign(terminal, { observables: [observable] });
+      const missingFocus = DependencyStepStub({ id: 'c' as never, focusFile: undefined });
+      const quest = QuestStub({
+        status: 'seek_scope',
+        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal] })],
+        steps: [missingFocus],
+        planningNotes: {
+          scopeClassification: PlanningScopeClassificationStub(),
+          surfaceReports: [],
+          synthesis: PlanningSynthesisStub(),
+          walkFindings: PlanningWalkFindingsStub(),
+        },
+      });
+
+      const failures = questCompletenessForTransitionTransformer({
+        quest,
+        nextStatus: 'in_progress',
+      });
+
+      expect(failures).toStrictEqual([
+        {
+          name: 'Step Focus Target',
+          passed: false,
+          details:
+            "Steps missing focusFile/focusAction: step 'c' has neither focusFile nor focusAction",
+        },
+      ]);
+    });
   });
 
-  describe('non-seek_walk -> in_progress transitions (no composite check fires)', () => {
+  describe('non-pathseeker-running -> in_progress transitions (no composite check fires)', () => {
     it('VALID: {currentStatus: blocked, nextStatus: in_progress} => returns empty array (resume path)', () => {
       const quest = QuestStub({
         status: 'blocked',

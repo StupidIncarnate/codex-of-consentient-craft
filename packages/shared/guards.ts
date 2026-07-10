@@ -33,6 +33,9 @@ export * from './src/guards/is-design-phase-quest-status/is-design-phase-quest-s
 export * from './src/guards/should-render-execution-panel-quest-status/should-render-execution-panel-quest-status-guard';
 export * from './src/guards/should-show-begin-quest-modal-quest-status/should-show-begin-quest-modal-quest-status-guard';
 
+// Work Item Dependency Graph Guards
+export * from './src/guards/has-lawbringer-in-deps/has-lawbringer-in-deps-guard';
+
 // Work Item Status Guards
 export * from './src/guards/is-terminal-work-item-status/is-terminal-work-item-status-guard';
 export * from './src/guards/satisfies-dependency-work-item-status/satisfies-dependency-work-item-status-guard';

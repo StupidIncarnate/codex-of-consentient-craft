@@ -300,9 +300,11 @@ describe('QuestFlow', () => {
   });
 
   describe('transition matrix — rejected bad input fields', () => {
-    it('INVALID: {seek_scope, input.steps: [...]} => rejected with forbidden-fields failedCheck', async () => {
+    it('INVALID: {seek_scope, input.title} => rejected with forbidden-fields failedCheck', async () => {
+      // seek_scope is the PathSeeker planning workspace: it ACCEPTS planningNotes/steps/contracts,
+      // but spec fields like `title` remain forbidden — the allowlist still rejects those.
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-bad-steps-in-scope' }),
+        baseName: BaseNameStub({ value: 'qf-bad-title-in-scope' }),
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
 
@@ -312,7 +314,8 @@ describe('QuestFlow', () => {
       });
       const addResult = await QuestUserAddResponder({
         title: 'Bad Fields Quest',
-        userRequest: 'Tests allowlist rejection of steps during seek_scope',
+        userRequest:
+          'Tests allowlist rejection of a forbidden spec field (title) during seek_scope',
         guildId: guild.id,
       });
       const questId = addResult.questId!;
@@ -328,20 +331,7 @@ describe('QuestFlow', () => {
         questId,
         input: ModifyQuestInputStub({
           questId,
-          steps: [
-            {
-              id: 'backend-attempted-step',
-              slice: 'backend',
-              name: 'Attempted Step',
-              assertions: [{ prefix: 'VALID', input: '{x}', expected: 'returns y' }],
-              observablesSatisfied: [],
-              dependsOn: [],
-              focusFile: { path: 'packages/orchestrator/src/brokers/x/y/x-y-broker.ts' },
-              accompanyingFiles: [],
-              inputContracts: ['Void'],
-              outputContracts: ['Void'],
-            },
-          ],
+          title: 'renamed mid-plan',
         }),
       });
 
@@ -395,6 +385,132 @@ describe('QuestFlow', () => {
         success: false,
         error: 'Missing required content for transition to seek_synth',
       });
+    });
+  });
+
+  describe('completeness gate on seek_scope → in_progress (retryable)', () => {
+    it('VALID: {seek_scope → in_progress with a complete plan} => transition succeeds and quest is in_progress', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-complete-plan' }),
+      });
+      // Full setup (with queue harness) because a successful → in_progress transition
+      // triggers QuestModifyResponder's auto-resume orchestration loop.
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Gate Complete Plan Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'Gate Complete Plan Quest',
+        userRequest: 'Drives the live seek_scope → in_progress gate with a complete plan',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      // A valid plan resting at seek_scope (PathSeeker's workspace): steps resolve their
+      // contracts and satisfy every observable, so the completeness gate passes.
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'seek_scope',
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          planningNotes: { walkFindings: PlanningWalkFindingsStub() },
+          status: 'in_progress',
+        }),
+      });
+
+      const afterRead = await QuestGetResponder({ questId });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({ success: true });
+      expect(afterRead.quest!.status).toBe('in_progress');
+    });
+
+    it('INVALID: {seek_scope → in_progress with a step referencing an unknown contract} => rejected with failedChecks; quest STAYS at seek_scope (retryable, not blocked)', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-unresolved-ref' }),
+      });
+      // Rejected transition never reaches in_progress, so no auto-resume — light setup.
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Completeness Gate Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'Completeness Gate Quest',
+        userRequest: 'Tests the retryable completeness gate on seek_scope → in_progress',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'seek_scope',
+      });
+
+      // PathSeeker's terminal commit carries steps + status:in_progress. A step whose
+      // inputContract resolves to no quest.contracts entry (mirrors the real RepoPath failure)
+      // must bounce the transition — retryably — not strand the quest.
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          steps: [
+            {
+              id: 'backend-unresolved-ref-step',
+              slice: 'backend',
+              name: 'Step With Unresolved Contract Ref',
+              assertions: [{ prefix: 'VALID', input: '{x}', expected: 'returns y' }],
+              observablesSatisfied: [],
+              dependsOn: [],
+              focusFile: {
+                path: 'packages/orchestrator/src/brokers/broken/create/broken-create-broker.ts',
+              },
+              accompanyingFiles: [
+                {
+                  path: 'packages/orchestrator/src/brokers/broken/create/broken-create-broker.test.ts',
+                },
+                {
+                  path: 'packages/orchestrator/src/brokers/broken/create/broken-create-broker.proxy.ts',
+                },
+              ],
+              inputContracts: ['RepoPath'],
+              outputContracts: ['Void'],
+            },
+          ],
+          status: 'in_progress',
+        }),
+      });
+
+      const afterRead = await QuestGetResponder({ questId });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Step Contract References Resolve',
+            passed: false,
+            details: result.failedChecks?.[0]?.details,
+          },
+        ],
+      });
+      // Retryable: the quest did NOT advance to in_progress and was NOT blocked — PathSeeker
+      // fixes the flagged data and re-issues the transition.
+      expect(afterRead.quest!.status).toBe('seek_scope');
     });
   });
 

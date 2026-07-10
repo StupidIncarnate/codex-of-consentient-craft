@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Validates a quest is startable, promotes chat work items, inserts the single `pathseeker` planning work item built from `quest.packagesAffected[]` (PathSeeker classifies scope, summons surface + cleanup minions as sub-agents, then runs the architect-review walk itself), persists scopeClassification.slices[] into planningNotes, transitions the quest from approved through seek_scope to in_progress (so /dumpster-launch's questGetNextStepBroker picks it up), then enqueues it. Returns a synthetic processId for backwards compatibility with callers.
+ * PURPOSE: Validates a quest is startable, promotes chat work items, inserts the single `pathseeker` planning work item built from `quest.packagesAffected[]` (PathSeeker classifies scope, summons surface + cleanup minions as sub-agents, then runs the architect-review walk itself), persists scopeClassification.slices[] into planningNotes, and leaves a PathSeeker-planned quest RESTING at seek_scope (PathSeeker drives the seek_scope → in_progress completeness gate itself); bug-hunt and already-planned quests promote straight to in_progress so the dispatch loop advances. Enqueues it and returns a synthetic processId for backwards compatibility with callers.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
@@ -122,21 +122,30 @@ export const OrchestrationStartResponder = async ({
 
   const workItemsToUpdate = [...promotedChatItems, ...newExecutionWorkItems];
 
-  // Transition the quest in three stages so each modify call lands within an allowlist
-  // window that permits the fields it writes:
+  // A PathSeeker-planned feature quest RESTS at seek_scope: PathSeeker runs there and drives the
+  // seek_scope → in_progress transition itself (the retryable completeness gate). This is true
+  // whenever the quest will have a non-terminal `pathseeker` work item to run. Bug-hunt quests
+  // (no PathSeeker) and quests whose planning is already complete instead promote straight to
+  // in_progress so the dispatch loop advances the execution chain.
+  const willRunPathseeker =
+    startGraphKind !== 'bug-hunt' &&
+    [...quest.workItems, ...newExecutionWorkItems].some(
+      (wi) => wi.role === 'pathseeker' && !isTerminalWorkItemStatusGuard({ status: wi.status }),
+    );
+
+  // Transition the quest so each modify call lands within an allowlist window that permits the
+  // fields it writes:
   //   1. approved → seek_scope, carrying workItems (server-only field that bypasses the
-  //      input-allowlist gate). The `approved` allowlist forbids `planningNotes`, and the
-  //      transitions allowlist routes startable statuses through `seek_scope`, so this
-  //      hop is required to unlock the planningNotes write below.
+  //      input-allowlist gate). `approved` cannot reach `in_progress` directly (the transitions
+  //      allowlist routes startable statuses through `seek_scope`), and the `approved` allowlist
+  //      forbids `planningNotes`, so this hop is required to unlock the scope-seed write below.
   //   2. (when a fresh pathseeker graph was built) modify in `seek_scope` to persist
-  //      `planningNotes.scopeClassification` — `seek_scope` is the canonical scope-seed
-  //      window whose input allowlist accepts that sub-field (`approved` does not).
-  //   3. seek_scope → in_progress so questGetNextStepBroker (driven by /dumpster-launch)
-  //      picks the quest up on its next pass. Under the dispatch-loop model the quest never
-  //      RESTS in a `seek_*` status — `seek_scope` here is a transient pass-through used only
-  //      to seed the auto-scope. `in_progress` ALSO accepts `scopeClassification`, so PathSeeker
-  //      can refine this seed (or re-slice on walk-time scope creep) during its run; the final
-  //      assigned status must be in_progress for the queue to advance.
+  //      `planningNotes.scopeClassification` — `seek_scope` is the canonical scope-seed window.
+  //   3. seek_scope → in_progress ONLY when no PathSeeker will run (`willRunPathseeker` false:
+  //      bug-hunt, or planning already complete). A PathSeeker-planned quest RESTS at seek_scope
+  //      instead — the dispatch filter includes pathseeker-running statuses, so the pathseeker
+  //      work item dispatches there, and PathSeeker drives seek_scope → in_progress itself (the
+  //      completeness gate). Promoting here would starve that gate.
   const modifyInput = modifyQuestInputContract.parse({
     questId,
     status: 'seek_scope',
@@ -171,15 +180,17 @@ export const OrchestrationStartResponder = async ({
     }
   }
 
-  const promoteResult = await questModifyBroker({
-    input: modifyQuestInputContract.parse({
-      questId,
-      status: 'in_progress',
-    }),
-  });
+  if (!willRunPathseeker) {
+    const promoteResult = await questModifyBroker({
+      input: modifyQuestInputContract.parse({
+        questId,
+        status: 'in_progress',
+      }),
+    });
 
-  if (!promoteResult.success) {
-    throw new Error(`Failed to start quest: ${promoteResult.error}`);
+    if (!promoteResult.success) {
+      throw new Error(`Failed to start quest: ${promoteResult.error}`);
+    }
   }
 
   const { guildId } = await questFindQuestPathBroker({ questId });

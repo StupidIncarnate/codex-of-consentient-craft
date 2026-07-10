@@ -12,15 +12,15 @@
 
 import type { ConfigIndex } from '../../contracts/config-index/config-index-contract';
 import { configIndexContract } from '../../contracts/config-index/config-index-contract';
-import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
+import type { WorkItemRole } from '../../contracts/work-item-role/work-item-role-contract';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
 
 export const roleToConfigIndexTransformer = ({
   role,
   floorName,
 }: {
-  role: ExecutionRole;
+  role: WorkItemRole;
   floorName?: FloorName;
 }): ConfigIndex => {
   const index =

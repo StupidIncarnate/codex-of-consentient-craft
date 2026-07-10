@@ -622,3 +622,11 @@ export * from './src/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 export * from './src/contracts/rate-limits-history-line/rate-limits-history-line-contract';
 export * from './src/contracts/rate-limits-history-line/rate-limits-history-line.stub';
+
+// Work Item Floor Ordering Contracts (shared by the web floor view and the orchestrator dispatcher)
+export * from './src/contracts/topological-depth/topological-depth-contract';
+export * from './src/contracts/topological-depth/topological-depth.stub';
+export * from './src/contracts/config-index/config-index-contract';
+export * from './src/contracts/config-index/config-index.stub';
+export * from './src/contracts/floor-name/floor-name-contract';
+export * from './src/contracts/floor-name/floor-name.stub';

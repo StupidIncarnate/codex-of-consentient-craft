@@ -144,15 +144,33 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => does NOT revive the seek_scope status', () => {
-    expect(pathseekerPromptStatics.prompt.template.indexOf('seek_scope')).toBe(-1);
+  it('VALID: prompt template => rests at seek_scope and drives the seek_scope → in_progress gate', () => {
+    const needle = 'seek_scope → in_progress';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => does NOT revive the seek_synth status', () => {
+  it('VALID: prompt template => the completeness gate is a retryable rejection, not a one-shot', () => {
+    const needle = 'RETRYABLE gate';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => single-rest model does NOT use the seek_synth status', () => {
     expect(pathseekerPromptStatics.prompt.template.indexOf('seek_synth')).toBe(-1);
   });
 
-  it('VALID: prompt template => does NOT revive the seek_walk status', () => {
+  it('VALID: prompt template => single-rest model does NOT use the seek_walk status', () => {
     expect(pathseekerPromptStatics.prompt.template.indexOf('seek_walk')).toBe(-1);
   });
 });

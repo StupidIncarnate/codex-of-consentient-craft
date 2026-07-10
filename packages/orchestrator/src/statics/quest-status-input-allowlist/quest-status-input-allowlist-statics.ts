@@ -24,14 +24,15 @@
  *                          appear in this array, otherwise the write is rejected BY NAME (`Sub-field
  *                          'planningNotes.<x>' not allowed`). An empty [] combined with `planningNotes` being
  *                          absent from allowedFields rejects the whole field wholesale (`Field 'planningNotes'
- *                          not allowed`). Every status BEFORE `in_progress` (spec/design phases plus the
- *                          seek_scope/seek_synth/seek_walk planning phases) keeps its sub-field allowlist so
- *                          each phase retains its write-discipline.
+ *                          not allowed`). The spec/design phases and the seek_synth/seek_walk planning phases
+ *                          keep a finite sub-field allowlist so each retains its write-discipline; `seek_scope`
+ *                          and `in_progress` use `'all'` (see below).
  *     'all'             -> no sub-field gating: any `planningNotes` sub-field is writable, AND a `planningNotes`
- *                          payload is accepted even though `planningNotes` is NOT in allowedFields. Only
- *                          `in_progress` uses this — PathSeeker runs its ENTIRE planning lifecycle (scope →
- *                          surface → synthesis → walk) while the quest stays `in_progress`, so the execution
- *                          window imposes no per-phase planningNotes write-discipline.
+ *                          payload is accepted even though `planningNotes` is NOT in allowedFields. Used by
+ *                          `seek_scope` — the PathSeeker planning workspace where the quest rests while
+ *                          PathSeeker writes its ENTIRE lifecycle (scope → surface → synthesis → walk) in one
+ *                          continuous run before driving the seek_scope → in_progress completeness gate — and
+ *                          by `in_progress`, where execution agents write blightReports/codeweaverPlans.
  */
 
 export type QuestStatusFlowsRule =
@@ -131,9 +132,16 @@ export const questStatusInputAllowlistStatics = {
     allowedPlanningNotesFields: [],
   },
   seek_scope: {
-    allowedFields: ['planningNotes', 'status'],
-    flowsRule: 'forbidden',
-    allowedPlanningNotesFields: ['scopeClassification'],
+    allowedFields: [
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
+    ],
+    flowsRule: 'observable-wording-only',
+    allowedPlanningNotesFields: 'all',
   },
   seek_synth: {
     allowedFields: [

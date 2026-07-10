@@ -87,3 +87,10 @@ export * from './src/transformers/flow-name-from-file-path/flow-name-from-file-p
 
 // Widget File Name Extract
 export * from './src/transformers/widget-file-name-extract/widget-file-name-extract-transformer';
+
+// Work Item Floor Ordering (shared by the web floor view and the orchestrator dispatcher)
+export * from './src/transformers/compute-work-item-depths/compute-work-item-depths-transformer';
+export * from './src/transformers/role-to-config-index/role-to-config-index-transformer';
+export * from './src/transformers/resolve-ward-floor-name/resolve-ward-floor-name-transformer';
+export * from './src/transformers/ward-aware-config-index/ward-aware-config-index-transformer';
+export * from './src/transformers/work-items-in-dispatch-order/work-items-in-dispatch-order-transformer';

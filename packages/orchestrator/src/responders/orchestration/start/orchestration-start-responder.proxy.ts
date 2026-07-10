@@ -9,6 +9,7 @@ import {
   GuildStub,
   questContract,
 } from '@dungeonmaster/shared/contracts';
+import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questBuildBugHuntGraphBrokerProxy } from '../../../brokers/quest/build-bug-hunt-graph/quest-build-bug-hunt-graph-broker.proxy';
@@ -131,20 +132,18 @@ export const OrchestrationStartResponderProxy = (): {
 
     setupQuestApproved: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      // The responder mints either TWO modify-quest calls (when the quest already has a
-      // pathseeker work item — the planningNotes graph build is skipped: status flip to
-      // seek_scope, then promote to in_progress) or THREE modify-quest calls (status+
-      // workItems → planningNotes.scopeClassification → promote to in_progress). Each
-      // call performs its own quest-file load and consumes the file-read queue, so we
-      // must queue one load per expected call.
-      //
-      // Critical: the modify broker's per-status allowlist gate checks `loadedQuest.status`
-      // on every call. The proxy's filesystem read is mocked, so it does NOT see the prior
-      // persist's status flip — we must hand-craft the queued reads so each one reflects
-      // the status the responder will have just written. The first call lands on the
-      // original status (approved or design_approved); every subsequent call lands on
-      // seek_scope (the responder's intermediate state during the planningNotes write and
-      // the seek_scope → in_progress promote).
+      // The responder issues one modify-quest per status hop, each performing its own quest-file
+      // load, so we must queue one mocked read per expected call — reflecting the status the
+      // responder will have just written (the mocked filesystem does not see prior persists):
+      //   hop 1 (ALWAYS): approved/design_approved → seek_scope, carrying workItems. Read sees the
+      //          original status.
+      //   hop 2 (fresh feature graph ONLY): write planningNotes.scopeClassification, still at
+      //          seek_scope. Read sees seek_scope.
+      //   hop 3 (only when NO PathSeeker will run — bug-hunt, or planning already complete):
+      //          seek_scope → in_progress promote. Read sees seek_scope. A PathSeeker-planned quest
+      //          RESTS at seek_scope and skips this hop (PathSeeker drives the transition itself).
+      // A leftover queued read bleeds into the downstream guild-config read, so the count must be
+      // exact.
       const seekScopeQuest = questContract.parse({ ...quest, status: 'seek_scope' });
       const hasExistingPathseeker = quest.workItems.some(
         (wi) =>
@@ -154,16 +153,26 @@ export const OrchestrationStartResponderProxy = (): {
           wi.role === 'pathseeker-assertion-correctness' ||
           wi.role === 'pathseeker-walk',
       );
-      // The middle modify-quest call writes planningNotes.scopeClassification — it runs ONLY for
-      // a fresh feature pathseeker graph. Bug-hunt quests (and quests with an existing graph) skip
-      // it, so queue one fewer read or a leftover bleeds into the guild config read downstream.
-      const skipsScopeClassificationWrite = hasExistingPathseeker || quest.questType === 'bug-hunt';
-      modifyProxy.setupQuestFound({ quest });
-      if (!skipsScopeClassificationWrite) {
-        modifyProxy.setupQuestFound({ quest: seekScopeQuest });
+      const isBugHunt = quest.questType === 'bug-hunt';
+      // hop 2 runs ONLY for a fresh feature pathseeker graph.
+      const freshFeatureGraph = !hasExistingPathseeker && !isBugHunt;
+      // Mirrors the responder's `willRunPathseeker`: a non-terminal `pathseeker` item (freshly
+      // seeded, or already present) means the quest rests at seek_scope and PathSeeker drives the
+      // promote, so hop 3 is skipped.
+      const willRunPathseeker =
+        !isBugHunt &&
+        (freshFeatureGraph ||
+          quest.workItems.some(
+            (wi) =>
+              wi.role === 'pathseeker' && !isTerminalWorkItemStatusGuard({ status: wi.status }),
+          ));
+      modifyProxy.setupQuestFound({ quest }); // hop 1
+      if (freshFeatureGraph) {
+        modifyProxy.setupQuestFound({ quest: seekScopeQuest }); // hop 2 (scopeClassification)
       }
-      // Third call: seek_scope → in_progress promote — loads see seek_scope on disk.
-      modifyProxy.setupQuestFound({ quest: seekScopeQuest });
+      if (!willRunPathseeker) {
+        modifyProxy.setupQuestFound({ quest: seekScopeQuest }); // hop 3 (promote to in_progress)
+      }
 
       setupPathResolution({ quest });
     },

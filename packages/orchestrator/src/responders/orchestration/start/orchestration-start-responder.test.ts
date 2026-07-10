@@ -93,7 +93,7 @@ describe('OrchestrationStartResponder', () => {
     });
   });
 
-  describe('final transition lands on in_progress', () => {
+  describe('start transition (feature rests at seek_scope; PathSeeker drives the promote)', () => {
     it('VALID: {approved quest} => first persisted status is seek_scope (carries workItems hop)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
@@ -122,7 +122,7 @@ describe('OrchestrationStartResponder', () => {
       expect(firstPersistedQuest.status).toBe('seek_scope');
     });
 
-    it('VALID: {approved quest} => last persisted status is in_progress (so /dumpster-launch picks it up)', async () => {
+    it('VALID: {approved quest} => last persisted status is seek_scope (feature rests there; no Start promote)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
@@ -136,10 +136,10 @@ describe('OrchestrationStartResponder', () => {
         index: persistedContents.length - 1,
       });
 
-      expect(lastPersistedQuest.status).toBe('in_progress');
+      expect(lastPersistedQuest.status).toBe('seek_scope');
     });
 
-    it('VALID: {design_approved quest} => last persisted status is in_progress (so /dumpster-launch picks it up)', async () => {
+    it('VALID: {design_approved quest} => last persisted status is seek_scope (feature rests there; no Start promote)', async () => {
       questExecutionQueueState.clear();
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'design_approved' });
@@ -153,7 +153,7 @@ describe('OrchestrationStartResponder', () => {
         index: persistedContents.length - 1,
       });
 
-      expect(lastPersistedQuest.status).toBe('in_progress');
+      expect(lastPersistedQuest.status).toBe('seek_scope');
     });
   });
 

@@ -18,7 +18,7 @@ test.describe('Quest Start Pipeline', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to in_progress', async ({
+  test('VALID: POST /api/quests/:questId/start returns processId and rests quest at seek_scope', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -69,13 +69,11 @@ test.describe('Quest Start Pipeline', () => {
 
     const questData = await questResponse.json();
 
-    // start-quest transitions approved → in_progress directly so that
-    // questGetNextStepBroker (driven by /dumpster-launch) picks the quest up
-    // on its next pass. The seek_* statuses are dead enum values under the
-    // dispatch-loop model — the responder briefly passes through seek_scope
-    // internally to satisfy the per-status planningNotes allowlist, but the
-    // final persisted status is always in_progress.
-    expect(questData.quest.status).toBe('in_progress');
+    // start-quest leaves a PathSeeker-planned feature quest RESTING at seek_scope: the pathseeker
+    // work item dispatches while the quest is there, and PathSeeker drives the seek_scope →
+    // in_progress transition itself (the retryable completeness gate). Only bug-hunt / already-
+    // planned quests promote straight to in_progress at Start.
+    expect(questData.quest.status).toBe('seek_scope');
   });
 
   test('VALID: POST /api/quests/:questId/start launches pipeline (process is registered)', async ({

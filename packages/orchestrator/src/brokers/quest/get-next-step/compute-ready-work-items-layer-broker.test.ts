@@ -67,6 +67,49 @@ describe('computeReadyWorkItemsLayerBroker', () => {
     expect(result).toStrictEqual([]);
   });
 
+  it('VALID: {floor-3 codeweaver ready alongside floor-2 codeweavers} => floor-2 items come FIRST, floor-3 LAST (dispatch order = floor order)', () => {
+    computeReadyWorkItemsLayerBrokerProxy();
+    const pathseekerId = QuestWorkItemIdStub({ value: '8c858ffd-e132-4cf6-8d2c-defbeec99810' });
+    const floor2DoneId = QuestWorkItemIdStub({ value: '7aa7b49b-0000-4000-8000-000000000000' });
+    const floor2aId = QuestWorkItemIdStub({ value: '42cd11cd-0000-4000-8000-000000000000' });
+    const floor2bId = QuestWorkItemIdStub({ value: 'c2b07031-0000-4000-8000-000000000000' });
+    const floor3Id = QuestWorkItemIdStub({ value: '68b54d56-0000-4000-8000-000000000000' });
+
+    const pathseeker = WorkItemStub({ id: pathseekerId, role: 'pathseeker', status: 'complete' });
+    const floor2Done = WorkItemStub({
+      id: floor2DoneId,
+      role: 'codeweaver',
+      status: 'complete',
+      dependsOn: [pathseekerId],
+    });
+    // Floor-3: depends on ONE floor-2 item (now complete) — ready, but a deeper floor.
+    const floor3 = WorkItemStub({
+      id: floor3Id,
+      role: 'codeweaver',
+      status: 'pending',
+      dependsOn: [pathseekerId, floor2DoneId],
+    });
+    const floor2a = WorkItemStub({
+      id: floor2aId,
+      role: 'codeweaver',
+      status: 'pending',
+      dependsOn: [pathseekerId],
+    });
+    const floor2b = WorkItemStub({
+      id: floor2bId,
+      role: 'codeweaver',
+      status: 'pending',
+      dependsOn: [pathseekerId],
+    });
+
+    // Input order puts the floor-3 item first — the array position that let it jump ahead.
+    const result = computeReadyWorkItemsLayerBroker({
+      workItems: [pathseeker, floor2Done, floor3, floor2a, floor2b],
+    });
+
+    expect(result.map((item) => item.id)).toStrictEqual([floor2aId, floor2bId, floor3Id]);
+  });
+
   it('VALID: {pending item with failed dep} => dependent IS ready (failed satisfies dependency)', () => {
     computeReadyWorkItemsLayerBrokerProxy();
     const failedId = QuestWorkItemIdStub({ value: 'aaa66666-1111-4222-9333-444444444444' });

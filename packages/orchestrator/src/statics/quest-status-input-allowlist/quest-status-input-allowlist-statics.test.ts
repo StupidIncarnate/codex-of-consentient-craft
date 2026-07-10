@@ -91,9 +91,16 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedPlanningNotesFields: [],
       },
       seek_scope: {
-        allowedFields: ['planningNotes', 'status'],
-        flowsRule: 'forbidden',
-        allowedPlanningNotesFields: ['scopeClassification'],
+        allowedFields: [
+          'planningNotes',
+          'steps',
+          'contracts',
+          'toolingRequirements',
+          'flows',
+          'status',
+        ],
+        flowsRule: 'observable-wording-only',
+        allowedPlanningNotesFields: 'all',
       },
       seek_synth: {
         allowedFields: [
@@ -175,9 +182,18 @@ describe('questStatusInputAllowlistStatics', () => {
     );
   });
 
-  it('VALID: seek_scope => allowedPlanningNotesFields limits writes to scopeClassification', () => {
-    expect(questStatusInputAllowlistStatics.seek_scope.allowedPlanningNotesFields).toStrictEqual([
-      'scopeClassification',
+  it("VALID: seek_scope => allowedPlanningNotesFields is 'all' (the PathSeeker planning workspace where the quest rests through scope → synthesis → walk)", () => {
+    expect(questStatusInputAllowlistStatics.seek_scope.allowedPlanningNotesFields).toBe('all');
+  });
+
+  it("VALID: seek_scope => allowedFields includes 'steps' and 'contracts' so PathSeeker + minions can commit the plan while resting there", () => {
+    expect(questStatusInputAllowlistStatics.seek_scope.allowedFields).toStrictEqual([
+      'planningNotes',
+      'steps',
+      'contracts',
+      'toolingRequirements',
+      'flows',
+      'status',
     ]);
   });
 
@@ -216,7 +232,7 @@ describe('questStatusInputAllowlistStatics', () => {
     ]);
   });
 
-  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; PathSeeker writes its whole planning lifecycle during in_progress)", () => {
+  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports/codeweaverPlans)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
   });
 });

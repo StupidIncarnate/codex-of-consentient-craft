@@ -6,20 +6,21 @@
  * // Returns: FloorGroup[] ordered by dependency depth, role config order, and createdAt
  */
 
-import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import type { FloorName, WorkItem } from '@dungeonmaster/shared/contracts';
+import { floorNameContract } from '@dungeonmaster/shared/contracts';
 import { isSkippedWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import { executionFloorConfigStatics } from '@dungeonmaster/shared/statics';
+import {
+  computeWorkItemDepthsTransformer,
+  resolveWardFloorNameTransformer,
+  workItemsInDispatchOrderTransformer,
+} from '@dungeonmaster/shared/transformers';
 
 import type { FloorGroup } from '../../contracts/floor-group/floor-group-contract';
 import { floorGroupContract } from '../../contracts/floor-group/floor-group-contract';
 import type { FloorGroupKey } from '../../contracts/floor-group-key/floor-group-key-contract';
 import { floorGroupKeyContract } from '../../contracts/floor-group-key/floor-group-key-contract';
-import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
-import { floorNameContract } from '../../contracts/floor-name/floor-name-contract';
 import { floorNumberContract } from '../../contracts/floor-number/floor-number-contract';
-import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
-import { computeWorkItemDepthsTransformer } from '../compute-work-item-depths/compute-work-item-depths-transformer';
-import { resolveWardFloorNameTransformer } from '../resolve-ward-floor-name/resolve-ward-floor-name-transformer';
-import { wardAwareConfigIndexTransformer } from '../ward-aware-config-index/ward-aware-config-index-transformer';
 
 export const workItemsToFloorGroupsTransformer = ({
   workItems,
@@ -48,16 +49,11 @@ export const workItemsToFloorGroupsTransformer = ({
 
   const depths = computeWorkItemDepthsTransformer({ items: filtered, itemMap });
 
-  const sorted = [...filtered].sort((a, b) => {
-    const depthA = depths.get(a.id) ?? 0;
-    const depthB = depths.get(b.id) ?? 0;
-    if (depthA !== depthB) return depthA - depthB;
-
-    const configA = wardAwareConfigIndexTransformer({ workItem: a, allItemMap });
-    const configB = wardAwareConfigIndexTransformer({ workItem: b, allItemMap });
-    if (configA !== configB) return configA - configB;
-
-    return a.createdAt.localeCompare(b.createdAt);
+  // Same ordering the orchestrator dispatches by — the scheduler grabs the next ready item from
+  // this exact list, so the displayed floor order and the execution order can never drift.
+  const sorted = workItemsInDispatchOrderTransformer({
+    workItems: filtered,
+    allWorkItems: unfilteredItems,
   });
 
   const entranceFloorNames = new Set(

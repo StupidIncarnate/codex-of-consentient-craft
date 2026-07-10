@@ -8,7 +8,8 @@
 
 import { Group, Text } from '@mantine/core';
 
-import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
+import type { FloorName } from '@dungeonmaster/shared/contracts';
+
 import type { FloorNumber } from '../../contracts/floor-number/floor-number-contract';
 import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

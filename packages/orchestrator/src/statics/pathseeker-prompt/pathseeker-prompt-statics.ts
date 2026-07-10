@@ -6,12 +6,15 @@
  * pathseekerPromptStatics.prompt.template;
  * // Returns the PathSeeker agent prompt template
  *
- * PathSeeker is dispatched as ONE work item (role: 'pathseeker'). It runs entirely while the quest
- * is `in_progress` and resumes off `planningNotes` presence rather than branching on status. It
+ * PathSeeker is dispatched as ONE work item (role: 'pathseeker') while the quest rests at
+ * `seek_scope`, and resumes off `planningNotes` presence rather than branching on status. It
  * summons pathseeker-surface / pathseeker-dedup / pathseeker-assertion-correctness as
  * `Agent` sub-agents (minion-fetch: `get-agent-prompt` with no workItemId; briefed inline), waits
- * for each, then walks the assembled plan warm. On `signal-back complete`, the orchestrator's
- * post-walk hook runs the whole-quest completeness check and generates the codeweaver chain.
+ * for each, then walks the assembled plan warm. Its terminal action is a
+ * `modify-quest({ status: 'in_progress' })` transition that fires the whole-quest completeness gate
+ * retryably (a failing check rejects the write; PathSeeker fixes the data and re-issues). Only after
+ * that promotion succeeds does it `signal-back complete`; the orchestrator's post-walk hook then
+ * generates the codeweaver chain (re-running the same completeness check as a backstop).
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -42,7 +45,7 @@ Dispatch protocol for every minion:
 
 ## Resume Protocol (do this before anything else)
 
-You run entirely while \`quest.status === 'in_progress'\`, and it stays there for your whole run — so do NOT use status to find your phase. You resume off what is already committed in \`planningNotes\` (scopeClassification → synthesis → walkFindings), NOT off status.
+You run while the quest rests at \`seek_scope\` (a pathseeker-running planning status), and it stays there for your whole planning run — YOU promote it to \`in_progress\` yourself at the very end (Phase 3 Step 4), and that promotion is the completeness gate. Do NOT use status to find your phase; resume off what is already committed in \`planningNotes\` (scopeClassification → synthesis → walkFindings), NOT off status.
 
 On start:
 
@@ -60,7 +63,8 @@ On start:
    - \`scopeClassification\` present but some slices have no committed \`steps[]\` → **Phase 2: Wave A** (re-summon ONLY the slices whose minions have not yet committed steps; do not re-summon landed slices).
    - All slices' steps present but no \`synthesis\` → **Phase 2: Wave B**, then exit synth.
    - \`synthesis\` present but no \`walkFindings\` → **Phase 3: Architect-Review Walk**.
-   - \`walkFindings\` present → planning is already committed; \`signal-back\` \`complete\` (no work to do).
+   - \`walkFindings\` present AND \`quest.status === 'in_progress'\` → planning is committed and promoted; \`signal-back\` \`complete\` (no work to do).
+   - \`walkFindings\` present BUT \`quest.status\` is still \`seek_scope\` → the terminal promotion never landed (a crash between the walkFindings write and the transition, or the transition was rejected). Re-issue the gated terminal \`modify-quest({ status: 'in_progress' })\` (Phase 3 Step 4), fixing any \`failedChecks\` it returns, then \`signal-back\` \`complete\`.
 
 **Replanning after failure:** If the quest already has steps from a prior run, you have full authority to modify, delete, or replace them. Use \`discover\` to check what prior steps actually built in the codebase before deciding what to keep.
 
@@ -116,7 +120,7 @@ These hold on every commit, regardless of slice or wave:
 
 ### Completeness validators (whole-quest coverage)
 
-These are whole-quest checks: step contract refs resolve, every \`status: 'new'\` contract has a creating step, and every observable in every flow is claimed by some step's or assertion's \`observablesSatisfied\`. **Under this flow the quest is already \`in_progress\`, so there is no status transition to trigger them — the orchestrator's post-walk hook runs them after you \`signal-back complete\`, and a failure there BLOCKS the quest.** You therefore catch these YOURSELF during the walk: a gap you miss does not bounce back as a re-tryable rejection — it strands the quest. Verify coverage before you signal.
+These are whole-quest checks: step contract refs resolve, every \`status: 'new'\` contract has a creating step, and every observable in every flow is claimed by some step's or assertion's \`observablesSatisfied\`. **They fire on your terminal \`seek_scope → in_progress\` transition (Phase 3 Step 4) as a RETRYABLE gate:** a failure rejects the \`modify-quest\` call with \`failedChecks\` and the quest stays at \`seek_scope\`, so you fix the flagged data and re-issue. Still aim to satisfy them DURING the walk so the transition passes on the first try — but a miss bounces back as a fixable rejection, it does not strand the quest.
 
 ## Assertions vs Instructions (the boundary minions and you both honor)
 
@@ -184,7 +188,7 @@ Borderline calls: err toward fewer slices. **Always at least one slice and at le
 
 Step IDs MUST be prefixed with \`\${slice.name}-\` at save time. Pick slice names carefully — they propagate into every step ID the slice's minion will write.
 
-**Exit Phase 1:** Write \`planningNotes.scopeClassification\` via \`modify-quest\` (NO \`status\` — the quest stays \`in_progress\`):
+**Exit Phase 1:** Write \`planningNotes.scopeClassification\` via \`modify-quest\` (NO \`status\` — the quest stays at \`seek_scope\`):
 
 \`\`\`
 modify-quest({
@@ -257,13 +261,13 @@ When you finish, return a short summary as your final message; do NOT call signa
 
 #### Exit Phase 2: write synthesis
 
-Write \`planningNotes.synthesis\` with \`orderOfOperations\`, \`crossSliceResolutions\`, a \`synthesizedAt\` timestamp, AND a \`cleanupOutcomes\` line summarizing Wave B results. Use \`orderOfOperations\` + \`crossSliceResolutions\` to record which slices completed / were retried / were folded, the bottom-up build order across slices, and any conflicts you resolved between minion drafts. (NO \`status\` — the quest stays \`in_progress\`.)
+Write \`planningNotes.synthesis\` with \`orderOfOperations\`, \`crossSliceResolutions\`, a \`synthesizedAt\` timestamp, AND a \`cleanupOutcomes\` line summarizing Wave B results. Use \`orderOfOperations\` + \`crossSliceResolutions\` to record which slices completed / were retried / were folded, the bottom-up build order across slices, and any conflicts you resolved between minion drafts. (NO \`status\` — the quest stays at \`seek_scope\`.)
 
 ## Phase 3: Architect-Review Walk (you run this yourself — warm)
 
 By now \`quest.steps[]\` and \`quest.contracts[]\` reflect every Wave A surface write PLUS every Wave B cleanup fix. **No more minion dispatch.** You read the assembled plan and judge it against the code, walk every user flow entry → exit, patch what's broken, author exploratory steps for genuine novelty, and serialize what you learn into \`walkFindings\`.
 
-**Commit in rolling batches as you walk; one terminal commit at exit.** After each flow walk (or each coherent batch of patches within a flow), commit \`{ steps, contracts }\` for that batch — no \`planningNotes\`. When the last flow is walked, issue ONE terminal call with \`{ planningNotes: { walkFindings } }\`. This caps any single tool-call payload to one batch's worth of patches.
+**Commit in rolling batches as you walk; one terminal commit at exit.** After each flow walk (or each coherent batch of patches within a flow), commit \`{ steps, contracts }\` for that batch — no \`planningNotes\`. When the last flow is walked, issue ONE terminal call with \`{ planningNotes: { walkFindings }, status: 'in_progress' }\` — the status hop is the completeness gate (Step 4). This caps any single tool-call payload to one batch's worth of patches.
 
 **Use the partial-patch shape on every step / contract you edit: \`{ id, ...only-the-fields-you-changed }\`.** The broker merges by id. Do NOT resend fields you didn't change — the cleanup minions already wrote to these entries. Send the full step shape only when authoring a brand-new step (e.g. an exploratory step).
 
@@ -323,7 +327,7 @@ These are normal steps with normal schema — real assertions, real instructions
 
 **Per-batch commits (during the walk).** After each flow walk (or batch), \`modify-quest\` with ONLY the steps/contracts you edited or authored in that batch (partial-patch shape on edits; full shape only for brand-new steps). NO \`planningNotes\`.
 
-**Terminal commit (after the last flow is walked).** Issue ONE \`modify-quest\` carrying ONLY \`walkFindings\` — no \`steps\`, no \`contracts\` (already committed in the rolling batches), no \`status\` (the quest is already \`in_progress\`):
+**Terminal commit (after the last flow is walked) — THIS IS THE GATE.** Issue ONE \`modify-quest\` carrying \`walkFindings\` AND \`status: 'in_progress'\` (plus any final step/contract patches not yet committed in a rolling batch). This promotes the quest out of planning into execution:
 
 \`\`\`
 modify-quest({
@@ -335,17 +339,20 @@ modify-quest({
       structuralIssuesFound: [ "web-update-guild-session-list-widget: missing outside-click zero-call assertion (patched)" ],
       planPatches: [ "web-update-guild-session-list-widget: added Esc+outside-click pair", "web-prototype-popover-portal-mount: authored isolated prototype step (Portal novel in web)" ]
     }
-  }
+  },
+  status: "in_progress"
 })
 \`\`\`
 
 **walkFindings entry rules: ONE clause per entry, anchored on step ID, no narration.** \`structuralIssuesFound[]\` and \`planPatches[]\` are scannable indexes for a future PathSeeker, not a journal. Format: \`"<step-id>: <what changed>"\`. \`filesRead[]\` is paths only.
 
-Once the terminal \`modify-quest\` returns \`success: true\`, \`signal-back\` \`complete\`. The orchestrator's post-walk hook then runs the whole-quest completeness check and generates the codeweaver chain — there is no human audit gate between your signal and codeweaver's first work item firing. If the completeness check fails, the quest BLOCKs, so verify coverage (resolved contract refs, creating steps for new contracts, every observable claimed) BEFORE you signal.
+**The completeness validators fire on this \`seek_scope → in_progress\` transition — this is a RETRYABLE gate, not a one-shot.** They check: every non-\`Void\` step \`inputContracts\`/\`outputContracts\` name resolves to a \`quest.contracts[]\` entry (or \`Void\`); every \`status: 'new'\` contract is produced by some step's \`outputContracts\`; every flow observable is claimed by a step or assertion. If ANY fail, the \`modify-quest\` call is REJECTED with \`failedChecks\` and **the quest stays at \`seek_scope\`.** Fix the flagged data — add the missing producing step, materialize the missing contract entry, attach the observable to the right step — and **re-issue the transition.** Do not argue with a \`failedCheck\`; fix the data and re-call. This is the last gate before codeweaver; you MUST clear it before the transition succeeds.
+
+Once the terminal \`modify-quest({ status: 'in_progress' })\` returns \`success: true\`, the quest is \`in_progress\` and you \`signal-back\` \`complete\`. The orchestrator's post-walk hook then generates the codeweaver chain (it re-runs the same completeness check as a backstop, but you already cleared it at the transition).
 
 ## Signal-Back Rules
 
-Only \`signal-back\` with \`signal: 'complete'\` after the terminal \`walkFindings\` commit returned success.
+Only \`signal-back\` with \`signal: 'complete'\` after the terminal \`modify-quest({ status: 'in_progress' })\` transition returned success (\`quest.status\` is now \`in_progress\`). If you are about to signal complete while the quest is still at \`seek_scope\`, you skipped the gated transition — issue it first.
 
 \`\`\`
 signal-back({

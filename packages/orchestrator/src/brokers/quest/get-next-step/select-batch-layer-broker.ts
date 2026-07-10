@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer helper for questGetNextStepBroker — picks the work-items to bundle into a single spawn-agents response. Returns all pathseeker-surface items together, all spiritmender items together (parallel recovery dispatch), all blightwarden minions together (parallel report-only audit), both pathseeker-corrections items together when both ready, otherwise the single oldest ready item. Ward items are handled by the parent broker before this runs.
+ * PURPOSE: Layer helper for questGetNextStepBroker — picks the work-items to bundle into a single spawn-agents response. Returns all pathseeker-surface items together, all spiritmender items together (parallel recovery dispatch), all blightwarden minions together (parallel report-only audit), both pathseeker-corrections items together when both ready, otherwise the single first ready item. The `ready` list arrives in floor order (computeReadyWorkItemsLayerBroker sorts via workItemsInDispatchOrderTransformer), so "the first ready item" is the shallowest-floor one — a deeper-floor item is never dispatched while a shallower-floor item is still pending. Ward items are handled by the parent broker before this runs.
  *
  * USAGE:
  * const batch = selectBatchLayerBroker({ ready });
