@@ -32,6 +32,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupNoReadyItems: (params: { quest: QuestParam }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getAllPersistedQuests: () => readonly Quest[];
+  getStderrWrites: () => readonly unknown[];
   findPersistedWorkItem: (params: {
     workItemId: QuestWorkItemId;
     status: WorkItemStatus;
@@ -51,6 +52,11 @@ export const questOrchestrationLoopBrokerProxy = (): {
   registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
     '2024-01-15T10:00:00.000Z',
   );
+
+  // Capture (and suppress) the loop's diagnostic stderr so tests can assert the snapshot +
+  // decision lines instead of leaking them into the jest reporter.
+  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrSpy.mockReturnValue(true);
 
   return {
     setupQuestTerminal: ({ quest }: { quest: QuestParam }): void => {
@@ -79,6 +85,8 @@ export const questOrchestrationLoopBrokerProxy = (): {
     getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 
     getAllPersistedQuests: (): readonly Quest[] => parsePersistedQuests({ modifyProxy }),
+
+    getStderrWrites: (): readonly unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
 
     findPersistedWorkItem: ({
       workItemId,

@@ -29,6 +29,7 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
+import { orchestrationLoopSummaryTransformer } from '../../../transformers/orchestration-loop-summary/orchestration-loop-summary-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -108,9 +109,14 @@ export const questOrchestrationLoopBroker = async ({
     workItems: quest.workItems,
   });
 
-  const workItemSummary = quest.workItems.map((wi) => `${wi.role}:${wi.status}`).join(', ');
   process.stderr.write(
-    `[dev] orchestration-loop questId=${questId} ready=${String(ready.length)} terminal=${String(questTerminal)} blocked=${String(questBlocked)} items=[${workItemSummary}]\n`,
+    `${orchestrationLoopSummaryTransformer({
+      questId,
+      questStatus: quest.status,
+      workItems: quest.workItems,
+      ready,
+      chatRoles: [...CHAT_ROLES],
+    })}\n`,
   );
 
   // 3. Handle terminal states
@@ -127,6 +133,9 @@ export const questOrchestrationLoopBroker = async ({
       workItems: quest.workItems,
       currentStatus: quest.status,
     });
+    process.stderr.write(
+      `[orchestration-loop] quest=${questId} decision: all work items terminal -> quest status ${newStatus}\n`,
+    );
     if (newStatus !== quest.status) {
       try {
         const transitionResult = await questModifyBroker({
@@ -147,6 +156,9 @@ export const questOrchestrationLoopBroker = async ({
   }
 
   if (questBlocked) {
+    process.stderr.write(
+      `[orchestration-loop] quest=${questId} decision: no ready items and none in flight -> blocking quest\n`,
+    );
     try {
       const transitionResult = await questModifyBroker({
         input: { questId, status: 'blocked' } as ModifyQuestInput,
@@ -165,7 +177,12 @@ export const questOrchestrationLoopBroker = async ({
   }
 
   if (ready.length === 0) {
-    process.stderr.write(`[dev] orchestration-loop questId=${questId} no ready items, exiting\n`);
+    const runningCount = quest.workItems.filter((wi) =>
+      isActiveWorkItemStatusGuard({ status: wi.status }),
+    ).length;
+    process.stderr.write(
+      `[orchestration-loop] quest=${questId} decision: 0 ready, ${String(runningCount)} in flight -> waiting for active agents\n`,
+    );
     return result;
   }
 
@@ -175,6 +192,9 @@ export const questOrchestrationLoopBroker = async ({
   // items are left `pending` here — the loop must not touch their status.
   const chatReady = ready.filter((item) => CHAT_ROLES.has(item.role));
   if (chatReady.length === 0) {
+    process.stderr.write(
+      `[orchestration-loop] quest=${questId} decision: ${String(ready.length)} ready, 0 chat-role -> execution roles dispatch via /dumpster-launch; chat loop idle\n`,
+    );
     return result;
   }
 
@@ -219,6 +239,10 @@ export const questOrchestrationLoopBroker = async ({
   if (!firstItem) {
     return result;
   }
+
+  process.stderr.write(
+    `[orchestration-loop] quest=${questId} decision: dispatching ${roleName} (${firstItem.id})\n`,
+  );
 
   // 7. Mark the dispatching chat work item in_progress before handing off to the chat layer.
   const now = new Date().toISOString();
