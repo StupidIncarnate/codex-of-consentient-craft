@@ -1208,23 +1208,20 @@ describe('QuestFlow', () => {
     }, 35_000);
   });
 
-  describe('failure recovery — block sad path (BLOCK)', () => {
-    // 30s timeout: after BLOCK there are no in_progress quests, so get-next-step finds nothing
-    // ready and long-polls its full ~25s budget before returning idle (proving BLK-2: a blocked
-    // quest is never dispatched). The wait is the assertion.
-    it('VALID: {codeweaver signals failed} => quest blocked, pending items skipped, next dispatch yields idle', async () => {
+  describe('failure recovery — codeweaver code failure with NO retry budget escalates to a PathSeeker replan', () => {
+    it('VALID: {codeweaver signals failed, maxAttempts 1 (budget already spent)} => escalates to a pathseeker replan fed the finding, skips pending, quest stays in_progress and dispatches the replan', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'qf-codeweaver-block' }),
+        baseName: BaseNameStub({ value: 'qf-codeweaver-replan' }),
       });
       envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
 
       const guild = await GuildAddResponder({
-        name: GuildNameStub({ value: 'Block Guild' }),
+        name: GuildNameStub({ value: 'Replan Guild' }),
         path: GuildPathStub({ value: testbed.guildPath }),
       });
       const addResult = await QuestUserAddResponder({
-        title: 'Block Quest',
-        userRequest: 'Drives a codeweaver failed signal through the BLOCK path',
+        title: 'Replan Quest',
+        userRequest: 'Drives a codeweaver failed signal (no retry budget) through the REPLAN path',
         guildId: guild.id,
       });
       const questId = addResult.questId!;
@@ -1236,12 +1233,16 @@ describe('QuestFlow', () => {
         finalStatus: 'in_progress',
       });
 
+      // maxAttempts 1 → attempt 0 is already the last attempt, so questRecoverRoleBroker skips the
+      // spiritmender loop and escalates straight to a PathSeeker replan. (A codeweaver with budget
+      // remaining spiritmender-recovers instead — see the next describe.)
       const codeweaverItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: crypto.randomUUID() }),
         role: 'codeweaver',
         status: 'in_progress',
         spawnerType: 'agent',
         dependsOn: [],
+        maxAttempts: 1,
         createdAt: new Date().toISOString(),
       });
       const wardItem = WorkItemStub({
@@ -1277,38 +1278,414 @@ describe('QuestFlow', () => {
         }),
       });
 
-      // Codeweaver gave up — `failed` routes to BLOCK (codeweaver is a pathseeker-replan-class
-      // failure per the routing table) through the real signal-back MCP handler.
+      const { summary: brief } = WorkItemStub({
+        summary: 'CLI slice needs ink; not installed + forbidden by widgets allowlist',
+      });
+
+      // Codeweaver could not build its slice as planned and has no retry budget — `failed` escalates
+      // to a PathSeeker replan through the real signal-back MCP handler: the plan is re-planned rather
+      // than the quest blocked.
       await QuestFlow.handleSignalBack({
         questId,
         workItemId: codeweaverItem.id,
         signal: 'failed',
+        summary: brief,
       });
 
-      // A subsequent dispatch attempt yields NOTHING — a blocked quest is filtered out of the
-      // active set, so the scan finds nothing ready and long-polls its full budget before idle.
-      const afterBlock = await QuestFlow.getNextStep();
+      // The recovered quest dispatches the spliced pathseeker replan (proving it is NOT blocked).
+      const afterReplan = await QuestFlow.getNextStep();
 
-      const blockedQuest = await QuestGetResponder({ questId });
+      const replanQuest = await QuestGetResponder({ questId });
 
       testbed.cleanup();
 
-      expect(blockedQuest.quest!.status).toBe('blocked');
+      const cw = replanQuest.quest!.workItems.find((wi) => wi.id === codeweaverItem.id);
+      const ward = replanQuest.quest!.workItems.find((wi) => wi.id === wardItem.id);
+      const siege = replanQuest.quest!.workItems.find((wi) => wi.id === siegeItem.id);
+      const replan = replanQuest
+        .quest!.workItems.filter((wi) => wi.role === 'pathseeker')
+        .find((wi) => wi.insertedBy === codeweaverItem.id);
 
-      const statusByRole = Object.fromEntries(
-        blockedQuest
-          .quest!.workItems.filter((wi) => ['codeweaver', 'ward', 'siegemaster'].includes(wi.role))
-          .map((wi) => [wi.role, wi.status]),
-      );
-
-      // Failed item failed; both downstream pending items drained to skipped.
-      expect(statusByRole).toStrictEqual({
-        codeweaver: 'failed',
-        ward: 'skipped',
-        siegemaster: 'skipped',
+      // Codeweaver failed; downstream pending drained to skipped; a pathseeker replan spliced with
+      // the codeweaver's finding as its brief; quest recovers (stays in_progress) and dispatches the
+      // replan on the next scan.
+      expect({
+        questStatus: replanQuest.quest!.status,
+        cwStatus: cw?.status,
+        wardStatus: ward?.status,
+        siegeStatus: siege?.status,
+        replanStatus: replan?.status,
+        replanDependsOn: replan?.dependsOn,
+        replanSummary: String(replan?.summary),
+        dispatchType: afterReplan.type,
+      }).toStrictEqual({
+        questStatus: 'in_progress',
+        cwStatus: 'failed',
+        wardStatus: 'skipped',
+        siegeStatus: 'skipped',
+        replanStatus: 'pending',
+        replanDependsOn: [],
+        replanSummary: 'CLI slice needs ink; not installed + forbidden by widgets allowlist',
+        dispatchType: 'spawn-agents',
       });
-      // Blocked quest is not dispatched.
-      expect(afterBlock).toStrictEqual({ type: 'idle' });
+    }, 30_000);
+  });
+
+  describe('failure recovery — codeweaver code failure WITH retry budget spiritmender-recovers', () => {
+    it('VALID: {codeweaver signals failed, maxAttempts 3} => splices spiritmender + ward(changed) + a fresh codeweaver, rewires downstream, quest stays in_progress and dispatches the spiritmender', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-codeweaver-recover' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'CW Recover Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'CW Recover Quest',
+        userRequest: 'Drives a codeweaver failed (budget remaining) through spiritmender recovery',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      const cwId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const wardId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const cwItem = WorkItemStub({
+        id: cwId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        relatedDataItems: ['steps/slice-x'],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const wardItem = WorkItemStub({
+        id: wardId,
+        role: 'ward',
+        status: 'pending',
+        spawnerType: 'command',
+        dependsOn: [cwId],
+        wardMode: 'full',
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...existingComplete, cwItem, wardItem],
+        }),
+      });
+
+      const finding = WorkItemStub({ summary: 'type error in login broker; needs a fix' }).summary;
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: cwId,
+        signal: 'failed',
+        summary: finding,
+      });
+
+      const afterRecover = await QuestGetResponder({ questId });
+      const items = afterRecover.quest!.workItems;
+      const spliced = items.filter((wi) => wi.insertedBy === cwId);
+      const spiritmender = spliced.find((wi) => wi.role === 'spiritmender');
+      const gateWard = spliced.find((wi) => wi.role === 'ward');
+      const freshCw = spliced.find((wi) => wi.role === 'codeweaver');
+      const originalWard = items.find((wi) => wi.id === wardId);
+      const cw = items.find((wi) => wi.id === cwId);
+
+      const nextStep = await QuestFlow.getNextStep();
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterRecover.quest!.status,
+        cwStatus: cw!.status,
+        spiritmenderDependsOn: spiritmender!.dependsOn,
+        gateWardMode: gateWard!.wardMode,
+        gateWardDependsOn: gateWard!.dependsOn,
+        freshCwDependsOn: freshCw!.dependsOn,
+        freshCwAttempt: freshCw!.attempt,
+        freshCwRelatedDataItems: freshCw!.relatedDataItems,
+        originalWardRewiredOntoFreshCw: originalWard!.dependsOn,
+        dispatchType: nextStep.type,
+      }).toStrictEqual({
+        questStatus: 'in_progress',
+        cwStatus: 'failed',
+        spiritmenderDependsOn: [cwId],
+        gateWardMode: 'changed',
+        gateWardDependsOn: [spiritmender!.id],
+        freshCwDependsOn: [gateWard!.id],
+        freshCwAttempt: 1,
+        freshCwRelatedDataItems: ['steps/slice-x'],
+        originalWardRewiredOntoFreshCw: [freshCw!.id],
+        dispatchType: 'spawn-agents',
+      });
+    }, 30_000);
+  });
+
+  describe('failure recovery — a failed-replan (plan hole) escalates straight to a PathSeeker replan', () => {
+    it('VALID: {codeweaver signals failed-replan with budget remaining} => bypasses spiritmender recovery and splices a pathseeker replan fed the brief, skips pending, quest stays in_progress', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-failed-replan' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'Failed-Replan Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'Failed-Replan Quest',
+        userRequest: 'Drives a codeweaver failed-replan through the plan-hole replan path',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      const cwId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const wardId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const cwItem = WorkItemStub({
+        id: cwId,
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const wardItem = WorkItemStub({
+        id: wardId,
+        role: 'ward',
+        status: 'pending',
+        spawnerType: 'command',
+        dependsOn: [cwId],
+        wardMode: 'full',
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...existingComplete, cwItem, wardItem],
+        }),
+      });
+
+      const { summary: brief } = WorkItemStub({
+        summary: 'AuthService contract is wrong; PathSeeker must add an adapter step',
+      });
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: cwId,
+        signal: 'failed-replan',
+        summary: brief,
+      });
+
+      const afterReplan = await QuestGetResponder({ questId });
+      const items = afterReplan.quest!.workItems;
+      const cw = items.find((wi) => wi.id === cwId);
+      const ward = items.find((wi) => wi.id === wardId);
+      const replan = items
+        .filter((wi) => wi.role === 'pathseeker')
+        .find((wi) => wi.insertedBy === cwId);
+      // No spiritmender recovery was spliced — failed-replan is a plan hole, not a code failure.
+      const spiritmenderCount = items.filter((wi) => wi.role === 'spiritmender').length;
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterReplan.quest!.status,
+        cwStatus: cw?.status,
+        wardStatus: ward?.status,
+        replanStatus: replan?.status,
+        replanDependsOn: replan?.dependsOn,
+        replanSummary: String(replan?.summary),
+        spiritmenderCount,
+      }).toStrictEqual({
+        questStatus: 'in_progress',
+        cwStatus: 'failed',
+        wardStatus: 'skipped',
+        replanStatus: 'pending',
+        replanDependsOn: [],
+        replanSummary: 'AuthService contract is wrong; PathSeeker must add an adapter step',
+        spiritmenderCount: 0,
+      });
+    }, 30_000);
+  });
+
+  describe('the ONLY block path — PathSeeker exhausts its retry loop', () => {
+    it('VALID: {pathseeker signals failed at attempt 0/3 (budget remaining)} => reset to pending and re-dispatched (retry, not block)', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-pathseeker-retry' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'PS Retry Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'PS Retry Quest',
+        userRequest: 'Drives a pathseeker failed (budget remaining) through the retry path',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      const psId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const psItem = WorkItemStub({
+        id: psId,
+        role: 'pathseeker',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({ questId, workItems: [...existingComplete, psItem] }),
+      });
+
+      await QuestFlow.handleSignalBack({ questId, workItemId: psId, signal: 'failed' });
+
+      const afterRetry = await QuestGetResponder({ questId });
+      const ps = afterRetry.quest!.workItems.find((wi) => wi.id === psId);
+      const nextStep = await QuestFlow.getNextStep();
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterRetry.quest!.status,
+        psStatus: ps?.status,
+        psAttempt: ps?.attempt,
+        dispatchType: nextStep.type,
+      }).toStrictEqual({
+        questStatus: 'in_progress',
+        psStatus: 'pending',
+        psAttempt: 1,
+        dispatchType: 'spawn-agents',
+      });
+    }, 30_000);
+
+    it('VALID: {pathseeker signals failed at attempt 2/3 (loop exhausted)} => quest BLOCKED, pending skipped — the sole block path', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-pathseeker-block' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const guild = await GuildAddResponder({
+        name: GuildNameStub({ value: 'PS Block Guild' }),
+        path: GuildPathStub({ value: testbed.guildPath }),
+      });
+      const addResult = await QuestUserAddResponder({
+        title: 'PS Block Quest',
+        userRequest: 'Drives a pathseeker failed (loop exhausted) to the sole block path',
+        guildId: guild.id,
+      });
+      const questId = addResult.questId!;
+
+      await questHelper.approveQuest({
+        questId,
+        observableIds: [ObservableIdStub({ value: 'obs-1' })],
+        stepCount: 1,
+        finalStatus: 'in_progress',
+      });
+
+      const psId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const downstreamId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const psItem = WorkItemStub({
+        id: psId,
+        role: 'pathseeker',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        dependsOn: [],
+        attempt: 2,
+        maxAttempts: 3,
+        createdAt: new Date().toISOString(),
+      });
+      const downstreamItem = WorkItemStub({
+        id: downstreamId,
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        dependsOn: [psId],
+        createdAt: new Date().toISOString(),
+      });
+      const seeded = await QuestGetResponder({ questId });
+      const existingComplete = seeded.quest!.workItems.map((wi) => ({
+        id: wi.id,
+        status: 'complete' as const,
+        completedAt: new Date().toISOString(),
+      }));
+      await QuestModifyResponder({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          workItems: [...existingComplete, psItem, downstreamItem],
+        }),
+      });
+
+      await QuestFlow.handleSignalBack({ questId, workItemId: psId, signal: 'failed' });
+
+      const afterBlock = await QuestGetResponder({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterBlock.quest!.status,
+        psStatus: afterBlock.quest!.workItems.find((wi) => wi.id === psId)?.status,
+        downstreamStatus: afterBlock.quest!.workItems.find((wi) => wi.id === downstreamId)?.status,
+      }).toStrictEqual({
+        questStatus: 'blocked',
+        psStatus: 'failed',
+        downstreamStatus: 'skipped',
+      });
     }, 30_000);
   });
 

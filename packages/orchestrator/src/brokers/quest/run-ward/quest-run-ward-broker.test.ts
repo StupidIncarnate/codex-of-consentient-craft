@@ -381,8 +381,8 @@ describe('questRunWardBroker', () => {
     });
   });
 
-  describe('failure recovery — EXHAUSTION path (retries exhausted)', () => {
-    it('VALID: {exitCode 1, attempt 2 of 3 (last)} => quest blocked, pending items skipped, no spiritmender/retry spliced', async () => {
+  describe('failure recovery — EXHAUSTION path (retries exhausted → PathSeeker replan, NEVER a direct block)', () => {
+    it('VALID: {exitCode 1, attempt 2 of 3 (last)} => ward marked failed and the failure escalates to a PathSeeker replan', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
       const siegeId = QuestWorkItemIdStub({ value: SIEGE_WORK_ITEM_ID });
@@ -413,11 +413,16 @@ describe('questRunWardBroker', () => {
 
       await questRunWardBroker({ questId, workItemId, mode: 'changed' });
 
-      // Quest is blocked.
-      expect(proxy.getFinalPersistedQuestStatus()).toBe('blocked');
+      expect({
+        wardStatus: proxy.getPersistedWorkItemStatus({ workItemId }),
+        replanCallCount: proxy.getReplanCalls().length,
+      }).toStrictEqual({
+        wardStatus: 'failed',
+        replanCallCount: 1,
+      });
     });
 
-    it('VALID: {exitCode 1, retries exhausted, pending siegemaster} => failed ward + skipped siege, nothing spliced', async () => {
+    it('VALID: {exitCode 1, retries exhausted} => no spiritmender / ward-retry spliced (the replan owns recovery)', async () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
       const siegeId = QuestWorkItemIdStub({ value: SIEGE_WORK_ITEM_ID });
@@ -448,25 +453,12 @@ describe('questRunWardBroker', () => {
 
       await questRunWardBroker({ questId, workItemId, mode: 'changed' });
 
-      // Exact final work-item set: the original ward (now failed) + the original siege (now skipped).
-      // No spiritmender / ward-retry was spliced — the complete array proves it.
-      expect(proxy.getFinalPersistedWorkItems()).toStrictEqual([
-        WorkItemStub({
-          id: workItemId,
-          role: 'ward',
-          status: 'failed',
-          spawnerType: 'command',
-          attempt: 2,
-          maxAttempts: 3,
-          wardMode: 'changed',
-        }),
-        WorkItemStub({
-          id: siegeId,
-          role: 'siegemaster',
-          status: 'skipped',
-          spawnerType: 'agent',
-          dependsOn: [workItemId],
-        }),
+      // The persisted work-item set is just the original ward (now failed) + the original siege — no
+      // spiritmender / ward-retry was spliced (questSpliceFixerBroker never ran); the replan owns
+      // recovery from here.
+      expect(proxy.getFinalPersistedWorkItems().map((wi) => wi.role)).toStrictEqual([
+        'ward',
+        'siegemaster',
       ]);
     });
 

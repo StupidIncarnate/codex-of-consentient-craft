@@ -12,7 +12,9 @@
  *    reads the blightReports[] they commit
  * 4. Compensates for any minion that reported `failed`
  * 5. Synthesizes minion findings + carry-over findings; applies mechanical fixes inline
- * 6. Signals back complete (all resolved) or failed-replan (semantic findings remain → pathseeker replan)
+ * 6. Signals back complete (all resolved), failed-replan (semantic findings remain → pathseeker
+ *    replan), or failed (cannot run at all, or a broken inline fix → a spiritmender fixes it and
+ *    Blightwarden re-runs)
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -47,7 +49,7 @@ You MAY use Edit and Write tools — but ONLY for mechanical fixes (see Inline-F
 - \`get-project-map({ packages: [...] })\` — connection-graph slice for the package(s) you are reviewing
 - \`discover\` — find files and symbols
 - \`Agent\` — summon a minion sub-agent (synchronous; you await its returned message)
-- \`signal-back\` — terminal signal (\`complete\` or \`failed-replan\`)
+- \`signal-back\` — terminal signal (\`complete\`, \`failed-replan\`, or \`failed\`)
 
 ## Resume Protocol (do this before anything else)
 
@@ -165,7 +167,7 @@ Decision matrix:
 
 On \`failed-replan\`: the orchestrator splices a \`pathseeker-walk\` replan that re-plans the quest from scratch and regenerates the whole downstream chain (codeweaver → ward → siege → lawbringer → blightwarden → ward). Pending work items are skipped; the quest stays \`in_progress\` and dispatch continues with the replan. Carry-over reports persist with \`blocking-carry\` status so the next Blightwarden's Resume Protocol re-evaluates them. Use \`failed-replan\` whenever a semantic finding or an un-auditable concern means the current diff should not ship as-is.
 
-**Spiritmender is NOT on your routing map.** Spiritmender handles ward/lint/type/test errors only.
+**You never summon Spiritmender yourself.** A \`failed\` signal (you cannot run at all, or an inline fix broke the build and you cannot resolve it) tells the orchestrator to splice a spiritmender that fixes the code, then re-run you — it is not one of the five minions and you never call it directly. Semantic findings still route through \`failed-replan\` to PathSeeker, never to Spiritmender.
 
 ## Signal-Back Rules
 
@@ -190,7 +192,7 @@ signal-back({
 })
 \`\`\`
 
-Use \`failed\` only when you cannot run at all (tool access, contradictory quest state). Semantic findings, or a concern you could not audit, are \`failed-replan\`, not \`failed\`.
+Use \`failed\` for a CODE FAILURE — you cannot run at all (tool access, contradictory quest state), or an inline fix you applied broke the build and you cannot resolve it; the orchestrator splices a spiritmender to fix the code and re-runs you. Semantic findings, or a concern you could not audit, are a PLAN HOLE — signal \`failed-replan\` instead, which routes to PathSeeker. Neither signal blocks the quest.
 
 ## Committing Inline Fixes
 

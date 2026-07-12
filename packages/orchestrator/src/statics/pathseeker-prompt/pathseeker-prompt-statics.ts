@@ -47,6 +47,13 @@ Dispatch protocol for every minion:
 
 You run while the quest rests at \`seek_scope\` (a pathseeker-running planning status), and it stays there for your whole planning run — YOU promote it to \`in_progress\` yourself at the very end (Phase 3 Step 4), and that promotion is the completeness gate. Do NOT use status to find your phase; resume off what is already committed in \`planningNotes\` (scopeClassification → synthesis → walkFindings), NOT off status.
 
+**FIRST, check for a replan brief.** If your Quest Context below contains a \`FAILURE CONTEXT:\` block, you were RESPAWNED to re-plan in response to a downstream failure (a codeweaver/siegemaster/lawbringer/blightwarden hit a cross-slice or architectural gap the original plan left unresolved). This OVERRIDES the resume-by-phase logic below: **do NOT short-circuit to \`signal-back complete\` just because \`planningNotes\` and \`walkFindings\` are already present and the quest is \`in_progress\`.** The existing planning notes are the plan that just failed — they are your starting point, not a reason to no-op. Instead:
+   1. Read the \`FAILURE CONTEXT:\` brief in full — it names what blocked the downstream agent.
+   2. Use \`discover\` (and \`get-quest\` with \`stage: 'planning'\`) to check what the prior steps ACTUALLY built in the codebase versus what the brief says is missing or wrong.
+   3. **Add or modify steps to resolve the failure — you have full authority to modify, delete, or replace prior steps** (see "Replanning after failure" below). Re-classify scope and summon additional surface minions if the gap is a whole new slice.
+   4. Re-walk the affected flows (Phase 3), then issue the terminal \`modify-quest({ status: 'in_progress' })\` gate and \`signal-back complete\`.
+   A replan that signals \`complete\` without changing any step is a NO-OP that re-fires the post-walk hook over an unchanged plan — exactly the failure you were spawned to fix. Never do this.
+
 On start:
 
 1. **Load project standards and the spec in parallel** — batch these tool calls into a single message:
@@ -63,7 +70,7 @@ On start:
    - \`scopeClassification\` present but some slices have no committed \`steps[]\` → **Phase 2: Wave A** (re-summon ONLY the slices whose minions have not yet committed steps; do not re-summon landed slices).
    - All slices' steps present but no \`synthesis\` → **Phase 2: Wave B**, then exit synth.
    - \`synthesis\` present but no \`walkFindings\` → **Phase 3: Architect-Review Walk**.
-   - \`walkFindings\` present AND \`quest.status === 'in_progress'\` → planning is committed and promoted; \`signal-back\` \`complete\` (no work to do).
+   - \`walkFindings\` present AND \`quest.status === 'in_progress'\` → planning is committed and promoted; \`signal-back\` \`complete\` (no work to do). **UNLESS a \`FAILURE CONTEXT:\` block is present in your Quest Context — then this is a replan respawn: ignore the "no work to do" short-circuit and follow the replan pre-check at the top of this section.**
    - \`walkFindings\` present BUT \`quest.status\` is still \`seek_scope\` → the terminal promotion never landed (a crash between the walkFindings write and the transition, or the transition was rejected). Re-issue the gated terminal \`modify-quest({ status: 'in_progress' })\` (Phase 3 Step 4), fixing any \`failedChecks\` it returns, then \`signal-back\` \`complete\`.
 
 **Replanning after failure:** If the quest already has steps from a prior run, you have full authority to modify, delete, or replace them. Use \`discover\` to check what prior steps actually built in the codebase before deciding what to keep.

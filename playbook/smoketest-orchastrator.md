@@ -837,12 +837,12 @@ Each uses a fresh quest. Keep each deliberately simple — one failure per quest
 - **Assert:**
     - perf minion flags with file:line evidence
     - Synthesizer signals `failed-replan` via `signal-back` MCP
-    - `run-blightwarden-layer-broker` drains pending (finalWard → `skipped`)
+    - the signal-back handler (`questSplicePathseekerReplanBroker`) drains pending (finalWard → `skipped`)
     - PathSeeker replan spawns
     - Report carries `status: 'blocking-carry'` for use by the next blightwarden
 
 **→ FAIL signal-back rejects `failed-replan`:** fix `signal-back-input-contract` + consumers.
-**→ FAIL drain incomplete:** borrow drain pattern from `run-siegemaster-layer-broker`.
+**→ FAIL drain incomplete:** check `questSplicePathseekerReplanBroker`'s pending-skip logic.
 **→ PASS:** continue.
 
 ### 2.5 — Blightwarden carry-over on replan

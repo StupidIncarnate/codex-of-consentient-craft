@@ -18,6 +18,9 @@ export const floorGroupContract = z.object({
   floorName: floorNameContract,
   floorNumber: floorNumberContract.nullable(),
   workItems: z.array(workItemContract),
+  // True on the first group of each replan wave (generation > 0). Drives the full-width
+  // "dungeon re-entry" divider rendered above that group's HOMEBASE header.
+  startsNewGeneration: z.boolean().default(false),
 });
 
 export type FloorGroup = z.infer<typeof floorGroupContract>;

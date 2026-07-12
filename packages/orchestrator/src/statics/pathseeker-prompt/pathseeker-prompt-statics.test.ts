@@ -166,6 +166,39 @@ describe('pathseekerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: prompt template => has a FIRST replan pre-check that overrides the no-op short-circuit', () => {
+    const needle = '**FIRST, check for a replan brief.**';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => a FAILURE CONTEXT respawn re-plans instead of no-op on existing planningNotes', () => {
+    const needle = 'you were RESPAWNED to re-plan in response to a downstream failure';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => the walkFindings-in_progress bullet defers to the replan pre-check', () => {
+    const needle = 'then this is a replan respawn';
+    const { template } = pathseekerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
   it('VALID: prompt template => single-rest model does NOT use the seek_synth status', () => {
     expect(pathseekerPromptStatics.prompt.template.indexOf('seek_synth')).toBe(-1);
   });

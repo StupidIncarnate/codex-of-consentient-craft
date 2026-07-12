@@ -58,14 +58,25 @@ describe('roleToConfigIndexTransformer', () => {
     });
   });
 
-  describe('legacy fallback', () => {
-    it('VALID: {role: pathseeker (legacy, not in config)} => returns floors.length sentinel', () => {
+  describe('pathseeker HOMEBASE entry', () => {
+    it('VALID: {role: pathseeker} => returns its HOMEBASE config index (last position, appended)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'pathseeker' }),
       });
 
-      // floors.length sentinel: 15 base floors (incl. flowrider's GLUEWORKS) + 5 blightwarden minion floors = 20.
-      expect(result).toBe(20);
+      expect(result).toBe(
+        executionFloorConfigStatics.floors.findIndex((f) => f.role === 'pathseeker'),
+      );
+    });
+  });
+
+  describe('out-of-config sentinel', () => {
+    it('EDGE: {role not in floor config} => returns floors.length sentinel', () => {
+      // Every WorkItemRole is now mapped, so exercise the -1 → floors.length fallback with an
+      // out-of-enum value (WorkItemRoleStub cannot build an invalid role — pass `as never`).
+      const result = roleToConfigIndexTransformer({ role: 'not-a-role' as never });
+
+      expect(result).toBe(executionFloorConfigStatics.floors.length);
     });
   });
 });

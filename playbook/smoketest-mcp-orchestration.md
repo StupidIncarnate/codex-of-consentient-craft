@@ -306,19 +306,29 @@ the MCP `get-quest` view strips `workItems`/`wardResults`).
 
 ## A5. signal-back routing (assert the `quest.json` result)
 
-| signal                   | role                                                                                     | result in `quest.json`                                                                                                                                                                                                                                                                      |
-|--------------------------|------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `complete`               | `pathseeker-walk`                                                                        | item `complete`; **downstream chain appended** to `workItems[]`                                                                                                                                                                                                                             |
-| `complete`               | any other                                                                                | item `complete` + `completedAt`                                                                                                                                                                                                                                                             |
-| `failed`/`failed-replan` | `lawbringer`                                                                             | **RECOVER**: append 1 `spiritmender` (dependsOn failed law, `insertedBy`=law) + 1 `lawbringer` retry (`attempt 1`, dependsOn spiritmender, `insertedBy`=law); `blightwarden.dependsOn` rewired onto the retry; quest stays `in_progress`; a `spiritmender-batches/<id>.json` sidecar exists |
-| `failed`/`failed-replan` | `codeweaver`, `siegemaster`, `spiritmender`, `blightwarden`, `pathseeker-*`, `pesteater` | **BLOCK**: item `failed`; every still-`pending` item → `skipped`; quest `status: blocked`                                                                                                                                                                                                   |
+RECOVERY-FIRST: no role blocks the quest; only PathSeeker's exhausted replan/retry loop does.
+"Code-recovery role" = codeweaver / flowrider / siegemaster / lawbringer / blightwarden synthesizer /
+pesteater (derived by `codeRecoveryRolesTransformer`).
+
+| signal          | role                                        | result in `quest.json`                                                                                                                                                                                                                          |
+|-----------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `complete`      | `pathseeker`                                | item `complete`; **downstream chain appended** to `workItems[]`                                                                                                                                                                                |
+| `complete`      | any other                                   | item `complete` + `completedAt`                                                                                                                                                                                                                |
+| `failed` (code) | code-recovery role (budget remains)         | **RECOVER**: item `failed`; append 1 `spiritmender` (dependsOn failed item, `insertedBy`) + 1 `ward(changed)` (dependsOn spiritmender) + a fresh re-run of the SAME role (`attempt+1`, dependsOn ward, `insertedBy`); downstream rewired onto the fresh run; quest stays `in_progress`; a `spiritmender-batches/<id>.json` sidecar exists |
+| `failed` (code) | code-recovery role (budget exhausted)       | **REPLAN**: escalate to a PathSeeker replan (next row)                                                                                                                                                                                          |
+| `failed-replan` | any code-recovery role                      | **REPLAN**: item `failed` + superseded (`insertedBy`); every still-`pending` item → `skipped`; append a `pathseeker` replan (`dependsOn: []`, `insertedBy`, `summary`=brief); quest stays `in_progress`                                          |
+| `failed`        | `spiritmender`                              | **SOFT**: item `failed`; no new fixer (the retry spliced after it carries on)                                                                                                                                                                  |
+| `failed`        | `pathseeker` (retry budget remains)         | **RETRY**: item reset to `pending`, `attempt+1`                                                                                                                                                                                                |
+| `failed`        | `pathseeker` (retry budget exhausted)       | **BLOCK**: item `failed`; every still-`pending` → `skipped`; quest `status: blocked` — the sole block path                                                                                                                                     |
+| any failure     | `blightwarden-*-minion`                     | **NON-BLOCKING**: item `complete` (`actualSignal` records the real signal); failure lives in its report                                                                                                                                        |
+| —               | PathSeeker replan loop exhausted            | **BLOCK**: a further replan request → quest `status: blocked` (the other sole block path)                                                                                                                                                      |
 
 ## A6. run-ward routing (ward only, inside the broker)
 
 Exit 0 → item `complete`, `wardResults[]` ref appended, `relatedDataItems += wardResults/<id>`. Exit ≠ 0:
 - `attempt < maxAttempts-1` (attempts 0,1) → splice N `spiritmender` (batch size 3) + 1 `ward` retry (`attempt+1`, same
   `wardMode`, dependsOn all spiritmenders, `insertedBy`); downstream rewired onto retry; quest stays `in_progress`.
-- `attempt >= maxAttempts-1` (attempt 2) → **BLOCK**.
+- `attempt >= maxAttempts-1` (attempt 2) → **REPLAN**: escalate to a PathSeeker replan (never a direct block).
 
 ---
 

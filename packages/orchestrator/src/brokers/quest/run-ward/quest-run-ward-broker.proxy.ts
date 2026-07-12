@@ -36,11 +36,11 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
-import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-on-failure-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questSpliceFixerBrokerProxy } from '../splice-fixer/quest-splice-fixer-broker.proxy';
+import { questSplicePathseekerReplanBrokerProxy } from '../splice-pathseeker-replan/quest-splice-pathseeker-replan-broker.proxy';
 
 type QuestInput = ReturnType<typeof QuestStub>;
 
@@ -92,6 +92,7 @@ export const questRunWardBrokerProxy = (): {
   getPersistedWardResultExitCode: () => ExitCode | undefined;
   getFinalPersistedWorkItems: () => readonly WorkItem[];
   getFinalPersistedQuestStatus: () => Quest['status'] | undefined;
+  getReplanCalls: () => readonly (readonly unknown[])[];
   getSpawnedArgs: () => unknown;
   getFixedWardResultId: () => WardResult['id'];
 } => {
@@ -105,7 +106,7 @@ export const questRunWardBrokerProxy = (): {
   const findProxy = questFindQuestPathBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const getProxy = questGetBrokerProxy();
-  const blockProxy = questBlockOnFailureBrokerProxy();
+  const replanProxy = questSplicePathseekerReplanBrokerProxy();
   const spliceProxy = questSpliceFixerBrokerProxy();
   const detailProxy = wardDetailBrokerProxy();
   const spawnProxy = childProcessSpawnStreamLinesAdapterProxy();
@@ -204,24 +205,13 @@ export const questRunWardBrokerProxy = (): {
         return questContract.parse(parsed);
       });
 
-  // The authoritative post-recovery quest is whatever the recovery broker persisted last:
-  //  - RECOVER path → questSpliceFixerBroker (real) persists the spliced + rewired workItems.
-  //  - EXHAUSTION path → questBlockOnFailureBroker (real, passthrough) persists blocked status +
-  //    skipped items.
-  // Both run the real questModifyBroker whose only mocked boundary is questPersistBroker, so the
-  // persisted quest.json content is the true outcome. Prefer the splice write; fall back to block.
+  // The authoritative post-recovery quest on the RECOVER path is whatever questSpliceFixerBroker
+  // (real) persisted last — the spliced + rewired workItems. The EXHAUSTION path delegates to
+  // questSplicePathseekerReplanBroker (stubbed here; its own test proves the mark-failed + skip +
+  // splice), so this returns undefined there and the exhaustion tests assert the delegation instead.
   const resolveFinalRecoveryQuest = (): Quest | undefined => {
     const spliced = spliceProxy.getPersistedQuests();
-    const lastSpliced = spliced[spliced.length - 1];
-    if (lastSpliced !== undefined) {
-      return lastSpliced;
-    }
-    const blockContents = blockProxy.getAllPersistedContents();
-    const lastBlock = blockContents[blockContents.length - 1];
-    if (typeof lastBlock !== 'string') {
-      return undefined;
-    }
-    return questContract.parse(JSON.parse(lastBlock));
+    return spliced[spliced.length - 1];
   };
 
   const findWorkItemInLatestQuest = ({
@@ -279,9 +269,9 @@ export const questRunWardBrokerProxy = (): {
       queueBatchPathJoins({ batchCount: 1 });
       // 7. questSpliceFixerBroker → questWorkItemInsertBroker → questModifyBroker (real splice)
       spliceProxy.setupQuestModify({ quest });
-      // Exhausted-retry routing instead splices nothing and blocks — questBlockOnFailureBroker
-      // is module-mocked to resolve { blocked: true } so that path needs no extra queueing.
-      blockProxy.setupBlocked();
+      // Exhausted-retry routing instead escalates to questSplicePathseekerReplanBroker — stubbed so
+      // the recover path never triggers a real replan.
+      replanProxy.setupReplanned();
 
       spawnProxy.setupSuccess({
         exitCode,
@@ -302,19 +292,19 @@ export const questRunWardBrokerProxy = (): {
       runId: FileName;
     }): void => {
       // Same prefix as setupWardFail up to the failure-routing fork. The ward item here is on its
-      // last attempt (attempt >= maxAttempts - 1), so the broker routes to questBlockOnFailureBroker
-      // instead of splicing. Run the REAL block broker (passthrough) so the test can assert the
-      // actual blocked status + skipped pending items it persists.
+      // last attempt (attempt >= maxAttempts - 1), so the broker escalates to
+      // questSplicePathseekerReplanBroker instead of splicing spiritmenders. The broker still marks
+      // the ward item `failed` via its own work-item-terminal modify; the replan is stubbed, so the
+      // exhaustion tests assert the ward-failed persist + the replan delegation.
       setupFindQuestPathForBroker({ quest });
       queueWardPersistPathJoins();
-      // 3-4. questModifyBroker × 2 (wardResults + work-item terminal)
+      // 3-4. questModifyBroker × 2 (wardResults + work-item terminal → failed)
       modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       // 5. questGetBroker — load quest for failure routing (retry budget check)
       getProxy.setupQuestFound({ quest });
-      // 6. questBlockOnFailureBroker (real): its own questGetBroker load + questModifyBroker persist.
-      blockProxy.setupPassthrough();
-      blockProxy.setupQuestFound({ quest });
+      // 6. questSplicePathseekerReplanBroker (stubbed escalation).
+      replanProxy.setupReplanned();
 
       spawnProxy.setupSuccess({
         exitCode,
@@ -351,7 +341,7 @@ export const questRunWardBrokerProxy = (): {
       getProxy.setupQuestFound({ quest });
       queueBatchPathJoins({ batchCount: 1 });
       spliceProxy.setupQuestModify({ quest });
-      blockProxy.setupBlocked();
+      replanProxy.setupReplanned();
 
       spawnProxy.setupSuccess({
         exitCode,
@@ -399,6 +389,8 @@ export const questRunWardBrokerProxy = (): {
 
     getFinalPersistedQuestStatus: (): Quest['status'] | undefined =>
       resolveFinalRecoveryQuest()?.status,
+
+    getReplanCalls: (): readonly (readonly unknown[])[] => replanProxy.getCalls(),
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
 

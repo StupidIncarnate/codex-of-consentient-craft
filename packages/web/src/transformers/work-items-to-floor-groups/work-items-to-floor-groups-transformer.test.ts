@@ -255,6 +255,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
           floorName: 'FORGE',
           floorNumber: 1,
           workItems: [cw1, cw2],
+          startsNewGeneration: false,
         },
       ]);
     });
@@ -287,6 +288,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
           floorName: 'HOMEBASE',
           floorNumber: null,
           workItems: [chaos, glyph],
+          startsNewGeneration: false,
         },
       ]);
     });
@@ -310,6 +312,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
           floorName: 'HOMEBASE',
           floorNumber: null,
           workItems: [chaos],
+          startsNewGeneration: false,
         },
       ]);
     });
@@ -715,6 +718,7 @@ describe('workItemsToFloorGroupsTransformer', () => {
           floorName: 'FORGE',
           floorNumber: 1,
           workItems: [item],
+          startsNewGeneration: false,
         },
       ]);
     });
@@ -745,12 +749,14 @@ describe('workItemsToFloorGroupsTransformer', () => {
           floorName: 'HOMEBASE',
           floorNumber: null,
           workItems: [chaos],
+          startsNewGeneration: false,
         },
         {
           key: '1:ENTRANCE: MAPPING DUMPSTER',
           floorName: 'ENTRANCE: MAPPING DUMPSTER',
           floorNumber: null,
           workItems: [ps],
+          startsNewGeneration: false,
         },
       ]);
     });
@@ -1058,6 +1064,184 @@ describe('workItemsToFloorGroupsTransformer', () => {
         [ps1Surface, ps1Dedup, ps1AssertionCorrectness, ps1Walk],
         [ps2Surface, ps2Dedup, ps2AssertionCorrectness, ps2Walk],
       ]);
+    });
+  });
+
+  describe('bare pathseeker replan (generation re-entry)', () => {
+    it('VALID: {original bare pathseeker, no replan} => merges into HOMEBASE, FORGE is FLOOR 1, no divider', () => {
+      const chaos = WorkItemStub({
+        id: 'c0000000-0000-0000-0000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const ps = WorkItemStub({
+        id: 'c0000000-0000-0000-0000-000000000002',
+        role: 'pathseeker',
+        status: 'complete',
+        dependsOn: [chaos.id],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const cw = WorkItemStub({
+        id: 'c0000000-0000-0000-0000-000000000003',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [ps.id],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const ward = WorkItemStub({
+        id: 'c0000000-0000-0000-0000-000000000004',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'changed',
+        dependsOn: [cw.id],
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+
+      const items = [chaos, ps, cw, ward];
+      const result = workItemsToFloorGroupsTransformer({ workItems: items, allWorkItems: items });
+
+      expect({
+        floorNames: result.map((g) => g.floorName),
+        floorNumbers: result.map((g) => g.floorNumber),
+        dividers: result.map((g) => g.startsNewGeneration),
+      }).toStrictEqual({
+        floorNames: ['HOMEBASE', 'FORGE', 'MINI BOSS'],
+        floorNumbers: [null, 1, 2],
+        dividers: [false, false, false],
+      });
+    });
+
+    it('VALID: {blightwarden failed → bare pathseeker replan + regenerated chain} => divider + HOMEBASE re-entry + FLOOR count restarts at 1', () => {
+      const chaos = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const ps1 = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000002',
+        role: 'pathseeker',
+        status: 'complete',
+        dependsOn: [chaos.id],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const cw1 = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000003',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [ps1.id],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const ward1 = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000004',
+        role: 'ward',
+        status: 'complete',
+        wardMode: 'changed',
+        dependsOn: [cw1.id],
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+      const blight = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000005',
+        role: 'blightwarden',
+        status: 'failed',
+        dependsOn: [ward1.id],
+        createdAt: '2024-01-15T10:04:00.000Z',
+      });
+      const ps2 = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000006',
+        role: 'pathseeker',
+        status: 'pending',
+        dependsOn: [],
+        insertedBy: blight.id,
+        createdAt: '2024-01-15T10:05:00.000Z',
+      });
+      const cw2 = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000007',
+        role: 'codeweaver',
+        status: 'pending',
+        dependsOn: [ps2.id],
+        createdAt: '2024-01-15T10:06:00.000Z',
+      });
+      const ward2 = WorkItemStub({
+        id: 'd0000000-0000-0000-0000-000000000008',
+        role: 'ward',
+        status: 'pending',
+        wardMode: 'changed',
+        dependsOn: [cw2.id],
+        createdAt: '2024-01-15T10:07:00.000Z',
+      });
+
+      const items = [chaos, ps1, cw1, ward1, blight, ps2, cw2, ward2];
+      const result = workItemsToFloorGroupsTransformer({ workItems: items, allWorkItems: items });
+
+      expect({
+        floorNames: result.map((g) => g.floorName),
+        floorNumbers: result.map((g) => g.floorNumber),
+        dividers: result.map((g) => g.startsNewGeneration),
+      }).toStrictEqual({
+        floorNames: [
+          'HOMEBASE',
+          'FORGE',
+          'MINI BOSS',
+          'QUARANTINE',
+          'HOMEBASE',
+          'FORGE',
+          'MINI BOSS',
+        ],
+        floorNumbers: [null, 1, 2, 3, null, 1, 2],
+        dividers: [false, false, false, false, true, false, false],
+      });
+    });
+
+    it('VALID: {replan pathseeker only, downstream not yet regenerated} => last group is HOMEBASE with a divider and no floor number', () => {
+      const chaos = WorkItemStub({
+        id: 'e0000000-0000-0000-0000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        dependsOn: [],
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const cw1 = WorkItemStub({
+        id: 'e0000000-0000-0000-0000-000000000002',
+        role: 'codeweaver',
+        status: 'complete',
+        dependsOn: [chaos.id],
+        createdAt: '2024-01-15T10:01:00.000Z',
+      });
+      const blight = WorkItemStub({
+        id: 'e0000000-0000-0000-0000-000000000003',
+        role: 'blightwarden',
+        status: 'failed',
+        dependsOn: [cw1.id],
+        createdAt: '2024-01-15T10:02:00.000Z',
+      });
+      const ps2 = WorkItemStub({
+        id: 'e0000000-0000-0000-0000-000000000004',
+        role: 'pathseeker',
+        status: 'pending',
+        dependsOn: [],
+        insertedBy: blight.id,
+        createdAt: '2024-01-15T10:03:00.000Z',
+      });
+
+      const items = [chaos, cw1, blight, ps2];
+      const result = workItemsToFloorGroupsTransformer({ workItems: items, allWorkItems: items });
+      const lastGroup = result[result.length - 1]!;
+
+      expect({
+        floorName: lastGroup.floorName,
+        floorNumber: lastGroup.floorNumber,
+        startsNewGeneration: lastGroup.startsNewGeneration,
+        onlyItemIsReplan: lastGroup.workItems.map((wi) => wi.id),
+      }).toStrictEqual({
+        floorName: 'HOMEBASE',
+        floorNumber: null,
+        startsNewGeneration: true,
+        onlyItemIsReplan: [ps2.id],
+      });
     });
   });
 });

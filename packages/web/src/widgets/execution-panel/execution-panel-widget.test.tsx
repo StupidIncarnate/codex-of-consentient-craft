@@ -1567,6 +1567,94 @@ describe('ExecutionPanelWidget', () => {
         'FLOOR 5: FLOOR BOSS',
       ]);
     });
+
+    it('VALID: {blightwarden failed → bare pathseeker replan} => full-width divider + HOMEBASE re-entry + FLOOR count restarts at 1', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        steps: [DependencyStepStub({ id: 'step-1', name: 'Feature' })],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000030',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000031',
+            role: 'pathseeker',
+            status: 'complete',
+            dependsOn: ['a0000000-0000-0000-0000-000000000030'],
+            createdAt: '2024-01-15T10:01:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000032',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: ['steps/step-1'],
+            dependsOn: ['a0000000-0000-0000-0000-000000000031'],
+            createdAt: '2024-01-15T10:02:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000033',
+            role: 'ward',
+            status: 'complete',
+            wardMode: 'changed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000032'],
+            createdAt: '2024-01-15T10:03:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000034',
+            role: 'blightwarden',
+            status: 'failed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000033'],
+            createdAt: '2024-01-15T10:04:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000035',
+            role: 'pathseeker',
+            status: 'pending',
+            dependsOn: [],
+            insertedBy: 'a0000000-0000-0000-0000-000000000034',
+            createdAt: '2024-01-15T10:05:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000036',
+            role: 'codeweaver',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000035'],
+            createdAt: '2024-01-15T10:06:00.000Z',
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000037',
+            role: 'ward',
+            status: 'pending',
+            wardMode: 'changed',
+            dependsOn: ['a0000000-0000-0000-0000-000000000036'],
+            createdAt: '2024-01-15T10:07:00.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
+
+      expect({
+        floorNames: getFloorNames(),
+        dividerCount: screen.queryAllByTestId('floor-generation-divider').length,
+      }).toStrictEqual({
+        floorNames: [
+          'HOMEBASE',
+          'FLOOR 1: FORGE',
+          'FLOOR 2: MINI BOSS',
+          'FLOOR 3: QUARANTINE',
+          'HOMEBASE',
+          'FLOOR 1: FORGE',
+          'FLOOR 2: MINI BOSS',
+        ],
+        dividerCount: 1,
+      });
+    });
   });
 
   describe('session entries for work items', () => {

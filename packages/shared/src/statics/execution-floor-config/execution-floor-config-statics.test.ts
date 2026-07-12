@@ -28,6 +28,7 @@ describe('executionFloorConfigStatics', () => {
         { name: 'QUARANTINE: WARDENS', role: 'blightwarden-dead-code-minion', type: 'floor' },
         { name: 'QUARANTINE', role: 'blightwarden', type: 'floor' },
         { name: 'FLOOR BOSS', role: 'ward', wardPosition: 'last', type: 'floor' },
+        { name: 'HOMEBASE', role: 'pathseeker', type: 'entrance' },
       ],
     });
   });

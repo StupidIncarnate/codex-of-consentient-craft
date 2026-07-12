@@ -17,6 +17,7 @@ import type {
   QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questValidateSpecTransformer } from '../../../transformers/quest-validate-spec/quest-validate-spec-transformer';
@@ -63,9 +64,35 @@ export const questPostWalkHookBroker = async ({
     throw new Error(`Post-walk completeness validation failed: ${details}`);
   }
 
+  // Dedup guard (replan re-fire safety). A step is "covered" when a `complete` work item lists its
+  // `steps/<id>` ref. On a plain first generation no work item carries a completed step ref, so
+  // `uncoveredSteps === quest.steps` and generation is byte-identical to before. On a replan re-fire
+  // (a respawned PathSeeker re-signals complete) the quest already holds the completed codeweaver
+  // chain; regenerating from `quest.steps` would duplicate every already-built step. Filter to steps
+  // NOT yet covered by a `complete` item so only genuinely-unbuilt steps regenerate — new steps, or
+  // steps whose only cover was drained to `skipped`. A completed step is dropped BEFORE chunking, so
+  // a completed package plus one new step yields a codeweaver for JUST the new step.
+  const coveredStepRefs = new Set(
+    quest.workItems
+      .filter((wi) => isCompleteWorkItemStatusGuard({ status: wi.status }))
+      .flatMap((wi) => wi.relatedDataItems.map((ref) => String(ref))),
+  );
+  const uncoveredSteps = quest.steps.filter(
+    (step) => !coveredStepRefs.has(`steps/${String(step.id)}`),
+  );
+
+  // Re-fire with nothing left to build: at least one step already completed AND none remains
+  // uncovered. The replan added no new build work, so regenerating the tail (ward/blightwarden/
+  // final-ward) would be pure duplication — write nothing. A first generation never hits this branch:
+  // `coveredStepRefs` is empty when no step has completed, so a 0-step first generation still
+  // produces its ward/blightwarden/final-ward tail.
+  if (coveredStepRefs.size > 0 && uncoveredSteps.length === 0) {
+    return adapterResultContract.parse({ success: true });
+  }
+
   const now = isoTimestampContract.parse(new Date().toISOString());
   const newItems = stepsToWorkItemsTransformer({
-    steps: quest.steps,
+    steps: uncoveredSteps,
     flows: quest.flows,
     pathseekerWorkItemId: walkWorkItemId,
     now,

@@ -1,23 +1,24 @@
 /**
- * PURPOSE: Catalog of the five orchestration smoketest scenarios (happy path, codeweaver-fail replan, lawbringer-fail spiritmender, depth exhaustion, blightwarden failed-replan) — each couples the minimal blueprint with per-role prompt scripts and final-state assertions
+ * PURPOSE: Catalog of the five orchestration smoketest scenarios (happy path, codeweaver-fail
+ * spiritmender recovery, lawbringer-fail spiritmender, codeweaver replan-loop exhaustion, blightwarden
+ * failed-replan) — each couples the minimal blueprint with per-role prompt scripts and final-state
+ * assertions. All five exercise the RECOVERY-FIRST model: a `failed` (code) splices a spiritmender +
+ * re-run of the role; a `failed-replan` (plan hole) splices a PathSeeker replan; only PathSeeker's
+ * exhausted replan loop blocks the quest.
  *
  * USAGE:
  * smoketestScenariosStatics.orchHappyPath;
  * // Returns the SmoketestScenario literal for the happy-path case (validated against the contract via the colocated test)
  *
- * WHEN-TO-USE: Consumed by smoketestRunCaseBroker to drive each scenario end-to-end through the real orchestration loop.
+ * WHEN-TO-USE: Consumed by smoketestCaseCatalogStatics.orchestration, which SmoketestRunResponder
+ * hydrates and drives end-to-end through the real dispatch + signal-back routing.
  * WHEN-NOT-TO-USE: MCP / Signals suites that do not exercise the work-item loop.
  *
- * NOTE: Scenario values are literal — statics/ cannot import the zod contract. The colocated test parses every scenario through `smoketestScenarioContract` so drift surfaces immediately.
- *
- * Depth-exhaustion notes (case `orch-depth-exhaustion`):
- *   - slotManagerStatics.codeweaver.maxFollowupDepth = 5
- *   - Initial codeweaver dispatch runs at depth 0. Each codeweaver-fail → pathseeker replan →
- *     codeweaver-retry cycle increments `followupDepth` by 1 on the new codeweaver agent.
- *   - The spawn_role branch in orchestration-loop-layer-broker (~line 258) refuses to spawn when
- *     `completedAgent.followupDepth >= maxFollowupDepth`, so the maximum number of codeweaver
- *     dispatches is `maxFollowupDepth + 1` (= 6). The script therefore ships 6 `signalFailed`
- *     entries; excess entries are safely ignored by scenario-driver dispense.
+ * NOTE: Scenario values are literal — statics/ cannot import the zod contract. The colocated test
+ * parses every scenario through `smoketestScenarioContract` so drift surfaces immediately. The exact
+ * intermediate work-item counts on the failure scenarios depend on the recovery chain and are
+ * confirmed by a live `/smoketest` run; the assertions here pin only the invariants (terminal status
+ * and the presence of the spliced fixer role).
  */
 
 import { smoketestBlueprintsStatics } from '../smoketest-blueprints/smoketest-blueprints-statics';
@@ -31,9 +32,12 @@ const happyScripts = {
   pathseeker: ['signalComplete'],
 };
 
-const codeweaverFailReplanScripts = {
+// Codeweaver signals a CODE failure (with retry budget) → the handler splices a spiritmender + a
+// ward(changed) gate + a fresh codeweaver. The spiritmender fixes the code, the fresh codeweaver
+// completes, and the quest finishes. No PathSeeker replan on a first code failure with budget.
+const codeweaverFailRecoveryScripts = {
   codeweaver: ['signalFailed', 'signalComplete'],
-  pathseeker: ['signalComplete', 'signalComplete'],
+  spiritmender: ['signalComplete'],
   siegemaster: ['signalComplete'],
   lawbringer: ['signalComplete'],
   blightwarden: ['signalComplete'],
@@ -48,7 +52,12 @@ const lawbringerFailSpiritmenderScripts = {
   blightwarden: ['signalComplete'],
 };
 
-const depthExhaustionScripts = {
+// The SOLE block path: a codeweaver that fails every attempt exhausts its retry budget, escalates to
+// a PathSeeker replan, the replan regenerates the chain, the new codeweaver fails again … until the
+// PathSeeker replan loop (`slotManagerStatics.pathseeker.replanMaxCycles`) is spent and the quest
+// blocks. The scripts over-provision `signalFailed`/`signalComplete` entries so every dispatch in the
+// (recovery-chain-dependent) unfold has a canned prompt; excess entries are ignored by the driver.
+const replanExhaustionScripts = {
   codeweaver: [
     'signalFailed',
     'signalFailed',
@@ -56,8 +65,49 @@ const depthExhaustionScripts = {
     'signalFailed',
     'signalFailed',
     'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+    'signalFailed',
+  ],
+  spiritmender: [
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
   ],
   pathseeker: [
+    'signalComplete',
+    'signalComplete',
+    'signalComplete',
     'signalComplete',
     'signalComplete',
     'signalComplete',
@@ -84,12 +134,12 @@ export const smoketestScenariosStatics = {
   },
   orchCodeweaverFail: {
     caseId: 'orch-codeweaver-fail',
-    name: 'Orchestration: codeweaver fail then pathseeker replan',
+    name: 'Orchestration: codeweaver fail then spiritmender recovery',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: codeweaverFailReplanScripts,
+    scripts: codeweaverFailRecoveryScripts,
     assertions: [
       { kind: 'quest-status', expected: 'complete' },
-      { kind: 'work-item-role-count', role: 'pathseeker', minCount: 2 },
+      { kind: 'work-item-role-count', role: 'spiritmender', minCount: 1 },
     ],
   },
   orchLawbringerFail: {
@@ -104,13 +154,10 @@ export const smoketestScenariosStatics = {
   },
   orchDepthExhaustion: {
     caseId: 'orch-depth-exhaustion',
-    name: 'Orchestration: depth exhaustion',
+    name: 'Orchestration: codeweaver replan-loop exhaustion then blocked',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: depthExhaustionScripts,
-    assertions: [
-      { kind: 'quest-status', expected: 'blocked' },
-      { kind: 'work-item-role-count', role: 'codeweaver', minCount: 6 },
-    ],
+    scripts: replanExhaustionScripts,
+    assertions: [{ kind: 'quest-status', expected: 'blocked' }],
   },
   orchBlightwardenReplan: {
     caseId: 'orch-blightwarden-replan',

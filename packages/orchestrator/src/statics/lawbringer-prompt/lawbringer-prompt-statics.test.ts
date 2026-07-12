@@ -115,4 +115,45 @@ describe('lawbringerPromptStatics', () => {
 
     expect(found).toBe(needle);
   });
+
+  it('VALID: prompt template => failed signals a code failure a spiritmender fixes, never blocking the quest', () => {
+    const needle =
+      'Signal `failed` for a **code failure** — a violation or bug you found but could NOT fix within your own scope — so a spiritmender fixes the code and you re-review it; this NEVER blocks the quest.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => failed-replan signals a plan hole PathSeeker re-plans, never blocking the quest', () => {
+    const needle =
+      'Signal `failed-replan` for a **plan hole** — the code is structurally wrong against the plan itself, or a missing/incorrect contract or step no in-scope fix can close — so PathSeeker can re-plan; this NEVER blocks the quest either.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => signal-back examples cover complete, code-failure, and plan-hole outcomes', () => {
+    const complete = "signal-back({ signal: 'complete',";
+    const failed = "signal-back({ signal: 'failed',";
+    const failedReplan = "signal-back({ signal: 'failed-replan',";
+    const { template } = lawbringerPromptStatics.prompt;
+
+    expect(template.indexOf(complete)).toBeGreaterThan(-1);
+    expect(template.indexOf(failed)).toBeGreaterThan(-1);
+    expect(template.indexOf(failedReplan)).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => never describes a signal as blocking the quest', () => {
+    const { template } = lawbringerPromptStatics.prompt;
+
+    expect(template.indexOf('BLOCKs the quest')).toBe(-1);
+  });
 });

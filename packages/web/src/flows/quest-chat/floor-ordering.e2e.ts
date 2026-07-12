@@ -780,4 +780,135 @@ test.describe('Floor Ordering', () => {
       '[PATHSEEKER-SURFACE]',
     ]);
   });
+
+  test('ERROR: blightwarden failed-replan → bare pathseeker re-entry: full-width divider, HOMEBASE re-entry, FLOOR count restarts at 1', async ({
+    page,
+    request,
+  }) => {
+    const guild = await guildHarness({ request }).createGuild({
+      name: 'Replan Reentry Guild',
+      path: GUILD_PATH,
+    });
+    const guildId = String(guild.id);
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+    const mainSessionId = `e2e-blight-replan-${Date.now()}`;
+
+    sessions.createSessionFileForQuest({ sessionId: mainSessionId });
+
+    const created = await questHarness({ request }).createQuest({
+      guildId,
+      title: 'E2E Replan Re-entry Quest',
+      userRequest: 'Build the feature',
+    });
+    const { questId } = created;
+    const { questFolder } = created;
+    const questFilePath = created.filePath;
+
+    const ps1Id = crypto.randomUUID();
+    const cw1Id = crypto.randomUUID();
+    const ward1Id = crypto.randomUUID();
+    const blightId = crypto.randomUUID();
+    const ps2Id = crypto.randomUUID();
+    const cw2Id = crypto.randomUUID();
+
+    quests.writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
+      status: 'in_progress',
+      steps: [{ id: 'step-1', name: 'Build module' }],
+      workItems: [
+        {
+          id: crypto.randomUUID(),
+          role: 'chaoswhisperer',
+          sessionId: mainSessionId,
+          dependsOn: [],
+          createdAt: '2024-01-15T09:59:00.000Z',
+        },
+        {
+          id: ps1Id,
+          role: 'pathseeker',
+          sessionId: mainSessionId,
+          status: 'complete',
+          dependsOn: [],
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+        {
+          id: cw1Id,
+          role: 'codeweaver',
+          sessionId: mainSessionId,
+          status: 'complete',
+          relatedDataItems: ['steps/step-1'],
+          dependsOn: [ps1Id],
+          createdAt: '2024-01-15T10:01:00.000Z',
+        },
+        {
+          id: ward1Id,
+          role: 'ward',
+          sessionId: mainSessionId,
+          status: 'complete',
+          wardMode: 'changed',
+          dependsOn: [cw1Id],
+          createdAt: '2024-01-15T10:02:00.000Z',
+        },
+        {
+          id: blightId,
+          role: 'blightwarden',
+          sessionId: mainSessionId,
+          status: 'failed',
+          dependsOn: [ward1Id],
+          createdAt: '2024-01-15T10:03:00.000Z',
+        },
+        {
+          id: ps2Id,
+          role: 'pathseeker',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [],
+          insertedBy: blightId,
+          createdAt: '2024-01-15T10:04:00.000Z',
+        },
+        {
+          id: cw2Id,
+          role: 'codeweaver',
+          sessionId: mainSessionId,
+          status: 'pending',
+          dependsOn: [ps2Id],
+          createdAt: '2024-01-15T10:05:00.000Z',
+        },
+        {
+          id: crypto.randomUUID(),
+          role: 'ward',
+          sessionId: mainSessionId,
+          status: 'pending',
+          wardMode: 'changed',
+          dependsOn: [cw2Id],
+          createdAt: '2024-01-15T10:06:00.000Z',
+        },
+      ],
+    });
+
+    const urlSlug = guilds.extractUrlSlug({ guild });
+    await nav.navigateToQuest({ urlSlug, questId: String(questId) });
+
+    await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
+      timeout: PANEL_TIMEOUT,
+    });
+
+    const floorTexts = await getFloorHeaderTexts({ page });
+
+    expect(floorTexts).toStrictEqual([
+      'HOMEBASE',
+      'FLOOR 1: FORGE',
+      'FLOOR 2: MINI BOSS',
+      'FLOOR 3: QUARANTINE',
+      'HOMEBASE',
+      'FLOOR 1: FORGE',
+      'FLOOR 2: MINI BOSS',
+    ]);
+
+    await expect(page.getByTestId('floor-generation-divider')).toHaveCount(1);
+  });
 });

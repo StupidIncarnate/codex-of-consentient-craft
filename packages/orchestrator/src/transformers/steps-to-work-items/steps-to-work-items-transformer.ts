@@ -86,7 +86,9 @@ export const stepsToWorkItemsTransformer = ({
       spawnerType: 'agent',
       relatedDataItems: chunk.map((step) => `steps/${String(step.id)}`),
       dependsOn: [...dependsOnSet],
-      maxAttempts: 1,
+      // Code-recovery retry budget: a codeweaver `failed` splices a spiritmender fix + a fresh
+      // codeweaver run until this many attempts are spent, then escalates to a PathSeeker replan.
+      maxAttempts: slotManagerStatics.codeweaver.maxAttempts,
       createdAt: now,
     });
   });
@@ -124,7 +126,7 @@ export const stepsToWorkItemsTransformer = ({
             spawnerType: 'agent',
             relatedDataItems: [`flows/${String(flow.id)}`, ...flowStartupStepRefs],
             dependsOn: flowriderDependsOn,
-            maxAttempts: 1,
+            maxAttempts: slotManagerStatics.flowrider.maxAttempts,
             createdAt: now,
           });
           return [...acc, flowriderItem];
@@ -149,7 +151,8 @@ export const stepsToWorkItemsTransformer = ({
       relatedDataItems: [`flows/${String(flow.id)}`],
       dependsOn: siegeDependsOn,
       // Recovery budget: a siege `failed` splices a spiritmender + ward + a fresh siege retry until
-      // this many total attempts are spent, then BLOCKs (questRecoverSiegeBroker).
+      // this many total attempts are spent, then the failure escalates to a PathSeeker replan
+      // (questRecoverRoleBroker) — never an immediate block.
       maxAttempts: slotManagerStatics.siegemaster.maxAttempts,
       createdAt: now,
     });
@@ -178,7 +181,7 @@ export const stepsToWorkItemsTransformer = ({
       spawnerType: 'agent',
       relatedDataItems: chunk.map((step) => `steps/${String(step.id)}`),
       dependsOn: lawbringerDependsOn,
-      maxAttempts: 1,
+      maxAttempts: slotManagerStatics.lawbringer.maxAttempts,
       createdAt: now,
     }),
   );
@@ -199,7 +202,7 @@ export const stepsToWorkItemsTransformer = ({
     status: 'pending',
     spawnerType: 'agent',
     dependsOn: blightwardenDependsOn,
-    maxAttempts: 1,
+    maxAttempts: slotManagerStatics.blightwarden.maxAttempts,
     createdAt: now,
   });
 

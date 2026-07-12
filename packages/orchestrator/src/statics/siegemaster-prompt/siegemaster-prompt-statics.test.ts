@@ -349,4 +349,56 @@ describe('siegemasterPromptStatics', () => {
   it('VALID: template => hardcodes no UI package path', () => {
     expect(siegemasterPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
+
+  it('VALID: template => a code failure signals failed and routes to a spiritmender + fresh siege, never blocking the quest', () => {
+    const needle =
+      'When you find a **code failure** — a real broken flow OR a test that passes while the flow is broken — you signal `failed` with a precise finding, and the orchestrator dispatches a **Spiritmender** to fix the implementation/test and then a **fresh Siegemaster** to re-verify.';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => a plan hole signals failed-replan and routes to PathSeeker, never blocking the quest', () => {
+    const needle =
+      'When you find a **plan hole** instead — the flow cannot work as planned (missing observable coverage, a wrong contract, a structural gap no code fix can close) — you signal `failed-replan` with a precise finding, and PathSeeker re-plans the flow.';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => neither failed nor failed-replan is a dead end or a quest block', () => {
+    const needle = 'Neither signal is a dead end and neither BLOCKs the quest';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => signal-back examples cover complete, code-failure, and plan-hole outcomes', () => {
+    const complete = "signal: 'complete',";
+    const failed = "signal: 'failed',";
+    const failedReplan = "signal: 'failed-replan',";
+    const { template } = siegemasterPromptStatics.prompt;
+
+    expect(template.indexOf(complete)).toBeGreaterThan(-1);
+    expect(template.indexOf(failed)).toBeGreaterThan(-1);
+    expect(template.indexOf(failedReplan)).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => never describes failed as an unqualified block on the quest', () => {
+    const { template } = siegemasterPromptStatics.prompt;
+
+    expect(template.indexOf('which BLOCKs the quest')).toBe(-1);
+  });
 });

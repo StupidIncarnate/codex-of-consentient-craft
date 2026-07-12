@@ -133,4 +133,36 @@ describe('FloorHeaderLayerWidget', () => {
       expect(headerText).toBe('──ENTRANCE: CARTOGRAPHY──────────────────────────────────────────');
     });
   });
+
+  describe('replan generation divider', () => {
+    it('VALID: {startsNewGeneration: true} => renders the floor-generation-divider above the header', () => {
+      FloorHeaderLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <FloorHeaderLayerWidget
+            floorNumber={null}
+            name={FloorNameStub({ value: 'HOMEBASE' })}
+            startsNewGeneration={true}
+          />
+        ),
+      });
+
+      const divider = screen.getByTestId('floor-generation-divider');
+
+      expect(divider.textContent).toBe(
+        '────────────────────────────────────────────────────────────',
+      );
+    });
+
+    it('EMPTY: {startsNewGeneration omitted} => does not render the divider', () => {
+      FloorHeaderLayerWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <FloorHeaderLayerWidget floorNumber={FloorNumberStub()} name={FloorNameStub()} />,
+      });
+
+      expect(screen.queryByTestId('floor-generation-divider')).toBe(null);
+    });
+  });
 });

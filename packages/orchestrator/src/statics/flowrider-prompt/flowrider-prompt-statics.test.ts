@@ -132,9 +132,33 @@ describe('flowriderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => forbids failing for a fixable seam since failed blocks the quest', () => {
+  it('VALID: template => forbids signaling for a fixable seam; forward-fix instead', () => {
     const needle =
-      'Do NOT signal `failed` for a fixable seam — a `failed` signal BLOCKs the whole quest, and a genuine, fixable gap is not a blocker.';
+      'Do NOT signal for a fixable seam — fix it forward and move on; a genuine, fixable gap is not a wall.';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => routes an unfixable code failure to failed, spiritmender fixes and re-runs', () => {
+    const needle =
+      'an unfixable code failure is `failed` (a spiritmender fixes it, you re-run), and missing glue, a wrong contract, or a structural gap the plan never accounted for is `failed-replan` (PathSeeker fixes the plan).';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => neither failed nor failed-replan blocks the quest', () => {
+    const needle =
+      'Neither signal blocks the quest: `failed` routes to a spiritmender that fixes the code and hands the flow back to you to re-run; `failed-replan` routes to PathSeeker to fix the plan.';
     const { template } = flowriderPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

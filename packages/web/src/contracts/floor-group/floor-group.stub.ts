@@ -9,5 +9,6 @@ export const FloorGroupStub = ({ ...props }: StubArgument<FloorGroup> = {}): Flo
     floorName: 'FORGE',
     floorNumber: 1,
     workItems: [],
+    startsNewGeneration: false,
     ...props,
   });

@@ -78,9 +78,15 @@ describe('blightwardenPromptStatics', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(/^ {2}signal: 'failed-replan',$/mu);
   });
 
-  it('VALID: template => Spiritmender exclusion noted', () => {
+  it('VALID: template => failed routes to a spiritmender via the orchestrator, not summoned directly', () => {
     expect(blightwardenPromptStatics.prompt.template).toMatch(
-      /^\*\*Spiritmender is NOT on your routing map\.\*\* Spiritmender handles ward\/lint\/type\/test errors only\.$/mu,
+      /^\*\*You never summon Spiritmender yourself\.\*\* A `failed` signal \(you cannot run at all, or an inline fix broke the build and you cannot resolve it\) tells the orchestrator to splice a spiritmender that fixes the code, then re-run you — it is not one of the five minions and you never call it directly\. Semantic findings still route through `failed-replan` to PathSeeker, never to Spiritmender\.$/mu,
+    );
+  });
+
+  it('VALID: template => Signal-Back Rules distinguish CODE FAILURE (failed) from PLAN HOLE (failed-replan)', () => {
+    expect(blightwardenPromptStatics.prompt.template).toMatch(
+      /^Use `failed` for a CODE FAILURE — you cannot run at all \(tool access, contradictory quest state\), or an inline fix you applied broke the build and you cannot resolve it; the orchestrator splices a spiritmender to fix the code and re-runs you\. Semantic findings, or a concern you could not audit, are a PLAN HOLE — signal `failed-replan` instead, which routes to PathSeeker\. Neither signal blocks the quest\.$/mu,
     );
   });
 

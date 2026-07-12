@@ -311,9 +311,19 @@ export const workItemToPromptTransformer = ({
       workItem.role === 'pathseeker-dedup' ||
       workItem.role === 'pathseeker-assertion-correctness'
     ) {
+      // A replan pathseeker (spliced by the signal-back handler on a blightwarden `failed-replan`)
+      // carries the failure brief on its `summary`. Thread it into the WorkUnit as `failureContext`
+      // so the rendered prompt gets a `FAILURE CONTEXT:` block and the respawned PathSeeker knows it
+      // was woken to re-plan (see pathseeker-prompt Resume Protocol) rather than no-op'ing on
+      // already-present planningNotes. `failureContext` requires min length 1 — omit when empty.
+      const failureContext =
+        workItem.summary !== undefined && String(workItem.summary).length > 0
+          ? String(workItem.summary)
+          : undefined;
       return workUnitContract.parse({
         role: 'pathseeker',
         questId: quest.id,
+        ...(failureContext === undefined ? {} : { failureContext }),
         ...overrideField,
       });
     }

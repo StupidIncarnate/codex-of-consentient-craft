@@ -6,12 +6,14 @@ describe('slotManagerStatics', () => {
       codeweaver: {
         slotCount: 3,
         maxFollowupDepth: 5,
+        maxAttempts: 3,
       },
       flowrider: {
         concurrentLimit: 3,
         maxRetries: 2,
         maxDispatchDepth: 3,
         maxFollowupDepth: 3,
+        maxAttempts: 3,
       },
       siegemaster: {
         concurrentLimit: 3,
@@ -25,11 +27,24 @@ describe('slotManagerStatics', () => {
         maxRetries: 2,
         maxDispatchDepth: 3,
         maxFollowupDepth: 3,
+        maxAttempts: 3,
+      },
+      blightwarden: {
+        maxAttempts: 3,
+      },
+      pesteater: {
+        maxAttempts: 3,
       },
       ward: {
         maxRetries: 3,
         spiritmenderMaxConcurrent: 3,
         spiritmenderBatchSize: 3,
+      },
+      pathseeker: {
+        replanMaxCycles: 5,
+      },
+      orphanRecovery: {
+        maxResets: 3,
       },
     });
   });

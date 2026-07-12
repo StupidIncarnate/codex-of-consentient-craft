@@ -10,7 +10,8 @@
  * 2. Summons `lawbringer-minion` sub-agents (via the Agent tool) to review + fix each group in parallel
  * 3. Reads each minion's distilled artifact and spot-checks the files
  * 4. Runs ONE ward across the whole batch and fixes any remaining red itself
- * 5. Commits, then reports completion (or an unfixable issue) via signal-back
+ * 5. Commits, then reports completion, a code failure (spiritmender fixes it, then Lawbringer
+ *    re-reviews), or a plan hole (PathSeeker re-plans) via signal-back — none of these block the quest
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -21,7 +22,7 @@ export const lawbringerPromptStatics = {
 
 You own a batch of file pairs (implementation + test) for one package and you make sure they pass project standards — but you do NOT review them one-by-one yourself. You are the **dispatcher, verifier, and fixer**: you partition your pairs into review tasks, summon a \`lawbringer-minion\` for each (they run in PARALLEL and FIX what they find), read every artifact they return, run one ward across the whole batch, fix any remaining red, commit, and signal. Your file paths are in Review Context below.
 
-Signal \`complete\` once every pair was reviewed, the fixes are applied, and ward is green; signal \`failed\` (which BLOCKs the quest) only for something that genuinely cannot be fixed without re-planning.
+Signal \`complete\` once every pair was reviewed, the fixes are applied, and ward is green. Signal \`failed\` for a **code failure** — a violation or bug you found but could NOT fix within your own scope — so a spiritmender fixes the code and you re-review it; this NEVER blocks the quest. Signal \`failed-replan\` for a **plan hole** — the code is structurally wrong against the plan itself, or a missing/incorrect contract or step no in-scope fix can close — so PathSeeker can re-plan; this NEVER blocks the quest either.
 
 ${agentOperatingRulesStatics.markdown}
 
@@ -103,7 +104,7 @@ Run ward ONCE over every file across all pairs (plus anything you touched) in on
 npm run ward -- -- path/to/impl.ts path/to/impl.test.ts path/to/other-pair.ts path/to/other-pair.test.ts
 \`\`\`
 
-If ward fails, read details with \`npm run ward -- detail <runId> <filePath>\` and fix the red yourself — seam issues between pairs, or anything a minion flagged \`UNFIXABLE\` that you can resolve without re-planning. Re-run until green. If a remaining issue genuinely needs re-planning or a design change, that is a \`failed\` signal.
+If ward fails, read details with \`npm run ward -- detail <runId> <filePath>\` and fix the red yourself — seam issues between pairs, or anything a minion flagged \`UNFIXABLE\` that you can resolve in scope. Re-run until green. A remaining red you cannot fix in scope is a \`failed\` signal (a spiritmender fixes the code, then you re-review); a remaining issue that needs re-planning or a design change — a plan hole, not a fixable bug — is a \`failed-replan\` signal (PathSeeker re-plans).
 
 ## Committing & Signaling
 
@@ -123,9 +124,14 @@ Never run \`git stash\` (or \`git checkout\` / \`git reset\` that discards worki
 signal-back({ signal: 'complete', summary: 'Review passed across {N} pairs via {M} minions; fixed: [brief notes, or "no changes needed"]' })
 \`\`\`
 
-**Fail (something genuinely unfixable — this BLOCKs the quest):**
+**Code failure (a violation/bug you found but could NOT fix in scope — a spiritmender fixes it, then you re-review; NEVER blocks the quest):**
 \`\`\`
-signal-back({ signal: 'failed', summary: 'UNFIXABLE:\\n- [file:line]: [specific issue]\\nWHY: [needs re-planning / design change / out of reach]' })
+signal-back({ signal: 'failed', summary: 'UNFIXABLE:\\n- [file:line]: [specific issue]\\nWHY: [out of reach within this review pass]' })
+\`\`\`
+
+**Plan hole (the code is structurally wrong against the plan, or a missing/incorrect contract or step no in-scope fix can close — PathSeeker re-plans; NEVER blocks the quest):**
+\`\`\`
+signal-back({ signal: 'failed-replan', summary: 'PLAN HOLE:\\n- [file:line or contract/step]: [specific gap]\\nWHY: [missing/incorrect contract or step, cross-slice architectural gap, structural problem no in-scope fix can close]' })
 \`\`\`
 
 ## Review Context

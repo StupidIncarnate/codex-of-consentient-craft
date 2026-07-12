@@ -250,6 +250,7 @@ export const ExecutionPanelWidget = ({
                     <FloorHeaderLayerWidget
                       floorNumber={group.floorNumber}
                       name={group.floorName}
+                      startsNewGeneration={group.startsNewGeneration}
                       {...(groupActiveCounts.has(group)
                         ? {
                             concurrent: {
@@ -305,6 +306,7 @@ export const ExecutionPanelWidget = ({
                     <FloorHeaderLayerWidget
                       floorNumber={group.floorNumber}
                       name={group.floorName}
+                      startsNewGeneration={group.startsNewGeneration}
                       {...(groupActiveCounts.has(group)
                         ? {
                             concurrent: {
@@ -379,6 +381,7 @@ export const ExecutionPanelWidget = ({
                       <FloorHeaderLayerWidget
                         floorNumber={group.floorNumber}
                         name={group.floorName}
+                        startsNewGeneration={group.startsNewGeneration}
                         {...(groupActiveCounts.has(group)
                           ? {
                               concurrent: {

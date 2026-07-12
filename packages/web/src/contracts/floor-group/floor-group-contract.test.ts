@@ -16,6 +16,7 @@ describe('floorGroupContract', () => {
         floorName: 'FORGE',
         floorNumber: 1,
         workItems: [],
+        startsNewGeneration: false,
       });
     });
 
@@ -25,6 +26,14 @@ describe('floorGroupContract', () => {
       const result = floorGroupContract.parse(group);
 
       expect(result.floorNumber).toBe(null);
+    });
+
+    it('VALID: {startsNewGeneration: true} => parses a replan re-entry group', () => {
+      const group = FloorGroupStub({ floorNumber: null, startsNewGeneration: true });
+
+      const result = floorGroupContract.parse(group);
+
+      expect(result.startsNewGeneration).toBe(true);
     });
   });
 });

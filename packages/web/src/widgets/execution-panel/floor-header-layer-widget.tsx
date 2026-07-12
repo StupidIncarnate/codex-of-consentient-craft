@@ -17,6 +17,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 export interface FloorHeaderLayerWidgetProps {
   floorNumber: FloorNumber | null;
   name: FloorName;
+  startsNewGeneration?: boolean;
   concurrent?: {
     active: SlotCount;
     max: SlotCount;
@@ -25,61 +26,80 @@ export interface FloorHeaderLayerWidgetProps {
 
 const DASH_FONT_SIZE = 10;
 const LABEL_FONT_WEIGHT = 600;
+const GENERATION_DIVIDER_MARGIN_TOP = 12;
 
 export const FloorHeaderLayerWidget = ({
   floorNumber,
   name,
+  startsNewGeneration,
   concurrent,
 }: FloorHeaderLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
   return (
-    <Group
-      data-testid="floor-header-layer-widget"
-      gap={4}
-      align="center"
-      mt="sm"
-      mb={6}
-      style={{ overflow: 'hidden' }}
-    >
-      <Text
-        ff="monospace"
-        style={{ fontSize: DASH_FONT_SIZE, color: colors['text-dim'], flexShrink: 0 }}
-      >
-        ──
-      </Text>
-      <Text
-        ff="monospace"
-        style={{
-          fontSize: DASH_FONT_SIZE,
-          color: colors.primary,
-          flexShrink: 0,
-          fontWeight: LABEL_FONT_WEIGHT,
-        }}
-      >
-        {floorNumber === null ? name : `FLOOR ${String(floorNumber)}: ${name}`}
-      </Text>
-      <Text
-        ff="monospace"
-        style={{
-          fontSize: DASH_FONT_SIZE,
-          color: colors['text-dim'],
-          flex: 1,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        ──────────────────────────────────────────
-      </Text>
-      {concurrent ? (
+    <>
+      {startsNewGeneration === true ? (
         <Text
           ff="monospace"
-          data-testid="floor-header-concurrent"
-          style={{ fontSize: DASH_FONT_SIZE, color: colors['text-dim'], flexShrink: 0 }}
+          data-testid="floor-generation-divider"
+          style={{
+            fontSize: DASH_FONT_SIZE,
+            color: colors['text-dim'],
+            marginTop: GENERATION_DIVIDER_MARGIN_TOP,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+          }}
         >
-          Concurrent: {concurrent.active}/{concurrent.max}
+          ────────────────────────────────────────────────────────────
         </Text>
       ) : null}
-    </Group>
+      <Group
+        data-testid="floor-header-layer-widget"
+        gap={4}
+        align="center"
+        mt="sm"
+        mb={6}
+        style={{ overflow: 'hidden' }}
+      >
+        <Text
+          ff="monospace"
+          style={{ fontSize: DASH_FONT_SIZE, color: colors['text-dim'], flexShrink: 0 }}
+        >
+          ──
+        </Text>
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: DASH_FONT_SIZE,
+            color: colors.primary,
+            flexShrink: 0,
+            fontWeight: LABEL_FONT_WEIGHT,
+          }}
+        >
+          {floorNumber === null ? name : `FLOOR ${String(floorNumber)}: ${name}`}
+        </Text>
+        <Text
+          ff="monospace"
+          style={{
+            fontSize: DASH_FONT_SIZE,
+            color: colors['text-dim'],
+            flex: 1,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ──────────────────────────────────────────
+        </Text>
+        {concurrent ? (
+          <Text
+            ff="monospace"
+            data-testid="floor-header-concurrent"
+            style={{ fontSize: DASH_FONT_SIZE, color: colors['text-dim'], flexShrink: 0 }}
+          >
+            Concurrent: {concurrent.active}/{concurrent.max}
+          </Text>
+        ) : null}
+      </Group>
+    </>
   );
 };

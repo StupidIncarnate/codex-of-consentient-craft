@@ -125,18 +125,27 @@ For each `spawn-agents` agent, `/dumpster-launch` `Task()`s a sub-agent that fir
 ## 6. Result handoff — `signal-back`
 
 When the agent finishes it calls `signal-back({ questId, workItemId, signal, summary? })`, `signal ∈ complete | failed |
-failed-replan`. The handler marks the item terminal (`complete`, or `failed` for failed/failed-replan) + stamps
-`completedAt`, then **routes by role + signal**:
+failed-replan`. The orchestrator is RECOVERY-FIRST — **no role blocks the quest on failure**; every failure routes to a
+fixer and only PathSeeker (loop exhausted) blocks. The handler stamps `completedAt` and **routes by role + signal**:
 
-| signal                   | role            | effect                                                                                                                                                                                                                            |
-|--------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `complete`               | `pathseeker`    | item `complete`; **fires the post-walk hook** (§7)                                                                                                                                                                                |
-| `complete`               | any other       | item `complete`                                                                                                                                                                                                                   |
-| `failed`/`failed-replan` | `siegemaster`   | **RECOVER**: splice 1 `spiritmender` (fed the manual-QA `summary`) + `ward(changed)` + 1 fresh `siegemaster` retry; rewire downstream; quest stays `in_progress`. Budget `slotManagerStatics.siegemaster.maxAttempts`, then BLOCK |
-| `failed`/`failed-replan` | everything else | **BLOCK**: item `failed`, all still-`pending` items → `skipped`, quest `status: blocked` (lawbringer/flowrider/blightwarden fix inline, so `failed` = unfixable)                                                                  |
+| signal          | role                | effect                                                                                                                                                                                                                     |
+|-----------------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `complete`      | `pathseeker`        | item `complete`; **fires the post-walk hook** (§7)                                                                                                                                                                        |
+| `complete`      | any other           | item `complete`                                                                                                                                                                                                           |
+| `failed`        | code-recovery role  | **RECOVER** (code failure): mark `failed`, then splice 1 `spiritmender` (fed the `summary`) + `ward(changed)` + a fresh re-run of the SAME role; rewire downstream; stays `in_progress`. Budget `slotManagerStatics.<role>.maxAttempts`, then escalate to a PathSeeker replan |
+| `failed-replan` | code-recovery role  | **REPLAN** (plan hole): mark `failed` + superseded, drain pending → `skipped`, splice a `pathseeker` replan fed the `summary`; on completion the post-walk hook regenerates the chain. Bounded by `slotManagerStatics.pathseeker.replanMaxCycles`, then BLOCK |
+| any failure     | `blightwarden-*-minion` | **NON-BLOCKING**: minion terminates `complete`, failure lives in its report                                                                                                                                             |
+| `failed`        | `spiritmender`      | **SOFT**: mark terminal; the retry spliced after it carries on                                                                                                                                                            |
+| `failed`        | `pathseeker`        | **RETRY** while budget remains (reset to `pending`, `attempt + 1`), else **BLOCK** — the sole block path                                                                                                                  |
 
-> `signal-back`'s `summary` now threads through to the handler: it is stamped onto the failed work item and, for a
-> `siegemaster` failure, written into the spiritmender's recovery sidecar so the fixer acts on the actual finding.
+"Code-recovery role" = codeweaver / flowrider / siegemaster / lawbringer / blightwarden synthesizer / pesteater
+(every non-interactive, non-command, non-planner, non-spiritmender, non-minion role — derived by
+`codeRecoveryRolesTransformer`, so a new role recovers by default). Ward exhaustion escalates to a PathSeeker replan
+the same way.
+
+> `signal-back`'s `summary` threads through to the handler: it is stamped onto the failed work item and written into
+> the spiritmender's recovery sidecar (code failure) or the replan pathseeker's brief (plan hole) so the fixer acts on
+> the actual finding.
 
 ---
 

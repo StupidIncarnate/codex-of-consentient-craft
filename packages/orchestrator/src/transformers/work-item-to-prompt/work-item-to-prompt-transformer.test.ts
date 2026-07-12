@@ -24,6 +24,7 @@ import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codewea
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
+import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
 import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
@@ -113,6 +114,50 @@ describe('workItemToPromptTransformer', () => {
 
       expect(result.prompt).toBe(
         pathseekerDedupMinionStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
+      );
+    });
+  });
+
+  describe('pathseeker replan (failureContext from summary)', () => {
+    it('VALID: {agent: pathseeker, workItem.summary set} => substitutes Quest ID + FAILURE CONTEXT block', () => {
+      const workItem = WorkItemStub({
+        role: 'pathseeker',
+        summary: 'Cross-slice contract mismatch on FooContract',
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'pathseeker' }),
+      });
+
+      const expectedArgs =
+        'Quest ID: my-quest\n\nFAILURE CONTEXT:\nCross-slice contract mismatch on FooContract';
+
+      expect(result.prompt).toBe(
+        pathseekerPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    it('EDGE: {agent: pathseeker, no summary} => substitutes Quest ID only (no FAILURE CONTEXT block)', () => {
+      const workItem = WorkItemStub({ role: 'pathseeker' });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'my-quest' }),
+        workItems: [workItem],
+      });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'pathseeker' }),
+      });
+
+      expect(result.prompt).toBe(
+        pathseekerPromptStatics.prompt.template.replace('$ARGUMENTS', 'Quest ID: my-quest'),
       );
     });
   });

@@ -10,7 +10,7 @@
  * 2. Authors the flow-perspective test suite — e2e (Playwright) for UI flows, integration
  *    harness for API/CLI/queue flows, verification scripts for operational flows
  * 3. Writes the test FIRST (red), then makes it pass — the repo's TDD discipline
- * 4. Runs the suite via Ward and signals complete or failed via signal-back
+ * 4. Runs the suite via Ward and signals complete, failed, or failed-replan via signal-back
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -154,11 +154,11 @@ Re-open the flow graph from Flow Context and walk it once more as an auditor, no
 2. **Decision branches** — list every decision node and each outgoing branch; name the test that takes it. Both/all sides of every decision MUST be taken.
 3. **Observables** — list every observable across all nodes; name the test + the exact assertion that proves it. Every observable MUST map to a real assertion.
 
-If anything is uncovered, COVER IT now — do not signal around it. The ONLY acceptable uncovered observable is one that genuinely cannot be exercised at this test layer; that is either a \`failed\`-signal-worthy spec gap or an explicit, named deferral in your summary (with the reason and a note that Siegemaster must manually verify it) — never a silent omission.
+If anything is uncovered, COVER IT now — do not signal around it. The ONLY acceptable uncovered observable is one that genuinely cannot be exercised at this test layer; that is either a \`failed-replan\`-worthy plan hole (the observable as specified cannot be tested at all) or an explicit, named deferral in your summary (with the reason and a note that Siegemaster must manually verify it) — never a silent omission.
 
 ## Forward-Fixing Non-Flow Implementation Gaps
 
-When the flow test surfaces a genuine integration gap in an already-built NON-flow file — even one in another package — the correct move is to FORWARD-FIX that implementation, not the test. Do NOT weaken or skip the test to route around the gap: the flow test is the source of truth for the seam it exercises. Do NOT signal \`failed\` for a fixable seam — a \`failed\` signal BLOCKs the whole quest, and a genuine, fixable gap is not a blocker.
+When the flow test surfaces a genuine integration gap in an already-built NON-flow file — even one in another package — the correct move is to FORWARD-FIX that implementation, not the test. Do NOT weaken or skip the test to route around the gap: the flow test is the source of truth for the seam it exercises. Do NOT signal for a fixable seam — fix it forward and move on; a genuine, fixable gap is not a wall. Signal only when you genuinely cannot close the gap yourself: an unfixable code failure is \`failed\` (a spiritmender fixes it, you re-run), and missing glue, a wrong contract, or a structural gap the plan never accounted for is \`failed-replan\` (PathSeeker fixes the plan).
 
 ## Committing & Signaling
 
@@ -181,15 +181,23 @@ signal-back({
 })
 \`\`\`
 
-**Blocked (cannot implement or test the flow as specified):**
+**Code failure you could not fix (a spiritmender fixes it, then you re-run — never a block):**
 \`\`\`
 signal-back({
   signal: 'failed',
-  summary: 'MODE: [mode chosen]\\n\\nBLOCKER:\\n- {what could not be implemented or tested and why}\\n\\nSUGGESTED FIX:\\n{what needs to change — spec gap, missing contract, redesign}'
+  summary: 'MODE: [mode chosen]\\n\\nCODE FAILURE:\\n- {what implementation or test could not be made to pass and why}\\n\\nROOT CAUSE:\\n{the bug or error you could not resolve}'
 })
 \`\`\`
 
-A \`failed\` signal BLOCKs the quest — reserve it for issues you genuinely cannot fix here. Include the mode you chose and the specific blocker so the block is actionable.
+**Plan hole you could not reconcile (PathSeeker fixes the quest's plan — never a block):**
+\`\`\`
+signal-back({
+  signal: 'failed-replan',
+  summary: 'MODE: [mode chosen]\\n\\nPLAN HOLE:\\n- {what the flow needs that the plan does not provide — missing glue, wrong contract, structural gap}\\n\\nSUGGESTED FIX:\\n{what needs to change in the plan}'
+})
+\`\`\`
+
+Neither signal blocks the quest: \`failed\` routes to a spiritmender that fixes the code and hands the flow back to you to re-run; \`failed-replan\` routes to PathSeeker to fix the plan. Reserve both for issues you genuinely cannot resolve here, and be specific about which kind of wall you hit so the routing is correct.
 
 ## Flow Context
 

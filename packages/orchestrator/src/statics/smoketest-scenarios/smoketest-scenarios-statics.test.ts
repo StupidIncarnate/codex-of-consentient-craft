@@ -22,19 +22,19 @@ describe('smoketestScenariosStatics', () => {
     });
   });
 
-  it('VALID: {orchCodeweaverFail} => codeweaver scripts signalFailed then signalComplete; pathseeker script covers replan', () => {
+  it('VALID: {orchCodeweaverFail} => codeweaver scripts signalFailed then signalComplete; spiritmender scripts the recovery fix', () => {
     expect({
       caseId: smoketestScenariosStatics.orchCodeweaverFail.caseId,
       codeweaverScript: smoketestScenariosStatics.orchCodeweaverFail.scripts.codeweaver,
-      pathseekerScript: smoketestScenariosStatics.orchCodeweaverFail.scripts.pathseeker,
+      spiritmenderScript: smoketestScenariosStatics.orchCodeweaverFail.scripts.spiritmender,
       assertions: smoketestScenariosStatics.orchCodeweaverFail.assertions,
     }).toStrictEqual({
       caseId: 'orch-codeweaver-fail',
       codeweaverScript: ['signalFailed', 'signalComplete'],
-      pathseekerScript: ['signalComplete', 'signalComplete'],
+      spiritmenderScript: ['signalComplete'],
       assertions: [
         { kind: 'quest-status', expected: 'complete' },
-        { kind: 'work-item-role-count', role: 'pathseeker', minCount: 2 },
+        { kind: 'work-item-role-count', role: 'spiritmender', minCount: 1 },
       ],
     });
   });
@@ -56,25 +56,19 @@ describe('smoketestScenariosStatics', () => {
     });
   });
 
-  it('VALID: {orchDepthExhaustion} => ships 6 signalFailed entries for codeweaver (maxFollowupDepth=5 + initial dispatch)', () => {
+  it('VALID: {orchDepthExhaustion} => codeweaver over-provisions signalFailed entries; asserts blocked (replan loop exhausted)', () => {
+    const scenario = smoketestScenariosStatics.orchDepthExhaustion;
+
     expect({
-      caseId: smoketestScenariosStatics.orchDepthExhaustion.caseId,
-      codeweaverScript: smoketestScenariosStatics.orchDepthExhaustion.scripts.codeweaver,
-      assertions: smoketestScenariosStatics.orchDepthExhaustion.assertions,
+      caseId: scenario.caseId,
+      codeweaverSignals: [...new Set(scenario.scripts.codeweaver)],
+      codeweaverCount: scenario.scripts.codeweaver.length,
+      assertions: scenario.assertions,
     }).toStrictEqual({
       caseId: 'orch-depth-exhaustion',
-      codeweaverScript: [
-        'signalFailed',
-        'signalFailed',
-        'signalFailed',
-        'signalFailed',
-        'signalFailed',
-        'signalFailed',
-      ],
-      assertions: [
-        { kind: 'quest-status', expected: 'blocked' },
-        { kind: 'work-item-role-count', role: 'codeweaver', minCount: 6 },
-      ],
+      codeweaverSignals: ['signalFailed'],
+      codeweaverCount: 24,
+      assertions: [{ kind: 'quest-status', expected: 'blocked' }],
     });
   });
 

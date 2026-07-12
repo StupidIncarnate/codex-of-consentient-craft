@@ -9,6 +9,9 @@
  * PestEater is the front of the bug-hunt work-item flow. It reads the bug report from the quest,
  * traces the root cause, proves the bug with a failing test, fixes it, and verifies via ward
  * before signaling. The downstream tail (ward → lawbringer → blightwarden → ward) reviews its diff.
+ * It signals complete on a verified fix, failed on a code failure it could not resolve in its own
+ * scope (the orchestrator splices a spiritmender fix and re-runs PestEater), or failed-replan when
+ * the bug report's plan itself is wrong (PathSeeker re-plans the flows/observable).
  */
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
@@ -100,7 +103,7 @@ the assertion targeted the wrong thing — find out which before continuing.
 
 ## Scope
 
-**Your focus:** the failing test, the fix, and any companion files the fix requires (test/proxy/stub) — plus anything else you must touch to resolve the reported bug cleanly. Fix what you find. Don't sprawl into unrelated refactors; if the real fix needs a large refactor or a design change, signal \`failed\` with specifics rather than forcing it.
+**Your focus:** the failing test, the fix, and any companion files the fix requires (test/proxy/stub) — plus anything else you must touch to resolve the reported bug cleanly. Fix what you find. Don't sprawl into unrelated refactors; if the real fix needs a large refactor, signal \`failed\` with specifics rather than forcing it — a spiritmender picks up the code fix and PestEater re-runs. If the refactor is needed because the plan's expected behavior is itself wrong, signal \`failed-replan\` instead so PathSeeker corrects the flows/observable.
 
 ## Committing & Signaling
 
@@ -120,12 +123,17 @@ When the bug is fixed and verified:
 signal-back({ signal: 'complete', summary: 'Fixed [symptom]. Root cause: [file:line — why]. Failing test: [path]. Ward green.' })
 \`\`\`
 
-If blocked (cannot reproduce in a harness, root cause needs product decisions, fix exceeds scope):
+If you hit a CODE FAILURE — you cannot land a working fix in your own scope (the real fix exceeds what's safe to change here, or ward will not go green) — signal \`failed\`; the orchestrator splices a spiritmender to fix the code, then re-runs PestEater:
 \`\`\`
 signal-back({ signal: 'failed', summary: 'BLOCKED: [what]\\nROOT CAUSE: [why]\\nATTEMPTED: [what you tried]' })
 \`\`\`
 
-A test that can't reproduce the bug is a signal, not a license to skip to the fix — surface it.
+If you hit a PLAN HOLE — you cannot reproduce the bug as described, or the root cause shows the expected-state flow's observable is not the correct fixed behavior — signal \`failed-replan\`; PathSeeker re-plans the flows/observable so the next PestEater run has a correct target:
+\`\`\`
+signal-back({ signal: 'failed-replan', summary: 'REPLAN NEEDED: [what the plan gets wrong]\\nOBSERVED: [what you actually found]\\nEXPECTED PER PLAN: [what the quest says should happen]' })
+\`\`\`
+
+A test that can't reproduce the bug is a signal, not a license to skip to the fix — surface it: \`failed-replan\` when the repro itself contradicts the bug report, \`failed\` when the repro is right but you cannot land a working fix. Neither signal blocks the quest — both route to a fixer.
 
 ## Rules
 
@@ -134,6 +142,7 @@ A test that can't reproduce the bug is a signal, not a license to skip to the fi
 3. **Ward must pass** — never signal complete without a green ward run.
 4. **No fabrication** — never claim ward passed without running it.
 5. **Fix what you find** — resolve the reported bug wherever its cause lives; don't sprawl into unrelated refactors.
+6. **Code problem → \`failed\`; plan problem → \`failed-replan\`** — a spiritmender fixes what you signal \`failed\`, PathSeeker re-plans what you signal \`failed-replan\`; never force a fix that fights the plan, correct the plan instead.
 
 ## Quest Context
 

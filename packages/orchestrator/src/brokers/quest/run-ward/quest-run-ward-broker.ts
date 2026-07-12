@@ -46,11 +46,11 @@ import { spiritmenderContextStatics } from '../../../statics/spiritmender-contex
 import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
-import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questSpliceFixerBroker } from '../splice-fixer/quest-splice-fixer-broker';
+import { questSplicePathseekerReplanBroker } from '../splice-pathseeker-replan/quest-splice-pathseeker-replan-broker';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
 const SPIRITMENDER_BATCHES_DIR = 'spiritmender-batches';
@@ -164,8 +164,17 @@ export const questRunWardBroker = async ({
 
       if (wardWorkItem !== undefined) {
         if (wardWorkItem.attempt >= wardWorkItem.maxAttempts - 1) {
-          // Retries exhausted — block the quest (drain pending items, set status blocked).
-          await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+          // Retries exhausted — the build could not be made green after every spiritmender pass, so
+          // the plan is a hole. Escalate to a PathSeeker replan (recovery-first, never an immediate
+          // block); it blocks only once the replan loop itself is spent.
+          const replanBrief = workItemContract.shape.summary.parse(
+            `ward ${mode} could not pass after ${String(wardWorkItem.maxAttempts)} attempts and every spiritmender fix — re-plan the affected slice.`,
+          );
+          await questSplicePathseekerReplanBroker({
+            questId,
+            failedWorkItemId: workItemId,
+            brief: replanBrief,
+          });
         } else {
           // Retry budget remains — splice batched spiritmenders + a ward retry.
           const detailBatches = detailJson

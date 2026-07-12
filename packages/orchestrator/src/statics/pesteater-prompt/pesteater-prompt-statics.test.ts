@@ -74,4 +74,34 @@ describe('pesteaterPromptStatics', () => {
 
     expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
   });
+
+  it('VALID: template => failed signal routes a code failure to a spiritmender fix + PestEater re-run', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^If you hit a CODE FAILURE — you cannot land a working fix in your own scope \(the real fix exceeds what's safe to change here, or ward will not go green\) — signal `failed`; the orchestrator splices a spiritmender to fix the code, then re-runs PestEater:$/mu,
+    );
+  });
+
+  it('VALID: template => failed-replan signal routes a plan hole to a PathSeeker replan', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^If you hit a PLAN HOLE — you cannot reproduce the bug as described, or the root cause shows the expected-state flow's observable is not the correct fixed behavior — signal `failed-replan`; PathSeeker re-plans the flows\/observable so the next PestEater run has a correct target:$/mu,
+    );
+  });
+
+  it('VALID: template => signal-back failed-replan literal appears with REPLAN NEEDED summary shape', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ signal: 'failed-replan', summary: 'REPLAN NEEDED: \[what the plan gets wrong\]\\nOBSERVED: \[what you actually found\]\\nEXPECTED PER PLAN: \[what the quest says should happen\]' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => neither failed nor failed-replan is described as blocking the quest', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^A test that can't reproduce the bug is a signal, not a license to skip to the fix — surface it: `failed-replan` when the repro itself contradicts the bug report, `failed` when the repro is right but you cannot land a working fix\. Neither signal blocks the quest — both route to a fixer\.$/mu,
+    );
+  });
+
+  it('VALID: template => Rules section states code problem => failed, plan problem => failed-replan', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^6\. \*\*Code problem → `failed`; plan problem → `failed-replan`\*\* — a spiritmender fixes what you signal `failed`, PathSeeker re-plans what you signal `failed-replan`; never force a fix that fights the plan, correct the plan instead\.$/mu,
+    );
+  });
 });

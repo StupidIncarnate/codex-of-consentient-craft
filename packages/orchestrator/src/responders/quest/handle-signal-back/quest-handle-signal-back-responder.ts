@@ -1,31 +1,33 @@
 /**
- * PURPOSE: Responder invoked after a sub-agent's `signal-back` MCP call is validated.
- * Transitions the named work item to its terminal status and stamps `completedAt`, then routes
- * by signal + role:
+ * PURPOSE: Responder invoked after a sub-agent's `signal-back` MCP call is validated. Transitions the
+ * named work item to its terminal status and stamps `completedAt`, then routes by signal + role.
  *
- * - `complete` + `pathseeker` → fires `questPostWalkHookBroker` to generate the downstream
- *   codeweaver/ward/siegemaster/lawbringer/minions/synthesizer chain.
- * - `failed` / `failed-replan` from a blightwarden MINION → NON-BLOCKING. The minion's work item
- *   terminates `complete` (with `actualSignal` recording the real signal) so the synthesizer's
- *   `dependsOn` is satisfied and the quest is not blocked. The failure detail lives in the minion's
- *   `PlanningBlightReport`, which the synthesizer reads and handles.
- * - `failed-replan` from the blightwarden synthesizer → REPLAN. Marks the synthesizer `failed`
- *   (superseded by the replan it inserts), drains pending items to `skipped`, and splices a
- *   `pathseeker` replan (`dependsOn: []`, `insertedBy: <synth id>`). The respawned PathSeeker
- *   resumes off `planningNotes` (steps already present → re-walks), and on `complete` re-fires the
- *   post-walk hook, regenerating the whole downstream chain. The quest stays `in_progress` (a bare
- *   workItems write never derives `blocked`).
- * - `failed` from `siegemaster` → RECOVER via `questRecoverSiegeBroker` (splice a spiritmender fed
- *   the manual-QA finding + a ward(changed) gate + a fresh siege retry; exhausted budget BLOCKs).
- *   Siegemaster changes no files — it reports, the spiritmender fixes, a fresh siege re-verifies.
- * - `failed` from any other agent role → BLOCK via `questBlockOnFailureBroker` (drains pending
- *   items to `skipped`, sets status `blocked`). Lawbringer/blightwarden fix what they find inline,
- *   so a `failed` signal means a genuinely unfixable issue.
+ * The orchestrator is RECOVERY-FIRST: NO role blocks the quest on a failure. Every failure routes to a
+ * fixer, and the SOLE block path is the PathSeeker replan loop being exhausted (or PathSeeker itself
+ * exhausting its retries). Routing:
+ *
+ * - `complete` + `pathseeker` → fires `questPostWalkHookBroker` to generate the downstream chain (a
+ *   thrown hook means the plan is unusable → BLOCK, the one PathSeeker-owned block).
+ * - `complete` (any other role) → mark the item `complete`.
+ * - `failed` / `failed-replan` from a blightwarden MINION → NON-BLOCKING: the item terminates
+ *   `complete` (`actualSignal` records the real signal); the finding lives in the minion's report.
+ * - `failed` / `failed-replan` from `spiritmender` (the fixer itself) → SOFT-FAIL: mark the item
+ *   `failed` and do nothing else. The retry the recovery already spliced after it (a ward re-verify or
+ *   a fresh role run) carries the work forward; spawning another fixer would recurse.
+ * - `failed` / `failed-replan` from `pathseeker` (the planner + sole block owner) → RETRY within its
+ *   loop (reset to `pending`, `attempt + 1`, re-dispatched); when its budget is spent → BLOCK. This is
+ *   the only role that can drive the quest to `blocked`.
+ * - `failed-replan` from a code-recovery role (a plan hole it cannot reconcile) → PathSeeker replan
+ *   (`questSplicePathseekerReplanBroker`): splice a `pathseeker` replan fed the brief, drain pending to
+ *   `skipped`. On the replan's completion the post-walk hook regenerates the chain. Blocks only when
+ *   the replan loop is exhausted.
+ * - `failed` from a code-recovery role (code it could not build/verify) → mark the item `failed`
+ *   (persisting the finding), then `questRecoverRoleBroker`: splice a spiritmender fix + a ward gate +
+ *   a fresh re-run of the same role. When the role's retry budget is spent the code failure is
+ *   re-interpreted as a plan hole and escalates to a PathSeeker replan. Never an immediate block.
  *
  * USAGE:
  * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete' });
- * // Persists workItems: [{ id: workItemId, status: 'complete', completedAt }] and (for
- * // pathseeker-walk + complete) generates the downstream work-item chain.
  */
 
 import type {
@@ -39,18 +41,15 @@ import {
   adapterResultContract,
   errorMessageContract,
   getQuestInputContract,
-  workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { isBlightwardenMinionRoleGuard } from '../../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyOrThrowBroker } from '../../../brokers/quest/modify-or-throw/quest-modify-or-throw-broker';
 import { questPostWalkHookBroker } from '../../../brokers/quest/post-walk-hook/quest-post-walk-hook-broker';
-import { questRecoverSiegeBroker } from '../../../brokers/quest/recover-siege/quest-recover-siege-broker';
-
-const PATHSEEKER_REPLAN_MAX_ATTEMPTS = 3;
+import { questRecoverRoleBroker } from '../../../brokers/quest/recover-role/quest-recover-role-broker';
+import { questSplicePathseekerReplanBroker } from '../../../brokers/quest/splice-pathseeker-replan/quest-splice-pathseeker-replan-broker';
 
 export const QuestHandleSignalBackResponder = async ({
   questId,
@@ -95,20 +94,14 @@ export const QuestHandleSignalBackResponder = async ({
     });
 
     if (workItem.role === 'pathseeker') {
-      // The post-walk hook runs the completeness scope and generates the downstream
-      // codeweaver/ward/lawbringer/blightwarden chain. If it throws (the authored plan failed
-      // completeness — e.g. a step references a contract absent from quest.contracts[]), the walk
-      // item is already marked `complete` above, so the quest derives `complete` (every work item
-      // terminal) — a terminal status `loadActiveQuestsLayerBroker` never re-scans, stranding the
-      // quest with no implementation chain. A failed hook means the plan is unusable, so route it
-      // to BLOCK: flip the walk item to `failed` and drain pending items, the same containment as
-      // any other unfixable agent failure. This keeps the invariant that a quest never reads
-      // `complete` without its implementation work having been generated.
+      // The post-walk hook runs the completeness scope and generates the downstream chain. If it
+      // throws (the authored plan failed completeness — e.g. a step references a contract absent from
+      // quest.contracts[]), the walk item is already `complete`, so the quest would derive `complete`
+      // (terminal, never re-scanned) with no implementation chain. A failed hook means the plan is
+      // unusable, so route it to BLOCK — the one PathSeeker-owned block. This keeps the invariant that
+      // a quest never reads `complete` without its implementation work having been generated.
       try {
-        await questPostWalkHookBroker({
-          questId,
-          walkWorkItemId: workItemId,
-        });
+        await questPostWalkHookBroker({ questId, walkWorkItemId: workItemId });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const errorMessage = errorMessageContract.parse(
@@ -126,9 +119,11 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  // Minion failures never block: the failure is captured in the minion's blight report, so the
-  // work item terminates `complete` (satisfies the synthesizer's dependsOn) and the quest can
-  // still complete. `actualSignal` preserves the real signal for audit.
+  // ---- signal is `failed` or `failed-replan` ----
+
+  // Blightwarden minions never block: the failure is captured in the minion's blight report, so the
+  // work item terminates `complete` (satisfies the synthesizer's dependsOn) and the quest can still
+  // complete. `actualSignal` preserves the real signal for audit.
   if (isBlightwardenMinionRoleGuard({ role: workItem.role })) {
     await questModifyOrThrowBroker({
       input: {
@@ -139,32 +134,11 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  // Synthesizer escalation: replan instead of block. Mark the synthesizer `failed` (superseded by
-  // the replan, so it is not an unresolved failure), drain pending items to `skipped`, and splice a
-  // `pathseeker-walk` replan that re-fires the post-walk hook on completion. The replan depends on
-  // nothing so it is immediately dispatchable and not dead-ended on the failed item.
-  if (signal === 'failed-replan') {
-    const replanSummary = workItem.summary === undefined ? undefined : String(workItem.summary);
-    const errorMessage =
-      replanSummary !== undefined && replanSummary.length > 0
-        ? errorMessageContract.parse(replanSummary)
-        : errorMessageContract.parse('blightwarden_replan_requested');
-
-    const pendingSkips = result.quest.workItems
-      .filter((wi) => isPendingWorkItemStatusGuard({ status: wi.status }) && wi.id !== workItemId)
-      .map((wi) => ({ id: wi.id, status: 'skipped' as const, completedAt }));
-
-    const replanItem = workItemContract.parse({
-      id: crypto.randomUUID(),
-      role: 'pathseeker',
-      status: 'pending',
-      spawnerType: 'agent',
-      dependsOn: [],
-      maxAttempts: PATHSEEKER_REPLAN_MAX_ATTEMPTS,
-      createdAt: completedAt,
-      insertedBy: workItemId,
-    });
-
+  // Spiritmender is the fixer itself. Its own `failed` is SOFT: mark it terminal and stop. The retry
+  // the recovery already spliced after it (a ward re-verify or a fresh role run) depends on it and
+  // carries the work forward — spawning another spiritmender would recurse. `failed` satisfies a
+  // dependsOn, so the downstream retry still dispatches.
+  if (workItem.role === 'spiritmender') {
     await questModifyOrThrowBroker({
       input: {
         questId,
@@ -173,20 +147,73 @@ export const QuestHandleSignalBackResponder = async ({
             id: workItemId,
             status: 'failed',
             completedAt,
-            errorMessage,
-            actualSignal: 'failed-replan',
+            actualSignal: signal,
+            ...(summary === undefined ? {} : { summary }),
           },
-          ...pendingSkips,
-          replanItem,
         ],
       } as ModifyQuestInput,
     });
     return adapterResultContract.parse({ success: true });
   }
 
-  // signal === 'failed' from a non-minion agent role. Mark the item failed (persisting the agent's
-  // finding so it is durable + readable), then route by role: siegemaster RECOVERs (manual-QA
-  // finding → spiritmender fix → fresh siege re-verification), every other role BLOCKs.
+  // PathSeeker is the planner AND the sole block owner. A `failed` (it could not produce a workable
+  // plan; `failed-replan` from the planner is treated the same) RETRIES within its loop — reset to
+  // `pending`, `attempt + 1`, per-run identity cleared so the next dispatch re-runs it — and only
+  // BLOCKs once its retry budget is spent. No other role reaches a block here.
+  if (workItem.role === 'pathseeker') {
+    if (workItem.attempt < workItem.maxAttempts - 1) {
+      await questModifyOrThrowBroker({
+        input: {
+          questId,
+          workItems: [
+            {
+              id: workItemId,
+              status: 'pending',
+              attempt: workItem.attempt + 1,
+              sessionId: null,
+              agentId: null,
+              startedAt: null,
+              ...(summary === undefined ? {} : { summary }),
+            },
+          ],
+        } as ModifyQuestInput,
+      });
+      return adapterResultContract.parse({ success: true });
+    }
+    await questModifyOrThrowBroker({
+      input: {
+        questId,
+        workItems: [
+          {
+            id: workItemId,
+            status: 'failed',
+            completedAt,
+            ...(summary === undefined ? {} : { summary }),
+          },
+        ],
+      } as ModifyQuestInput,
+    });
+    await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+    return adapterResultContract.parse({ success: true });
+  }
+
+  // `failed-replan` from a code-recovery role: a plan hole it cannot reconcile. Route straight to a
+  // PathSeeker replan (which marks the item failed + superseded, drains pending, and regenerates the
+  // chain on completion). Blocks only when the replan loop is exhausted.
+  if (signal === 'failed-replan') {
+    await questSplicePathseekerReplanBroker({
+      questId,
+      failedWorkItemId: workItemId,
+      brief: summary,
+      actualSignal: 'failed-replan',
+    });
+    return adapterResultContract.parse({ success: true });
+  }
+
+  // `failed` (code) from a code-recovery role: mark the item `failed` (persisting the finding so it is
+  // durable + readable), then splice a spiritmender fix + ward gate + a fresh re-run of the role via
+  // questRecoverRoleBroker. When the role's retry budget is spent the code failure escalates to a
+  // PathSeeker replan — never an immediate block.
   await questModifyOrThrowBroker({
     input: {
       questId,
@@ -201,14 +228,7 @@ export const QuestHandleSignalBackResponder = async ({
     } as ModifyQuestInput,
   });
 
-  if (workItem.role === 'siegemaster') {
-    // RECOVER: splice a spiritmender (fed the finding) + ward(changed) + a fresh siege retry, or
-    // BLOCK when the siege retry budget is exhausted. The broker reloads the quest fresh.
-    await questRecoverSiegeBroker({ questId, failedWorkItemId: workItemId, finding: summary });
-    return adapterResultContract.parse({ success: true });
-  }
-
-  await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+  await questRecoverRoleBroker({ questId, failedWorkItemId: workItemId, finding: summary });
 
   return adapterResultContract.parse({ success: true });
 };

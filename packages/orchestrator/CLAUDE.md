@@ -531,26 +531,26 @@ graph builder + the type added to `questTypeContract`.
 
 ## Agent Roles
 
-On failure, an execution role's work item is marked `failed`, then routed by `role`: `ward` (budget
-remaining) is the only RECOVER path (splice spiritmender(s) + a retry); every agent role — lawbringer
-included — BLOCKS the quest (status `blocked`, pending items `skipped`) — see "Failure handling".
-Lawbringer (and flowrider, siegemaster, blightwarden) fix what they find inline during their own run,
-so a `failed` signal means a genuinely unfixable issue. The quest then derives
-`complete`/`blocked`/`in_progress` from work-item states.
+The orchestrator is RECOVERY-FIRST: no agent role blocks the quest on failure. A `failed` (a code
+failure) splices a spiritmender + a re-run of the same role; a `failed-replan` (a plan hole) splices a
+PathSeeker replan; ward / role retry exhaustion (and orphaned-agent crash-loop exhaustion) escalate to
+a PathSeeker replan. Only PathSeeker blocks the quest — when its replan loop or its own retry budget is
+spent. See "Failure handling". The quest then derives `complete`/`blocked`/`in_progress` from
+work-item states.
 
 | Role                             | Dispatched By                                                                                | Signals                         | MCP Tools (modify-quest)                                               |
 |----------------------------------|----------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
 | ChaosWhisperer                   | `/dumpster-create`                                                                           | N/A (spec)                      | full spec surface (flows, observables, contracts, packagesAffected, …) |
 | Glyphsmith                       | startDesignChat                                                                              | N/A (design)                    | status                                                                 |
-| pathseeker                       | `/dumpster-launch` via Task() (single planner; summons surface/dedup/assertion minions, walks itself) | complete, failed                | planningNotes (scope/synthesis/walkFindings), steps, contracts          |
-| Codeweaver                       | `/dumpster-launch` via Task() (one per package; flows/startup excluded; unit tests)          | complete, failed                | none                                                                   |
+| pathseeker                       | `/dumpster-launch` via Task() (single planner; summons surface/dedup/assertion minions, walks itself) | complete, failed (retry→block) | planningNotes (scope/synthesis/walkFindings), steps, contracts          |
+| Codeweaver                       | `/dumpster-launch` via Task() (one per package; flows/startup excluded; unit tests)          | complete, failed, failed-replan | none                                                                   |
 | Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                                         | terminal set by exit code       | none (server writes wardResults + item status)                         |
-| Flowrider                        | `/dumpster-launch` via Task() (one per flow, chained; owns flows/startup files + flow tests) | complete, failed (→ BLOCK)      | none                                                                   |
-| Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained; manual QA + suite review + gap-fill)   | complete, failed                | none                                                                   |
-| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)                                 | complete, failed (→ BLOCK)      | none (fixes findings inline)                                           |
-| Blightwarden                     | `/dumpster-launch` via Task()                                                                | complete, failed-replan, failed | none                                                                   |
-| Spiritmender                     | `/dumpster-launch` via Task()                                                                | complete, failed                | none                                                                   |
-| PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                           | complete, failed                | none                                                                   |
+| Flowrider                        | `/dumpster-launch` via Task() (one per flow, chained; owns flows/startup files + flow tests) | complete, failed, failed-replan | none                                                                   |
+| Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained; manual QA + suite review + gap-fill)   | complete, failed, failed-replan | none                                                                   |
+| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)                                 | complete, failed, failed-replan | none (fixes findings inline)                                           |
+| Blightwarden                     | `/dumpster-launch` via Task()                                                                | complete, failed, failed-replan | none                                                                   |
+| Spiritmender                     | `/dumpster-launch` via Task()                                                                | complete, failed (soft)         | none                                                                   |
+| PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                           | complete, failed, failed-replan | none                                                                   |
 
 ### PathSeeker work-item graph
 
@@ -584,52 +584,52 @@ are not seeded as work items; they stay on the contract for quest.json back-comp
 Agents report via the `signal-back` MCP tool. The live handler is
 `quest-handle-signal-back-responder.ts`, which:
 
-1. Marks the named work item terminal — `complete` for signal `complete`, `failed` for signal `failed`
-   **or** `failed-replan` — and stamps `completedAt`.
+1. Marks the named work item terminal — `complete` for `complete`; a failure signal routes by role +
+   signal (see "Failure handling") and stamps `completedAt`.
 2. If the item is `pathseeker` AND the signal is `complete`, fires `questPostWalkHookBroker` to
    generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
-3. On a `failed` / `failed-replan` signal, most agent roles block the quest (see "Failure handling").
-   `siegemaster` is the exception — a siege `failed` RECOVERs (spiritmender fixes the
-   implementation/test, then a fresh siege re-verifies). Lawbringer fixes findings inline, so its
-   `failed` signal is an unfixable-issue block, not a recover.
+3. A `failed` (code failure) → spiritmender fix + a re-run of the role. A `failed-replan` (plan hole)
+   → PathSeeker replan. Neither blocks the quest — only PathSeeker does, when its loop is spent.
 
 ### Failure handling
 
 Terminal-failure routing lives in the two places that set terminal status: the `run-ward` broker
 (`quest-run-ward-broker.ts`) for ward items and the `signal-back` handler
-(`quest-handle-signal-back-responder.ts`) for agent items. Routing is keyed on the failing item's
-`role`, and falls into two shapes — **RECOVER** (splice fixers + a retry, quest stays `in_progress`)
-or **BLOCK** (set status `blocked`, halt dispatch).
+(`quest-handle-signal-back-responder.ts`) for agent items. It is RECOVERY-FIRST — every failure
+splices a fixer + retry and the quest stays `in_progress`; the SOLE block path is PathSeeker
+exhausting its loop.
 
-- **ward-fail → RECOVER.** A non-zero ward exit with retry budget remaining
-  (`attempt < maxAttempts - 1`) splices a batch of `spiritmender` items plus a `ward`-retry (same
-  `wardMode`, `attempt + 1`) via `questSpliceFixerBroker`. The spiritmender batch is built from the
-  ward detail blob (`wardDetailToSpiritmenderBatchesTransformer`, `slotManagerStatics.ward.spiritmenderBatchSize`)
-  and delivered through per-item `spiritmender-batches/<id>.json` sidecars. The splice rewires
-  downstream siege/chain dependents off the failed ward onto the retry. When ward's retries are
-  exhausted, the failure routes to BLOCK instead.
-- **siege-fail → RECOVER.** A `siegemaster` `failed` signal splices a `spiritmender` (fed the
-  manual-QA finding via a `spiritmender-batches/<id>.json` sidecar built from the agent's signal-back
-  `summary`) + a `ward(changed)` gate + a fresh `siegemaster` retry (`attempt + 1`, same flow ref)
-  via `questSpliceFixerBroker` (`questRecoverSiegeBroker`). Siegemaster changes no files — it reports
-  the break (or a false-positive green test), the spiritmender fixes the implementation/test
-  red-first, and the fresh siege re-runs the manual-QA pass. Budget is
-  `slotManagerStatics.siegemaster.maxAttempts`; when exhausted the failure routes to BLOCK.
-- **All other agent `failed` / `failed-replan` → BLOCK.** `lawbringer`, `codeweaver`, `flowrider`,
-  `spiritmender`, `blightwarden`, `pathseeker-*`, and `pesteater` failures route through
-  `questBlockOnFailureBroker`. Lawbringer, flowrider, and blightwarden fix what they find inline
-  during their own run (blightwarden routes semantic findings out via `failed-replan`); a `failed`
-  signal from any of them means a genuinely unfixable issue, so it BLOCKS rather than spawning a
-  fixer. The broker sets quest status `blocked` and marks every still-`pending` item `skipped`.
-  `failed-replan` (Blightwarden) is treated as `failed` for status, then routed by the same table
-  (→ BLOCK). A `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on
-  `in_progress`), so dispatch halts.
+- **ward-fail → RECOVER, then REPLAN when exhausted.** A non-zero ward exit with retry budget
+  remaining (`attempt < maxAttempts - 1`) splices a batch of `spiritmender` items plus a `ward`-retry
+  (same `wardMode`, `attempt + 1`) via `questSpliceFixerBroker`, rewiring downstream onto the retry.
+  When ward's retries are exhausted the build could not be made green, so the failure escalates to a
+  PathSeeker replan (`questSplicePathseekerReplanBroker`) — never a direct block.
+- **code-recovery role `failed` (code failure) → RECOVER, then REPLAN when exhausted.** Any
+  code-recovery role (`codeweaver`, `flowrider`, `siegemaster`, `lawbringer`, `blightwarden`,
+  `pesteater` — every non-interactive, non-command, non-planner, non-spiritmender, non-minion role,
+  derived by `codeRecoveryRolesTransformer`) that signals `failed` splices a `spiritmender` (fed the
+  finding via a `spiritmender-batches/<id>.json` sidecar built from the signal-back `summary`) + a
+  `ward(changed)` gate + a fresh re-run of the SAME role (`attempt + 1`, same `relatedDataItems`) via
+  `questRecoverRoleBroker`, rewiring downstream onto the fresh run. Siege keeps its manual-QA
+  spiritmender context; other roles get a generic code-failure context. Budget
+  `slotManagerStatics.<role>.maxAttempts`; when spent the code failure escalates to a PathSeeker
+  replan.
+- **any role `failed-replan` (plan hole) → REPLAN.** `questSplicePathseekerReplanBroker` marks the
+  item `failed` (superseded via `insertedBy`), drains pending to `skipped`, and splices a `pathseeker`
+  replan (`dependsOn: []`) fed the brief; on its completion the post-walk hook regenerates the chain
+  (dedup keeps built work). Bounded by `slotManagerStatics.pathseeker.replanMaxCycles`; once the loop
+  is spent a further replan request routes to `questBlockOnFailureBroker` (the sole block path).
+- **spiritmender `failed` → SOFT**, **pathseeker `failed` → RETRY then BLOCK.** The fixer's own failure
+  just marks it terminal (the ward re-verify / fresh role run spliced after it carries on). A
+  PathSeeker `failed` resets it to `pending` (`attempt + 1`) while budget remains, then blocks. A
+  `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on `in_progress`), so
+  dispatch halts.
 - **Flowrider and Siegemaster own their dev server.** For runtime flows, both agents control their own
   dev server via Playwright's `webServer` config (
   `{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`),
   resolved from `.dungeonmaster.json` (`devCommand` + dev `port`) and passed into their WorkUnit by
   `agentPromptGetBroker`. Operational flows run no server. If either cannot build/start, it signals
-  `failed` → BLOCK per the table.
+  `failed` → spiritmender recovery per the table.
 
 Recovery splices append work items with correct `dependsOn` (the same dynamic-insertion mechanism the
 post-walk hook uses) and rewire downstream via `replacementMapping`. Both routing brokers are

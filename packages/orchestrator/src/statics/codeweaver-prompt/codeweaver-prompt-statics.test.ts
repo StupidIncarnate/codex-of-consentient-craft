@@ -168,4 +168,73 @@ describe('codeweaverPromptStatics', () => {
 
     expect(found).toBe(needle);
   });
+
+  it('VALID: prompt template => grants in-slice planning authority', () => {
+    const needle = '**You have authority over your own slice.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => forbids touching other slices', () => {
+    const needle = '**Stay inside your slice.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => distinguishes the failed vs failed-replan escape hatches by kind of wall', () => {
+    const needle =
+      "A cross-slice contract mismatch or an architectural gap no in-slice decision can close is `signal-back({ signal: 'failed-replan', ... })`; it routes to PathSeeker, which fixes the quest's plan.";
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => Codeweaver emits three signals', () => {
+    const needle = '**Codeweaver emits three signals: `complete`, `failed`, or `failed-replan`.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => failed never blocks the quest, spiritmender fixes and re-runs', () => {
+    const needle =
+      '`failed` is an in-slice code failure you could not fix — a spiritmender fixes it, ward re-verifies, then you re-run to continue; it NEVER blocks the quest.';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => failed-replan never blocks the quest, PathSeeker re-plans', () => {
+    const needle =
+      "`failed-replan` is a plan hole you could not reconcile in-slice — PathSeeker fixes the quest's plan; it NEVER blocks the quest either.";
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
 });

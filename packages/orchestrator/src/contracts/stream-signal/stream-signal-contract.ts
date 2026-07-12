@@ -8,12 +8,11 @@
 
 import { z } from 'zod';
 
-// Mirror of MCP's signalBackInputContract for local validation
-// Agents signal complete, failed, or failed-replan. The orchestrator owns failure routing
-// (which role to spawn next) via a static role map — agents don't choose.
-// failed-replan is emitted by blightwarden when semantic findings require PathSeeker to add
-// new steps before retry; the run-blightwarden-layer-broker drains+skips pending items and
-// spawns a PathSeeker replan (handle-signal-layer-broker only maps signal: failed).
+// Mirror of MCP's signalBackInputContract for local validation. Agents signal complete, failed, or
+// failed-replan; the orchestrator owns recovery-first failure routing (quest-handle-signal-back-
+// responder) — agents don't choose. `failed` is a code failure (→ spiritmender fix + re-run the
+// role); `failed-replan` is a plan hole (→ PathSeeker replan). Neither blocks the quest — only
+// PathSeeker does, when its replan/retry loop is spent.
 export const streamSignalContract = z.object({
   signal: z.enum(['complete', 'failed', 'failed-replan']),
   summary: z.string().min(1).brand<'SignalSummary'>().optional(),
