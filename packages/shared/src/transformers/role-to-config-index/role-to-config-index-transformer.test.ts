@@ -31,42 +31,30 @@ describe('roleToConfigIndexTransformer', () => {
   });
 
   describe('ward floorName disambiguation', () => {
-    it('VALID: {role: ward, no floorName} => returns 8 (first ward / MINI BOSS entry)', () => {
+    it('VALID: {role: ward, no floorName} => returns 4 (first ward / MINI BOSS entry)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
       });
 
-      expect(result).toBe(8);
+      expect(result).toBe(4);
     });
 
-    it('VALID: {role: ward, floorName: MINI BOSS} => returns 8 (MINI BOSS entry)', () => {
+    it('VALID: {role: ward, floorName: MINI BOSS} => returns 4 (MINI BOSS entry)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
         floorName: FloorNameStub({ value: 'MINI BOSS' }),
       });
 
-      expect(result).toBe(8);
+      expect(result).toBe(4);
     });
 
-    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 19 (FLOOR BOSS entry, last floor)', () => {
+    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 15 (FLOOR BOSS entry, last floor)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
         floorName: FloorNameStub({ value: 'FLOOR BOSS' }),
       });
 
-      expect(result).toBe(19);
-    });
-  });
-
-  describe('pathseeker HOMEBASE entry', () => {
-    it('VALID: {role: pathseeker} => returns its HOMEBASE config index (last position, appended)', () => {
-      const result = roleToConfigIndexTransformer({
-        role: WorkItemRoleStub({ value: 'pathseeker' }),
-      });
-
-      expect(result).toBe(
-        executionFloorConfigStatics.floors.findIndex((f) => f.role === 'pathseeker'),
-      );
+      expect(result).toBe(15);
     });
   });
 

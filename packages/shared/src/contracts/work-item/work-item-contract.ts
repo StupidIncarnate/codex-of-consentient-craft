@@ -13,7 +13,6 @@ import { fileNameContract } from '../file-name/file-name-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
-import { sliceNameContract } from '../slice-name/slice-name-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
@@ -31,6 +30,11 @@ export const workItemContract = z.object({
   // file the replay should read. Absent for chat roles (chaoswhisperer, glyphsmith) whose
   // `sessionId` already points at a top-level `<sessionId>.jsonl`.
   agentId: agentIdContract.optional(),
+  // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph
+  // builder, and questAdvanceBroker): every work item carries exactly ONE `operations/<id>`
+  // ref linking it to its operation item on the quest operations ledger, and each operation
+  // item is worked by exactly ONE work item over its life (strict 1:1 — never re-linked,
+  // never status-reverted). Ward items may additionally carry a `wardResults/<id>` ref.
   relatedDataItems: z.array(relatedDataItemContract).default([]),
   dependsOn: z.array(questWorkItemIdContract).default([]),
   attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),
@@ -43,11 +47,12 @@ export const workItemContract = z.object({
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),
-  // Links a pathseeker-surface work item to its assigned slice on
-  // `quest.planningNotes.scopeClassification.slices[]`. Stamped at insertion by
-  // `questBuildPathseekerGraphBroker`; read by `agentPromptGetBroker` when
-  // building `$ARGUMENTS` so the agent receives its slice's `{name, packages, flowIds}`.
-  sliceName: sliceNameContract.optional(),
+  resume: z
+    .boolean()
+    .optional()
+    .describe(
+      'Set by orphan recovery when it flips a crashed in_progress item back to pending while KEEPING sessionId: dispatch must resume that Claude session (claude --resume) instead of fresh-spawning, so work in the orphaned session is preserved',
+    ),
   wardMode: z.enum(['changed', 'full']).optional(),
   smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),

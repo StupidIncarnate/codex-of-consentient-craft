@@ -35,12 +35,12 @@ describe('modifyQuestInputContract', () => {
   it('VALID: {pausedAtStatus} => parses with pausedAtStatus field (orchestrator-only, stripped at MCP layer)', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
-      pausedAtStatus: 'seek_scope',
+      pausedAtStatus: 'in_progress',
     });
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      pausedAtStatus: 'seek_scope',
+      pausedAtStatus: 'in_progress',
     });
   });
 
@@ -108,27 +108,54 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  it('VALID: {steps partial-patch shape: id + instructions only} => parses successfully', () => {
+  it('VALID: {operations full shape} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
-      steps: [{ id: 'web-update-widget', instructions: ['Make sure to handle empty arrays'] }],
+      operations: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          status: 'pending',
+        },
+      ],
     });
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      steps: [{ id: 'web-update-widget', instructions: ['Make sure to handle empty arrays'] }],
+      operations: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          status: 'pending',
+          locked: false,
+        },
+      ],
     });
   });
 
-  it('VALID: {steps partial-patch shape: id only} => parses as no-op patch', () => {
+  it('VALID: {operations partial-patch shape: id + status only} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
-      steps: [{ id: 'web-update-widget' }],
+      operations: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'complete' }],
     });
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      steps: [{ id: 'web-update-widget' }],
+      operations: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'complete' }],
+    });
+  });
+
+  it('VALID: {operations delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      operations: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      operations: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
     });
   });
 
@@ -188,70 +215,37 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
-  it('INVALID: {steps partial-patch missing id} => throws validation error', () => {
+  it('INVALID: {operations partial-patch missing id} => throws validation error', () => {
     expect(() => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
-        steps: [{ instructions: ['orphan patch'] } as never],
+        operations: [{ status: 'complete' } as never],
       });
     }).toThrow(/Required|Invalid/u);
   });
 
-  it('VALID: {steps partial-patch: id + assertions patched by id} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      steps: [
-        {
-          id: 'web-update-widget',
-          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', expected: 'returns 220' }],
-        },
-      ],
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      steps: [
-        {
-          id: 'web-update-widget',
-          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', expected: 'returns 220' }],
-        },
-      ],
-    });
-  });
-
-  it('VALID: {steps partial-patch: assertion delete marker} => parses successfully', () => {
-    const result = modifyQuestInputContract.parse({
-      questId: 'add-auth',
-      steps: [
-        {
-          id: 'web-update-widget',
-          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', _delete: true }],
-        },
-      ],
-    });
-
-    expect(result).toStrictEqual({
-      questId: 'add-auth',
-      steps: [
-        {
-          id: 'web-update-widget',
-          assertions: [{ id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d', _delete: true }],
-        },
-      ],
-    });
-  });
-
-  it('INVALID: {steps partial-patch: assertion missing id} => throws validation error', () => {
+  it('INVALID: {operations item with partial status} => throws validation error', () => {
     expect(() => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
-        steps: [
+        operations: [
           {
-            id: 'web-update-widget',
-            assertions: [{ expected: 'orphan assertion patch' } as never],
-          },
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            role: 'codeweaver',
+            text: 'core: config load+validate adapter',
+            status: 'partial',
+          } as never,
         ],
       });
-    }).toThrow(/Required|Invalid/u);
+    }).toThrow(/Invalid/u);
+  });
+
+  it('INVALID: {steps key} => throws Unrecognized key error (removed field)', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        steps: [{ id: 'web-update-widget' }],
+      } as never);
+    }).toThrow(/Unrecognized key/u);
   });
 });

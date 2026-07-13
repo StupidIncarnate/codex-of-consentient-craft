@@ -2,20 +2,24 @@
  * PURPOSE: Defines the structure of a signal extracted from Claude stream-json output
  *
  * USAGE:
- * const signal = streamSignalContract.parse({ signal: 'complete', summary: '...' });
+ * const signal = streamSignalContract.parse({ signal: 'complete', operationItemId, operationStatus: 'done' });
  * // Returns validated StreamSignal from agent's MCP tool call
  */
 
 import { z } from 'zod';
 
-// Mirror of MCP's signalBackInputContract for local validation. Agents signal complete, failed, or
-// failed-replan; the orchestrator owns recovery-first failure routing (quest-handle-signal-back-
-// responder) — agents don't choose. `failed` is a code failure (→ spiritmender fix + re-run the
-// role); `failed-replan` is a plan hole (→ PathSeeker replan). Neither blocks the quest — only
-// PathSeeker does, when its replan/retry loop is spent.
+import { operationItemIdContract } from '@dungeonmaster/shared/contracts';
+
+// Mirror of MCP's signalBackInputContract for local validation. `complete` is the sole signal
+// kind (session-terminal marker); the outcome rides on the call as operationStatus. The handler
+// applies it server-side: 'done' → the linked operation item completes and dispatch advances;
+// 'partial' → the item completes AND a "pt N" continuation is appended for a fresh session.
+// There is no failure signal — agents fix their own problems and move forward; the only failure
+// concept is a ward exit-code red, handled inside quest-run-ward-broker.
 export const streamSignalContract = z.object({
-  signal: z.enum(['complete', 'failed', 'failed-replan']),
-  summary: z.string().min(1).brand<'SignalSummary'>().optional(),
+  signal: z.literal('complete'),
+  operationItemId: operationItemIdContract.optional(),
+  operationStatus: z.enum(['done', 'partial']).optional(),
 });
 
 export type StreamSignal = z.infer<typeof streamSignalContract>;

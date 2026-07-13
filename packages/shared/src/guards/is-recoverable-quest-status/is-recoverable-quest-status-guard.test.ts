@@ -13,9 +13,6 @@ const RECOVERABLE_STATUSES: ReadonlySet<keyof typeof questStatusMetadataStatics.
     'flows_approved',
     'explore_observables',
     'explore_design',
-    'seek_scope',
-    'seek_synth',
-    'seek_walk',
     'in_progress',
   ],
 );

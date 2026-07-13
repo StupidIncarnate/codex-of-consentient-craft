@@ -1,6 +1,5 @@
 import { FlowStub } from '../../contracts/flow/flow.stub';
-import { PlanningScopeClassificationStub } from '../../contracts/planning-scope-classification/planning-scope-classification.stub';
-import { PlanningSynthesisStub } from '../../contracts/planning-synthesis/planning-synthesis.stub';
+import { OperationItemStub } from '../../contracts/operation-item/operation-item.stub';
 import { QuestStub } from '../../contracts/quest/quest.stub';
 import { QuestStatusStub } from '../../contracts/quest-status/quest-status.stub';
 import { hasQuestGateContentGuard } from './has-quest-gate-content-guard';
@@ -27,8 +26,11 @@ describe('hasQuestGateContentGuard', () => {
   });
 
   describe('approved gate', () => {
-    it('VALID: {quest with flows, nextStatus: approved} => returns true', () => {
-      const quest = QuestStub({ flows: [FlowStub()] });
+    it('VALID: {quest with flows + codeweaver operation, nextStatus: approved} => returns true', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+        operations: [OperationItemStub({ role: 'codeweaver' })],
+      });
       const nextStatus = QuestStatusStub({ value: 'approved' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
@@ -37,12 +39,59 @@ describe('hasQuestGateContentGuard', () => {
     });
 
     it('INVALID: {quest with empty flows, nextStatus: approved} => returns false', () => {
-      const quest = QuestStub({ flows: [] });
+      const quest = QuestStub({
+        flows: [],
+        operations: [OperationItemStub({ role: 'codeweaver' })],
+      });
       const nextStatus = QuestStatusStub({ value: 'approved' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
 
       expect(result).toBe(false);
+    });
+
+    it('INVALID: {quest with empty operations ledger, nextStatus: approved} => returns false', () => {
+      const quest = QuestStub({ flows: [FlowStub()], operations: [] });
+      const nextStatus = QuestStatusStub({ value: 'approved' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {quest with operations but no codeweaver item, nextStatus: approved} => returns false', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+        operations: [
+          OperationItemStub({ role: 'chaoswhisperer', text: 'Author spec + implementation plan' }),
+        ],
+      });
+      const nextStatus = QuestStatusStub({ value: 'approved' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(false);
+    });
+
+    it('VALID: {plan item + codeweaver items on ledger, nextStatus: approved} => returns true', () => {
+      const quest = QuestStub({
+        flows: [FlowStub()],
+        operations: [
+          OperationItemStub({
+            id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+            role: 'chaoswhisperer',
+            text: 'Author spec + implementation plan',
+            status: 'complete',
+            locked: true,
+          }),
+          OperationItemStub({ role: 'codeweaver' }),
+        ],
+      });
+      const nextStatus = QuestStatusStub({ value: 'approved' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
     });
   });
 
@@ -106,68 +155,6 @@ describe('hasQuestGateContentGuard', () => {
     it('VALID: {nextStatus: review_design} => returns true', () => {
       const quest = QuestStub();
       const nextStatus = QuestStatusStub({ value: 'review_design' });
-
-      const result = hasQuestGateContentGuard({ quest, nextStatus });
-
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('dot-path gates', () => {
-    it('VALID: {planningNotes.scopeClassification defined, nextStatus: seek_synth} => returns true', () => {
-      const quest = QuestStub({
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          surfaceReports: [],
-          blightReports: [],
-          codeweaverPlans: [],
-        },
-      });
-      const nextStatus = QuestStatusStub({ value: 'seek_synth' });
-
-      const result = hasQuestGateContentGuard({ quest, nextStatus });
-
-      expect(result).toBe(true);
-    });
-
-    it('INVALID: {planningNotes.scopeClassification undefined, nextStatus: seek_synth} => returns false', () => {
-      const quest = QuestStub({
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-      });
-      const nextStatus = QuestStatusStub({ value: 'seek_synth' });
-
-      const result = hasQuestGateContentGuard({ quest, nextStatus });
-
-      expect(result).toBe(false);
-    });
-
-    it('INVALID: {planningNotes.synthesis undefined, nextStatus: seek_walk} => returns false', () => {
-      const quest = QuestStub({
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          surfaceReports: [],
-          blightReports: [],
-          codeweaverPlans: [],
-        },
-      });
-      const nextStatus = QuestStatusStub({ value: 'seek_walk' });
-
-      const result = hasQuestGateContentGuard({ quest, nextStatus });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {planningNotes.scopeClassification + synthesis defined, nextStatus: seek_walk} => returns true', () => {
-      const quest = QuestStub({
-        planningNotes: {
-          scopeClassification: PlanningScopeClassificationStub(),
-          synthesis: PlanningSynthesisStub(),
-          surfaceReports: [],
-          blightReports: [],
-          codeweaverPlans: [],
-        },
-      });
-      const nextStatus = QuestStatusStub({ value: 'seek_walk' });
 
       const result = hasQuestGateContentGuard({ quest, nextStatus });
 

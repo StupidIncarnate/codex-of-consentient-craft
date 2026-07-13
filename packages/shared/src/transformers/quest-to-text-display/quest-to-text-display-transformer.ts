@@ -110,70 +110,19 @@ export const questToTextDisplayTransformer = ({ quest }: { quest: Quest }): Cont
   }
 
   parts.push(contentTextContract.parse(''));
-  parts.push(contentTextContract.parse(SYM.sectionHeaders.steps));
+  parts.push(contentTextContract.parse(SYM.sectionHeaders.operations));
   parts.push(contentTextContract.parse(''));
-  if (quest.steps.length === 0) {
+  if (quest.operations.length === 0) {
     parts.push(contentTextContract.parse(SYM.none));
   } else {
-    for (const step of quest.steps) {
-      parts.push(contentTextContract.parse(`#${step.id}: "${step.name}"`));
-      parts.push(contentTextContract.parse(`${SYM.indent}Assertions:`));
-      for (const a of step.assertions) {
-        const idPart = a.id === undefined ? '' : `[${String(a.id)}] `;
-        const fieldPart = a.field === undefined ? '' : ` field=${String(a.field)}`;
-        const satisfiesPart =
-          a.observablesSatisfied === undefined || a.observablesSatisfied.length === 0
-            ? ''
-            : ` satisfies ${a.observablesSatisfied.map((oid) => `#${String(oid)}`).join(', ')}`;
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}${SYM.indent}${idPart}${a.prefix}${fieldPart}: ${a.input} => ${a.expected}${satisfiesPart}`,
-          ),
-        );
-      }
-      const focusDescription =
-        step.focusFile === undefined
-          ? step.focusAction === undefined
-            ? '(none)'
-            : `[${step.focusAction.kind}] ${step.focusAction.description}`
-          : step.focusFile.path;
-      parts.push(contentTextContract.parse(`${SYM.indent}Focus: ${focusDescription}`));
-      if (step.accompanyingFiles.length > 0) {
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}Accompanying: ${step.accompanyingFiles.map((f) => f.path).join(', ')}`,
-          ),
-        );
-      }
-      if (step.observablesSatisfied.length > 0) {
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}Satisfies: ${step.observablesSatisfied.map((oid) => `#${String(oid)}`).join(', ')}`,
-          ),
-        );
-      }
-      if (step.dependsOn.length > 0) {
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}Depends on: ${step.dependsOn.map((sid) => `#${String(sid)}`).join(', ')}`,
-          ),
-        );
-      }
-      if (step.exportName) {
-        parts.push(contentTextContract.parse(`${SYM.indent}Export: ${String(step.exportName)}`));
-      }
+    for (const operation of quest.operations) {
+      const lockedPart = operation.locked ? ' [locked]' : '';
+      const wardModePart = operation.wardMode === undefined ? '' : ` (${operation.wardMode})`;
       parts.push(
         contentTextContract.parse(
-          `${SYM.indent}Contracts in: ${step.inputContracts.map((c) => String(c)).join(', ')} | out: ${step.outputContracts.map((c) => String(c)).join(', ')}`,
+          `#${String(operation.id)}: [${operation.role}${wardModePart}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}`,
         ),
       );
-      if (step.uses.length > 0) {
-        parts.push(
-          contentTextContract.parse(
-            `${SYM.indent}Uses: ${step.uses.map((u) => String(u)).join(', ')}`,
-          ),
-        );
-      }
     }
   }
 

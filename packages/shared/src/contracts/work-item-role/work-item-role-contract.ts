@@ -11,24 +11,16 @@ import { z } from 'zod';
 export const workItemRoleContract = z.enum([
   'chaoswhisperer',
   'glyphsmith',
-  /** PathSeeker: the single planning work item. It classifies scope, summons
-   * `pathseeker-surface`/`-dedup`/`-assertion-correctness` minions as `Agent` sub-agents, then
-   * runs the architect-review walk itself. On `complete` the post-walk hook generates the
-   * codeweaver chain. */
-  'pathseeker',
-  /** @deprecated These pathseeker sub-role values are not seeded as work items — `pathseeker`
-   * summons `pathseeker-surface`/`-dedup`/`-assertion-correctness` as sub-agents and runs the walk
-   * itself. Kept so quest.json files that carry these role values still parse. */
-  'pathseeker-surface',
-  'pathseeker-dedup',
-  'pathseeker-assertion-correctness',
-  'pathseeker-walk',
+  /** Codeweaver: the implementation relay worker. Each codeweaver operation item on the quest
+   * operations ledger gets one codeweaver work item (session); it builds via codeweaver-minion
+   * sub-agents, commits a prose git handoff, and signals done or partially_complete. */
   'codeweaver',
   'ward',
   'spiritmender',
-  /** Flowrider: authors the flow-perspective test suite (integration for API/CLI/server flows,
-   * e2e for UI flows) and owns the `flows/` + `startup/` implementation files. Dispatched one
-   * per quest flow, chained, after ward(changed) and before siegemaster. */
+  /** Flowrider: verify role — authors the flow-perspective test suite (integration for
+   * API/CLI/server flows, e2e for UI flows) and owns the `flows/` + `startup/` implementation
+   * files. Self-scopes over ALL quest flows within one session; loops via pt N continuation
+   * items until a fresh pass changes nothing. */
   'flowrider',
   'siegemaster',
   'lawbringer',
@@ -42,8 +34,8 @@ export const workItemRoleContract = z.enum([
   'blightwarden-integrity-minion',
   'blightwarden-dead-code-minion',
   /** Blightwarden synthesizer: runs after the five minions, reads their reports, judges/dedups,
-   * applies the final cleanup, and escalates to a pathseeker replan via `failed-replan` when it
-   * cannot resolve a finding. */
+   * and applies the final cleanup. Signals done when a pass changes nothing, partially_complete
+   * when it changed code (the orchestrator appends a pt N continuation for a fresh pass). */
   'blightwarden',
   /** Bug Hunt quest type: a single TDD agent that investigates the bug, writes a failing test
    * first, then fixes it. Front of the bug-hunt work-item flow. */

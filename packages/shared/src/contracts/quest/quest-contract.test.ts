@@ -1,5 +1,5 @@
-import { DependencyStepStub } from '../dependency-step/dependency-step.stub';
 import { FlowStub } from '../flow/flow.stub';
+import { OperationItemStub } from '../operation-item/operation-item.stub';
 import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
@@ -24,7 +24,7 @@ describe('questContract', () => {
         questType: 'feature',
         createdAt: '2024-01-15T10:00:00.000Z',
         designDecisions: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         contracts: [],
@@ -33,7 +33,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
       });
     });
 
@@ -54,7 +54,7 @@ describe('questContract', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
         completedAt: '2024-01-16T10:00:00.000Z',
         designDecisions: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         contracts: [],
@@ -63,7 +63,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
       });
     });
 
@@ -84,7 +84,7 @@ describe('questContract', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
         abandonReason: 'Requirements changed',
         designDecisions: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         contracts: [],
@@ -93,19 +93,19 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
       });
     });
 
-    it('VALID: quest with steps => parses successfully', () => {
-      const step = DependencyStepStub();
+    it('VALID: quest with operations => parses successfully', () => {
+      const operation = OperationItemStub();
       const quest = QuestStub({
-        steps: [step],
+        operations: [operation],
       });
 
       const result = questContract.parse(quest);
 
-      expect(result.steps).toStrictEqual([step]);
+      expect(result.operations).toStrictEqual([operation]);
     });
 
     it('VALID: quest with toolingRequirements => parses successfully', () => {
@@ -172,7 +172,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         designDecisions: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         contracts: [],
@@ -183,7 +183,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
       });
     });
 
@@ -195,7 +195,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -210,7 +210,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -247,7 +247,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -262,7 +262,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -282,22 +282,18 @@ describe('questContract', () => {
       });
       const quest = QuestStub({
         planningNotes: {
-          surfaceReports: [],
           blightReports: [firstReport, secondReport],
-          codeweaverPlans: [],
         },
       });
 
       const result = questContract.parse(quest);
 
       expect(result.planningNotes).toStrictEqual({
-        surfaceReports: [],
         blightReports: [firstReport, secondReport],
-        codeweaverPlans: [],
       });
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to {surfaceReports: [], blightReports: []}', () => {
+    it('VALID: quest without planningNotes field => backward compat defaults to {blightReports: []}', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -305,26 +301,24 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
       expect(result.planningNotes).toStrictEqual({
-        surfaceReports: [],
         blightReports: [],
-        codeweaverPlans: [],
       });
     });
 
     it('VALID: quest with pausedAtStatus => parses successfully', () => {
       const quest = QuestStub({
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'in_progress',
       });
 
       const result = questContract.parse(quest);
 
-      expect(result.pausedAtStatus).toBe('seek_scope');
+      expect(result.pausedAtStatus).toBe('in_progress');
     });
 
     it('VALID: quest without pausedAtStatus field => backward compat leaves it undefined', () => {
@@ -335,7 +329,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -350,7 +344,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         pausedAtStatus: null,
       });
@@ -374,7 +368,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -402,7 +396,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -426,7 +420,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 
@@ -449,7 +443,7 @@ describe('questContract', () => {
         status: 'in_progress',
         createdAt: '2024-01-15T10:00:00.000Z',
         userRequest: 'Add authentication to the application',
-        steps: [],
+        operations: [],
         toolingRequirements: [],
       });
 

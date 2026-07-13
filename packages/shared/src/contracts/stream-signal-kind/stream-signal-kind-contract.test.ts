@@ -11,22 +11,6 @@ describe('streamSignalKindContract', () => {
       expect(result).toBe('complete');
     });
 
-    it('VALID: failed => parses successfully', () => {
-      const kind = StreamSignalKindStub({ value: 'failed' });
-
-      const result = streamSignalKindContract.parse(kind);
-
-      expect(result).toBe('failed');
-    });
-
-    it('VALID: failed-replan => parses successfully', () => {
-      const kind = StreamSignalKindStub({ value: 'failed-replan' });
-
-      const result = streamSignalKindContract.parse(kind);
-
-      expect(result).toBe('failed-replan');
-    });
-
     it('VALID: {default} => defaults to complete', () => {
       const kind = StreamSignalKindStub();
 
@@ -35,6 +19,18 @@ describe('streamSignalKindContract', () => {
   });
 
   describe('invalid kinds', () => {
+    it('INVALID: failed => throws validation error (there is no failure signal)', () => {
+      expect(() => {
+        streamSignalKindContract.parse('failed');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: failed-replan => throws validation error (there is no failure signal)', () => {
+      expect(() => {
+        streamSignalKindContract.parse('failed-replan');
+      }).toThrow(/Invalid enum value/u);
+    });
+
     it('INVALID: unknown signal kind => throws validation error', () => {
       expect(() => {
         streamSignalKindContract.parse('bogus');

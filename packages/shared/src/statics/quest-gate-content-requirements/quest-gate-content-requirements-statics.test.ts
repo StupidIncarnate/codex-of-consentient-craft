@@ -5,10 +5,11 @@ describe('questGateContentRequirementsStatics', () => {
     expect(questGateContentRequirementsStatics).toStrictEqual({
       gates: {
         flows_approved: ['flows'],
-        approved: ['flows'],
+        approved: [
+          'flows',
+          { field: 'operations', contains: { key: 'role', value: 'codeweaver' } },
+        ],
         design_approved: ['flows'],
-        seek_synth: ['planningNotes.scopeClassification'],
-        seek_walk: ['planningNotes.scopeClassification', 'planningNotes.synthesis'],
       },
     });
   });

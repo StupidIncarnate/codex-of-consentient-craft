@@ -4,8 +4,8 @@
  * USAGE:
  * hasQuestGateContentGuard({ quest, nextStatus: 'flows_approved' });
  * // Returns true if quest.flows.length > 0, false otherwise
- * hasQuestGateContentGuard({ quest, nextStatus: 'seek_walk' });
- * // Returns true if quest.planningNotes.scopeClassification is defined AND quest.planningNotes.synthesis is defined
+ * hasQuestGateContentGuard({ quest, nextStatus: 'approved' });
+ * // Returns true if quest.flows is non-empty AND quest.operations contains at least one role:codeweaver item
  */
 
 import type { Quest } from '../../contracts/quest/quest-contract';
@@ -32,7 +32,8 @@ export const hasQuestGateContentGuard = ({
   const requiredFields = gates[nextStatus as keyof typeof gates];
 
   return requiredFields.every((requirement) => {
-    const segments = requirement.split('.');
+    const path = typeof requirement === 'string' ? requirement : requirement.field;
+    const segments = path.split('.');
     let current: unknown = quest;
 
     for (const segment of segments) {
@@ -40,6 +41,18 @@ export const hasQuestGateContentGuard = ({
         return false;
       }
       current = Reflect.get(current, segment);
+    }
+
+    if (typeof requirement !== 'string') {
+      if (!Array.isArray(current)) {
+        return false;
+      }
+      return current.some((item: unknown) => {
+        if (item === null || item === undefined || typeof item !== 'object') {
+          return false;
+        }
+        return Reflect.get(item, requirement.contains.key) === requirement.contains.value;
+      });
     }
 
     if (current === null || current === undefined) {

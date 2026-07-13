@@ -2,7 +2,7 @@ import { questStatusMetadataStatics } from './quest-status-metadata-statics';
 
 describe('questStatusMetadataStatics', () => {
   describe('coverage', () => {
-    it('VALID: statuses => covers all 19 quest statuses', () => {
+    it('VALID: statuses => covers all 16 quest statuses', () => {
       const statusKeys = Object.keys(questStatusMetadataStatics.statuses).sort();
 
       expect(statusKeys).toStrictEqual(
@@ -23,9 +23,6 @@ describe('questStatusMetadataStatics', () => {
           'review_design',
           'review_flows',
           'review_observables',
-          'seek_scope',
-          'seek_synth',
-          'seek_walk',
         ].sort(),
       );
     });
@@ -35,7 +32,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: in_progress => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.in_progress).toStrictEqual({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: true,
         isActivelyExecuting: true,
         isUserPaused: false,
@@ -57,35 +53,9 @@ describe('questStatusMetadataStatics', () => {
       });
     });
 
-    it('VALID: seek_scope => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.seek_scope).toStrictEqual({
-        isPreExecution: false,
-        isPathseekerRunning: true,
-        isAnyAgentRunning: true,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: false,
-        isRecoverable: true,
-        isAutoResumable: false,
-        isGateApproved: false,
-        isDesignPhase: false,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        shouldRenderExecutionPanel: true,
-        nextApprovalStatus: null,
-        previousReviewStatus: null,
-        displayHeader: 'SEEK SCOPE',
-      });
-    });
-
     it('VALID: approved => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.approved).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -110,7 +80,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: review_flows => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.review_flows).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -135,7 +104,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: review_observables => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.review_observables).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -160,7 +128,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: review_design => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.review_design).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -185,7 +152,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: paused => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.paused).toStrictEqual({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: true,
@@ -210,7 +176,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: complete => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.complete).toStrictEqual({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -235,7 +200,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: abandoned => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.abandoned).toStrictEqual({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -260,7 +224,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: blocked => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.blocked).toStrictEqual({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -285,7 +248,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: created => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.created).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -311,7 +273,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: pending => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.pending).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -336,7 +297,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: explore_flows => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.explore_flows).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -361,7 +321,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: flows_approved => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.flows_approved).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -386,7 +345,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: explore_observables => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.explore_observables).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -411,7 +369,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: explore_design => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.explore_design).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -436,7 +393,6 @@ describe('questStatusMetadataStatics', () => {
     it('VALID: design_approved => matches expected metadata', () => {
       expect(questStatusMetadataStatics.statuses.design_approved).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -455,56 +411,6 @@ describe('questStatusMetadataStatics', () => {
         nextApprovalStatus: null,
         previousReviewStatus: 'review_design',
         displayHeader: 'DESIGN APPROVED',
-      });
-    });
-
-    it('VALID: seek_synth => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.seek_synth).toStrictEqual({
-        isPreExecution: false,
-        isPathseekerRunning: true,
-        isAnyAgentRunning: true,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: false,
-        isRecoverable: true,
-        isAutoResumable: false,
-        isGateApproved: false,
-        isDesignPhase: false,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        shouldRenderExecutionPanel: true,
-        nextApprovalStatus: null,
-        previousReviewStatus: null,
-        displayHeader: 'SEEK SYNTH',
-      });
-    });
-
-    it('VALID: seek_walk => matches expected metadata', () => {
-      expect(questStatusMetadataStatics.statuses.seek_walk).toStrictEqual({
-        isPreExecution: false,
-        isPathseekerRunning: true,
-        isAnyAgentRunning: true,
-        isActivelyExecuting: false,
-        isUserPaused: false,
-        isQuestBlocked: false,
-        isTerminal: false,
-        isPauseable: true,
-        isResumable: false,
-        isStartable: false,
-        isRecoverable: true,
-        isAutoResumable: false,
-        isGateApproved: false,
-        isDesignPhase: false,
-        isAbandonable: true,
-        isCompletedSuccessfully: false,
-        shouldRenderExecutionPanel: true,
-        nextApprovalStatus: null,
-        previousReviewStatus: null,
-        displayHeader: 'SEEK WALK',
       });
     });
   });

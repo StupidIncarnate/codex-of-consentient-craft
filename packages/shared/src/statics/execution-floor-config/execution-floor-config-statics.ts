@@ -10,14 +10,6 @@ export const executionFloorConfigStatics = {
   floors: [
     { name: 'HOMEBASE', role: 'chaoswhisperer', type: 'entrance' },
     { name: 'HOMEBASE', role: 'glyphsmith', type: 'entrance' },
-    { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-surface', type: 'entrance' },
-    { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-dedup', type: 'entrance' },
-    {
-      name: 'ENTRANCE: MAPPING DUMPSTER',
-      role: 'pathseeker-assertion-correctness',
-      type: 'entrance',
-    },
-    { name: 'ENTRANCE: MAPPING DUMPSTER', role: 'pathseeker-walk', type: 'entrance' },
     { name: 'FORGE', role: 'codeweaver', type: 'floor' },
     { name: 'EXTERMINATION', role: 'pesteater', type: 'floor' },
     { name: 'MINI BOSS', role: 'ward', wardPosition: 'first', type: 'floor' },
@@ -32,6 +24,5 @@ export const executionFloorConfigStatics = {
     { name: 'QUARANTINE: WARDENS', role: 'blightwarden-dead-code-minion', type: 'floor' },
     { name: 'QUARANTINE', role: 'blightwarden', type: 'floor' },
     { name: 'FLOOR BOSS', role: 'ward', wardPosition: 'last', type: 'floor' },
-    { name: 'HOMEBASE', role: 'pathseeker', type: 'entrance' },
   ],
 } as const;

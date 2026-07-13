@@ -6,12 +6,11 @@ import type { GetQuestInput } from './get-quest-input-contract';
 export const GetQuestInputStub = ({
   ...props
 }: StubArgument<GetQuestInput> = {}): GetQuestInput => {
-  const { stage, slice, ...dataProps } = props;
+  const { stage, ...dataProps } = props;
 
   return getQuestInputContract.parse({
     questId: 'test-quest',
     ...dataProps,
     ...(stage !== undefined && { stage }),
-    ...(slice !== undefined && { slice }),
   });
 };

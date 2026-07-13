@@ -28,7 +28,7 @@ describe('textDisplaySymbolsStatics', () => {
         designDecisions: '## Design Decisions',
         contracts: '## Contracts',
         tooling: '## Tooling',
-        steps: '## Steps',
+        operations: '## Operations',
       },
       none: '(none)',
       terminal: '(terminal)',

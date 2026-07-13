@@ -14,7 +14,6 @@ export * from './src/guards/is-non-test-file/is-non-test-file-guard';
 
 // Quest Status Guards
 export * from './src/guards/is-pre-execution-quest-status/is-pre-execution-quest-status-guard';
-export * from './src/guards/is-pathseeker-running-quest-status/is-pathseeker-running-quest-status-guard';
 export * from './src/guards/is-any-agent-running-quest-status/is-any-agent-running-quest-status-guard';
 export * from './src/guards/is-actively-executing-quest-status/is-actively-executing-quest-status-guard';
 export * from './src/guards/is-user-paused-quest-status/is-user-paused-quest-status-guard';

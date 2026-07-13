@@ -11,7 +11,7 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     status: 'in_progress',
     createdAt: '2024-01-15T10:00:00.000Z',
     designDecisions: [],
-    steps: [],
+    operations: [],
     toolingRequirements: [],
     contracts: [],
     flows: [],
@@ -19,6 +19,6 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     userRequest: 'Add authentication to the application',
     workItems: [],
     wardResults: [],
-    planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+    planningNotes: { blightReports: [] },
     ...props,
   });

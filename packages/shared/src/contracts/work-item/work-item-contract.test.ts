@@ -30,7 +30,7 @@ describe('workItemContract', () => {
         status: 'complete',
         spawnerType: 'command',
         sessionId: 'session-abc',
-        relatedDataItems: ['steps/f47ac10b-58cc-4372-a567-0e02b2c3d479'],
+        relatedDataItems: ['operations/f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         attempt: 1,
         maxAttempts: 3,
@@ -53,7 +53,7 @@ describe('workItemContract', () => {
         status: 'complete',
         spawnerType: 'command',
         sessionId: 'session-abc',
-        relatedDataItems: ['steps/f47ac10b-58cc-4372-a567-0e02b2c3d479'],
+        relatedDataItems: ['operations/f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         dependsOn: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         attempt: 1,
         maxAttempts: 3,
@@ -72,7 +72,7 @@ describe('workItemContract', () => {
     it('VALID: sub-agent work item with agentId => parses successfully', () => {
       const item = WorkItemStub({
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        role: 'pathseeker-surface',
+        role: 'codeweaver',
         status: 'in_progress',
         sessionId: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402',
         agentId: 'acd35f7b7763e33e8',
@@ -82,7 +82,7 @@ describe('workItemContract', () => {
 
       expect(result).toStrictEqual({
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        role: 'pathseeker-surface',
+        role: 'codeweaver',
         status: 'in_progress',
         spawnerType: 'agent',
         sessionId: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402',
@@ -145,26 +145,51 @@ describe('workItemContract', () => {
       });
     });
 
-    it('VALID: pathseeker-surface with sliceName => parses successfully', () => {
+    it('VALID: codeweaver linked to an operation item => parses successfully', () => {
       const item = WorkItemStub({
-        role: 'pathseeker-surface',
-        sliceName: 'orchestrator',
+        role: 'codeweaver',
+        relatedDataItems: ['operations/a1b2c3d4-58cc-4372-a567-0e02b2c3d479'],
       });
 
       const result = workItemContract.parse(item);
 
       expect(result).toStrictEqual({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        role: 'pathseeker-surface',
+        role: 'codeweaver',
         status: 'pending',
         spawnerType: 'agent',
+        relatedDataItems: ['operations/a1b2c3d4-58cc-4372-a567-0e02b2c3d479'],
+        dependsOn: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+
+    it('VALID: recovered item with resume marker => parses with resume true and retained sessionId', () => {
+      const item = WorkItemStub({
+        role: 'codeweaver',
+        status: 'pending',
+        resume: true,
+        sessionId: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+      });
+
+      const result = workItemContract.parse(item);
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'pending',
+        spawnerType: 'agent',
+        sessionId: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
         relatedDataItems: [],
         dependsOn: [],
         attempt: 0,
         maxAttempts: 1,
         retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
-        sliceName: 'orchestrator',
+        resume: true,
       });
     });
 
@@ -325,19 +350,6 @@ describe('workItemContract', () => {
       }).toThrow(/too_small|String must contain at least 1/u);
     });
 
-    it('INVALID: {invalid sliceName format} => throws validation error', () => {
-      expect(() => {
-        workItemContract.parse({
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          role: 'pathseeker-surface',
-          status: 'pending',
-          spawnerType: 'agent',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          sliceName: 'NotKebab',
-        });
-      }).toThrow(/Invalid/u);
-    });
-
     it('INVALID: {unknown actualSignal} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({
@@ -353,14 +365,14 @@ describe('workItemContract', () => {
   });
 
   describe('signal fields', () => {
-    it('VALID: {smoketestExpectedSignal=failed, actualSignal=complete} => parses successfully', () => {
+    it('VALID: {smoketestExpectedSignal=complete, actualSignal=complete} => parses successfully', () => {
       const result = workItemContract.parse({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         role: 'codeweaver',
         status: 'complete',
         spawnerType: 'agent',
         createdAt: '2024-01-15T10:00:00.000Z',
-        smoketestExpectedSignal: 'failed',
+        smoketestExpectedSignal: 'complete',
         actualSignal: 'complete',
       });
 
@@ -375,34 +387,22 @@ describe('workItemContract', () => {
         maxAttempts: 1,
         retryCount: 0,
         createdAt: '2024-01-15T10:00:00.000Z',
-        smoketestExpectedSignal: 'failed',
+        smoketestExpectedSignal: 'complete',
         actualSignal: 'complete',
       });
     });
 
-    it('VALID: {actualSignal=failed-replan, no expected} => parses successfully', () => {
-      const result = workItemContract.parse({
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        role: 'codeweaver',
-        status: 'failed',
-        spawnerType: 'agent',
-        createdAt: '2024-01-15T10:00:00.000Z',
-        actualSignal: 'failed-replan',
-      });
-
-      expect(result).toStrictEqual({
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        role: 'codeweaver',
-        status: 'failed',
-        spawnerType: 'agent',
-        relatedDataItems: [],
-        dependsOn: [],
-        attempt: 0,
-        maxAttempts: 1,
-        retryCount: 0,
-        createdAt: '2024-01-15T10:00:00.000Z',
-        actualSignal: 'failed-replan',
-      });
+    it('INVALID: {actualSignal=failed-replan} => throws validation error (removed signal kind)', () => {
+      expect(() => {
+        workItemContract.parse({
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          role: 'codeweaver',
+          status: 'failed',
+          spawnerType: 'agent',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          actualSignal: 'failed-replan',
+        });
+      }).toThrow(/Invalid enum value/u);
     });
   });
 

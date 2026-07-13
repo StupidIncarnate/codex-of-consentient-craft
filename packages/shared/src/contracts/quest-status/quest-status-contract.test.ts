@@ -83,30 +83,6 @@ describe('questStatusContract', () => {
       expect(result).toBe('design_approved');
     });
 
-    it('VALID: seek_scope => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'seek_scope' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('seek_scope');
-    });
-
-    it('VALID: seek_synth => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'seek_synth' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('seek_synth');
-    });
-
-    it('VALID: seek_walk => parses successfully', () => {
-      const status = QuestStatusStub({ value: 'seek_walk' });
-
-      const result = questStatusContract.parse(status);
-
-      expect(result).toBe('seek_walk');
-    });
-
     it('VALID: pending => parses successfully', () => {
       const status = QuestStatusStub({ value: 'pending' });
 
@@ -166,6 +142,24 @@ describe('questStatusContract', () => {
     it('INVALID: requirements_approved => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('requirements_approved');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: seek_scope => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('seek_scope');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: seek_synth => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('seek_synth');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: seek_walk => throws validation error (removed status)', () => {
+      expect(() => {
+        questStatusContract.parse('seek_walk');
       }).toThrow(/Invalid enum value/u);
     });
   });

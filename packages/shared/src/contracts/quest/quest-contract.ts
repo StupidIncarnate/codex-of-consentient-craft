@@ -8,16 +8,11 @@
 
 import { z } from 'zod';
 
-import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { flowContract } from '../flow/flow-contract';
+import { operationItemContract } from '../operation-item/operation-item-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
-import { planningCodeweaverPlanContract } from '../planning-codeweaver-plan/planning-codeweaver-plan-contract';
-import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
-import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
-import { planningSynthesisContract } from '../planning-synthesis/planning-synthesis-contract';
-import { planningWalkFindingsContract } from '../planning-walk-findings/planning-walk-findings-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
@@ -44,11 +39,11 @@ export const questContract = z.object({
     .array(designDecisionContract)
     .default([])
     .describe('Architectural choices and rationale that emerged during requirements capture'),
-  steps: z
-    .array(dependencyStepContract)
+  operations: z
+    .array(operationItemContract)
     .default([])
     .describe(
-      'Dependency-ordered execution plan created by PathSeeker. Each step maps observables to concrete files',
+      'The durable, ordered plan/status ledger driving dispatch. ChaosWhisperer seeds the implementation items at spec time; the orchestrator appends the verify tail at Start and mutates statuses at runtime. Execution agents never write it',
     ),
   toolingRequirements: z
     .array(toolingRequirementContract)
@@ -58,7 +53,7 @@ export const questContract = z.object({
     .array(packageNameContract)
     .default([])
     .describe(
-      'Monorepo packages that this quest will touch. Drives slice generation for pathseeker-surface work items.',
+      'Monorepo packages that this quest will touch. Declared by ChaosWhisperer during spec approval; context for codeweaver operation items.',
     ),
   contracts: z
     .array(questContractEntryContract)
@@ -99,16 +94,11 @@ export const questContract = z.object({
     .describe('Ward failure outputs referenced by spiritmender work items via relatedDataItems'),
   planningNotes: z
     .object({
-      scopeClassification: planningScopeClassificationContract.optional(),
-      surfaceReports: z.array(planningSurfaceReportContract).default([]),
       blightReports: z.array(planningBlightReportContract).default([]),
-      codeweaverPlans: z.array(planningCodeweaverPlanContract).default([]),
-      synthesis: planningSynthesisContract.optional(),
-      walkFindings: planningWalkFindingsContract.optional(),
     })
-    .default({ surfaceReports: [], blightReports: [], codeweaverPlans: [] })
+    .default({ blightReports: [] })
     .describe(
-      "PathSeeker phase artifacts (scope classification, minion surface reports, synthesis, walk findings) persisted between seek_* statuses. Also holds Blightwarden blight reports (cross-cutting whole-diff findings) and Codeweaver's living per-slice tactical plans (codeweaverPlans)",
+      'Blightwarden blight reports (cross-cutting whole-diff findings written by the five report-only minions, judged by the blightwarden synthesizer)',
     ),
   questSource: questSourceContract
     .optional()

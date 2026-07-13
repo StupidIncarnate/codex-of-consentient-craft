@@ -119,11 +119,8 @@ export * from './src/contracts/quest-id/quest-id.stub';
 export * from './src/contracts/observable-id/observable-id-contract';
 export * from './src/contracts/observable-id/observable-id.stub';
 
-export * from './src/contracts/step-id/step-id-contract';
-export * from './src/contracts/step-id/step-id.stub';
-
-export * from './src/contracts/step-assertion-id/step-assertion-id-contract';
-export * from './src/contracts/step-assertion-id/step-assertion-id.stub';
+export * from './src/contracts/operation-item-id/operation-item-id-contract';
+export * from './src/contracts/operation-item-id/operation-item-id.stub';
 
 export * from './src/contracts/session-id/session-id-contract';
 export * from './src/contracts/session-id/session-id.stub';
@@ -176,26 +173,8 @@ export * from './src/contracts/design-decision/design-decision.stub';
 export * from './src/contracts/tooling-requirement/tooling-requirement-contract';
 export * from './src/contracts/tooling-requirement/tooling-requirement.stub';
 
-export * from './src/contracts/slice-name/slice-name-contract';
-export * from './src/contracts/slice-name/slice-name.stub';
-
-export * from './src/contracts/step-assertion/step-assertion-contract';
-export * from './src/contracts/step-assertion/step-assertion.stub';
-
-export * from './src/contracts/step-assertion-object/step-assertion-object-contract';
-export * from './src/contracts/step-assertion-object/step-assertion-object.stub';
-
-export * from './src/contracts/step-file-reference/step-file-reference-contract';
-export * from './src/contracts/step-file-reference/step-file-reference.stub';
-
-export * from './src/contracts/step-focus-action-kind/step-focus-action-kind-contract';
-export * from './src/contracts/step-focus-action-kind/step-focus-action-kind.stub';
-
-export * from './src/contracts/step-focus-action/step-focus-action-contract';
-export * from './src/contracts/step-focus-action/step-focus-action.stub';
-
-export * from './src/contracts/dependency-step/dependency-step-contract';
-export * from './src/contracts/dependency-step/dependency-step.stub';
+export * from './src/contracts/operation-item/operation-item-contract';
+export * from './src/contracts/operation-item/operation-item.stub';
 
 // Process & Orchestration Contracts
 export * from './src/contracts/process-id/process-id-contract';
@@ -409,27 +388,9 @@ export * from './src/contracts/get-quest-input/get-quest-input.stub';
 export * from './src/contracts/modify-quest-input/modify-quest-input-contract';
 export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 
-// Planning Notes Contracts (PathSeeker phased statuses)
-export * from './src/contracts/planning-scope-classification/planning-scope-classification-contract';
-export * from './src/contracts/planning-scope-classification/planning-scope-classification.stub';
-
-export * from './src/contracts/planning-surface-report/planning-surface-report-contract';
-export * from './src/contracts/planning-surface-report/planning-surface-report.stub';
-
+// Planning Notes Contracts (Blightwarden whole-diff findings)
 export * from './src/contracts/planning-blight-report/planning-blight-report-contract';
 export * from './src/contracts/planning-blight-report/planning-blight-report.stub';
-
-export * from './src/contracts/planning-synthesis/planning-synthesis-contract';
-export * from './src/contracts/planning-synthesis/planning-synthesis.stub';
-
-export * from './src/contracts/planning-walk-findings/planning-walk-findings-contract';
-export * from './src/contracts/planning-walk-findings/planning-walk-findings.stub';
-
-export * from './src/contracts/planning-codeweaver-plan/planning-codeweaver-plan-contract';
-export * from './src/contracts/planning-codeweaver-plan/planning-codeweaver-plan.stub';
-
-export * from './src/contracts/novelty-concern/novelty-concern-contract';
-export * from './src/contracts/novelty-concern/novelty-concern.stub';
 
 // Chat Entry Contracts
 export * from './src/contracts/chat-entry/chat-entry-contract';

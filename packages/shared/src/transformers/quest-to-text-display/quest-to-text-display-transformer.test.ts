@@ -3,7 +3,7 @@ import { DesignDecisionStub } from '../../contracts/design-decision/design-decis
 import { FlowStub } from '../../contracts/flow/flow.stub';
 import { FlowNodeStub } from '../../contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '../../contracts/flow-observable/flow-observable.stub';
-import { DependencyStepStub } from '../../contracts/dependency-step/dependency-step.stub';
+import { OperationItemStub } from '../../contracts/operation-item/operation-item.stub';
 import { QuestContractEntryStub } from '../../contracts/quest-contract-entry/quest-contract-entry.stub';
 import { ToolingRequirementStub } from '../../contracts/tooling-requirement/tooling-requirement.stub';
 import { questToTextDisplayTransformer } from './quest-to-text-display-transformer';
@@ -206,73 +206,23 @@ describe('questToTextDisplayTransformer', () => {
     });
   });
 
-  describe('steps', () => {
-    it('EMPTY: {quest: no steps} => shows (none)', () => {
-      const quest = QuestStub({ steps: [] });
+  describe('operations', () => {
+    it('EMPTY: {quest: no operations} => shows (none)', () => {
+      const quest = QuestStub({ operations: [] });
 
       const result = questToTextDisplayTransformer({ quest });
 
-      expect(result).toMatch(/^## Steps\n\n\(none\)$/mu);
+      expect(result).toMatch(/^## Operations\n\n\(none\)$/mu);
     });
 
-    it('VALID: {quest: with full step} => renders step header, assertions, focus, and accompanying', () => {
+    it('VALID: {quest: with codeweaver operation} => renders role, text, and status', () => {
       const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            id: 'create-api' as never,
-            name: 'Create API' as never,
-            assertions: [
-              {
-                prefix: 'VALID',
-                input: '{user: validUser}',
-                expected: 'creates user',
-              } as never,
-            ],
-            observablesSatisfied: ['api-responds' as never],
-            dependsOn: ['setup-db' as never],
-            focusFile: {
-              path: 'src/brokers/api/create/api-create-broker.ts',
-            } as never,
-            accompanyingFiles: [
-              {
-                path: 'src/brokers/api/create/api-create-broker.test.ts',
-              } as never,
-            ],
-            exportName: 'apiHandler' as never,
-            inputContracts: ['RequestBody' as never],
-            outputContracts: ['ApiResponse' as never],
-            uses: ['userContract' as never],
-          }),
-        ],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(/^#create-api: "Create API"$/mu);
-      expect(result).toMatch(/^ {2}Assertions:\n {4}VALID: \{user: validUser\} => creates user$/mu);
-      expect(result).toMatch(/^ {2}Focus: src\/brokers\/api\/create\/api-create-broker\.ts$/mu);
-      expect(result).toMatch(
-        /^ {2}Accompanying: src\/brokers\/api\/create\/api-create-broker\.test\.ts$/mu,
-      );
-      expect(result).toMatch(/^ {2}Satisfies: #api-responds$/mu);
-    });
-
-    it('VALID: {assertion with id + field + observablesSatisfied} => renders id, field, and satisfies inline', () => {
-      const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            id: 'create-api' as never,
-            name: 'Create API' as never,
-            assertions: [
-              {
-                id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-                prefix: 'INVALID',
-                field: 'email',
-                input: '{email: "bad"}',
-                expected: 'throws validation error',
-                observablesSatisfied: ['email-rejected'],
-              } as never,
-            ],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            role: 'codeweaver',
+            text: 'core: config load+validate adapter' as never,
+            status: 'pending',
           }),
         ],
       });
@@ -280,57 +230,20 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^ {4}\[a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d\] INVALID field=email: \{email: "bad"\} => throws validation error satisfies #email-rejected$/mu,
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[codeweaver\] core: config load\+validate adapter — pending$/mu,
       );
     });
 
-    it('VALID: {quest: with full step} => renders dependencies, export, contracts, and uses', () => {
+    it('VALID: {quest: with locked ward operation} => renders wardMode and locked marker', () => {
       const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            id: 'create-api' as never,
-            name: 'Create API' as never,
-            assertions: [
-              {
-                prefix: 'VALID',
-                input: '{user: validUser}',
-                expected: 'creates user',
-              } as never,
-            ],
-            observablesSatisfied: ['api-responds' as never],
-            dependsOn: ['setup-db' as never],
-            focusFile: {
-              path: 'src/brokers/api/create/api-create-broker.ts',
-            } as never,
-            accompanyingFiles: [
-              {
-                path: 'src/brokers/api/create/api-create-broker.test.ts',
-              } as never,
-            ],
-            exportName: 'apiHandler' as never,
-            inputContracts: ['RequestBody' as never],
-            outputContracts: ['ApiResponse' as never],
-            uses: ['userContract' as never],
-          }),
-        ],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(/^ {2}Depends on: #setup-db$/mu);
-      expect(result).toMatch(/^ {2}Export: apiHandler$/mu);
-      expect(result).toMatch(/^ {2}Contracts in: RequestBody \| out: ApiResponse$/mu);
-      expect(result).toMatch(/^ {2}Uses: userContract$/mu);
-    });
-
-    it('VALID: {quest: step with no optional fields} => omits satisfies, depends, accompanying, uses', () => {
-      const quest = QuestStub({
-        steps: [
-          DependencyStepStub({
-            observablesSatisfied: [],
-            dependsOn: [],
-            accompanyingFiles: [],
-            uses: [],
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            role: 'ward',
+            text: 'ward gate' as never,
+            status: 'in_progress',
+            locked: true,
+            wardMode: 'changed',
           }),
         ],
       });
@@ -338,19 +251,7 @@ describe('questToTextDisplayTransformer', () => {
       const result = questToTextDisplayTransformer({ quest });
 
       expect(result).toMatch(
-        /^#create-login-api: "Test Step"\n {2}Assertions:\n {4}VALID: \{valid input\} => returns expected result\n {2}Focus: src\/brokers\/login\/create\/login-create-broker\.ts\n {2}Contracts in: Void \| out: Void$/mu,
-      );
-    });
-
-    it('VALID: {quest: step without exportName} => omits export line', () => {
-      const quest = QuestStub({
-        steps: [DependencyStepStub()],
-      });
-
-      const result = questToTextDisplayTransformer({ quest });
-
-      expect(result).toMatch(
-        /^ {2}Accompanying: src\/brokers\/login\/create\/login-create-broker\.test\.ts, src\/brokers\/login\/create\/login-create-broker\.proxy\.ts\n {2}Contracts in: Void \| out: Void$/mu,
+        /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward \(changed\)\] ward gate — in_progress \[locked\]$/mu,
       );
     });
   });

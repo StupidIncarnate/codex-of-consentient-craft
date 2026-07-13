@@ -14,7 +14,6 @@
  */
 import { z } from 'zod';
 
-import { dependencyStepContract } from '../dependency-step/dependency-step-contract';
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { designDecisionIdContract } from '../design-decision-id/design-decision-id-contract';
 import { flowContract } from '../flow/flow-contract';
@@ -25,18 +24,13 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { operationItemContract } from '../operation-item/operation-item-contract';
+import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
-import { planningScopeClassificationContract } from '../planning-scope-classification/planning-scope-classification-contract';
-import { planningSurfaceReportContract } from '../planning-surface-report/planning-surface-report-contract';
-import { planningSynthesisContract } from '../planning-synthesis/planning-synthesis-contract';
-import { planningWalkFindingsContract } from '../planning-walk-findings/planning-walk-findings-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { stepAssertionIdContract } from '../step-assertion-id/step-assertion-id-contract';
-import { stepAssertionObjectContract } from '../step-assertion-object/step-assertion-object-contract';
-import { stepIdContract } from '../step-id/step-id-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
@@ -79,22 +73,12 @@ const deletableFlowContract = z.union([
   z.object({ id: flowIdContract, _delete: deleteMarker }),
 ]);
 
-const fullStepAssertion = stepAssertionObjectContract.extend({ _delete: z.boolean().optional() });
-const deletableAssertionContract = z.union([
-  fullStepAssertion,
-  fullStepAssertion.partial().required({ id: true }),
-  z.object({ id: stepAssertionIdContract, _delete: deleteMarker }),
-]);
-
 const fullDesignDecision = designDecisionContract.extend({ _delete: z.boolean().optional() });
-const fullDependencyStep = dependencyStepContract.extend({ _delete: z.boolean().optional() });
+const fullOperationItem = operationItemContract.extend({ _delete: z.boolean().optional() });
 const fullToolingRequirement = toolingRequirementContract.extend({
   _delete: z.boolean().optional(),
 });
 const fullQuestContractEntry = questContractEntryContract.extend({
-  _delete: z.boolean().optional(),
-});
-const fullPlanningSurfaceReport = planningSurfaceReportContract.extend({
   _delete: z.boolean().optional(),
 });
 const fullPlanningBlightReport = planningBlightReportContract.extend({
@@ -116,21 +100,16 @@ export const modifyQuestInputContract = z
         'Design decisions to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing entry without clobbering other fields',
       )
       .optional(),
-    steps: z
+    operations: z
       .array(
         z.union([
-          fullDependencyStep,
-          fullDependencyStep
-            .partial()
-            .required({ id: true })
-            .extend({
-              assertions: z.array(deletableAssertionContract).optional(),
-            }),
-          z.object({ id: stepIdContract, _delete: deleteMarker }),
+          fullOperationItem,
+          fullOperationItem.partial().required({ id: true }),
+          z.object({ id: operationItemIdContract, _delete: deleteMarker }),
         ]),
       )
       .describe(
-        'Dependency steps to upsert. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing step without clobbering other fields (instructions, contracts left untouched). Patch assertions[] the same way — send { id, ...changed } per assertion to edit one without restating the array, or { id, _delete: true } to remove one',
+        'Operation items to upsert onto the quest operations ledger. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing item; { id, _delete: true } to remove one (locked items cannot be deleted). Writable only by ChaosWhisperer at explore_observables — execution agents signal outcomes instead of writing the ledger',
       )
       .optional(),
     toolingRequirements: z
@@ -160,7 +139,7 @@ export const modifyQuestInputContract = z
     packagesAffected: z
       .array(packageNameContract)
       .describe(
-        'Monorepo packages the quest will touch. Replaces the whole list on write (not an id-keyed upsert). Drives pathseeker-surface slice fan-out at Start Quest; ChaosWhisperer sets it during explore_observables.',
+        'Monorepo packages the quest will touch. Replaces the whole list on write (not an id-keyed upsert). ChaosWhisperer sets it during explore_observables.',
       )
       .optional(),
     flows: z
@@ -194,16 +173,6 @@ export const modifyQuestInputContract = z
       .optional(),
     planningNotes: z
       .object({
-        scopeClassification: planningScopeClassificationContract.optional(),
-        surfaceReports: z
-          .array(
-            z.union([
-              fullPlanningSurfaceReport,
-              fullPlanningSurfaceReport.partial().required({ id: true }),
-              z.object({ id: planningSurfaceReportContract.shape.id, _delete: deleteMarker }),
-            ]),
-          )
-          .optional(),
         blightReports: z
           .array(
             z.union([
@@ -213,13 +182,9 @@ export const modifyQuestInputContract = z
             ]),
           )
           .optional(),
-        synthesis: planningSynthesisContract.optional(),
-        walkFindings: planningWalkFindingsContract.optional(),
       })
       .partial()
-      .describe(
-        'PathSeeker planning artifacts to merge into quest.planningNotes (any subset of sub-fields per call)',
-      )
+      .describe('Blightwarden blight reports to merge into quest.planningNotes')
       .optional(),
   })
   .strict()

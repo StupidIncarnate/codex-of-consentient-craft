@@ -3,10 +3,10 @@ import { RelatedDataItemStub } from './related-data-item.stub';
 
 describe('relatedDataItemContract', () => {
   describe('valid references', () => {
-    it('VALID: steps reference => parses successfully', () => {
-      const item = RelatedDataItemStub({ value: 'steps/abc-123' });
+    it('VALID: operations reference => parses successfully', () => {
+      const item = RelatedDataItemStub({ value: 'operations/abc-123' });
 
-      expect(item).toBe('steps/abc-123');
+      expect(item).toBe('operations/abc-123');
     });
 
     it('VALID: wardResults reference => parses successfully', () => {
@@ -18,15 +18,15 @@ describe('relatedDataItemContract', () => {
     it('VALID: {default value} => uses default reference', () => {
       const item = RelatedDataItemStub();
 
-      expect(item).toBe('steps/f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(item).toBe('operations/f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
-    it('VALID: steps with full uuid => parses successfully', () => {
+    it('VALID: operations with full uuid => parses successfully', () => {
       const item = RelatedDataItemStub({
-        value: 'steps/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        value: 'operations/f47ac10b-58cc-4372-a567-0e02b2c3d479',
       });
 
-      expect(item).toBe('steps/f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      expect(item).toBe('operations/f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
 
     it('VALID: flows reference => parses successfully', () => {
@@ -43,6 +43,12 @@ describe('relatedDataItemContract', () => {
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
+    it('INVALID: steps reference => throws validation error (removed collection)', () => {
+      expect(() => {
+        relatedDataItemContract.parse('steps/f47ac10b-58cc-4372-a567-0e02b2c3d479');
+      }).toThrow(/Must be \{collection\}\/\{id\}/u);
+    });
+
     it('INVALID: flows with empty id => throws validation error', () => {
       expect(() => {
         relatedDataItemContract.parse('flows/');
@@ -51,13 +57,13 @@ describe('relatedDataItemContract', () => {
 
     it('INVALID: missing id => throws validation error', () => {
       expect(() => {
-        relatedDataItemContract.parse('steps');
+        relatedDataItemContract.parse('operations');
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
     it('INVALID: empty id after slash => throws validation error', () => {
       expect(() => {
-        relatedDataItemContract.parse('steps/');
+        relatedDataItemContract.parse('operations/');
       }).toThrow(/Must be \{collection\}\/\{id\}/u);
     });
 
