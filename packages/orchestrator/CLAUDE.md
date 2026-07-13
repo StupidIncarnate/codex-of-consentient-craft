@@ -234,8 +234,8 @@ The `/dumpster-launch` session tail is the live driver under the dispatch-loop f
 sub-agent tail watches `subagents/agent-*.jsonl` siblings as new files appear (each Task
 the launch session dispatches creates one). The replay path is what hydrates the web UI's
 chat history when a browser reconnects to a quest that's mid-flight. The legacy spawn path
-still backs any code path that hasn't moved to the launch model (e.g. surviving
-non-pathseeker callers of `chat-spawn-broker`).
+still backs the interactive chat callers (ChaosWhisperer / Glyphsmith) of
+`chat-spawn-broker`.
 
 ### Sanitation & parsing happens here, not on the web
 
@@ -322,11 +322,15 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 ## Callouts
 
 - **Agent prompts are served dynamically via the `get-agent-prompt` MCP tool.** Source of truth is in
-  `packages/orchestrator/src/statics/` (e.g., `pathseeker-prompt-statics.ts` — the PathSeeker parent —
-  plus the minions it summons: `pathseeker-surface-minion-statics.ts`, `pathseeker-dedup-minion-statics.ts`,
-  `pathseeker-assertion-correctness-minion-statics.ts`, `codeweaver-minion-statics.ts`,
-  `lawbringer-minion-statics.ts`, `chaoswhisperer-gap-minion-statics.ts`). There are no `.claude/agents/*.md` files for these agents.
-  A work-item role calls `get-agent-prompt({agent, questId, workItemId})`; a parent-summoned minion calls
+  `packages/orchestrator/src/statics/`: the relay roles (`codeweaver-prompt-statics.ts`,
+  `flowrider-prompt-statics.ts`, `siegemaster-prompt-statics.ts`, `lawbringer-prompt-statics.ts`,
+  `blightwarden-prompt-statics.ts`, `spiritmender-prompt-statics.ts`, `pesteater-prompt-statics.ts`) plus the minions a
+  parent summons via the Agent tool (`codeweaver-minion-statics.ts`, `lawbringer-minion-statics.ts`, the five
+  `blightwarden-*-minion-statics.ts`, `chaoswhisperer-gap-minion-statics.ts`). The valid names are the
+  `agentPromptNameContract` enum; `agentPromptClassificationStatics` classifies which are parent-summoned minions vs
+  orchestrator-dispatched relay roles. There are no `.claude/agents/*.md` files for these agents. A relay work-item role
+  calls `get-agent-prompt({agent, questId, workItemId})` — the responder resolves the work item's linked operation item
+  (its `operations/<id>` ref) and interpolates its scope into the returned prompt; a parent-summoned minion calls
   `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and is briefed inline by its parent.
 
 ## Quest Pipeline
@@ -345,77 +349,89 @@ ChaosWhisperer (the slash-command-loaded session) executes the prompt in order:
   ├─ Phase 2: Flow Mapping ────── mermaid diagrams (mandatory) → status: review_flows
   ├─ Phase 3: Gate #1 ─────────── user approves flows → status: flows_approved
   ├─ Phase 4: Observables ─────── embedded in flow nodes → status: explore_observables → review_observables
-  ├─ Phase 5: Gate #2 ─────────── user approves observables + contracts + packagesAffected[] → status: approved
+  │     │  ChaosWhisperer ALSO authors the operations ledger here: an ordered list of
+  │     │  { role: 'codeweaver', text } items (one per scope a Codeweaver session builds). This is the
+  │     │  ONLY ledger authoring an agent ever does — the orchestrator appends the verify tail at Start.
+  ├─ Phase 5: Gate #2 ─────────── user approves observables + ≥1 codeweaver op item + packagesAffected[] → status: approved
   │
   ▼
 Web UI "Start Quest" button ──► server orchestration-start-responder
-  │   Mutates quest.status; redirects to execute view; does NOT spawn anything.
-  │   Execute view banner: "Run /dumpster-launch in your Claude session."
+  │   approved → in_progress. Seeds the relay (questBuildRelayGraphBroker): appends the quest type's
+  │   startImplementationOps + the fixed verify tail as operation items and creates the FIRST work item.
+  │   Redirects to execute view; banner: "Run /dumpster-launch in your Claude session."
   │
   ▼
 User runs /dumpster-launch (long-lived dispatch loop in their session)
-  │   Loop: get-next-step() → Task() / run-ward() → await → repeat
+  │   Loop: get-next-step() → Task() / run-ward() → await → repeat.
+  │   Each response dispatches ONE work item (= one agent session) for the operation item the relay
+  │   marked in_progress; on signal-back / ward exit the relay advances to the next pending item.
   │
-  ├─ pathseeker ──── single Task(); classifies scope, then summons its minions as Agent sub-agents —
-  │     │            pathseeker-surface (N parallel, one per slice) → pathseeker-dedup +
-  │     │            pathseeker-assertion-correctness — and runs the architect-review walk itself.
-  │     │            On complete the signal-back handler fires the post-walk hook.
-  │     ▼   (post-walk hook runs stepsToWorkItemsTransformer over authored steps + flows)
-  ├─ Codeweaver ──── one Task() per package (flows/startup excluded), capped at `codeweaverMaxFilesPerChunkStatics.value` (~20); implementation + unit tests
-  ├─ Ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
-  ├─ Flowrider ───── one Task() per flow, chained; owns flows/startup files + their flow-perspective test suite (integration or e2e). Only when ≥1 flow/startup step exists.
-  ├─ Siegemaster ─── one Task() per flow, chained (at most one at a time); manual QA + reviews flowrider's suite + TDD-fixes what it breaks
-  ├─ Lawbringer ──── one Task() per package (reviewable source pairs only); each parent fans out lawbringer-minion sub-agents per pair-group (whole-diff review for bug-hunt)
-  ├─ Blightwarden ── single Task(); whole-diff cross-cutting audit
-  ├─ Ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
+  │   The operations ledger drives the order. For a feature quest the sequence is:
+  ├─ codeweaver ──── one session per codeweaver op item ChaosWhisperer authored; implementation + unit tests
+  ├─ ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
+  ├─ flowrider ───── one session; authors the flow-perspective test suite over ALL quest flows; owns flows/ + startup/ files
+  ├─ siegemaster ─── one session; manual QA + reviews the flow suite + TDD-fixes what it breaks
+  ├─ lawbringer ──── one session; standards review across the whole quest diff (fixes inline)
+  ├─ blightwarden ── one session; cross-cutting whole-diff audit
+  ├─ ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
   │
-  │   (on failure, recovery items are spliced or the quest is blocked — see "Failure handling")
+  │   (a red ward inserts a spiritmender + a fresh ward after it; a spent ward budget blocks the quest.
+  │    That is the ONLY failure path — see "Failure handling".)
   ▼
 Complete ──► /dumpster-launch's next get-next-step() picks up the next FIFO quest in the queue
 ```
 
-## Work Items Model
+## Operations Ledger & Work Items
 
-All execution is driven by `quest.workItems[]`. Each work item is a generic container with a `role`,
-`status`, `dependsOn` (ordering), and `relatedDataItems` (links to quest-level data like steps or wardResults).
+Execution is a **reactive relay over `quest.operations`** — an ordered `OperationItem[]` ledger. Each item is
+`{ id, role, text, status: pending | in_progress | complete, locked, wardMode? }` (`operationItemContract`).
 
-- **Ordering**: `dependsOn` array — item runs when all deps are complete/skipped
-- **Dispatch**: `quest-get-next-step-broker` selects ready work items from the FIFO-active quest and returns a
-  `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which then Task()s the agents or calls the
-  `run-ward` MCP tool
-- **Concurrency**: intrinsic — `spiritmender` items return as one `spawn-agents` batch; the single `pathseeker`
-  item, the single `blightwarden` item, and everything else return one agent per response. PathSeeker,
-  Blightwarden, AND each per-package Lawbringer fan out internally by summoning their minions as `Agent`
-  sub-agents — that parallelism lives inside the parent's turn, not in the work-item graph (PathSeeker summons
-  surface/cleanup minions; Blightwarden summons the five security/dedup/perf/integrity/dead-code minions; each
-  Lawbringer partitions its package's reviewable pairs and summons `lawbringer-minion`s per pair-group).
-  `slotManagerStatics` slot caps stay
-  configured but are not consulted by `get-next-step`.
-- **Dynamic insertion**: the mechanism is to append work items with correct `dependsOn`. The
-  `pathseeker` post-completion hook calls `stepsToWorkItemsTransformer` to generate the downstream
-  codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain. The ward recovery splice
-  (spiritmender batch + retry) uses the same mechanism via `questSpliceFixerBroker`, plus
-  `replacementMapping` to rewire downstream dependents onto the retry — see "Failure handling".
+**The ledger has exactly TWO writers:**
+
+- **ChaosWhisperer** authors the plan items at spec time (`{ role: 'codeweaver', text }`, one per implementation
+  scope) via `modify-quest`. `operations` is on the modify-quest allowlist only at `flows_approved` /
+  `explore_observables` (and the `review_observables → explore_observables` back-edge) — so an execution agent
+  writing `operations` at `in_progress` is rejected.
+- **The orchestrator** mutates status + does duplicate-on-partial at runtime, through `questOperationsUpdateBroker` —
+  the ONLY runtime ledger writer. It deliberately bypasses the modify-quest allowlist (`operations` is inspectable, so
+  `questModifyBroker` rejects it at `in_progress`); execution agents have no runtime ledger write path at all.
+
+**Work item = one agent session.** `quest.workItems[]` are generic session containers (`role`, `status`, `dependsOn`,
+`relatedDataItems`, `sessionId`, `agentId`). The load-bearing invariant is **strict 1:1**: each work item links to
+exactly one operation item via `relatedDataItems: ['operations/<id>']`, and each operation item is worked by exactly
+one work item over its life.
+
+- **Advance / relay** (`questAdvanceBroker`): the next actionable item is the FIRST `pending` operation item. Advance
+  creates ONE work item for it (role; `spawnerType` = `command` for ward else `agent`; `dependsOn` chained after the
+  most recent dependency-satisfying work item; `relatedDataItems: ['operations/<id>']`) and marks the operation item
+  `in_progress` — in the same atomic persist. It is called from BOTH the signal-back handler AND the dispatch scan's
+  self-heal. A **resume guard** makes it act only on a `pending` item with NO linked work item, so no caller (double
+  signal, re-entrant scan, restart) can ever mint a second work item for one operation.
+- **Seed** (`questBuildRelayGraphBroker`, at Start): appends the quest type's `startImplementationOps` + `relayTail`
+  (from `questTypeRegistryStatics`) as pending locked operation items, force-completes any leftover
+  chaoswhisperer/glyphsmith intake items, and creates the first work item — all in one `questOperationsUpdateBroker`
+  persist. Idempotent: a re-Start detects the already-seeded verify tail (a locked `role: ward` item) and skips
+  straight to the status transition.
+- **Dispatch** (`quest-get-next-step-broker`): FIFO-scans active quests, picks the oldest with incomplete work, and
+  returns a `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which Task()s the agent or calls
+  the `run-ward` MCP tool.
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
-  (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat
-  roles (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init
-  line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
-  `/dumpster-launch`, both fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the MCP
-  responder reads `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP call
-  (NOT the parent Task() dispatch id) — and passes it to `claudeCodeParentSessionFindByToolUseIdBroker`, which
-  scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an assistant line
-  whose `tool_use.id` matches. The matching JSONL's basename yields `realAgentId`; its containing session dir
-  yields `parentSessionId`. The broker retries on miss (~3 s budget) to absorb the Claude-Code-dispatches-MCP-call-
-  before-flushing-JSONL race. Result is stamped via `modify-quest`, deterministic across any number of parallel
-  Claude sessions in the same cwd.
-- **Ward**: only non-agent item (`spawnerType: 'command'`); driven by the `run-ward` MCP tool which blocks until ward
-  exits and persists the result onto the work item
+  (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat roles
+  (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init line via
+  `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under `/dumpster-launch`, both
+  fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the responder reads
+  `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP call (NOT the parent Task()
+  dispatch id) — and scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an
+  assistant line whose `tool_use.id` matches. The matching JSONL's basename yields `realAgentId`; its containing
+  session dir yields `parentSessionId`. It retries on miss (~3 s budget) to absorb the
+  Claude-Code-dispatches-MCP-call-before-flushing-JSONL race. Deterministic across any number of parallel Claude
+  sessions in the same cwd.
+- **Ward** is the only non-agent item (`spawnerType: 'command'`); the `run-ward` MCP tool blocks until ward exits and
+  `quest-run-ward-broker` applies the result to the ledger + the work item.
 
 ## Quest Status Lifecycle
 
 ```
-pending ──┐
-           ▼
 created ──► explore_flows ──► review_flows ──► flows_approved ──► explore_observables ──► review_observables ──► approved ──► in_progress ──► complete
                                     │                                                          │                   │                                │
                                     └──► explore_flows (back)                                   └──► explore_observables (back)                      ├──► blocked ──► in_progress
@@ -426,41 +442,37 @@ created ──► explore_flows ──► review_flows ──► flows_approved 
                                                                                                                                       └──► explore_design (back)
 ```
 
-The `seek_scope` / `seek_synth` / `seek_walk` enum values remain on the contract. A quest never
-*rests* in one under the dispatch-loop model, but they are not dead: `orchestration-start-responder`
-transitions `approved → seek_scope → in_progress` on every Start because `approved`'s allowlist
-forbids `planningNotes`, so the auto-seed of `planningNotes.scopeClassification` lands in the
-transient `seek_scope` window, and the `seek_walk → in_progress` completeness gate still lives in
-`questSaveInvariantsTransformer` / `questCompletenessForTransitionTransformer`. Because PathSeeker
-runs its ENTIRE planning lifecycle while the quest stays `in_progress`, the `in_progress`
-write-allowlist imposes NO per-phase `planningNotes` sub-field gating
-(`allowedPlanningNotesFields: 'all'`): any sub-field — `scopeClassification` / `surfaceReports` /
-`synthesis` / `walkFindings`, plus the execution-phase `blightReports` (Blightwarden) and
-`codeweaverPlans` (Codeweaver) — is writable, so PathSeeker can write scope/surface/synthesis/walk
-artifacts (and re-slice on walk-time scope creep) during its own run. Only the statuses BEFORE
-`in_progress` — the spec/design phases plus the `seek_scope`/`seek_synth`/`seek_walk` planning phases —
-keep a per-phase sub-field allowlist, so each retains its write-discipline.
-What is gone is any quest that *settles* in a `seek_*` status: PathSeeker is a single `pathseeker`
-work item that runs entirely while the quest is `in_progress`; its scope → summon → walk phase
-boundaries live inside its own turn, tracked by `planningNotes` presence rather than quest status
-(see "PathSeeker work-item graph" below).
+The valid transitions are `questStatusTransitionsStatics`; `paused` is reachable from every live status and restores
+`pausedAtStatus` on resume. There are NO `seek_*` statuses — there is no PathSeeker planning phase. ChaosWhisperer
+runs the entire spec lifecycle; the orchestrator drives the operations relay entirely within `in_progress`.
 
-| Status                | Set By                                          | Gate                                                                                              |
-|-----------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| `created`             | `add-quest`                                     | ChaosWhisperer starting up                                                                        |
-| `explore_flows`       | ChaosWhisperer (Phase 1 exit)                   | Can add: flows, designDecisions                                                                   |
-| `review_flows`        | ChaosWhisperer (Phase 2 exit)                   | User reviews flows, APPROVE button visible                                                        |
-| `flows_approved`      | User approves flows (Gate #1)                   | Can add: observables (in flow nodes), contracts, tooling                                          |
-| `explore_observables` | ChaosWhisperer (Phase 4 entry)                  | Can add: observables, contracts, tooling                                                          |
-| `review_observables`  | ChaosWhisperer (Phase 4 exit)                   | User reviews observables, APPROVE button visible                                                  |
-| `approved`            | User approves observables (Gate #2)             | Spec locked. `start-quest` or `explore_design` allowed.                                           |
-| `explore_design`      | Glyphsmith starts design work                   | Create prototypes, iterate on designs                                                             |
-| `review_design`       | Glyphsmith ready for design review              | User reviews designs, APPROVE button visible                                                      |
-| `design_approved`     | User approves designs                           | Design locked. `start-quest` allowed.                                                             |
-| `in_progress`         | `start-quest` (via Web UI "Start Quest" button) | Steps can be added/modified; `/dumpster-launch` dispatches pathseeker-* and downstream work items |
-| `blocked`             | Pipeline blocker                                | Execution paused                                                                                  |
-| `complete`            | All phases pass                                 | Terminal                                                                                          |
-| `abandoned`           | User abandons                                   | Terminal                                                                                          |
+Gate content (`questGateContentRequirementsStatics`, enforced by `has-quest-gate-content-guard`):
+
+- `flows_approved` and `design_approved` require non-empty `flows`.
+- `approved` requires `flows` AND — for `feature` quests only — an `operations` ledger containing at least one
+  `role: codeweaver` item. (A `bug-hunt` quest's implementation op — the pesteater item — is orchestrator-seeded at
+  Start, not authored at spec time, so the requirement carries `questTypes: ['feature']`.)
+
+`Start Quest` transitions `approved → in_progress` directly (`orchestration-start-responder`), seeding the relay. Once
+execution starts, quest status is DERIVED from work-item + operation state by `work-items-to-quest-status-transformer`
+(see "Completion").
+
+| Status                | Set By                                          | Gate                                                                    |
+|-----------------------|-------------------------------------------------|-------------------------------------------------------------------------|
+| `created`             | `add-quest`                                     | ChaosWhisperer starting up                                              |
+| `explore_flows`       | ChaosWhisperer (Phase 1 exit)                   | Can add: flows, designDecisions                                         |
+| `review_flows`        | ChaosWhisperer (Phase 2 exit)                   | User reviews flows, APPROVE button visible                              |
+| `flows_approved`      | User approves flows (Gate #1)                   | Can add: observables, contracts, tooling, packagesAffected, operations  |
+| `explore_observables` | ChaosWhisperer (Phase 4 entry)                  | Can add: observables, contracts, tooling, packagesAffected, operations  |
+| `review_observables`  | ChaosWhisperer (Phase 4 exit)                   | User reviews observables + the operations ledger, APPROVE visible       |
+| `approved`            | User approves (Gate #2)                         | Spec + ledger locked. `start-quest` or `explore_design` allowed         |
+| `explore_design`      | Glyphsmith starts design work                   | Create prototypes, iterate on designs                                   |
+| `review_design`       | Glyphsmith ready for design review              | User reviews designs, APPROVE button visible                            |
+| `design_approved`     | User approves designs                           | Design locked. `start-quest` allowed                                    |
+| `in_progress`         | `start-quest` (Web UI "Start Quest")            | Relay dispatches operation items; agents may write only `contracts`/`tooling`/`flows` (observable-wording-only) |
+| `blocked`             | `quest-block-on-failure-broker`                 | Execution halted; user resumes to `in_progress`                         |
+| `complete`            | Derived when the ledger drains                  | Terminal (re-openable by appended work)                                 |
+| `abandoned`           | User abandons                                   | Terminal                                                                |
 
 ## Flows (Mermaid Diagrams)
 
@@ -490,10 +502,11 @@ Observables are embedded directly in flow nodes at `flows[].nodes[].observables[
 }
 ```
 
-Four consumers read different parts:
+Consumers read different parts:
 
 - **User** reads given/when/then as a human-readable acceptance criteria checklist
-- **PathSeeker** reads `then[].type` tags (file planning: ui-state -> widgets, api-call -> responders)
+- **ChaosWhisperer** reads observables while authoring the `{ role: 'codeweaver', text }` operation items (the
+  implementation plan) during the spec phase
 - **Flowrider** uses the full observable to author the flow-perspective test suite (integration or e2e)
 - **Siegemaster** uses the full observable to manually QA the flow and review the suite's coverage
 
@@ -504,147 +517,143 @@ Four consumers read different parts:
 | `spec`           | flows (with observables), designDecisions, contracts, tooling                 |
 | `spec-flows`     | flows (nodes/edges only, no observables), designDecisions, contracts, tooling |
 | `spec-obs`       | flows (observables only), designDecisions, contracts, tooling                 |
-| `planning`       | planningNotes, steps, contracts                                               |
-| `implementation` | planningNotes, steps, contracts, tooling                                      |
+| `planning`       | planningNotes, operations, contracts                                          |
+| `implementation` | planningNotes, operations, contracts, tooling                                 |
 
 Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=spec-obs` to get observables without flow structure.
 
 ## Quest Types
 
 A quest carries a `questType` (`feature` | `bug-hunt`, default `feature`). `questTypeRegistryStatics`
-(`@dungeonmaster/shared/statics`) is the single source of truth per type — its intake slash command,
-create-time seed role, Start-Quest `startGraphKind`, and role set. `orchestration-start-responder`
-switches on `startGraphKind` to seed the matching work-item graph:
+(`@dungeonmaster/shared/statics`) is the single source of truth per type — its intake slash command, create-time seed
+role (`initialWorkItemRole`), Start-Quest relay seed (`startImplementationOps` + `relayTail`), and the execution
+`roles` it uses. `orchestration-start-responder` seeds every type through the SAME `questBuildRelayGraphBroker`, which
+reads the registry entry for `quest.questType`:
 
-- **`feature`** (`/dumpster-create`): `questBuildPathseekerGraphBroker` seeds the PathSeeker graph; the
-  post-walk hook then generates the `codeweaver → ward → flowrider → siegemaster → lawbringer →
-  blightwarden → ward` chain (flowrider only when ≥1 flow/startup step exists).
-- **`bug-hunt`** (`/dumpster-hunt`): `questBuildBugHuntGraphBroker` hand-seeds the WHOLE chain at Start
-  (no PathSeeker, no post-walk hook): `pesteater → ward(changed) → lawbringer(whole-diff) → blightwarden
-  → ward(full)`. Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows
-  (the actual-state reproduction path ending at the symptom, and the expected-state path ending at the
-  correct behavior), with the expected behavior an observable PestEater turns into a failing test.
+- **`feature`** (`/dumpster-create`): `startImplementationOps` is empty — ChaosWhisperer authors the `codeweaver`
+  operation items at spec time. `relayTail` = `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden →
+  ward(full)`.
+- **`bug-hunt`** (`/dumpster-hunt`): `startImplementationOps` = a single `pesteater` item (orchestrator-seeded, no
+  intake authoring); `relayTail` = `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
+  Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows (the actual-state reproduction
+  path ending at the symptom, and the expected-state path ending at the correct behavior), with the expected behavior
+  an observable PestEater turns into a failing test.
 
-Each type owns its COMPLETE work-item flow; PathSeeker's single planning work item is the *feature*
-type's planning sub-stage, not universal. Adding a type = one `questTypeRegistryStatics` entry + a
-graph builder + the type added to `questTypeContract`.
+Each type owns its COMPLETE relay via its registry entry. Adding a type = one `questTypeRegistryStatics` entry + the
+type added to `questTypeContract`.
 
 ## Agent Roles
 
-The orchestrator is RECOVERY-FIRST: no agent role blocks the quest on failure. A `failed` (a code
-failure) splices a spiritmender + a re-run of the same role; a `failed-replan` (a plan hole) splices a
-PathSeeker replan; ward / role retry exhaustion (and orphaned-agent crash-loop exhaustion) escalate to
-a PathSeeker replan. Only PathSeeker blocks the quest — when its replan loop or its own retry budget is
-spent. See "Failure handling". The quest then derives `complete`/`blocked`/`in_progress` from
-work-item states.
+Every relay role is one operation item → one work item → one agent session. An agent does its work, then signals
+`complete` with an `operationStatus` (`done` or `partial`); the orchestrator applies the outcome to the ledger and
+advances. Agents have **no failure signal** — they fix their own problems and move forward. The ONLY failure concept
+is a **ward exit-code red** (`quest-run-ward-broker`), which inserts a spiritmender + a fresh ward and, when the ward
+retry budget is spent, blocks the quest. Quest status is then derived from work-item + operation state.
 
-| Role                             | Dispatched By                                                                                | Signals                         | MCP Tools (modify-quest)                                               |
-|----------------------------------|----------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------|
-| ChaosWhisperer                   | `/dumpster-create`                                                                           | N/A (spec)                      | full spec surface (flows, observables, contracts, packagesAffected, …) |
-| Glyphsmith                       | startDesignChat                                                                              | N/A (design)                    | status                                                                 |
-| pathseeker                       | `/dumpster-launch` via Task() (single planner; summons surface/dedup/assertion minions, walks itself) | complete, failed (retry→block) | planningNotes (scope/synthesis/walkFindings), steps, contracts          |
-| Codeweaver                       | `/dumpster-launch` via Task() (one per package; flows/startup excluded; unit tests)          | complete, failed, failed-replan | none                                                                   |
-| Ward                             | `/dumpster-launch` via `run-ward` MCP tool (command)                                         | terminal set by exit code       | none (server writes wardResults + item status)                         |
-| Flowrider                        | `/dumpster-launch` via Task() (one per flow, chained; owns flows/startup files + flow tests) | complete, failed, failed-replan | none                                                                   |
-| Siegemaster                      | `/dumpster-launch` via Task() (one per flow, chained; manual QA + suite review + gap-fill)   | complete, failed, failed-replan | none                                                                   |
-| Lawbringer                       | `/dumpster-launch` via Task() (whole-diff mode for bug-hunt)                                 | complete, failed, failed-replan | none (fixes findings inline)                                           |
-| Blightwarden                     | `/dumpster-launch` via Task()                                                                | complete, failed, failed-replan | none                                                                   |
-| Spiritmender                     | `/dumpster-launch` via Task()                                                                | complete, failed (soft)         | none                                                                   |
-| PestEater                        | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)                           | complete, failed, failed-replan | none                                                                   |
+The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
+Claude-dispatched agent roles (codeweaver, spiritmender, lawbringer, flowrider, siegemaster, blightwarden, the five
+`blightwarden-*-minion`s, pesteater); the broader `workItemRoleContract` (shared) adds the command/interactive roles
+(`ward`, `chaoswhisperer`, `glyphsmith`) an operation item may carry.
 
-### PathSeeker work-item graph
+| Role           | Dispatched By                                                       | Operation outcome         | Ledger writes (modify-quest)                    |
+|----------------|---------------------------------------------------------------------|---------------------------|-------------------------------------------------|
+| ChaosWhisperer | `/dumpster-create` (interactive)                                    | N/A (spec)                | full spec surface + authors codeweaver op items |
+| Glyphsmith     | startDesignChat (interactive)                                       | N/A (design)              | status                                          |
+| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)          | complete (done / partial) | none                                            |
+| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)                | exit code (green / red)   | none (broker writes wardResults + item status)  |
+| flowrider      | `/dumpster-launch` via Task() (one session over ALL flows)          | complete (done / partial) | none (owns flows/ + startup/ files inline)      |
+| siegemaster    | `/dumpster-launch` via Task() (one session over ALL flows)          | complete (done / partial) | none (edits inline)                             |
+| lawbringer     | `/dumpster-launch` via Task() (whole-diff review)                   | complete (done / partial) | none (fixes findings inline)                    |
+| blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                    | complete (done / partial) | planningNotes.blightReports (via its minions)   |
+| spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)                | complete (done / partial) | none                                            |
+| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)  | complete (done / partial) | none                                            |
 
-PathSeeker is **one** `pathseeker` work item that holds the whole planning lifecycle in a single
-warm mind. Within its own turn it classifies scope, then summons its minions as `Agent` sub-agents
-and runs the architect-review walk itself:
+### The pt-N verify fixpoint
 
-```
-pathseeker (single work item, dependsOn: [chaoswhisperer])
-   │  Phase 1 — classify scope, write scopeClassification.slices
-   │  Phase 2 — summon minions via the Agent tool (minion-fetch: get-agent-prompt with no workItemId):
-   │              Wave A: pathseeker-surface ×N (parallel, one per slice)
-   │              Wave B: pathseeker-dedup + pathseeker-assertion-correctness (parallel, after Wave A)
-   │            each minion writes steps/contracts via modify-quest and returns a summary (no signal-back)
-   │  Phase 3 — architect-review walk (PathSeeker itself), commit walkFindings
-   ▼   signal-back complete → post-walk hook
-stepsToWorkItemsTransformer fires → codeweaver / ward / flowrider / siegemaster / lawbringer / blightwarden chain inserted
-```
+`flowrider`, `siegemaster`, `lawbringer`, `blightwarden` (and `ward`) are **fixpoint roles**: a session signals
+`partial` when its pass changed code, and the orchestrator appends a `"pt N: {text}"` continuation operation item so a
+FRESH session of the same role re-runs against the new state. The role converges when a pass changes nothing and it
+signals `done`. Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts` (ward
+by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest instead of looping. See "Signal System" +
+"Failure handling".
 
-Slice generation: on Start Quest, `questBuildPathseekerGraphBroker` reads `quest.packagesAffected[]`
-(declared during ChaosWhisperer spec approval), builds one slice per package into
-`scopeClassification.slices[]`, and seeds the single `pathseeker` work item. PathSeeker resumes off
-`planningNotes` presence (scopeClassification → synthesis → walkFindings), so a Task crash mid-plan
-re-enters at the right phase. Its minions are summoned sub-agents, NOT work items — they are
-observable under PathSeeker's chain via wire-level toolUseId correlation. The `pathseeker-surface`,
-`pathseeker-dedup`, `pathseeker-assertion-correctness`, and `pathseeker-walk` `WorkItemRole` values
-are not seeded as work items; they stay on the contract for quest.json back-compat.
+### Minions (parent-summoned sub-agents)
+
+Blightwarden, Codeweaver, and Lawbringer fan their single session out to sub-agent minions summoned via the Agent tool
+(the `blightwarden-*-minion`, `codeweaver-minion`, `lawbringer-minion` names in `agentPromptClassificationStatics`).
+Minions are NOT work items and NOT operation items: they call `get-agent-prompt` with no `workItemId`, are briefed
+inline by their parent, and never signal back — that parallelism lives inside the parent's turn, observable under the
+parent's chain via wire-level toolUseId correlation. Blightwarden's five report-only finders (security / dedup / perf
+/ integrity / dead-code) each write a `PlanningBlightReport` into `planningNotes.blightReports`, which the blightwarden
+synthesizer judges and cleans up.
 
 ## Signal System
 
-Agents report via the `signal-back` MCP tool. The live handler is
-`quest-handle-signal-back-responder.ts`, which:
+Agents report via the `signal-back` MCP tool. `complete` is the SOLE signal kind — a session-terminal marker. The
+operation OUTCOME rides on the same call as `operationStatus` (`signalBackInputContract`: `signal: 'complete'`,
+`operationItemId?`, `operationStatus?: 'done' | 'partial'` — `failed` is explicitly rejected). The live handler is
+`quest-handle-signal-back-responder.ts`, which applies the outcome server-side (authoritative — an agent cannot forget
+to patch the ledger, because agents never write it):
 
-1. Marks the named work item terminal — `complete` for `complete`; a failure signal routes by role +
-   signal (see "Failure handling") and stamps `completedAt`.
-2. If the item is `pathseeker` AND the signal is `complete`, fires `questPostWalkHookBroker` to
-   generate the downstream codeweaver/ward/siegemaster/lawbringer/blightwarden chain.
-3. A `failed` (code failure) → spiritmender fix + a re-run of the role. A `failed-replan` (plan hole)
-   → PathSeeker replan. Neither blocks the quest — only PathSeeker does, when its loop is spent.
+1. Marks the signaled work item terminal (`complete`, `completedAt`, `actualSignal`).
+2. Resolves the linked operation item (the call's `operationItemId`, else the work item's `operations/<id>` ref).
+3. `operationStatus: 'done'` (or absent) → marks that operation item `complete`.
+4. `operationStatus: 'partial'` → marks it `complete` AND appends a `"pt N: {text}"` continuation item (same role,
+   `locked`/`wardMode` preserved) immediately after it — **duplicate-on-partial**. This keeps the strict 1:1
+   operation↔work-item invariant and an immutable pt audit trail (instead of reverting a shared item's status). The pt
+   chain is the verify fixpoint; for a locked role it is bounded by `slotManagerStatics.<role>.maxAttempts`, and a
+   spent chain blocks via `quest-block-on-failure-broker` instead of appending.
+
+Work-item-terminal + operation-complete + the optional pt N land in ONE `questOperationsUpdateBroker` persist
+(all-or-nothing on crash). The handler is **idempotent**: a redelivered signal for an already-terminal work item is a
+no-op (no second pt N, no second work item). Afterwards `questAdvanceBroker` creates the next work item.
 
 ### Failure handling
 
-Terminal-failure routing lives in the two places that set terminal status: the `run-ward` broker
-(`quest-run-ward-broker.ts`) for ward items and the `signal-back` handler
-(`quest-handle-signal-back-responder.ts`) for agent items. It is RECOVERY-FIRST — every failure
-splices a fixer + retry and the quest stays `in_progress`; the SOLE block path is PathSeeker
-exhausting its loop.
+The orchestrator has ONE failure concept: **a ward exit-code red**. There is no `failed`/`failed-replan` agent signal
+and no PathSeeker replan. Terminal-failure routing lives entirely in `quest-run-ward-broker.ts`:
 
-- **ward-fail → RECOVER, then REPLAN when exhausted.** A non-zero ward exit with retry budget
-  remaining (`attempt < maxAttempts - 1`) splices a batch of `spiritmender` items plus a `ward`-retry
-  (same `wardMode`, `attempt + 1`) via `questSpliceFixerBroker`, rewiring downstream onto the retry.
-  When ward's retries are exhausted the build could not be made green, so the failure escalates to a
-  PathSeeker replan (`questSplicePathseekerReplanBroker`) — never a direct block.
-- **code-recovery role `failed` (code failure) → RECOVER, then REPLAN when exhausted.** Any
-  code-recovery role (`codeweaver`, `flowrider`, `siegemaster`, `lawbringer`, `blightwarden`,
-  `pesteater` — every non-interactive, non-command, non-planner, non-spiritmender, non-minion role,
-  derived by `codeRecoveryRolesTransformer`) that signals `failed` splices a `spiritmender` (fed the
-  finding via a `spiritmender-batches/<id>.json` sidecar built from the signal-back `summary`) + a
-  `ward(changed)` gate + a fresh re-run of the SAME role (`attempt + 1`, same `relatedDataItems`) via
-  `questRecoverRoleBroker`, rewiring downstream onto the fresh run. Siege keeps its manual-QA
-  spiritmender context; other roles get a generic code-failure context. Budget
-  `slotManagerStatics.<role>.maxAttempts`; when spent the code failure escalates to a PathSeeker
-  replan.
-- **any role `failed-replan` (plan hole) → REPLAN.** `questSplicePathseekerReplanBroker` marks the
-  item `failed` (superseded via `insertedBy`), drains pending to `skipped`, and splices a `pathseeker`
-  replan (`dependsOn: []`) fed the brief; on its completion the post-walk hook regenerates the chain
-  (dedup keeps built work). Bounded by `slotManagerStatics.pathseeker.replanMaxCycles`; once the loop
-  is spent a further replan request routes to `questBlockOnFailureBroker` (the sole block path).
-- **spiritmender `failed` → SOFT**, **pathseeker `failed` → RETRY then BLOCK.** The fixer's own failure
-  just marks it terminal (the ward re-verify / fresh role run spliced after it carries on). A
-  PathSeeker `failed` resets it to `pending` (`attempt + 1`) while budget remains, then blocks. A
-  `blocked` quest is not scanned by `loadActiveQuestsLayerBroker` (filters on `in_progress`), so
-  dispatch halts.
-- **Flowrider and Siegemaster own their dev server.** For runtime flows, both agents control their own
-  dev server via Playwright's `webServer` config (
-  `{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`),
-  resolved from `.dungeonmaster.json` (`devCommand` + dev `port`) and passed into their WorkUnit by
-  `agentPromptGetBroker`. Operational flows run no server. If either cannot build/start, it signals
-  `failed` → spiritmender recovery per the table.
+- **ward green** → mark the ward operation item complete, advance to the next pending item.
+- **ward red** → mark the ward work item `failed` and the ward operation item `complete`, then append a `spiritmender`
+  operation item PLUS a fresh ward continuation (`"pt N"`, same `wardMode`) immediately after it, and advance. The
+  next dispatched item is therefore the spiritmender (never two wards back-to-back); the fresh ward re-verifies after
+  the fix.
+- **ward red, budget spent** → the red chain is bounded: once the ward operation items of this `wardMode` since the
+  last GREEN ward of the same mode reach `slotManagerStatics.ward.maxRetries`, the broker calls
+  `quest-block-on-failure-broker` (marks the item `failed`, drains pending work items to `skipped`, sets status
+  `blocked`) instead of appending another fix loop. A `blocked` quest is not scanned by the active-quest loader
+  (filters on `in_progress`), so dispatch halts until the user resumes.
 
-Recovery splices append work items with correct `dependsOn` (the same dynamic-insertion mechanism the
-post-walk hook uses) and rewire downstream via `replacementMapping`. Both routing brokers are
-idempotent on a double `signal-back`. Once routing settles, `workItemsToQuestStatusTransformer`
-derives quest status from work-item states (`complete` when every item is non-failure-terminal,
-`blocked` when pending items all depend on a `failed` id, `in_progress` while any item is active).
-`skipped` is terminal and non-failure but does NOT satisfy `dependsOn`, so a `skipped` dep blocks its
-dependents permanently — reinforcing the halt on a blocked quest.
+**Resume, don't restart.** An `in_progress` work item observed during a get-next-step scan is necessarily orphaned
+(the loop holds no dispatch in flight), so `recover-orphaned-work-items-layer-broker` flips it back to `pending`
+KEEPING `sessionId`/`agentId` and adds a `resume` marker; Node/UI dispatch resumes the retained Claude session
+(`claude --resume`) so partial work survives. An early crash with no captured session falls back to a fresh spawn; the
+MCP-Task path re-dispatches fresh. Budget: each recovery bumps `retryCount`; at
+`slotManagerStatics.orphanRecovery.maxResets` the crash loop is terminal and the quest blocks.
+
+**Flowrider and Siegemaster own their dev server.** For runtime flows both control their own dev server via
+Playwright's `webServer` config (`{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`, resolved
+from `.dungeonmaster.json` — `devCommand` + dev `port` — and passed into their WorkUnit by `agentPromptGetBroker`).
+Operational flows run no server.
+
+### Completion
+
+`work-items-to-quest-status-transformer` is operation-aware. It never derives `complete` while ANY operation item is
+`pending` or `in_progress` — that window is exactly "last session finished, advance hasn't created the next work item
+yet." Pre-execution, user-paused, abandoned, and blocked statuses are never derived over. When every work item is
+terminal AND the ledger is drained it returns `complete`; an unrecovered sink failure with a drained ledger returns
+`blocked`; otherwise `in_progress` (a dispatchable item exists, or advance will create one from the ledger). `skipped`
+is terminal and non-failure but does NOT satisfy `dependsOn`, so a `skipped` dep permanently dead-ends its dependents.
 
 ### MCP Sanitization
 
-The MCP `modify-quest` tool strips server-only fields before passing to the orchestrator:
+The MCP `modify-quest` tool gates writes by the per-status allowlist (`quest-status-input-allowlist-statics`):
 
-- `workItems` — server-only, managed by the `signal-back` handler + post-walk hook
-- `wardResults` — server-only, written by `quest-run-ward-broker`
+- `operations` — writable ONLY at `flows_approved` / `explore_observables` (and the `review_observables` back-edge),
+  where ChaosWhisperer authors the plan. Rejected at `in_progress`; the orchestrator's runtime ledger writes go
+  through `questOperationsUpdateBroker`, which bypasses the allowlist.
+- `workItems` — server-only, managed by the advance / signal-back / ward brokers.
+- `wardResults` — server-only, written by `quest-run-ward-broker`.
 
 ## Quest Event Notification (Two-Tier Model)
 
@@ -707,8 +716,9 @@ restart.
 Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The dispatch
 surface (`/dumpster-launch`'s Task() invocations) hands each sub-agent a stub prompt that
 says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions
-exactly." The MCP responder interpolates work-item-specific context (scope, package, steps,
-file paths) into the returned prompt and stamps `workItem.sessionId` (parent UUID) +
+exactly." The MCP responder interpolates work-item-specific context (the linked operation
+item's scope, package, contracts, file paths) into the returned prompt and stamps
+`workItem.sessionId` (parent UUID) +
 `workItem.agentId` (sub-agent realAgentId) from MCP request metadata: Claude Code surfaces
 `request.params._meta.claudecode/toolUseId` on every MCP call (the toolUseId of the
 sub-agent's OWN MCP call, not the parent Task() dispatch id). The responder scans every
@@ -716,12 +726,17 @@ session's `subagents/agent-*.jsonl` file for an assistant line whose `tool_use.i
 matches — deterministically identifying the calling sub-agent race-free even when N
 sub-agents call in parallel against the same MCP stdio child.
 
-| Agent                            | Dispatched By                                     | Purpose                                                                                                                                                    |
-|----------------------------------|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| chaoswhisperer-gap-minion        | ChaosWhisperer (inside `/dumpster-create`)        | Validate spec completeness before execution                                                                                                                |
-| pathseeker-surface               | PathSeeker via the Agent tool (Wave A, N parallel) | Slice-scoped step + contract authoring; writes `quest.steps[]` and `quest.contracts[]` for its slice. Returns a summary (no signal-back)                   |
-| pathseeker-dedup                 | PathSeeker via the Agent tool (Wave B)            | Cross-slice + in-package contract dedup; writes `steps[]` + `contracts[]`. Returns a summary (no signal-back)                                              |
-| pathseeker-assertion-correctness | PathSeeker via the Agent tool (Wave B)            | Assertion well-formedness, banned-matcher scan, per-prefix `field` correctness, channel discipline; writes `steps[]`. Returns a summary (no signal-back)   |
-| codeweaver-minion                | Codeweaver via the Agent tool (per isolated piece) | Focused TDD worker: builds one isolated step/file-group and returns a distilled artifact (working files + usage examples). No signal-back, no work item    |
-| lawbringer-minion                | Lawbringer via the Agent tool (per pair-group)    | Focused review-and-fix worker: reviews one tight group of impl+test pairs (rules + branch-coverage walk + it.each cleanup), fixes violations inline, returns a distilled artifact. No signal-back, no work item |
-| pesteater                        | `/dumpster-launch` via Task() (bug-hunt front)    | Single TDD bug-fix agent: root-cause → write the failing test FIRST → fix → verify via ward. Reads the bug report from the quest; no `modify-quest` writes |
+| Agent (parent-summoned minion) | Summoned By                                | Purpose                                                                                                 |
+|--------------------------------|--------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| chaoswhisperer-gap-minion      | ChaosWhisperer (inside `/dumpster-create`) | Validate spec completeness before approval                                                              |
+| codeweaver-minion              | Codeweaver via the Agent tool (per piece)  | Focused TDD worker: builds one isolated step/file-group, returns a distilled artifact. No work item      |
+| lawbringer-minion              | Lawbringer via the Agent tool (per group)  | Focused review-and-fix worker over one group of impl+test pairs; fixes violations inline. No work item   |
+| blightwarden-security-minion   | Blightwarden via the Agent tool            | Report-only: cross-file taint-flow review; writes a `PlanningBlightReport`                               |
+| blightwarden-dedup-minion      | Blightwarden via the Agent tool            | Report-only: semantic-duplication review                                                                |
+| blightwarden-perf-minion       | Blightwarden via the Agent tool            | Report-only: performance-regression review                                                             |
+| blightwarden-integrity-minion  | Blightwarden via the Agent tool            | Report-only: blast-radius review                                                                       |
+| blightwarden-dead-code-minion  | Blightwarden via the Agent tool            | Report-only: orphan-export / unreachable-branch review                                                 |
+
+The relay roles that DO own a work item (`codeweaver`, `flowrider`, `siegemaster`, `lawbringer`, `blightwarden`,
+`spiritmender`, `pesteater`) fetch their prompt the same way, calling `get-agent-prompt({agent, questId, workItemId})`
+— see "Agent Roles".

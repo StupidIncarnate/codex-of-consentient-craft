@@ -13,7 +13,8 @@ existing test isn't strict enough to catch this," go to
 **`playbook/regression-through-e2e.md`** instead — it owns the
 "failing-test-before-fix" workflow for that class of bug.
 
-The playwright tests live at `packages/testing/e2e/web/*.spec.ts`. The harness
+The Playwright specs are colocated as `*.e2e.ts` under `packages/web/src/flows/<route>/`
+(config: `packages/web/playwright.config.ts`, `testDir: ./src`, `testMatch: **/*.e2e.ts`). The config
 pins `workers: 1, fullyParallel: false`, so all runs are serial.
 
 ---
@@ -42,9 +43,9 @@ unrelated bugs — knowing which ones have been seen before saves hours.
 ### 1.1 Run a broad sweep at 15x
 
 ```bash
-cd packages/testing
+cd packages/web
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
-  e2e/web/<spec1>.spec.ts e2e/web/<spec2>.spec.ts ... \
+  src/flows/<route>/<spec1>.e2e.ts src/flows/<route>/<spec2>.e2e.ts ... \
   > /tmp/sweep.log 2>&1
 ```
 
@@ -77,7 +78,7 @@ What the output looks like in a representative bad run:
 
       7 ward-execution-streaming-W-c9334-ut-lines-to-execution-panel
       5 ward-execution-streaming-W-9d812-ut-lines-to-execution-panel
-      4 quest-execution-streaming--5eee3-ext-content-from-pathseeker
+      4 quest-replay-execution-rows--5eee3-operation-rows-in-order
 ```
 
 A test that fails 7+ times across 15 repeats is a hard flake. 1–2 fails is
@@ -91,8 +92,8 @@ If the flake stops reproducing, you have cross-spec leakage (Phase 2).
 If it still reproduces, the bug is intra-spec.
 
 ```bash
-# Suspect: chat-history.spec.ts:62 fails ~60% in full suite. Run alone:
-npx playwright test --repeat-each=15 --retries=0 e2e/web/chat-history.spec.ts
+# Suspect: chat-send-auto-resumes.e2e.ts fails ~60% in full suite. Run alone:
+npx playwright test --repeat-each=15 --retries=0 src/flows/quest-chat/chat-send-auto-resumes.e2e.ts
 # 30/30 pass → cross-spec leakage confirmed
 ```
 
@@ -108,13 +109,15 @@ predecessor set that triggers the flake.
 ```bash
 # Add ONE upstream spec at a time:
 npx playwright test --repeat-each=15 --retries=0 \
-  e2e/web/chat-features.spec.ts e2e/web/chat-history.spec.ts
-# 105/105 pass → not chat-features alone
+  src/flows/quest-chat/chat-streaming-subagent-grouping.e2e.ts \
+  src/flows/quest-chat/chat-send-auto-resumes.e2e.ts
+# 105/105 pass → not chat-streaming-subagent-grouping alone
 
 # Add more:
 npx playwright test --repeat-each=15 --retries=0 \
-  e2e/web/chat-features.spec.ts e2e/web/chat-history.spec.ts \
-  e2e/web/chat-replay-subagent-grouping.spec.ts ...
+  src/flows/quest-chat/chat-streaming-subagent-grouping.e2e.ts \
+  src/flows/quest-chat/chat-send-auto-resumes.e2e.ts \
+  src/flows/session-view/chat-replay-subagent-grouping.e2e.ts ...
 # eventually a sweep starts to fail at repeat 11+
 ```
 
@@ -191,7 +194,7 @@ codebase. Before chasing a unique theory, audit which apply:
    cleans them up.
 9. **Slot-streaming chat-output (`slotIndex`) goes through `pipelineChatOutput-
    Buffer`** flushed every 100ms — different code path from chat chat-output.
-10. **The fake Claude CLI** (`packages/testing/test/harnesses/claude-mock/bin/
+10. **The fake Claude CLI** (`packages/web/test/harnesses/claude-mock/bin/
     claude`) writes JSONL `fs.writeFileSync` on first call, `fs.appendFileSync`
     when `--resume` is in argv. Per-cwd queue scoping means different specs'
     queues don't bleed.
@@ -249,9 +252,9 @@ npm run build --workspace=@dungeonmaster/<package>
 npm run ward -- --only lint,typecheck,unit -- packages/<package>
 
 # 3. Re-run JUST the directly-affected spec at 15x:
-cd packages/testing
+cd packages/web
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
-  e2e/web/<failing-spec>.spec.ts > /tmp/repro.log 2>&1
+  src/flows/<route>/<failing-spec>.e2e.ts > /tmp/repro.log 2>&1
 awk '/passed|failed/' /tmp/repro.log | tail -3
 ```
 
@@ -319,9 +322,9 @@ Stuff it in `tmp/<branch-name>-progress.md` as you go.
 ### 4.1 Re-stress the originally-failing spec at 15x in isolation
 
 ```bash
-cd packages/testing
+cd packages/web
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
-  e2e/web/<failing-spec>.spec.ts > /tmp/sweep-target.log 2>&1
+  src/flows/<route>/<failing-spec>.e2e.ts > /tmp/sweep-target.log 2>&1
 awk '/passed|failed/' /tmp/sweep-target.log | tail -3
 ```
 
@@ -335,8 +338,8 @@ broken.
 # Run the failing spec PRECEDED BY the specs that originally caused it to leak.
 # This is the test that proves you fixed cross-spec leakage, not just intra-spec.
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
-  e2e/web/<predecessor-1>.spec.ts e2e/web/<predecessor-2>.spec.ts \
-  e2e/web/<failing-spec>.spec.ts > /tmp/sweep-context.log 2>&1
+  src/flows/<route>/<predecessor-1>.e2e.ts src/flows/<route>/<predecessor-2>.e2e.ts \
+  src/flows/<route>/<failing-spec>.e2e.ts > /tmp/sweep-context.log 2>&1
 ```
 
 If the focused 15x passes but the contextual 15x fails, the leak source isn't
@@ -345,16 +348,25 @@ fully identified. Go back to Phase 2 with the new failure attachments.
 ### 4.3 Then, and only then, run the broad sweep
 
 ```bash
-# 16-spec sweep, ~15 min. Run when you've already validated the focused fix.
+# Multi-spec sweep, ~15 min. Run when you've already validated the focused fix.
+# Specs are colocated by route; list them by their src/flows/<route>/<name>.e2e.ts path.
 npx playwright test --repeat-each=15 --retries=0 --reporter=line \
-  e2e/web/chat-features.spec.ts e2e/web/chat-history.spec.ts \
-  e2e/web/chat-replay-subagent-grouping.spec.ts e2e/web/chat-send-auto-resumes.spec.ts \
-  e2e/web/chat-smoke.spec.ts e2e/web/chat-stop-pauses-quest.spec.ts \
-  e2e/web/chat-stop.spec.ts e2e/web/chat-streaming-subagent-grouping.spec.ts \
-  e2e/web/chat-unified-pipeline.spec.ts e2e/web/quest-ws-update.spec.ts \
-  e2e/web/ward-execution-streaming.spec.ts e2e/web/quest-detail.spec.ts \
-  e2e/web/quest-dual-panel.spec.ts e2e/web/quest-execution-streaming.spec.ts \
-  e2e/web/session-without-quest.spec.ts e2e/web/clarification-design-decisions.spec.ts \
+  src/flows/quest-chat/chat-send-auto-resumes.e2e.ts \
+  src/flows/quest-chat/chat-stop-pauses-quest.e2e.ts \
+  src/flows/quest-chat/chat-streaming-subagent-grouping.e2e.ts \
+  src/flows/quest-chat/chat-streaming-background-subagent.e2e.ts \
+  src/flows/quest-chat/nested-subagent-rendering.e2e.ts \
+  src/flows/quest-chat/ws-reconnect.e2e.ts \
+  src/flows/quest-chat/quest-ws-update.e2e.ts \
+  src/flows/quest-chat/quest-dual-panel.e2e.ts \
+  src/flows/quest-chat/quest-replay-execution-rows.e2e.ts \
+  src/flows/quest-chat/ward-execution-streaming.e2e.ts \
+  src/flows/quest-chat/multi-widget-coexistence.e2e.ts \
+  src/flows/quest-chat/clarification-design-decisions.e2e.ts \
+  src/flows/session-view/chat-replay-subagent-grouping.e2e.ts \
+  src/flows/home/execution-queue-streaming.e2e.ts \
+  src/flows/home/session-without-quest.e2e.ts \
+  src/flows/home/quest-detail.e2e.ts \
   > /tmp/sweep-broad.log 2>&1
 ```
 

@@ -1,37 +1,44 @@
-# Validation Playbook — Full Flow with Siege + Blight
+# Validation Playbook — Full Live Flow (operations relay)
 
-End-to-end manual validation of the quest pipeline. Per-Flow Siegemaster and Blightwarden are part of the live work-item
-chain. The orchestrator (you) runs Phase 0 checks individually, then drives Phases 1–3 as a live quest and branches to
-fixer agents on red.
+End-to-end manual validation of the quest pipeline. Flowrider, Siegemaster, Lawbringer, and Blightwarden are operation
+items in the live relay. The orchestrator (you) runs Phase 0 checks individually, then drives Phases 1–3 as a live quest
+and branches to fixer agents on red.
 
 ---
 
 ## Current execution model (read first)
 
-Execution is **not** auto-dispatched by the server. Two surfaces drive a quest:
+Execution is a **reactive relay over the quest's `operations` ledger** — an ordered `OperationItem[]` the orchestrator
+works one agent *session* at a time. It is **not** auto-dispatched by the server. Three surfaces drive a quest:
 
-- **Spec** runs in the Web UI (or via `/dumpster-create`): ChaosWhisperer through the two approval gates.
-- **Begin Quest** (Web UI button → `orchestration-start-responder`) seeds the four-tier pathseeker work-item graph
-  (`pathseeker-surface ×N → pathseeker-dedup + pathseeker-assertion-correctness → pathseeker-walk`) from
-  `quest.packagesAffected[]`, flips the quest to `in_progress`, and enqueues it. It **spawns nothing**.
-- **`/dumpster-launch`** (a slash command in your Claude session) is the dispatch loop that actually runs work:
-  `get-next-step()` → `Task()` (agents) / `run-ward` (ward) → await → repeat. Without it, nothing executes.
+- **Spec** runs in the Web UI (or via `/dumpster-create`): ChaosWhisperer through the two approval gates. During
+  `explore_observables` ChaosWhisperer ALSO authors the `operations` ledger — the ordered `{ role: 'codeweaver', text }`
+  implementation items (one per scope a Codeweaver session builds). The approval gate requires ≥1 `codeweaver` item.
+- **Start Quest** (Web UI button → `orchestration-start-responder`) seeds the relay: `questBuildRelayGraphBroker`
+  appends the fixed verify tail as operation items and creates the FIRST work item, then flips the quest to
+  `in_progress` and enqueues it. It **spawns nothing**.
+- **Dispatch** actually runs the work. Two interchangeable dispatchers share one brain (`quest-get-next-step-broker` +
+  `signal-back` + the dispatch scan):
+    - **Node/UI mode (primary)** — the `/queue` play button starts the server-side Node dispatch runner, which loops
+      `get-next-step` in-process and spawns headless `claude -p` children.
+    - **MCP mode** — `/dumpster-launch`, a loop in your Claude session: `get-next-step()` → `Task()` (agents) /
+      `run-ward` (ward) → await → repeat.
+  Without a dispatcher running, nothing executes.
 
 Consequences for this playbook:
 
-- The quest stays at `in_progress` for the whole execution phase. The `seek_scope` / `seek_synth` / `seek_walk`
-  statuses are no longer assigned — the PathSeeker phases are the four `pathseeker-*` work items, ordered by
-  `dependsOn`, not status hops.
-- `get-next-step` dispatches **one work item per response** for codeweaver / siegemaster / lawbringer / blightwarden.
-  The only batched dispatches are the `pathseeker-surface` items (together) and `pathseeker-dedup` +
-  `pathseeker-assertion-correctness` (together). There is no slot-manager concurrency and no `queued` status —
-  `slotManagerStatics` caps are not consulted by `get-next-step`. Step-chunking still applies (multiple steps collapse
-  into one codeweaver/lawbringer work item via `steps-to-batch-chunks-transformer`).
-- **No failure recovery is wired on the live path.** A failed work item is just marked `failed` (`signal-back` and
-  `run-ward` only set terminal status); `failed` satisfies `dependsOn`, so the chain runs past it. There is no
-  drain+skip, no spiritmender batching, no ward-retry, no siege fix chain, and no pathseeker replan. Phase 2 below
-  describes recovery behavior that is the design target but is **not currently implemented** — treat those scenarios as
-  expected-to-not-recover until recovery is rewired onto the `signal-back` handler / `run-ward` broker.
+- The quest stays at `in_progress` for the whole execution phase. There are **no `seek_*` statuses** and no PathSeeker
+  planning phase — ChaosWhisperer runs the entire spec lifecycle; the orchestrator drives the relay entirely within
+  `in_progress`.
+- `get-next-step` dispatches **one work item per response** — one operation item at a time. `questAdvanceBroker` creates
+  exactly ONE work item for the first `pending` operation item (marking it `in_progress` in the same atomic write), then
+  waits for its `signal-back` (or ward exit) before advancing. A ready `ward` item is dispatched alone via `run-ward`.
+- **There is no failure signal — only forward.** An agent that can't finish its scope signals `operationStatus:
+  'partial'`; the orchestrator marks its operation item `complete` and appends a `"pt N: {text}"` continuation a fresh
+  session runs (the verify fixpoint). The ONLY failure concept is a **ward exit-code red**, which inserts a
+  `spiritmender` operation item + a fresh ward. A server crash mid-session **resumes** the orphaned session
+  (`claude --resume`) — it does not restart it. The **sole** path to `blocked` is a spent bounded loop (ward-retry, a
+  locked role's `pt N` chain, or orphan-recovery exhaustion).
 
 ---
 
@@ -47,9 +54,10 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
     - bugs filed (blocking vs non-blocking) and fix commit SHAs if already addressed
 3. **`git log --oneline -30`** — recent bug-fix commits. Each validation-driven fix has a message prefixed with
    "Phase N checkpoint X.Y fix:" — these landed because a prior run blocked on them.
-4. **`~/.claude/plans/we-need-to-add-generic-dream.md`** and **`~/.claude/plans/lets-do-this-as-misty-gray.md`** — only
-   if you need context on WHY Siegemaster is per-flow or WHY Blightwarden exists. Both plans' progress trackers are
-   fully checked (Plan A: 9 groups, Plan B: 10 groups); both features are merged to `master`.
+4. **`docs/quest-role-paths.md`** and **`packages/orchestrator/CLAUDE.md`** — the authoritative model for the operations
+   relay: per-role happy/sad transitions, block ownership, the verify fixpoint, and how quest status is derived. Read
+   these if you need context on why Flowrider / Siegemaster / Lawbringer / Blightwarden each run as ONE session over all
+   flows / the whole diff.
 
 **Resumption rules:**
 
@@ -72,8 +80,8 @@ Static policies. These hold for every run.
 - **NEVER manually refresh the browser. EVER.** This includes F5, Ctrl+R, Cmd+R, right-click-reload, clicking the browser reload button, `page.reload()`, `mcp__claude-in-chrome__navigate` to the current URL, `key: "F5"`, `key: "ctrl+r"`, or ANY other mechanism that reloads the page. Manually refreshing **kills any agent currently running in the quest session** (PathSeeker, codeweaver, blightwarden, etc.) and corrupts the orchestration state. The UI manages its own state end-to-end: panels swap, statuses update, clarifications appear, execution progress renders — all via WebSocket. If something doesn't show up live, **that is a bug to file** — not something to work around with a refresh. If you see yourself about to refresh for any reason (including the phrase "refresh test"), stop, screenshot the current state, and describe what's missing. Refreshing is a destructive action on live runs. This rule supersedes any step in this playbook that appears to request a refresh; if you find such wording, treat it as a doc bug and edit it out before proceeding.
 - **Autonomy: fix, then restart — do NOT ask for approval between runs.** After a blocking bug is fixed and committed, immediately follow Run Lifecycle step 1 for the next run. Do not pause to ask the user "should I start Run N?" or "do you want me to proceed?". The user will intervene if they want you to stop. Same rule applies mid-run: keep driving through checkpoints, branching to fixers on red, without checking in at every checkpoint. Only stop-and-ask when you genuinely cannot decide (ambiguous bug classification, missing context for a fix).
 - **Orchestrator (you) does NOT edit source code or run ward directly.** Fix work and ward invocation MUST be delegated to sub-agents via the `Agent` tool. The orchestrator's job is to drive the flow, observe outcomes, classify bugs, dispatch agents, and commit results. Exceptions: the orchestrator may freely edit `VALIDATION-PLAYBOOK.md`, `/tmp/validation-notes.md`, and update task lists — those are process artifacts, not codebase changes. Everything else — contract edits, prompt edits, guard fixes, broker fixes, widget fixes, test updates, rebuilds — goes to an agent. This protects the orchestrator's context window for the full end-to-end validation run.
-- **Kickoff surfaces.** Spec + Begin Quest go through the Web UI (and MCP tools / server HTTP endpoints) as a real user
-  would. Execution dispatch is the one place a slash command is required: after Begin Quest you run `/dumpster-launch`
+- **Kickoff surfaces.** Spec + Start Quest go through the Web UI (and MCP tools / server HTTP endpoints) as a real user
+  would. Execution dispatch is the one place a slash command is required: after Start Quest you run `/dumpster-launch`
   in
   your Claude session to drive the work-item loop (see "Current execution model"). Do not use `/dumpster-create` for the
   spec — drive that through the UI.
@@ -87,13 +95,14 @@ Static policies. These hold for every run.
   that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
   (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
   immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
-- **Two servers: smoke test (prod, manual) and siege-spawned (dev).** Only siegemaster spawns a dev server during the
-  pipeline — no other role (codeweaver, lawbringer, ward, pathseeker) touches the dev-server lifecycle. The validation
-  orchestrator (you) runs `npm run prod` on ports 4800/4801 for the smoke-test UI you drive —
-  the compiled server from `dist/`, exercising the same code a real user would hit. Siegemaster spawns its OWN test
-  server via `npm run dev` on ports 4750/4751 per `.dungeonmaster.json`. The two MUST NOT overlap;
-  `devServerStartBroker` kills whatever is on its configured ports before binding, so a misaligned config (e.g. siege
-  pointed at 4800) would murder the smoke-test server mid-quest. Current config is correct out of the box.
+- **Two servers: smoke test (prod, manual) and agent-spawned (dev).** Flowrider and Siegemaster own their own dev server
+  for runtime flows (via Playwright's `webServer` config, resolved from `.dungeonmaster.json`) — no other role
+  (codeweaver, lawbringer, blightwarden, ward) touches the dev-server lifecycle. The validation orchestrator (you) runs
+  `npm run prod` on ports 4800/4801 for the smoke-test UI you drive — the compiled server from `dist/`, exercising the
+  same code a real user would hit. A runtime-flow agent spawns its OWN test server via `npm run dev` on ports 4750/4751
+  per `.dungeonmaster.json`. The two MUST NOT overlap; the dev server kills whatever is on its configured ports before
+  binding, so a misaligned config (e.g. pointed at 4800) would murder the smoke-test server mid-quest. Current config is
+  correct out of the box.
 - **MANDATORY: `npm run build` before every `npm run prod`.** Unlike `npm run dev` which uses `tsx watch` and runs from
   source, `npm run prod` runs the compiled server from `dist/` and serves the built web bundle via `vite preview`.
   ANY source change — contracts, statics, prompts, responders, brokers, widgets — is invisible to prod until `npm run
@@ -103,12 +112,15 @@ Static policies. These hold for every run.
     - Siegemaster's build preflight (already wired via `.dungeonmaster.json.devServer.buildCommand`) still runs — it
       builds the orchestrator code that spawns siegemaster, even though siege's own dev server runs from source via tsx.
   Shortcut: `npm run prod:build-and-serve` does both in order. Use it whenever unsure whether dist is current.
-- **Ports:** prod = 4800/4801 (smoke-test orchestrator, `.env.prod` sourced). dev = 4750/4751 (siege-spawned,
+- **Ports:** prod = 4800/4801 (smoke-test orchestrator, `.env.prod` sourced). dev = 4750/4751 (spawned by a runtime-flow agent,
   `.env` sourced). `DUNGEONMASTER_HOME` is shared across both modes; the subdirectory split comes from
   `DUNGEONMASTER_ENV` (`dev` → `.dungeonmaster-home/.dungeonmaster-dev/`,
   `production` → `.dungeonmaster-home/.dungeonmaster/`).
-- **Blightwarden crash mid-run.** Relaunch the same role fresh (same pattern as pathseeker). No special resume protocol.
-  Carry-over handling still applies only to the `failed-replan` → pathseeker path.
+- **Agent crash mid-session (any role).** An `in_progress` work item observed during a get-next-step scan is orphaned;
+  `recover-orphaned-work-items-layer-broker` flips it back to `pending` keeping `sessionId`/`agentId` + a `resume`
+  marker, and Node/UI dispatch resumes the retained Claude session (`claude --resume`) so partial work survives — no
+  duplicate work item (strict 1:1). A crash-looping session is bounded by `slotManagerStatics.orphanRecovery.maxResets`
+  → `blocked`.
 - **Ward invocation.** Orchestrator does NOT run ward directly — always delegate to a ward-runner agent. Agents use
   `npm run ward` from repo root with `timeout: 600000`. Never `cd` into a package; pass paths after `--` to scope.
 - **Fix agent scope.** Every fix agent is small-scope (≤3 files), one bug per agent. Rebuild `@dungeonmaster/shared` if
@@ -145,7 +157,7 @@ each run, in order:
 4. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs. The smoke-test server
    (prod) runs from `dist/` too, so this is mandatory before every server (re)start.
 5. **Start smoke-test server.** `npm run prod` (ports 4800/4801). Single process only. Leave it up for the whole run.
-   Do NOT run `npm run dev` — that port range is reserved for the siegemaster-spawned dev server during the siege phase.
+   Do NOT run `npm run dev` — that port range is reserved for the dev server a runtime-flow agent (Flowrider/Siegemaster) spawns during verification.
 6. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
 7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4801/codex/session) → "New Chat" → describe the trivial
@@ -166,7 +178,7 @@ each run, in order:
 ChaosWhisperer's spec phase (flow exploration, observable embedding, gap-minion, clarifications) is expensive and
 deterministic in outcome for a fixed prompt. A bug encountered later in the pipeline (Phase 1.2+) does not invalidate a
 good spec. Snapshot the quest the moment Phase 1.1 reaches a clean Gate #2 so the next run can skip straight to the
-Begin Quest click.
+Start Quest click.
 
 **Two snapshot windows exist; only the first is reliable for LLM orchestration:**
 
@@ -174,13 +186,13 @@ Begin Quest click.
    visible, all clarifications resolved, observables embedded, contracts populated. ChaosWhisperer is idle. The quest
    is paused by the gate itself — nothing is dispatching downstream yet. Snapshot now; restore skips ChaosWhisperer
    entirely.
-2. **Post-Begin-Quest, pre-`/dumpster-launch` (also viable).** The Begin Quest click flips the quest to `in_progress`
-   and seeds the four `pathseeker-surface`+ work items, but **dispatches nothing** — work only runs once you start
-   `/dumpster-launch`. So the moment after Begin Quest (before you launch the dispatch loop) is a stable, clean
-   pre-execution state with no race: no agent is running, no codeweaver has written a file. Snapshotting here would
-   skip ChaosWhisperer entirely and let you re-enter at the start of dispatch. In practice Window 1 is still simplest
-   (it also covers re-testing the Begin Quest click itself), so prefer Window 1 unless you specifically want to skip the
-   approval clicks.
+2. **Post-Start-Quest, pre-dispatch (also viable).** The Start Quest click seeds the relay (the verify tail + the first
+   codeweaver work item) and flips the quest to `in_progress`, but **dispatches nothing** — work only runs once a
+   dispatcher (the `/queue` play button or `/dumpster-launch`) starts. So the moment after Start Quest (before you start
+   dispatch) is a stable, clean pre-execution state with no race: no agent is running, no codeweaver has written a file.
+   Snapshotting here would skip ChaosWhisperer entirely and let you re-enter at the start of dispatch. In practice
+   Window 1 is still simplest (it also covers re-testing the Start Quest click itself), so prefer Window 1 unless you
+   specifically want to skip the approval clicks.
 
 **When to snapshot (Window 1):** Phase 1.1 has reached status `review_observables` with the APPROVE button visible, all
 clarifications resolved, observables embedded, contracts populated. ChaosWhisperer is idle. No pending spec work.
@@ -211,7 +223,7 @@ After snapshot, `tmp/smoke-test-quest/<questId>/quest.json` exists.
    ```
 2. Start the dev server — startup recovery picks up the quest.
 3. Navigate to the quest's bound `activeSessionId` URL (from the snapshotted `quest.json`). The UI should land on
-   `review_observables` with APPROVE visible. Click APPROVE, then Begin Quest — resumes at Phase 1.2 with zero
+   `review_observables` with APPROVE visible. Click APPROVE, then Start Quest — resumes at Phase 1.2 with zero
    ChaosWhisperer re-work.
 
 **Cleanup:** delete `tmp/smoke-test-quest/` contents once Phase 1 is declared done (no longer needed, and a stale
@@ -434,13 +446,13 @@ then idled for 2+ minutes with no STOP trigger and no notification). If you need
 interval (e.g. 60–120 seconds), then re-call `get-quest` in the main thread.
 
 **Gate states to stop at:** `review_flows`, `review_observables`, `approved`, `in_progress`, `complete`, `blocked`,
-`abandoned`. The first three require a user action (approve / begin-quest). `in_progress` covers the entire execution
-phase — PathSeeker progress is visible in `workItems[]` / planningNotes, not in the quest status (the `seek_*` statuses
-are no longer assigned).
+`abandoned`. The first three require a user action (approve / Start Quest). `in_progress` covers the entire execution
+phase — relay progress is visible in `quest.operations[]` item statuses and `workItems[]`, not in the quest status
+(there are no `seek_*` statuses).
 
 ## Clarification Questions (Blocking) — ChaosWhisperer only
 
-**Only ChaosWhisperer emits clarification questions. PathSeeker is autonomous and never asks.**
+**Only ChaosWhisperer emits clarification questions. The execution-relay agents are autonomous and never ask.**
 
 During the spec phase, ChaosWhisperer may surface clarification questions in a dedicated CLARIFICATION panel in the
 Web UI. Each question has multiple pre-written answer options plus an "Other..." free-text option. ChaosWhisperer is
@@ -452,11 +464,11 @@ or any gate until the answer is selected.
 - While watching the chat, also watch for a CLARIFICATION panel appearing in the Web UI.
 - Each question shows "Question N of M". Answer them in order.
 - For smoke tests, pick the **most testable / unambiguous** option (usually the first DOM-order / exact-text option).
-  If no option fits, use "Other..." with a terse literal assertion the Siegemaster can check.
+  If no option fits, use "Other..." with a terse literal assertion Flowrider / Siegemaster can check.
 - Only after every question is answered will ChaosWhisperer move to the next status.
 
-**After Gate #2 (approved / in_progress onward):** ignore any leftover CLARIFICATION panel — PathSeeker is autonomous
-and will not emit new questions.
+**After Gate #2 (approved / in_progress onward):** ignore any leftover CLARIFICATION panel — the execution-relay agents
+are autonomous and will not emit new questions.
 
 ---
 
@@ -477,7 +489,7 @@ These came out of smoke runs and belong on every checkpoint unless explicitly ov
   `collapseToLast` / companion filters are over-filtering — file the rendering bug.
 - **PAUSE / RESUME buttons key off REAL `quest.status`, not `displayStatus`.** `displayStatus` is a derived label that
   shows the pre-pause status when paused (so users see "RUNNING" dim'd out rather than "PAUSED"). Button visibility
-  must use `quest.status` directly: `paused` → RESUME visible, PAUSE hidden; `in_progress`/`seek_*`/etc. → PAUSE
+  must use `quest.status` directly: `paused` → RESUME visible, PAUSE hidden; `in_progress`/etc. → PAUSE
   visible, RESUME hidden. If the button logic leaks through `displayStatus` you get a paused quest stuck with only the
   PAUSE button — file as a blocker.
 - **Server restart does NOT re-hydrate the browser's in-memory React state.** If you kill and restart the orchestrator
@@ -488,416 +500,292 @@ These came out of smoke runs and belong on every checkpoint unless explicitly ov
 
 ### 1.1 — Spec creation (ChaosWhisperer)
 
-- **Action:** `npm run build` then `npm run prod` (smoke-test server on 4800; `npm run dev` is reserved for
-  siegemaster). Web UI → "New Chat". Describe a trivial 2-flow feature in natural user language — DO NOT leak
-  implementation details (folder types, batch groups, step counts) into the prompt. The feature should read like
-  something a product owner would ask for.
-- **Feature shape — exercise batching (post-hoc check, not a prompt instruction):** Codeweaver and lawbringer
-  chunk steps **by package** (capped at `codeweaverMaxFilesPerChunkStatics.value` ≈ 20). To cover both paths in
-  one quest, the spec PathSeeker produces should end up with:
-    - At least 2 steps in the same package — so the batched codeweaver path runs. A batched work item carries
-      `workUnit.steps.length > 1` and its prompt args render `=== Step N of M ===` separators.
-    - At least 1 step with no resolvable package (an operational `[command]`/`[sweep-check]` step) — so the
-      solo-chunk fallback still runs. Lawbringer additionally skips non-reviewable steps (operational / barrel /
-      package.json) and flowrider-owned steps, then fans out `lawbringer-minion` sub-agents per pair-group.
-
-  **If the first spec (post Gate #2) lands entirely in one group OR entirely in solo folder types, abandon the
-  quest and restart Run N+1 with a different feature description.** Do NOT reshape the prompt to name folder types
-  directly — a natural feature that happens to need some typed-value plumbing (e.g. "version-display with shared
-  source of truth") will usually produce a contract + static pair without being told to.
+- **Action:** `npm run build` then `npm run prod` (smoke-test server on 4800). Web UI → "New Chat". Describe a trivial
+  2-flow feature in natural user language — DO NOT leak implementation details (folder types, package names, scope
+  counts) into the prompt. The feature should read like something a product owner would ask for.
 - **Assert:**
     - Status walk: `created` → `explore_flows` → `review_flows` → (approve) → `flows_approved` → `explore_observables` →
       `review_observables` → (approve) → `approved`
     - `quest.flows[]` has 2 flows, each with nodes + edges + observables on terminal nodes
+    - **ChaosWhisperer authors the `operations` ledger during `explore_observables`** — an ordered list of
+      `{ role: 'codeweaver', text }` implementation items (one per scope a Codeweaver session builds). Read `quest.json`
+      `operations[]` (or the QUEST SPEC tab's operations ledger, `data-testid="OPERATIONS_LEDGER"`) and confirm ≥1
+      `codeweaver` item. **The `approved` gate refuses to open without one** — an empty/codeweaver-less ledger keeps the
+      APPROVE button disabled.
     - Chat streams token-by-token in UI
     - `chaoswhisperer-gap-minion` dispatched visibly as a sub-agent
 
-**→ FAIL:** fix chat/spec layer. Restart 1.1.
+**→ FAIL (no codeweaver op items / gate opens anyway):** fix the ChaosWhisperer prompt (ledger authoring) or the
+approval gate (`has-quest-gate-content-guard` + the web approve button). Restart 1.1.
+**→ FAIL (chat/spec layer):** fix chat/spec layer. Restart 1.1.
 **→ PASS:** continue.
 
 ### 1.2 — Execution kickoff (MUST go through the UI, not MCP)
 
-**Critical:** After approving observables at Gate #2, a "Begin Quest" popup/modal surfaces in the Web UI. Click it. Do
+**Critical:** After approving observables at Gate #2, a "Start Quest" popup/modal surfaces in the Web UI. Click it. Do
 NOT bypass by calling `mcp__dungeonmaster__start-quest` — the smoke test's whole purpose is to exercise the UI path a
 real user takes. A quest started via MCP may land in the same orchestrator state, but the UI flow (modal → click →
 state swap → WS broadcast → execution panel render) has not been tested, so the run proves nothing about that path.
 
-- **Action:** In the Web UI, click the "Begin Quest" button in the popup that appears after Gate #2. Then, in your
-  Claude session, run `/dumpster-launch` to start the dispatch loop — Begin Quest seeds the work items but dispatches
-  nothing on its own.
+- **Action:** In the Web UI, click the "Start Quest" button in the popup that appears after Gate #2. Then start a
+  dispatcher: click the `/queue` page play button (Node/UI mode, the primary path) OR run `/dumpster-launch` in your
+  Claude session (MCP mode). Start Quest seeds the relay but dispatches nothing on its own.
 - **Assert (in order, screenshot each — DO NOT REFRESH between checks):**
     1. **UI switches to the execution panel automatically.** The WebSocket `quest-modified` event drives this — no
-       manual reload, no URL change, no second click. Within a few seconds of the Begin Quest click, the layout
-       must swap from the observables approval / spec view to the execution panel (tab "EXECUTION | QUEST SPEC",
-       HOMEBASE section with work items like `[CHAOSWHISPERER] Chaoswhisperer DONE`, and an
-       `ENTRANCE: MAPPING DUMPSTER` section containing the four pathseeker-* rows
-       (`[PATHSEEKER-SURFACE]`, `[PATHSEEKER-DEDUP]`, `[PATHSEEKER-ASSERTION-CORRECTNESS]`,
-       `[PATHSEEKER-WALK]`), `data-testid="execution-panel-widget"` visible). Screenshot to
-       confirm.
-  2. Status → `in_progress`, and the four `pathseeker-*` work items exist (`pathseeker-surface` `pending`/dispatchable,
-     the rest `pending` behind their `dependsOn` edges). The `seek_*` statuses are NOT used.
-  3. Once `/dumpster-launch` is running, the `pathseeker-surface` item(s) flip to `in_progress` (one per affected
-     package, dispatched as a single `spawn-agents` batch) and each gets a `sessionId`.
+       manual reload, no URL change, no second click. Within a few seconds of the Start Quest click, the layout must
+       swap from the observables approval / spec view to the execution panel (tab bar `execution-panel-tab-execution`
+       "EXECUTION" | `execution-panel-tab-spec` "QUEST SPEC", `data-testid="execution-panel-widget"` visible).
+       Screenshot to confirm.
+    2. **The operations ledger renders in the execution panel** (`data-testid="OPERATIONS_LEDGER"`, rows
+       `OPERATIONS_LEDGER_ROW` — role badge + text + status; ward rows show a `(changed)`/`(full)` mode tag). The status
+       bar (`execution-status-bar-layer-widget`) reads `EXECUTION — 0/M OPERATIONS` once the relay is seeded (or
+       `AWAITING PLAN` before Start Quest seeds it).
+    3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items
+       (`ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)`, all `locked`, `pending`) and
+       created ONE work item for the FIRST `codeweaver` operation item, marking that operation `in_progress`.
+    4. Once a dispatcher is running, the first codeweaver work item flips to `in_progress` (a flat
+       `execution-row-layer-widget` row, `RUNNING` badge) and gets a `sessionId`.
 
-**→ FAIL assertion #1 (UI never switches after Begin Quest click):** UI bug in the execution-panel guard or in the
-binding that reacts to `quest-modified`. Most likely candidate: `isExecutionPhaseGuard` is missing `in_progress`.
-File it, fix, restart. DO NOT attempt to refresh to "confirm" — refreshing kills the running agent.
-**→ FAIL assertion #3 (nothing dispatches):** confirm `/dumpster-launch` is actually running and `get-next-step` is
-being polled. If `get-next-step` returns `idle` despite ready items, debug the broker; if the loop isn't running,
-nothing will dispatch — that is expected, not a bug.
-**→ FAIL no "Begin Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
+**→ FAIL assertion #1 (UI never switches after Start Quest click):** UI bug in the execution-panel guard or in the
+binding that reacts to `quest-modified`. Most likely candidate: `shouldRenderExecutionPanelQuestStatusGuard` is missing
+`in_progress`. File it, fix, restart. DO NOT refresh to "confirm" — refreshing kills the running agent.
+**→ FAIL assertion #4 (nothing dispatches):** confirm a dispatcher is actually running and `get-next-step` is being
+polled. If `get-next-step` returns `idle` despite a pending operation item with no live work item, debug the scan
+self-heal / advance; if no dispatcher is running, nothing will dispatch — that is expected, not a bug.
+**→ FAIL no "Start Quest" popup appears:** UI bug in the post-Gate-#2 flow. File it, fix, restart.
 **→ PASS:** continue.
 
-### 1.3 — PathSeeker four-tier planning
+### 1.3 — Codeweavers (one operation item at a time)
 
-The quest status stays `in_progress` throughout — planning progress is visible in the `pathseeker-*` work-item
-statuses and in planningNotes, not in the quest status.
-
-- **Assert via the work items (`get-quest({stage: 'implementation'})` / read `workItems[]`) and
-  `mcp__dungeonmaster__get-quest-planning-notes`:**
-    - `pathseeker-surface ×N` dispatch as one batch (one per affected package), complete, and write per-slice
-      `steps[]` + `contracts[]` plus their slice planningNotes (`scopeClassification.slices[]` populated).
-    - After all surface items complete, `pathseeker-dedup` + `pathseeker-assertion-correctness` dispatch together and
-      complete (dedup merges duplicate contracts; assertion-correctness fixes assertion well-formedness).
-    - `pathseeker-walk` dispatches last, writes `planningNotes.walkFindings` + any exploratory `steps[]`, and signals
-      `complete`. Its completion fires the post-walk hook, which runs the completeness validation and generates the
-      downstream codeweaver/ward/siege/lawbringer/blightwarden chain.
-
-**→ PASS:** continue.
-
-### 1.4 — DAG shape
-
-- **Assert via `mcp__dungeonmaster__get-quest({stage: 'implementation'})`:**
-  ```
-  cw1..cwM                                       (M = # batch chunks, M ≤ N steps)
-    → ward(changed)
-      → siege-flow-1 → siege-flow-2              (per-flow chained)
-                           → law1..lawM          (dependsOn: ALL siegeIds)
-                               → blightwarden    (dependsOn: allLawIds)
-                                   → ward(full)
-  ```
-    - 2 siegeItems, each `relatedDataItems: ['flows/<id>']`
-    - `siege-flow-2.dependsOn` contains `siege-flow-1.id`
-    - Each lawbringer's `dependsOn` contains BOTH siegeIds
-    - `blightwardenItem.dependsOn = allLawIds`
-    - `finalWardItem.dependsOn = [blightwardenItem.id]`
-  - **Codeweaver/lawbringer batching.** Number of codeweaver work items M is not 1-per-step. Both codeweaver and
-    lawbringer chunk steps **by package** (flowrider-owned steps excluded), capped at
-    `codeweaverMaxFilesPerChunkStatics.value` (≈ 20) — a package bucket larger than the cap is sliced into
-    sub-chunks preserving insertion order. Steps with no resolvable package (operational `[command]` steps) stay
-    solo. Lawbringer additionally filters to reviewable source pairs (operational / barrel / package.json
-    dropped) and fans out `lawbringer-minion` sub-agents per pair-group inside its turn, so a package with 6
-    reviewable pairs is ONE lawbringer work item, not six.
-    - Each codeweaver work item has `relatedDataItems: ['steps/<id>', ...]` — **array, not single**. A batched
-      item has length > 1 and ≤ 6. A solo-folder item has length 1.
-    - Batched work item `dependsOn` is the **union** of every batched step's resolved step dependencies (dedupe'd),
-      excluding the work item's own id. A codeweaver chunk containing step A+B where A depends on a step in
-      chunk X and B depends on a step in chunk Y must have `dependsOn = [pathseekerId, chunkXId, chunkYId]`.
-      Cross-chunk deps created BY the cap split (step #8 deps on step #1 with cap=6 → step #8's chunk-2 cw
-      depends on step #1's chunk-1 cw) are wired the same way.
-    - If the quest's steps include 0 batchable steps, M should equal N (full fallback behavior). If all steps
-      collapse into one group AND fit under the cap, M should be 1. Mixed quests should land somewhere in between.
-  - **Forward step refs resolve correctly.** If a step declared earlier in the quest's `steps[]` array depends on
-    a step declared LATER (e.g. step #1 deps on step #5), the codeweaver workItem for step #1 MUST include step
-    #5's workItem id in its `dependsOn`. Historically the transformer walked in order and dropped forward refs —
-    both the cli-responder-needs-cli-contract and widget-needs-render-contract chains broke because of this. Read
-    quest.json's `workItems[]` directly (MCP strips them from `get-quest`) to verify.
-
-**→ FAIL:** fix `steps-to-work-items-transformer` or `steps-to-batch-chunks-transformer`. Restart 1.3.
-**→ PASS:** continue.
-
-### 1.5 — Codeweavers
+The relay works the `codeweaver` operation items in ledger order, ONE session at a time. `questAdvanceBroker` creates a
+work item for the first `pending` operation item, marks it `in_progress`, and does not advance until that session
+signals `complete`.
 
 - **Assert:**
-    - **One codeweaver work item dispatches per `get-next-step` response.** Codeweavers are NOT slot-managed —
-      `select-batch-layer-broker` returns the single oldest ready non-pathseeker item, so `/dumpster-launch` runs one
-      codeweaver `Task()` at a time. There is no `queued` status and no SLOT_COUNT concurrency; ready-but-not-yet-picked
-      items stay `pending`. (Multiple steps per work item still happens via step-chunking — that is "batching," not
-      concurrency. See below.)
-    - The in_progress codeweaver has a non-empty `sessionId` within ~30s of dispatch (stamped MCP-side when the
-      sub-agent calls `get-agent-prompt`). A long-lived `in_progress` item with no `sessionId` indicates a dispatch or
-      MCP-correlation bug.
-    - **Step-level dependencies are honored.** A codeweaver chunk whose steps depend on a step in another chunk must NOT
-      become ready until the upstream chunk completes. E.g. the cli-responder chunk (deps on cli-contract) must stay
-      `pending` while the cli-contract chunk is `in_progress`. Watch quest.json across time — a correctly-wired DAG
-      gates
-      source codeweavers behind contract codeweavers.
-    - Each codeweaver signals `complete` via `signal-back`.
-    - Each work item has its own `sessionId`.
-    - **Batching actually ran.** At least one codeweaver in the quest must have `relatedDataItems.length > 1`.
-      Capture that work item's session JSONL and verify its `$ARGUMENTS` prompt contains a batch header line
-      (role expected to say something like "BATCH: N steps") followed by `=== Step 1 of N ===`, `=== Step 2 of N ===`
-      … separators, one block per step. Solo-folder codeweavers in the same quest must render the flat shape
-      (no separators, no batch header) — confirm by spot-checking one of those sessions.
-    - **Batch work unit aggregates context.** For a batched work item, the siegemaster/lawbringer/codeweaver
-      `workUnit.relatedContracts`, `relatedObservables`, `relatedDesignDecisions`, `relatedFlows` must be the
-      **dedupe'd union** of every batched step's context — not just the first step's. Cannot observe this directly
-      from quest.json; verify by reading the codeweaver session and confirming the prompt mentions contracts /
-      observables from ALL batched steps, not just one.
-    - **Chunking resolves at work-item generation time.** Package chunks are computed when the post-walk hook runs
-      `stepsToWorkItemsTransformer` (by package, no config knob). The only evidence at runtime is that chunk shape
-      matches the steps' packages — not a live-observable metric.
+    - **One codeweaver work item dispatches per `get-next-step` response.** `select-batch-layer-broker` returns the
+      single first ready work item; because advance creates only one work item at a time (depending on the last terminal
+      item), there is at most one dispatchable work item. No concurrency, no `queued`.
+    - The `in_progress` codeweaver has a non-empty `sessionId` + `agentId` within ~30s of dispatch (stamped MCP-side
+      when the sub-agent calls `get-agent-prompt`). A long-lived `in_progress` item with no `sessionId` indicates a
+      dispatch or MCP-correlation bug.
+    - **Strict 1:1.** Each codeweaver work item links exactly one operation item via
+      `relatedDataItems: ['operations/<id>']`, and each operation item is worked by exactly one work item. Read
+      `quest.json` `workItems[]` directly (MCP `get-quest` strips them) to verify.
+    - Each codeweaver signals `complete` with `operationStatus: 'done'`; the orchestrator marks that operation item
+      `complete` and advance creates the work item for the NEXT `pending` codeweaver operation item. Repeat until every
+      codeweaver operation item is `complete`.
+    - **Sad path — `partial` → pt N (do NOT force this here; see Phase 2.1).** If a codeweaver signals
+      `operationStatus: 'partial'`, the orchestrator marks its operation item `complete` and appends a
+      `"pt N: {text}"` continuation item; advance creates a fresh work item that continues from git. A codeweaver item
+      is unlocked, so its `pt N` chain is unbounded (codeweavers pivot in place freely).
 
-**→ FAIL no batched items in the quest:** the feature produced 0 batchable steps. ChaosWhisperer needs re-prompting
-to include at least 2 steps in the same package — abort Phase 1 and start a new run.
-**→ FAIL batched prompt missing separators:** fix `work-unit-to-arguments-transformer` codeweaver branch. Restart 1.5.
+**→ FAIL (a second work item minted for one operation item):** fix `questAdvanceBroker`'s strict-1:1 resume guard.
+**→ FAIL (advance doesn't move to the next codeweaver on `done`):** fix `quest-handle-signal-back-responder` /
+`questAdvanceBroker`. Restart 1.3.
 **→ PASS:** continue.
 
-### 1.6 — Ward (changed mode)
+### 1.4 — Ward (changed mode)
+
+The next actionable operation item after the codeweavers is `ward(changed)` — a command item dispatched via `run-ward`,
+alone.
 
 - **Assert:**
-    - `wardMode: 'changed'`
-    - Green
-    - Output streams to Web UI
-  - **Unit broker drops source files whose only colocated test is integration.** When codeweavers write a source file
-    like `cli-flow.ts` whose companion is `cli-flow.integration.test.ts` (no `cli-flow.test.ts`), the unit broker must
-    skip that source file rather than running `jest --findRelatedTests` and erroring with "0 matches". Verify by
-    checking the ward run file (`.ward/run-<id>.json`): the unit check should pass even when changed files include
-    sources with only integration tests. This was the Phase 1.5 → 1.6 cascade that blocked the smoke for a while.
+    - `get-next-step` returns `{ type: 'run-ward', ..., mode: 'changed' }` (the MCP tool arg is `mode`, NOT `wardMode`).
+    - Green (exit 0) → `quest-run-ward-broker` marks the ward operation item `complete` + the ward work item `complete`
+      (adding `relatedDataItems += wardResults/<id>`), and advance moves to `flowrider`.
+    - The `[WARD]` row shows `execution-row-ward-result` → "Ward exit code: 0 (changed)"; no detail breakdown for a
+      green run. Output streams to the Web UI.
 
-**→ FAIL (red):** if ward fails here, this is no longer a smoke test — abort and re-seed a clean happy path.
+**→ FAIL (red):** if ward fails here, this is no longer a happy path — abort and re-seed a clean run (the ward red →
+spiritmender path is Phase 2.3).
 **→ PASS:** continue.
 
-### 1.7 — Siege flow 1
-
-> **Caveat — dev-server lifecycle moved.** The broker-level assertions below (`devServerStartBroker`,
-> `dev-server-start-loop-layer-broker`, the orchestrator's config-resolution catch) reference the in-process
-> orchestration-loop path, which is unreferenced under `/dumpster-launch`. Siegemaster now runs as a `Task()`
-> sub-agent, so any `npm run dev` spawn is the agent's own responsibility (driven by the `Dev Server URL` line in its
-> prompt args), not an orchestrator broker. The *observable* expectations (one dev server up at a time on 4750, prod on
-> 4800/4801 untouched, args shape) still hold; the *causal brokers* named in the FAIL routing need re-grounding against
-> the current siege agent before relying on them.
-
-- **Capture:** spawned siegemaster's `$ARGUMENTS` from session JSONL.
-- **Assert args:**
-    - Single `Flow:` block with `flowType` + `entryPoint`
-    - `Nodes:` with IDs + labels + observable IDs
-    - `Edges:` rendered
-    - Observable Type Reference block present
-    - No `steps` block
-  - **`Dev Server URL:` present for runtime flows.** If `flow.flowType === 'runtime'`, the args block MUST include
-    a `Dev Server URL: http://dungeonmaster.localhost:<port>` line. Operational flows don't get this line (they
-    don't need a dev server). If a runtime flow siege run has no Dev Server URL in args, either:
-    (a) `.dungeonmaster.json` failed to resolve (the finder looking for wrong filename),
-    (b) the config resolver threw and siege broker's catch swallowed it silently,
-    (c) dev-server-start-loop-layer-broker failed but didn't propagate.
-    All three were real bugs we hit — file it loudly rather than letting siege proceed.
-- **Assert behavior:**
-    - **`.dungeonmaster.json` resolves successfully.** `configRootFindBroker` probes for `.dungeonmaster.json` (via
-      `dungeonmasterHomeStatics.paths.projectConfigFile`) with a fallback to legacy `.dungeonmaster`. Both the config-
-      find and config-file-find brokers must land on `.dungeonmaster.json` first. If an old `.dungeonmaster` file is
-      still lying around at the repo root, delete it — otherwise the finder matches it first and the new config is
-      silently unreachable.
-    - **Siege broker DOES spawn `npm run dev` when flow is runtime.** Verify with `lsof -i :4750` during siege run —
-      port 4750 must be LISTEN. If it isn't, the broker's `if (config?.devServer !== undefined)` block is being
-      skipped; the config didn't load.
-    - **Prod server on 4800/4801 stays alive throughout.** Siege's `devServerStartBroker` kills processes on its
-      CONFIGURED port (4750) before binding. If `.dungeonmaster.json` had port=4800 (misconfigured), siege would kill
-      our orchestrator. After siege-1 completes, confirm prod at 4800/4801 is still LISTEN.
-    - Dev server starts → tests run → dev server stops (zero live dev servers on 4750 after signal).
-    - Signals `complete`.
-    - `siege-flow-2` still `pending`.
-    - **Siege broker rethrows on non-absence config errors.** Malformed `.dungeonmaster.json` (bad JSON, schema
-      violation) must crash siege loudly — the broker's config-resolution catch block should distinguish
-      `ConfigNotFoundError` (legitimate "no siege config, skip dev-server") from any other error (rethrow). Silent
-      `catch { return null }` hid the config-path-mismatch bug for weeks; don't let it come back.
-    - **Dev-server-start failures write loud stderr.** When spawn, readiness-probe, or timeout fails during siege's
-      dev-server-start-loop, the broker must write a structured stderr line with hostname, port, readinessPath,
-      readinessTimeoutMs, and the last error seen — not silently return `{success: false}` which marks siege failed
-      with no visible reason.
-- **[OPEN] Env isolation bug.** Siege's child processes (including the Playwright runner and the CLI being tested)
-  inherit the orchestrator's env, including `DUNGEONMASTER_PORT=4800` from `.env.prod`. If siege writes a test that
-  spawns the `dungeonmaster` CLI as a subprocess, the CLI's startup banner will report `:4800` (the orchestrator's
-  port), not `:3737` (default) or `:4750` (siege's own dev port). Any snapshot assertions in existing tests against
-  the CLI banner will fail with the leaked port. Fix direction: the siege broker should strip or override
-  DUNGEONMASTER_PORT before spawning the siege agent — use siege's dev-server port, or leave it unset so the CLI
-  uses its own default. Until fixed, siege may misclassify these as "pre-existing port-drift bug unrelated to
-  this quest" and proceed.
-
-**→ FAIL args missing Dev Server URL:** `.dungeonmaster.json` didn't resolve OR config loaded but devServer block
-absent OR dev-server-start-loop failed silently. Check `configRootFindBroker` / `configFileFindBroker` targets, then
-siege broker's config catch, then dev-server-start stderr.
-**→ FAIL prod server killed:** `.dungeonmaster.json.devServer.port` is set to 4800 (conflicts with orchestrator). Must
-be 4750.
-**→ FAIL dev server leak:** fix `dev-server-stop-broker` call path. Restart 1.7.
-**→ FAIL args shape:** fix `work-unit-to-arguments-transformer` siegemaster branch. Restart 1.7.
-**→ PASS:** continue.
-
-### 1.8 — Siege flow 2 (sequential chain, single dev server)
+### 1.5 — Flowrider (one session over ALL flows)
 
 - **Assert:**
-    - Starts only after 1.7 signals `complete` (via `dependsOn: [siege-flow-1.id]`).
-    - Only one dev server process is ever up at once (check OS ps list / `lsof -i :4750` during the siege-1 → siege-2
-      handoff — port 4750 must go empty between the two sieges, then come back up when siege-2 starts, not overlap).
-    - Prod orchestrator at 4800/4801 stays LISTEN throughout — siege #2 must not clobber our smoke-test server any
-      more than siege #1 did.
-    - Receives the second flow in its args. For an operational flow (CLI), the args MUST NOT include a Dev Server
-      URL line (operational flows don't need one). For a runtime flow, same requirements as 1.7.
-    - Signals `complete`.
+    - Dispatched only after `ward(changed)` is green (its operation item is next `pending`).
+    - ONE flowrider work item, self-scoping over EVERY quest flow — no per-flow chaining. It authors the
+      flow-perspective test suite and owns `flows/` + `startup/` files inline.
+    - For a **runtime** flow it controls its own dev server (Playwright `webServer` config from `.dungeonmaster.json`).
+      Confirm the prod server on 4800/4801 stays LISTEN throughout; a dev server (4750/4751) comes up and goes down
+      within the session. For an **operational** flow, no dev server is needed.
+    - `done` (a pass that changed nothing) → advance to `siegemaster`. `partial` (a pass that changed code) → the
+      orchestrator appends a `pt N` flowrider continuation and a FRESH flowrider session re-runs (the verify fixpoint,
+      bounded by `slotManagerStatics.flowrider.maxAttempts`). Convergence IS the verdict.
 
-**→ FAIL parallel sieges:** fix `dependsOn` chaining in `steps-to-work-items-transformer`. Restart 1.3.
-**→ FAIL two dev servers:** fix layer broker dev server lifecycle. Restart 1.7.
+**→ FAIL (dev server leaks / clobbers prod):** check the flowrider agent's Playwright `webServer` config + port
+resolution. Restart 1.5.
 **→ PASS:** continue.
 
-### 1.9 — Lawbringers
+### 1.6 — Siegemaster (one session over ALL flows)
 
 - **Assert:**
-    - Start only after both sieges complete.
-  - One lawbringer work item dispatches per `get-next-step` response (same one-at-a-time dispatch as codeweavers — no
-    slot-manager concurrency, no `queued` status). Each in_progress item must have a sessionId within ~30s of
-    dispatch.
-    - **Batching mirrors codeweavers.** Lawbringer work items apply the same batch-chunking transform over steps —
-      the count and shape of lawbringer chunks must equal the count and shape of codeweaver chunks. A batched
-      lawbringer has `relatedDataItems.length > 1`, and its `workUnit.stepBoundaries[]` holds one
-      `{ stepId, filePaths[] }` per batched step so the prompt renders per-pair sections. Confirm by capturing one
-      batched lawbringer's session JSONL and checking that the `$ARGUMENTS` enumerates each step's file pair
-      separately.
-    - All signal `complete`.
+    - Dispatched only after flowrider converges (`done`).
+    - ONE siegemaster work item over all flows — manual QA + reviews the flow suite + TDD-fixes what it breaks, editing
+      inline. Same dev-server ownership as flowrider for runtime flows.
+    - `done` → advance to `lawbringer`; `partial` → `pt N` fresh siegemaster pass (bounded fixpoint).
 
-**→ FAIL lawbringer chunk count != codeweaver chunk count:** the two sides of the batching walk are diverging —
-likely a regression in `steps-to-batch-chunks-transformer` or one of the two callers drifting out of sync. Fix
-before continuing.
-**→ FAIL batched lawbringer prompt missing per-pair rendering:** fix `work-unit-to-arguments-transformer` lawbringer
-branch. Restart 1.9.
 **→ PASS:** continue.
 
-### 1.10 — Blightwarden
+### 1.7 — Lawbringer (whole-diff review)
+
+- **Assert:**
+    - Dispatched only after siegemaster converges.
+    - ONE lawbringer work item reviewing the WHOLE quest diff; it fans out `lawbringer-minion` sub-agents per pair-group
+      inside its own turn and fixes violations inline (minions are not work items — they are briefed inline and never
+      signal back).
+    - `done` → advance to `blightwarden`; `partial` → `pt N` fresh lawbringer pass (bounded fixpoint).
+
+**→ PASS:** continue.
+
+### 1.8 — Blightwarden (whole-diff audit)
 
 - **Capture session JSONL.**
 - **Assert sequence:**
-    1. Parallel Task dispatches: 5 minions (security, dedup, perf, integrity, dead-code)
-    2. Each minion commits to `planningNotes.blightReports[]` via `modify-quest`
-    3. Synthesizer synthesizes → signals `complete` (clean diff assumption)
+    1. Parallel Agent-tool dispatches: 5 report-only minions (security, dedup, perf, integrity, dead-code) — summoned
+       via the Agent tool, briefed inline, NOT work items.
+    2. Each minion writes a `PlanningBlightReport` into `planningNotes.blightReports[]` via `modify-quest`.
+    3. The blightwarden synthesizer judges + cleans up, then signals `complete` — `done` (clean diff) → advance to
+       `ward(full)`; `partial` (it changed code) → `pt N` fresh blightwarden pass (bounded fixpoint).
 - **Assert data:**
-    - 5 `blightReports` entries, distinct `minion` values
-    - Allowlist holds: `in_progress` rejects any modify-quest attempt outside `planningNotes.blightReports`
+    - 5 `blightReports` entries, distinct `minion` values.
+    - Allowlist holds: at `in_progress`, `modify-quest` rejects any write outside `planningNotes.blightReports`
+      (execution agents cannot write `operations` at `in_progress`).
 
-**→ FAIL minions not parallel:** fix synthesizer prompt dispatch section. Restart 1.10.
-**→ FAIL allowlist breach:** fix `quest-status-input-allowlist-statics`. Restart 1.10.
+**→ FAIL minions not parallel:** fix the blightwarden prompt dispatch section. Restart 1.8.
+**→ FAIL allowlist breach:** fix `quest-status-input-allowlist-statics`. Restart 1.8.
 **→ PASS:** continue.
 
-### 1.11 — Final Ward (full) + complete
+### 1.9 — Final Ward (full) + complete
 
 - **Assert:**
-    - Spawned only after blightwarden complete
-    - `wardMode: 'full'`, green
-    - Status → `complete`
-    - WS `quest-modified` broadcast
-    - Web UI shows quest "Complete"
+    - `ward(full)` is the last operation item; dispatched only after blightwarden converges. `mode: 'full'`, green.
+    - On green, no `pending` operation item remains, so the operation-aware `work-items-to-quest-status-transformer`
+      derives quest `complete`. (It never derives `complete` while any operation item is `pending`/`in_progress`.)
+    - WS `quest-modified` broadcast; the Web UI shows quest "Complete" (status bar reads `EXECUTION — M/M OPERATIONS`,
+      terminal banner present).
 
 **→ PASS:** Phase 1 complete.
 
 ---
 
-## Phase 2 — Easy Fault Tests
+## Phase 2 — Fault Tests (the non-failure "sad" paths)
 
-Each uses a fresh quest. Keep each deliberately simple — one failure per quest.
+Each uses a fresh quest. Keep each deliberately simple — one path per quest. None of these is a failure signal; they all
+keep the quest `in_progress` and move it forward. The ONLY route to `blocked` is a spent bounded loop.
 
-> **Status: design target, not current behavior.** The recovery mechanisms these scenarios assert — drain+skip on
-> siege failure, `failed-replan` → pathseeker replan, blightwarden carry-over, layer-broker relaunch, spiritmender on
-> final-ward failure — are **not wired on the live `/dumpster-launch` path** (they lived in the now-unreferenced
-> `run-*-layer-broker` / slot-manager code). What actually happens today: `signal-back` (and `run-ward`) mark the work
-> item `failed`, full stop. Because `failed` satisfies `dependsOn`, downstream items still dispatch — so a failed siege
-> does NOT skip its successors, and no replan/spiritmender is created. The quest then derives `complete`/`blocked`/
-> `in_progress` from final work-item states. Run these scenarios to confirm the gap and to validate recovery once it is
-> rewired onto the `signal-back` handler / `run-ward` broker; until then, treat the asserted recovery as expected-to-be
-> -absent and the `run-*-layer-broker` references below as the place recovery will live, not where it lives now.
+### 2.1 — Codeweaver `partial` → pt N continuation
 
-### 2.1 — Siegemaster fails → drain reaches blightwarden
-
-- **Seed:** force `siege-flow-1` to signal `failed`.
+- **Seed / drive:** a codeweaver session signals `signal-back({ ..., signal: 'complete', operationStatus: 'partial' })`.
 - **Assert:**
-    - `siege-flow-2`, all lawbringers, `blightwardenItem`, `finalWardItem` → all `skipped`
-    - PathSeeker replan spawns
-    - Drain uses `signal.signal === 'failed'` only (no `FAILURE_MARKER` sniff)
+    - The codeweaver work item is marked terminal (`complete`); its operation item is marked `complete`.
+    - A `"pt N: {text}"` continuation operation item is appended immediately after it (same role, unlocked).
+    - Advance creates a FRESH work item for the continuation — a new `execution-row-layer-widget` row appears live; the
+      operations ledger grows by one row. The fresh session continues from git.
+    - Because a codeweaver item is unlocked, the `pt N` chain is unbounded (no block on repeated `partial`).
 
-**→ FAIL blightwarden not skipped:** fix drain logic in `run-siegemaster-layer-broker`.
+**→ FAIL (no pt N appended / a second work item minted for the same op item):** fix `quest-handle-signal-back-responder`
+duplicate-on-partial + the strict-1:1 guard.
 **→ PASS:** continue.
 
-### 2.2 — Siegemaster `complete` with literal `FAILED OBSERVABLES: none`
+### 2.2 — Verify-role `partial` → fixpoint convergence
 
-- **Seed:** spawn a siege that completes with that exact text in its summary.
-- **Assert:** work item → `complete` (not misclassified).
-
-**→ FAIL:** sniff still present — finish removing it from `run-siegemaster-layer-broker`.
-**→ PASS:** continue.
-
-### 2.3 — Siegemaster Phase 3 skip wording
-
-- **Seed:** a slice with no changed files in `flows/` or `startup/` folder types.
-- **Assert:** siegemaster summary contains the exact string
-  `"Phase 3 skipped: no flow/startup files changed in this slice"`.
-
-**→ FAIL:** fix siegemaster prompt Phase 3 section.
-**→ PASS:** continue.
-
-### 2.4 — Blightwarden `failed-replan` → pathseeker
-
-- **Seed:** plant a semantic finding the perf minion can't auto-fix (genuine N+1 in a codeweaver output).
+- **Seed / drive:** a flowrider (or siegemaster / lawbringer / blightwarden) session signals `operationStatus:
+  'partial'` (its pass changed code).
 - **Assert:**
-    - perf minion flags with file:line evidence
-    - Synthesizer signals `failed-replan` via `signal-back` MCP
-    - the signal-back handler (`questSplicePathseekerReplanBroker`) drains pending (finalWard → `skipped`)
-    - PathSeeker replan spawns
-    - Report carries `status: 'blocking-carry'` for use by the next blightwarden
+    - Its operation item is marked `complete` and a `pt N` continuation (same **locked** role) is appended; a fresh
+      session of the same role re-runs against the new state.
+    - The role converges when a pass changes nothing and signals `done` → advance moves on. Convergence IS the verdict.
+    - The `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`; a spent chain blocks the quest via
+      `quest-block-on-failure-broker` (see 2.4).
 
-**→ FAIL signal-back rejects `failed-replan`:** fix `signal-back-input-contract` + consumers.
-**→ FAIL drain incomplete:** check `questSplicePathseekerReplanBroker`'s pending-skip logic.
+**→ FAIL (chain never converges / unbounded on a locked role):** check the fixpoint budget wiring.
 **→ PASS:** continue.
 
-### 2.5 — Blightwarden carry-over on replan
+### 2.3 — Ward red → spiritmender operation item → re-ward (no ward loop)
 
-- **Continuing from 2.4:** let PathSeeker replan emit a new step, codeweaver runs, second blightwarden fires.
+- **Seed:** introduce a genuine ward-catchable defect in a git-changed source file (a TS type error, an eslint
+  violation, or a failing colocated `*.test.ts`), then let `run-ward` run for real (routing is keyed on the real exit
+  code inside `quest-run-ward-broker` — it can't be staged by editing `quest.json`). Restore the file once asserted.
 - **Assert:**
-    - Second blightwarden calls `get-planning-notes({section: 'blight'})` as part of its Resume Protocol
-    - For each carry-over finding: if still present → `blocking-carry` + `reviewedOn` appended; if fixed → `resolved` +
-      `reviewedOn` appended
-    - Fresh minions dispatch after the carry-over review
+    - The ward work item is marked `failed` + `errorMessage: 'ward_failed'`; its ward operation item is marked
+      `complete`; a `wardResults[]` ref (exitCode ≠ 0) is appended.
+    - A `spiritmender` operation item PLUS a fresh ward continuation (`pt N`, same `wardMode`) are appended AFTER it.
+    - Advance dispatches the **spiritmender next** (never two wards back-to-back); after it fixes forward, the fresh
+      ward re-runs.
+    - UI: the ward row shows `FAILED` + "Ward exit code: 1 (changed)" + a detail breakdown
+      (`execution-row-ward-detail`, HTTP-fetched, renders only for a failing run). The new spiritmender + fresh ward rows
+      appear live.
 
-**→ FAIL no carry-over review:** fix synthesizer prompt Resume Protocol.
-**→ FAIL `reviewedOn` not appended:** check `questArrayUpsertTransformer` for `blightReports` field.
+**→ FAIL (a ward re-dispatches immediately with no spiritmender / two wards back-to-back):** fix the ward-red append
+order in `quest-run-ward-broker`. Restart 2.3.
 **→ PASS:** continue.
 
-### 2.6 — Blightwarden inline mechanical fix (dead export)
+### 2.4 — Ward retry budget exhausted → blocked
 
-- **Seed:** plant an unused exported constant in a codeweaver output.
+- **Seed:** an unfixable ward-catchable defect so the red-ward chain of one `wardMode` (since the last green of that
+  mode) reaches `slotManagerStatics.ward.maxRetries`.
 - **Assert:**
-    - dead-code minion flags it
-    - Synthesizer deletes it inline (file actually modified)
-    - Report status → `resolved`
-    - Final ward stays green after deletion
+    - Instead of appending another fix loop, `quest-run-ward-broker` calls `quest-block-on-failure-broker`: the failed
+      work item is `failed`, every still-`pending` work item is drained to `skipped`, quest `status: blocked`.
+    - `get-next-step` returns `idle` for that quest (the scan filters on `in_progress`, so a `blocked` quest is skipped).
+    - UI: the failed row shows `FAILED`; skipped rows are hidden; no terminal banner (`blocked` is not terminal). The
+      RESUME button is visible (`blocked` is resumable). Assert `blocked` + the skipped rows in `quest.json`.
 
-**→ FAIL synthesizer doesn't delete:** fix inline-fix rules in synthesizer prompt.
+**→ FAIL (loops past budget / never blocks):** fix the ward-retry boundary count in `quest-run-ward-broker`.
 **→ PASS:** continue.
 
-### 2.7 — Blightwarden crash mid-run (relaunch, not resume)
+### 2.5 — Server crash mid-session → resume (no restart, no duplicate)
 
-- **Seed:** kill blightwarden process partway through.
+- **Seed:** kill the server (or the agent process) while a work item is `in_progress`.
 - **Assert:**
-    - Orchestration loop relaunches blightwarden (same pattern as pathseeker retry)
-    - Fresh run — no special resume logic expected
-    - Quest eventually proceeds to final ward
+    - On the next get-next-step scan, `recover-orphaned-work-items-layer-broker` flips the orphaned `in_progress` work
+      item back to `pending`, **keeps** its `sessionId`/`agentId`, sets a `resume` marker, and increments `retryCount`.
+    - Node/UI dispatch resumes the retained Claude session (`claude --resume`, prompting it to finish + signal back) —
+      partial work survives, no from-scratch re-run, no duplicate work item (strict 1:1). (Fallbacks fresh-spawn: an
+      early-crash orphan with no captured `sessionId`, and the MCP `/dumpster-launch` Task path.)
+    - A crash-looping session reaching `slotManagerStatics.orphanRecovery.maxResets` blocks the quest.
 
-**→ FAIL no relaunch:** check layer broker's maxAttempts + relaunch path (mirror pathseeker).
+**→ FAIL (a duplicate work item is created / identity cleared):** fix `recover-orphaned-work-items-layer-broker` (it
+must keep identity + a resume marker and set `pending`, not stay `in_progress`).
 **→ PASS:** continue.
 
-### 2.8 — Final ward fails after Blightwarden
+### 2.6 — Blightwarden minion failure is non-blocking
 
-- **Seed:** let a blightwarden delete break final ward.
+- **Seed:** plant a semantic finding a blightwarden report-only minion (e.g. perf: a genuine N+1) surfaces but does not
+  auto-fix.
 - **Assert:**
-    - Spiritmender spawns
-    - Spiritmender's prompt includes `postBlightwardenFailure` preamble ("check `git log` before re-adding deletions")
-    - Spiritmender fixes forward; quest eventually `complete`
+    - The minion writes its `PlanningBlightReport` (with file:line evidence) into `planningNotes.blightReports[]`. A
+      minion is not a work item and never signals back — its finding lives in the report.
+    - The blightwarden synthesizer judges the reports and cleans up in place; if it changed code it signals `partial`
+      (a `pt N` fresh blightwarden pass, 2.2), else `done` (advance to `ward(full)`).
 
-**→ FAIL preamble missing:** fix `spiritmender-context-statics` post-Blight entry.
+**→ FAIL (a minion failure blocks the quest):** minions must be report-only; fix the blightwarden dispatch.
 **→ PASS:** continue.
 
-### 2.9 — Small-scope skip
+### 2.7 — Execution agents cannot write the operations ledger
 
-- **Seed:** quest where `planningNotes.scopeClassification.size === 'small'`.
-- **Assert:** blightwarden runs solo — zero minion Task tool_uses in session JSONL.
+- **Drive:** from a running execution agent (or a stub) at `in_progress`, attempt `modify-quest({ operations: [...] })`.
+- **Assert:**
+    - Rejected by the input allowlist (`operations` is writable only at `flows_approved` / `explore_observables` / the
+      `review_observables` back-edge). The ledger has exactly two writers — ChaosWhisperer (spec time) and the
+      orchestrator (runtime, via `questOperationsUpdateBroker`, which bypasses the allowlist).
 
-**→ FAIL minions dispatched anyway:** fix synthesizer prompt small-scope branch.
+**→ FAIL (write accepted):** fix `quest-status-input-allowlist-statics` / `quest-modify-broker`.
+**→ PASS:** continue.
+
+### 2.8 — Bug-hunt relay
+
+- **Seed:** a `bug-hunt` quest (via `/dumpster-hunt`) — captured as a reproduction flow + an expected-behavior
+  observable.
+- **Assert:**
+    - At Start Quest the orchestrator seeds a single `pesteater` implementation operation item (not authored at spec
+      time) plus the bug-hunt verify tail `ward(changed) → lawbringer → blightwarden → ward(full)` (no
+      flowrider/siegemaster).
+    - PestEater turns the expected-behavior observable into a failing test, then makes it pass; the relay advances the
+      same way as a feature quest (done → advance, partial → pt N, ward red → spiritmender). Quest derives `complete`.
+
+**→ FAIL (wrong seed shape / feature tail seeded):** fix `questTypeRegistryStatics['bug-hunt']`. Restart 2.8.
 **→ PASS:** continue.
 
 ---

@@ -33,7 +33,7 @@ exist on disk because the server spawns the fake CLI with `cwd: guildPath`.
 
 ## Claude CLI Mock
 
-`packages/testing/test/harnesses/claude-mock/` provides the fake `claude` CLI.
+`packages/web/test/harnesses/claude-mock/` provides the fake `claude` CLI.
 
 ### How It Works
 
@@ -45,16 +45,19 @@ exist on disk because the server spawns the fake CLI with `cwd: guildPath`.
 
 ### Writing Tests
 
-**Import rule:** Spec files MUST import `{ test, expect }` from `@dungeonmaster/testing/e2e`, NOT from
-`@playwright/test`.
-The `@dungeonmaster/testing/e2e` export wraps Playwright's `test` with an auto-fixture that records all network activity
-per test — no setup code needed. The ESLint rule `@dungeonmaster/enforce-e2e-base-import` enforces this at lint time.
+**Import rule:** E2E specs are colocated as `*.e2e.ts` under `packages/web/src/flows/<route>/` (Playwright config:
+`packages/web/playwright.config.ts`, `testDir: ./src`, `testMatch: **/*.e2e.ts`). Spec files MUST import
+`{ test, expect, wireHarnessLifecycle }` from the UI package's own web-relative fixtures
+(`test/harnesses/e2e-fixtures`), NOT from `@playwright/test` and NOT from `@dungeonmaster/testing/e2e`. The
+`e2e-fixtures` export wraps Playwright's `test` with an auto-fixture that records all network activity per test — no
+setup code needed. The ESLint rule `@dungeonmaster/enforce-e2e-base-import` enforces this at lint time.
 
 ```ts
-import {test, expect, wireHarnessLifecycle} from '@dungeonmaster/testing/e2e';
-import {claudeMockHarness, SimpleTextResponseStub} from '../../test/harnesses/claude-mock/claude-mock.harness';
-import {environmentHarness} from '../../test/harnesses/environment/environment.harness';
-import {guildHarness} from '../../test/harnesses/guild/guild.harness';
+// from a spec at packages/web/src/flows/<route>/example.e2e.ts:
+import {test, expect, wireHarnessLifecycle} from '../../../test/harnesses/e2e-fixtures';
+import {claudeMockHarness, SimpleTextResponseStub} from '../../../test/harnesses/claude-mock/claude-mock.harness';
+import {environmentHarness} from '../../../test/harnesses/environment/environment.harness';
+import {guildHarness} from '../../../test/harnesses/guild/guild.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-example';
 
@@ -120,7 +123,7 @@ frontend reacts to.
 call.** The whole point of an E2E test is to exercise the real user path. If the test's scope is "click APPROVE → modal
 appears" and you PATCH `status: 'approved'` instead of clicking, you never verify the button wires up, never catch
 regressions in its handler, and the test silently passes while the button is broken. Same rule applies to POST-
-backed buttons (Begin Quest, Start Chat), DELETE-backed buttons (Remove Guild), file-backed form submissions, etc.
+backed buttons (Start Quest, Start Chat), DELETE-backed buttons (Remove Guild), file-backed form submissions, etc.
 
 - ✅ OK via API/write: setting up state the user would never reach manually in this test (seeding a guild, fast-
   forwarding through a phase the test isn't about, populating fixture data).
@@ -157,22 +160,25 @@ See `get-testing-patterns` MCP tool for full E2E testing patterns and anti-patte
   session's `sessionId` in test quest data.
 - **Quest status determines when the WS execution listener activates** — the browser's WebSocket listener for execution
   streaming (`quest-chat-widget.tsx`) is gated by `shouldRenderExecutionPanelQuestStatusGuard`, which returns `true` for
-  every execution-phase status (`seek_*`, `in_progress`, `paused`, `blocked`, `complete`, `abandoned`). The widget
-  auto-starts orchestration **only** for startable statuses (`approved` / `design_approved`) — quests past the start gate
-  never retrigger `/start` from the browser. Starting a quest directly at `in_progress` via `writeQuestFile` will NOT
-  kick off the orchestration loop: the loop is registered either by the `/api/quests/:id/start` endpoint (normal flow)
-  or by the server's startup-recovery responder (which only runs at boot). Tests that need the orchestration loop
-  running against a seeded quest must:
-    1. Write the quest file with `status: 'approved'` (or `'design_approved'`) plus any prior-phase work items marked
-       `complete`.
-    2. POST `/api/quests/:questId/start` **before** `page.goto(...)`. This transitions the quest to `seek_scope` on
-       the server, so the browser lands on an execution-phase status and the WS execution listener is active on the
-       first render — no race where fast work items (like the fake ward binary) broadcast output before the browser
-       connects.
-    3. Leave the already-complete pathseeker in the seeded work items if you want the loop to skip straight to a
-       downstream role — `orchestration-start-responder` detects `hasPathseeker` and won't insert a duplicate.
+  every execution-phase status (`in_progress`, `paused`, `blocked`, `complete`, `abandoned`). The widget auto-starts
+  orchestration **only** for startable statuses (`approved` / `design_approved`) — quests past the start gate never
+  retrigger `/start` from the browser. Starting a quest directly at `in_progress` via `writeQuestFile` will NOT seed the
+  operations relay: the relay seed + status flip happen in `orchestration-start-responder`, registered either by the
+  `/api/quests/:id/start` endpoint (normal flow) or by the server's startup-recovery responder (which only runs at
+  boot). Tests that need the relay running against a seeded quest must:
+    1. Write the quest file with `status: 'approved'` (or `'design_approved'`), a valid `operations` ledger (for a
+       `feature` quest, ≥1 `role: 'codeweaver'` item), plus any prior-phase (`chaoswhisperer`/`glyphsmith`) work items
+       marked `complete`.
+    2. POST `/api/quests/:questId/start` **before** `page.goto(...)`. This appends the verify tail as operation items,
+       creates the first work item, and transitions the quest to `in_progress` on the server, so the browser lands on
+       an execution-phase status and the WS execution listener is active on the first render — no race where fast work
+       items (like the fake ward binary) broadcast output before the browser connects.
+    3. The seed is idempotent — a re-`start` detects the already-appended locked ward tail and skips straight to the
+       status transition, so re-POSTing won't duplicate the ledger.
   Tests that only need to verify the start API response (not streamed output) can POST `/api/quests/:id/start`
   against an `approved` quest and assert on the response alone — no page navigation required.
-- **Step IDs must be kebab-case** — `stepIdContract` validates against `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`. Do NOT use
-  `crypto.randomUUID()` for step IDs in test quest data — UUIDs starting with a digit fail silently during
-  `questContract.parse()`, making the quest invisible to `questFindQuestPathBroker`.
+- **Every work item links exactly one operation item** — seed each work item with
+  `relatedDataItems: ['operations/<id>']` pointing at an `operations[]` item that exists on the quest (operation ids are
+  branded UUIDs, matched by the `related-data-item-contract` regex `^(operations|wardResults|flows)/[a-z0-9-]+$`).
+  `get-agent-prompt` resolves that linked operation item to interpolate the role prompt, so a dangling
+  `operations/<id>` (no matching ledger entry) breaks dispatch.
