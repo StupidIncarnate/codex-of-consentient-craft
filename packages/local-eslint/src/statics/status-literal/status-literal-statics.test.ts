@@ -97,7 +97,7 @@ describe('statusLiteralStatics', () => {
 
     it('VALID: prompt statics folder => matches at least one allowlist regex', () => {
       expect(
-        anyMatches('/repo/packages/orchestrator/src/statics/pathseeker-prompt/foo-statics.ts'),
+        anyMatches('/repo/packages/orchestrator/src/statics/codeweaver-prompt/foo-statics.ts'),
       ).toBe(true);
     });
 

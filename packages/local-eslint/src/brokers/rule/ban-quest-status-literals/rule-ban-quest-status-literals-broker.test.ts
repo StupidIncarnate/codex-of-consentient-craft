@@ -14,7 +14,7 @@ const allowlistedMetadataFixture =
 const allowlistedGuardFixture =
   '/repo/packages/shared/src/guards/is-terminal-quest-status/is-terminal-quest-status-guard.ts';
 const promptStaticsFixture =
-  '/repo/packages/orchestrator/src/statics/pathseeker-prompt/pathseeker-prompt-statics.ts';
+  '/repo/packages/orchestrator/src/statics/codeweaver-prompt/codeweaver-prompt-statics.ts';
 
 ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), {
   valid: [
@@ -152,19 +152,19 @@ ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), 
 
     // === CallExpression: .startsWith('seek_') ===
     {
-      code: "if (quest.status.startsWith('seek_')) { /* pre-split check */ }",
+      code: "if (quest.status.startsWith('seek_')) { /* banned prefix */ }",
       filename: productionFixture,
       errors: [{ messageId: 'bannedStartsWithPrefix', data: { prefix: 'seek_' } }],
     },
     // === CallExpression: .startsWith('explore_') ===
     {
-      code: "if (status.startsWith('explore_')) { /* pre-split check */ }",
+      code: "if (status.startsWith('explore_')) { /* banned prefix */ }",
       filename: productionFixture,
       errors: [{ messageId: 'bannedStartsWithPrefix', data: { prefix: 'explore_' } }],
     },
     // === CallExpression: .startsWith('review_') ===
     {
-      code: "if (status.startsWith('review_')) { /* pre-split check */ }",
+      code: "if (status.startsWith('review_')) { /* banned prefix */ }",
       filename: productionFixture,
       errors: [{ messageId: 'bannedStartsWithPrefix', data: { prefix: 'review_' } }],
     },

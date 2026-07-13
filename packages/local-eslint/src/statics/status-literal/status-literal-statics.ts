@@ -18,7 +18,7 @@
 export const statusLiteralStatics = {
   // Minimum number of known status literals inside an inline Set/array to fire the inlineStatusSet diagnostic.
   minimumInlineStatusSetMembers: 2,
-  // `startsWith` prefixes that encode pre-split pathseeker / explore / review assumptions.
+  // `startsWith` prefixes that encode status-group assumptions; callers must use the shared guards instead.
   bannedStartsWithPrefixes: ['seek_', 'explore_', 'review_'],
   // Identifier names whose `.status` read we treat as quest-or-work-item status (rule options may extend).
   defaultStatusHolderIdentifiers: ['quest', 'workItem', 'wi', 'item', 'input', 'postResult'],
@@ -52,6 +52,5 @@ export const statusLiteralStatics = {
     '\\.e2e\\.test\\.tsx$',
     '\\.harness\\.ts$',
     '/statics/[^/]*-prompt[^/]*/',
-    '/statics/pathseeker-[^/]+/',
   ],
 } as const;

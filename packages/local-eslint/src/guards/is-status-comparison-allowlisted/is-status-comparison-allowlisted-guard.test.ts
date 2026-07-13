@@ -50,15 +50,6 @@ describe('isStatusComparisonAllowlistedGuard', () => {
   });
 
   describe('allowlisted prompt statics folders', () => {
-    it('VALID: pathseeker prompt statics file => returns true', () => {
-      expect(
-        isStatusComparisonAllowlistedGuard({
-          filename:
-            '/repo/packages/orchestrator/src/statics/pathseeker-prompt/pathseeker-prompt-statics.ts',
-        }),
-      ).toBe(true);
-    });
-
     it('VALID: codeweaver prompt statics file => returns true', () => {
       expect(
         isStatusComparisonAllowlistedGuard({

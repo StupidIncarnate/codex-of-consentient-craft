@@ -4,7 +4,7 @@
  * USAGE:
  * classifyStatusLiteralTransformer({ literal: 'in_progress' });
  * // Returns 'ambiguous'
- * classifyStatusLiteralTransformer({ literal: 'seek_scope' });
+ * classifyStatusLiteralTransformer({ literal: 'approved' });
  * // Returns 'quest'
  * classifyStatusLiteralTransformer({ literal: 'failed' });
  * // Returns 'workItem'

@@ -5,7 +5,8 @@
  * const rule = ruleBanQuestStatusLiteralsBroker();
  * // Returns ESLint rule that flags `.status === 'in_progress'`, `.startsWith('seek_')`, status switch/case, and inline membership sets.
  *
- * WHEN-TO-USE: Registered in @dungeonmaster-local/local-eslint (this repo only, never shipped) to prevent regression of the pre-split pathseeker status-literal pattern.
+ * WHEN-TO-USE: Registered in @dungeonmaster-local/local-eslint (this repo only, never shipped) to prevent hardcoded
+ * quest/work-item status-literal comparisons; callers use the shared status guards instead.
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
@@ -28,13 +29,13 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
       },
       messages: {
         questStatusLiteral:
-          "Do not compare .status to the quest-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActivelyExecutingQuestStatusGuard, isPathseekerRunningQuestStatusGuard, isAnyAgentRunningQuestStatusGuard, etc.) — pre-split literal reads silently compute the wrong answer.",
+          "Do not compare .status to the quest-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActivelyExecutingQuestStatusGuard, isAnyAgentRunningQuestStatusGuard, etc.) — hardcoded literal reads silently compute the wrong answer when status values change.",
         workItemStatusLiteral:
           "Do not compare .status to the work-item-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActiveWorkItemStatusGuard, isCompleteWorkItemStatusGuard, isTerminalWorkItemStatusGuard, etc.).",
         ambiguousStatusLiteral:
           "The literal '{{literal}}' belongs to both quest-status and work-item-status. Pick based on context: quest-status => isActivelyExecutingQuestStatusGuard / isPreExecutionQuestStatusGuard / etc.; work-item-status => isActiveWorkItemStatusGuard / isCompleteWorkItemStatusGuard / isPendingWorkItemStatusGuard / etc.",
         bannedStartsWithPrefix:
-          "Do not use .startsWith('{{prefix}}') to detect status groups. Pre-split prefix checks encode pathseeker / explore / review assumptions that post-split semantics have broken. Use the shared guard instead (e.g., isPathseekerRunningQuestStatusGuard for 'seek_').",
+          "Do not use .startsWith('{{prefix}}') to detect status groups. Prefix checks encode assumptions about status naming that silently break when status values change. Use the shared guard instead (e.g., isActivelyExecutingQuestStatusGuard, isAnyAgentRunningQuestStatusGuard).",
         switchOnStatus:
           'Do not switch on .status with known status case literals. Replace the switch with explicit calls to shared status guards / transformers (e.g., nextApprovalQuestStatusTransformer, displayHeaderQuestStatusTransformer).',
         inlineStatusSet:
