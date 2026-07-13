@@ -35,12 +35,11 @@ import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { runChatLayerBroker } from './run-chat-layer-broker';
 
-// NOTE: every execution-role layer broker (pathseeker, codeweaver, ward, siegemaster,
-// lawbringer, blightwarden, spiritmender) is intentionally NOT imported here. Those
-// roles are dispatched by `/dumpster-launch` via the MCP `get-next-step` tool under
-// the new model. The orchestration loop only retains the chat-role dispatch
-// (chaoswhisperer / glyphsmith) for legacy chat surfaces; every other role drops
-// through this loop as a no-op.
+// NOTE: every execution-role layer broker (codeweaver, ward, siegemaster, lawbringer,
+// blightwarden, spiritmender) is intentionally NOT imported here. Those roles are
+// dispatched by the dispatch loop via get-next-step. The orchestration loop only
+// retains the chat-role dispatch (chaoswhisperer / glyphsmith) for chat surfaces;
+// every other role drops through this loop as a no-op.
 
 const DEFAULT_SLOT_COUNT = 3;
 
@@ -131,6 +130,7 @@ export const questOrchestrationLoopBroker = async ({
     // assertions) always fire on a definite terminal status.
     const newStatus = workItemsToQuestStatusTransformer({
       workItems: quest.workItems,
+      operations: quest.operations,
       currentStatus: quest.status,
     });
     process.stderr.write(
@@ -193,7 +193,7 @@ export const questOrchestrationLoopBroker = async ({
   const chatReady = ready.filter((item) => CHAT_ROLES.has(item.role));
   if (chatReady.length === 0) {
     process.stderr.write(
-      `[orchestration-loop] quest=${questId} decision: ${String(ready.length)} ready, 0 chat-role -> execution roles dispatch via /dumpster-launch; chat loop idle\n`,
+      `[orchestration-loop] quest=${questId} decision: ${String(ready.length)} ready, 0 chat-role -> execution roles dispatch via the dispatch loop; chat loop idle\n`,
     );
     return result;
   }
@@ -291,6 +291,7 @@ export const questOrchestrationLoopBroker = async ({
       if (updatedResult.success && updatedResult.quest) {
         const newStatus = workItemsToQuestStatusTransformer({
           workItems: updatedResult.quest.workItems,
+          operations: updatedResult.quest.operations,
           currentStatus: updatedResult.quest.status,
         });
         if (newStatus !== updatedResult.quest.status) {

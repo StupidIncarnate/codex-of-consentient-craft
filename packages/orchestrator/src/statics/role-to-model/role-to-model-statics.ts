@@ -2,18 +2,13 @@
  * PURPOSE: Maps each Claude-spawning work-item role to the Claude CLI --model flag value
  *
  * USAGE:
- * roleToModelStatics.pathseeker;
+ * roleToModelStatics.codeweaver;
  * // Returns 'opus'
  */
 
 export const roleToModelStatics = {
   chaoswhisperer: 'opus',
   glyphsmith: 'opus',
-  pathseeker: 'opus',
-  'pathseeker-surface': 'sonnet',
-  'pathseeker-dedup': 'sonnet',
-  'pathseeker-assertion-correctness': 'sonnet',
-  'pathseeker-walk': 'opus',
   flowrider: 'opus',
   siegemaster: 'opus',
   codeweaver: 'opus',

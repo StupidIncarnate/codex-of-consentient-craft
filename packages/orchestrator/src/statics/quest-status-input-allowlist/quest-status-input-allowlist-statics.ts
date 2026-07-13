@@ -4,10 +4,11 @@
  * USAGE:
  * questStatusInputAllowlistStatics.explore_flows.allowedFields;
  * // Returns: ['title', 'flows', 'designDecisions', 'status']
- * questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields;
- * // Returns: 'all' (in_progress accepts any planningNotes sub-field — no per-phase gating)
- * questStatusInputAllowlistStatics.seek_walk.allowedPlanningNotesFields;
- * // Returns: ['walkFindings'] (PathSeeker writes only walkFindings during seek_walk)
+ * questStatusInputAllowlistStatics.explore_observables.allowedFields;
+ * // Includes 'operations' — ChaosWhisperer authors the implementation plan items there. No other
+ * // status allows `operations`, so an execution agent's modify-quest{operations} at in_progress is
+ * // rejected — the orchestrator's own runtime ledger writes go through questOperationsUpdateBroker,
+ * // which bypasses this gate entirely.
  *
  * Entry shape:
  * - allowedFields: top-level input fields always permitted for this status
@@ -24,15 +25,9 @@
  *                          appear in this array, otherwise the write is rejected BY NAME (`Sub-field
  *                          'planningNotes.<x>' not allowed`). An empty [] combined with `planningNotes` being
  *                          absent from allowedFields rejects the whole field wholesale (`Field 'planningNotes'
- *                          not allowed`). The spec/design phases and the seek_synth/seek_walk planning phases
- *                          keep a finite sub-field allowlist so each retains its write-discipline; `seek_scope`
- *                          and `in_progress` use `'all'` (see below).
+ *                          not allowed`).
  *     'all'             -> no sub-field gating: any `planningNotes` sub-field is writable, AND a `planningNotes`
- *                          payload is accepted even though `planningNotes` is NOT in allowedFields. Used by
- *                          `seek_scope` — the PathSeeker planning workspace where the quest rests while
- *                          PathSeeker writes its ENTIRE lifecycle (scope → surface → synthesis → walk) in one
- *                          continuous run before driving the seek_scope → in_progress completeness gate — and
- *                          by `in_progress`, where execution agents write blightReports/codeweaverPlans.
+ *                          payload is accepted even though `planningNotes` is NOT in allowedFields.
  */
 
 export type QuestStatusFlowsRule =
@@ -41,13 +36,7 @@ export type QuestStatusFlowsRule =
   | 'no-observables'
   | 'observable-wording-only';
 
-export type QuestStatusPlanningNotesField =
-  | 'scopeClassification'
-  | 'surfaceReports'
-  | 'synthesis'
-  | 'walkFindings'
-  | 'blightReports'
-  | 'codeweaverPlans';
+export type QuestStatusPlanningNotesField = 'blightReports';
 
 export const questStatusInputAllowlistStatics = {
   pending: {
@@ -93,6 +82,7 @@ export const questStatusInputAllowlistStatics = {
       'contracts',
       'toolingRequirements',
       'packagesAffected',
+      'operations',
       'status',
     ],
     flowsRule: 'full',
@@ -102,7 +92,14 @@ export const questStatusInputAllowlistStatics = {
     allowedFields: ['status'],
     backTransitionFields: {
       toStatus: 'explore_observables',
-      fields: ['flows', 'designDecisions', 'contracts', 'toolingRequirements', 'packagesAffected'],
+      fields: [
+        'flows',
+        'designDecisions',
+        'contracts',
+        'toolingRequirements',
+        'packagesAffected',
+        'operations',
+      ],
     },
     flowsRule: 'full',
     allowedPlanningNotesFields: [],
@@ -131,45 +128,11 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
-  seek_scope: {
-    allowedFields: [
-      'planningNotes',
-      'steps',
-      'contracts',
-      'toolingRequirements',
-      'flows',
-      'status',
-    ],
-    flowsRule: 'observable-wording-only',
-    allowedPlanningNotesFields: 'all',
-  },
-  seek_synth: {
-    allowedFields: [
-      'planningNotes',
-      'steps',
-      'contracts',
-      'toolingRequirements',
-      'flows',
-      'status',
-    ],
-    flowsRule: 'observable-wording-only',
-    allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
-  },
-  seek_walk: {
-    allowedFields: [
-      'planningNotes',
-      'steps',
-      'contracts',
-      'toolingRequirements',
-      'flows',
-      'status',
-    ],
-    flowsRule: 'observable-wording-only',
-    allowedPlanningNotesFields: ['walkFindings'],
-  },
   in_progress: {
-    allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
+    allowedFields: ['contracts', 'toolingRequirements', 'flows', 'status'],
     flowsRule: 'observable-wording-only',
+    // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields —
+    // blightwarden minions write blightReports (the only sub-field on the contract) mid-run.
     allowedPlanningNotesFields: 'all',
   },
   paused: {

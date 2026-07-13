@@ -9,15 +9,12 @@
  * Behavior:
  * - Top-level fields not in allowlist (and not in backTransitionFields when nextStatus matches the carveout) are rejected.
  * - planningNotes acceptance: a `planningNotes` payload is accepted when either (a) `planningNotes` is in
- *   `allowedFields` (the seek_scope/seek_synth/seek_walk planning phases) or (b) the status's
- *   `allowedPlanningNotesFields` is `'all'` (only `in_progress`). Otherwise the whole field is rejected with the
- *   blunt `Field 'planningNotes' not allowed`.
- * - planningNotes sub-field allowlist: enforced ONLY for the phases that accept planningNotes via (a) and carry
- *   a finite `allowedPlanningNotesFields` array (seek_scope/seek_synth/seek_walk). Every sub-field present must
- *   appear in that array; any outside it is rejected BY NAME (`Sub-field 'planningNotes.<x>' not allowed`) so the
- *   writer knows exactly which sub-field tripped the gate. `in_progress` (`'all'`) imposes NO sub-field gating —
- *   PathSeeker runs its entire planning lifecycle while the quest stays `in_progress`, so any planningNotes
- *   sub-field is writable there.
+ *   `allowedFields` or (b) the status's `allowedPlanningNotesFields` is `'all'` (only `in_progress`, where
+ *   blightwarden minions write blightReports). Otherwise the whole field is rejected with the blunt
+ *   `Field 'planningNotes' not allowed`.
+ * - planningNotes sub-field allowlist: enforced ONLY for statuses that accept planningNotes via (a) and carry
+ *   a finite `allowedPlanningNotesFields` array. Every sub-field present must appear in that array; any outside
+ *   it is rejected BY NAME (`Sub-field 'planningNotes.<x>' not allowed`). `'all'` imposes no sub-field gating.
  * - When `flows` is present and allowed at top level, the per-status flowsRule is applied:
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
@@ -67,13 +64,11 @@ export const questInputForbiddenFieldsTransformer = ({
   const planningNotesRule = entry.allowedPlanningNotesFields;
   const inputPlanningNotes = input.planningNotes;
   // planningNotes acceptance is one of three shapes per status:
-  //  (a) top-level allowed — `planningNotes` is in `allowedFields` (seek_scope/seek_synth/seek_walk).
-  //      These planning phases keep a finite `allowedPlanningNotesFields` array, so the per-sub-field
-  //      loop below enforces each phase's write-discipline (seek_scope → scopeClassification only, etc.).
-  //  (b) ungated — `allowedPlanningNotesFields` is `'all'` (only `in_progress`). `planningNotes` is
-  //      accepted even though it is NOT in `allowedFields`, and NO sub-field gating applies: PathSeeker
-  //      runs its entire planning lifecycle (scope → surface → synthesis → walk) while the quest stays
-  //      `in_progress`, so every planningNotes sub-field is writable there.
+  //  (a) top-level allowed — `planningNotes` is in `allowedFields`; a finite
+  //      `allowedPlanningNotesFields` array then gates each sub-field by name below.
+  //  (b) ungated — `allowedPlanningNotesFields` is `'all'` (only `in_progress`): `planningNotes`
+  //      is accepted even though it is NOT in `allowedFields`, with no sub-field gating —
+  //      blightwarden minions write blightReports while the quest runs.
   //  (c) wholesale forbidden — neither (created/approved/explore_*/...); any `planningNotes` write
   //      is rejected with the blunt top-level message, since no sub-field is ever permitted there.
   const planningNotesTopLevelAllowed = allowedSet.has('planningNotes');
@@ -97,11 +92,9 @@ export const questInputForbiddenFieldsTransformer = ({
     }
   }
 
-  // Sub-field allowlist for planningNotes: enforced ONLY for the pre-in_progress planning phases that
-  // accept planningNotes top-level AND carry a finite `allowedPlanningNotesFields` array
-  // (seek_scope/seek_synth/seek_walk). Every sub-field being written must appear in the array; any
-  // outside it is rejected by name. This blocks a seek_walk writer from stamping `scopeClassification`,
-  // a seek_scope writer from stamping `synthesis`, etc. `in_progress` (`'all'`) is exempt.
+  // Sub-field allowlist for planningNotes: enforced ONLY for statuses that accept planningNotes
+  // top-level AND carry a finite `allowedPlanningNotesFields` array. Every sub-field being written
+  // must appear in the array; any outside it is rejected by name. `'all'` is exempt.
   if (
     inputPlanningNotes !== undefined &&
     planningNotesTopLevelAllowed &&

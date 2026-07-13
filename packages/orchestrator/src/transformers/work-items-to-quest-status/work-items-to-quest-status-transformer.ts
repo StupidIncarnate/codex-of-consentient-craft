@@ -1,38 +1,42 @@
 /**
- * PURPOSE: Derive quest execution status from work item states
+ * PURPOSE: Derive quest execution status from work item states and the operations ledger
  *
  * USAGE:
- * workItemsToQuestStatusTransformer({ workItems, currentStatus });
+ * workItemsToQuestStatusTransformer({ workItems, operations, currentStatus });
  * // Returns: QuestStatus
  */
 
-import type { QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonedQuestStatusGuard,
   isActiveWorkItemStatusGuard,
   isFailureWorkItemStatusGuard,
-  isPathseekerRunningQuestStatusGuard,
   isPendingWorkItemStatusGuard,
   isPreExecutionQuestStatusGuard,
+  isQuestBlockedQuestStatusGuard,
   isTerminalWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
 export const workItemsToQuestStatusTransformer = ({
   workItems,
+  operations,
   currentStatus,
 }: {
   workItems: WorkItem[];
+  operations: OperationItem[];
   currentStatus: QuestStatus;
 }): QuestStatus => {
-  // Statuses owned by something other than work-item state are never derived over: the pathseeker
-  // phase, the pre-execution spec lifecycle, an explicit user pause, and a deliberate abandon.
-  // (`complete` is deliberately NOT here — appending live work must be able to re-open it.)
+  // Statuses owned by something other than work-item state are never derived over: the
+  // pre-execution spec lifecycle, an explicit user pause, a deliberate abandon, and a block
+  // (blocked is set explicitly by questBlockOnFailureBroker and left explicitly by the user's
+  // resume transition — no write-side effect re-opens it). (`complete` is deliberately NOT
+  // here — appending live work must be able to re-open it.)
   if (
-    isPathseekerRunningQuestStatusGuard({ status: currentStatus }) ||
     isPreExecutionQuestStatusGuard({ status: currentStatus }) ||
     isUserPausedQuestStatusGuard({ status: currentStatus }) ||
-    isAbandonedQuestStatusGuard({ status: currentStatus })
+    isAbandonedQuestStatusGuard({ status: currentStatus }) ||
+    isQuestBlockedQuestStatusGuard({ status: currentStatus })
   ) {
     return currentStatus;
   }
@@ -45,7 +49,9 @@ export const workItemsToQuestStatusTransformer = ({
   // Sink work items are the ones nothing else depends on (their id never appears in another
   // item's dependsOn). Completion keys on the sink: a failed item whose dependents all
   // progressed past it (so it is NOT a sink) does not block. Only an unresolved failure that
-  // IS a sink — nothing overtook it and no retry was spliced for it — blocks.
+  // IS a sink — nothing overtook it and no retry was spliced for it — blocks. A failed ward
+  // work item whose operation item chain continued (spiritmender + fresh ward appended on the
+  // ledger) is resolved by the pendingOperations check below keeping the quest in_progress.
   const dependedOnIds = new Set(workItems.flatMap((item) => item.dependsOn));
   const hasUnresolvedSinkFailure = workItems.some(
     (item) =>
@@ -54,11 +60,22 @@ export const workItemsToQuestStatusTransformer = ({
       !dependedOnIds.has(item.id),
   );
 
-  // Every item terminal => the quest is done: `blocked` when a sink failure was never recovered,
-  // `complete` otherwise. (This is the sole place the "all terminal with a dead sink failure"
-  // case becomes `blocked`; callers no longer force it.)
+  // The operations ledger is the plan record: while ANY operation item is still pending or
+  // in_progress the quest is NOT done, even when every work item is momentarily terminal —
+  // that window is exactly "last session finished, advance has not created the next work item
+  // yet" (advance runs after the signal handler's atomic persist, and ward completion happens
+  // inside quest-run-ward-broker). Deriving `complete` there would terminalize the quest and
+  // stop the scan before the relay advances.
+  const hasPendingOperations = operations.some((operation) => operation.status !== 'complete');
+
+  // Every item terminal => the quest is done ONLY when the ledger agrees: `blocked` when a sink
+  // failure was never recovered, `complete` when the ledger is drained, `in_progress` while
+  // operation items remain (advance creates the next work item).
   if (workItems.every((item) => isTerminalWorkItemStatusGuard({ status: item.status }))) {
-    return hasUnresolvedSinkFailure ? 'blocked' : 'complete';
+    if (hasUnresolvedSinkFailure && !hasPendingOperations) {
+      return 'blocked';
+    }
+    return hasPendingOperations ? 'in_progress' : 'complete';
   }
 
   // Something is still running => in_progress.
@@ -66,11 +83,9 @@ export const workItemsToQuestStatusTransformer = ({
     return 'in_progress';
   }
 
-  // Only pending items remain. They are `blocked` when every one is dead-ended on a failed dep;
-  // otherwise at least one is dispatchable, so the quest is `in_progress`. This re-opens a quest
-  // that briefly derived `complete` (the last pathseeker finishing before the post-walk hook
-  // appends the codeweaver chain) or `blocked` (a recovery splice rewiring deps off the failed
-  // item) — appending live pending work makes it dispatchable again.
+  // Only pending items remain. They are `blocked` when every one is dead-ended on a failed dep
+  // AND the ledger has nothing left to advance to; otherwise the quest is `in_progress` (a
+  // dispatchable item exists, or advance will create one from the ledger).
   const failedIds = new Set(
     workItems
       .filter((item) => isFailureWorkItemStatusGuard({ status: item.status }))
@@ -83,5 +98,5 @@ export const workItemsToQuestStatusTransformer = ({
     pendingItems.length > 0 &&
     pendingItems.every((item) => item.dependsOn.some((depId) => failedIds.has(depId)));
 
-  return allPendingDeadEnded ? 'blocked' : 'in_progress';
+  return allPendingDeadEnded && !hasPendingOperations ? 'blocked' : 'in_progress';
 };

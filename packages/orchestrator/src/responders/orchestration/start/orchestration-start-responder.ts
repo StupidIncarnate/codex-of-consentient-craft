@@ -1,47 +1,39 @@
 /**
- * PURPOSE: Validates a quest is startable, promotes chat work items, inserts the single `pathseeker` planning work item built from `quest.packagesAffected[]` (PathSeeker classifies scope, summons surface + cleanup minions as sub-agents, then runs the architect-review walk itself), persists scopeClassification.slices[] into planningNotes, and leaves a PathSeeker-planned quest RESTING at seek_scope (PathSeeker drives the seek_scope → in_progress completeness gate itself); bug-hunt and already-planned quests promote straight to in_progress so the dispatch loop advances. Enqueues it and returns a synthetic processId for backwards compatibility with callers.
+ * PURPOSE: Validates a quest is startable, promotes chat work items, seeds the operations relay
+ * (the quest type's implementation operation items plus the fixed verify tail) with ONE work item
+ * for the first actionable operation item, and transitions the quest approved → in_progress so the
+ * dispatch loop picks it up. Enqueues it and returns a synthetic processId for backwards
+ * compatibility with callers.
  *
  * USAGE:
  * const processId = await OrchestrationStartResponder({ questId });
- * // Returns ProcessId after validating + enqueuing; the queue runner drives the loop when the head is eligible.
+ * // Returns ProcessId after validating + enqueuing; the dispatch loop drives the relay from here.
  */
 
 import {
+  getQuestInputContract,
+  modifyQuestInputContract,
   processIdContract,
   questQueueEntryContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId, WorkItem, WorkItemRole } from '@dungeonmaster/shared/contracts';
-import {
-  questStatusMetadataStatics,
-  questTypeRegistryStatics,
-} from '@dungeonmaster/shared/statics';
+import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
-
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { PathseekerGraph } from '../../../contracts/pathseeker-graph/pathseeker-graph-contract';
-import { questBuildBugHuntGraphBroker } from '../../../brokers/quest/build-bug-hunt-graph/quest-build-bug-hunt-graph-broker';
-import { questBuildPathseekerGraphBroker } from '../../../brokers/quest/build-pathseeker-graph/quest-build-pathseeker-graph-broker';
-import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
-import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
-import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
-import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
-import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
-import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import {
   isStartableQuestStatusGuard,
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-const PATHSEEKER_ROLES: ReadonlySet<WorkItemRole> = new Set<WorkItemRole>([
-  'pathseeker',
-  'pathseeker-surface',
-  'pathseeker-dedup',
-  'pathseeker-assertion-correctness',
-  'pathseeker-walk',
-]);
+import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
+import { questBuildRelayGraphBroker } from '../../../brokers/quest/build-relay-graph/quest-build-relay-graph-broker';
+import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
+import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
+import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
+import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
+import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
+import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 
 export const OrchestrationStartResponder = async ({
   questId,
@@ -68,31 +60,26 @@ export const OrchestrationStartResponder = async ({
 
   const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
 
-  // The quest type selects which work-item graph seeds at Start. The registry holds the
-  // discriminator (data); the builder choice lives here (the responder may import brokers).
-  const { startGraphKind } = questTypeRegistryStatics[quest.questType];
+  // Idempotency: the verify tail is orchestrator-seeded (locked ward items). If it is already on
+  // the ledger, a previous Start got as far as the relay seed — don't append it twice; just
+  // finish the status transition below.
+  const hasExistingRelay = quest.operations.some(
+    (operation) => operation.locked && operation.role === 'ward',
+  );
 
-  const hasExistingGraph =
-    startGraphKind === 'bug-hunt'
-      ? quest.workItems.some((wi) => wi.role === 'pesteater')
-      : quest.workItems.some((wi) => PATHSEEKER_ROLES.has(wi.role));
-
-  // Mark any non-complete chaoswhisperer/glyphsmith work items as complete.
-  // The spec phase is done by the time the user clicks "Begin Quest", but the
-  // work item status is never explicitly set to complete during the chat phase.
-  const promotedChatItems = quest.workItems
-    .filter(
-      (wi) =>
-        (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
-        !isTerminalWorkItemStatusGuard({ status: wi.status }),
-    )
-    .map((wi) =>
-      workItemContract.parse({
-        ...wi,
-        status: 'complete',
-        completedAt: new Date().toISOString(),
-      }),
-    );
+  // Mark any non-complete chaoswhisperer/glyphsmith work items as complete. The spec phase is
+  // done by the time the user clicks "Begin Quest", but the work item status is never explicitly
+  // set to complete during the chat phase.
+  const promotedChatItems = quest.workItems.map((wi) =>
+    (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
+    !isTerminalWorkItemStatusGuard({ status: wi.status })
+      ? workItemContract.parse({
+          ...wi,
+          status: 'complete',
+          completedAt: new Date().toISOString(),
+        })
+      : wi,
+  );
 
   const chatItemIds = quest.workItems
     .filter((wi) => wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith')
@@ -100,107 +87,49 @@ export const OrchestrationStartResponder = async ({
 
   const now = isoTimestampContract.parse(new Date().toISOString());
 
-  // Feature quests seed the PathSeeker graph (and later persist scopeClassification). Bug-hunt
-  // quests seed the full pesteater → ward → lawbringer → blightwarden → ward chain at once —
-  // there is no PathSeeker, so pathseekerGraph stays undefined and the scopeClassification write
-  // below is skipped.
-  const pathseekerGraph: PathseekerGraph | undefined =
-    hasExistingGraph || startGraphKind === 'bug-hunt'
-      ? undefined
-      : questBuildPathseekerGraphBroker({
-          packagesAffected: quest.packagesAffected,
-          flowIds: [],
-          priorWorkItemIds: chatItemIds,
-          now,
-        });
+  if (!hasExistingRelay) {
+    // Seed the relay BEFORE the status transition: a crash between the two leaves the quest
+    // still `approved` (startable), and the hasExistingRelay check above makes the re-Start
+    // skip straight to the transition. The update broker persists operations + the promoted
+    // chat items + the first work item in ONE atomic write.
+    const relay = questBuildRelayGraphBroker({
+      quest,
+      priorWorkItemIds: chatItemIds,
+      now,
+    });
 
-  const newExecutionWorkItems: WorkItem[] = hasExistingGraph
-    ? []
-    : startGraphKind === 'bug-hunt'
-      ? questBuildBugHuntGraphBroker({ priorWorkItemIds: chatItemIds, now })
-      : (pathseekerGraph?.workItems ?? []);
+    await questOperationsUpdateBroker({
+      questId,
+      update: () => ({
+        operations: relay.operations,
+        workItems: [...promotedChatItems, ...relay.workItems],
+      }),
+    });
+  } else if (promotedChatItems.some((wi, index) => wi !== quest.workItems[index])) {
+    await questOperationsUpdateBroker({
+      questId,
+      update: () => ({ workItems: promotedChatItems }),
+    });
+  }
 
-  const workItemsToUpdate = [...promotedChatItems, ...newExecutionWorkItems];
-
-  // A PathSeeker-planned feature quest RESTS at seek_scope: PathSeeker runs there and drives the
-  // seek_scope → in_progress transition itself (the retryable completeness gate). This is true
-  // whenever the quest will have a non-terminal `pathseeker` work item to run. Bug-hunt quests
-  // (no PathSeeker) and quests whose planning is already complete instead promote straight to
-  // in_progress so the dispatch loop advances the execution chain.
-  const willRunPathseeker =
-    startGraphKind !== 'bug-hunt' &&
-    [...quest.workItems, ...newExecutionWorkItems].some(
-      (wi) => wi.role === 'pathseeker' && !isTerminalWorkItemStatusGuard({ status: wi.status }),
-    );
-
-  // Transition the quest so each modify call lands within an allowlist window that permits the
-  // fields it writes:
-  //   1. approved → seek_scope, carrying workItems (server-only field that bypasses the
-  //      input-allowlist gate). `approved` cannot reach `in_progress` directly (the transitions
-  //      allowlist routes startable statuses through `seek_scope`), and the `approved` allowlist
-  //      forbids `planningNotes`, so this hop is required to unlock the scope-seed write below.
-  //   2. (when a fresh pathseeker graph was built) modify in `seek_scope` to persist
-  //      `planningNotes.scopeClassification` — `seek_scope` is the canonical scope-seed window.
-  //   3. seek_scope → in_progress ONLY when no PathSeeker will run (`willRunPathseeker` false:
-  //      bug-hunt, or planning already complete). A PathSeeker-planned quest RESTS at seek_scope
-  //      instead — the dispatch filter includes pathseeker-running statuses, so the pathseeker
-  //      work item dispatches there, and PathSeeker drives seek_scope → in_progress itself (the
-  //      completeness gate). Promoting here would starve that gate.
-  const modifyInput = modifyQuestInputContract.parse({
-    questId,
-    status: 'seek_scope',
-    ...(workItemsToUpdate.length > 0 ? { workItems: workItemsToUpdate } : {}),
+  const promoteResult = await questModifyBroker({
+    input: modifyQuestInputContract.parse({
+      questId,
+      status: 'in_progress',
+    }),
   });
 
-  const modifyResult = await questModifyBroker({ input: modifyInput });
-
-  if (!modifyResult.success) {
-    throw new Error(`Failed to start quest: ${modifyResult.error}`);
-  }
-
-  if (pathseekerGraph !== undefined) {
-    const planningNotesResult = await questModifyBroker({
-      input: modifyQuestInputContract.parse({
-        questId,
-        planningNotes: {
-          scopeClassification: {
-            size: pathseekerGraph.slices.length > 1 ? 'medium' : 'small',
-            slicing: `Auto-generated from quest.packagesAffected (${pathseekerGraph.slices.length} slice(s))`,
-            slices: pathseekerGraph.slices,
-            rationale:
-              'Slices derived 1:1 from quest.packagesAffected by orchestration-start-responder.',
-            classifiedAt: now,
-          },
-        },
-      }),
-    });
-
-    if (!planningNotesResult.success) {
-      throw new Error(`Failed to start quest: ${planningNotesResult.error}`);
-    }
-  }
-
-  if (!willRunPathseeker) {
-    const promoteResult = await questModifyBroker({
-      input: modifyQuestInputContract.parse({
-        questId,
-        status: 'in_progress',
-      }),
-    });
-
-    if (!promoteResult.success) {
-      throw new Error(`Failed to start quest: ${promoteResult.error}`);
-    }
+  if (!promoteResult.success) {
+    throw new Error(`Failed to start quest: ${promoteResult.error}`);
   }
 
   const { guildId } = await questFindQuestPathBroker({ questId });
   const guild = await guildGetBroker({ guildId });
   const guildSlug = guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name });
 
-  // Queue entry uses the quest snapshot from before the seek_scope transition — callers using
-  // this to display the queue will re-read the quest through the quest-modified event stream
-  // once the modify broker's outbox append fires, so the exact status captured here is
-  // cosmetic (the runner consults the live quest status, not this snapshot, when driving the loop).
+  // Queue entry uses the quest snapshot from before the transition — callers using this to
+  // display the queue re-read the quest through the quest-modified event stream once the modify
+  // broker's outbox append fires, so the exact status captured here is cosmetic.
   const entry = questQueueEntryContract.parse({
     questId,
     guildId,
@@ -211,11 +140,11 @@ export const OrchestrationStartResponder = async ({
     ...(quest.questSource === undefined ? {} : { questSource: quest.questSource }),
   });
 
-  // Register the processId so callers can poll /api/process/:processId for status
-  // immediately after start. Start spawns nothing, so there is no process to kill — the
-  // kill hook must NOT touch the queue entry: pause kills this registration to stop any
-  // running work, and the paused quest must STAY queued so resume/dispatch can pick it
-  // back up. Queue-entry removal is owned by the sync listener (terminal status / delete).
+  // Register the processId so callers can poll /api/process/:processId for status immediately
+  // after start. Start spawns nothing, so there is no process to kill — the kill hook must NOT
+  // touch the queue entry: pause kills this registration to stop any running work, and the
+  // paused quest must STAY queued so resume/dispatch can pick it back up. Queue-entry removal is
+  // owned by the sync listener (terminal status / delete).
   orchestrationProcessesState.register({
     orchestrationProcess: {
       processId,

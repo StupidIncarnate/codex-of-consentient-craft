@@ -1,17 +1,22 @@
 /**
- * PURPOSE: MCP-driven entry point that runs ward synchronously for one work item and persists the result onto the quest's work item
+ * PURPOSE: Runs ward synchronously for one ward work item and applies the outcome to the
+ * operations ledger. Ward is a first-class operation item: GREEN marks the linked ward operation
+ * item complete and advances to the next item; RED marks it complete too, then appends a
+ * spiritmender operation item plus a fresh ward continuation ("pt N", same wardMode) AFTER it —
+ * so the next dispatched item is the spiritmender (never another ward back-to-back), and the
+ * fresh ward re-verifies after the fix. The red chain is bounded: once the ward items of this
+ * wardMode since the last green ward of the same mode reach `slotManagerStatics.ward.maxRetries`,
+ * the quest blocks instead of appending another fix loop.
  *
  * USAGE:
  * const result = await questRunWardBroker({ questId, workItemId, mode: 'changed' });
- * // Spawns ward, persists the trimmed detail blob under quest-folder/ward-results/,
- * //   appends a lightweight WardResult ref to quest.wardResults, stamps lastWardRunId
- * //   on the work item, marks the work item complete (exit 0) or failed (non-zero),
- * //   and returns { success, exitCode, wardResultId, lastWardRunId? }.
+ * // Spawns ward, persists the trimmed detail blob under quest-folder/ward-results/, appends a
+ * //   WardResult ref to quest.wardResults, atomically applies work-item terminal status +
+ * //   ledger mutation, calls advance, and returns { success, exitCode, wardResultId }.
  *
- * WHEN-TO-USE: Called by the run-ward MCP tool when /dumpster-launch dispatches a `run-ward` step.
- * WHEN-NOT-TO-USE: From the existing orchestration loop — that path keeps using runWardLayerBroker
- *   (which also drives the spiritmender retry chain). The MCP path delegates retry/recovery to the
- *   orchestrator LLM via subsequent get-next-step calls.
+ * WHEN-TO-USE: Called by the run-ward MCP tool / Node dispatch loop when a `run-ward` step
+ *   dispatches. This broker owns the ONLY failure concept in the orchestrator (ward exit-code
+ *   red) — agent roles have no failure signal.
  */
 
 import {
@@ -22,38 +27,34 @@ import {
 } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
-  errorMessageContract,
   exitCodeContract,
   fileContentsContract,
   fileNameContract,
   filePathContract,
-  getQuestInputContract,
+  operationItemContract,
   wardResultContract,
   workItemContract,
+  type ModifyQuestInput,
   type QuestId,
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questRunWardResultContract } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 import type { QuestRunWardResult } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
-import type { SpiritmenderBatch } from '../../../contracts/spiritmender-batch/spiritmender-batch-contract';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
-import { spiritmenderContextStatics } from '../../../statics/spiritmender-context/spiritmender-context-statics';
-import { wardDetailToSpiritmenderBatchesTransformer } from '../../../transformers/ward-detail-to-spiritmender-batches/ward-detail-to-spiritmender-batches-transformer';
+import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
 import { wardDetailBroker } from '../../ward/detail/ward-detail-broker';
+import { questAdvanceBroker } from '../advance/quest-advance-broker';
+import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
-import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
-import { questSpliceFixerBroker } from '../splice-fixer/quest-splice-fixer-broker';
-import { questSplicePathseekerReplanBroker } from '../splice-pathseeker-replan/quest-splice-pathseeker-replan-broker';
+import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
-const SPIRITMENDER_BATCHES_DIR = 'spiritmender-batches';
 
 export const questRunWardBroker = async ({
   questId,
@@ -68,9 +69,7 @@ export const questRunWardBroker = async ({
 
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  // 1. Spawn ward and stream stdout (no callback — the JSONL watcher owns live UI streaming
-  //    in the new model). Keep the same arg shape spawn-ward-layer-broker uses so behavior
-  //    matches the existing orchestration-loop path.
+  // 1. Spawn ward and stream stdout (no callback — the JSONL watcher owns live UI streaming).
   const args = mode === 'changed' ? ['run', '--changed'] : ['run'];
 
   const { exitCode: rawExitCode, output } = await childProcessSpawnStreamLinesAdapter({
@@ -101,7 +100,7 @@ export const questRunWardBroker = async ({
     });
   }
 
-  // 3. Append the lightweight ref to quest.wardResults and mark the work item terminal.
+  // 3. Append the lightweight ref to quest.wardResults.
   const wardResult = wardResultContract.parse({
     id: wardResultId,
     createdAt: new Date().toISOString(),
@@ -123,171 +122,121 @@ export const questRunWardBroker = async ({
   }
 
   const lastWardRunId = runId === null ? undefined : fileNameContract.parse(String(runId));
-
   const completedAt = new Date().toISOString();
-  const status = exitCode === 0 ? 'complete' : 'failed';
+  const green = exitCode === 0;
 
-  const workItemModifyResult = await questModifyBroker({
-    input: {
-      questId,
-      workItems: [
-        {
-          id: workItemId,
-          status,
-          completedAt,
-          // Link the wardResult back to the work item — the execution panel resolves a row's
-          // ward results ONLY through relatedDataItems `wardResults/<id>` refs. Without this the
-          // [WARD] row renders status + error but never the exit code / detail breakdown.
-          relatedDataItems: [`wardResults/${wardResult.id}`],
-          ...(lastWardRunId === undefined ? {} : { lastWardRunId }),
-          ...(status === 'failed' ? { errorMessage: 'ward_failed' } : {}),
-        },
-      ],
-    } as ModifyQuestInput,
-  });
-  if (!workItemModifyResult.success) {
-    throw new Error(
-      `Failed to persist ward work item update for quest ${questId}: ${workItemModifyResult.error ?? 'unknown'}`,
-    );
-  }
+  // 4. ONE atomic ledger + work-item write: terminal work-item status, ward operation item
+  //    complete, and (on red, budget permitting) the spiritmender + fresh-ward continuation.
+  let blockedOnSpentWardChain = false;
 
-  // Ward passed — nothing to recover. The MCP response is built below unchanged.
-  if (exitCode !== 0) {
-    // Ward failed — route recovery. Load the quest fresh so we can read the failed ward work
-    // item's retry budget + wardMode and detect a prior Blightwarden pass.
-    const questInput = getQuestInputContract.parse({ questId });
-    const failureGetResult = await questGetBroker({ input: questInput });
-
-    if (failureGetResult.success && failureGetResult.quest !== undefined) {
-      const { quest } = failureGetResult;
+  await questOperationsUpdateBroker({
+    questId,
+    update: ({ quest }) => {
       const wardWorkItem = quest.workItems.find((item) => item.id === workItemId);
-
-      if (wardWorkItem !== undefined) {
-        if (wardWorkItem.attempt >= wardWorkItem.maxAttempts - 1) {
-          // Retries exhausted — the build could not be made green after every spiritmender pass, so
-          // the plan is a hole. Escalate to a PathSeeker replan (recovery-first, never an immediate
-          // block); it blocks only once the replan loop itself is spent.
-          const replanBrief = workItemContract.shape.summary.parse(
-            `ward ${mode} could not pass after ${String(wardWorkItem.maxAttempts)} attempts and every spiritmender fix — re-plan the affected slice.`,
-          );
-          await questSplicePathseekerReplanBroker({
-            questId,
-            failedWorkItemId: workItemId,
-            brief: replanBrief,
-          });
-        } else {
-          // Retry budget remains — splice batched spiritmenders + a ward retry.
-          const detailBatches = detailJson
-            ? wardDetailToSpiritmenderBatchesTransformer({
-                detailJson: errorMessageContract.parse(detailJson),
-                batchSize: slotManagerStatics.ward.spiritmenderBatchSize,
-              })
-            : [];
-
-          // Invariant: a failed ward with retry budget ALWAYS splices at least one spiritmender,
-          // so the ward-retry never depends on an empty set (which would make it immediately ready
-          // and let ward re-run with nothing repaired). When the detail blob yields no batches
-          // (ward crashed before emitting a runId, or produced no parseable failure detail), fall
-          // back to a single catch-all spiritmender carrying the failure summary.
-          const batches: SpiritmenderBatch[] =
-            detailBatches.length > 0
-              ? detailBatches
-              : [
-                  {
-                    filePaths: [],
-                    errors: [
-                      errorMessageContract.parse(
-                        `ward ${mode} failed (exit ${String(exitCode)}) with no structured errors — re-run ward and fix every reported failure`,
-                      ),
-                    ],
-                  },
-                ];
-
-          // Pick the context preamble: post-Blightwarden warning if Blightwarden already ran,
-          // else the default ward-failure preamble.
-          const blightwardenRan = quest.workItems.some(
-            (item) =>
-              item.role === 'blightwarden' &&
-              isCompleteWorkItemStatusGuard({ status: item.status }),
-          );
-          const contextInstructions = blightwardenRan
-            ? spiritmenderContextStatics.postBlightwardenFailure.instructions
-            : spiritmenderContextStatics.wardFailure.instructions;
-
-          // Build one spiritmender work item per batch, keyed so its sidecar matches.
-          const createdAt = new Date().toISOString();
-          const spiritmenderItems = batches.map(() =>
-            workItemContract.parse({
-              id: crypto.randomUUID(),
-              role: 'spiritmender',
-              status: 'pending',
-              spawnerType: 'agent',
-              dependsOn: [workItemId],
-              maxAttempts: 1,
-              createdAt,
-              insertedBy: workItemId,
-            }),
-          );
-
-          // Write the sidecar batch file for each spiritmender. PATH + SHAPE are a pinned
-          // contract shared with agentPromptGetBroker (reader) and the lawbringer signal-back
-          // writer. Resolve <questDir> the same way the ward-results dir is resolved above.
-          if (spiritmenderItems.length > 0) {
-            const batchesDir = pathJoinAdapter({
-              paths: [questPath, SPIRITMENDER_BATCHES_DIR],
-            });
-            await fsMkdirAdapter({ filepath: batchesDir });
-
-            await Promise.all(
-              spiritmenderItems.map(async (spiritmenderItem, index) => {
-                const batch = batches[index];
-                const filePaths = batch ? batch.filePaths : [];
-                const errors = batch ? batch.errors : [];
-                const batchFilePath = filePathContract.parse(
-                  pathJoinAdapter({
-                    paths: [batchesDir, `${String(spiritmenderItem.id)}.json`],
-                  }),
-                );
-                const verificationCommand = `npm run ward -- -- ${filePaths.join(' ')}`;
-                const batchContents = JSON.stringify({
-                  filePaths,
-                  errors,
-                  verificationCommand,
-                  contextInstructions,
-                });
-
-                return fsWriteFileAdapter({
-                  filePath: batchFilePath,
-                  contents: fileContentsContract.parse(batchContents),
-                });
-              }),
-            );
-          }
-
-          // One ward-retry item depending on all spiritmenders, same wardMode as the failed ward.
-          const wardRetryItem = workItemContract.parse({
-            id: crypto.randomUUID(),
-            role: 'ward',
-            status: 'pending',
-            spawnerType: 'command',
-            dependsOn: spiritmenderItems.map((item) => item.id),
-            attempt: wardWorkItem.attempt + 1,
-            maxAttempts: wardWorkItem.maxAttempts,
-            createdAt,
-            insertedBy: workItemId,
-            ...(wardWorkItem.wardMode ? { wardMode: wardWorkItem.wardMode } : {}),
-          });
-
-          await questSpliceFixerBroker({
-            questId,
-            quest,
-            failedWorkItemId: workItemId,
-            fixerItems: spiritmenderItems,
-            retryItem: wardRetryItem,
-          });
-        }
+      if (wardWorkItem === undefined) {
+        return null;
       }
-    }
+
+      const nextWorkItems = quest.workItems.map((item) =>
+        item.id === workItemId
+          ? workItemContract.parse({
+              ...item,
+              status: green ? 'complete' : 'failed',
+              completedAt,
+              // Link the wardResult back to the work item — the execution panel resolves a
+              // row's ward results ONLY through relatedDataItems `wardResults/<id>` refs.
+              relatedDataItems: [
+                ...item.relatedDataItems.map((ref) => String(ref)),
+                `wardResults/${String(wardResult.id)}`,
+              ],
+              ...(lastWardRunId === undefined ? {} : { lastWardRunId }),
+              ...(green ? {} : { errorMessage: 'ward_failed' }),
+            })
+          : item,
+      );
+
+      const linkedRef = wardWorkItem.relatedDataItems
+        .map((ref) => String(ref))
+        .find((ref) => ref.startsWith('operations/'));
+      const linkedOperation = quest.operations.find(
+        (operation) => String(operation.id) === (linkedRef?.split('/')[1] ?? ''),
+      );
+      if (linkedOperation === undefined) {
+        return { workItems: nextWorkItems };
+      }
+
+      const completedOperations = quest.operations.map((operation) =>
+        operation.id === linkedOperation.id
+          ? operationItemContract.parse({ ...operation, status: 'complete' })
+          : operation,
+      );
+
+      if (green) {
+        return { operations: completedOperations, workItems: nextWorkItems };
+      }
+
+      // RED — bound the fix loop: count the ward operation items of this wardMode since the
+      // last GREEN ward of the same mode (a ward op is green when its linked work item
+      // completed). Reaching the budget blocks instead of appending another spiritmender+ward.
+      const isGreenWardOp = (operationId: string): boolean =>
+        quest.workItems.some(
+          (item) =>
+            item.relatedDataItems.some((ref) => String(ref) === `operations/${operationId}`) &&
+            item.role === 'ward' &&
+            isCompleteWorkItemStatusGuard({ status: item.status }),
+        );
+      const sameModeWardOps = quest.operations.filter(
+        (operation) => operation.role === 'ward' && operation.wardMode === mode,
+      );
+      const lastGreenIndex = sameModeWardOps.reduce(
+        (acc, operation, index) => (isGreenWardOp(String(operation.id)) ? index : acc),
+        -1,
+      );
+      const redChainLength = sameModeWardOps.length - (lastGreenIndex + 1);
+
+      if (redChainLength >= slotManagerStatics.ward.maxRetries) {
+        blockedOnSpentWardChain = true;
+        return { operations: completedOperations, workItems: nextWorkItems };
+      }
+
+      const spiritmenderOp = operationItemContract.parse({
+        id: crypto.randomUUID(),
+        role: 'spiritmender',
+        text: `Spiritmender: fix ward (${mode}) failures — wardResult ${wardResultId}`,
+        status: 'pending',
+        locked: true,
+      });
+
+      const { base, chainLength } = operationPtChainTransformer({
+        operations: quest.operations,
+        item: linkedOperation,
+      });
+      const freshWardOp = operationItemContract.parse({
+        id: crypto.randomUUID(),
+        role: 'ward',
+        text: `pt ${String(chainLength + 1)}: ${base}`,
+        status: 'pending',
+        locked: true,
+        wardMode: mode,
+      });
+
+      const insertIndex =
+        completedOperations.findIndex((operation) => operation.id === linkedOperation.id) + 1;
+      const withRecovery = [
+        ...completedOperations.slice(0, insertIndex),
+        spiritmenderOp,
+        freshWardOp,
+        ...completedOperations.slice(insertIndex),
+      ];
+
+      return { operations: withRecovery, workItems: nextWorkItems };
+    },
+  });
+
+  if (blockedOnSpentWardChain) {
+    await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
+  } else {
+    await questAdvanceBroker({ questId });
   }
 
   return questRunWardResultContract.parse({

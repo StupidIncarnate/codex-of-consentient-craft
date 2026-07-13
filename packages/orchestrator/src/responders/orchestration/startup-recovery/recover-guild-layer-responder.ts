@@ -6,11 +6,7 @@
  * // Scans guild quests and launches loops for any in recoverable statuses without running processes
  */
 
-import {
-  filePathContract,
-  processIdContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
@@ -24,8 +20,6 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import {
   isActiveWorkItemStatusGuard,
-  isAnyAgentRunningQuestStatusGuard,
-  isCompleteWorkItemStatusGuard,
   isRecoverableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
@@ -53,9 +47,10 @@ export const RecoverGuildLayerResponder = async ({
       return !existingProcess;
     });
 
-    // Reset orphaned active work items to pending across every recoverable quest status
-    // (in_progress AND seek_* planning phases). Their processes died on restart, so the
-    // orchestration loop needs to re-dispatch them.
+    // Reset orphaned active work items to pending across every recoverable quest, keeping
+    // sessionId + the resume marker so Node dispatch resumes the interrupted session. A missing
+    // next work item is NOT repaired here — the dispatch scan's operations-aware advance
+    // self-heal creates it from the ledger.
     const orphanResets = recoverableQuests
       .filter((quest) =>
         quest.workItems.some((wi) => isActiveWorkItemStatusGuard({ status: wi.status })),
@@ -63,7 +58,11 @@ export const RecoverGuildLayerResponder = async ({
       .map(async (quest) => {
         const orphanedItems = quest.workItems
           .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
-          .map((wi) => ({ id: wi.id, status: 'pending' as const }));
+          .map((wi) => ({
+            id: wi.id,
+            status: 'pending' as const,
+            ...(wi.sessionId === undefined ? {} : { resume: true }),
+          }));
 
         const resetInput = modifyQuestInputContract.parse({
           questId: quest.id,
@@ -73,43 +72,6 @@ export const RecoverGuildLayerResponder = async ({
       });
 
     await Promise.all(orphanResets);
-
-    // Insert pathseeker work items for any-agent-running quests (seek_* + in_progress)
-    // that are missing them — intent: quest has progressed past pathseeker spawn but is
-    // missing its pathseeker item — repair.
-    const pathseekerInsertions = recoverableQuests
-      .filter(
-        (quest) =>
-          isAnyAgentRunningQuestStatusGuard({ status: quest.status }) &&
-          !quest.workItems.some((wi) => wi.role === 'pathseeker'),
-      )
-      .map(async (quest) => {
-        const chatItemIds = quest.workItems
-          .filter(
-            (wi) =>
-              (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
-              isCompleteWorkItemStatusGuard({ status: wi.status }),
-          )
-          .map((wi) => wi.id);
-
-        const pathseekerItem = workItemContract.parse({
-          id: crypto.randomUUID(),
-          role: 'pathseeker',
-          status: 'pending',
-          spawnerType: 'agent',
-          dependsOn: chatItemIds,
-          maxAttempts: 3,
-          createdAt: new Date().toISOString(),
-        });
-
-        const insertInput = modifyQuestInputContract.parse({
-          questId: quest.id,
-          workItems: [pathseekerItem],
-        });
-        return questModifyBroker({ input: insertInput });
-      });
-
-    await Promise.all(pathseekerInsertions);
 
     for (const quest of recoverableQuests) {
       const processId = processIdContract.parse(`proc-recovery-${crypto.randomUUID()}`);

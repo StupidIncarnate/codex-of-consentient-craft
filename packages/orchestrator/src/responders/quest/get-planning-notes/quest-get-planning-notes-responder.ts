@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Retrieves PathSeeker planningNotes for a quest (full object or a specific section) by delegating to questGetPlanningNotesBroker
+ * PURPOSE: Retrieves a quest's planningNotes (full object or the blight section) by delegating to questGetPlanningNotesBroker
  *
  * USAGE:
  * const result = await QuestGetPlanningNotesResponder({ questId: 'add-auth' });
  * // Returns { success: true, data: planningNotes } or { success: false, error }
  *
- * const scope = await QuestGetPlanningNotesResponder({ questId: 'add-auth', section: 'scope' });
- * // Returns { success: true, data: scopeClassification | undefined } or { success: false, error }
+ * const blight = await QuestGetPlanningNotesResponder({ questId: 'add-auth', section: 'blight' });
+ * // Returns { success: true, data: blightReports } or { success: false, error }
  */
 
 import { errorMessageContract, questIdContract } from '@dungeonmaster/shared/contracts';
@@ -16,15 +16,9 @@ import { questGetPlanningNotesBroker } from '../../../brokers/quest/get-planning
 
 type PlanningNotes = Quest['planningNotes'];
 
-type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
+type PlanningNotesSection = 'blight';
 
-type PlanningNotesData =
-  | PlanningNotes
-  | PlanningNotes['scopeClassification']
-  | PlanningNotes['surfaceReports']
-  | PlanningNotes['blightReports']
-  | PlanningNotes['synthesis']
-  | PlanningNotes['walkFindings'];
+type PlanningNotesData = PlanningNotes | PlanningNotes['blightReports'];
 
 export type QuestGetPlanningNotesResponderResult =
   | { readonly success: true; readonly data: PlanningNotesData }

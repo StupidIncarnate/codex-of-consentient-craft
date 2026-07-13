@@ -43,8 +43,8 @@ export const buildHydrateInputLayerBroker = ({
           return { ...acc, contracts: blueprint.contracts };
         case 'toolingRequirements':
           return { ...acc, toolingRequirements: blueprint.toolingRequirements };
-        case 'steps':
-          return { ...acc, steps: blueprint.steps };
+        case 'operations':
+          return { ...acc, operations: blueprint.operations };
         default:
           return acc;
       }
@@ -62,32 +62,9 @@ export const buildHydrateInputLayerBroker = ({
     return {};
   })();
 
-  const planningNotesAdditions: Partial<ModifyQuestInput> =
-    strategy.planningNotesFields.length === 0
-      ? {}
-      : {
-          planningNotes: strategy.planningNotesFields.reduce<
-            NonNullable<ModifyQuestInput['planningNotes']>
-          >((acc, sub) => {
-            switch (sub) {
-              case 'scopeClassification':
-                return { ...acc, scopeClassification: blueprint.planningNotes.scopeClassification };
-              case 'surfaceReports':
-                return { ...acc, surfaceReports: blueprint.planningNotes.surfaceReports };
-              case 'synthesis':
-                return { ...acc, synthesis: blueprint.planningNotes.synthesis };
-              case 'walkFindings':
-                return { ...acc, walkFindings: blueprint.planningNotes.walkFindings };
-              default:
-                return acc;
-            }
-          }, {}),
-        };
-
   return modifyQuestInputContract.parse({
     ...basePayload,
     ...blueprintAdditions,
     ...flowsAdditions,
-    ...planningNotesAdditions,
   });
 };

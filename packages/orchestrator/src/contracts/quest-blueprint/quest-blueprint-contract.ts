@@ -9,8 +9,7 @@
  *   designDecisions: [],
  *   contracts: [],
  *   toolingRequirements: [],
- *   planningNotes: { scopeClassification, surfaceReports, synthesis, walkFindings },
- *   steps: [...],
+ *   operations: [...],
  *   targetStatus: 'in_progress',
  *   skipRoles: ['ward'],
  * });
@@ -34,8 +33,7 @@ export const questBlueprintContract = questContract
     designDecisions: true,
     contracts: true,
     toolingRequirements: true,
-    planningNotes: true,
-    steps: true,
+    operations: true,
   })
   .extend({
     targetStatus: questStatusContract.optional(),

@@ -3,24 +3,21 @@
  *
  * USAGE:
  * questToListItemTransformer({quest});
- * // Returns QuestListItem with id, title, status, stepProgress
+ * // Returns QuestListItem with id, title, status, stepProgress (operations-ledger progress)
  */
 
 import type { Quest, QuestListItem } from '@dungeonmaster/shared/contracts';
 import { questListItemContract } from '@dungeonmaster/shared/contracts';
-import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questActiveSessionTransformer } from '../quest-active-session/quest-active-session-transformer';
 
 export const questToListItemTransformer = ({ quest }: { quest: Quest }): QuestListItem => {
-  const stepWorkItems = quest.workItems.filter(
-    (wi) => wi.role === 'codeweaver' && wi.relatedDataItems.some((ref) => ref.startsWith('steps/')),
-  );
-  const completedSteps = stepWorkItems.filter((wi) =>
-    isCompleteWorkItemStatusGuard({ status: wi.status }),
+  const completedOperations = quest.operations.filter(
+    (operation) => operation.status === 'complete',
   ).length;
-  const totalSteps = quest.steps.length;
-  const stepProgress = totalSteps > 0 ? `${completedSteps}/${totalSteps}` : undefined;
+  const totalOperations = quest.operations.length;
+  const stepProgress =
+    totalOperations > 0 ? `${completedOperations}/${totalOperations}` : undefined;
 
   const { sessionId } = questActiveSessionTransformer({ workItems: quest.workItems });
 

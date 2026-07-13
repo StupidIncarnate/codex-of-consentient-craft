@@ -1,35 +1,29 @@
 /**
- * PURPOSE: Produces a persisted quest at a target status by creating it at `created`, walking modify-quest through each hydrator-strategy transition, and overwriting workItems at `in_progress` from the blueprint's steps
+ * PURPOSE: Produces a persisted quest at a target status by creating it at `created`, walking modify-quest through each hydrator-strategy transition, and seeding the operations relay (verify tail + first work item) at `in_progress`
  *
  * USAGE:
  * const { questId } = await questHydrateBroker({ blueprint, guildId, questSource: 'smoketest-orchestration' });
  * // Returns: { questId }; quest.json is on disk under guild/quests/{questId}/quest.json at blueprint.targetStatus (default in_progress), tagged with the optional questSource
  *
  * WHEN-TO-USE: Smoketests and integration tests that need a quest in a specific status without running the real agent pipeline.
- * WHEN-NOT-TO-USE: Anywhere the quest should be produced by a real ChaosWhisperer or PathSeeker run.
+ * WHEN-NOT-TO-USE: Anywhere the quest should be produced by a real ChaosWhisperer run.
  */
 
 import {
   addQuestInputContract,
   fileContentsContract,
+  operationItemContract,
   questContract,
   questIdContract,
   questWorkItemIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  GuildId,
-  QuestId,
-  QuestSource,
-  QuestStatus,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestId, QuestSource, QuestStatus } from '@dungeonmaster/shared/contracts';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
-import { stepsToWorkItemsTransformer } from '../../../transformers/steps-to-work-items/steps-to-work-items-transformer';
-import { workItemsSkipRolesTransformer } from '../../../transformers/work-items-skip-roles/work-items-skip-roles-transformer';
+import { questBuildRelayGraphBroker } from '../build-relay-graph/quest-build-relay-graph-broker';
 import { questCreateBroker } from '../create/quest-create-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
@@ -77,51 +71,61 @@ export const questHydrateBroker = async ({
     Promise.resolve(false),
   );
 
-  // 3. If target is in_progress, overwrite workItems with the generated+filtered chain
+  // 3. If target is in_progress, seed the operations relay the same way Start Quest does:
+  //    append the verify tail, apply skipRoles (smoketests drop roles their scenario doesn't
+  //    script), and create ONE work item for the first actionable operation item.
   if (targetStatus === 'in_progress') {
     const quest = await questLoadBroker({ questFilePath });
     const now = isoTimestampContract.parse(new Date().toISOString());
-    const pathseekerWorkItemId = questWorkItemIdContract.parse(crypto.randomUUID());
 
-    const generatedWorkItems = stepsToWorkItemsTransformer({
-      steps: blueprint.steps,
-      flows: blueprint.flows,
-      pathseekerWorkItemId,
-      now,
-    });
+    const relay = questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
+    const skipRoles = new Set(blueprint.skipRoles);
 
-    const filteredWorkItems = workItemsSkipRolesTransformer({
-      workItems: generatedWorkItems,
-      skipRoles: blueprint.skipRoles,
-    });
+    // Re-derive the first actionable item AFTER filtering — the builder may have marked a
+    // now-skipped role's item in_progress.
+    const operations = relay.operations
+      .filter((operation) => !skipRoles.has(operation.role))
+      .map((operation) =>
+        operation.status === 'in_progress' && operation.role !== 'chaoswhisperer'
+          ? operationItemContract.parse({ ...operation, status: 'pending' })
+          : operation,
+      );
+    const firstActionable = operations.find((operation) => operation.status === 'pending');
 
-    const stampedWorkItems = filteredWorkItems.map((wi) => {
-      const override = blueprint.rolePromptOverrides[wi.role];
-      return override === undefined ? wi : { ...wi, smoketestPromptOverride: override };
-    });
+    const firstWorkItem =
+      firstActionable === undefined
+        ? undefined
+        : workItemContract.parse({
+            id: questWorkItemIdContract.parse(crypto.randomUUID()),
+            role: firstActionable.role,
+            status: 'pending',
+            spawnerType: firstActionable.role === 'ward' ? 'command' : 'agent',
+            relatedDataItems: [`operations/${String(firstActionable.id)}`],
+            dependsOn: [],
+            maxAttempts: 1,
+            createdAt: now,
+            ...(firstActionable.wardMode === undefined
+              ? {}
+              : { wardMode: firstActionable.wardMode }),
+            ...(blueprint.rolePromptOverrides[firstActionable.role] === undefined
+              ? {}
+              : { smoketestPromptOverride: blueprint.rolePromptOverrides[firstActionable.role] }),
+          });
 
-    // Inject a pre-completed pathseeker work item so codeweavers (which depend on
-    // pathseekerWorkItemId by construction of stepsToWorkItemsTransformer) have a
-    // satisfied dependency at the top of the chain. Without this, the orchestration
-    // loop sees pathseekerWorkItemId as an unknown id, codeweaver is never ready,
-    // and the quest immediately reports blocked. Scenario-driver's sweep only stamps
-    // pending+unstamped items, so this completed pathseeker is never re-dispatched
-    // on the initial run — replans that insert new pending pathseekers are stamped
-    // from the scenario's pathseeker script as usual.
-    const pathseekerPlaceholder: WorkItem = workItemContract.parse({
-      id: pathseekerWorkItemId,
-      role: 'pathseeker',
-      status: 'complete',
-      spawnerType: 'agent',
-      dependsOn: [],
-      maxAttempts: 1,
-      createdAt: now,
-      completedAt: now,
-    });
+    const seededOperations =
+      firstActionable === undefined
+        ? operations
+        : operations.map((operation) =>
+            operation.id === firstActionable.id
+              ? operationItemContract.parse({ ...operation, status: 'in_progress' })
+              : operation,
+          );
 
     const updatedQuest = questContract.parse({
       ...quest,
-      workItems: [pathseekerPlaceholder, ...stampedWorkItems],
+      operations: seededOperations,
+      workItems:
+        firstWorkItem === undefined ? quest.workItems : [...quest.workItems, firstWorkItem],
       updatedAt: now,
     });
 

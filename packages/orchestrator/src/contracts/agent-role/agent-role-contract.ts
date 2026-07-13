@@ -2,25 +2,18 @@
  * PURPOSE: Defines valid agent role values for orchestration
  *
  * USAGE:
- * agentRoleContract.parse('pathseeker');
- * // Returns: 'pathseeker' as AgentRole
+ * agentRoleContract.parse('codeweaver');
+ * // Returns: 'codeweaver' as AgentRole
  */
 
 import { z } from 'zod';
 
 export const agentRoleContract = z.enum([
-  /** @deprecated Retained for forward-compat with quest.json files that still
-   * reference the monolithic pathseeker role. New work items must use one of
-   * the four pathseeker-* variants below. */
-  'pathseeker',
-  'pathseeker-surface',
-  'pathseeker-dedup',
-  'pathseeker-assertion-correctness',
   'codeweaver',
   'spiritmender',
   'lawbringer',
   /** Flowrider — authors the flow-perspective test suite (integration/e2e) and owns the
-   * `flows/` + `startup/` implementation files. Dispatched one per quest flow, chained. */
+   * `flows/` + `startup/` implementation files. Self-scopes over ALL quest flows per session. */
   'flowrider',
   'siegemaster',
   /** Blightwarden minions — five report-only parallel finders (one per cross-cutting concern).

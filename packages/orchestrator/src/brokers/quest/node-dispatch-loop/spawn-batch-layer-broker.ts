@@ -101,10 +101,19 @@ export const spawnBatchLayerBroker = async ({
           `${orchestrationDispatchStatics.processIdPrefix}-${crypto.randomUUID()}`,
         );
 
+        // Resume path: orphan recovery retained the crashed session's id and marked the item —
+        // resume that Claude session (work preserved) with the resume prompt. Fresh path
+        // otherwise. The MCP/Task dispatcher never sees this branch (it re-dispatches fresh
+        // from taskPrompt by construction).
+        const resumeSessionId =
+          instruction.resumePrompt === undefined ? undefined : instruction.resumeSessionId;
+        const resumePrompt = resumeSessionId === undefined ? undefined : instruction.resumePrompt;
+
         const sessionStamps: Promise<void>[] = [];
         const { exitCode } = await new Promise<{ exitCode: ExitCode | null }>((resolve) => {
           const { kill, sessionId$ } = agentSpawnUnifiedBroker({
-            prompt: instruction.taskPrompt,
+            prompt: resumePrompt ?? instruction.taskPrompt,
+            ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
             cwd: context.cwd,
             model,
             onLine: (): void => {

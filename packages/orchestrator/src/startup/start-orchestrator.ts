@@ -29,6 +29,7 @@ import type {
   GuildPath,
   ModifyQuestInput,
   ModifyQuestResult,
+  OperationItemId,
   OrchestrationMode,
   OrchestrationStatus,
   ProcessId,
@@ -42,7 +43,6 @@ import type {
   RateLimitsSnapshot,
   SessionId,
   UrlSlug,
-  WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
 import type { DispatchPlayResponse } from '../contracts/dispatch-play-response/dispatch-play-response-contract';
@@ -180,7 +180,7 @@ export const StartOrchestrator = {
     section,
   }: {
     questId: string;
-    section?: 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
+    section?: 'blight';
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
 
@@ -339,21 +339,28 @@ export const StartOrchestrator = {
     mode: 'changed' | 'full';
   }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId, mode }),
 
-  // MCP-driven signal-back post-processing — fires the post-walk hook when a
-  // pathseeker-walk work item signals complete so the downstream codeweaver chain
-  // is generated. No-op for every other role + signal combination.
+  // MCP-driven signal-back post-processing — applies the session's operation outcome
+  // (done/partial) to the ledger atomically, then advances the relay.
   handleSignalBack: async ({
     questId,
     workItemId,
     signal,
-    summary,
+    operationItemId,
+    operationStatus,
   }: {
     questId: QuestId;
     workItemId: QuestWorkItemId;
-    signal: 'complete' | 'failed' | 'failed-replan';
-    summary?: WorkItem['summary'];
+    signal: 'complete';
+    operationItemId?: OperationItemId;
+    operationStatus?: 'done' | 'partial';
   }): Promise<AdapterResult> =>
-    QuestFlow.handleSignalBack({ questId, workItemId, signal, summary }),
+    QuestFlow.handleSignalBack({
+      questId,
+      workItemId,
+      signal,
+      ...(operationItemId === undefined ? {} : { operationItemId }),
+      ...(operationStatus === undefined ? {} : { operationStatus }),
+    }),
 
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)
   getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),

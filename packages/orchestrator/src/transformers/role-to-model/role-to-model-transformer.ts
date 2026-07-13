@@ -2,7 +2,7 @@
  * PURPOSE: Resolves a Claude-spawning work-item role to its Claude CLI model
  *
  * USAGE:
- * roleToModelTransformer({ role: workItemRoleContract.parse('pathseeker') });
+ * roleToModelTransformer({ role: workItemRoleContract.parse('codeweaver') });
  * // Returns 'opus' as ClaudeModel
  */
 

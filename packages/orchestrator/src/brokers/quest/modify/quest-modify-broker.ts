@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Upserts data into an existing quest (steps, toolingRequirements, contracts, flows, designDecisions, planningNotes)
+ * PURPOSE: Upserts data into an existing quest (operations, toolingRequirements, contracts, flows, designDecisions, planningNotes)
  *
  * USAGE:
  * const result = await questModifyBroker({ input: ModifyQuestInputStub({ questId: 'add-auth', flows: [...] }) });
@@ -39,14 +39,10 @@ import {
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
-import { questCompletenessForTransitionTransformer } from '../../../transformers/quest-completeness-for-transition/quest-completeness-for-transition-transformer';
 import { questContractSourceResolutionTransformer } from '../../../transformers/quest-contract-source-resolution/quest-contract-source-resolution-transformer';
-import { questCrossSliceDagAutowireTransformer } from '../../../transformers/quest-cross-slice-dag-autowire/quest-cross-slice-dag-autowire-transformer';
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
-import { questIncompleteNewStepsTransformer } from '../../../transformers/quest-incomplete-new-steps/quest-incomplete-new-steps-transformer';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
-import { questStepAssertionsStampIdsTransformer } from '../../../transformers/quest-step-assertions-stamp-ids/quest-step-assertions-stamp-ids-transformer';
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -117,43 +113,39 @@ export const questModifyBroker = async ({
           });
         }
 
-        if (validated.steps) {
-          const incomingSteps = validated.steps as typeof quest.steps;
-
-          // Reject brand-new steps (id not yet on the quest) that arrive missing required fields.
-          // The input contract's partial-patch branch accepts them, but a partial shape is only
-          // legitimate for editing an EXISTING step. Catching this here yields a clean,
-          // field-named failedCheck instead of an opaque crash in the raw-input invariant
-          // transformers downstream.
-          const existingStepIds = new Set(quest.steps.map((step) => String(step.id)));
-          const incompleteNewStepOffenders = questIncompleteNewStepsTransformer({
-            steps: incomingSteps,
-            existingStepIds,
-          });
-          if (incompleteNewStepOffenders.length > 0) {
-            const incompleteChecks: VerifyQuestCheck[] = incompleteNewStepOffenders.map(
-              (offender) =>
-                verifyQuestCheckContract.parse({
-                  name: 'New Step Completeness',
-                  passed: false,
-                  details: String(offender),
-                }),
+        if (validated.operations) {
+          // Locked operation items (the plan item + the orchestrator-seeded verify tail) cannot
+          // be deleted through the agent path — only Chaos's own unlocked implementation items
+          // are hers to remove.
+          const lockedIds = new Set(
+            quest.operations
+              .filter((operation) => operation.locked)
+              .map((operation) => String(operation.id)),
+          );
+          const lockedDeleteOffenders = validated.operations.filter(
+            (operation) =>
+              '_delete' in operation &&
+              operation._delete === true &&
+              lockedIds.has(String(operation.id)),
+          );
+          if (lockedDeleteOffenders.length > 0) {
+            const lockedChecks: VerifyQuestCheck[] = lockedDeleteOffenders.map((offender) =>
+              verifyQuestCheckContract.parse({
+                name: 'Locked Operation Item',
+                passed: false,
+                details: `Operation item '${String(offender.id)}' is locked and cannot be deleted`,
+              }),
             );
             return modifyQuestResultContract.parse({
               success: false,
-              error: 'New step is missing required fields',
-              failedChecks: incompleteChecks,
+              error: 'Locked operation items cannot be deleted',
+              failedChecks: lockedChecks,
             });
           }
 
-          // Stamp a server-generated id onto every assertion lacking one BEFORE the upsert, so
-          // new assertions persist with a stable id and re-patched assertions (carrying an echoed
-          // id) merge by id instead of replacing the whole array.
-          const stampedSteps = questStepAssertionsStampIdsTransformer({ steps: incomingSteps });
-
-          quest.steps = questArrayUpsertTransformer({
-            existing: quest.steps,
-            updates: stampedSteps as typeof quest.steps,
+          quest.operations = questArrayUpsertTransformer({
+            existing: quest.operations,
+            updates: validated.operations as typeof quest.operations,
           });
         }
 
@@ -190,17 +182,6 @@ export const questModifyBroker = async ({
 
           quest.planningNotes = {
             ...current,
-            ...(incoming.scopeClassification !== undefined && {
-              scopeClassification: incoming.scopeClassification,
-            }),
-            ...(incoming.synthesis !== undefined && { synthesis: incoming.synthesis }),
-            ...(incoming.walkFindings !== undefined && { walkFindings: incoming.walkFindings }),
-            ...(incoming.surfaceReports !== undefined && {
-              surfaceReports: questArrayUpsertTransformer({
-                existing: current.surfaceReports,
-                updates: incoming.surfaceReports as typeof current.surfaceReports,
-              }),
-            }),
             ...(incoming.blightReports !== undefined && {
               blightReports: questArrayUpsertTransformer({
                 existing: current.blightReports,
@@ -258,12 +239,6 @@ export const questModifyBroker = async ({
           }
         }
 
-        // Auto-wire cross-slice dependsOn from uses[] resolution. Runs before the contract
-        // re-parse so the wired graph is what gets validated downstream.
-        quest.steps = questCrossSliceDagAutowireTransformer({
-          steps: quest.steps,
-        });
-
         // Re-parse mutated quest through questContract so defaults (e.g., flow nodes'
         // observables: []) are applied to newly-upserted entries before invariants /
         // completeness checks iterate them. Without this, input nodes lacking an
@@ -284,7 +259,7 @@ export const questModifyBroker = async ({
               (incoming) => String(incoming.id) === String(entry.id),
             ),
           );
-          // PathSeeker writes contract sources as bare-repo-relative (e.g., `packages/web/...`).
+          // Agents write contract sources as bare-repo-relative (e.g., `packages/web/...`).
           // The strict filePathContract union demands absolute or `./`-prefixed relative; prepend
           // `./` so a bare path matches relativeFilePathContract. fs.access then resolves the
           // `./`-relative path against cwd at the I/O layer.
@@ -325,18 +300,10 @@ export const questModifyBroker = async ({
           }
         }
 
-        // Tier 3: save-time invariants (POST-mutation; runs on every call). The
-        // 'completeness' scope (whole-quest coverage checks: step contract refs
-        // resolve, new contracts have creating step, observables satisfied) is
-        // gated to the LEGACY `seek_walk → in_progress` transition only. Under the
-        // `/dumpster-launch` flow, the start-quest hop transitions a quest
-        // `approved → in_progress` BEFORE the `pathseeker-walk` work item runs, so
-        // steps/contracts/observables are still empty at transition time. Running
-        // completeness there would reject every Begin Quest. Instead,
-        // `questPostWalkHookBroker` invokes the completeness scope explicitly when
-        // `pathseeker-walk` completes (after `stepsToWorkItemsTransformer` has
-        // hydrated the downstream chain). Any quest.json still mid-flight in the
-        // legacy `seek_walk` status remains correctly gated by the same check.
+        // Tier 3: save-time invariants (POST-mutation; runs on every call). Structural checks
+        // only — the static plan-completeness gate is gone: acceptance is verified at runtime by
+        // ward + the verify roles (flowrider/siegemaster) looping to done against the immutable
+        // observables.
         const invariantFailures = questSaveInvariantsTransformer({
           quest,
           currentStatus: loadedQuest.status,
@@ -349,26 +316,6 @@ export const questModifyBroker = async ({
             failedChecks: invariantFailures,
           });
         }
-
-        // Tier 4: completeness checks gating LLM-driven transitions (POST-mutation; only when transitioning)
-        // Severity encoding: passed === false is blocking; passed === true is info-level (non-blocking,
-        // surfaced in the success response so the caller sees review-minion warnings). See
-        // quest-completeness-for-transition-transformer JSDoc for the severity convention.
-        const completenessResults = validated.status
-          ? questCompletenessForTransitionTransformer({
-              quest,
-              nextStatus: validated.status,
-            })
-          : [];
-        const blockingFailures = completenessResults.filter((check) => !check.passed);
-        if (blockingFailures.length > 0) {
-          return modifyQuestResultContract.parse({
-            success: false,
-            error: `Completeness checks failed for transition to ${String(validated.status)}`,
-            failedChecks: blockingFailures,
-          });
-        }
-        const completenessInfoChecks = completenessResults.filter((check) => check.passed);
 
         if (validated.status) {
           // Explicit transition (start / pause / resume / abandon / block) — already gated above
@@ -392,6 +339,7 @@ export const questModifyBroker = async ({
           // as the next write, reopens it. Leaving blocked to the explicit path avoids that.
           const derivedStatus = workItemsToQuestStatusTransformer({
             workItems: quest.workItems,
+            operations: quest.operations,
             currentStatus: quest.status,
           });
           if (!isQuestBlockedQuestStatusGuard({ status: derivedStatus })) {
@@ -417,10 +365,7 @@ export const questModifyBroker = async ({
           questId: validated.questId,
         });
 
-        return modifyQuestResultContract.parse({
-          success: true,
-          ...(completenessInfoChecks.length > 0 && { failedChecks: completenessInfoChecks }),
-        });
+        return modifyQuestResultContract.parse({ success: true });
       },
     });
   } catch (error) {

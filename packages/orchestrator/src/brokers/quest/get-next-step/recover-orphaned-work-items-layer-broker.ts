@@ -1,37 +1,43 @@
 /**
  * PURPOSE: Layer helper for questGetNextStepBroker — recovers a stalled quest's orphaned
- *   in_progress work items and returns the quest with those items locally resolved so the caller can
- *   recompute the next step in the same scan without a re-read.
+ *   in_progress work items and returns the quest with those items locally resolved so the caller
+ *   can recompute the next step in the same scan without a re-read.
  *
- *   Under the /dumpster-launch dispatch-loop invariant, get-next-step is only called when the loop has
- *   no Task it dispatched in flight, so an in_progress work item observed during a scan is necessarily
- *   orphaned: its agent terminated without signalling back (the user killed it, or it crashed). Left
- *   alone, the orphan satisfies no dependency and get-next-step returns idle forever.
+ *   Under the dispatch-loop invariant, get-next-step only runs when the loop has no dispatch in
+ *   flight, so an in_progress work item observed during a scan is necessarily orphaned: its agent
+ *   terminated without signalling back (the server restarted, the user killed it, or it crashed).
+ *   Left alone, the orphan satisfies no dependency and get-next-step returns idle forever.
  *
- *   RECOVERY-FIRST with a give-up budget: each orphan is reset to pending (retryCount + 1, per-run
- *   identity cleared) so the next dispatch re-runs it — UNTIL `retryCount` reaches
- *   `slotManagerStatics.orphanRecovery.maxResets`. A deterministically-crashing agent (same input →
- *   same crash) would otherwise re-dispatch forever, so once the budget is spent the repeated crash is
- *   re-interpreted as a plan hole and escalates to a PathSeeker replan (which itself only blocks once
- *   the replan loop is exhausted). One replan re-plans the whole quest, so only the first
- *   budget-exhausted orphan escalates; any others reset to pending and the replan drains them.
+ *   RESUME, DON'T RESTART: each orphan flips back to `pending` (so compute-ready selects it) but
+ *   KEEPS `sessionId`/`agentId` and gains the `resume` marker — Node dispatch resumes the retained
+ *   Claude session (`claude --resume`) so work in the orphaned session is preserved instead of
+ *   re-running from scratch. An early-crash orphan with NO captured sessionId falls back to a
+ *   fresh spawn (no marker). Budget: each recovery bumps `retryCount`; once it reaches
+ *   `slotManagerStatics.orphanRecovery.maxResets` the crash loop is terminal and the quest blocks
+ *   via questBlockOnFailureBroker.
+ *
+ *   RECONCILE SAFETY-NET: a work item terminal while its linked operation item is still
+ *   pending/in_progress means a session finished but its signal never processed. Under the atomic
+ *   signal handler this is unreachable (work-item-terminal + operation-complete are one persist) —
+ *   kept as a defensive net only: the item flips back to pending (identity + resume marker kept)
+ *   so it re-dispatches and re-signals.
  *
  * USAGE:
  * const recovered = await recoverOrphanedWorkItemsLayerBroker({ quest });
- * // Returns: Quest — identical to the input when no in_progress items exist; otherwise a copy whose
- * //   reset orphans read pending and whose escalated orphan reads failed (both persisted).
- *
- * WHEN-TO-USE: From scanOnceLayerBroker, only when the selected quest has incomplete work but
- *   computeNextStepFromQuestLayerBroker yields nothing dispatchable (the stalled state).
+ * // Returns: Quest — identical to the input when nothing needed recovery; otherwise a copy whose
+ * //   recovered items read pending (persisted through questModifyBroker).
  */
 
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { Quest } from '@dungeonmaster/shared/contracts';
-import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import {
+  isActiveWorkItemStatusGuard,
+  isTerminalWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
-import { questSplicePathseekerReplanBroker } from '../splice-pathseeker-replan/quest-splice-pathseeker-replan-broker';
 
 export const recoverOrphanedWorkItemsLayerBroker = async ({
   quest,
@@ -41,21 +47,40 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
   const orphanedItems = quest.workItems.filter((item) =>
     isActiveWorkItemStatusGuard({ status: item.status }),
   );
-  if (orphanedItems.length === 0) {
+
+  // Reconcile net: terminal work item + linked operation item still pending/in_progress =
+  // a finished session whose signal never applied. Re-dispatch it to re-signal.
+  const unappliedSignalItems = quest.workItems.filter((item) => {
+    if (!isTerminalWorkItemStatusGuard({ status: item.status })) {
+      return false;
+    }
+    const linkedRef = item.relatedDataItems
+      .map((ref) => String(ref))
+      .find((ref) => ref.startsWith('operations/'));
+    if (linkedRef === undefined) {
+      return false;
+    }
+    const linkedOperation = quest.operations.find(
+      (operation) => String(operation.id) === linkedRef.split('/')[1],
+    );
+    return linkedOperation !== undefined && linkedOperation.status === 'in_progress';
+  });
+
+  const toRecover: WorkItem[] = [...orphanedItems, ...unappliedSignalItems];
+  if (toRecover.length === 0) {
     return quest;
   }
 
-  // A persistently-crashing agent (retryCount at the budget) is a plan hole. One PathSeeker replan
-  // re-plans the whole quest, so only the FIRST budget-exhausted orphan escalates; every other orphan
-  // resets to pending (and the replan drains it on completion).
-  const escalated = orphanedItems.find(
+  // A persistently-crashing session (retryCount at the budget) will not converge by resuming
+  // again — the quest blocks so a human can look. Only the first exhausted orphan escalates.
+  const escalated = toRecover.find(
     (item) => item.retryCount >= slotManagerStatics.orphanRecovery.maxResets,
   );
-  const toReset = orphanedItems.filter((item) => item.id !== escalated?.id);
+  const toReset = toRecover.filter((item) => item.id !== escalated?.id);
 
-  // Reset: flip in_progress → pending, bump the reset counter, and clear stale per-run identity. The
-  // next dispatch's get-agent-prompt re-stamps fresh sessionId/agentId/startedAt; `null` is the
-  // documented clear marker on workItemForUpsertContract.
+  // Flip back to pending KEEPING sessionId/agentId, and mark for resume when a session was
+  // captured — dispatch resumes that Claude session instead of fresh-spawning. An item with no
+  // sessionId (child died before its init line) resets without the marker → fresh spawn.
   if (toReset.length > 0) {
     const resetInput = modifyQuestInputContract.parse({
       questId: quest.id,
@@ -63,18 +88,14 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
         id: item.id,
         status: 'pending' as const,
         retryCount: item.retryCount + 1,
-        sessionId: null,
-        agentId: null,
-        startedAt: null,
+        ...(item.sessionId === undefined ? {} : { resume: true }),
       })),
     });
     await questModifyBroker({ input: resetInput });
   }
 
-  // Escalate the budget-exhausted orphan: mark it failed, drain pending, splice a PathSeeker replan
-  // (or block once the replan loop is spent). The replan dispatches on the next scan (re-read).
   if (escalated !== undefined) {
-    await questSplicePathseekerReplanBroker({ questId: quest.id, failedWorkItemId: escalated.id });
+    await questBlockOnFailureBroker({ questId: quest.id, failedWorkItemId: escalated.id });
   }
 
   const resetIds = new Set(toReset.map((item) => item.id));
@@ -82,7 +103,7 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
     ...quest,
     workItems: quest.workItems.map((item) => {
       if (resetIds.has(item.id)) {
-        return { ...item, status: 'pending' };
+        return { ...item, status: 'pending', ...(item.sessionId === undefined ? {} : { resume: true }) };
       }
       if (escalated !== undefined && item.id === escalated.id) {
         return { ...item, status: 'failed' };

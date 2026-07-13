@@ -3,7 +3,7 @@
  *
  * USAGE:
  * await OverwriteWorkItemsLayerResponder({ questId, workItems });
- * // Preserves the hydrator's pre-completed pathseeker placeholder, then prepends the transformer-produced codeweaver chain.
+ * // Replaces quest.workItems wholesale with the suite's seeded chain.
  *
  * WHEN-TO-USE: MCP/Signals suites only; orchestration scenarios do not call this path.
  */
@@ -41,12 +41,9 @@ export const OverwriteWorkItemsLayerResponder = async ({
         pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
       );
       const loaded = await questLoadBroker({ questFilePath });
-      const hydratorPathseeker = loaded.workItems.find((wi) => wi.role === 'pathseeker');
-      const finalWorkItems =
-        hydratorPathseeker === undefined ? [...workItems] : [hydratorPathseeker, ...workItems];
       const updatedQuest = questContract.parse({
         ...loaded,
-        workItems: finalWorkItems,
+        workItems: [...workItems],
         updatedAt: new Date().toISOString(),
       });
       const json = fileContentsContract.parse(

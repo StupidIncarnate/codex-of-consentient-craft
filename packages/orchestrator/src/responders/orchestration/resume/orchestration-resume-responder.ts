@@ -13,7 +13,6 @@ import {
   getQuestInputContract,
   modifyQuestInputContract,
   processIdContract,
-  workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
@@ -21,8 +20,6 @@ import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contrac
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import {
   isActiveWorkItemStatusGuard,
-  isAnyAgentRunningQuestStatusGuard,
-  isCompleteWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
@@ -102,10 +99,17 @@ export const OrchestrationResumeResponder = async ({
   const guild = await guildGetBroker({ guildId });
   const startPath = filePathContract.parse(guild.path);
 
-  // Reset orphaned active work items back to pending — mirrors RecoverGuildLayerResponder.
+  // Reset orphaned active work items back to pending, keeping sessionId + the resume marker so
+  // Node dispatch resumes the interrupted session (work preserved) instead of fresh-spawning.
+  // A missing next work item is NOT repaired here — the dispatch scan's operations-aware
+  // advance self-heal creates it from the ledger.
   const orphanedItems = reloaded.workItems
     .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
-    .map((wi) => ({ id: wi.id, status: 'pending' as const }));
+    .map((wi) => ({
+      id: wi.id,
+      status: 'pending' as const,
+      ...(wi.sessionId === undefined ? {} : { resume: true }),
+    }));
 
   if (orphanedItems.length > 0) {
     const resetInput = modifyQuestInputContract.parse({
@@ -113,37 +117,6 @@ export const OrchestrationResumeResponder = async ({
       workItems: orphanedItems,
     });
     await questModifyBroker({ input: resetInput });
-  }
-
-  // Insert a pathseeker work item if the restored status is any-agent-running and missing one.
-  const needsPathseeker =
-    isAnyAgentRunningQuestStatusGuard({ status: reloaded.status }) &&
-    !reloaded.workItems.some((wi) => wi.role === 'pathseeker');
-
-  if (needsPathseeker) {
-    const chatItemIds = reloaded.workItems
-      .filter(
-        (wi) =>
-          (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
-          isCompleteWorkItemStatusGuard({ status: wi.status }),
-      )
-      .map((wi) => wi.id);
-
-    const pathseekerItem = workItemContract.parse({
-      id: crypto.randomUUID(),
-      role: 'pathseeker',
-      status: 'pending',
-      spawnerType: 'agent',
-      dependsOn: chatItemIds,
-      maxAttempts: 3,
-      createdAt: new Date().toISOString(),
-    });
-
-    const insertInput = modifyQuestInputContract.parse({
-      questId: reloaded.id,
-      workItems: [pathseekerItem],
-    });
-    await questModifyBroker({ input: insertInput });
   }
 
   const processId = processIdContract.parse(`proc-recovery-${crypto.randomUUID()}`);

@@ -13,7 +13,7 @@
 
 export const inspectableModifyQuestInputFieldsStatics = [
   'designDecisions',
-  'steps',
+  'operations',
   'toolingRequirements',
   'contracts',
   'flows',

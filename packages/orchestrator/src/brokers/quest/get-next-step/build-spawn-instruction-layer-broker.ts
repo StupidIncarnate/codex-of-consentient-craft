@@ -1,5 +1,10 @@
 /**
- * PURPOSE: Layer helper for questGetNextStepBroker — converts a single WorkItem + its quest's id into a fully-formed SpawnInstruction, parsing the work-item role into an AgentRole and interpolating the taskPrompt template
+ * PURPOSE: Layer helper for questGetNextStepBroker — converts a single WorkItem + its quest's id
+ * into a fully-formed SpawnInstruction, parsing the work-item role into an AgentRole and
+ * interpolating the taskPrompt template. A work item carrying the orphan-recovery resume marker
+ * (retained sessionId) gets `resumeSessionId` threaded onto the instruction so Node dispatch can
+ * resume the session; taskPrompt stays the FRESH variant because the MCP/Task dispatcher cannot
+ * resume and always re-dispatches fresh from taskPrompt.
  *
  * USAGE:
  * const instruction = buildSpawnInstructionLayerBroker({ questId, workItem });
@@ -23,6 +28,7 @@ export const buildSpawnInstructionLayerBroker = ({
   workItem: WorkItem;
 }): SpawnInstruction => {
   const role: AgentRole = agentRoleContract.parse(workItem.role);
+  const canResume = workItem.resume === true && workItem.sessionId !== undefined;
   return {
     questId,
     role,
@@ -32,5 +38,16 @@ export const buildSpawnInstructionLayerBroker = ({
       workItemId: workItem.id,
       questId,
     }),
+    ...(canResume
+      ? {
+          resumeSessionId: workItem.sessionId,
+          resumePrompt: buildTaskPromptLayerBroker({
+            role,
+            workItemId: workItem.id,
+            questId,
+            resume: true,
+          }),
+        }
+      : {}),
   };
 };

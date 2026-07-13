@@ -1,14 +1,14 @@
 /**
- * PURPOSE: Returns PathSeeker's phased planningNotes for a quest (full object or a specific section)
+ * PURPOSE: Returns a quest's planningNotes (full object or the blight section)
  *
  * USAGE:
  * const notes = await questGetPlanningNotesBroker({ questId });
  * // Returns full planningNotes object
  *
- * const scope = await questGetPlanningNotesBroker({ questId, section: 'scope' });
- * // Returns only planningNotes.scopeClassification (may be undefined)
+ * const blight = await questGetPlanningNotesBroker({ questId, section: 'blight' });
+ * // Returns only planningNotes.blightReports
  *
- * WHEN-TO-USE: PathSeeker resume-on-restart — re-read already-committed phase artifacts instead of redoing work.
+ * WHEN-TO-USE: Blightwarden synthesizer reads the minions' blight reports mid-run.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -21,15 +21,9 @@ import { questLoadBroker } from '../load/quest-load-broker';
 
 type PlanningNotes = Quest['planningNotes'];
 
-export type PlanningNotesSection = 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
+export type PlanningNotesSection = 'blight';
 
-export type QuestGetPlanningNotesResult =
-  | PlanningNotes
-  | PlanningNotes['scopeClassification']
-  | PlanningNotes['surfaceReports']
-  | PlanningNotes['blightReports']
-  | PlanningNotes['synthesis']
-  | PlanningNotes['walkFindings'];
+export type QuestGetPlanningNotesResult = PlanningNotes | PlanningNotes['blightReports'];
 
 export const questGetPlanningNotesBroker = async ({
   questId,
@@ -49,22 +43,6 @@ export const questGetPlanningNotesBroker = async ({
 
   if (section === undefined) {
     return notes;
-  }
-
-  if (section === 'scope') {
-    return notes.scopeClassification;
-  }
-
-  if (section === 'surface') {
-    return notes.surfaceReports;
-  }
-
-  if (section === 'synthesis') {
-    return notes.synthesis;
-  }
-
-  if (section === 'walk') {
-    return notes.walkFindings;
   }
 
   return notes.blightReports;

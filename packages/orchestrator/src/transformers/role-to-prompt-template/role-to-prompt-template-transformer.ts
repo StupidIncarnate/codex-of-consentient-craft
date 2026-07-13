@@ -19,10 +19,6 @@ import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codewea
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
-import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
-import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
-import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 
@@ -30,14 +26,6 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
   switch (role) {
     case 'codeweaver':
       return contentTextContract.parse(codeweaverPromptStatics.prompt.template);
-    case 'pathseeker':
-      return contentTextContract.parse(pathseekerPromptStatics.prompt.template);
-    case 'pathseeker-surface':
-      return contentTextContract.parse(pathseekerSurfaceMinionStatics.prompt.template);
-    case 'pathseeker-dedup':
-      return contentTextContract.parse(pathseekerDedupMinionStatics.prompt.template);
-    case 'pathseeker-assertion-correctness':
-      return contentTextContract.parse(pathseekerAssertionCorrectnessMinionStatics.prompt.template);
     case 'flowrider':
       return contentTextContract.parse(flowriderPromptStatics.prompt.template);
     case 'siegemaster':

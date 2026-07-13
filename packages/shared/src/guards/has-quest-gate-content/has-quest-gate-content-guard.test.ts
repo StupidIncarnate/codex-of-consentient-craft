@@ -50,6 +50,15 @@ describe('hasQuestGateContentGuard', () => {
       expect(result).toBe(false);
     });
 
+    it('VALID: {bug-hunt quest with empty operations ledger, nextStatus: approved} => returns true (requirement is feature-only)', () => {
+      const quest = QuestStub({ questType: 'bug-hunt', flows: [FlowStub()], operations: [] });
+      const nextStatus = QuestStatusStub({ value: 'approved' });
+
+      const result = hasQuestGateContentGuard({ quest, nextStatus });
+
+      expect(result).toBe(true);
+    });
+
     it('INVALID: {quest with empty operations ledger, nextStatus: approved} => returns false', () => {
       const quest = QuestStub({ flows: [FlowStub()], operations: [] });
       const nextStatus = QuestStatusStub({ value: 'approved' });

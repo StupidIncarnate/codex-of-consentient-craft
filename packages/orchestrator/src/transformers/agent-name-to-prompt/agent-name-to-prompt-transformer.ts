@@ -21,10 +21,6 @@ import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider
 import { lawbringerMinionStatics } from '../../statics/lawbringer-minion/lawbringer-minion-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
-import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
-import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
-import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 
@@ -39,30 +35,6 @@ export const agentNameToPromptTransformer = ({
         name: 'chaoswhisperer-gap-minion',
         model: 'sonnet',
         prompt: chaoswhispererGapMinionStatics.prompt.template,
-      });
-    case 'pathseeker':
-      return agentPromptResultContract.parse({
-        name: 'pathseeker',
-        model: 'opus',
-        prompt: pathseekerPromptStatics.prompt.template,
-      });
-    case 'pathseeker-surface':
-      return agentPromptResultContract.parse({
-        name: 'pathseeker-surface',
-        model: 'sonnet',
-        prompt: pathseekerSurfaceMinionStatics.prompt.template,
-      });
-    case 'pathseeker-dedup':
-      return agentPromptResultContract.parse({
-        name: 'pathseeker-dedup',
-        model: 'sonnet',
-        prompt: pathseekerDedupMinionStatics.prompt.template,
-      });
-    case 'pathseeker-assertion-correctness':
-      return agentPromptResultContract.parse({
-        name: 'pathseeker-assertion-correctness',
-        model: 'sonnet',
-        prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
       });
     case 'codeweaver':
       return agentPromptResultContract.parse({

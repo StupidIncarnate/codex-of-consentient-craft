@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Classifies agent prompt names by dispatch surface — `minion` names are dispatched
- * by parent agents (ChaosWhisperer or Blightwarden) via the Agent tool and receive a minimal
- * "Quest ID + Work Item ID" $ARGUMENTS substitution; `role` names map to AgentRole work-unit
- * shapes dispatched by `/dumpster-launch`.
+ * by parent agents (ChaosWhisperer, Codeweaver, Lawbringer, or Blightwarden) via the Agent tool and receive a minimal
+ * "Quest ID + Work Item ID" $ARGUMENTS substitution; `role` names map to AgentRole operation-relay
+ * sessions dispatched by the orchestrator.
  *
  * USAGE:
  * agentPromptClassificationStatics.minionNames.includes(name);
@@ -12,9 +12,6 @@
 export const agentPromptClassificationStatics = {
   minionNames: [
     'chaoswhisperer-gap-minion',
-    'pathseeker-surface',
-    'pathseeker-dedup',
-    'pathseeker-assertion-correctness',
     'codeweaver-minion',
     'lawbringer-minion',
     'blightwarden-security-minion',

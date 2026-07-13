@@ -4,7 +4,7 @@
  * USAGE:
  * for (const toStatus of questHydrateStrategyStatics.walkPath) {
  *   const strategy = questHydrateStrategyStatics.strategies[toStatus];
- *   // strategy.fromStatus, strategy.blueprintFields, strategy.planningNotesFields, strategy.flowsMode
+ *   // strategy.fromStatus, strategy.blueprintFields, strategy.flowsMode
  * }
  *
  * WHEN-TO-USE: By quest-hydrate-broker to compute each modify-quest payload.
@@ -22,70 +22,44 @@ export const questHydrateStrategyStatics = {
     'explore_observables',
     'review_observables',
     'approved',
-    'seek_scope',
-    'seek_synth',
-    'seek_walk',
     'in_progress',
   ] as const,
   strategies: {
     explore_flows: {
       fromStatus: 'created',
       blueprintFields: [],
-      planningNotesFields: [],
       flowsMode: 'exclude',
     },
     review_flows: {
       fromStatus: 'explore_flows',
       blueprintFields: ['designDecisions'],
-      planningNotesFields: [],
       flowsMode: 'no-observables',
     },
     flows_approved: {
       fromStatus: 'review_flows',
       blueprintFields: [],
-      planningNotesFields: [],
       flowsMode: 'exclude',
     },
     explore_observables: {
       fromStatus: 'flows_approved',
-      blueprintFields: ['contracts', 'toolingRequirements'],
-      planningNotesFields: [],
+      // `operations` lands here — the same window ChaosWhisperer authors the implementation
+      // plan items in, so the `approved` gate (>=1 codeweaver item) passes on the next hop.
+      blueprintFields: ['contracts', 'toolingRequirements', 'operations'],
       flowsMode: 'exclude',
     },
     review_observables: {
       fromStatus: 'explore_observables',
       blueprintFields: [],
-      planningNotesFields: [],
       flowsMode: 'full',
     },
     approved: {
       fromStatus: 'review_observables',
       blueprintFields: [],
-      planningNotesFields: [],
-      flowsMode: 'exclude',
-    },
-    seek_scope: {
-      fromStatus: 'approved',
-      blueprintFields: [],
-      planningNotesFields: [],
-      flowsMode: 'exclude',
-    },
-    seek_synth: {
-      fromStatus: 'seek_scope',
-      blueprintFields: [],
-      planningNotesFields: ['scopeClassification'],
-      flowsMode: 'exclude',
-    },
-    seek_walk: {
-      fromStatus: 'seek_synth',
-      blueprintFields: [],
-      planningNotesFields: ['surfaceReports', 'synthesis'],
       flowsMode: 'exclude',
     },
     in_progress: {
-      fromStatus: 'seek_walk',
-      blueprintFields: ['steps'],
-      planningNotesFields: ['walkFindings'],
+      fromStatus: 'approved',
+      blueprintFields: [],
       flowsMode: 'exclude',
     },
     created: null,

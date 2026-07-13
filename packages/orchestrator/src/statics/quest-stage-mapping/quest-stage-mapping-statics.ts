@@ -11,7 +11,7 @@ export const questStageMappingStatics = {
     spec: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     'spec-flows': ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     'spec-obs': ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
-    planning: ['planningNotes', 'steps', 'contracts'],
-    implementation: ['planningNotes', 'steps', 'contracts', 'toolingRequirements'],
+    planning: ['planningNotes', 'operations', 'contracts'],
+    implementation: ['planningNotes', 'operations', 'contracts', 'toolingRequirements'],
   },
 } as const;

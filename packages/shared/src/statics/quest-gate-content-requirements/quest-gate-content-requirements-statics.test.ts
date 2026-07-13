@@ -7,7 +7,11 @@ describe('questGateContentRequirementsStatics', () => {
         flows_approved: ['flows'],
         approved: [
           'flows',
-          { field: 'operations', contains: { key: 'role', value: 'codeweaver' } },
+          {
+            field: 'operations',
+            contains: { key: 'role', value: 'codeweaver' },
+            questTypes: ['feature'],
+          },
         ],
         design_approved: ['flows'],
       },
