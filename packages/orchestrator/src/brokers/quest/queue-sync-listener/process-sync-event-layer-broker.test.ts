@@ -141,12 +141,12 @@ describe('processSyncEventLayerBroker', () => {
     });
   });
 
-  describe('non-terminal quest status, pending work — seek_scope', () => {
-    it('VALID: {quest.status = seek_scope, workItems has a pending item without sessionId} => updateEntryActiveSession fires with undefined; updateEntryStatus and removeByQuestId do NOT fire', async () => {
+  describe('non-terminal quest status, pending work — in_progress', () => {
+    it('VALID: {quest.status = in_progress, workItems has a pending item without sessionId} => updateEntryActiveSession fires with undefined; updateEntryStatus and removeByQuestId do NOT fire', async () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
-      const questId = QuestIdStub({ value: 'q-seek' });
-      const status = QuestStatusStub({ value: 'seek_scope' });
+      const questId = QuestIdStub({ value: 'q-pending-work' });
+      const status = QuestStatusStub({ value: 'in_progress' });
       const pending = WorkItemStub({ status: 'pending' });
       const quest = QuestStub({ id: questId, status, workItems: [pending] });
       const loadQuest = jest.fn().mockResolvedValue(quest);

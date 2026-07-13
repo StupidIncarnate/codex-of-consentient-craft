@@ -17,6 +17,33 @@ registerModuleMock({ module: '../get-next-step/quest-get-next-step-broker' });
 registerModuleMock({ module: '../run-ward/quest-run-ward-broker' });
 registerModuleMock({ module: './spawn-batch-layer-broker' });
 
+// The questRunWardBrokerProxy child (instantiated below for the dependency-discovery lint)
+// unconditionally wires its virtual fs store onto these shared-package functions in its
+// constructor. Its own bare automocks degrade to selective mocks when merged with the
+// identifier-level registerMock calls contributed by the OTHER proxies this file composes, which
+// would leave those functions un-mocked here. Explicit factories always win the hoist merge, so
+// they are guaranteed jest.fn()s in this composition context.
+registerModuleMock({
+  module: '@dungeonmaster/shared/adapters',
+  factory: () => ({
+    ...jest.requireActual('@dungeonmaster/shared/adapters'),
+    childProcessSpawnCaptureAdapter: jest.fn(),
+    childProcessSpawnStreamLinesAdapter: jest.fn(),
+    fsMkdirAdapter: jest.fn(),
+    fsReaddirWithTypesAdapter: jest.fn(),
+    pathJoinAdapter: jest.fn(),
+    processCwdAdapter: jest.fn(),
+  }),
+});
+registerModuleMock({
+  module: '@dungeonmaster/shared/brokers',
+  factory: () => ({
+    ...jest.requireActual('@dungeonmaster/shared/brokers'),
+    cwdResolveBroker: jest.fn(),
+    dungeonmasterHomeFindBroker: jest.fn(),
+  }),
+});
+
 export const questNodeDispatchLoopBrokerProxy = (): {
   queueStep: (params: { step: NextStep }) => void;
   getRunWardCalls: () => readonly unknown[];

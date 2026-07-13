@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event';
 
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
+import { OperationsLedgerWidgetProxy } from '../operations-ledger/operations-ledger-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
-import { FloorHeaderLayerWidgetProxy } from './floor-header-layer-widget.proxy';
 
 export const ExecutionPanelWidgetProxy = (): {
   clickTab: (params: { tabId: 'execution' | 'spec' }) => Promise<void>;
@@ -21,7 +21,8 @@ export const ExecutionPanelWidgetProxy = (): {
   hasDumpsterLaunchBanner: () => boolean;
   getDumpsterLaunchBannerCommand: () => HTMLElement['textContent'];
   getStepRows: () => HTMLElement[];
-  getFloorHeaders: () => HTMLElement[];
+  hasOperationsLedger: () => boolean;
+  getOperationsLedgerRows: () => HTMLElement[];
   getActionButtons: () => HTMLElement[];
   getAbandonButtons: () => HTMLElement[];
   clickButtonByLabel: (params: { label: string }) => Promise<void>;
@@ -39,10 +40,11 @@ export const ExecutionPanelWidgetProxy = (): {
   DumpsterCommandBannerWidgetProxy();
   ExecutionRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
-  FloorHeaderLayerWidgetProxy();
   PixelBtnWidgetProxy();
   QuestSpecPanelWidgetProxy();
   QuestTitleBarWidgetProxy();
+
+  const ledgerProxy = OperationsLedgerWidgetProxy();
 
   const getAbandonBarButtons = (): HTMLElement[] => {
     const abandonBar = screen.queryByTestId('ABANDON_BAR');
@@ -80,7 +82,8 @@ export const ExecutionPanelWidgetProxy = (): {
       return element?.textContent ?? null;
     },
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
-    getFloorHeaders: (): HTMLElement[] => screen.queryAllByTestId('floor-header-layer-widget'),
+    hasOperationsLedger: (): boolean => ledgerProxy.hasLedger(),
+    getOperationsLedgerRows: (): HTMLElement[] => ledgerProxy.getLedgerRows(),
     getActionButtons: (): HTMLElement[] => {
       const actionBar = screen.queryByTestId('execution-panel-action-bar');
       if (!actionBar) {

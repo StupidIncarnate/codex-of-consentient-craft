@@ -83,7 +83,9 @@ export const QuestHandleSignalBackResponder = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  let blockedOnSpentPtChain = false;
+  // Object holder (not a bare `let`): the flag is assigned inside the update callback, which
+  // TypeScript's flow analysis cannot see — a bare boolean would read as always-false.
+  const blockedOnSpentPtChain = { value: false };
 
   await questOperationsUpdateBroker({
     questId,
@@ -112,9 +114,7 @@ export const QuestHandleSignalBackResponder = async ({
         .map((ref) => String(ref))
         .find((ref) => ref.startsWith('operations/'));
       const linkedId = operationItemId === undefined ? linkedRef?.split('/')[1] : operationItemId;
-      const linkedOperation = quest.operations.find(
-        (operation) => String(operation.id) === String(linkedId ?? ''),
-      );
+      const linkedOperation = quest.operations.find((operation) => operation.id === linkedId);
 
       if (linkedOperation === undefined || linkedOperation.status === 'complete') {
         return { workItems: nextWorkItems };
@@ -136,7 +136,7 @@ export const QuestHandleSignalBackResponder = async ({
         operations: quest.operations,
         item: linkedOperation,
       });
-      const maxAttempts = ((): number | undefined => {
+      const maxAttempts = ((): typeof slotManagerStatics.codeweaver.maxAttempts | undefined => {
         const role: OperationItem['role'] = linkedOperation.role;
         if (role === 'chaoswhisperer' || role === 'glyphsmith' || role === 'ward') {
           return undefined;
@@ -160,7 +160,7 @@ export const QuestHandleSignalBackResponder = async ({
                     : budgets.spiritmender.maxAttempts;
       })();
       if (linkedOperation.locked && maxAttempts !== undefined && chainLength >= maxAttempts) {
-        blockedOnSpentPtChain = true;
+        blockedOnSpentPtChain.value = true;
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
@@ -185,7 +185,7 @@ export const QuestHandleSignalBackResponder = async ({
     },
   });
 
-  if (blockedOnSpentPtChain) {
+  if (blockedOnSpentPtChain.value) {
     await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
     return adapterResultContract.parse({ success: true });
   }

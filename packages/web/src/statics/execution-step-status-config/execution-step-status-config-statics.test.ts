@@ -6,11 +6,6 @@ describe('executionStepStatusConfigStatics', () => {
       roleColors: {
         chaoswhisperer: 'primary',
         glyphsmith: 'primary',
-        pathseeker: 'primary',
-        'pathseeker-surface': 'primary',
-        'pathseeker-dedup': 'primary',
-        'pathseeker-assertion-correctness': 'primary',
-        'pathseeker-walk': 'primary',
         codeweaver: 'primary',
         ward: 'warning',
         spiritmender: 'primary',

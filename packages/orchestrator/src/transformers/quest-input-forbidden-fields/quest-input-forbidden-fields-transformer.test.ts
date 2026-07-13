@@ -3,11 +3,8 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  OperationItemStub,
   PlanningBlightReportStub,
-  PlanningScopeClassificationStub,
-  PlanningSurfaceReportStub,
-  PlanningSynthesisStub,
-  PlanningWalkFindingsStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -32,9 +29,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {explore_flows + steps} => rejects steps', () => {
+    it('INVALID: {explore_flows + operations} => rejects operations', () => {
       const input = ModifyQuestInputStub({
-        steps: [],
+        operations: [OperationItemStub()],
       });
       const currentQuest = QuestStub({ status: 'explore_flows' });
 
@@ -45,7 +42,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       });
 
       expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Field 'steps' not allowed in status 'explore_flows'",
+        "Field 'operations' not allowed in status 'explore_flows'",
       ]);
     });
 
@@ -368,13 +365,11 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('VALID: {in_progress + planningNotes with blightReports AND surfaceReports} => permits both (in_progress accepts the full planning lifecycle)', () => {
-      const blight = PlanningBlightReportStub();
-      const surface = PlanningSurfaceReportStub();
+    it('VALID: {in_progress + planningNotes.blightReports partial-patch by id} => permits patch shape (in_progress is ungated)', () => {
+      const blight = PlanningBlightReportStub({ id: '11111111-1111-1111-1111-111111111111' });
       const input = ModifyQuestInputStub({
         planningNotes: {
-          blightReports: [blight],
-          surfaceReports: [surface],
+          blightReports: [{ id: blight.id, status: 'resolved' }],
         },
       });
       const currentQuest = QuestStub({ status: 'in_progress' });
@@ -409,390 +404,71 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('planningNotes sub-field allowlist per seek_* status', () => {
-    describe('seek_scope', () => {
-      it('VALID: {seek_scope + planningNotes.scopeClassification} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_scope' });
+  describe('operations field allowlist', () => {
+    it('VALID: {explore_observables + operations} => returns empty array', () => {
+      const input = ModifyQuestInputStub({
+        operations: [OperationItemStub()],
+      });
+      const currentQuest = QuestStub({ status: 'explore_observables' });
 
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_scope',
-        });
-
-        expect(offenders).toStrictEqual([]);
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'explore_observables',
       });
 
-      // seek_scope is the PathSeeker planning workspace (allowedPlanningNotesFields: 'all') — the
-      // quest rests there while PathSeeker writes its whole lifecycle, so every planningNotes
-      // sub-field is accepted.
-      it('VALID: {seek_scope + planningNotes.surfaceReports} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            surfaceReports: [PlanningSurfaceReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_scope' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_scope',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('VALID: {seek_scope + planningNotes.synthesis} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            synthesis: PlanningSynthesisStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_scope' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_scope',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('VALID: {seek_scope + planningNotes.walkFindings} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            walkFindings: PlanningWalkFindingsStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_scope' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_scope',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('VALID: {seek_scope + planningNotes.blightReports} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            blightReports: [PlanningBlightReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_scope' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_scope',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
+      expect(offenders).toStrictEqual([]);
     });
 
-    describe('seek_synth', () => {
-      it('VALID: {seek_synth + planningNotes.surfaceReports} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            surfaceReports: [PlanningSurfaceReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_synth' });
+    it('INVALID: {in_progress + operations} => rejects operations (execution agents signal outcomes instead of writing the ledger)', () => {
+      const input = ModifyQuestInputStub({
+        operations: [OperationItemStub()],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress' });
 
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_synth',
-        });
-
-        expect(offenders).toStrictEqual([]);
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'in_progress',
       });
 
-      it('VALID: {seek_synth + planningNotes.synthesis} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            synthesis: PlanningSynthesisStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_synth' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_synth',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('INVALID: {seek_synth + planningNotes.scopeClassification} => rejects scopeClassification sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_synth' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_synth',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.scopeClassification' not allowed in status 'seek_synth'",
-        ]);
-      });
-
-      it('INVALID: {seek_synth + planningNotes.walkFindings} => rejects walkFindings sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            walkFindings: PlanningWalkFindingsStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_synth' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_synth',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.walkFindings' not allowed in status 'seek_synth'",
-        ]);
-      });
-
-      it('INVALID: {seek_synth + planningNotes.blightReports} => rejects blightReports sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            blightReports: [PlanningBlightReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_synth' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_synth',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.blightReports' not allowed in status 'seek_synth'",
-        ]);
-      });
-
-      it('INVALID: {seek_synth + planningNotes with surfaceReports AND blightReports} => rejects only the forbidden blightReports sub-field by name', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            surfaceReports: [PlanningSurfaceReportStub()],
-            blightReports: [PlanningBlightReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_synth' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_synth',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.blightReports' not allowed in status 'seek_synth'",
-        ]);
-      });
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'operations' not allowed in status 'in_progress'",
+      ]);
     });
 
-    describe('seek_walk', () => {
-      it('VALID: {seek_walk + planningNotes.walkFindings} => returns empty array', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            walkFindings: PlanningWalkFindingsStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_walk' });
+    it('VALID: {review_observables -> explore_observables + operations} => permits operations on back transition', () => {
+      const input = ModifyQuestInputStub({
+        operations: [OperationItemStub()],
+        status: 'explore_observables',
+      });
+      const currentQuest = QuestStub({ status: 'review_observables' });
 
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_walk',
-        });
-
-        expect(offenders).toStrictEqual([]);
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'review_observables',
+        nextStatus: 'explore_observables',
       });
 
-      it('INVALID: {seek_walk + planningNotes.scopeClassification} => rejects scopeClassification sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_walk' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_walk',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.scopeClassification' not allowed in status 'seek_walk'",
-        ]);
-      });
-
-      it('INVALID: {seek_walk + planningNotes.surfaceReports} => rejects surfaceReports sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            surfaceReports: [PlanningSurfaceReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_walk' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_walk',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.surfaceReports' not allowed in status 'seek_walk'",
-        ]);
-      });
-
-      it('INVALID: {seek_walk + planningNotes.synthesis} => rejects synthesis sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            synthesis: PlanningSynthesisStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_walk' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_walk',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.synthesis' not allowed in status 'seek_walk'",
-        ]);
-      });
-
-      it('INVALID: {seek_walk + planningNotes.blightReports} => rejects blightReports sub-field', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            blightReports: [PlanningBlightReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'seek_walk' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'seek_walk',
-        });
-
-        expect(offenders.map((o) => String(o))).toStrictEqual([
-          "Sub-field 'planningNotes.blightReports' not allowed in status 'seek_walk'",
-        ]);
-      });
+      expect(offenders).toStrictEqual([]);
     });
 
-    describe('in_progress sub-field acceptance (ungated — any planningNotes sub-field accepted)', () => {
-      it('VALID: {in_progress + planningNotes.blightReports} => returns empty array (in_progress is ungated)', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            blightReports: [PlanningBlightReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'in_progress' });
+    it('INVALID: {review_observables + operations without back transition} => rejects operations', () => {
+      const input = ModifyQuestInputStub({
+        operations: [OperationItemStub()],
+      });
+      const currentQuest = QuestStub({ status: 'review_observables' });
 
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'in_progress',
-        });
-
-        expect(offenders).toStrictEqual([]);
+      const offenders = questInputForbiddenFieldsTransformer({
+        input,
+        currentQuest,
+        currentStatus: 'review_observables',
       });
 
-      it('VALID: {in_progress + planningNotes.walkFindings} => returns empty array (pathseeker-walk terminal commit)', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            walkFindings: PlanningWalkFindingsStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'in_progress' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'in_progress',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('VALID: {in_progress + planningNotes.scopeClassification} => returns empty array (PathSeeker (re)classifies scope during in_progress)', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            scopeClassification: PlanningScopeClassificationStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'in_progress' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'in_progress',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('VALID: {in_progress + planningNotes.surfaceReports} => returns empty array (PathSeeker surface phase runs during in_progress)', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            surfaceReports: [PlanningSurfaceReportStub()],
-          },
-        });
-        const currentQuest = QuestStub({ status: 'in_progress' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'in_progress',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
-
-      it('VALID: {in_progress + planningNotes.synthesis} => returns empty array (PathSeeker synthesis phase runs during in_progress)', () => {
-        const input = ModifyQuestInputStub({
-          planningNotes: {
-            synthesis: PlanningSynthesisStub(),
-          },
-        });
-        const currentQuest = QuestStub({ status: 'in_progress' });
-
-        const offenders = questInputForbiddenFieldsTransformer({
-          input,
-          currentQuest,
-          currentStatus: 'in_progress',
-        });
-
-        expect(offenders).toStrictEqual([]);
-      });
+      expect(offenders.map((o) => String(o))).toStrictEqual([
+        "Field 'operations' not allowed in status 'review_observables'",
+      ]);
     });
   });
 

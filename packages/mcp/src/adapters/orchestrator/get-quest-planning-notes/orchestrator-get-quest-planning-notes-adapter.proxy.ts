@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
- * proxy.returns({ result: { success: true, data: { surfaceReports: [] } } });
+ * proxy.returns({ result: { success: true, data: { blightReports: [] } } });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -13,7 +13,7 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPla
 
 const emptyPlanningNotes = (): GetPlanningNotesResult => ({
   success: true,
-  data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+  data: { blightReports: [] },
 });
 
 export const orchestratorGetQuestPlanningNotesAdapterProxy = (): {

@@ -1,5 +1,6 @@
 import {
   ExitCodeStub,
+  FileContentsStub,
   FileNameStub,
   QuestIdStub,
   QuestStub,
@@ -30,7 +31,12 @@ describe('QuestRunWardResponder', () => {
       workItems: [workItem],
     });
 
-    proxy.setupWardPass({ quest, runId });
+    proxy.setupQuest({ quest });
+    proxy.wardExits({
+      exitCode: ExitCodeStub({ value: 0 }),
+      runId,
+      detailJson: FileContentsStub({ value: '{"checks":[]}' }),
+    });
 
     const result = await proxy.callResponder({ questId, workItemId, mode: 'changed' });
 

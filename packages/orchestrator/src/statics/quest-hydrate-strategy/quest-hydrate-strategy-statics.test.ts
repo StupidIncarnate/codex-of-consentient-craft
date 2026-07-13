@@ -19,17 +19,17 @@ const GATE_CASES = Object.entries(questGateContentRequirementsStatics.gates)
   .filter(([gate]) => WALK_PATH.some((s) => s === gate))
   .flatMap(([gate, requirements]) =>
     requirements.map((requirement) => {
+      const requirementField = typeof requirement === 'string' ? requirement : requirement.field;
       const idx = WALK_PATH.findIndex((s) => s === gate);
       const priorSteps = WALK_PATH.slice(0, idx + 1);
       const covered = priorSteps.some((toStatus) => {
         const strategy = questHydrateStrategyStatics.strategies[toStatus];
         return (
-          (requirement === 'flows' && strategy.flowsMode !== 'exclude') ||
-          (requirement.startsWith('planningNotes.') &&
-            strategy.planningNotesFields.some((f) => `planningNotes.${f}` === requirement))
+          (requirementField === 'flows' && strategy.flowsMode !== 'exclude') ||
+          strategy.blueprintFields.some((f) => f === requirementField)
         );
       });
-      return { gate, requirement, covered };
+      return { gate, requirement: requirementField, covered };
     }),
   );
 
@@ -49,30 +49,6 @@ const FLOWS_TOPLEVEL_CASES = WALK_PATH.map((toStatus) => {
           (a) => a === 'flows',
         );
   return { toStatus, flowsAllowed };
-});
-
-const PLANNING_NOTES_TOPLEVEL_CASES = WALK_PATH.map((toStatus) => {
-  const strategy = questHydrateStrategyStatics.strategies[toStatus];
-  const planningNotesAllowed =
-    strategy.planningNotesFields.length === 0
-      ? true
-      : questStatusInputAllowlistStatics[strategy.fromStatus].allowedFields.some(
-          (a) => a === 'planningNotes',
-        );
-  return { toStatus, planningNotesAllowed };
-});
-
-const PLANNING_NOTES_SUBFIELD_CASES = WALK_PATH.map((toStatus) => {
-  const strategy = questHydrateStrategyStatics.strategies[toStatus];
-  const allowedSubs =
-    questStatusInputAllowlistStatics[strategy.fromStatus].allowedPlanningNotesFields;
-  // `'all'` (seek_scope, in_progress) permits every planningNotes sub-field, so nothing can be
-  // missing when the walk transitions FROM such a status.
-  const missing =
-    allowedSubs === 'all'
-      ? []
-      : strategy.planningNotesFields.filter((f) => !allowedSubs.some((a) => a === f));
-  return { toStatus, missing };
 });
 
 const FLOWS_MODE_RULE_CASES = WALK_PATH.map((toStatus) => {
@@ -134,20 +110,6 @@ describe('questHydrateStrategyStatics', () => {
       'VALID: {walkPath step: $toStatus} => flows top-level is allowed when flowsMode is not exclude',
       ({ flowsAllowed }) => {
         expect(flowsAllowed).toBe(true);
-      },
-    );
-
-    it.each(PLANNING_NOTES_TOPLEVEL_CASES)(
-      'VALID: {walkPath step: $toStatus} => planningNotes top-level is allowed when strategy writes sub-fields',
-      ({ planningNotesAllowed }) => {
-        expect(planningNotesAllowed).toBe(true);
-      },
-    );
-
-    it.each(PLANNING_NOTES_SUBFIELD_CASES)(
-      'VALID: {walkPath step: $toStatus} => every planningNotes sub-field is in allowedPlanningNotesFields',
-      ({ missing }) => {
-        expect(missing).toStrictEqual([]);
       },
     );
 

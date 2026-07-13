@@ -12,10 +12,6 @@ import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider
 import { lawbringerMinionStatics } from '../../statics/lawbringer-minion/lawbringer-minion-statics';
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { pathseekerPromptStatics } from '../../statics/pathseeker-prompt/pathseeker-prompt-statics';
-import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
-import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
-import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
@@ -30,54 +26,6 @@ describe('agentNameToPromptTransformer', () => {
       name: 'chaoswhisperer-gap-minion',
       model: 'sonnet',
       prompt: chaoswhispererGapMinionStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "pathseeker"} => returns pathseeker parent prompt data on opus', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'pathseeker',
-      model: 'opus',
-      prompt: pathseekerPromptStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "pathseeker-surface"} => returns pathseeker-surface prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-surface' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'pathseeker-surface',
-      model: 'sonnet',
-      prompt: pathseekerSurfaceMinionStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "pathseeker-dedup"} => returns pathseeker-dedup prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-dedup' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'pathseeker-dedup',
-      model: 'sonnet',
-      prompt: pathseekerDedupMinionStatics.prompt.template,
-    });
-  });
-
-  it('VALID: {agent: "pathseeker-assertion-correctness"} => returns pathseeker-assertion-correctness prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness' });
-
-    const result = agentNameToPromptTransformer({ agent });
-
-    expect(result).toStrictEqual({
-      name: 'pathseeker-assertion-correctness',
-      model: 'sonnet',
-      prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template,
     });
   });
 
@@ -246,6 +194,19 @@ describe('agentNameToPromptTransformer', () => {
       name: 'pesteater',
       model: 'opus',
       prompt: pesteaterPromptStatics.prompt.template,
+    });
+  });
+
+  describe('pathseeker family is not a valid agent prompt name', () => {
+    it.each([
+      'pathseeker',
+      'pathseeker-surface',
+      'pathseeker-dedup',
+      'pathseeker-assertion-correctness',
+    ])('INVALID: {value: "%s"} => throws parsing the agent prompt name', (value) => {
+      expect(() => {
+        AgentPromptNameStub({ value });
+      }).toThrow(/Invalid enum value/u);
     });
   });
 });

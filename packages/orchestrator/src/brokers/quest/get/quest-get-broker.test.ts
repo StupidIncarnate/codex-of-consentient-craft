@@ -1,13 +1,16 @@
 import {
-  DependencyStepStub,
+  DesignDecisionStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  GetQuestInputStub,
+  OperationItemStub,
+  PlanningBlightReportStub,
   QuestContractEntryStub,
   QuestStub,
+  ToolingRequirementStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { GetQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { questGetBroker } from './quest-get-broker';
 import { questGetBrokerProxy } from './quest-get-broker.proxy';
 
@@ -49,16 +52,24 @@ describe('questGetBroker', () => {
   describe('stage filtering', () => {
     it('VALID: {stage: "spec"} => returns quest with only spec sections populated', async () => {
       const proxy = questGetBrokerProxy();
+      const flow = FlowStub({
+        nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
+      });
+      const designDecision = DesignDecisionStub();
+      const tooling = ToolingRequirementStub();
+      const contractEntry = QuestContractEntryStub();
+      const operation = OperationItemStub();
+      const blight = PlanningBlightReportStub();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         title: 'Add Authentication',
-        flows: [
-          FlowStub({
-            nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
-          }),
-        ],
-        steps: [DependencyStepStub()],
+        flows: [flow],
+        designDecisions: [designDecision],
+        toolingRequirements: [tooling],
+        contracts: [contractEntry],
+        operations: [operation],
+        planningNotes: { blightReports: [blight] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -67,24 +78,82 @@ describe('questGetBroker', () => {
       const result = await questGetBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.flows).toStrictEqual([
-        FlowStub({
-          nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
-        }),
-      ]);
-      expect(result.quest?.steps).toStrictEqual([]);
-      expect(result.quest?.steps).toStrictEqual([]);
+      expect({
+        flows: result.quest?.flows,
+        designDecisions: result.quest?.designDecisions,
+        toolingRequirements: result.quest?.toolingRequirements,
+        contracts: result.quest?.contracts,
+        operations: result.quest?.operations,
+        planningNotes: result.quest?.planningNotes,
+      }).toStrictEqual({
+        flows: [flow],
+        designDecisions: [designDecision],
+        toolingRequirements: [tooling],
+        contracts: [contractEntry],
+        operations: [],
+        planningNotes: { blightReports: [] },
+      });
     });
 
-    it('VALID: {stage: "implementation"} => returns quest with only steps and contracts', async () => {
+    it('VALID: {stage: "planning"} => returns quest with only planningNotes, operations, contracts populated', async () => {
       const proxy = questGetBrokerProxy();
-      const step = DependencyStepStub();
+      const flow = FlowStub();
+      const designDecision = DesignDecisionStub();
+      const tooling = ToolingRequirementStub();
+      const contractEntry = QuestContractEntryStub();
+      const operation = OperationItemStub();
+      const blight = PlanningBlightReportStub();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         title: 'Add Authentication',
-        flows: [FlowStub()],
-        steps: [step],
+        flows: [flow],
+        designDecisions: [designDecision],
+        toolingRequirements: [tooling],
+        contracts: [contractEntry],
+        operations: [operation],
+        planningNotes: { blightReports: [blight] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'planning' });
+      const result = await questGetBroker({ input });
+
+      expect(result.success).toBe(true);
+      expect({
+        planningNotes: result.quest?.planningNotes,
+        operations: result.quest?.operations,
+        contracts: result.quest?.contracts,
+        flows: result.quest?.flows,
+        designDecisions: result.quest?.designDecisions,
+        toolingRequirements: result.quest?.toolingRequirements,
+      }).toStrictEqual({
+        planningNotes: { blightReports: [blight] },
+        operations: [operation],
+        contracts: [contractEntry],
+        flows: [],
+        designDecisions: [],
+        toolingRequirements: [],
+      });
+    });
+
+    it('VALID: {stage: "implementation"} => returns quest with planningNotes, operations, contracts, toolingRequirements populated', async () => {
+      const proxy = questGetBrokerProxy();
+      const flow = FlowStub();
+      const tooling = ToolingRequirementStub();
+      const contractEntry = QuestContractEntryStub();
+      const operation = OperationItemStub();
+      const blight = PlanningBlightReportStub();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        flows: [flow],
+        toolingRequirements: [tooling],
+        contracts: [contractEntry],
+        operations: [operation],
+        planningNotes: { blightReports: [blight] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -93,8 +162,19 @@ describe('questGetBroker', () => {
       const result = await questGetBroker({ input });
 
       expect(result.success).toBe(true);
-      expect(result.quest?.flows).toStrictEqual([]);
-      expect(result.quest?.steps).toStrictEqual([step]);
+      expect({
+        planningNotes: result.quest?.planningNotes,
+        operations: result.quest?.operations,
+        contracts: result.quest?.contracts,
+        toolingRequirements: result.quest?.toolingRequirements,
+        flows: result.quest?.flows,
+      }).toStrictEqual({
+        planningNotes: { blightReports: [blight] },
+        operations: [operation],
+        contracts: [contractEntry],
+        toolingRequirements: [tooling],
+        flows: [],
+      });
     });
 
     it('VALID: {stage undefined} => returns full quest unchanged', async () => {
@@ -104,6 +184,7 @@ describe('questGetBroker', () => {
         folder: '001-add-auth',
         title: 'Add Authentication',
         flows: [FlowStub()],
+        operations: [OperationItemStub()],
       });
 
       proxy.setupQuestFound({ quest });
@@ -113,174 +194,7 @@ describe('questGetBroker', () => {
 
       expect(result.success).toBe(true);
       expect(result.quest?.flows).toStrictEqual([FlowStub()]);
-    });
-  });
-
-  describe('slice filtering', () => {
-    it('VALID: {slice: ["backend"], stage: "planning"} => returns only backend slice steps', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const frontendStep = DependencyStepStub({ id: 'frontend-render-bar', slice: 'frontend' });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        steps: [backendStep, frontendStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: ['backend'],
-      });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([backendStep]);
-    });
-
-    it('VALID: {slice: ["backend", "frontend"], stage: "planning"} => returns both slice steps', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const frontendStep = DependencyStepStub({ id: 'frontend-render-bar', slice: 'frontend' });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        steps: [backendStep, frontendStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: ['backend', 'frontend'],
-      });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([backendStep, frontendStep]);
-    });
-
-    it('VALID: {slice undefined, stage: "planning"} => returns all steps unchanged', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const frontendStep = DependencyStepStub({ id: 'frontend-render-bar', slice: 'frontend' });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        steps: [backendStep, frontendStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'planning' });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([backendStep, frontendStep]);
-    });
-
-    it('EDGE: {slice: [], stage: "planning"} => returns no steps (empty array filter rejects everything)', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        steps: [backendStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: [],
-      });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([]);
-    });
-
-    it('EDGE: {slice: ["nonexistent"], stage: "planning"} => returns no steps (none match)', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        steps: [backendStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: ['nonexistent'],
-      });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([]);
-    });
-
-    it('VALID: {slice: ["backend"], stage: "spec"} => no-op for steps (already empty by stage), other sections unaffected', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const flow = FlowStub({
-        nodes: [FlowNodeStub({ observables: [FlowObservableStub()] })],
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        flows: [flow],
-        steps: [backendStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        stage: 'spec',
-        slice: ['backend'],
-      });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([]);
-      expect(result.quest?.flows).toStrictEqual([flow]);
-    });
-
-    it('VALID: {slice: ["backend"], stage: "planning"} => does NOT filter contracts (contracts have no slice field)', async () => {
-      const proxy = questGetBrokerProxy();
-      const backendStep = DependencyStepStub({ id: 'backend-create-foo', slice: 'backend' });
-      const frontendStep = DependencyStepStub({ id: 'frontend-render-bar', slice: 'frontend' });
-      const backendContract = QuestContractEntryStub({ id: 'backend-thing', name: 'BackendThing' });
-      const frontendContract = QuestContractEntryStub({
-        id: 'frontend-thing',
-        name: 'FrontendThing',
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        steps: [backendStep, frontendStep],
-        contracts: [backendContract, frontendContract],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = GetQuestInputStub({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: ['backend'],
-      });
-      const result = await questGetBroker({ input });
-
-      expect(result.success).toBe(true);
-      expect(result.quest?.steps).toStrictEqual([backendStep]);
-      expect(result.quest?.contracts).toStrictEqual([backendContract, frontendContract]);
+      expect(result.quest?.operations).toStrictEqual([OperationItemStub()]);
     });
   });
 

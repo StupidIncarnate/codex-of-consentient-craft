@@ -1,62 +1,19 @@
-import { QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  OperationItemIdStub,
+  QuestIdStub,
+  QuestWorkItemIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { signalBackInputContract } from './signal-back-input-contract';
 import { SignalBackInputStub } from './signal-back-input.stub';
 
 const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
+const operationItemId = OperationItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
 
 describe('signalBackInputContract', () => {
   describe('valid inputs', () => {
-    it('VALID: {signal: "complete", summary, questId, workItemId} => parses complete signal', () => {
-      const input = SignalBackInputStub({
-        signal: 'complete',
-        summary: 'Task done',
-      });
-
-      const result = signalBackInputContract.parse(input);
-
-      expect(result).toStrictEqual({
-        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
-        signal: 'complete',
-        summary: 'Task done',
-      });
-    });
-
-    it('VALID: {signal: "failed", summary} => parses failed signal', () => {
-      const input = SignalBackInputStub({
-        signal: 'failed',
-        summary: 'Tests failing in user-fetch-broker',
-      });
-
-      const result = signalBackInputContract.parse(input);
-
-      expect(result).toStrictEqual({
-        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
-        signal: 'failed',
-        summary: 'Tests failing in user-fetch-broker',
-      });
-    });
-
-    it('VALID: {signal: "failed-replan", summary} => parses failed-replan signal', () => {
-      const input = SignalBackInputStub({
-        signal: 'failed-replan',
-        summary: 'Semantic findings require new steps',
-      });
-
-      const result = signalBackInputContract.parse(input);
-
-      expect(result).toStrictEqual({
-        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
-        signal: 'failed-replan',
-        summary: 'Semantic findings require new steps',
-      });
-    });
-
-    it('EDGE: {signal + ids only, no summary} => parses minimal input', () => {
+    it('VALID: {signal: "complete", questId, workItemId} => parses minimal complete signal', () => {
       const result = signalBackInputContract.parse({
         questId,
         workItemId,
@@ -70,6 +27,42 @@ describe('signalBackInputContract', () => {
       });
     });
 
+    it('VALID: {signal: "complete", operationItemId, operationStatus: "done"} => parses done outcome', () => {
+      const result = signalBackInputContract.parse({
+        questId,
+        workItemId,
+        signal: 'complete',
+        operationItemId,
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({
+        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
+        signal: 'complete',
+        operationItemId: 'cccccccc-1111-4222-9333-444444444444',
+        operationStatus: 'done',
+      });
+    });
+
+    it('VALID: {signal: "complete", operationItemId, operationStatus: "partial"} => parses partial outcome', () => {
+      const result = signalBackInputContract.parse({
+        questId,
+        workItemId,
+        signal: 'complete',
+        operationItemId,
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({
+        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
+        signal: 'complete',
+        operationItemId: 'cccccccc-1111-4222-9333-444444444444',
+        operationStatus: 'partial',
+      });
+    });
+
     it('VALID: {default stub} => parses with defaults', () => {
       const input = SignalBackInputStub();
 
@@ -79,12 +72,31 @@ describe('signalBackInputContract', () => {
         questId: 'aaaaaaaa-1111-4222-9333-444444444444',
         workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
         signal: 'complete',
-        summary: 'Step completed successfully',
       });
     });
   });
 
   describe('invalid inputs', () => {
+    it('INVALID: {signal: "failed"} => throws validation error because failed is no longer a supported signal', () => {
+      expect(() => {
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'failed',
+        });
+      }).toThrow(/Invalid literal value/u);
+    });
+
+    it('INVALID: {signal: "failed-replan"} => throws validation error because failed-replan is no longer a supported signal', () => {
+      expect(() => {
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'failed-replan',
+        });
+      }).toThrow(/Invalid literal value/u);
+    });
+
     it('INVALID: {signal: "unknown"} => throws validation error', () => {
       expect(() => {
         signalBackInputContract.parse({
@@ -92,34 +104,13 @@ describe('signalBackInputContract', () => {
           workItemId,
           signal: 'unknown',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID: {signal: "partially-complete"} => throws validation error', () => {
-      expect(() => {
-        signalBackInputContract.parse({
-          questId,
-          workItemId,
-          signal: 'partially-complete',
-        });
-      }).toThrow(/Invalid enum value/u);
-    });
-
-    it('INVALID: {summary: ""} => throws validation error for empty string', () => {
-      expect(() => {
-        signalBackInputContract.parse({
-          questId,
-          workItemId,
-          signal: 'complete',
-          summary: '',
-        });
-      }).toThrow(/too_small/u);
-    });
-
-    it('INVALID: {missing signal} => throws validation error', () => {
+    it('INVALID: {missing signal} => throws validation error because the literal check rejects undefined', () => {
       expect(() => {
         signalBackInputContract.parse({ questId, workItemId });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid literal value/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
@@ -148,6 +139,40 @@ describe('signalBackInputContract', () => {
           signal: 'complete',
         });
       }).toThrow(/Invalid uuid/u);
+    });
+
+    it('INVALID: {operationItemId: "not-a-uuid"} => throws validation error', () => {
+      expect(() => {
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'complete',
+          operationItemId: 'not-a-uuid',
+        });
+      }).toThrow(/Invalid uuid/u);
+    });
+
+    it('INVALID: {operationStatus: "failed"} => throws validation error because failed is not a supported operation outcome', () => {
+      expect(() => {
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'complete',
+          operationItemId,
+          operationStatus: 'failed',
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {summary: "removed field"} => throws Unrecognized key error because summary no longer exists on the contract', () => {
+      expect(() => {
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'complete',
+          summary: 'Task done',
+        } as never);
+      }).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

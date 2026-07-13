@@ -16,7 +16,7 @@ describe('scenarioInstanceContract', () => {
       const result = ScenarioInstanceStub({
         scripts: {
           codeweaver: ['signalFailed', 'signalComplete'],
-          pathseeker: ['signalComplete'],
+          spiritmender: ['signalComplete'],
         },
         callOrdinals: { codeweaver: 1 },
       });
@@ -24,7 +24,7 @@ describe('scenarioInstanceContract', () => {
       expect(result).toStrictEqual({
         scripts: {
           codeweaver: ['signalFailed', 'signalComplete'],
-          pathseeker: ['signalComplete'],
+          spiritmender: ['signalComplete'],
         },
         callOrdinals: { codeweaver: 1 },
       });
@@ -45,6 +45,15 @@ describe('scenarioInstanceContract', () => {
       expect(() => {
         scenarioInstanceContract.parse({
           scripts: { bogusRole: ['signalComplete'] },
+          callOrdinals: {},
+        });
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {scripts pathseeker role} => throws validation error (removed role)', () => {
+      expect(() => {
+        scenarioInstanceContract.parse({
+          scripts: { pathseeker: ['signalComplete'] },
           callOrdinals: {},
         });
       }).toThrow(/Invalid enum value/u);

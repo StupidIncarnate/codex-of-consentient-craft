@@ -26,15 +26,15 @@ describe('QuestResumeResponder', () => {
       async (status) => {
         const proxy = QuestResumeResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ status: status as never, pausedAtStatus: 'seek_scope' });
+        const quest = QuestStub({ status: status as never, pausedAtStatus: 'in_progress' });
         proxy.setupQuest({ quest });
-        proxy.setupResumeQuest({ resumed: true, restoredStatus: 'seek_scope' });
+        proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
 
         const result = await proxy.callResponder({ params: { questId } });
 
         expect(result).toStrictEqual({
           status: 200,
-          data: { resumed: true, restoredStatus: 'seek_scope' },
+          data: { resumed: true, restoredStatus: 'in_progress' },
         });
       },
     );
@@ -86,7 +86,7 @@ describe('QuestResumeResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestResumeResponderProxy();
-      const quest = QuestStub({ status: 'paused' as never, pausedAtStatus: 'seek_scope' });
+      const quest = QuestStub({ status: 'paused' as never, pausedAtStatus: 'in_progress' });
       proxy.setupQuest({ quest });
       proxy.setupResumeQuestError({ message: 'Quest resume failed' });
 

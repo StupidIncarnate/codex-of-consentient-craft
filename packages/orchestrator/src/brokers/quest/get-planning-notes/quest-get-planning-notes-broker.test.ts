@@ -1,12 +1,4 @@
-import {
-  PlanningBlightReportStub,
-  PlanningScopeClassificationStub,
-  PlanningSurfaceReportStub,
-  PlanningSynthesisStub,
-  PlanningWalkFindingsStub,
-  QuestIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { PlanningBlightReportStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { questGetPlanningNotesBroker } from './quest-get-planning-notes-broker';
 import { questGetPlanningNotesBrokerProxy } from './quest-get-planning-notes-broker.proxy';
@@ -22,26 +14,16 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({ surfaceReports: [], blightReports: [], codeweaverPlans: [] });
+      expect(result).toStrictEqual({ blightReports: [] });
     });
 
     it('VALID: {questId, fully populated planningNotes} => returns full object', async () => {
       const proxy = questGetPlanningNotesBrokerProxy();
-      const scope = PlanningScopeClassificationStub();
-      const surface = PlanningSurfaceReportStub();
       const blight = PlanningBlightReportStub();
-      const synthesis = PlanningSynthesisStub();
-      const walk = PlanningWalkFindingsStub();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: {
-          scopeClassification: scope,
-          surfaceReports: [surface],
-          blightReports: [blight],
-          synthesis,
-          walkFindings: walk,
-        },
+        planningNotes: { blightReports: [blight] },
       });
       proxy.setupQuestFound({ quest });
 
@@ -49,146 +31,7 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({
-        scopeClassification: scope,
-        surfaceReports: [surface],
-        blightReports: [blight],
-        codeweaverPlans: [],
-        synthesis,
-        walkFindings: walk,
-      });
-    });
-  });
-
-  describe('section: scope', () => {
-    it('VALID: {section: "scope", scope present} => returns scopeClassification', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const scope = PlanningScopeClassificationStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { surfaceReports: [], scopeClassification: scope },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'scope',
-      });
-
-      expect(result).toStrictEqual(scope);
-    });
-
-    it('VALID: {section: "scope", scope absent} => returns undefined', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'scope',
-      });
-
-      expect(result).toBe(undefined);
-    });
-  });
-
-  describe('section: surface', () => {
-    it('VALID: {section: "surface", reports present} => returns surfaceReports array', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const surface = PlanningSurfaceReportStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { surfaceReports: [surface] },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'surface',
-      });
-
-      expect(result).toStrictEqual([surface]);
-    });
-
-    it('VALID: {section: "surface", fresh quest} => returns empty array', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'surface',
-      });
-
-      expect(result).toStrictEqual([]);
-    });
-  });
-
-  describe('section: synthesis', () => {
-    it('VALID: {section: "synthesis"} => returns synthesis', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const synthesis = PlanningSynthesisStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { surfaceReports: [], synthesis },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'synthesis',
-      });
-
-      expect(result).toStrictEqual(synthesis);
-    });
-
-    it('VALID: {section: "synthesis", absent} => returns undefined', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'synthesis',
-      });
-
-      expect(result).toBe(undefined);
-    });
-  });
-
-  describe('section: walk', () => {
-    it('VALID: {section: "walk"} => returns walkFindings', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const walk = PlanningWalkFindingsStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        planningNotes: { surfaceReports: [], walkFindings: walk },
-      });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'walk',
-      });
-
-      expect(result).toStrictEqual(walk);
-    });
-
-    it('VALID: {section: "walk", absent} => returns undefined', async () => {
-      const proxy = questGetPlanningNotesBrokerProxy();
-      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-      proxy.setupQuestFound({ quest });
-
-      const result = await questGetPlanningNotesBroker({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        section: 'walk',
-      });
-
-      expect(result).toBe(undefined);
+      expect(result).toStrictEqual({ blightReports: [blight] });
     });
   });
 
@@ -199,7 +42,7 @@ describe('questGetPlanningNotesBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: { surfaceReports: [], blightReports: [blight] },
+        planningNotes: { blightReports: [blight] },
       });
       proxy.setupQuestFound({ quest });
 

@@ -34,6 +34,7 @@ describe('questStatusInputAllowlistStatics', () => {
           'contracts',
           'toolingRequirements',
           'packagesAffected',
+          'operations',
           'status',
         ],
         flowsRule: 'full',
@@ -46,6 +47,7 @@ describe('questStatusInputAllowlistStatics', () => {
           'contracts',
           'toolingRequirements',
           'packagesAffected',
+          'operations',
           'status',
         ],
         flowsRule: 'full',
@@ -61,6 +63,7 @@ describe('questStatusInputAllowlistStatics', () => {
             'contracts',
             'toolingRequirements',
             'packagesAffected',
+            'operations',
           ],
         },
         flowsRule: 'full',
@@ -90,44 +93,8 @@ describe('questStatusInputAllowlistStatics', () => {
         flowsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
-      seek_scope: {
-        allowedFields: [
-          'planningNotes',
-          'steps',
-          'contracts',
-          'toolingRequirements',
-          'flows',
-          'status',
-        ],
-        flowsRule: 'observable-wording-only',
-        allowedPlanningNotesFields: 'all',
-      },
-      seek_synth: {
-        allowedFields: [
-          'planningNotes',
-          'steps',
-          'contracts',
-          'toolingRequirements',
-          'flows',
-          'status',
-        ],
-        flowsRule: 'observable-wording-only',
-        allowedPlanningNotesFields: ['surfaceReports', 'synthesis'],
-      },
-      seek_walk: {
-        allowedFields: [
-          'planningNotes',
-          'steps',
-          'contracts',
-          'toolingRequirements',
-          'flows',
-          'status',
-        ],
-        flowsRule: 'observable-wording-only',
-        allowedPlanningNotesFields: ['walkFindings'],
-      },
       in_progress: {
-        allowedFields: ['steps', 'contracts', 'toolingRequirements', 'flows', 'status'],
+        allowedFields: ['contracts', 'toolingRequirements', 'flows', 'status'],
         flowsRule: 'observable-wording-only',
         allowedPlanningNotesFields: 'all',
       },
@@ -175,21 +142,38 @@ describe('questStatusInputAllowlistStatics', () => {
         'review_design',
         'review_flows',
         'review_observables',
-        'seek_scope',
-        'seek_synth',
-        'seek_walk',
       ].sort(),
     );
   });
 
-  it("VALID: seek_scope => allowedPlanningNotesFields is 'all' (the PathSeeker planning workspace where the quest rests through scope → synthesis → walk)", () => {
-    expect(questStatusInputAllowlistStatics.seek_scope.allowedPlanningNotesFields).toBe('all');
+  it("VALID: explore_observables => allowedFields includes 'operations' (ChaosWhisperer authors the implementation plan items there)", () => {
+    expect(questStatusInputAllowlistStatics.explore_observables.allowedFields).toStrictEqual([
+      'flows',
+      'designDecisions',
+      'contracts',
+      'toolingRequirements',
+      'packagesAffected',
+      'operations',
+      'status',
+    ]);
   });
 
-  it("VALID: seek_scope => allowedFields includes 'steps' and 'contracts' so PathSeeker + minions can commit the plan while resting there", () => {
-    expect(questStatusInputAllowlistStatics.seek_scope.allowedFields).toStrictEqual([
-      'planningNotes',
-      'steps',
+  it("VALID: review_observables => backTransitionFields carries 'operations' back to explore_observables", () => {
+    expect(questStatusInputAllowlistStatics.review_observables.backTransitionFields).toStrictEqual({
+      toStatus: 'explore_observables',
+      fields: [
+        'flows',
+        'designDecisions',
+        'contracts',
+        'toolingRequirements',
+        'packagesAffected',
+        'operations',
+      ],
+    });
+  });
+
+  it("VALID: in_progress => allowedFields does not include 'operations' (questOperationsUpdateBroker is the sole runtime ledger writer, bypassing this gate)", () => {
+    expect(questStatusInputAllowlistStatics.in_progress.allowedFields).toStrictEqual([
       'contracts',
       'toolingRequirements',
       'flows',
@@ -197,42 +181,7 @@ describe('questStatusInputAllowlistStatics', () => {
     ]);
   });
 
-  it('VALID: seek_synth => allowedPlanningNotesFields limits writes to surfaceReports and synthesis', () => {
-    expect(questStatusInputAllowlistStatics.seek_synth.allowedPlanningNotesFields).toStrictEqual([
-      'surfaceReports',
-      'synthesis',
-    ]);
-  });
-
-  it("VALID: seek_synth => allowedFields includes 'steps' so surface-scope minions can commit steps directly", () => {
-    expect(questStatusInputAllowlistStatics.seek_synth.allowedFields).toStrictEqual([
-      'planningNotes',
-      'steps',
-      'contracts',
-      'toolingRequirements',
-      'flows',
-      'status',
-    ]);
-  });
-
-  it('VALID: seek_walk => allowedPlanningNotesFields limits writes to walkFindings', () => {
-    expect(questStatusInputAllowlistStatics.seek_walk.allowedPlanningNotesFields).toStrictEqual([
-      'walkFindings',
-    ]);
-  });
-
-  it("VALID: seek_walk => allowedFields includes 'steps' so PathSeeker can patch step fields during the walk", () => {
-    expect(questStatusInputAllowlistStatics.seek_walk.allowedFields).toStrictEqual([
-      'planningNotes',
-      'steps',
-      'contracts',
-      'toolingRequirements',
-      'flows',
-      'status',
-    ]);
-  });
-
-  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports/codeweaverPlans)", () => {
+  it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
   });
 });

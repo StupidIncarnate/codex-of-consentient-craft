@@ -22,14 +22,69 @@ describe('pesteaterPromptStatics', () => {
     expect(pesteaterPromptStatics.prompt.placeholders.arguments).toBe('$ARGUMENTS');
   });
 
-  it('VALID: template => has the commit-before-signal section', () => {
-    expect(pesteaterPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
+  it('VALID: template => carries the $ARGUMENTS placeholder exactly once, on its own line', () => {
+    expect(pesteaterPromptStatics.prompt.template.split('$ARGUMENTS').length - 1).toBe(1);
+    expect(pesteaterPromptStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
   });
 
-  it('VALID: template => carries the hard DO NOT STASH rule', () => {
+  it('VALID: title => frames PestEater as a bug hunt relay worker', () => {
     expect(pesteaterPromptStatics.prompt.template).toMatch(
-      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
+      /^# PestEater - Bug Hunt Relay Worker$/mu,
     );
+  });
+
+  it('VALID: template => frames the role as owning ONE operation item on the ledger', () => {
+    const needle = "You own ONE operation item on the quest's operations ledger";
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => declares there is no failure, only moving forward', () => {
+    const needle = '**There is no failure — only moving forward.** You have no failure signal.';
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => forbids editing the operations ledger', () => {
+    const needle = '**You do NOT edit the operations ledger.**';
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => Gate 1 trusts git over the ledger before reading the bug report', () => {
+    const needle =
+      '**Trust git over the ledger**: run `git log --oneline -15` first — a "pt N:" prefix on\nyour item means a prior session already started this hunt';
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => Gate 1 reads the actual-state and expected-state flows', () => {
+    const needle =
+      '- **flows** — two flows: the **actual-state flow** (the reproduction path, ending at the\n  observed symptom) and the **expected-state flow**';
+    const { template } = pesteaterPromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+
+    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
   });
 
   it('VALID: template => keeps the failing-test-before-fix TDD discipline', () => {
@@ -54,6 +109,65 @@ describe('pesteaterPromptStatics', () => {
     expect(pesteaterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
   });
 
+  it('VALID: template => has the commit-before-signal section with the handoff doctrine', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
+
+    const needle =
+      '**The commit message is the ONLY handoff channel — git carries the context, not the ledger.**';
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries the hard DO NOT STASH rule', () => {
+    const needle = '**Hard rule — DO NOT STASH.**';
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => signals done when the bug is fixed and verified', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => signals partial with a committed handoff when scope remains', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => an unreproducible bug is a finding recorded in the handoff, signaled partial', () => {
+    const needle =
+      'If you cannot reproduce the bug as described, that is\na finding, not a dead end';
+    const { template } = pesteaterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries no legacy signal or planning-model references', () => {
+    const { template } = pesteaterPromptStatics.prompt;
+
+    expect(template.indexOf('failed-replan')).toBe(-1);
+    expect(template.indexOf("signal: 'failed'")).toBe(-1);
+    expect(template.indexOf('PathSeeker')).toBe(-1);
+    expect(template.indexOf('spiritmender')).toBe(-1);
+    expect(template.indexOf('replan')).toBe(-1);
+  });
+
   it('VALID: template => embeds the shared agent operating rules', () => {
     const rules = agentOperatingRulesStatics.markdown;
     const { template } = pesteaterPromptStatics.prompt;
@@ -66,42 +180,7 @@ describe('pesteaterPromptStatics', () => {
     expect(pesteaterPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
 
-  it('VALID: template => Gate 1 reads the actual-state and expected-state flows', () => {
-    const needle =
-      '- **flows** — two flows: the **actual-state flow** (the reproduction path, ending at the\n  observed symptom) and the **expected-state flow**';
-    const { template } = pesteaterPromptStatics.prompt;
-    const foundIndex = template.indexOf(needle);
-
-    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
-  });
-
-  it('VALID: template => failed signal routes a code failure to a spiritmender fix + PestEater re-run', () => {
-    expect(pesteaterPromptStatics.prompt.template).toMatch(
-      /^If you hit a CODE FAILURE — you cannot land a working fix in your own scope \(the real fix exceeds what's safe to change here, or ward will not go green\) — signal `failed`; the orchestrator splices a spiritmender to fix the code, then re-runs PestEater:$/mu,
-    );
-  });
-
-  it('VALID: template => failed-replan signal routes a plan hole to a PathSeeker replan', () => {
-    expect(pesteaterPromptStatics.prompt.template).toMatch(
-      /^If you hit a PLAN HOLE — you cannot reproduce the bug as described, or the root cause shows the expected-state flow's observable is not the correct fixed behavior — signal `failed-replan`; PathSeeker re-plans the flows\/observable so the next PestEater run has a correct target:$/mu,
-    );
-  });
-
-  it('VALID: template => signal-back failed-replan literal appears with REPLAN NEEDED summary shape', () => {
-    expect(pesteaterPromptStatics.prompt.template).toMatch(
-      /^signal-back\(\{ signal: 'failed-replan', summary: 'REPLAN NEEDED: \[what the plan gets wrong\]\\nOBSERVED: \[what you actually found\]\\nEXPECTED PER PLAN: \[what the quest says should happen\]' \}\)$/mu,
-    );
-  });
-
-  it('VALID: template => neither failed nor failed-replan is described as blocking the quest', () => {
-    expect(pesteaterPromptStatics.prompt.template).toMatch(
-      /^A test that can't reproduce the bug is a signal, not a license to skip to the fix — surface it: `failed-replan` when the repro itself contradicts the bug report, `failed` when the repro is right but you cannot land a working fix\. Neither signal blocks the quest — both route to a fixer\.$/mu,
-    );
-  });
-
-  it('VALID: template => Rules section states code problem => failed, plan problem => failed-replan', () => {
-    expect(pesteaterPromptStatics.prompt.template).toMatch(
-      /^6\. \*\*Code problem → `failed`; plan problem → `failed-replan`\*\* — a spiritmender fixes what you signal `failed`, PathSeeker re-plans what you signal `failed-replan`; never force a fix that fights the plan, correct the plan instead\.$/mu,
-    );
+  it('VALID: template => has the Operation Context heading', () => {
+    expect(pesteaterPromptStatics.prompt.template).toMatch(/^## Operation Context$/mu);
   });
 });

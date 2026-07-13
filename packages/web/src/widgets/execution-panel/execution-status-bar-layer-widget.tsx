@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Displays execution progress status bar with phase and completion count
+ * PURPOSE: Displays execution progress status bar with operations-ledger completion count
  *
  * USAGE:
- * <ExecutionStatusBarLayerWidget completedCount={completedCount} totalCount={totalCount} isPlanning={false} />
- * // Renders "EXECUTION — 3/8 COMPLETE"
+ * <ExecutionStatusBarLayerWidget completedCount={completedCount} totalCount={totalCount} />
+ * // Renders "EXECUTION — 3/8 OPERATIONS", or "EXECUTION — AWAITING PLAN" when totalCount is 0
  */
 
 import { Group, Text } from '@mantine/core';
@@ -15,13 +15,11 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 export interface ExecutionStatusBarLayerWidgetProps {
   completedCount: CompletedCount;
   totalCount: TotalCount;
-  isPlanning: boolean;
 }
 
 export const ExecutionStatusBarLayerWidget = ({
   completedCount,
   totalCount,
-  isPlanning,
 }: ExecutionStatusBarLayerWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
@@ -37,7 +35,7 @@ export const ExecutionStatusBarLayerWidget = ({
         EXECUTION
       </Text>
       <Text ff="monospace" size="xs" fw={600} style={{ color: colors['text-dim'] }}>
-        {isPlanning ? 'PLANNING' : `${completedCount}/${totalCount} COMPLETE`}
+        {totalCount > 0 ? `${completedCount}/${totalCount} OPERATIONS` : 'AWAITING PLAN'}
       </Text>
     </Group>
   );

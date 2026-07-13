@@ -70,6 +70,7 @@ export const questStatusInputAllowlistStatics = {
       'contracts',
       'toolingRequirements',
       'packagesAffected',
+      'operations',
       'status',
     ],
     flowsRule: 'full',

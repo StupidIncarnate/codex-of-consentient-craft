@@ -383,14 +383,14 @@ describe('ChatEntryListWidget', () => {
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: 'hi' })]}
             isStreaming={false}
-            roleLabel={ExecutionRoleStub({ value: 'pathseeker' })}
+            roleLabel={ExecutionRoleStub({ value: 'siegemaster' })}
           />
         ),
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent?.startsWith('PATHSEEKER')).toBe(true);
+      expect(message.textContent?.startsWith('SIEGEMASTER')).toBe(true);
     });
   });
 

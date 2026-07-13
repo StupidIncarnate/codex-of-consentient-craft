@@ -9,11 +9,11 @@ describe('orchestratorResumeQuestAdapter', () => {
       const proxy = orchestratorResumeQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      proxy.returns({ resumed: true, restoredStatus: 'seek_scope' });
+      proxy.returns({ resumed: true, restoredStatus: 'in_progress' });
 
       const result = await orchestratorResumeQuestAdapter({ questId });
 
-      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'seek_scope' });
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
     });
   });
 

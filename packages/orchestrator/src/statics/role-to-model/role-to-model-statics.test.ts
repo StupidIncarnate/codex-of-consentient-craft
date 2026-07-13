@@ -5,11 +5,6 @@ describe('roleToModelStatics', () => {
     expect(roleToModelStatics).toStrictEqual({
       chaoswhisperer: 'opus',
       glyphsmith: 'opus',
-      pathseeker: 'opus',
-      'pathseeker-surface': 'sonnet',
-      'pathseeker-dedup': 'sonnet',
-      'pathseeker-assertion-correctness': 'sonnet',
-      'pathseeker-walk': 'opus',
       flowrider: 'opus',
       siegemaster: 'opus',
       codeweaver: 'opus',

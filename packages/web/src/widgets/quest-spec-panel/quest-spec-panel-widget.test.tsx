@@ -1,7 +1,12 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { QuestStub, DesignDecisionStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import {
+  QuestStub,
+  DesignDecisionStub,
+  FlowStub,
+  OperationItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -93,11 +98,12 @@ describe('QuestSpecPanelWidget', () => {
       expect(approveButton).toBe(undefined);
     });
 
-    it('VALID: {click APPROVE, status: review_observables, has flows} => calls onModify with approved status', async () => {
+    it('VALID: {click APPROVE, status: review_observables, has flows and codeweaver operation} => calls onModify with approved status', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_observables',
         flows: [FlowStub()],
+        operations: [OperationItemStub({ role: 'codeweaver' })],
       });
       const onModify = jest.fn();
 
@@ -167,11 +173,12 @@ describe('QuestSpecPanelWidget', () => {
       expect(approveButton?.style.pointerEvents).toBe('none');
     });
 
-    it('VALID: {status: review_observables, flows: [flow]} => APPROVE is enabled', () => {
+    it('VALID: {status: review_observables, flows: [flow], operations: [codeweaver]} => APPROVE is enabled', () => {
       QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_observables',
         flows: [FlowStub()],
+        operations: [OperationItemStub({ role: 'codeweaver' })],
       });
 
       mantineRenderAdapter({
@@ -183,6 +190,25 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(approveButton?.style.opacity).toBe('1');
       expect(approveButton?.style.pointerEvents).toBe('auto');
+    });
+
+    it('VALID: {status: review_observables, flows: [flow], no codeweaver operation} => APPROVE is disabled (feature quests need a codeweaver operation item)', () => {
+      QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_observables',
+        flows: [FlowStub()],
+        operations: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
+
+      expect(approveButton?.style.opacity).toBe('0.4');
+      expect(approveButton?.style.pointerEvents).toBe('none');
     });
 
     it('VALID: {status: review_observables, flows: []} => APPROVE is disabled', () => {
@@ -331,6 +357,51 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('USER_REQUEST_SECTION')).toBeInTheDocument();
+    });
+  });
+
+  describe('operations section', () => {
+    it('VALID: {quest with operations} => renders OPERATIONS section with ledger rows in order', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d401',
+            role: 'codeweaver',
+            text: 'build the broker',
+            status: 'complete',
+          }),
+          OperationItemStub({
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d402',
+            role: 'ward',
+            text: 'verify: ward',
+            status: 'pending',
+            wardMode: 'full',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(proxy.hasOperationsSection()).toBe(true);
+      expect(proxy.getOperationsLedgerRows().map((r) => r.textContent)).toStrictEqual([
+        '[x][CODEWEAVER]build the broker',
+        '[ ][WARD]verify: ward(full)',
+      ]);
+    });
+
+    it('EMPTY: {quest with no operations} => does not render OPERATIONS section', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ operations: [] });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+      });
+
+      expect(proxy.hasOperationsSection()).toBe(false);
+      expect(proxy.getOperationsLedgerRows()).toStrictEqual([]);
     });
   });
 

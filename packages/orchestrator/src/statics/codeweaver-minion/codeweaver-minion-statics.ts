@@ -22,7 +22,7 @@ export const codeweaverMinionStatics = {
 
 Codeweaver's spawn message is your briefing. It contains:
 - **The narrow task** — exactly which file(s) to build and what behavior they must have.
-- **The focusFile path(s)** you own, and the assertions/observables that define "done" for this piece.
+- **The focusFile path(s)** you own, and the behaviors/observables that define "done" for this piece.
 - **The sibling to mirror** — an existing file whose shape your new file should follow.
 - **The folder type(s)** your focusFile(s) live in — so you know which \`get-folder-detail\` to pull.
 - **Quest ID** — for any \`get-quest\` / \`discover\` reads you need.

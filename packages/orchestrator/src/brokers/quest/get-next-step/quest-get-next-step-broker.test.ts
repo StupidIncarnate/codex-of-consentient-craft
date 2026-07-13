@@ -116,7 +116,7 @@ describe('questGetNextStepBroker', () => {
             questId,
             role: 'codeweaver',
             workItemId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -156,22 +156,22 @@ describe('questGetNextStepBroker', () => {
             questId,
             role: 'codeweaver',
             workItemId: cwId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
     });
 
-    it('VALID: {ready pathseeker} => single spawn-agents (current pathseeker role is not in the special batch list)', async () => {
+    it('VALID: {ready blightwarden} => single spawn-agents', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
-      const questId = QuestIdStub({ value: 'quest-ps' });
-      const psAId = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
+      const questId = QuestIdStub({ value: 'quest-bw' });
+      const bwId = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        workItems: [WorkItemStub({ id: psAId, role: 'pathseeker', status: 'pending' })],
+        workItems: [WorkItemStub({ id: bwId, role: 'blightwarden', status: 'pending' })],
       });
       proxy.setupGuildsAndQuests({
         guildItems: [guildItem],
@@ -189,9 +189,9 @@ describe('questGetNextStepBroker', () => {
         agents: [
           {
             questId,
-            role: 'pathseeker',
-            workItemId: psAId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pathseeker",\n  workItemId: "${psAId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${psAId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            role: 'blightwarden',
+            workItemId: bwId,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightwarden",\n  workItemId: "${bwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${bwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -337,7 +337,7 @@ describe('questGetNextStepBroker', () => {
             questId: olderQuestId,
             role: 'codeweaver',
             workItemId: olderWorkItemId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${olderWorkItemId}",\n  questId: "${olderQuestId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${olderQuestId}",\n  workItemId: "${olderWorkItemId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${olderWorkItemId}",\n  questId: "${olderQuestId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${olderQuestId}",\n  workItemId: "${olderWorkItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -390,7 +390,7 @@ describe('questGetNextStepBroker', () => {
             questId: newerQuestId,
             role: 'codeweaver',
             workItemId: newerWorkItemId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${newerWorkItemId}",\n  questId: "${newerQuestId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${newerQuestId}",\n  workItemId: "${newerWorkItemId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${newerWorkItemId}",\n  questId: "${newerQuestId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${newerQuestId}",\n  workItemId: "${newerWorkItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -443,7 +443,7 @@ describe('questGetNextStepBroker', () => {
             questId,
             role: 'codeweaver',
             workItemId: orphanId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -492,7 +492,7 @@ describe('questGetNextStepBroker', () => {
             questId,
             role: 'lawbringer',
             workItemId: readyId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "lawbringer",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "lawbringer",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -535,7 +535,7 @@ describe('questGetNextStepBroker', () => {
             questId,
             role: 'codeweaver',
             workItemId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });

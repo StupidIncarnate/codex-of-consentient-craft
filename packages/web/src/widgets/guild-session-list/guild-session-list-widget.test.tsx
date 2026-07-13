@@ -199,41 +199,6 @@ describe('GuildSessionListWidget', () => {
       );
     });
 
-    it('VALID: {session with questStatus: seek_synth} => shows SEEK SYNTH with seek-synth color', () => {
-      const proxy = GuildSessionListWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'seek-synth-session' });
-      const session = SessionListItemStub({
-        sessionId,
-        questStatus: 'seek_synth' as never,
-        questId: 'quest-ss' as never,
-      });
-      const filter = SessionFilterStub();
-
-      mantineRenderAdapter({
-        ui: (
-          <GuildSessionListWidget
-            quests={[]}
-            sessions={[session]}
-            loading={false}
-            filter={filter}
-            onFilterChange={jest.fn()}
-            onSelect={jest.fn()}
-            onSelectQuest={jest.fn()}
-            onAdd={jest.fn()}
-            confirmingQuestId={null}
-            onConfirmingQuestIdChange={jest.fn()}
-            onDeleteQuest={jest.fn()}
-            deletingQuestId={null}
-          />
-        ),
-      });
-
-      expect(proxy.getStatusText({ testId: `SESSION_STATUS_${sessionId}` })).toBe('SEEK SYNTH');
-      expect(proxy.getStatusColor({ testId: `SESSION_STATUS_${sessionId}` })).toBe(
-        'rgb(167, 139, 250)',
-      );
-    });
-
     it('VALID: {session with questStatus: in_progress} => shows IN PROGRESS with primary color', () => {
       const proxy = GuildSessionListWidgetProxy();
       const sessionId = SessionIdStub({ value: 'in-progress-session' });
@@ -729,24 +694,6 @@ describe('GuildSessionListWidget', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'blocked-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'blocked' as never });
-
-      mantineRenderAdapter({
-        ui: (
-          <StatefulDeleteHarness
-            quests={[quest]}
-            onDeleteQuest={jest.fn()}
-            deletingQuestId={null}
-          />
-        ),
-      });
-
-      expect(proxy.isDeleteButtonVisible({ testId: `QUEST_DELETE_${questId}` })).toBe(false);
-    });
-
-    it('EMPTY: {quest status seek_walk} => no skull delete button for that row', () => {
-      const proxy = GuildSessionListWidgetProxy();
-      const questId = QuestIdStub({ value: 'seek-walk-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'seek_walk' as never });
 
       mantineRenderAdapter({
         ui: (

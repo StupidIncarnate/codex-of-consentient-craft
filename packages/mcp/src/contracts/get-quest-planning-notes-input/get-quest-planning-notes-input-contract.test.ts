@@ -19,38 +19,6 @@ describe('getQuestPlanningNotesInputContract', () => {
       expect(result).toStrictEqual({ questId: 'add-auth' });
     });
 
-    it('VALID: {questId, section: "scope"} => parses successfully', () => {
-      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'scope' });
-
-      const result = getQuestPlanningNotesInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', section: 'scope' });
-    });
-
-    it('VALID: {questId, section: "surface"} => parses successfully', () => {
-      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'surface' });
-
-      const result = getQuestPlanningNotesInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', section: 'surface' });
-    });
-
-    it('VALID: {questId, section: "synthesis"} => parses successfully', () => {
-      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'synthesis' });
-
-      const result = getQuestPlanningNotesInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', section: 'synthesis' });
-    });
-
-    it('VALID: {questId, section: "walk"} => parses successfully', () => {
-      const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'walk' });
-
-      const result = getQuestPlanningNotesInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', section: 'walk' });
-    });
-
     it('VALID: {questId, section: "blight"} => parses successfully', () => {
       const input = GetQuestPlanningNotesInputStub({ questId: 'add-auth', section: 'blight' });
 
@@ -71,6 +39,15 @@ describe('getQuestPlanningNotesInputContract', () => {
       expect(() => {
         return getQuestPlanningNotesInputContract.parse({});
       }).toThrow(/Required/u);
+    });
+
+    it('INVALID: {section: "surface"} => throws validation error (removed section)', () => {
+      expect(() => {
+        return getQuestPlanningNotesInputContract.parse({
+          questId: 'add-auth',
+          section: 'surface',
+        });
+      }).toThrow(/invalid_enum_value/u);
     });
 
     it('INVALID: {section: "unknown"} => throws validation error', () => {

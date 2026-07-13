@@ -3,38 +3,6 @@ import { AgentRoleStub } from './agent-role.stub';
 
 describe('agentRoleContract', () => {
   describe('valid roles', () => {
-    it('VALID: pathseeker => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'pathseeker' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('pathseeker');
-    });
-
-    it('VALID: pathseeker-surface => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'pathseeker-surface' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('pathseeker-surface');
-    });
-
-    it('VALID: pathseeker-dedup => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'pathseeker-dedup' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('pathseeker-dedup');
-    });
-
-    it('VALID: pathseeker-assertion-correctness => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'pathseeker-assertion-correctness' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('pathseeker-assertion-correctness');
-    });
-
     it('VALID: codeweaver => parses successfully', () => {
       const role = AgentRoleStub({ value: 'codeweaver' });
 
@@ -132,19 +100,41 @@ describe('agentRoleContract', () => {
     });
   });
 
-  describe('stub defaults', () => {
-    it('VALID: {stub default} => creates agent role', () => {
-      const result = AgentRoleStub();
-
-      expect(result).toBe('pathseeker');
-    });
-  });
-
   describe('invalid roles', () => {
     it('INVALID: {unknown role} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse('unknown_role');
       }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: pathseeker => throws validation error (removed role)', () => {
+      expect(() => {
+        agentRoleContract.parse('pathseeker');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: pathseeker-surface => throws validation error (removed role)', () => {
+      expect(() => {
+        agentRoleContract.parse('pathseeker-surface');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: pathseeker-dedup => throws validation error (removed role)', () => {
+      expect(() => {
+        agentRoleContract.parse('pathseeker-dedup');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: pathseeker-assertion-correctness => throws validation error (removed role)', () => {
+      expect(() => {
+        agentRoleContract.parse('pathseeker-assertion-correctness');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('VALID: {stub default} => defaults to codeweaver', () => {
+      const role = AgentRoleStub();
+
+      expect(role).toBe('codeweaver');
     });
 
     it('INVALID: {number} => throws validation error', () => {

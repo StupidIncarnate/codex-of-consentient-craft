@@ -1,9 +1,9 @@
 import {
-  DependencyStepStub,
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  OperationItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questArrayUpsertTransformer } from './quest-array-upsert-transformer';
@@ -24,12 +24,12 @@ describe('questArrayUpsertTransformer', () => {
     });
 
     it('VALID: {empty existing} => adds all updates', () => {
-      const step = DependencyStepStub({ name: 'Step 1' });
-      const updates = [step];
+      const operation = OperationItemStub({ text: 'Step 1' });
+      const updates = [operation];
 
       const result = questArrayUpsertTransformer({ existing: [], updates });
 
-      expect(result).toStrictEqual([step]);
+      expect(result).toStrictEqual([operation]);
     });
   });
 

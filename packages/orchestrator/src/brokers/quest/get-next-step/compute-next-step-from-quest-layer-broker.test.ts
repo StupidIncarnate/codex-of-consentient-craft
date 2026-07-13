@@ -126,25 +126,25 @@ describe('computeNextStepFromQuestLayerBroker', () => {
           questId,
           role: 'codeweaver',
           workItemId: cwId,
-          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
         },
       ],
     });
   });
 
-  it('VALID: {feature quest in_progress, chaoswhisperer complete, pathseeker pending depends on it} => spawn-agents pathseeker (regression: a ready pathseeker must dispatch)', () => {
+  it('VALID: {quest in_progress, chaoswhisperer complete, codeweaver pending depends on it} => spawn-agents codeweaver (a ready dependent must dispatch)', () => {
     computeNextStepFromQuestLayerBrokerProxy();
     const questId = QuestIdStub({ value: '4226b8d1-2827-4250-8d82-c278d66bcd2d' });
     const chaosId = QuestWorkItemIdStub({ value: '53e47119-0000-4000-8000-000000000000' });
-    const pathseekerId = QuestWorkItemIdStub({ value: '8c858ffd-e132-4cf6-8d2c-defbeec99810' });
+    const dependentId = QuestWorkItemIdStub({ value: '8c858ffd-e132-4cf6-8d2c-defbeec99810' });
     const quest = QuestStub({
       id: questId,
       status: 'in_progress',
       workItems: [
         WorkItemStub({ id: chaosId, role: 'chaoswhisperer', status: 'complete', dependsOn: [] }),
         WorkItemStub({
-          id: pathseekerId,
-          role: 'pathseeker',
+          id: dependentId,
+          role: 'codeweaver',
           status: 'pending',
           dependsOn: [chaosId],
         }),
@@ -156,9 +156,9 @@ describe('computeNextStepFromQuestLayerBroker', () => {
       agents: [
         {
           questId,
-          role: 'pathseeker',
-          workItemId: pathseekerId,
-          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pathseeker",\n  workItemId: "${String(pathseekerId)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(pathseekerId)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+          role: 'codeweaver',
+          workItemId: dependentId,
+          taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${String(dependentId)}",\n  questId: "${String(questId)}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${String(questId)}",\n  workItemId: "${String(dependentId)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
         },
       ],
     });
@@ -209,7 +209,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
             questId,
             role: 'pesteater',
             workItemId: PESTEATER_ID,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pesteater",\n  workItemId: "${String(PESTEATER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(PESTEATER_ID)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "pesteater",\n  workItemId: "${String(PESTEATER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(PESTEATER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -248,7 +248,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
             questId,
             role: 'lawbringer',
             workItemId: LAWBRINGER_ID,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "lawbringer",\n  workItemId: "${String(LAWBRINGER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(LAWBRINGER_ID)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "lawbringer",\n  workItemId: "${String(LAWBRINGER_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(LAWBRINGER_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });
@@ -270,7 +270,7 @@ describe('computeNextStepFromQuestLayerBroker', () => {
             questId,
             role: 'blightwarden',
             workItemId: BLIGHTWARDEN_ID,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightwarden",\n  workItemId: "${String(BLIGHTWARDEN_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(BLIGHTWARDEN_ID)}",\n  signal: "complete" | "failed",\n  summary: "<one-line>"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightwarden",\n  workItemId: "${String(BLIGHTWARDEN_ID)}",\n  questId: "fix-bug"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "fix-bug",\n  workItemId: "${String(BLIGHTWARDEN_ID)}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });

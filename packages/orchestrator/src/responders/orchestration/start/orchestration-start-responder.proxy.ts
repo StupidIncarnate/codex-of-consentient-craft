@@ -1,5 +1,19 @@
+/**
+ * PURPOSE: Proxy for OrchestrationStartResponder — composes the child broker/state proxies so the
+ * responder AND the brokers it drives (questBuildRelayGraphBroker, questOperationsUpdateBroker,
+ * questModifyBroker) run REAL with only the fs adapters mocked. crypto.randomUUID is queued with
+ * fixed ids so the processId, the relay operation-item ids, and the first-work-item id are
+ * deterministic; Date.prototype.toISOString is pinned to '2024-01-15T10:00:00.000Z' by the
+ * composed persist/outbox proxies so every timestamp the responder stamps is deterministic too.
+ *
+ * USAGE:
+ * const proxy = OrchestrationStartResponderProxy();
+ * proxy.setupStart({ quest });
+ * const processId = await proxy.callResponder({ questId: quest.id });
+ * proxy.getPersistedQuestAt({ index: 0 }); // the relay seed's single atomic operations persist
+ */
+
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   FileContentsStub,
   FileNameStub,
@@ -9,85 +23,65 @@ import {
   GuildStub,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
-import { questBuildBugHuntGraphBrokerProxy } from '../../../brokers/quest/build-bug-hunt-graph/quest-build-bug-hunt-graph-broker.proxy';
-import { questBuildPathseekerGraphBrokerProxy } from '../../../brokers/quest/build-pathseeker-graph/quest-build-pathseeker-graph-broker.proxy';
+import { questBuildRelayGraphBrokerProxy } from '../../../brokers/quest/build-relay-graph/quest-build-relay-graph-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
+import { questOperationsUpdateBrokerProxy } from '../../../brokers/quest/operations-update/quest-operations-update-broker.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
 import { OrchestrationStartResponder } from './orchestration-start-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
+type Parsed = ReturnType<typeof questContract.parse>;
+
+// uuid consumption order per Start: call 1 is the processId, then questBuildRelayGraphBroker
+// consumes one id per seeded implementation operation item, one per verify-tail item, and one for
+// the single first work item. The test file mirrors this list (SEEDED_UUIDS) to build expected
+// operation/work-item ids per quest type.
+const SEEDED_UUIDS = [
+  'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  'aaaaaaaa-1111-4222-9333-444444444444',
+  'bbbbbbbb-1111-4222-9333-444444444444',
+  'cccccccc-1111-4222-9333-444444444444',
+  'dddddddd-1111-4222-9333-444444444444',
+  'eeeeeeee-1111-4222-9333-444444444444',
+  'ffffffff-1111-4222-9333-444444444444',
+  '11111111-1111-4222-9333-444444444444',
+  '22222222-1111-4222-9333-444444444444',
+  '33333333-1111-4222-9333-444444444444',
+] as const;
 
 export const OrchestrationStartResponderProxy = (): {
   callResponder: typeof OrchestrationStartResponder;
-  setupQuestApproved: (params: { quest: Quest }) => void;
-  setupQuestNotApproved: (params: { quest: Quest }) => void;
   setupQuestNotFound: () => void;
+  setupQuestNotStartable: (params: { quest: Quest }) => void;
+  setupStart: (params: { quest: Quest }) => void;
+  setupStartSkipsOperationsPersist: (params: { quest: Quest }) => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
-  setupPathseekerInsertFailure: (params: { quest: Quest }) => void;
-  getAllPersistedContents: () => readonly unknown[];
-  getPersistedQuestAt: (params: { index: number }) => ReturnType<typeof questContract.parse>;
+  getPersistedStatuses: () => readonly Parsed['status'][];
+  getPersistedQuestAt: (params: { index: number }) => Parsed;
 } => {
   const getProxy = questGetBrokerProxy();
+  // Runs REAL — its single atomic read-modify-write is fed by the ops fs round queued in
+  // setupStart, and its captured quest.json writes back every getPersisted* inspector below
+  // (the write mock is shared with questModifyBroker's persist, so the modify transition's
+  // write lands in the same ordered list).
+  const opsProxy = questOperationsUpdateBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-  // The graph-builder brokers are invoked transitively via the responder (pathseeker for feature
-  // quests, bug-hunt for bug-hunt quests); mount both proxies so the enforce-proxy-child-creation
-  // lint sees the import edges.
-  questBuildPathseekerGraphBrokerProxy();
-  questBuildBugHuntGraphBrokerProxy();
+  const relayProxy = questBuildRelayGraphBrokerProxy();
+  relayProxy.setupUuids({ ids: SEEDED_UUIDS });
   const queueProxy = questExecutionQueueStateProxy();
   queueProxy.setupEmpty();
   const processesProxy = orchestrationProcessesStateProxy();
   processesProxy.setupEmpty();
 
-  // The responder mints a couple of UUIDs per call (processId + the single pathseeker graph
-  // work-item id). The proxy queues unique values via mockReturnValueOnce so each call gets a
-  // distinct id (the first one is the processId asserted by callers; the rest are
-  // pathseeker-graph work-item ids whose values are not asserted, only their
-  // distinctness).
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
-  uuidSpy.mockReturnValueOnce(
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    'aaaaaaaa-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    'bbbbbbbb-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    'cccccccc-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    'dddddddd-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    'eeeeeeee-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    'ffffffff-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    '11111111-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    '22222222-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  uuidSpy.mockReturnValueOnce(
-    '33333333-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-  // Fallback for any further calls.
-  uuidSpy.mockReturnValue(
-    '44444444-1111-4222-9333-444444444444' as ReturnType<typeof crypto.randomUUID>,
-  );
-
+  // The queue-entry guild lookup at the end of a successful Start: one more find-quest-path fs
+  // round (for the guildId), then the guild-config read guildGetBroker performs.
   const setupPathResolution = ({ quest }: { quest: Quest }): void => {
     const guildId = GuildIdStub();
     const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
@@ -130,77 +124,50 @@ export const OrchestrationStartResponderProxy = (): {
   return {
     callResponder: OrchestrationStartResponder,
 
-    setupQuestApproved: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      // The responder issues one modify-quest per status hop, each performing its own quest-file
-      // load, so we must queue one mocked read per expected call — reflecting the status the
-      // responder will have just written (the mocked filesystem does not see prior persists):
-      //   hop 1 (ALWAYS): approved/design_approved → seek_scope, carrying workItems. Read sees the
-      //          original status.
-      //   hop 2 (fresh feature graph ONLY): write planningNotes.scopeClassification, still at
-      //          seek_scope. Read sees seek_scope.
-      //   hop 3 (only when NO PathSeeker will run — bug-hunt, or planning already complete):
-      //          seek_scope → in_progress promote. Read sees seek_scope. A PathSeeker-planned quest
-      //          RESTS at seek_scope and skips this hop (PathSeeker drives the transition itself).
-      // A leftover queued read bleeds into the downstream guild-config read, so the count must be
-      // exact.
-      const seekScopeQuest = questContract.parse({ ...quest, status: 'seek_scope' });
-      const hasExistingPathseeker = quest.workItems.some(
-        (wi) =>
-          wi.role === 'pathseeker' ||
-          wi.role === 'pathseeker-surface' ||
-          wi.role === 'pathseeker-dedup' ||
-          wi.role === 'pathseeker-assertion-correctness' ||
-          wi.role === 'pathseeker-walk',
-      );
-      const isBugHunt = quest.questType === 'bug-hunt';
-      // hop 2 runs ONLY for a fresh feature pathseeker graph.
-      const freshFeatureGraph = !hasExistingPathseeker && !isBugHunt;
-      // Mirrors the responder's `willRunPathseeker`: a non-terminal `pathseeker` item (freshly
-      // seeded, or already present) means the quest rests at seek_scope and PathSeeker drives the
-      // promote, so hop 3 is skipped.
-      const willRunPathseeker =
-        !isBugHunt &&
-        (freshFeatureGraph ||
-          quest.workItems.some(
-            (wi) =>
-              wi.role === 'pathseeker' && !isTerminalWorkItemStatusGuard({ status: wi.status }),
-          ));
-      modifyProxy.setupQuestFound({ quest }); // hop 1
-      if (freshFeatureGraph) {
-        modifyProxy.setupQuestFound({ quest: seekScopeQuest }); // hop 2 (scopeClassification)
-      }
-      if (!willRunPathseeker) {
-        modifyProxy.setupQuestFound({ quest: seekScopeQuest }); // hop 3 (promote to in_progress)
-      }
-
-      setupPathResolution({ quest });
-    },
-
-    setupQuestNotApproved: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-    },
-
     setupQuestNotFound: (): void => {
       getProxy.setupEmptyFolder();
     },
 
+    // Quest loads, the startable-status gate throws — nothing past questGetBroker runs.
+    setupQuestNotStartable: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+    },
+
+    // The full happy chain with ONE questOperationsUpdateBroker persist (fresh relay seed, or a
+    // chat-item promotion under an existing relay). fs rounds queue in runtime order: the
+    // questGetBroker load, the ops-update read-modify-write, the modify-quest status transition
+    // (its mocked read sees the pre-transition file — the mocked fs does not replay prior
+    // persists), then the guild lookup for the queue entry.
+    setupStart: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      opsProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      setupPathResolution({ quest });
+    },
+
+    // Idempotent re-Start with nothing to promote: the ledger already carries the locked ward
+    // tail and every chat item is terminal, so the responder never calls
+    // questOperationsUpdateBroker — no ops fs round is queued.
+    setupStartSkipsOperationsPersist: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      setupPathResolution({ quest });
+    },
+
+    // The relay seed persists, then the approved -> in_progress modify resolves
+    // { success: false } — the responder must surface it as a thrown start failure.
     setupModifyFailure: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      modifyProxy.setupEmptyFolder();
+      opsProxy.setupQuestFound({ quest });
+      modifyProxy.setupResolveFailureOnce();
     },
 
-    setupPathseekerInsertFailure: ({ quest }: { quest: Quest }): void => {
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupEmptyFolder();
-    },
+    getPersistedStatuses: (): readonly Parsed['status'][] =>
+      opsProxy.getAllPersistedQuests().map((persisted) => persisted.status),
 
-    getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
-
-    getPersistedQuestAt: ({ index }: { index: number }): ReturnType<typeof questContract.parse> => {
-      const persisted = modifyProxy.getAllPersistedContents();
-      const write = persisted[index];
-      return questContract.parse(JSON.parse(String(write)));
+    getPersistedQuestAt: ({ index }: { index: number }): Parsed => {
+      const persisted = opsProxy.getAllPersistedQuests();
+      return questContract.parse(persisted[index]);
     },
   };
 };

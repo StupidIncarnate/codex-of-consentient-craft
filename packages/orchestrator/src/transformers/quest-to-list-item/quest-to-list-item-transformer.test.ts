@@ -1,11 +1,15 @@
 import { questToListItemTransformer } from './quest-to-list-item-transformer';
-import { QuestStub, SessionIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
-import { DependencyStepStub } from '@dungeonmaster/shared/contracts';
+import {
+  OperationItemStub,
+  QuestStub,
+  SessionIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 describe('questToListItemTransformer', () => {
   describe('valid transformations', () => {
-    it('VALID: {quest with no steps} => returns list item with undefined stepProgress', () => {
-      const quest = QuestStub({ steps: [] });
+    it('VALID: {quest with no operations} => returns list item with undefined stepProgress', () => {
+      const quest = QuestStub({ operations: [] });
 
       const result = questToListItemTransformer({ quest });
 
@@ -21,31 +25,20 @@ describe('questToListItemTransformer', () => {
       });
     });
 
-    it('VALID: {quest with steps and work items} => returns list item with stepProgress', () => {
+    it('VALID: {quest with a mix of operation statuses} => returns stepProgress counting complete operations', () => {
       const quest = QuestStub({
-        steps: [
-          DependencyStepStub({ id: 'step-one' }),
-          DependencyStepStub({ id: 'step-two' }),
-          DependencyStepStub({ id: 'step-three' }),
-        ],
-        workItems: [
-          WorkItemStub({
+        operations: [
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
             status: 'complete',
-            relatedDataItems: ['steps/step-one'],
           }),
-          WorkItemStub({
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
             status: 'pending',
-            relatedDataItems: ['steps/step-two'],
           }),
-          WorkItemStub({
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
             status: 'pending',
-            relatedDataItems: ['steps/step-three'],
           }),
         ],
       });
@@ -55,21 +48,16 @@ describe('questToListItemTransformer', () => {
       expect(result.stepProgress).toBe('1/3');
     });
 
-    it('VALID: {quest with all steps complete} => returns stepProgress showing all complete', () => {
+    it('VALID: {quest with all operations complete} => returns stepProgress showing all complete', () => {
       const quest = QuestStub({
-        steps: [DependencyStepStub({ id: 'step-one' }), DependencyStepStub({ id: 'step-two' })],
-        workItems: [
-          WorkItemStub({
+        operations: [
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
             status: 'complete',
-            relatedDataItems: ['steps/step-one'],
           }),
-          WorkItemStub({
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
             status: 'complete',
-            relatedDataItems: ['steps/step-two'],
           }),
         ],
       });
@@ -79,21 +67,16 @@ describe('questToListItemTransformer', () => {
       expect(result.stepProgress).toBe('2/2');
     });
 
-    it('VALID: {quest with no complete steps} => returns stepProgress showing zero complete', () => {
+    it('VALID: {quest with no complete operations} => returns stepProgress showing zero complete', () => {
       const quest = QuestStub({
-        steps: [DependencyStepStub({ id: 'step-one' }), DependencyStepStub({ id: 'step-two' })],
-        workItems: [
-          WorkItemStub({
+        operations: [
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
             status: 'pending',
-            relatedDataItems: ['steps/step-one'],
           }),
-          WorkItemStub({
+          OperationItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
             status: 'in_progress',
-            relatedDataItems: ['steps/step-two'],
           }),
         ],
       });

@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { OperationsLedgerWidgetProxy } from '../operations-ledger/operations-ledger-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
 import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
@@ -22,6 +23,8 @@ export const QuestSpecPanelWidgetProxy = (): {
   hasClarifyPanel: () => boolean;
   hasActionButtons: () => boolean;
   hasAbandonButton: () => boolean;
+  hasOperationsSection: () => boolean;
+  getOperationsLedgerRows: () => HTMLElement[];
 } => {
   PixelBtnWidgetProxy();
   QuestClarifyPanelWidgetProxy();
@@ -29,6 +32,8 @@ export const QuestSpecPanelWidgetProxy = (): {
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
   FlowsLayerWidgetProxy();
+
+  const ledgerProxy = OperationsLedgerWidgetProxy();
 
   return {
     clickModify: async (): Promise<void> => {
@@ -128,5 +133,7 @@ export const QuestSpecPanelWidgetProxy = (): {
       const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
       return Array.from(buttons).some((button) => button.textContent === 'ABANDON QUEST');
     },
+    hasOperationsSection: (): boolean => screen.queryByTestId('OPERATIONS_SECTION') !== null,
+    getOperationsLedgerRows: (): HTMLElement[] => ledgerProxy.getLedgerRows(),
   };
 };

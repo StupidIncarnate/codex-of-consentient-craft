@@ -1,19 +1,13 @@
 import {
-  DependencyStepStub,
-  FlowEdgeStub,
   FlowNodeStub,
-  FlowObservableStub,
   FlowStub,
+  ModifyQuestInputStub,
+  OperationItemStub,
   PlanningBlightReportStub,
-  PlanningScopeClassificationStub,
-  PlanningSurfaceReportStub,
-  PlanningSynthesisStub,
-  PlanningWalkFindingsStub,
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
 
@@ -27,196 +21,11 @@ const parseLatestPersisted = (persisted: readonly unknown[]): PersistedQuest => 
 
 describe('questModifyBroker', () => {
   describe('successful modification', () => {
-    it('VALID: {questId, steps: [new]} => adds new step', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        steps: [],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        steps: [
-          {
-            id: 'backend-create-api',
-            slice: 'backend',
-            name: 'Create API',
-            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
-            observablesSatisfied: [],
-            dependsOn: [],
-            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
-            accompanyingFiles: [
-              { path: 'src/brokers/auth/create/auth-create-broker.proxy.ts' },
-              { path: 'src/brokers/auth/create/auth-create-broker.test.ts' },
-            ],
-            inputContracts: ['Void'],
-            outputContracts: ['Void'],
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('VALID: {new step with assertions} => persists each assertion with a server-stamped id', async () => {
-      const proxy = questModifyBrokerProxy();
-      proxy.setupAssertionIds({ ids: ['a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d'] });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        steps: [],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        steps: [
-          {
-            id: 'backend-create-api',
-            slice: 'backend',
-            name: 'Create API',
-            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
-            observablesSatisfied: [],
-            dependsOn: [],
-            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
-            accompanyingFiles: [
-              { path: 'src/brokers/auth/create/auth-create-broker.proxy.ts' },
-              { path: 'src/brokers/auth/create/auth-create-broker.test.ts' },
-            ],
-            inputContracts: ['Void'],
-            outputContracts: ['Void'],
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-      const [persistedStep] = persisted.steps;
-
-      expect(persistedStep?.assertions).toStrictEqual([
-        {
-          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-          prefix: 'VALID',
-          input: '{valid input}',
-          expected: 'returns result',
-        },
-      ]);
-    });
-
-    it('INVALID: {new step missing assertions} => returns a clean New Step Completeness failedCheck', async () => {
-      const proxy = questModifyBrokerProxy();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        steps: [],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        steps: [
-          {
-            id: 'backend-create-api',
-            slice: 'backend',
-            name: 'Create API',
-            observablesSatisfied: [],
-            dependsOn: [],
-            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
-            accompanyingFiles: [],
-            inputContracts: ['Void'],
-            outputContracts: ['Void'],
-          } as never,
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: 'New step is missing required fields',
-        failedChecks: [
-          {
-            name: 'New Step Completeness',
-            passed: false,
-            details:
-              "step 'backend-create-api' is a new step but is missing or has invalid required fields: assertions",
-          },
-        ],
-      });
-    });
-
-    it('VALID: {questId, steps: [partial patch]} => merges only the changed field, preserves siblings (partial-patch safety)', async () => {
-      const proxy = questModifyBrokerProxy();
-      const existingStep = DependencyStepStub({
-        id: 'backend-create-api' as never,
-        slice: 'backend' as never,
-        name: 'Create API' as never,
-        instructions: ['original instruction' as never],
-        focusFile: {
-          path: 'src/brokers/auth/create/auth-create-broker.ts' as never,
-        },
-        accompanyingFiles: [
-          { path: 'src/brokers/auth/create/auth-create-broker.proxy.ts' as never },
-          { path: 'src/brokers/auth/create/auth-create-broker.test.ts' as never },
-        ],
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        steps: [existingStep],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        steps: [
-          {
-            id: 'backend-create-api' as never,
-            instructions: ['new instruction only' as never],
-          } as never,
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-      const [persistedStep] = persisted.steps;
-
-      expect(persistedStep).toStrictEqual({
-        ...existingStep,
-        instructions: ['new instruction only'],
-      });
-    });
-
     it('VALID: {questId, contracts: [new]} => adds new contract', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
         id: 'login-flow' as never,
         nodes: [FlowNodeStub({ id: 'submit-form' as never })],
-      });
-      // Seed a step whose outputContracts produces the new contract so the
-      // V7 (orphan new contracts) invariant is satisfied — every status:'new'
-      // contract must be created by at least one step.
-      const seededStep = DependencyStepStub({
-        id: 'backend-create-login-credentials' as never,
-        outputContracts: ['LoginCredentials' as never],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -224,7 +33,6 @@ describe('questModifyBroker', () => {
         status: 'flows_approved',
         flows: [flow],
         contracts: [],
-        steps: [seededStep],
       });
 
       proxy.setupQuestFound({ quest });
@@ -319,8 +127,8 @@ describe('questModifyBroker', () => {
       // New flow with a node that has NO observables key in the input payload.
       // The MCP modifyQuestInputContract makes node.observables `.optional()` (overriding
       // the contract's `.default([])`), so this lands as `observables: undefined` after parse.
-      // Without a re-parse before invariants/completeness checks, downstream offender
-      // finders trip "node.observables is not iterable".
+      // Without a re-parse before invariants, downstream offender finders trip
+      // "node.observables is not iterable".
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         flows: [
@@ -373,26 +181,13 @@ describe('questModifyBroker', () => {
       expect(result.success).toBe(true);
     });
 
-    it('VALID: {questId, status: "explore_observables"} with quest at "flows_approved" with observables in flow nodes => sets status on quest', async () => {
+    it('VALID: {questId, status: "explore_observables"} with quest at "flows_approved" => sets status on quest', async () => {
       const proxy = questModifyBrokerProxy();
-      const observable = FlowObservableStub();
-      // Seed a step claiming the observable so the V8 (unsatisfied observables)
-      // invariant — which runs on every modify-quest call — is satisfied. The
-      // step id is slice-prefixed so the V1 invariant also passes.
-      const seededStep = DependencyStepStub({
-        id: 'backend-create-login-api' as never,
-        observablesSatisfied: [observable.id],
-      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
-        flows: [
-          FlowStub({
-            nodes: [FlowNodeStub({ observables: [observable] })],
-          }),
-        ],
-        steps: [seededStep],
+        flows: [FlowStub()],
       });
 
       proxy.setupQuestFound({ quest });
@@ -442,6 +237,139 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('operations ledger upsert (Tier 2 scoped to explore_observables)', () => {
+    it('VALID: {questId, operations: [new]} => adds new operation item', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        operations: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newOperation = OperationItemStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        operations: [newOperation],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.operations).toStrictEqual([newOperation]);
+    });
+
+    it('VALID: {questId, operations: [partial patch]} => merges only the changed field, preserves siblings (partial-patch safety)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingOperation = OperationItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d201',
+        role: 'ward',
+        text: 'ward: run changed-mode check',
+        status: 'pending',
+        locked: false,
+        wardMode: 'changed',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        operations: [existingOperation],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        operations: [{ id: existingOperation.id, status: 'in_progress' } as never],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.operations).toStrictEqual([{ ...existingOperation, status: 'in_progress' }]);
+    });
+
+    it('VALID: {questId, operations: [delete unlocked]} => removes matching entry', async () => {
+      const proxy = questModifyBrokerProxy();
+      const keepOperation = OperationItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d301',
+        role: 'codeweaver',
+        locked: false,
+      });
+      const deleteOperation = OperationItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d302',
+        role: 'ward',
+        locked: false,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        operations: [keepOperation, deleteOperation],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        operations: [{ id: deleteOperation.id, _delete: true } as never],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.operations).toStrictEqual([keepOperation]);
+    });
+
+    it('INVALID: {questId, operations: [delete locked]} => rejects with Locked Operation Item failedCheck; nothing persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const lockedOperation = OperationItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d401',
+        role: 'ward',
+        locked: true,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        operations: [lockedOperation],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        operations: [{ id: lockedOperation.id, _delete: true } as never],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Locked operation items cannot be deleted',
+        failedChecks: [
+          {
+            name: 'Locked Operation Item',
+            passed: false,
+            details: `Operation item '${lockedOperation.id}' is locked and cannot be deleted`,
+          },
+        ],
+      });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
 
@@ -537,9 +465,7 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(
-          /^Missing required content for transition to flows_approved$/u,
-        ),
+        error: 'Missing required content for transition to flows_approved',
       });
     });
 
@@ -563,13 +489,38 @@ describe('questModifyBroker', () => {
 
       expect(result).toStrictEqual({
         success: false,
-        error: expect.stringMatching(/^Missing required content for transition to approved$/u),
+        error: 'Missing required content for transition to approved',
+      });
+    });
+
+    it('ERROR: {status: "approved"} with flows present but no codeweaver operation item (feature quest) => returns missing content error', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'review_observables',
+        flows: [FlowStub()],
+        operations: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Missing required content for transition to approved',
       });
     });
   });
 
   describe('input allowlist rejection (Tier 2)', () => {
-    it('INVALID: {steps during explore_flows} => returns failedChecks rejecting steps field', async () => {
+    it('INVALID: {operations during explore_flows} => returns failedChecks rejecting operations field', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
@@ -582,20 +533,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        steps: [
-          {
-            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            slice: 'backend',
-            name: 'Create API',
-            assertions: [{ prefix: 'VALID', input: '{valid input}', expected: 'returns result' }],
-            observablesSatisfied: [],
-            dependsOn: [],
-            focusFile: { path: 'src/brokers/auth/create/auth-create-broker.ts' },
-            accompanyingFiles: [],
-            inputContracts: ['Void'],
-            outputContracts: ['Void'],
-          },
-        ],
+        operations: [OperationItemStub()],
       });
 
       const result = await questModifyBroker({ input });
@@ -607,7 +545,37 @@ describe('questModifyBroker', () => {
           {
             name: 'Input Allowlist',
             passed: false,
-            details: "Field 'steps' not allowed in status 'explore_flows'",
+            details: "Field 'operations' not allowed in status 'explore_flows'",
+          },
+        ],
+      });
+    });
+
+    it('INVALID: {operations during in_progress} => returns failedChecks rejecting operations field (runtime writes go through questOperationsUpdateBroker, not modify-quest)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        operations: [OperationItemStub()],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Field(s) not allowed in status in_progress',
+        failedChecks: [
+          {
+            name: 'Input Allowlist',
+            passed: false,
+            details: "Field 'operations' not allowed in status 'in_progress'",
           },
         ],
       });
@@ -650,8 +618,8 @@ describe('questModifyBroker', () => {
     });
   });
 
-  describe('completeness rejection (Tier 4)', () => {
-    it('INVALID: {status: "review_flows" with orphan node} => returns failedChecks naming completeness failures', async () => {
+  describe('Tier 4 completeness checks removed (regression)', () => {
+    it('VALID: {status: "review_flows" with orphan flow node} => transitions successfully (completeness checks no longer gate transitions)', async () => {
       const proxy = questModifyBrokerProxy();
       const orphanNode = FlowNodeStub({ id: 'orphan-node' as never });
       const flow = FlowStub({
@@ -675,197 +643,11 @@ describe('questModifyBroker', () => {
 
       const result = await questModifyBroker({ input });
 
-      expect(result).toStrictEqual({
-        success: false,
-        error: 'Completeness checks failed for transition to review_flows',
-        failedChecks: [
-          {
-            name: 'No Orphan Flow Nodes',
-            passed: false,
-            details: "Orphan flow nodes: flow 'login-flow' has orphan node 'orphan-node'",
-          },
-          {
-            name: 'No Dead-End Non-Terminal Nodes',
-            passed: false,
-            details:
-              "Dead-end non-terminal nodes: flow 'login-flow' node 'orphan-node' (type state) has no outgoing edge",
-          },
-        ],
-      });
-    });
-
-    it('VALID: {orphan node without status change in explore_flows} => saves cleanly (completeness only gates transitions)', async () => {
-      const proxy = questModifyBrokerProxy();
-      const orphanNode = FlowNodeStub({ id: 'orphan-node' as never });
-      const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [orphanNode],
-        edges: [],
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'explore_flows',
-        flows: [flow],
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({ questId: 'add-auth' });
-
-      const result = await questModifyBroker({ input });
-
       expect(result.success).toBe(true);
     });
   });
 
-  describe('planningNotes handling', () => {
-    it('VALID: {planningNotes.scopeClassification only} => writes scopeClassification without touching other sub-fields', async () => {
-      const proxy = questModifyBrokerProxy();
-      const existingSynthesis = PlanningSynthesisStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_scope',
-        planningNotes: {
-          surfaceReports: [],
-          synthesis: existingSynthesis,
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const newScope = PlanningScopeClassificationStub({ size: 'large' });
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          scopeClassification: newScope,
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes).toStrictEqual({
-        surfaceReports: [],
-        blightReports: [],
-        codeweaverPlans: [],
-        synthesis: existingSynthesis,
-        scopeClassification: newScope,
-      });
-    });
-
-    it('VALID: {planningNotes.surfaceReports with two distinct UUIDs} => both entries land via upsert', async () => {
-      const proxy = questModifyBrokerProxy();
-      const existingReport = PlanningSurfaceReportStub({
-        id: '11111111-1111-4111-8111-111111111111' as never,
-        sliceName: 'existing-slice' as never,
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_synth',
-        planningNotes: {
-          surfaceReports: [existingReport],
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const newReport = PlanningSurfaceReportStub({
-        id: '22222222-2222-4222-8222-222222222222' as never,
-        sliceName: 'new-slice' as never,
-      });
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          surfaceReports: [newReport],
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes.surfaceReports).toStrictEqual([existingReport, newReport]);
-    });
-
-    it('VALID: {planningNotes.surfaceReports with existing UUID} => deep-merges (overwrites matching id)', async () => {
-      const proxy = questModifyBrokerProxy();
-      const sameId = '11111111-1111-4111-8111-111111111111' as never;
-      const existingReport = PlanningSurfaceReportStub({
-        id: sameId,
-        sliceName: 'original-slice' as never,
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_synth',
-        planningNotes: {
-          surfaceReports: [existingReport],
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const updatedReport = PlanningSurfaceReportStub({
-        id: sameId,
-        sliceName: 'updated-slice' as never,
-      });
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          surfaceReports: [updatedReport],
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes.surfaceReports).toStrictEqual([updatedReport]);
-    });
-
-    it('VALID: {planningNotes.surfaceReports with _delete: true} => removes matching entry', async () => {
-      const proxy = questModifyBrokerProxy();
-      const keepId = '11111111-1111-4111-8111-111111111111' as never;
-      const deleteId = '22222222-2222-4222-8222-222222222222' as never;
-      const keepReport = PlanningSurfaceReportStub({ id: keepId, sliceName: 'keep' as never });
-      const deleteReport = PlanningSurfaceReportStub({ id: deleteId, sliceName: 'gone' as never });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_synth',
-        planningNotes: {
-          surfaceReports: [keepReport, deleteReport],
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          surfaceReports: [{ id: deleteId, _delete: true } as never],
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes.surfaceReports).toStrictEqual([keepReport]);
-    });
-
+  describe('planningNotes handling (blightReports only)', () => {
     it('VALID: {planningNotes.blightReports with two distinct UUIDs} => both entries land via upsert', async () => {
       const proxy = questModifyBrokerProxy();
       const existingReport = PlanningBlightReportStub({
@@ -876,10 +658,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: {
-          surfaceReports: [],
-          blightReports: [existingReport],
-        },
+        planningNotes: { blightReports: [existingReport] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -890,9 +669,7 @@ describe('questModifyBroker', () => {
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: {
-          blightReports: [newReport],
-        },
+        planningNotes: { blightReports: [newReport] },
       });
 
       const result = await questModifyBroker({ input });
@@ -901,7 +678,7 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.planningNotes.blightReports).toStrictEqual([existingReport, newReport]);
+      expect(persisted.planningNotes).toStrictEqual({ blightReports: [existingReport, newReport] });
     });
 
     it('VALID: {planningNotes.blightReports with existing UUID} => deep-merges (overwrites matching id)', async () => {
@@ -916,10 +693,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: {
-          surfaceReports: [],
-          blightReports: [existingReport],
-        },
+        planningNotes: { blightReports: [existingReport] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -931,9 +705,7 @@ describe('questModifyBroker', () => {
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: {
-          blightReports: [updatedReport],
-        },
+        planningNotes: { blightReports: [updatedReport] },
       });
 
       const result = await questModifyBroker({ input });
@@ -942,7 +714,7 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.planningNotes.blightReports).toStrictEqual([updatedReport]);
+      expect(persisted.planningNotes).toStrictEqual({ blightReports: [updatedReport] });
     });
 
     it('VALID: {planningNotes.blightReports with _delete: true} => removes matching entry', async () => {
@@ -955,19 +727,14 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: {
-          surfaceReports: [],
-          blightReports: [keepReport, deleteReport],
-        },
+        planningNotes: { blightReports: [keepReport, deleteReport] },
       });
 
       proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: {
-          blightReports: [{ id: deleteId, _delete: true } as never],
-        },
+        planningNotes: { blightReports: [{ id: deleteId, _delete: true } as never] },
       });
 
       const result = await questModifyBroker({ input });
@@ -976,84 +743,7 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.planningNotes.blightReports).toStrictEqual([keepReport]);
-    });
-
-    it('VALID: {planningNotes.blightReports only} => does not clear surfaceReports or other sub-fields', async () => {
-      const proxy = questModifyBrokerProxy();
-      const existingSurface = PlanningSurfaceReportStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'in_progress',
-        planningNotes: {
-          surfaceReports: [existingSurface],
-          blightReports: [],
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const newBlight = PlanningBlightReportStub();
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          blightReports: [newBlight],
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes).toStrictEqual({
-        surfaceReports: [existingSurface],
-        blightReports: [newBlight],
-        codeweaverPlans: [],
-      });
-    });
-
-    it('VALID: {planningNotes.walkFindings only} => sets walkFindings without clearing synthesis or scopeClassification', async () => {
-      const proxy = questModifyBrokerProxy();
-      const existingScope = PlanningScopeClassificationStub();
-      const existingSynthesis = PlanningSynthesisStub();
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_walk',
-        planningNotes: {
-          surfaceReports: [],
-          scopeClassification: existingScope,
-          synthesis: existingSynthesis,
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const newWalk = PlanningWalkFindingsStub();
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        planningNotes: {
-          walkFindings: newWalk,
-        },
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-
-      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persisted.planningNotes).toStrictEqual({
-        surfaceReports: [],
-        blightReports: [],
-        codeweaverPlans: [],
-        scopeClassification: existingScope,
-        synthesis: existingSynthesis,
-        walkFindings: newWalk,
-      });
+      expect(persisted.planningNotes).toStrictEqual({ blightReports: [keepReport] });
     });
   });
 
@@ -1063,8 +753,8 @@ describe('questModifyBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        status: 'seek_synth',
-        planningNotes: { surfaceReports: [] },
+        status: 'in_progress',
+        planningNotes: { blightReports: [] },
       });
 
       // Queue 10 quest-file responses so each of the 10 serialized modify calls has a load result
@@ -1074,15 +764,13 @@ describe('questModifyBroker', () => {
 
       const calls = Array.from({ length: 10 }, async (_, index) => {
         const uuid = `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`;
-        const report = PlanningSurfaceReportStub({
+        const report = PlanningBlightReportStub({
           id: uuid as never,
-          sliceName: `slice-${String(index)}` as never,
+          minion: 'security',
         });
         const input = ModifyQuestInputStub({
           questId: 'add-auth',
-          planningNotes: {
-            surfaceReports: [report],
-          },
+          planningNotes: { blightReports: [report] },
         });
         return questModifyBroker({ input });
       });
@@ -1124,28 +812,30 @@ describe('questModifyBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        status: 'seek_synth',
-        planningNotes: { surfaceReports: [] },
+        status: 'in_progress',
+        planningNotes: { blightReports: [] },
       });
 
       // Queue two load responses — one per concurrent call.
       proxy.setupQuestFound({ quest });
       proxy.setupQuestFound({ quest });
 
-      const reportA = PlanningSurfaceReportStub({
+      const reportA = PlanningBlightReportStub({
         id: 'aaaaaaaa-1111-4111-8111-111111111111' as never,
+        minion: 'security',
       });
-      const reportB = PlanningSurfaceReportStub({
+      const reportB = PlanningBlightReportStub({
         id: 'bbbbbbbb-2222-4222-8222-222222222222' as never,
+        minion: 'dedup',
       });
 
       const inputA = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { surfaceReports: [reportA] },
+        planningNotes: { blightReports: [reportA] },
       });
       const inputB = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { surfaceReports: [reportB] },
+        planningNotes: { blightReports: [reportB] },
       });
 
       const [resultA, resultB] = await Promise.all([
@@ -1158,114 +848,8 @@ describe('questModifyBroker', () => {
     });
   });
 
-  describe('completeness scope gating (Tier 3, transition-to-in_progress only)', () => {
-    it('VALID: {modify-quest without status: in_progress, quest with unsatisfied observable} => succeeds (completeness skipped on slice-by-slice commits)', async () => {
-      const proxy = questModifyBrokerProxy();
-      const observable = FlowObservableStub({ id: 'obs-orphan' as never });
-      const node = FlowNodeStub({
-        id: 'login-page' as never,
-        observables: [observable],
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_synth',
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
-        steps: [],
-        planningNotes: { surfaceReports: [] },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      // Seek_synth permits step writes; commit a step that does NOT satisfy the
-      // observable. Without the new completeness scope split, V8 would have
-      // fired here (the old gating ran V8 once steps.length > 0). With the
-      // split, V8 only fires on transition to in_progress, so this commit lands.
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        steps: [
-          {
-            id: 'backend-create-other',
-            slice: 'backend',
-            name: 'Other',
-            assertions: [{ prefix: 'VALID', input: '{x}', expected: 'returns y' }],
-            observablesSatisfied: [],
-            dependsOn: [],
-            focusFile: { path: 'src/brokers/other/create/other-create-broker.ts' },
-            accompanyingFiles: [
-              { path: 'src/brokers/other/create/other-create-broker.proxy.ts' },
-              { path: 'src/brokers/other/create/other-create-broker.test.ts' },
-            ],
-            inputContracts: ['Void'],
-            outputContracts: ['Void'],
-          },
-        ],
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result.success).toBe(true);
-    });
-
-    it('INVALID: {status: in_progress, quest with unsatisfied observable} => rejects with completeness failure (V8 fires at transition)', async () => {
-      const proxy = questModifyBrokerProxy();
-      const observable = FlowObservableStub({ id: 'obs-orphan' as never });
-      const terminal = FlowNodeStub({
-        id: 'login-page' as never,
-        type: 'terminal' as never,
-        observables: [observable],
-      });
-      const edge = FlowEdgeStub({
-        id: 'self' as never,
-        from: 'login-page' as never,
-        to: 'login-page' as never,
-      });
-      const unrelatedStep = DependencyStepStub({
-        id: 'backend-other-step' as never,
-        slice: 'backend' as never,
-        observablesSatisfied: [],
-      });
-      const quest = QuestStub({
-        id: 'add-auth',
-        folder: '001-add-auth',
-        status: 'seek_walk',
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal], edges: [edge] })],
-        steps: [unrelatedStep],
-        planningNotes: {
-          surfaceReports: [],
-          scopeClassification: PlanningScopeClassificationStub(),
-          synthesis: PlanningSynthesisStub(),
-          walkFindings: PlanningWalkFindingsStub(),
-        },
-      });
-
-      proxy.setupQuestFound({ quest });
-
-      const input = ModifyQuestInputStub({
-        questId: 'add-auth',
-        status: 'in_progress',
-      });
-
-      const result = await questModifyBroker({ input });
-
-      expect(result).toStrictEqual({
-        success: false,
-        error: 'Save invariants failed',
-        failedChecks: [
-          {
-            name: 'Observables Are Satisfied',
-            passed: false,
-            details:
-              "Unsatisfied observables: observable 'obs-orphan' (flow 'login-flow', node 'login-page') is not claimed by any step.observablesSatisfied or step.assertions[].observablesSatisfied",
-          },
-        ],
-      });
-      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
-    });
-  });
-
   describe('pausedAtStatus handling (orchestrator-only field)', () => {
-    it('VALID: {pausedAtStatus: "seek_scope"} => sets quest.pausedAtStatus to "seek_scope"', async () => {
+    it('VALID: {pausedAtStatus: "explore_flows"} => sets quest.pausedAtStatus to "explore_flows"', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
@@ -1277,7 +861,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'explore_flows',
       });
 
       const result = await questModifyBroker({ input });
@@ -1286,7 +870,7 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.pausedAtStatus).toBe('seek_scope');
+      expect(persisted.pausedAtStatus).toBe('explore_flows');
     });
 
     it('VALID: {pausedAtStatus: "in_progress", status: "paused"} => sets pausedAtStatus and transitions status', async () => {
@@ -1326,7 +910,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'explore_flows',
       });
 
       proxy.setupQuestFound({ quest });
@@ -1341,23 +925,23 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.pausedAtStatus).toBe('seek_scope');
+      expect(persisted.pausedAtStatus).toBe('explore_flows');
     });
 
-    it('VALID: {pausedAtStatus: null, status: "seek_scope"} => clears quest.pausedAtStatus from the record', async () => {
+    it('VALID: {pausedAtStatus: null, status: "explore_flows"} => clears quest.pausedAtStatus from the record', async () => {
       const proxy = questModifyBrokerProxy();
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'explore_flows',
       });
 
       proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        status: 'seek_scope',
+        status: 'explore_flows',
         pausedAtStatus: null,
       });
 
@@ -1370,7 +954,7 @@ describe('questModifyBroker', () => {
       const parsedRaw = JSON.parse(String(latestRaw)) as Record<PropertyKey, unknown>;
 
       expect('pausedAtStatus' in parsedRaw).toBe(false);
-      expect(parsedRaw.status).toBe('seek_scope');
+      expect(parsedRaw.status).toBe('explore_flows');
     });
   });
 
@@ -1536,54 +1120,50 @@ describe('questModifyBroker', () => {
 
       expect(persisted.status).toBe('in_progress');
     });
-  });
 
-  describe('cross-slice DAG auto-wiring (post-upsert)', () => {
-    it("VALID: {seeded cross-slice consumer.uses[] resolves to another slice's outputContracts} => broker auto-appends producer id to consumer.dependsOn on persist", async () => {
+    it('EDGE: {workItems: [complete last item], operations: [pending item]}, no status => persisted quest.status stays "in_progress" (pending operation blocks complete derivation)', async () => {
       const proxy = questModifyBrokerProxy();
-      // Producer in 'backend' slice exporting ThingContract via outputContracts.
-      // Default DependencyStepStub focusFile is `src/brokers/login/create/...` —
-      // that's the producer's file.
-      const producerStep = DependencyStepStub({
-        id: 'backend-make-thing' as never,
-        slice: 'backend' as never,
-        outputContracts: ['ThingContract' as never],
-        exportName: 'thingContract' as never,
-      });
-      // Consumer in 'web' slice referencing ThingContract via uses[]. Different
-      // focusFile (V2 duplicate-focus-files invariant) and broker-folder companions.
-      const consumerStep = DependencyStepStub({
-        id: 'web-use-thing' as never,
-        slice: 'web' as never,
-        uses: ['ThingContract' as never],
+      const item1 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d009',
+        role: 'codeweaver',
+        status: 'complete',
         dependsOn: [],
-        focusFile: { path: 'src/brokers/thing/render/thing-render-broker.ts' },
-        accompanyingFiles: [
-          { path: 'src/brokers/thing/render/thing-render-broker.proxy.ts' },
-          { path: 'src/brokers/thing/render/thing-render-broker.test.ts' },
-        ],
+      });
+      const item2 = WorkItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d010',
+        role: 'ward',
+        spawnerType: 'command',
+        status: 'pending',
+        dependsOn: [item1.id],
+      });
+      const pendingOperation = OperationItemStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d011',
+        status: 'pending',
       });
       const quest = QuestStub({
-        id: 'add-thing',
-        folder: '001-add-thing',
+        id: 'add-auth',
+        folder: '001-add-auth',
         status: 'in_progress',
-        steps: [producerStep, consumerStep],
+        workItems: [item1, item2],
+        operations: [pendingOperation],
       });
 
       proxy.setupQuestFound({ quest });
 
-      // No-op modify (just the questId) — auto-wire still runs on the post-upsert
-      // quest.steps and the persisted snapshot reflects the wired graph.
-      const input = ModifyQuestInputStub({ questId: 'add-thing' });
+      // Complete the last pending work item — every work item is now terminal, but the
+      // operations ledger still has a pending entry, so derivation must NOT jump to 'complete'.
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        workItems: [{ id: item2.id, status: 'complete' }],
+      });
 
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
-      const persistedConsumer = persisted.steps.find((step) => String(step.id) === 'web-use-thing');
 
-      expect(persistedConsumer?.dependsOn).toStrictEqual(['backend-make-thing']);
+      expect(persisted.status).toBe('in_progress');
     });
   });
 
@@ -1594,17 +1174,12 @@ describe('questModifyBroker', () => {
         id: 'login-flow' as never,
         nodes: [FlowNodeStub({ id: 'submit-form' as never })],
       });
-      const seededStep = DependencyStepStub({
-        id: 'backend-create-login-credentials' as never,
-        outputContracts: ['LoginCredentials' as never],
-      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
         flows: [flow],
         contracts: [],
-        steps: [seededStep],
       });
 
       proxy.setupQuestFound({ quest });
@@ -1655,17 +1230,12 @@ describe('questModifyBroker', () => {
         id: 'login-flow' as never,
         nodes: [FlowNodeStub({ id: 'submit-form' as never })],
       });
-      const seededStep = DependencyStepStub({
-        id: 'backend-consume-existing' as never,
-        outputContracts: ['Void' as never],
-      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
         flows: [flow],
         contracts: [],
-        steps: [seededStep],
       });
 
       proxy.setupQuestFound({ quest });
@@ -1716,17 +1286,12 @@ describe('questModifyBroker', () => {
         id: 'login-flow' as never,
         nodes: [FlowNodeStub({ id: 'submit-form' as never })],
       });
-      const seededStep = DependencyStepStub({
-        id: 'backend-consume-shared' as never,
-        outputContracts: ['Void' as never],
-      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'flows_approved',
         flows: [flow],
         contracts: [],
-        steps: [seededStep],
       });
 
       proxy.setupQuestFound({ quest });
@@ -1760,28 +1325,13 @@ describe('questModifyBroker', () => {
   });
 
   describe('valid transition passes all tiers', () => {
-    it('VALID: {explore_flows -> review_flows with connected non-orphan flow} => transitions and persists', async () => {
+    it('VALID: {explore_flows -> review_flows} => transitions and persists', async () => {
       const proxy = questModifyBrokerProxy();
-      const startNode = FlowNodeStub({ id: 'login-page' as never, type: 'state' as never });
-      const terminalNode = FlowNodeStub({
-        id: 'dashboard' as never,
-        type: 'terminal' as never,
-      });
-      const edge = FlowEdgeStub({
-        id: 'login-to-dashboard' as never,
-        from: 'login-page' as never,
-        to: 'dashboard' as never,
-      });
-      const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [startNode, terminalNode],
-        edges: [edge],
-      });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'explore_flows',
-        flows: [flow],
+        flows: [FlowStub()],
       });
 
       proxy.setupQuestFound({ quest });
@@ -1789,6 +1339,112 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         status: 'review_flows',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {review_flows -> flows_approved} with non-empty flows => transitions and persists', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'review_flows',
+        flows: [FlowStub()],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'flows_approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {review_observables -> approved} with flows and a codeweaver operation item (feature quest) => transitions and persists', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'review_observables',
+        flows: [FlowStub()],
+        operations: [OperationItemStub({ role: 'codeweaver' })],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {review_observables -> approved} for a bug-hunt quest with empty operations => transitions and persists (operations requirement skipped for non-feature quests)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'review_observables',
+        questType: 'bug-hunt',
+        flows: [FlowStub()],
+        operations: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'approved',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {approved -> in_progress} => transitions and persists', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'approved',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'in_progress',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('VALID: {design_approved -> in_progress} => transitions and persists', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'design_approved',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        status: 'in_progress',
       });
 
       const result = await questModifyBroker({ input });

@@ -1,467 +1,930 @@
 import {
-  DependencyStepStub,
+  OperationItemIdStub,
+  OperationItemStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { codeRecoveryRolesTransformer } from '../../../transformers/code-recovery-roles/code-recovery-roles-transformer';
+import { blightwardenMinionRolesStatics } from '../../../statics/blightwarden-minion-roles/blightwarden-minion-roles-statics';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 import { QuestHandleSignalBackResponderProxy } from './quest-handle-signal-back-responder.proxy';
 
-type PersistedQuest = ReturnType<typeof QuestStub>;
+const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
+const ITEM_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+const PENDING_ITEM_ID = 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e';
+const OP1_ID = '11111111-1111-4111-8111-111111111111';
+const OP2_ID = '22222222-2222-4222-8222-222222222222';
+const OP3_ID = '33333333-3333-4333-8333-333333333333';
+const CONTINUATION_UUID = 'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b';
+const ADVANCE_UUID = '99999999-9999-4999-8999-999999999999';
 
-const ISO_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/u;
+type SlotManagerRole = keyof typeof slotManagerStatics;
+type PtBudgetRole = Exclude<SlotManagerRole, 'ward' | 'orphanRecovery'>;
 
-// Every role whose `failed` (code) routes to a spiritmender recovery and whose `failed-replan` (plan
-// hole) routes to a PathSeeker replan — derived by exclusion from workItemRoleContract, so a NEW role
-// is picked up here automatically (recovery-first, never an immediate block).
-const CODE_RECOVERY_ROLES = codeRecoveryRolesTransformer();
+// Locked verify-tail roles whose pt chain is bounded by slotManagerStatics.<role>.maxAttempts —
+// derived from the statics so a newly budgeted role is swept into the block matrix automatically.
+const PT_BUDGET_ROLES = (Object.keys(slotManagerStatics) as readonly SlotManagerRole[]).filter(
+  (role): role is PtBudgetRole => 'maxAttempts' in slotManagerStatics[role],
+);
 
-const parseLatestPersisted = (persisted: readonly unknown[]): PersistedQuest => {
-  const raw = persisted[persisted.length - 1];
-  const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
-  return QuestStub(parsed as Parameters<typeof QuestStub>[0]);
-};
+// Roles the responder exempts from any pt budget: the chat/command roles it special-cases plus
+// every Blightwarden minion (isBlightwardenMinionRoleGuard) — locked items of these roles keep
+// duplicating on partial no matter how long the chain already is.
+const UNBOUNDED_PT_ROLES = [
+  'chaoswhisperer',
+  'glyphsmith',
+  'ward',
+  ...blightwardenMinionRolesStatics.roles,
+] as const;
 
 describe('QuestHandleSignalBackResponder', () => {
-  describe('status transition — complete', () => {
-    it('VALID: {role: codeweaver, signal: complete} => persists workItem.status=complete with completedAt', async () => {
+  describe('quest load failures surface (never silently drop the signal)', () => {
+    it('ERROR: {quest unreadable} => throws naming the quest, signal, and work item', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
+      proxy.setupQuestUnreadable();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const itemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const codeweaverItem = WorkItemStub({
-        id: itemId,
-        role: 'codeweaver',
-        status: 'in_progress',
-      });
-      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [codeweaverItem] });
-      proxy.setupQuest({ quest });
+      const workItemId = QuestWorkItemIdStub({ value: ITEM_ID });
 
-      await QuestHandleSignalBackResponder({ questId, workItemId: itemId, signal: 'complete' });
-
-      const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-      const transitioned = persistedQuest.workItems.find((wi) => wi.id === itemId);
-
-      expect(transitioned?.status).toBe('complete');
-      expect(String(transitioned?.completedAt)).toMatch(ISO_TIMESTAMP_RE);
+      await expect(
+        QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete' }),
+      ).rejects.toThrow(
+        /signal-back could not load quest add-auth to apply 'complete' to work item a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d/u,
+      );
     });
+  });
 
-    it('VALID: {pathseeker-surface complete, dedup pending depending on it} => surface persists complete so dedup becomes ready', async () => {
+  describe('idempotent no-ops', () => {
+    it('EDGE: {work item not on quest} => success without any persist', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const surfaceId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const dedupId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
-      const surfaceItem = WorkItemStub({
-        id: surfaceId,
-        role: 'pathseeker-surface',
-        status: 'in_progress',
-      });
-      const dedupItem = WorkItemStub({
-        id: dedupId,
-        role: 'pathseeker-dedup',
-        status: 'pending',
-        dependsOn: [surfaceId],
-      });
       const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        workItems: [surfaceItem, dedupItem],
+        operations: [OperationItemStub({ id: OP1_ID, status: 'in_progress' })],
+        workItems: [],
       });
       proxy.setupQuest({ quest });
 
-      await QuestHandleSignalBackResponder({ questId, workItemId: surfaceId, signal: 'complete' });
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: QuestWorkItemIdStub({ value: ITEM_ID }),
+        signal: 'complete',
+      });
 
-      const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect(persistedQuest.workItems.find((wi) => wi.id === surfaceId)?.status).toBe('complete');
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
-  });
 
-  describe('blightwarden minion — non-blocking', () => {
-    it.each([
-      ['failed', 'blightwarden-security-minion'],
-      ['failed-replan', 'blightwarden-perf-minion'],
-    ] as const)(
-      'VALID: {role: %2$s, signal: %1$s} => minion terminates complete (non-blocking), actualSignal records the real signal',
-      async (signal, role) => {
-        const proxy = QuestHandleSignalBackResponderProxy();
-        const questId = QuestIdStub({ value: 'add-auth' });
-        const minionId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-        const synthId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
-        const minionItem = WorkItemStub({ id: minionId, role, status: 'in_progress' });
-        const synthItem = WorkItemStub({
-          id: synthId,
-          role: 'blightwarden',
-          status: 'pending',
-          dependsOn: [minionId],
-        });
-        const quest = QuestStub({
-          id: questId,
-          status: 'in_progress',
-          workItems: [minionItem, synthItem],
-        });
-        proxy.setupQuest({ quest });
-
-        await QuestHandleSignalBackResponder({ questId, workItemId: minionId, signal });
-
-        const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-        const transitioned = persistedQuest.workItems.find((wi) => wi.id === minionId);
-
-        expect(transitioned?.status).toBe('complete');
-        expect(transitioned?.actualSignal).toBe(signal);
-        expect(persistedQuest.status).toBe('in_progress');
-      },
-    );
-  });
-
-  describe('code-recovery roles — failed routes to spiritmender recovery (NEVER an immediate block)', () => {
-    it.each(CODE_RECOVERY_ROLES)(
-      'VALID: {role: %s, signal: failed} => item marked failed, quest stays in_progress (recovery-first), delegates to questRecoverRoleBroker',
-      async (role) => {
-        const proxy = QuestHandleSignalBackResponderProxy();
-        const questId = QuestIdStub({ value: 'add-auth' });
-        const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-        const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
-        const failedItem = WorkItemStub({
-          id: failedId,
-          role,
-          status: 'in_progress',
-          attempt: 0,
-          maxAttempts: 3,
-        });
-        const pendingItem = WorkItemStub({
-          id: pendingId,
-          role: 'lawbringer',
-          status: 'pending',
-          dependsOn: [failedId],
-        });
-        const quest = QuestStub({
-          id: questId,
-          status: 'in_progress',
-          workItems: [failedItem, pendingItem],
-        });
-        proxy.setupQuest({ quest });
-
-        await QuestHandleSignalBackResponder({ questId, workItemId: failedId, signal: 'failed' });
-
-        const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-
-        expect({
-          failedStatus: persistedQuest.workItems.find((wi) => wi.id === failedId)?.status,
-          questStatus: persistedQuest.status,
-          recoverCallCount: proxy.getRecoverCalls().length,
-        }).toStrictEqual({
-          failedStatus: 'failed',
-          questStatus: 'in_progress',
-          recoverCallCount: 1,
-        });
-      },
-    );
-
-    it('VALID: {role: codeweaver, signal: failed, summary} => delegates to questRecoverRoleBroker with the finding', async () => {
+    it("EDGE: {work item already terminal, redelivered 'partial'} => success, no second pt continuation and zero persists", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const cwItem = WorkItemStub({
-        id: cwId,
-        role: 'codeweaver',
-        status: 'in_progress',
-        attempt: 0,
-        maxAttempts: 3,
-      });
-      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [cwItem] });
-      proxy.setupQuest({ quest });
-      const { summary: finding } = WorkItemStub({ summary: 'CLI slice needs ink; not installed' });
-
-      await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: cwId,
-        signal: 'failed',
-        summary: finding,
-      });
-
-      expect(proxy.getRecoverCalls()).toStrictEqual([
-        [{ questId, failedWorkItemId: cwId, finding }],
-      ]);
-    });
-  });
-
-  describe('code-recovery roles — failed-replan routes to a PathSeeker replan (NEVER an immediate block)', () => {
-    it.each(CODE_RECOVERY_ROLES)(
-      'VALID: {role: %s, signal: failed-replan} => delegates to questSplicePathseekerReplanBroker, responder itself blocks nothing',
-      async (role) => {
-        const proxy = QuestHandleSignalBackResponderProxy();
-        const questId = QuestIdStub({ value: 'add-auth' });
-        const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-        const failedItem = WorkItemStub({ id: failedId, role, status: 'in_progress' });
-        const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [failedItem] });
-        proxy.setupQuest({ quest });
-        const { summary: brief } = WorkItemStub({
-          summary: 'contract shape changed; add adapter step',
-        });
-
-        await QuestHandleSignalBackResponder({
-          questId,
-          workItemId: failedId,
-          signal: 'failed-replan',
-          summary: brief,
-        });
-
-        // The replan broker owns the mark-failed + skip + splice; the responder persists nothing itself
-        // and never blocks.
-        expect({
-          replanCalls: proxy.getReplanCalls(),
-          responderPersistedWrites: proxy.getAllPersistedContents().length,
-        }).toStrictEqual({
-          replanCalls: [
-            [{ questId, failedWorkItemId: failedId, brief, actualSignal: 'failed-replan' }],
-          ],
-          responderPersistedWrites: 0,
-        });
-      },
-    );
-  });
-
-  describe('spiritmender — soft fail (mark failed, no further recovery)', () => {
-    it('VALID: {role: spiritmender, signal: failed} => item marked failed, no recover/replan/block, quest stays in_progress', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const spiritId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const wardId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
-      const spiritItem = WorkItemStub({
-        id: spiritId,
-        role: 'spiritmender',
-        status: 'in_progress',
-      });
-      // A ward re-verify depends on the spiritmender; `failed` satisfies dependsOn so it still runs.
-      const wardItem = WorkItemStub({
-        id: wardId,
-        role: 'ward',
-        status: 'pending',
-        spawnerType: 'command',
-        dependsOn: [spiritId],
-        wardMode: 'changed',
-      });
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        workItems: [spiritItem, wardItem],
-      });
-      proxy.setupQuest({ quest });
-
-      await QuestHandleSignalBackResponder({ questId, workItemId: spiritId, signal: 'failed' });
-
-      const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-
-      expect({
-        spiritStatus: persistedQuest.workItems.find((wi) => wi.id === spiritId)?.status,
-        spiritActualSignal: persistedQuest.workItems.find((wi) => wi.id === spiritId)?.actualSignal,
-        questStatus: persistedQuest.status,
-        recoverCalls: proxy.getRecoverCalls().length,
-        replanCalls: proxy.getReplanCalls().length,
-      }).toStrictEqual({
-        spiritStatus: 'failed',
-        spiritActualSignal: 'failed',
-        questStatus: 'in_progress',
-        recoverCalls: 0,
-        replanCalls: 0,
-      });
-    });
-  });
-
-  describe('pathseeker — retry within its loop, block only when exhausted (the sole block owner)', () => {
-    it('VALID: {role: pathseeker, signal: failed, attempt 0/3} => reset to pending with attempt+1 and identity cleared (retry)', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const psItem = WorkItemStub({
-        id: psId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 0,
-        maxAttempts: 3,
-      });
-      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [psItem] });
-      proxy.setupQuest({ quest });
-
-      await QuestHandleSignalBackResponder({ questId, workItemId: psId, signal: 'failed' });
-
-      const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-      const ps = persistedQuest.workItems.find((wi) => wi.id === psId);
-
-      expect({
-        status: ps?.status,
-        attempt: ps?.attempt,
-        questStatus: persistedQuest.status,
-      }).toStrictEqual({
-        status: 'pending',
-        attempt: 1,
-        questStatus: 'in_progress',
-      });
-    });
-
-    it('VALID: {role: pathseeker, signal: failed, attempt 2/3 (exhausted)} => marked failed and quest BLOCKED', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const psId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
-      const psItem = WorkItemStub({
-        id: psId,
-        role: 'pathseeker',
-        status: 'in_progress',
-        attempt: 2,
-        maxAttempts: 3,
-      });
-      const pendingItem = WorkItemStub({
-        id: pendingId,
-        role: 'codeweaver',
-        status: 'pending',
-        dependsOn: [psId],
-      });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        workItems: [psItem, pendingItem],
-      });
-      proxy.setupQuestBlockPassthrough({ quest });
-
-      await QuestHandleSignalBackResponder({ questId, workItemId: psId, signal: 'failed' });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-
-      expect({
-        psStatus: persistedQuest.workItems.find((wi) => wi.id === psId)?.status,
-        pendingStatus: persistedQuest.workItems.find((wi) => wi.id === pendingId)?.status,
-        questStatus: persistedQuest.status,
-      }).toStrictEqual({
-        psStatus: 'failed',
-        pendingStatus: 'skipped',
-        questStatus: 'blocked',
-      });
-    });
-  });
-
-  describe('pathseeker post-walk hook', () => {
-    it('VALID: {role: pathseeker, signal: complete} => transitions complete AND invokes post-walk hook (generates ward/blightwarden/final-ward chain)', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      proxy.setupWalkHookUuids({
-        uuids: [
-          'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b',
-          'd2d3d4d5-e6e7-4f8a-9b1c-2d3e4f5a6b7c',
-          'e3e4e5e6-f7f8-4a9b-8c1d-3e4f5a6b7c8d',
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'complete',
+          }),
+          OperationItemStub({
+            id: OP2_ID,
+            role: 'codeweaver',
+            text: 'pt 2: core: config adapter',
+            status: 'pending',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
         ],
       });
-      const walkItem = WorkItemStub({ id: walkId, role: 'pathseeker', status: 'in_progress' });
-      const quest = QuestStub({
-        id: questId,
-        status: 'in_progress',
-        workItems: [walkItem],
-        steps: [],
-        flows: [],
-      });
       proxy.setupQuest({ quest });
 
       const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: walkId,
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
         signal: 'complete',
+        operationStatus: 'partial',
       });
 
       expect(result).toStrictEqual({ success: true });
-
-      const persistedQuest = parseLatestPersisted(proxy.getAllPersistedContents());
-      const generatedRoles = persistedQuest.workItems
-        .filter((wi) => wi.id !== walkId)
-        .map((wi) => wi.role);
-
-      expect(generatedRoles).toStrictEqual(['ward', 'blightwarden', 'ward']);
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
 
-    it('ERROR: {role: pathseeker, signal: complete, post-walk hook throws on an invalid plan} => quest BLOCKED with pathseeker failed, never falsely complete', async () => {
+    it("EDGE: {linked operation already complete, work item still active, 'partial'} => terminalizes the item in one persist, operations untouched (no continuation)", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const walkId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const walkItem = WorkItemStub({ id: walkId, role: 'pathseeker', status: 'in_progress' });
-      const invalidStep = DependencyStepStub({
-        id: 'backend-references-ghost',
-        inputContracts: ['GhostContract'],
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const completedOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'complete',
       });
       const quest = QuestStub({
-        id: questId,
+        operations: [completedOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        operations: [completedOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+  });
+
+  describe("operationStatus 'done' (or absent) — one atomic persist, then advance", () => {
+    it("VALID: {operationStatus: 'done', next op pending} => single persist completes item+operation, advance creates the next work item", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const op2Pending = OperationItemStub({
+        id: OP2_ID,
+        role: 'lawbringer',
+        text: 'review: core pairs',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+          op2Pending,
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const completedItem = WorkItemStub({
+        id: itemId,
+        role: 'codeweaver',
+        status: 'complete',
+        relatedDataItems: [`operations/${OP1_ID}`],
+        completedAt: FIXED_TIMESTAMP,
+        actualSignal: 'complete',
+      });
+      const op1Complete = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'complete',
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [op1Complete, op2Pending],
+        workItems: [completedItem],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([
+        questAfterOutcome,
+        QuestStub({
+          operations: [
+            op1Complete,
+            OperationItemStub({
+              id: OP2_ID,
+              role: 'lawbringer',
+              text: 'review: core pairs',
+              status: 'in_progress',
+            }),
+          ],
+          workItems: [
+            completedItem,
+            WorkItemStub({
+              id: ADVANCE_UUID,
+              role: 'lawbringer',
+              status: 'pending',
+              spawnerType: 'agent',
+              relatedDataItems: [`operations/${OP2_ID}`],
+              dependsOn: [itemId],
+              createdAt: FIXED_TIMESTAMP,
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        }),
+      ]);
+    });
+
+    it('VALID: {operationStatus absent, last op} => operation completed in the same persist, ledger drained derives quest complete', async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'blightwarden',
+            text: 'audit: whole diff',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'blightwarden',
+            text: 'audit: whole diff',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+  });
+
+  describe("operationStatus 'partial' — pt continuation duplicated after the completed item", () => {
+    it("VALID: {unlocked codeweaver, first 'partial'} => same persist appends 'pt 2: <base>' and advance creates the continuation's work item", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+            locked: false,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const completedItem = WorkItemStub({
+        id: itemId,
+        role: 'codeweaver',
+        status: 'complete',
+        relatedDataItems: [`operations/${OP1_ID}`],
+        completedAt: FIXED_TIMESTAMP,
+        actualSignal: 'complete',
+      });
+      const op1Complete = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'complete',
+        locked: false,
+      });
+      const continuation = OperationItemStub({
+        id: CONTINUATION_UUID,
+        role: 'codeweaver',
+        text: 'pt 2: core: config adapter',
+        status: 'pending',
+        locked: false,
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [op1Complete, continuation],
+        workItems: [completedItem],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([
+        questAfterOutcome,
+        QuestStub({
+          operations: [
+            op1Complete,
+            OperationItemStub({
+              id: CONTINUATION_UUID,
+              role: 'codeweaver',
+              text: 'pt 2: core: config adapter',
+              status: 'in_progress',
+              locked: false,
+            }),
+          ],
+          workItems: [
+            completedItem,
+            WorkItemStub({
+              id: ADVANCE_UUID,
+              role: 'codeweaver',
+              status: 'pending',
+              spawnerType: 'agent',
+              relatedDataItems: [`operations/${CONTINUATION_UUID}`],
+              dependsOn: [itemId],
+              createdAt: FIXED_TIMESTAMP,
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        }),
+      ]);
+    });
+
+    it("VALID: {'partial' on a 'pt 2: <base>' item} => continuation is 'pt 3: <base>' inserted right after it", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const original = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'complete',
+      });
+      const quest = QuestStub({
+        operations: [
+          original,
+          OperationItemStub({
+            id: OP2_ID,
+            role: 'codeweaver',
+            text: 'pt 2: core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP2_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [
+          original,
+          OperationItemStub({
+            id: OP2_ID,
+            role: 'codeweaver',
+            text: 'pt 2: core: config adapter',
+            status: 'complete',
+          }),
+          OperationItemStub({
+            id: CONTINUATION_UUID,
+            role: 'codeweaver',
+            text: 'pt 3: core: config adapter',
+            status: 'pending',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP2_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+
+      await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
+    });
+
+    it("VALID: {locked ward item with wardMode: 'changed'} => continuation preserves locked AND wardMode", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'ward',
+            text: 'Ward gate (changed files)',
+            status: 'in_progress',
+            locked: true,
+            wardMode: 'changed',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'ward',
+            status: 'in_progress',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            wardMode: 'changed',
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'ward',
+            text: 'Ward gate (changed files)',
+            status: 'complete',
+            locked: true,
+            wardMode: 'changed',
+          }),
+          OperationItemStub({
+            id: CONTINUATION_UUID,
+            role: 'ward',
+            text: 'pt 2: Ward gate (changed files)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'changed',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'ward',
+            status: 'complete',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            wardMode: 'changed',
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+
+      await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
+    });
+
+    it("VALID: {UNLOCKED codeweaver at chainLength >= maxAttempts} => continuation still appended ('pt 4'), the budget applies to locked items only", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      // Chain of slotManagerStatics.codeweaver.maxAttempts (3) same-base items, none locked.
+      const chainOriginal = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'complete',
+        locked: false,
+      });
+      const chainPt2 = OperationItemStub({
+        id: OP2_ID,
+        role: 'codeweaver',
+        text: 'pt 2: core: config adapter',
+        status: 'complete',
+        locked: false,
+      });
+      const chainPt3 = OperationItemStub({
+        id: OP3_ID,
+        role: 'codeweaver',
+        text: 'pt 3: core: config adapter',
         status: 'in_progress',
-        workItems: [walkItem],
-        steps: [invalidStep],
-        flows: [],
-        contracts: [],
+        locked: false,
       });
-      proxy.setupQuestBlockPassthrough({ quest });
+      const quest = QuestStub({
+        operations: [chainOriginal, chainPt2, chainPt3],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP3_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [
+          chainOriginal,
+          chainPt2,
+          OperationItemStub({
+            id: OP3_ID,
+            role: 'codeweaver',
+            text: 'pt 3: core: config adapter',
+            status: 'complete',
+            locked: false,
+          }),
+          OperationItemStub({
+            id: CONTINUATION_UUID,
+            role: 'codeweaver',
+            text: 'pt 4: core: config adapter',
+            status: 'pending',
+            locked: false,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP3_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
 
       const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: walkId,
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
+    });
+
+    it.each(UNBOUNDED_PT_ROLES)(
+      "VALID: {role: %s, LOCKED chain of 3, 'partial'} => budget-exempt role still appends 'pt 4'",
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        const chainOriginal = OperationItemStub({
+          id: OP1_ID,
+          role,
+          text: 'verify: quest flows',
+          status: 'complete',
+          locked: true,
+        });
+        const chainPt2 = OperationItemStub({
+          id: OP2_ID,
+          role,
+          text: 'pt 2: verify: quest flows',
+          status: 'complete',
+          locked: true,
+        });
+        const chainPt3 = OperationItemStub({
+          id: OP3_ID,
+          role,
+          text: 'pt 3: verify: quest flows',
+          status: 'in_progress',
+          locked: true,
+        });
+        const quest = QuestStub({
+          operations: [chainOriginal, chainPt2, chainPt3],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP3_ID}`],
+            }),
+          ],
+        });
+        const questAfterOutcome = QuestStub({
+          operations: [
+            chainOriginal,
+            chainPt2,
+            OperationItemStub({
+              id: OP3_ID,
+              role,
+              text: 'pt 3: verify: quest flows',
+              status: 'complete',
+              locked: true,
+            }),
+            OperationItemStub({
+              id: CONTINUATION_UUID,
+              role,
+              text: 'pt 4: verify: quest flows',
+              status: 'pending',
+              locked: true,
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'complete',
+              relatedDataItems: [`operations/${OP3_ID}`],
+              completedAt: FIXED_TIMESTAMP,
+              actualSignal: 'complete',
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        });
+        proxy.setupSignalFlow({ quest, questAfterOutcome });
+        proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+
+        const result = await QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'partial',
+        });
+
+        expect(result).toStrictEqual({ success: true });
+        expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
+      },
+    );
+  });
+
+  describe('explicit operationItemId parameter', () => {
+    it("VALID: {operationItemId set, work item linked to a different op} => the explicit id wins; the work item's own ref stays untouched", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const linkedOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'in_progress',
+      });
+      const quest = QuestStub({
+        operations: [
+          linkedOp,
+          OperationItemStub({
+            id: OP2_ID,
+            role: 'siegemaster',
+            text: 'qa: login flow',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [
+          linkedOp,
+          OperationItemStub({
+            id: OP2_ID,
+            role: 'siegemaster',
+            text: 'qa: login flow',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationItemId: OperationItemIdStub({ value: OP2_ID }),
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+  });
+
+  describe('work item without an operations ref', () => {
+    it('EDGE: {relatedDataItems: []} => just terminalizes the work item, still success', async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'chaoswhisperer',
+            status: 'in_progress',
+            relatedDataItems: [],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'chaoswhisperer',
+            status: 'complete',
+            relatedDataItems: [],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
         signal: 'complete',
       });
 
       expect(result).toStrictEqual({ success: true });
-
-      const persistedQuest = proxy.getLastPersistedQuest();
-      const persistedWalk = persistedQuest.workItems.find((wi) => wi.id === walkId);
-
-      expect({
-        questStatus: persistedQuest.status,
-        walkStatus: persistedWalk?.status,
-      }).toStrictEqual({
-        questStatus: 'blocked',
-        walkStatus: 'failed',
-      });
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });
 
-  describe('quest load / persist failures surface (never silently drop the signal)', () => {
-    it('ERROR: {quest cannot be loaded (corrupt quest.json)} => throws instead of silently returning success', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const itemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      proxy.setupQuestUnreadable();
+  describe('locked pt-chain budget spent — quest blocks instead of appending', () => {
+    it.each(PT_BUDGET_ROLES)(
+      "VALID: {role: %s, LOCKED chain at maxAttempts, 'partial'} => no continuation, quest blocked and pending items skipped",
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        const pendingId = QuestWorkItemIdStub({ value: PENDING_ITEM_ID });
+        // Chain length == slotManagerStatics.<role>.maxAttempts (3): the budget is spent.
+        const chainOriginal = OperationItemStub({
+          id: OP1_ID,
+          role,
+          text: 'verify: quest flows',
+          status: 'complete',
+          locked: true,
+        });
+        const chainPt2 = OperationItemStub({
+          id: OP2_ID,
+          role,
+          text: 'pt 2: verify: quest flows',
+          status: 'complete',
+          locked: true,
+        });
+        const chainPt3 = OperationItemStub({
+          id: OP3_ID,
+          role,
+          text: 'pt 3: verify: quest flows',
+          status: 'in_progress',
+          locked: true,
+        });
+        const quest = QuestStub({
+          operations: [chainOriginal, chainPt2, chainPt3],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP3_ID}`],
+            }),
+            WorkItemStub({
+              id: pendingId,
+              role: 'blightwarden',
+              status: 'pending',
+              dependsOn: [itemId],
+            }),
+          ],
+        });
+        const questAfterOutcome = QuestStub({
+          operations: [
+            chainOriginal,
+            chainPt2,
+            OperationItemStub({
+              id: OP3_ID,
+              role,
+              text: 'pt 3: verify: quest flows',
+              status: 'complete',
+              locked: true,
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'complete',
+              relatedDataItems: [`operations/${OP3_ID}`],
+              completedAt: FIXED_TIMESTAMP,
+              actualSignal: 'complete',
+            }),
+            WorkItemStub({
+              id: pendingId,
+              role: 'blightwarden',
+              status: 'pending',
+              dependsOn: [itemId],
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        });
+        proxy.setupSignalBlocked({ quest, questAfterOutcome });
 
-      await expect(
-        QuestHandleSignalBackResponder({ questId, workItemId: itemId, signal: 'complete' }),
-      ).rejects.toThrow(/could not load quest/u);
-    });
+        const result = await QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'partial',
+        });
 
-    it('ERROR: {persist of the complete transition resolves success:false} => throws instead of reporting success', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const itemId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const item = WorkItemStub({ id: itemId, role: 'siegemaster', status: 'in_progress' });
-      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [item] });
-      proxy.setupQuestModifyFails({ quest });
+        expect(result).toStrictEqual({ success: true });
+        // Persist 1 (the responder's own atomic outcome write) completes the chain WITHOUT a
+        // 'pt 4' continuation; persist 2 is the real questBlockOnFailureBroker's modify.
+        expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
 
-      await expect(
-        QuestHandleSignalBackResponder({ questId, workItemId: itemId, signal: 'complete' }),
-      ).rejects.toThrow(/quest modify failed to persist/u);
-    });
-  });
+        const finalQuest = proxy.getLastPersistedQuest();
 
-  describe('edge cases', () => {
-    it('EDGE: {workItem not in quest} => no-op, returns success without throwing', async () => {
-      const proxy = QuestHandleSignalBackResponderProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const missingId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [] });
-      proxy.setupQuest({ quest });
-
-      const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: missingId,
-        signal: 'complete',
-      });
-
-      expect(result).toStrictEqual({ success: true });
-    });
+        expect({
+          persistedStatuses: proxy.getAllPersistedQuests().map(({ status }) => status),
+          finalWorkItems: finalQuest.workItems.map(({ id, status }) => ({ id, status })),
+          finalOperationTexts: finalQuest.operations.map(({ text }) => String(text)),
+        }).toStrictEqual({
+          persistedStatuses: ['in_progress', 'blocked'],
+          finalWorkItems: [
+            { id: itemId, status: 'complete' },
+            { id: pendingId, status: 'skipped' },
+          ],
+          finalOperationTexts: [
+            'verify: quest flows',
+            'pt 2: verify: quest flows',
+            'pt 3: verify: quest flows',
+          ],
+        });
+      },
+    );
   });
 });

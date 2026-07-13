@@ -36,15 +36,19 @@ export const InteractionHandleResponder = async ({
     });
 
     if (result.success) {
-      // After validating the signal, run any orchestrator-side post-processing
-      // tied to the work item that just signalled. Currently that means firing
-      // questPostWalkHookBroker when a pathseeker-walk work item completes —
-      // the responder's no-op fast path covers every other role + signal pair.
+      // After validating the signal, apply it server-side: the handler marks the work item
+      // terminal, applies the operation outcome (done -> complete; partial -> complete + a
+      // "pt N" continuation) to the ledger atomically, then advances the relay.
       await orchestratorHandleSignalBackAdapter({
         questId: result.signal.questId,
         workItemId: result.signal.workItemId,
         signal: result.signal.signal,
-        summary: result.signal.summary,
+        ...(result.signal.operationItemId === undefined
+          ? {}
+          : { operationItemId: result.signal.operationItemId }),
+        ...(result.signal.operationStatus === undefined
+          ? {}
+          : { operationStatus: result.signal.operationStatus }),
       });
     }
 

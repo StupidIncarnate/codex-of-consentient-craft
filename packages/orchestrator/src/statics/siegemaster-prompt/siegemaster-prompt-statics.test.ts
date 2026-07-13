@@ -18,12 +18,19 @@ describe('siegemasterPromptStatics', () => {
     expect(siegemasterPromptStatics.prompt.template.length).toBeGreaterThan(2000);
   });
 
-  it('VALID: template => titles the role a manual QA gate', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(/^# Siegemaster - Manual QA Gate$/mu);
+  it('VALID: template => carries the $ARGUMENTS placeholder exactly once, on its own line', () => {
+    expect(siegemasterPromptStatics.prompt.template.split('$ARGUMENTS').length - 1).toBe(1);
+    expect(siegemasterPromptStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
   });
 
-  it('VALID: template => declares it changes no files', () => {
-    const needle = '**You change NO files.**';
+  it('VALID: template => titles the role a manual QA relay worker', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^# Siegemaster - Manual QA Relay Worker$/mu,
+    );
+  });
+
+  it('VALID: template => frames the role as owning ONE operation item on the ledger', () => {
+    const needle = "You own ONE operation item on the quest's operations ledger";
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -33,9 +40,8 @@ describe('siegemasterPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => states failed triggers a Spiritmender fix then a fresh Siegemaster', () => {
-    const needle =
-      'dispatches a **Spiritmender** to fix the implementation/test and then a **fresh Siegemaster** to re-verify';
+  it('VALID: template => declares there is no failure, only moving forward', () => {
+    const needle = '**There is no failure — only moving forward.** You have no failure signal.';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -45,8 +51,19 @@ describe('siegemasterPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => instructs to report, not repair', () => {
-    const needle = "**Report, don't repair.**";
+  it('VALID: template => forbids editing the operations ledger', () => {
+    const needle = '**You do NOT edit the operations ledger.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => fixes what it finds, TDD-first, instead of reporting', () => {
+    const needle = '**You fix what you find, TDD-first.**';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -76,38 +93,8 @@ describe('siegemasterPromptStatics', () => {
     });
   });
 
-  it('VALID: template => bridges the operating rules to this no-write role (signal-back still binds)', () => {
-    const needle = '**You change no files, but every Operating Rule above still binds you**';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => an incomplete/unbuilt path is a failed finding, not built by Siege', () => {
-    const principle = 'not a wall you stop at, and not yours to build.';
-    const findingSection = 'INCOMPLETE / UNWALKABLE:';
-    const { template } = siegemasterPromptStatics.prompt;
-    const foundPrinciple = template.slice(
-      template.indexOf(principle),
-      template.indexOf(principle) + principle.length,
-    );
-    const foundSection = template.slice(
-      template.indexOf(findingSection),
-      template.indexOf(findingSection) + findingSection.length,
-    );
-
-    expect({ foundPrinciple, foundSection }).toStrictEqual({
-      foundPrinciple: principle,
-      foundSection: findingSection,
-    });
-  });
-
-  it('VALID: template => frames the flow as a map to walk', () => {
-    const needle = '**The flow in your Flow Context is a map.**';
+  it('VALID: template => frames every spine flow as a map to walk', () => {
+    const needle = '**Each flow on the spine is a map.**';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -136,23 +123,62 @@ describe('siegemasterPromptStatics', () => {
     });
   });
 
-  it('VALID: template => checks out-of-band artifacts (db/disk/logs) outside the browser, including sad-path side-effects', () => {
-    const outsideBrowser = 'the browser cannot show you a database write or a file on disk.';
-    const noUnwantedWrite = 'confirm the failure left NO unwanted side-effect';
-    const { template } = siegemasterPromptStatics.prompt;
-    const foundOutside = template.slice(
-      template.indexOf(outsideBrowser),
-      template.indexOf(outsideBrowser) + outsideBrowser.length,
+  it('VALID: template => opens the gate block with the Manual QA Gates header', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(/^## Manual QA Gates$/mu);
+  });
+
+  it('VALID: template => declares gates are sequential with exit criteria and no skipping', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^Gates are sequential\. Each has exit criteria\. Do not skip\.$/mu,
     );
-    const foundNoWrite = template.slice(
-      template.indexOf(noUnwantedWrite),
-      template.indexOf(noUnwantedWrite) + noUnwantedWrite.length,
+  });
+
+  it('VALID: template => carries exactly one Exit Criteria per gate (eight gates)', () => {
+    const exitCriteriaCount =
+      siegemasterPromptStatics.prompt.template.split('**Exit Criteria:**').length - 1;
+
+    expect(exitCriteriaCount).toBe(8);
+  });
+
+  it('VALID: template => Gate 1 loads standards, verifies against git, and maps every flow', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^### Gate 1: Load Standards, Verify Against Git & Map Every Flow \(MCP — BLOCKING, do this FIRST\)$/mu,
+    );
+  });
+
+  it('VALID: template => Gate 1 trusts git over the ledger and loads the immutable spine', () => {
+    const gitOverLedger = '**Trust git\nover the ledger.**';
+    const spine =
+      'Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\ncontracts, and design decisions. The spine is immutable — it is your acceptance target.';
+    const { template } = siegemasterPromptStatics.prompt;
+    const foundGit = template.slice(
+      template.indexOf(gitOverLedger),
+      template.indexOf(gitOverLedger) + gitOverLedger.length,
+    );
+    const foundSpine = template.slice(
+      template.indexOf(spine),
+      template.indexOf(spine) + spine.length,
     );
 
-    expect({ foundOutside, foundNoWrite }).toStrictEqual({
-      foundOutside: outsideBrowser,
-      foundNoWrite: noUnwantedWrite,
-    });
+    expect({ foundGit, foundSpine }).toStrictEqual({ foundGit: gitOverLedger, foundSpine: spine });
+  });
+
+  it('VALID: template => Gate 2 stands up the real system and picks the verification surface', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^### Gate 2: Stand Up the Real System & Pick Your Surface$/mu,
+    );
+  });
+
+  it('VALID: template => a backend (API/CLI/queue) flow is driven by curl, not a browser', () => {
+    const needle =
+      'That IS the manual QA for a backend flow, NOT a fallback — do not open a browser for it.';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
   });
 
   it('VALID: template => resets state between branch walks (established Gate 2, applied before every walk)', () => {
@@ -175,52 +201,6 @@ describe('siegemasterPromptStatics', () => {
     });
   });
 
-  it('VALID: template => opens the gate block with a sequential, exit-criteria header', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(/^## Manual QA Gates$/mu);
-  });
-
-  it('VALID: template => declares gates are sequential with exit criteria and no skipping', () => {
-    const needle = 'Gates are sequential. Each has exit criteria. Do not skip.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => carries exactly one Exit Criteria per gate (seven gates)', () => {
-    const exitCriteriaCount =
-      siegemasterPromptStatics.prompt.template.split('**Exit Criteria:**').length - 1;
-
-    expect(exitCriteriaCount).toBe(7);
-  });
-
-  it('VALID: template => Gate 1 loads standards and maps the flow, BLOCKING first', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^### Gate 1: Load Standards & Map the Flow \(MCP — BLOCKING, do this FIRST\)$/mu,
-    );
-  });
-
-  it('VALID: template => Gate 2 stands up the real system and picks the verification surface', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^### Gate 2: Stand Up the Real System & Pick Your Surface$/mu,
-    );
-  });
-
-  it('VALID: template => a backend (API/CLI/queue) flow is driven by curl, not a browser', () => {
-    const needle =
-      'That IS the manual QA for a backend flow, NOT a fallback — do not open a browser for it.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
   it('VALID: template => Gate 3 walks the happy paths for real', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
       /^### Gate 3: Walk the Happy Paths \(run it for real\)$/mu,
@@ -231,100 +211,6 @@ describe('siegemasterPromptStatics', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
       /^This is your first active phase — exploration the automated tests are blind to\. \*\*Confirm the happy path works BEFORE you try to break anything\.\*\*$/mu,
     );
-  });
-
-  it('VALID: template => Gate 4 walks the sad paths the graph draws', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^### Gate 4: Walk the Sad Paths \(every drawn error\/skip branch\)$/mu,
-    );
-  });
-
-  it('VALID: template => requires reaching every terminal for real, happy and sad', () => {
-    const needle = 'Every terminal on the map, success or error, must be reached for real.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => Gate 5 goes off the map for missed paths and breakage pockets', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^### Gate 5: Go Off the Map — Missed Paths & Breakage Pockets$/mu,
-    );
-  });
-
-  it('VALID: template => Gate 6 audits the suite read-only for false-positive greens', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^### Gate 6: Audit the Suite for False-Positive Greens$/mu,
-    );
-  });
-
-  it('VALID: template => Gate 7 signals', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(/^### Gate 7: Signal$/mu);
-  });
-
-  it('VALID: template => signals once for the whole flow, not once per walk-path', () => {
-    const needle = 'You signal ONCE for the whole flow';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => Signaling warns against FAILED OBSERVABLES in complete summary', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^\*\*Warning:\*\* Do NOT include the literal string `FAILED OBSERVABLES:` in any complete-signal summary\.$/mu,
-    );
-  });
-
-  it('VALID: template => failure-summary guidance references Nodes block for observable-id placeholder', () => {
-    const needle =
-      'Use observable IDs from the Nodes block when populating `{observable-id}` placeholders.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => audits the existing suite scoped, path-agnostic (no hardcoded package)', () => {
-    const needle = 'npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => carries no .spec.ts references (e2e renamed to .e2e.ts)', () => {
-    expect(siegemasterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
-  });
-
-  it('VALID: template => leads with operating rules read first', () => {
-    expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^## Operating Rules — READ FIRST \(ignoring these wedges the whole quest\)$/mu,
-    );
-  });
-
-  it('VALID: template => forbids ending the turn waiting for a background task', () => {
-    const needle = 'NEVER end your turn waiting for a background task, and NEVER poll for one.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
   });
 
   it('VALID: template => defines manual QA as driving the real browser via the Claude-in-Chrome MCP', () => {
@@ -338,6 +224,151 @@ describe('siegemasterPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
+  it('VALID: template => Gate 4 walks the sad paths and requires every terminal reached for real', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^### Gate 4: Walk the Sad Paths \(every drawn error\/skip branch\)$/mu,
+    );
+
+    const needle = 'Every terminal on every map, success or error, must be reached for real.';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => checks out-of-band artifacts (db/disk/logs) outside the browser, including sad-path side-effects', () => {
+    const outsideBrowser = 'the browser cannot show you a database write or a file on disk.';
+    const noUnwantedWrite = 'confirm the failure left NO unwanted side-effect';
+    const { template } = siegemasterPromptStatics.prompt;
+    const foundOutside = template.slice(
+      template.indexOf(outsideBrowser),
+      template.indexOf(outsideBrowser) + outsideBrowser.length,
+    );
+    const foundNoWrite = template.slice(
+      template.indexOf(noUnwantedWrite),
+      template.indexOf(noUnwantedWrite) + noUnwantedWrite.length,
+    );
+
+    expect({ foundOutside, foundNoWrite }).toStrictEqual({
+      foundOutside: outsideBrowser,
+      foundNoWrite: noUnwantedWrite,
+    });
+  });
+
+  it('VALID: template => Gate 5 goes off the map for missed paths and breakage pockets', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^### Gate 5: Go Off the Map — Missed Paths & Breakage Pockets$/mu,
+    );
+  });
+
+  it('VALID: template => Gate 6 audits the suite for false-positive greens', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^### Gate 6: Audit the Suite for False-Positive Greens$/mu,
+    );
+  });
+
+  it('VALID: template => audits the existing suite scoped, path-agnostic (no hardcoded package)', () => {
+    const needle = 'npm run ward -- --only e2e,integration -- <ui-package>/src/flows/<route>';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => Gate 7 TDD-fixes findings with a failing test first', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^### Gate 7: TDD-Fix What You Found$/mu,
+    );
+
+    const needle = '**Failing test FIRST.** For each break, write (or strengthen) a test';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => Gate 8 commits and signals via the verify fixpoint', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(/^### Gate 8: Commit & Signal$/mu);
+  });
+
+  it('VALID: template => declares the commit message the only handoff channel', () => {
+    const needle =
+      '**The commit message is the ONLY handoff channel — git carries the context, not the ledger.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries the hard DO NOT STASH rule', () => {
+    const needle = '**Hard rule — DO NOT STASH.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => signals partial when the pass changed code (fresh session re-walks)', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => signals done when the pass changed nothing', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => states convergence is the verdict (fresh pass that changes nothing)', () => {
+    const needle =
+      '**Convergence IS the verdict: only a fresh pass that changes nothing proves the flows hold.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries no legacy signal or planning-model references', () => {
+    const { template } = siegemasterPromptStatics.prompt;
+    const legacyNeedles = [
+      'failed-replan',
+      "'failed'",
+      'PathSeeker',
+      'Spiritmender',
+      'You change NO files',
+      'FAILED OBSERVABLES',
+      'replan',
+    ];
+    const legacyHits = legacyNeedles.filter((needle) => template.includes(needle));
+
+    expect(legacyHits.join(', ')).toBe('');
+  });
+
+  it('VALID: template => leads with operating rules read first', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(
+      /^## Operating Rules — READ FIRST \(ignoring these wedges the whole quest\)$/mu,
+    );
+  });
+
   it('VALID: template => embeds the shared agent operating rules', () => {
     const rules = agentOperatingRulesStatics.markdown;
     const { template } = siegemasterPromptStatics.prompt;
@@ -346,59 +377,12 @@ describe('siegemasterPromptStatics', () => {
     expect(found).toBe(rules);
   });
 
-  it('VALID: template => hardcodes no UI package path', () => {
+  it('VALID: template => hardcodes no UI package path and carries no .spec.ts references', () => {
     expect(siegemasterPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
+    expect(siegemasterPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
   });
 
-  it('VALID: template => a code failure signals failed and routes to a spiritmender + fresh siege, never blocking the quest', () => {
-    const needle =
-      'When you find a **code failure** — a real broken flow OR a test that passes while the flow is broken — you signal `failed` with a precise finding, and the orchestrator dispatches a **Spiritmender** to fix the implementation/test and then a **fresh Siegemaster** to re-verify.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => a plan hole signals failed-replan and routes to PathSeeker, never blocking the quest', () => {
-    const needle =
-      'When you find a **plan hole** instead — the flow cannot work as planned (missing observable coverage, a wrong contract, a structural gap no code fix can close) — you signal `failed-replan` with a precise finding, and PathSeeker re-plans the flow.';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => neither failed nor failed-replan is a dead end or a quest block', () => {
-    const needle = 'Neither signal is a dead end and neither BLOCKs the quest';
-    const { template } = siegemasterPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: template => signal-back examples cover complete, code-failure, and plan-hole outcomes', () => {
-    const complete = "signal: 'complete',";
-    const failed = "signal: 'failed',";
-    const failedReplan = "signal: 'failed-replan',";
-    const { template } = siegemasterPromptStatics.prompt;
-
-    expect(template.indexOf(complete)).toBeGreaterThan(-1);
-    expect(template.indexOf(failed)).toBeGreaterThan(-1);
-    expect(template.indexOf(failedReplan)).toBeGreaterThan(-1);
-  });
-
-  it('VALID: template => never describes failed as an unqualified block on the quest', () => {
-    const { template } = siegemasterPromptStatics.prompt;
-
-    expect(template.indexOf('which BLOCKs the quest')).toBe(-1);
+  it('VALID: template => has the Operation Context heading', () => {
+    expect(siegemasterPromptStatics.prompt.template).toMatch(/^## Operation Context$/mu);
   });
 });

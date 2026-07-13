@@ -42,20 +42,20 @@ describe('questStageToSectionsTransformer', () => {
       ]);
     });
 
-    it('VALID: {stage: "planning"} => returns planningNotes, steps, contracts', () => {
+    it('VALID: {stage: "planning"} => returns planningNotes, operations, contracts', () => {
       const result = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'planning' }),
       });
 
-      expect(result).toStrictEqual(['planningNotes', 'steps', 'contracts']);
+      expect(result).toStrictEqual(['planningNotes', 'operations', 'contracts']);
     });
 
-    it('VALID: {stage: "implementation"} => returns planningNotes, steps, contracts, toolingRequirements', () => {
+    it('VALID: {stage: "implementation"} => returns planningNotes, operations, contracts, toolingRequirements', () => {
       const result = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'implementation' }),
       });
 
-      expect(result).toStrictEqual(['planningNotes', 'steps', 'contracts', 'toolingRequirements']);
+      expect(result).toStrictEqual(['planningNotes', 'operations', 'contracts', 'toolingRequirements']);
     });
   });
 

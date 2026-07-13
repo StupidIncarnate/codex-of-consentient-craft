@@ -1,81 +1,25 @@
 /**
- * PURPOSE: Seeds planningNotes with stubbed gate-content fields required for a given quest status
+ * PURPOSE: Seeds planningNotes with the default empty gate-content shape for a given quest status
  *
  * USAGE:
- * questGateContentSeedTransformer({ status: 'seek_synth' });
- * // Returns { scopeClassification: PlanningScopeClassificationStub(), surfaceReports: [], blightReports: [] }
+ * questGateContentSeedTransformer({ status: 'in_progress' });
+ * // Returns { blightReports: [] }
  *
- * WHEN-TO-USE: Building quest JSON for E2E seeding where planningNotes fields are gated by status
- * WHEN-NOT-TO-USE: Production code — stubs are test-only data
+ * WHEN-TO-USE: Building quest JSON for E2E seeding where planningNotes fields need their defaults
+ * WHEN-NOT-TO-USE: Production code — this is test-only seeding
  */
-
-import type { QuestStatus } from '@dungeonmaster/shared/contracts';
-import {
-  PlanningScopeClassificationStub,
-  PlanningSynthesisStub,
-  PlanningWalkFindingsStub,
-  questStatusContract,
-} from '@dungeonmaster/shared/contracts';
-
-type GateContentRequirement = Readonly<{
-  scopeClassification: boolean;
-  synthesis: boolean;
-  walkFindings: boolean;
-}>;
-
-const GATE_CONTENT_REQUIREMENTS: Readonly<Partial<Record<QuestStatus, GateContentRequirement>>> = {
-  seek_synth: {
-    scopeClassification: true,
-    synthesis: false,
-    walkFindings: false,
-  },
-  seek_walk: {
-    scopeClassification: true,
-    synthesis: true,
-    walkFindings: false,
-  },
-  in_progress: {
-    scopeClassification: true,
-    synthesis: true,
-    walkFindings: true,
-  },
-};
 
 type PlanningNotesInput = Record<PropertyKey, unknown>;
 
 export const questGateContentSeedTransformer = ({
-  status,
   override,
 }: {
   status: string;
   override?: PlanningNotesInput;
 }): PlanningNotesInput => {
   const seeded: Record<PropertyKey, unknown> = { ...(override ?? {}) };
-  if (seeded.surfaceReports === undefined) {
-    seeded.surfaceReports = [];
-  }
   if (seeded.blightReports === undefined) {
     seeded.blightReports = [];
-  }
-  if (seeded.codeweaverPlans === undefined) {
-    seeded.codeweaverPlans = [];
-  }
-  const parseResult = questStatusContract.safeParse(status);
-  if (!parseResult.success) {
-    return seeded;
-  }
-  const requirements = GATE_CONTENT_REQUIREMENTS[parseResult.data];
-  if (requirements === undefined) {
-    return seeded;
-  }
-  if (requirements.scopeClassification && seeded.scopeClassification === undefined) {
-    seeded.scopeClassification = PlanningScopeClassificationStub();
-  }
-  if (requirements.synthesis && seeded.synthesis === undefined) {
-    seeded.synthesis = PlanningSynthesisStub();
-  }
-  if (requirements.walkFindings && seeded.walkFindings === undefined) {
-    seeded.walkFindings = PlanningWalkFindingsStub();
   }
   return seeded;
 };

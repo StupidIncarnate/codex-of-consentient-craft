@@ -1,12 +1,14 @@
 /**
- * PURPOSE: Composes the execution panel with tab bar, status bar, floor headers, and step rows for quest execution view
+ * PURPOSE: Composes the execution panel with tab bar, status bar, operations ledger, and a flat
+ * list of work-item rows for the quest execution view
  *
  * USAGE:
  * <ExecutionPanelWidget quest={quest} />
- * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs, floor-based step layout
+ * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs; the operations ledger renders above
+ * // one row per work item in quest.workItems order
  */
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { Box, Group, Stack, UnstyledButton } from '@mantine/core';
 
@@ -15,7 +17,6 @@ import type {
   QuestStatus,
   QuestWorkItemId,
   SessionId,
-  StepId,
   UrlSlug,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
@@ -28,17 +29,12 @@ import type { DisplayFilePath } from '../../contracts/display-file-path/display-
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
-import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
-import { slotCountContract } from '../../contracts/slot-count/slot-count-contract';
-import type { StepName } from '../../contracts/step-name/step-name-contract';
-import type { StepOrder } from '../../contracts/step-order/step-order-contract';
+import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { TotalCount } from '../../contracts/total-count/total-count-contract';
 import {
-  isActiveWorkItemStatusGuard,
   isAnyAgentRunningQuestStatusGuard,
   isCompletedSuccessfullyQuestStatusGuard,
-  isCompleteWorkItemStatusGuard,
   isQuestResumableQuestStatusGuard,
   isSkippedWorkItemStatusGuard,
   isTerminalQuestStatusGuard,
@@ -46,15 +42,14 @@ import {
 import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
-import { workItemsToFloorGroupsTransformer } from '../../transformers/work-items-to-floor-groups/work-items-to-floor-groups-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
+import { OperationsLedgerWidget } from '../operations-ledger/operations-ledger-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
-import { FloorHeaderLayerWidget } from './floor-header-layer-widget';
 
 const DUMPSTER_LAUNCH_BANNER_MESSAGE = displayLabelContract.parse(
   "Run this in your Claude session — it'll pick this quest up on its next pass.",
@@ -87,9 +82,10 @@ const TAB_PADDING_VERTICAL = 5;
 const PAUSE_LABEL = 'PAUSE QUEST' as ButtonLabel;
 const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
 const ACTION_BAR_PADDING = 12;
-const WARD_RESULTS_PREFIX_LENGTH = 'wardResults/'.length;
-const STEPS_PREFIX = 'steps/';
-const STEPS_PREFIX_LENGTH = STEPS_PREFIX.length;
+const WARD_RESULTS_PREFIX = 'wardResults/';
+const WARD_RESULTS_PREFIX_LENGTH = WARD_RESULTS_PREFIX.length;
+const OPERATIONS_PREFIX = 'operations/';
+const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
 const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
 export const ExecutionPanelWidget = ({
   quest,
@@ -103,27 +99,32 @@ export const ExecutionPanelWidget = ({
   const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
   const { colors } = emberDepthsThemeStatics;
 
-  const { steps } = quest;
   const isTerminalQuest = isTerminalQuestStatusGuard({ status: quest.status });
-  const isPlanning = steps.length === 0 && !isTerminalQuest;
-  const hasWorkItemsOnly = steps.length === 0 && isTerminalQuest && quest.workItems.length > 0;
 
-  const stepsById = new Map(steps.map((s) => [s.id, s]));
+  // Terminal-quest-with-no-operations is the abandon-early case:
+  // OrchestrationAbandonResponder marks every non-terminal work item as
+  // `skipped` while transitioning to `abandoned`, so an abandon during the
+  // chaoswhisperer phase produces { status: 'abandoned', workItems:
+  // [{ role: 'chaoswhisperer', status: 'skipped', sessionId }] }. Filtering
+  // skipped items out (the active-quest default) would hide the only row that
+  // could display the chaos transcript, leaving a blank panel even though the
+  // server is replaying chat-output for that sessionId. For every other render,
+  // skipped items stay hidden so the visible chain reflects what actually ran.
+  const includeSkipped = isTerminalQuest && quest.operations.length === 0;
 
-  const nonSkippedWorkItems = quest.workItems.filter(
-    (wi) => !isSkippedWorkItemStatusGuard({ status: wi.status }),
+  const visibleWorkItems = quest.workItems.filter(
+    (wi) => includeSkipped || !isSkippedWorkItemStatusGuard({ status: wi.status }),
   );
-  const totalCount = nonSkippedWorkItems.length as TotalCount;
-  const completedCount = nonSkippedWorkItems.filter((wi) =>
-    isCompleteWorkItemStatusGuard({ status: wi.status }),
-  ).length as CompletedCount;
+
+  const totalOperations = quest.operations.length as TotalCount;
+  const completedOperations = quest.operations.filter((op) => op.status === 'complete')
+    .length as CompletedCount;
+
+  const operationsById = new Map(quest.operations.map((op) => [op.id, op]));
 
   const workItemIdToLabel = new Map<WorkItem['id'], WorkItem['role']>();
   for (const wi of quest.workItems) {
-    const stepRef = wi.relatedDataItems.find((ref) => ref.startsWith(STEPS_PREFIX));
-    const stepId = stepRef ? (stepRef.slice(STEPS_PREFIX_LENGTH) as StepId) : undefined;
-    const step = stepId ? stepsById.get(stepId) : undefined;
-    workItemIdToLabel.set(wi.id, step ? (step.name as unknown as WorkItem['role']) : wi.role);
+    workItemIdToLabel.set(wi.id, wi.role);
   }
 
   const wardResultsById = new Map<
@@ -132,43 +133,6 @@ export const ExecutionPanelWidget = ({
   >();
   for (const wr of quest.wardResults) {
     wardResultsById.set(wr.id, wr);
-  }
-
-  // Terminal-quest-no-steps (hasWorkItemsOnly) is the abandon-early case:
-  // OrchestrationAbandonResponder marks every non-terminal work item as
-  // `skipped` while transitioning to `abandoned`, so an abandon during the
-  // chaoswhisperer phase produces { status: 'abandoned', workItems:
-  // [{ role: 'chaoswhisperer', status: 'skipped', sessionId }] }. Filtering
-  // skipped items out (the active-quest default) would hide the only row that
-  // could display the chaos transcript, leaving a blank panel even though the
-  // server is replaying chat-output for that sessionId. For active-quest and
-  // step-driven terminal renders, drain+skip recoveries still hide their
-  // skipped items so the visible chain reflects what actually ran.
-  const floorGroups = useMemo(
-    () =>
-      workItemsToFloorGroupsTransformer({
-        workItems: quest.workItems,
-        allWorkItems: quest.workItems,
-        includeSkipped: hasWorkItemsOnly,
-      }),
-    [quest.workItems, hasWorkItemsOnly],
-  );
-
-  const groupActiveCounts = new Map<(typeof floorGroups)[0], SlotCount>();
-  const groupTotalCounts = new Map<(typeof floorGroups)[0], SlotCount>();
-  for (const group of floorGroups) {
-    let active = slotCountContract.parse(0);
-    let total = slotCountContract.parse(0);
-    for (const wi of group.workItems) {
-      total = slotCountContract.parse(total + 1);
-      if (isActiveWorkItemStatusGuard({ status: wi.status })) {
-        active = slotCountContract.parse(active + 1);
-      }
-    }
-    if (active > 0) {
-      groupActiveCounts.set(group, active);
-    }
-    groupTotalCounts.set(group, total);
   }
 
   return (
@@ -207,13 +171,13 @@ export const ExecutionPanelWidget = ({
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
-          {isTerminalQuestStatusGuard({ status: quest.status }) ? null : (
+          {isTerminalQuest ? null : (
             <DumpsterCommandBannerWidget
               message={DUMPSTER_LAUNCH_BANNER_MESSAGE}
               command={DUMPSTER_LAUNCH_COMMAND}
             />
           )}
-          {isTerminalQuestStatusGuard({ status: quest.status }) ? (
+          {isTerminalQuest ? (
             <Box
               data-testid="execution-panel-terminal-banner"
               style={{
@@ -235,297 +199,81 @@ export const ExecutionPanelWidget = ({
             </Box>
           ) : (
             <ExecutionStatusBarLayerWidget
-              completedCount={completedCount}
-              totalCount={totalCount}
-              isPlanning={isPlanning}
+              completedCount={completedOperations}
+              totalCount={totalOperations}
             />
           )}
           <AutoScrollContainerWidget
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px' }}
           >
-            {isPlanning
-              ? floorGroups.map((group) => (
-                  <Box key={`planning-${group.key}`}>
-                    <FloorHeaderLayerWidget
-                      floorNumber={group.floorNumber}
-                      name={group.floorName}
-                      startsNewGeneration={group.startsNewGeneration}
-                      {...(groupActiveCounts.has(group)
-                        ? {
-                            concurrent: {
-                              active: groupActiveCounts.get(group) ?? slotCountContract.parse(0),
-                              max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
-                            },
-                          }
-                        : {})}
-                    />
-                    {group.workItems.map((wi, wiIndex) => {
-                      const wiOwnEntries =
-                        workItemEntries.get(wi.id) ??
-                        (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
-                        [];
-                      const wiEntries = mergeDescendantSubagentEntriesTransformer({
-                        ownEntries: wiOwnEntries,
-                        poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
-                      });
-                      const wiDepLabels = wi.dependsOn
-                        .map((depId) => workItemIdToLabel.get(depId) ?? depId)
-                        .filter((label) => label.length > 0);
-                      return (
-                        <ExecutionRowLayerWidget
-                          key={wi.id}
-                          order={(wiIndex + 1) as StepOrder}
-                          name={
-                            `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
-                          }
-                          role={wi.role as unknown as ExecutionRole}
-                          status={wi.status as unknown as ExecutionStepStatus}
-                          files={[] as DisplayFilePath[]}
-                          dependsOn={wiDepLabels as unknown as DependencyLabel[]}
-                          isAdhoc={wi.insertedBy !== undefined}
-                          entries={wiEntries}
-                          attempt={wi.attempt}
-                          maxAttempts={wi.maxAttempts}
-                          startedAt={wi.startedAt}
-                          completedAt={wi.completedAt}
-                          {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                          {...(wi.summary ? { summary: wi.summary } : {})}
-                          {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
-                          {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
-                          {...(guildSlug ? { guildSlug } : {})}
-                        />
-                      );
-                    })}
-                  </Box>
-                ))
-              : null}
-            {hasWorkItemsOnly
-              ? floorGroups.map((group) => (
-                  <Box key={`${group.floorName}-${String(group.floorNumber)}`}>
-                    <FloorHeaderLayerWidget
-                      floorNumber={group.floorNumber}
-                      name={group.floorName}
-                      startsNewGeneration={group.startsNewGeneration}
-                      {...(groupActiveCounts.has(group)
-                        ? {
-                            concurrent: {
-                              active: groupActiveCounts.get(group) ?? slotCountContract.parse(0),
-                              max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
-                            },
-                          }
-                        : {})}
-                    />
-                    {group.workItems.map((wi, wiIndex) => {
-                      const wiOwnEntries =
-                        workItemEntries.get(wi.id) ??
-                        (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
-                        [];
-                      const wiEntries = mergeDescendantSubagentEntriesTransformer({
-                        ownEntries: wiOwnEntries,
-                        poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
-                      });
-                      const wiDepLabels = wi.dependsOn
-                        .map((depId) => workItemIdToLabel.get(depId) ?? depId)
-                        .filter((label) => label.length > 0);
-                      return (
-                        <ExecutionRowLayerWidget
-                          key={wi.id}
-                          order={(wiIndex + 1) as StepOrder}
-                          name={
-                            `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
-                          }
-                          role={wi.role as unknown as ExecutionRole}
-                          status={wi.status as unknown as ExecutionStepStatus}
-                          files={[] as DisplayFilePath[]}
-                          dependsOn={wiDepLabels as unknown as DependencyLabel[]}
-                          isAdhoc={wi.insertedBy !== undefined}
-                          entries={wiEntries}
-                          autoExpand={true}
-                          attempt={wi.attempt}
-                          maxAttempts={wi.maxAttempts}
-                          startedAt={wi.startedAt}
-                          completedAt={wi.completedAt}
-                          {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                          {...(wi.summary ? { summary: wi.summary } : {})}
-                          {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
-                          {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
-                          {...(guildSlug ? { guildSlug } : {})}
-                        />
-                      );
-                    })}
-                  </Box>
-                ))
-              : null}
-            {isPlanning || hasWorkItemsOnly ? null : (
-              <>
-                {floorGroups.map((group) => {
-                  const nonStepItems = group.workItems.filter((wi) => {
-                    if (wi.role === 'pathseeker') return true;
-                    const hasStepRef = wi.relatedDataItems.some((ref) =>
-                      ref.startsWith(STEPS_PREFIX),
-                    );
-                    return !hasStepRef;
-                  });
-                  const steppedItems =
-                    steps.length > 0
-                      ? group.workItems.filter((wi) =>
-                          wi.relatedDataItems.some((ref) => ref.startsWith(STEPS_PREFIX)),
-                        )
-                      : [];
-                  const allItems = [...nonStepItems, ...steppedItems];
-                  if (allItems.length === 0) return null;
-
-                  return (
-                    <Box key={`floor-${group.key}`}>
-                      <FloorHeaderLayerWidget
-                        floorNumber={group.floorNumber}
-                        name={group.floorName}
-                        startsNewGeneration={group.startsNewGeneration}
-                        {...(groupActiveCounts.has(group)
-                          ? {
-                              concurrent: {
-                                active: groupActiveCounts.get(group) ?? slotCountContract.parse(0),
-                                max: groupTotalCounts.get(group) ?? slotCountContract.parse(0),
-                              },
-                            }
-                          : {})}
-                      />
-                      {nonStepItems.map((wi, wiIndex) => {
-                        const wiOwnEntries =
-                          workItemEntries.get(wi.id) ??
-                          (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
-                          [];
-                        const wiEntries = mergeDescendantSubagentEntriesTransformer({
-                          ownEntries: wiOwnEntries,
-                          poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
-                        });
-                        const wiDepLabels = wi.dependsOn
-                          .map((depId) => workItemIdToLabel.get(depId) ?? depId)
-                          .filter((label) => label.length > 0);
-                        const wiWardRefs = wi.relatedDataItems.filter((ref) =>
-                          ref.startsWith('wardResults/'),
-                        );
-                        const wiWardResults = wiWardRefs
-                          .map((ref) =>
-                            wardResultsById.get(
-                              ref.slice(
-                                WARD_RESULTS_PREFIX_LENGTH,
-                              ) as (typeof quest.wardResults)[0]['id'],
-                            ),
-                          )
-                          .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
-                        return (
-                          <ExecutionRowLayerWidget
-                            key={wi.id}
-                            order={(wiIndex + 1) as StepOrder}
-                            name={
-                              `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${group.workItems.length > 1 ? ` #${String(wiIndex + 1)}` : ''}` as unknown as StepName
-                            }
-                            role={wi.role as unknown as ExecutionRole}
-                            status={wi.status as unknown as ExecutionStepStatus}
-                            files={[] as DisplayFilePath[]}
-                            dependsOn={wiDepLabels as unknown as DependencyLabel[]}
-                            isAdhoc={wi.insertedBy !== undefined}
-                            entries={wiEntries}
-                            attempt={wi.attempt}
-                            maxAttempts={wi.maxAttempts}
-                            startedAt={wi.startedAt}
-                            completedAt={wi.completedAt}
-                            {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                            {...(wi.summary ? { summary: wi.summary } : {})}
-                            {...(wiWardResults.length > 0
-                              ? { wardResults: wiWardResults, questId: quest.id }
-                              : {})}
-                            {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
-                            {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
-                            {...(guildSlug ? { guildSlug } : {})}
-                          />
-                        );
-                      })}
-                      {steppedItems.map((wi, stepIndex) => {
-                        const stepRef = wi.relatedDataItems.find((ref) =>
-                          ref.startsWith(STEPS_PREFIX),
-                        );
-                        const stepId = stepRef
-                          ? (stepRef.slice(STEPS_PREFIX_LENGTH) as StepId)
-                          : undefined;
-                        const step = stepId ? stepsById.get(stepId) : undefined;
-                        const wiStatus = wi.status as ExecutionStepStatus;
-                        const stepOwnEntries =
-                          workItemEntries.get(wi.id) ??
-                          (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
-                          [];
-                        const stepEntries = mergeDescendantSubagentEntriesTransformer({
-                          ownEntries: stepOwnEntries,
-                          poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
-                        });
-                        const wardRefs = wi.relatedDataItems.filter((ref) =>
-                          ref.startsWith('wardResults/'),
-                        );
-                        const resolvedWardResults = wardRefs
-                          .map((ref) =>
-                            wardResultsById.get(
-                              ref.slice(
-                                WARD_RESULTS_PREFIX_LENGTH,
-                              ) as (typeof quest.wardResults)[0]['id'],
-                            ),
-                          )
-                          .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
-                        return (
-                          <ExecutionRowLayerWidget
-                            key={wi.id}
-                            order={(stepIndex + 1) as StepOrder}
-                            name={
-                              step
-                                ? (step.name as unknown as StepName)
-                                : (`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}${steppedItems.length > 1 ? ` #${String(stepIndex + 1)}` : ''}` as unknown as StepName)
-                            }
-                            role={wi.role as unknown as ExecutionRole}
-                            status={wiStatus}
-                            files={
-                              step
-                                ? ([
-                                    ...(step.focusFile ? [step.focusFile.path] : []),
-                                    ...step.accompanyingFiles.map((af) => af.path),
-                                  ] as unknown as DisplayFilePath[])
-                                : ([] as DisplayFilePath[])
-                            }
-                            dependsOn={
-                              step
-                                ? (step.dependsOn as unknown as DependencyLabel[])
-                                : ([] as DependencyLabel[])
-                            }
-                            isAdhoc={wi.insertedBy !== undefined}
-                            entries={stepEntries}
-                            isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
-                            {...(step
-                              ? {
-                                  observablesSatisfied: step.observablesSatisfied,
-                                  inputContracts: step.inputContracts,
-                                  outputContracts: step.outputContracts,
-                                }
-                              : {})}
-                            attempt={wi.attempt}
-                            maxAttempts={wi.maxAttempts}
-                            {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
-                            {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
-                            {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
-                            {...(wi.summary ? { summary: wi.summary } : {})}
-                            {...(resolvedWardResults.length > 0
-                              ? { wardResults: resolvedWardResults, questId: quest.id }
-                              : {})}
-                            {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
-                            {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
-                            {...(guildSlug ? { guildSlug } : {})}
-                          />
-                        );
-                      })}
-                    </Box>
-                  );
-                })}
-              </>
-            )}
+            <OperationsLedgerWidget operations={quest.operations} />
+            {visibleWorkItems.map((wi, wiIndex) => {
+              const wiOwnEntries =
+                workItemEntries.get(wi.id) ??
+                (wi.sessionId ? sessionEntries.get(wi.sessionId) : undefined) ??
+                [];
+              const wiEntries = mergeDescendantSubagentEntriesTransformer({
+                ownEntries: wiOwnEntries,
+                poolEntries: wi.sessionId ? (sessionEntries.get(wi.sessionId) ?? []) : [],
+              });
+              const wiDepLabels = wi.dependsOn
+                .map((depId) => workItemIdToLabel.get(depId) ?? depId)
+                .filter((label) => label.length > 0);
+              const wiWardRefs = wi.relatedDataItems.filter((ref) =>
+                ref.startsWith(WARD_RESULTS_PREFIX),
+              );
+              const wiWardResults = wiWardRefs
+                .map((ref) =>
+                  wardResultsById.get(
+                    ref.slice(WARD_RESULTS_PREFIX_LENGTH) as (typeof quest.wardResults)[0]['id'],
+                  ),
+                )
+                .filter((wr): wr is NonNullable<typeof wr> => wr !== undefined);
+              const wiStatus = wi.status as ExecutionStepStatus;
+              const wiOperationRef = wi.relatedDataItems.find((ref) =>
+                ref.startsWith(OPERATIONS_PREFIX),
+              );
+              const wiOperation = wiOperationRef
+                ? operationsById.get(
+                    wiOperationRef.slice(
+                      OPERATIONS_PREFIX_LENGTH,
+                    ) as (typeof quest.operations)[0]['id'],
+                  )
+                : undefined;
+              const wiName = displayLabelContract.parse(
+                wiOperation
+                  ? wiOperation.text
+                  : `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`,
+              );
+              return (
+                <ExecutionRowLayerWidget
+                  key={wi.id}
+                  order={(wiIndex + 1) as RowOrder}
+                  name={wiName}
+                  role={wi.role as unknown as ExecutionRole}
+                  status={wiStatus}
+                  files={[] as DisplayFilePath[]}
+                  dependsOn={wiDepLabels as unknown as DependencyLabel[]}
+                  isAdhoc={wi.insertedBy !== undefined}
+                  entries={wiEntries}
+                  isStreaming={wiStatus === ('in_progress' as ExecutionStepStatus)}
+                  {...(includeSkipped ? { autoExpand: true } : {})}
+                  attempt={wi.attempt}
+                  maxAttempts={wi.maxAttempts}
+                  {...(wi.startedAt ? { startedAt: wi.startedAt } : {})}
+                  {...(wi.completedAt ? { completedAt: wi.completedAt } : {})}
+                  {...(wi.errorMessage ? { errorMessage: wi.errorMessage } : {})}
+                  {...(wi.summary ? { summary: wi.summary } : {})}
+                  {...(wiWardResults.length > 0
+                    ? { wardResults: wiWardResults, questId: quest.id }
+                    : {})}
+                  {...(wi.actualSignal ? { actualSignal: wi.actualSignal } : {})}
+                  {...(wi.sessionId ? { sessionId: wi.sessionId } : {})}
+                  {...(guildSlug ? { guildSlug } : {})}
+                />
+              );
+            })}
           </AutoScrollContainerWidget>
           {((isAnyAgentRunningQuestStatusGuard({ status: quest.status }) && onPause) ||
             (isQuestResumableQuestStatusGuard({ status: quest.status }) && onStatusChange)) && (

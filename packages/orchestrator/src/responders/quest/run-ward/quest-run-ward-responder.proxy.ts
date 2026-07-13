@@ -3,14 +3,16 @@ import { QuestRunWardResponder } from './quest-run-ward-responder';
 
 export const QuestRunWardResponderProxy = (): {
   callResponder: typeof QuestRunWardResponder;
-  setupWardPass: ReturnType<typeof questRunWardBrokerProxy>['setupWardPass'];
-  setupWardFail: ReturnType<typeof questRunWardBrokerProxy>['setupWardFail'];
+  setupQuest: ReturnType<typeof questRunWardBrokerProxy>['setupQuest'];
+  wardExits: ReturnType<typeof questRunWardBrokerProxy>['wardExits'];
+  wardExitsWithoutRunId: ReturnType<typeof questRunWardBrokerProxy>['wardExitsWithoutRunId'];
 } => {
   const brokerProxy = questRunWardBrokerProxy();
 
   return {
     callResponder: QuestRunWardResponder,
-    setupWardPass: brokerProxy.setupWardPass,
-    setupWardFail: brokerProxy.setupWardFail,
+    setupQuest: brokerProxy.setupQuest,
+    wardExits: brokerProxy.wardExits,
+    wardExitsWithoutRunId: brokerProxy.wardExitsWithoutRunId,
   };
 };

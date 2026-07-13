@@ -1,28 +1,21 @@
 import {
-  DependencyStepStub,
-  FlowStub,
+  OperationItemIdStub,
+  OperationItemStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
   RelatedDataItemStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
-import {
-  dungeonmasterHomeStatics,
-  environmentStatics,
-  outcomeTypeDescriptionsStatics,
-} from '@dungeonmaster/shared/statics';
+import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
+import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
+import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
-import { spiritmenderPromptStatics } from '../../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 
 import { agentPromptGetBroker } from './agent-prompt-get-broker';
 import { agentPromptGetBrokerProxy } from './agent-prompt-get-broker.proxy';
-
-const observableTypeReferenceLines = Object.entries(outcomeTypeDescriptionsStatics).map(
-  ([type, desc]) => `  - \`${type}\` — ${desc}`,
-);
 
 describe('agentPromptGetBroker', () => {
   describe('full {agent, questId, workItemId} path', () => {
@@ -105,100 +98,87 @@ describe('agentPromptGetBroker', () => {
     });
   });
 
-  describe('spiritmender recovery batch delivery', () => {
-    it('VALID: {role: spiritmender, sidecar present with filePaths+errors+verificationCommand+contextInstructions} => prompt carries the batch fields', async () => {
+  describe('operation-context relay path', () => {
+    it('VALID: {role: codeweaver, operation linked on loaded quest} => prompt carries the operation-relay context resolved from the loaded quest', async () => {
       const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'spiritmender' });
-      const quest = QuestStub({
-        id: QuestIdStub({ value: 'add-auth' }),
-        workItems: [workItem],
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-2020-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-2020-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
       });
-      proxy.setupQuestFound({ quest });
-      proxy.setupSpiritmenderBatch({
-        batchJson: JSON.stringify({
-          filePaths: ['/src/brokers/login/login-broker.ts', '/src/guards/auth/auth-guard.ts'],
-          errors: ['TS2339: property foo does not exist', 'lint: missing return type'],
-          verificationCommand: 'npm run ward -- -- /src/brokers/login/login-broker.ts',
-          contextInstructions: 'Ward failed on these files. Fix the type errors then re-run ward.',
-        }),
-      });
-
-      const result = await agentPromptGetBroker({
-        agent: 'spiritmender',
-        questId: quest.id,
-        workItemId,
-      });
-
-      const expectedArgs = [
-        'Ward failed on these files. Fix the type errors then re-run ward.',
-        '',
-        'Files:',
-        '  - /src/brokers/login/login-broker.ts',
-        '  - /src/guards/auth/auth-guard.ts',
-        'Errors:',
-        '  - TS2339: property foo does not exist',
-        '  - lint: missing return type',
-        'Verification Command: npm run ward -- -- /src/brokers/login/login-broker.ts',
-      ].join('\n');
-
-      expect(result.prompt).toBe(
-        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
-    });
-  });
-
-  describe('spiritmender step-ref fallback (no sidecar)', () => {
-    it('VALID: {role: spiritmender, no sidecar, steps/<id> relatedDataItem} => falls back to step file paths and does not throw', async () => {
-      const proxy = agentPromptGetBrokerProxy();
-      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
-      const step = DependencyStepStub();
       const workItem = WorkItemStub({
         id: workItemId,
-        role: 'spiritmender',
-        relatedDataItems: [RelatedDataItemStub({ value: `steps/${String(step.id)}` })],
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        steps: [step],
+        operations: [operation],
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });
-      proxy.setupNoSpiritmenderBatch();
 
       const result = await agentPromptGetBroker({
-        agent: 'spiritmender',
+        agent: 'codeweaver',
         questId: quest.id,
         workItemId,
       });
 
       const expectedArgs = [
-        'Files:',
-        '  - src/brokers/login/create/login-create-broker.ts',
-        '  - src/brokers/login/create/login-create-broker.test.ts',
-        '  - src/brokers/login/create/login-create-broker.proxy.ts',
-        'Run npm run ward on the files to verify fixes.',
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
       ].join('\n');
 
-      expect(result.prompt).toBe(
-        spiritmenderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
+      expect(result).toStrictEqual({
+        name: 'codeweaver',
+        model: 'opus',
+        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      });
+    });
+
+    it('ERROR: {role: codeweaver, relatedDataItems empty} => rejects with no-resolvable-operations-ref error', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-2020-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver', relatedDataItems: [] });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+
+      await expect(
+        agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId }),
+      ).rejects.toThrow(/has no resolvable operations\/<id> reference/u);
     });
   });
 
   describe('siegemaster dev-server delivery', () => {
-    it('VALID: {role: siegemaster, runtime flow, devServer config resolves} => prompt includes Dev Server URL and Dev Command', async () => {
+    it('VALID: {role: siegemaster, operation linked, devServer config resolves} => prompt includes Dev Server Command and Dev Server URL', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
-      const flow = FlowStub({ flowType: 'runtime' });
+      const operationId = OperationItemIdStub({ value: 'ffffffff-1111-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'siegemaster',
+        text: 'manual QA + review flowrider suite',
+        status: 'in_progress',
+      });
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        flows: [flow],
+        operations: [operation],
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });
@@ -212,14 +192,15 @@ describe('agentPromptGetBroker', () => {
 
       const expectedArgs = [
         `Quest ID: ${String(quest.id)}`,
-        `Flow: ${String(flow.name)}`,
-        '  flowType: runtime',
-        `  entryPoint: ${String(flow.entryPoint)}`,
-        `Dev Server URL: http://${environmentStatics.hostname}:4400`,
-        'Dev Command: npm run dev',
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [siegemaster] manual QA + review flowrider suite',
         '',
-        'Observable Type Reference:',
-        ...observableTypeReferenceLines,
+        'Operations ledger (in order):',
+        '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
+        '',
+        'Dev Server Command: npm run dev',
+        `Dev Server URL: http://${environmentStatics.hostname}:4400`,
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -227,18 +208,24 @@ describe('agentPromptGetBroker', () => {
       );
     });
 
-    it('VALID: {role: siegemaster, runtime flow} => resolves config from a repo-root config FILE path, not the bare cwd directory', async () => {
+    it('VALID: {role: siegemaster, operation linked} => resolves config from a repo-root config FILE path, not the bare cwd directory', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-2222-4222-9333-444444444444' });
-      const flow = FlowStub({ flowType: 'runtime' });
+      const operationId = OperationItemIdStub({ value: 'ffffffff-2222-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'siegemaster',
+        text: 'manual QA + review flowrider suite',
+        status: 'in_progress',
+      });
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        flows: [flow],
+        operations: [operation],
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });
@@ -259,22 +246,27 @@ describe('agentPromptGetBroker', () => {
       );
     });
 
-    it('VALID: {role: siegemaster, operational flow, devServer config resolves} => prompt has NO Dev Server URL or Dev Command', async () => {
+    it('EDGE: {role: siegemaster, no devServer config resolved} => prompt has NO Dev Server Command or Dev Server URL', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'ffffeeee-1111-4222-9333-444444444444' });
-      const flow = FlowStub({ flowType: 'operational' });
+      const operationId = OperationItemIdStub({ value: 'ffffeeee-2222-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'siegemaster',
+        text: 'manual QA + review flowrider suite',
+        status: 'in_progress',
+      });
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'siegemaster',
-        relatedDataItems: [RelatedDataItemStub({ value: `flows/${String(flow.id)}` })],
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
-        flows: [flow],
+        operations: [operation],
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });
-      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
 
       const result = await agentPromptGetBroker({
         agent: 'siegemaster',
@@ -284,17 +276,95 @@ describe('agentPromptGetBroker', () => {
 
       const expectedArgs = [
         `Quest ID: ${String(quest.id)}`,
-        `Flow: ${String(flow.name)}`,
-        '  flowType: operational',
-        `  entryPoint: ${String(flow.entryPoint)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [siegemaster] manual QA + review flowrider suite',
         '',
-        'Observable Type Reference:',
-        ...observableTypeReferenceLines,
+        'Operations ledger (in order):',
+        '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
       ].join('\n');
 
       expect(result.prompt).toBe(
         siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
+    });
+  });
+
+  describe('flowrider dev-server delivery', () => {
+    it('VALID: {role: flowrider, operation linked, devServer config resolves} => prompt includes Dev Server Command and Dev Server URL', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3030-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3030-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'flowrider',
+        text: 'own flows/ + startup/ files',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'flowrider',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
+
+      const result = await agentPromptGetBroker({
+        agent: 'flowrider',
+        questId: quest.id,
+        workItemId,
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [flowrider] own flows/ + startup/ files',
+        '',
+        'Operations ledger (in order):',
+        '1. [>] [flowrider] own flows/ + startup/ files  <-- YOUR OPERATION ITEM',
+        '',
+        'Dev Server Command: npm run dev',
+        `Dev Server URL: http://${environmentStatics.hostname}:4400`,
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+  });
+
+  describe('dev-server resolution scoping', () => {
+    it('EDGE: {role: codeweaver} => does not resolve dev-server config', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3030-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'eeeeeeee-3030-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+
+      await agentPromptGetBroker({ agent: 'codeweaver', questId: quest.id, workItemId });
+
+      expect(proxy.getDevServerConfigStartPath()).toBe(undefined);
     });
   });
 

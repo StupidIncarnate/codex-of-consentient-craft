@@ -86,19 +86,19 @@ describe('questPauseBroker', () => {
       ]);
     });
 
-    it('VALID: {previousStatus=seek_scope} => pausedAtStatus=seek_scope on persisted quest', async () => {
+    it('VALID: {previousStatus=blocked} => pausedAtStatus=blocked on persisted quest', async () => {
       const proxy = questPauseBrokerProxy();
       proxy.setupPassthrough();
-      const questId = QuestIdStub({ value: 'pause-snapshot-seek' });
+      const questId = QuestIdStub({ value: 'pause-snapshot-blocked' });
       const guildId = GuildIdStub();
-      const quest = QuestStub({ id: questId, status: 'seek_scope' });
+      const quest = QuestStub({ id: questId, status: 'blocked' });
       proxy.setupQuestFound({ quest });
       const processControls = buildProcessControls();
 
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'seek_scope' }),
+        previousStatus: QuestStatusStub({ value: 'blocked' }),
         processControls,
       });
 
@@ -106,7 +106,7 @@ describe('questPauseBroker', () => {
 
       const persisted = proxy.getLastPersistedQuest();
 
-      expect(persisted.pausedAtStatus).toBe('seek_scope');
+      expect(persisted.pausedAtStatus).toBe('blocked');
     });
   });
 

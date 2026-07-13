@@ -8,7 +8,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
       proxy.returns({
         result: {
           success: true,
-          data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+          data: { blightReports: [] },
         },
       });
 
@@ -16,7 +16,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        data: { blightReports: [] },
       });
     });
 
@@ -26,13 +26,13 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
 
       const result = await orchestratorGetQuestPlanningNotesAdapter({
         questId: 'add-auth',
-        section: 'surface',
+        section: 'blight',
       });
 
       expect(result).toStrictEqual({ success: true, data: [] });
       expect(proxy.getLastCalledInput()).toStrictEqual({
         questId: 'add-auth',
-        section: 'surface',
+        section: 'blight',
       });
     });
 

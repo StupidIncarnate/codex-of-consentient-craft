@@ -1,14 +1,28 @@
 /**
- * PURPOSE: Proxy for questRunWardBroker — composes the dependency proxies and exposes semantic
- *   setup methods plus inspectors for what the broker wrote to the quest file.
+ * PURPOSE: Proxy for questRunWardBroker — mocks ONLY the child-process and fs adapter boundaries
+ *   and backs them with a virtual quest-file store, so the real questModifyBroker /
+ *   questOperationsUpdateBroker / questAdvanceBroker / questBlockOnFailureBroker chain reads every
+ *   prior persist (advance sees the operations the red-path splice just appended).
  *
  * USAGE:
  * const proxy = questRunWardBrokerProxy();
- * proxy.setupWardPass({ quest, runId: 'run-123' });
+ * proxy.setupQuest({ quest });
+ * proxy.wardExits({ exitCode: ExitCodeStub({ value: 0 }), runId, detailJson: '{"checks":[]}' });
  * await questRunWardBroker({ questId, workItemId, mode: 'changed' });
- * expect(proxy.getPersistedWorkItemStatus({ workItemId })).toBe('complete');
+ * expect(proxy.getPersistedQuest().workItems).toStrictEqual([...]);
  */
 
+import { Dirent } from 'fs';
+
+import {
+  childProcessSpawnCaptureAdapter,
+  childProcessSpawnStreamLinesAdapter,
+  fsMkdirAdapter,
+  fsReaddirWithTypesAdapter,
+  pathJoinAdapter,
+  processCwdAdapter,
+} from '@dungeonmaster/shared/adapters';
+import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import {
   childProcessSpawnStreamLinesAdapterProxy,
   fsMkdirAdapterProxy,
@@ -16,136 +30,211 @@ import {
   processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
+  adapterResultContract,
+  ErrorMessageStub,
   ExitCodeStub,
-  FileContentsStub,
-  FileNameStub,
-  FilePathStub,
-  GuildIdStub,
+  fileContentsContract,
+  fileNameContract,
+  filePathContract,
   questContract,
-  wardResultContract,
+  type ErrorMessage,
   type ExitCode,
+  type FileContents,
   type FileName,
+  type FilePath,
   type Quest,
   type QuestStub,
-  type QuestWorkItemId,
-  type WardResult,
-  type WorkItem,
-  type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
+import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
+import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
-import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
+import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
+import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-on-failure-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
-import { questSpliceFixerBrokerProxy } from '../splice-fixer/quest-splice-fixer-broker.proxy';
-import { questSplicePathseekerReplanBrokerProxy } from '../splice-pathseeker-replan/quest-splice-pathseeker-replan-broker.proxy';
+import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
+
+// Module-level mocks (hoisted as jest.mock by the AST transformer). Adapter-level mocking is
+// deliberate: routing is registry-global, so the fs virtual store below serves EVERY broker in the
+// chain (find-quest-path scan, quest load, atomic persist, ward detail write) regardless of which
+// async tick the call lands on. The two shared barrels use EXPLICIT factories (factory wins the
+// transformer's mock merge) so unrelated registerMock calls collected from the shared testing
+// barrel cannot downgrade these to selective mocks that leave pathJoinAdapter & co real.
+registerModuleMock({
+  module: '@dungeonmaster/shared/adapters',
+  factory: () => ({
+    ...jest.requireActual('@dungeonmaster/shared/adapters'),
+    childProcessSpawnCaptureAdapter: jest.fn(),
+    childProcessSpawnStreamLinesAdapter: jest.fn(),
+    fsMkdirAdapter: jest.fn(),
+    fsReaddirWithTypesAdapter: jest.fn(),
+    pathJoinAdapter: jest.fn(),
+    processCwdAdapter: jest.fn(),
+  }),
+});
+registerModuleMock({
+  module: '@dungeonmaster/shared/brokers',
+  factory: () => ({
+    ...jest.requireActual('@dungeonmaster/shared/brokers'),
+    dungeonmasterHomeFindBroker: jest.fn(),
+  }),
+});
+registerModuleMock({ module: '../../../adapters/fs/append-file/fs-append-file-adapter' });
+registerModuleMock({ module: '../../../adapters/fs/read-file/fs-read-file-adapter' });
+registerModuleMock({ module: '../../../adapters/fs/rename/fs-rename-adapter' });
+registerModuleMock({ module: '../../../adapters/fs/write-file/fs-write-file-adapter' });
 
 type QuestInput = ReturnType<typeof QuestStub>;
 
+const HOME_PATH = '/home/testuser/.dungeonmaster';
+const GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+const GUILDS_DIR = `${HOME_PATH}/guilds`;
+const QUESTS_DIR = `${GUILDS_DIR}/${GUILD_ID}/quests`;
+
 const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
-
-// A realistic ward-detail blob with one lint error so wardDetailToSpiritmenderBatchesTransformer
-// produces a non-empty batch (one file, one error) on the ward failure recovery path.
-const WARD_FAIL_DETAIL_JSON = JSON.stringify({
-  checks: [
-    {
-      checkType: 'lint',
-      projectResults: [
-        {
-          errors: [
-            {
-              filePath: '/project/src/broken.ts',
-              line: 12,
-              column: 4,
-              message: 'Unexpected any',
-              rule: 'no-explicit-any',
-            },
-          ],
-          testFailures: [],
-        },
-      ],
-    },
-  ],
-});
+const UUID_SUFFIX_WIDTH = 2;
 
 export const questRunWardBrokerProxy = (): {
-  setupWardPass: (params: { quest: QuestInput; runId: FileName }) => void;
-  setupWardFail: (params: { quest: QuestInput; exitCode: ExitCode; runId: FileName }) => void;
-  setupWardFailExhausted: (params: {
-    quest: QuestInput;
-    exitCode: ExitCode;
-    runId: FileName;
-  }) => void;
-  setupWardCrash: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
-  setupWardCrashRecover: (params: { quest: QuestInput; exitCode: ExitCode }) => void;
-  getPersistedWorkItemStatus: (params: {
-    workItemId: QuestWorkItemId;
-  }) => WorkItemStatus | undefined;
-  getPersistedLastWardRunId: (params: { workItemId: QuestWorkItemId }) => FileName | undefined;
-  getPersistedWorkItemRelatedDataItems: (params: {
-    workItemId: QuestWorkItemId;
-  }) => WorkItem['relatedDataItems'] | undefined;
-  getPersistedWardModes: () => readonly ('changed' | 'full' | undefined)[];
-  getPersistedWardResultExitCode: () => ExitCode | undefined;
-  getFinalPersistedWorkItems: () => readonly WorkItem[];
-  getFinalPersistedQuestStatus: () => Quest['status'] | undefined;
-  getReplanCalls: () => readonly (readonly unknown[])[];
-  getSpawnedArgs: () => unknown;
-  getFixedWardResultId: () => WardResult['id'];
+  setupQuest: (params: { quest: QuestInput }) => void;
+  wardExits: (params: { exitCode: ExitCode; runId: FileName; detailJson: FileContents }) => void;
+  wardExitsWithoutRunId: (params: { exitCode: ExitCode }) => void;
+  getPersistedQuest: () => Quest;
+  getSpawnedWardArgs: () => unknown;
+  getDetailWrites: () => readonly { path: unknown; contents: unknown }[];
+  getMkdirPaths: () => readonly unknown[];
 } => {
-  // Outermost layer setup MIRRORS run-ward-layer-broker.proxy. Critical: fsMkdir + fsWriteFile +
-  // an extra pathJoinAdapterProxy must be registered here so wardPersistResultBroker has its own
-  // path-join queue slot (queueWardPersistPathJoins below) that does not steal returns intended
-  // for the deeper questPersistBroker chain.
+  // Child proxies for every adapter/broker the implementation imports. Their npm-level queue
+  // mocks are inert here — the fs/child-process ADAPTER modules themselves are automocked above
+  // with the virtual-store implementations below. Two are load-bearing: questModifyBrokerProxy
+  // re-applies the REAL questModifyBroker implementation over its module automock, and
+  // questBlockOnFailureBrokerProxy is switched to passthrough so the at-budget red chain
+  // exercises the real block flow.
+  childProcessSpawnStreamLinesAdapterProxy();
   fsMkdirAdapterProxy();
-  const ownWriteFileProxy = fsWriteFileAdapterProxy();
-  const extraPathJoin = pathJoinAdapterProxy();
-  const findProxy = questFindQuestPathBrokerProxy();
-  const modifyProxy = questModifyBrokerProxy();
-  const getProxy = questGetBrokerProxy();
-  const replanProxy = questSplicePathseekerReplanBrokerProxy();
-  const spliceProxy = questSpliceFixerBrokerProxy();
-  const detailProxy = wardDetailBrokerProxy();
-  const spawnProxy = childProcessSpawnStreamLinesAdapterProxy();
-  const cwdProxy = processCwdAdapterProxy();
-  cwdProxy.returns({ path: '/project' });
+  pathJoinAdapterProxy();
+  processCwdAdapterProxy();
+  fsWriteFileAdapterProxy();
+  wardDetailBrokerProxy();
+  questAdvanceBrokerProxy();
+  questFindQuestPathBrokerProxy();
+  questModifyBrokerProxy();
+  questOperationsUpdateBrokerProxy();
+  const blockProxy = questBlockOnFailureBrokerProxy();
+  blockProxy.setupPassthrough();
 
-  const WARD_RESULTS_PATH = FilePathStub({ value: '/home/testuser/ward-results' });
-  const WARD_RESULT_FILE_PATH = FilePathStub({
-    value: '/home/testuser/ward-results/result.json',
+  // Virtual filesystem: quest.json (and the ward detail blob) live here. Persist writes land in
+  // the store, so the next broker's load reads the MUTATED quest — read-follows-write, exactly
+  // like disk.
+  const files = new Map<FilePath, FileContents>();
+  const dirs = new Map<FilePath, FileName[]>();
+  const mkdirPaths: unknown[] = [];
+  const wardRuns: { exitCode: ExitCode; output: ErrorMessage }[] = [];
+  const detailRuns: { exitCode: ExitCode; output: ErrorMessage }[] = [];
+  const questFilePathRef = { value: filePathContract.parse('/unset/quest.json') };
+
+  (pathJoinAdapter as jest.MockedFunction<typeof pathJoinAdapter>).mockImplementation(({ paths }) =>
+    filePathContract.parse(paths.join('/')),
+  );
+
+  (processCwdAdapter as jest.MockedFunction<typeof processCwdAdapter>).mockImplementation(() =>
+    filePathContract.parse('/project'),
+  );
+
+  (
+    dungeonmasterHomeFindBroker as jest.MockedFunction<typeof dungeonmasterHomeFindBroker>
+  ).mockImplementation(() => ({ homePath: filePathContract.parse(HOME_PATH) }));
+
+  (
+    fsReaddirWithTypesAdapter as jest.MockedFunction<typeof fsReaddirWithTypesAdapter>
+  ).mockImplementation(({ dirPath }) =>
+    (dirs.get(filePathContract.parse(String(dirPath))) ?? []).map((name) =>
+      Object.assign(Object.create(Dirent.prototype) as Dirent, {
+        name,
+        isDirectory: (): boolean => true,
+      }),
+    ),
+  );
+
+  (fsReadFileAdapter as jest.MockedFunction<typeof fsReadFileAdapter>).mockImplementation(
+    async ({ filePath }) => {
+      const contents = files.get(filePathContract.parse(String(filePath)));
+      if (contents === undefined) {
+        return Promise.reject(new Error(`Failed to read file at ${String(filePath)}`));
+      }
+      return Promise.resolve(contents);
+    },
+  );
+
+  (fsWriteFileAdapter as jest.MockedFunction<typeof fsWriteFileAdapter>).mockImplementation(
+    async ({ filePath, contents }) => {
+      files.set(
+        filePathContract.parse(String(filePath)),
+        fileContentsContract.parse(String(contents)),
+      );
+      return Promise.resolve(adapterResultContract.parse({ success: true }));
+    },
+  );
+
+  (fsRenameAdapter as jest.MockedFunction<typeof fsRenameAdapter>).mockImplementation(
+    async ({ from, to }) => {
+      const fromPath = filePathContract.parse(String(from));
+      const contents = files.get(fromPath);
+      files.delete(fromPath);
+      if (contents !== undefined) {
+        files.set(filePathContract.parse(String(to)), contents);
+      }
+      return Promise.resolve(adapterResultContract.parse({ success: true }));
+    },
+  );
+
+  (fsAppendFileAdapter as jest.MockedFunction<typeof fsAppendFileAdapter>).mockImplementation(
+    async () => Promise.resolve(adapterResultContract.parse({ success: true })),
+  );
+
+  (fsMkdirAdapter as jest.MockedFunction<typeof fsMkdirAdapter>).mockImplementation(
+    async ({ filepath }) => {
+      mkdirPaths.push(String(filepath));
+      return Promise.resolve(adapterResultContract.parse({ success: true }));
+    },
+  );
+
+  // Ward spawn (childProcessSpawnStreamLinesAdapter) and ward-detail fetch
+  // (wardDetailBroker → childProcessSpawnCaptureAdapter) are queued per test via wardExits*.
+  (
+    childProcessSpawnStreamLinesAdapter as jest.MockedFunction<
+      typeof childProcessSpawnStreamLinesAdapter
+    >
+  ).mockImplementation(async () => {
+    const next = wardRuns.shift();
+    if (next === undefined) {
+      return Promise.reject(new Error('questRunWardBrokerProxy: no ward spawn result queued'));
+    }
+    return Promise.resolve(next);
   });
-  const BATCHES_DIR_PATH = FilePathStub({ value: '/home/testuser/spiritmender-batches' });
-  const BATCH_FILE_PATH = FilePathStub({
-    value: '/home/testuser/spiritmender-batches/batch.json',
+
+  (
+    childProcessSpawnCaptureAdapter as jest.MockedFunction<typeof childProcessSpawnCaptureAdapter>
+  ).mockImplementation(async () => {
+    const next = detailRuns.shift();
+    if (next === undefined) {
+      return Promise.resolve({
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: ErrorMessageStub({ value: '' }),
+      });
+    }
+    return Promise.resolve(next);
   });
 
-  const queueWardPersistPathJoins = (): void => {
-    // Broker inlines two pathJoinAdapter calls when persisting the ward detail blob:
-    // wardResultsDir + the detail file path. Queue both BEFORE the modify queue so they
-    // don't steal modify's queued returns.
-    extraPathJoin.returns({ result: WARD_RESULTS_PATH });
-    extraPathJoin.returns({ result: WARD_RESULT_FILE_PATH });
-  };
-
-  const queueBatchPathJoins = ({ batchCount }: { batchCount: number }): void => {
-    // On the ward failure recovery path the broker inlines pathJoin for the batches dir +
-    // one per spiritmender batch file.
-    extraPathJoin.returns({ result: BATCHES_DIR_PATH });
-    Array.from({ length: batchCount }).forEach(() => {
-      extraPathJoin.returns({ result: BATCH_FILE_PATH });
-    });
-  };
-
-  // Pin crypto.randomUUID + Date.prototype.toISOString so result objects are deterministic.
-  // The FIRST randomUUID call is the wardResultId (preserved as FIXED_WARD_RESULT_UUID so the
-  // happy-path tests keep matching getFixedWardResultId()); every subsequent call (spiritmender
-  // ids, ward-retry id) gets a distinct valid UUID so the recovery splice produces non-colliding
-  // ids whose exact dependency wiring the tests can assert.
+  // Pin crypto.randomUUID + Date.prototype.toISOString so persisted ids and timestamps are
+  // deterministic. Call #0 is always the wardResultId; every later call (spiritmender op id,
+  // ward-continuation op id, advance's new work-item id) gets a distinct sequenced UUID.
   const uuidCounter = { value: 0 };
-  const uuidSuffixWidth = 2;
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
   uuidSpy.mockImplementation(((): ReturnType<typeof crypto.randomUUID> => {
     const index = uuidCounter.value;
@@ -153,252 +242,68 @@ export const questRunWardBrokerProxy = (): {
     const value =
       index === 0
         ? FIXED_WARD_RESULT_UUID
-        : `f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0${String(index).padStart(uuidSuffixWidth, '0')}`;
+        : `f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0${String(index).padStart(UUID_SUFFIX_WIDTH, '0')}`;
     return value as ReturnType<typeof crypto.randomUUID>;
   }) as typeof crypto.randomUUID);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(FIXED_TIMESTAMP);
 
-  const setupFindQuestPathForBroker = ({ quest }: { quest: QuestInput }): void => {
-    const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-    const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
-    const guildsDir = FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' });
-    const questsDirPath = FilePathStub({
-      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-    });
-    const questFolderPath = FilePathStub({
-      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
-    });
-    const questFilePath = FilePathStub({
-      value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`,
-    });
-
-    findProxy.setupQuestFound({
-      homeDir: '/home/testuser',
-      homePath,
-      guildsDir,
-      guilds: [
-        {
-          dirName: FileNameStub({ value: guildId }),
-          questsDirPath,
-          questFolders: [
-            {
-              folderName: FileNameStub({ value: quest.folder }),
-              questFilePath,
-              questFolderPath,
-              contents: FileContentsStub({ value: JSON.stringify(quest) }),
-            },
-          ],
-        },
-      ],
-    });
-  };
-
-  const parseAllPersistedQuests = (): readonly Quest[] =>
-    ownWriteFileProxy
-      .getAllWrittenFiles()
-      .filter(({ path }) => {
-        const pathStr = String(path);
-        return pathStr.endsWith('quest.json') || pathStr.endsWith('quest.json.tmp');
-      })
-      .map(({ content }) => {
-        const parsed = typeof content === 'string' ? (JSON.parse(content) as unknown) : content;
-        return questContract.parse(parsed);
-      });
-
-  // The authoritative post-recovery quest on the RECOVER path is whatever questSpliceFixerBroker
-  // (real) persisted last — the spliced + rewired workItems. The EXHAUSTION path delegates to
-  // questSplicePathseekerReplanBroker (stubbed here; its own test proves the mark-failed + skip +
-  // splice), so this returns undefined there and the exhaustion tests assert the delegation instead.
-  const resolveFinalRecoveryQuest = (): Quest | undefined => {
-    const spliced = spliceProxy.getPersistedQuests();
-    return spliced[spliced.length - 1];
-  };
-
-  const findWorkItemInLatestQuest = ({
-    workItemId,
-  }: {
-    workItemId: QuestWorkItemId;
-  }): WorkItem | undefined => {
-    const quests = parseAllPersistedQuests();
-    const reversed = [...quests].reverse();
-    for (const quest of reversed) {
-      const found = quest.workItems.find((w) => w.id === workItemId);
-      if (found && found.status !== 'in_progress') {
-        return found;
-      }
-    }
-    return undefined;
-  };
-
   return {
-    setupWardPass: ({ quest, runId }: { quest: QuestInput; runId: FileName }): void => {
-      // Queue order matters — must match broker's call order so each consumer pops the
-      // pathJoin return intended for it.
-      // 1. questFindQuestPathBroker (direct) — 4 pathJoins
-      setupFindQuestPathForBroker({ quest });
-      // 2. wardPersistResultBroker — 2 pathJoins
-      queueWardPersistPathJoins();
-      // 3-4. questModifyBroker × 2 — each queues a questFilePath + outbox pathJoin
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
+    setupQuest: ({ quest }: { quest: QuestInput }): void => {
+      const questFilePath = filePathContract.parse(
+        `${QUESTS_DIR}/${String(quest.folder)}/quest.json`,
+      );
+      dirs.set(filePathContract.parse(GUILDS_DIR), [fileNameContract.parse(GUILD_ID)]);
+      dirs.set(filePathContract.parse(QUESTS_DIR), [fileNameContract.parse(String(quest.folder))]);
+      files.set(questFilePath, fileContentsContract.parse(JSON.stringify(quest)));
+      questFilePathRef.value = questFilePath;
+    },
 
-      spawnProxy.setupSuccess({
+    wardExits: ({
+      exitCode,
+      runId,
+      detailJson,
+    }: {
+      exitCode: ExitCode;
+      runId: FileName;
+      detailJson: FileContents;
+    }): void => {
+      wardRuns.push({
+        exitCode,
+        output: ErrorMessageStub({ value: `run: ${String(runId)}\nlint: PASS` }),
+      });
+      detailRuns.push({
         exitCode: ExitCodeStub({ value: 0 }),
-        stdoutLines: [`run: ${runId}`, 'lint: PASS'],
+        output: ErrorMessageStub({ value: String(detailJson) }),
       });
-      detailProxy.setupSuccess({ output: '{"checks":[]}' });
     },
 
-    setupWardFail: ({
-      quest,
-      exitCode,
-      runId,
-    }: {
-      quest: QuestInput;
-      exitCode: ExitCode;
-      runId: FileName;
-    }): void => {
-      setupFindQuestPathForBroker({ quest });
-      queueWardPersistPathJoins();
-      // 3-4. questModifyBroker × 2 (wardResults + work-item terminal)
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      // 5. questGetBroker — load quest for failure routing (retry budget + blightwarden check)
-      getProxy.setupQuestFound({ quest });
-      // 6. spiritmender batch sidecar writes (one batch from WARD_FAIL_DETAIL_JSON)
-      queueBatchPathJoins({ batchCount: 1 });
-      // 7. questSpliceFixerBroker → questWorkItemInsertBroker → questModifyBroker (real splice)
-      spliceProxy.setupQuestModify({ quest });
-      // Exhausted-retry routing instead escalates to questSplicePathseekerReplanBroker — stubbed so
-      // the recover path never triggers a real replan.
-      replanProxy.setupReplanned();
-
-      spawnProxy.setupSuccess({
+    wardExitsWithoutRunId: ({ exitCode }: { exitCode: ExitCode }): void => {
+      wardRuns.push({
         exitCode,
-        stdoutLines: [`run: ${runId}`, 'lint: FAIL'],
-      });
-      // Inject a realistic ward-detail blob so the batch transformer produces a non-empty
-      // batch (the broker's recovery path then splices a spiritmender + ward retry).
-      detailProxy.setupSuccess({ output: WARD_FAIL_DETAIL_JSON });
-    },
-
-    setupWardFailExhausted: ({
-      quest,
-      exitCode,
-      runId,
-    }: {
-      quest: QuestInput;
-      exitCode: ExitCode;
-      runId: FileName;
-    }): void => {
-      // Same prefix as setupWardFail up to the failure-routing fork. The ward item here is on its
-      // last attempt (attempt >= maxAttempts - 1), so the broker escalates to
-      // questSplicePathseekerReplanBroker instead of splicing spiritmenders. The broker still marks
-      // the ward item `failed` via its own work-item-terminal modify; the replan is stubbed, so the
-      // exhaustion tests assert the ward-failed persist + the replan delegation.
-      setupFindQuestPathForBroker({ quest });
-      queueWardPersistPathJoins();
-      // 3-4. questModifyBroker × 2 (wardResults + work-item terminal → failed)
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      // 5. questGetBroker — load quest for failure routing (retry budget check)
-      getProxy.setupQuestFound({ quest });
-      // 6. questSplicePathseekerReplanBroker (stubbed escalation).
-      replanProxy.setupReplanned();
-
-      spawnProxy.setupSuccess({
-        exitCode,
-        stdoutLines: [`run: ${runId}`, 'lint: FAIL'],
-      });
-      detailProxy.setupSuccess({ output: WARD_FAIL_DETAIL_JSON });
-    },
-
-    setupWardCrash: ({ quest, exitCode }: { quest: QuestInput; exitCode: ExitCode }): void => {
-      // No runId => no wardPersistResultBroker calls => skip queueWardPersistPathJoins.
-      setupFindQuestPathForBroker({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-
-      spawnProxy.setupSuccess({
-        exitCode,
-        stdoutLines: ['fatal error'],
+        output: ErrorMessageStub({ value: 'fatal: ward crashed before init' }),
       });
     },
 
-    setupWardCrashRecover: ({
-      quest,
-      exitCode,
-    }: {
-      quest: QuestInput;
-      exitCode: ExitCode;
-    }): void => {
-      // Ward crashes before emitting a runId => detailJson is null => zero structured batches.
-      // With the failure-routing quest load wired, the broker must STILL splice a fallback
-      // spiritmender (one batch) so the ward-retry never depends on an empty set.
-      setupFindQuestPathForBroker({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-      queueBatchPathJoins({ batchCount: 1 });
-      spliceProxy.setupQuestModify({ quest });
-      replanProxy.setupReplanned();
-
-      spawnProxy.setupSuccess({
-        exitCode,
-        stdoutLines: ['fatal error'],
-      });
+    getPersistedQuest: (): Quest => {
+      const contents = files.get(questFilePathRef.value);
+      if (contents === undefined) {
+        throw new Error('questRunWardBrokerProxy: no quest file persisted');
+      }
+      return questContract.parse(JSON.parse(String(contents)));
     },
 
-    getPersistedWorkItemStatus: ({
-      workItemId,
-    }: {
-      workItemId: QuestWorkItemId;
-    }): WorkItemStatus | undefined => findWorkItemInLatestQuest({ workItemId })?.status,
+    getSpawnedWardArgs: (): unknown =>
+      (
+        childProcessSpawnStreamLinesAdapter as jest.MockedFunction<
+          typeof childProcessSpawnStreamLinesAdapter
+        >
+      ).mock.calls[0]?.[0]?.args,
 
-    getPersistedLastWardRunId: ({
-      workItemId,
-    }: {
-      workItemId: QuestWorkItemId;
-    }): FileName | undefined => findWorkItemInLatestQuest({ workItemId })?.lastWardRunId,
+    getDetailWrites: (): readonly { path: unknown; contents: unknown }[] =>
+      [...files.entries()]
+        .filter(([path]) => String(path).includes('/ward-results/'))
+        .map(([path, contents]) => ({ path, contents })),
 
-    getPersistedWorkItemRelatedDataItems: ({
-      workItemId,
-    }: {
-      workItemId: QuestWorkItemId;
-    }): WorkItem['relatedDataItems'] | undefined =>
-      findWorkItemInLatestQuest({ workItemId })?.relatedDataItems,
-
-    getPersistedWardModes: (): readonly ('changed' | 'full' | undefined)[] => {
-      const quests = parseAllPersistedQuests();
-      const reversed = [...quests].reverse();
-      const found = reversed.find((q) => q.wardResults.length > 0);
-      return found ? found.wardResults.map((r) => r.wardMode) : [];
-    },
-
-    getPersistedWardResultExitCode: (): ExitCode | undefined => {
-      const quests = parseAllPersistedQuests();
-      const reversed = [...quests].reverse();
-      const found = reversed.find((q) => q.wardResults.length > 0);
-      return found?.wardResults[found.wardResults.length - 1]?.exitCode;
-    },
-
-    getFinalPersistedWorkItems: (): readonly WorkItem[] => {
-      const recovered = resolveFinalRecoveryQuest();
-      return recovered ? recovered.workItems : [];
-    },
-
-    getFinalPersistedQuestStatus: (): Quest['status'] | undefined =>
-      resolveFinalRecoveryQuest()?.status,
-
-    getReplanCalls: (): readonly (readonly unknown[])[] => replanProxy.getCalls(),
-
-    getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
-
-    getFixedWardResultId: (): WardResult['id'] =>
-      wardResultContract.parse({
-        id: FIXED_WARD_RESULT_UUID,
-        createdAt: FIXED_TIMESTAMP,
-        exitCode: 0,
-      }).id,
+    getMkdirPaths: (): readonly unknown[] => [...mkdirPaths],
   };
 };

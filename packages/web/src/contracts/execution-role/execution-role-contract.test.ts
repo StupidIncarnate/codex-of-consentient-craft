@@ -9,12 +9,6 @@ describe('executionRoleContract', () => {
       expect(result).toBe('codeweaver');
     });
 
-    it('VALID: {value: "pathseeker"} => parses pathseeker role', () => {
-      const result = executionRoleContract.parse('pathseeker');
-
-      expect(result).toBe('pathseeker');
-    });
-
     it('VALID: {value: "ward"} => parses ward role', () => {
       const result = executionRoleContract.parse('ward');
 

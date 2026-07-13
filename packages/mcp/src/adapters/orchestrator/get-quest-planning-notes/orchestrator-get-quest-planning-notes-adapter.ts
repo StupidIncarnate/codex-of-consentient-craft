@@ -3,15 +3,15 @@
  *
  * USAGE:
  * const notes = await orchestratorGetQuestPlanningNotesAdapter({ questId });
- * // Returns PathSeeker's planningNotes for the quest (full object or section slice)
+ * // Returns the quest's planningNotes (full object or the blight section)
  *
- * const scope = await orchestratorGetQuestPlanningNotesAdapter({ questId, section: 'scope' });
- * // Returns scopeClassification only
+ * const blight = await orchestratorGetQuestPlanningNotesAdapter({ questId, section: 'blight' });
+ * // Returns blightReports only
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-type Section = 'scope' | 'surface' | 'synthesis' | 'walk' | 'blight';
+type Section = 'blight';
 
 export const orchestratorGetQuestPlanningNotesAdapter = async ({
   questId,

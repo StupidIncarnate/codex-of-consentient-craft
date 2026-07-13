@@ -1,103 +1,60 @@
-import {
-  PlanningScopeClassificationStub,
-  PlanningSynthesisStub,
-  PlanningWalkFindingsStub,
-} from '@dungeonmaster/shared/contracts';
+import { PlanningBlightReportStub } from '@dungeonmaster/shared/contracts';
 
 import { questGateContentSeedTransformer } from './quest-gate-content-seed-transformer';
 
 describe('questGateContentSeedTransformer', () => {
-  describe('seek_synth status', () => {
-    it('VALID: {status: seek_synth, no override} => adds scopeClassification stub and empty report arrays', () => {
-      const result = questGateContentSeedTransformer({ status: 'seek_synth' });
-
-      expect(result).toStrictEqual({
-        scopeClassification: PlanningScopeClassificationStub(),
-        surfaceReports: [],
-        blightReports: [],
-        codeweaverPlans: [],
-      });
-    });
-  });
-
-  describe('seek_walk status', () => {
-    it('VALID: {status: seek_walk, no override} => adds scopeClassification + synthesis stubs and empty report arrays', () => {
-      const result = questGateContentSeedTransformer({ status: 'seek_walk' });
-
-      expect(result).toStrictEqual({
-        scopeClassification: PlanningScopeClassificationStub(),
-        synthesis: PlanningSynthesisStub(),
-        surfaceReports: [],
-        blightReports: [],
-        codeweaverPlans: [],
-      });
-    });
-  });
-
-  describe('in_progress status', () => {
-    it('VALID: {status: in_progress, no override} => adds scopeClassification + synthesis + walkFindings stubs and empty report arrays', () => {
+  describe('no override', () => {
+    it('VALID: {status: in_progress, no override} => returns empty blightReports', () => {
       const result = questGateContentSeedTransformer({ status: 'in_progress' });
 
       expect(result).toStrictEqual({
-        scopeClassification: PlanningScopeClassificationStub(),
-        synthesis: PlanningSynthesisStub(),
-        walkFindings: PlanningWalkFindingsStub(),
-        surfaceReports: [],
         blightReports: [],
-        codeweaverPlans: [],
       });
     });
-  });
 
-  describe('non-gated status', () => {
-    it('VALID: {status: created, no override} => returns only empty report arrays (no gate fields)', () => {
+    it('VALID: {status: created, no override} => returns empty blightReports regardless of status value', () => {
       const result = questGateContentSeedTransformer({ status: 'created' });
 
       expect(result).toStrictEqual({
-        surfaceReports: [],
         blightReports: [],
-        codeweaverPlans: [],
       });
     });
   });
 
   describe('caller override', () => {
-    it('VALID: {status: seek_synth, override.scopeClassification: custom} => preserves override and does NOT overwrite with stub', () => {
-      const customScope = PlanningScopeClassificationStub({
-        size: 'large',
-        slicing: 'Custom slicing from caller' as never,
-        rationale: 'Caller-provided rationale' as never,
-      });
+    it('VALID: {status: in_progress, override.blightReports: custom} => preserves override and does NOT overwrite with empty array', () => {
+      const customReport = PlanningBlightReportStub();
 
       const result = questGateContentSeedTransformer({
-        status: 'seek_synth',
-        override: { scopeClassification: customScope },
+        status: 'in_progress',
+        override: { blightReports: [customReport] },
       });
 
       expect(result).toStrictEqual({
-        scopeClassification: customScope,
-        surfaceReports: [],
-        blightReports: [],
-        codeweaverPlans: [],
+        blightReports: [customReport],
       });
     });
 
-    it('VALID: {status: seek_walk, override.synthesis only} => preserves synthesis override AND auto-adds scopeClassification stub', () => {
-      const customSynthesis = PlanningSynthesisStub({
-        orderOfOperations: 'Custom caller ordering' as never,
-      });
-
+    it('VALID: {status: in_progress, override without blightReports} => preserves override fields AND adds empty blightReports', () => {
       const result = questGateContentSeedTransformer({
-        status: 'seek_walk',
-        override: { synthesis: customSynthesis },
+        status: 'in_progress',
+        override: { extraField: 'caller-provided' },
       });
 
       expect(result).toStrictEqual({
-        scopeClassification: PlanningScopeClassificationStub(),
-        synthesis: customSynthesis,
-        surfaceReports: [],
+        extraField: 'caller-provided',
         blightReports: [],
-        codeweaverPlans: [],
+      });
+    });
+
+    it('EDGE: {status: in_progress, override: {}} => returns empty blightReports same as no override', () => {
+      const result = questGateContentSeedTransformer({
+        status: 'in_progress',
+        override: {},
+      });
+
+      expect(result).toStrictEqual({
+        blightReports: [],
       });
     });
   });

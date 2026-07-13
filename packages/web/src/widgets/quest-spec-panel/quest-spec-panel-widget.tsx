@@ -24,6 +24,7 @@ import type { GateSectionKey } from '../../contracts/gate-section-key/gate-secti
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
+import { OperationsLedgerWidget } from '../operations-ledger/operations-ledger-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
@@ -196,6 +197,21 @@ export const QuestSpecPanelWidget = ({
             }));
           }}
         />
+
+        {quest.operations.length > 0 ? (
+          <Box mb="md" data-testid="OPERATIONS_SECTION">
+            <Text
+              ff="monospace"
+              size={HEADER_FONT_SIZE}
+              fw={600}
+              mb={4}
+              style={{ color: colors['text-dim'] }}
+            >
+              OPERATIONS
+            </Text>
+            <OperationsLedgerWidget operations={quest.operations} />
+          </Box>
+        ) : null}
 
         {isGateSectionVisibleGuard({ status: quest.status, section: CONTRACTS_SECTION }) ? (
           <ContractsLayerWidget

@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Renders an expandable execution step row with status, role badge, and metadata
+ * PURPOSE: Renders an expandable execution work-item row with status, role badge, and metadata
  *
  * USAGE:
  * <ExecutionRowLayerWidget order={order} name={name} role={role} status={status} files={files} dependsOn={deps} isAdhoc={false} />
- * // Renders step row with chevron, order number, [ROLE] badge, step name, and status
+ * // Renders work-item row with chevron, order number, [ROLE] badge, row name, and status
  */
 
 import { Box, Text, UnstyledButton } from '@mantine/core';
@@ -21,10 +21,10 @@ import type {
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
+import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
-import type { StepName } from '../../contracts/step-name/step-name-contract';
-import type { StepOrder } from '../../contracts/step-order/step-order-contract';
+import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import { computeRowContextTotalTransformer } from '../../transformers/compute-row-context-total/compute-row-context-total-transformer';
@@ -35,8 +35,8 @@ import { StreamingBarLayerWidget } from './streaming-bar-layer-widget';
 import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
 
 export interface ExecutionRowLayerWidgetProps {
-  order: StepOrder;
-  name: StepName;
+  order: RowOrder;
+  name: DisplayLabel;
   role: ExecutionRole;
   status: ExecutionStepStatus;
   files: DisplayFilePath[];

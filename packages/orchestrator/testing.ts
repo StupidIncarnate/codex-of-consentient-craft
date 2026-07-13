@@ -26,7 +26,6 @@ export { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
 export { StreamSignalStub } from './src/contracts/stream-signal/stream-signal.stub';
 export { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 export { WorkItemIdStub } from './src/contracts/work-item-id/work-item-id.stub';
-export { WorkTrackerStub } from './src/contracts/work-tracker/work-tracker.stub';
 export { FollowupDepthStub } from './src/contracts/followup-depth/followup-depth.stub';
 export { NextStepStub } from './src/contracts/next-step/next-step.stub';
 export { QuestRunWardResultStub } from './src/contracts/quest-run-ward-result/quest-run-ward-result.stub';

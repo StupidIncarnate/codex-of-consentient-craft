@@ -1,5 +1,11 @@
-import { AdapterResultStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  AdapterResultStub,
+  GuildIdStub,
+  QuestIdStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
+import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 import { spawnBatchLayerBrokerProxy } from './spawn-batch-layer-broker.proxy';
@@ -145,6 +151,97 @@ describe('spawnBatchLayerBroker', () => {
       await spawnBatchLayerBroker({ agents: [first, second] });
 
       expect(proxy.getFindQuestPathCalls()).toStrictEqual([{ questId }]);
+    });
+  });
+
+  describe('resume path', () => {
+    it('VALID: {instruction with resumeSessionId + resumePrompt} => spawns with the resume prompt and --resume <sessionId>', async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const resumeSessionId = SessionIdStub({ value: '1a2b3c4d-3e38-48c9-bdec-22b61883b473' });
+      const resumePrompt = PromptTextStub({
+        value: 'Your previous session for this work item was interrupted — finish and signal back.',
+      });
+      const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
+      proxy.setupQuestContext({
+        questId: instruction.questId,
+        guildId: GuildIdStub(),
+        guildPath: '/home/user/my-project',
+      });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(result).toStrictEqual(AdapterResultStub());
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        resumePrompt,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--settings',
+        '{"hooks":{}}',
+        '--resume',
+        resumeSessionId,
+      ]);
+    });
+
+    it('VALID: {instruction with resumeSessionId but NO resumePrompt} => fresh spawn from taskPrompt without --resume', async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub({
+        resumeSessionId: SessionIdStub({ value: '1a2b3c4d-3e38-48c9-bdec-22b61883b473' }),
+      });
+      proxy.setupQuestContext({
+        questId: instruction.questId,
+        guildId: GuildIdStub(),
+        guildPath: '/home/user/my-project',
+      });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        instruction.taskPrompt,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--settings',
+        '{"hooks":{}}',
+      ]);
+    });
+
+    it('VALID: {instruction with resumePrompt but NO resumeSessionId} => fresh spawn from taskPrompt without --resume', async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub({
+        resumePrompt: PromptTextStub({ value: 'Resume prompt with no session to resume.' }),
+      });
+      proxy.setupQuestContext({
+        questId: instruction.questId,
+        guildId: GuildIdStub(),
+        guildPath: '/home/user/my-project',
+      });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        instruction.taskPrompt,
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'opus',
+        '--settings',
+        '{"hooks":{}}',
+      ]);
     });
   });
 

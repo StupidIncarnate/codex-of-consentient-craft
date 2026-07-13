@@ -5,6 +5,7 @@ import {
   FlowObservableStub,
   DesignDecisionStub,
   QuestContractEntryStub,
+  OperationItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questSectionFilterTransformer } from './quest-section-filter-transformer';
@@ -52,12 +53,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [
           FlowStub({
             nodes: [
@@ -94,12 +95,45 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [decision],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
+        flows: [],
+      });
+    });
+
+    it('VALID: {sections: ["operations"]} => returns only operations populated', () => {
+      const operation = OperationItemStub();
+      const quest = QuestStub({
+        operations: [operation],
+        flows: [FlowStub()],
+      });
+
+      const result = questSectionFilterTransformer({
+        quest,
+        sections: ['operations'],
+      });
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        questType: 'feature',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        needsDesign: false,
+        designDecisions: [],
+        contracts: [],
+        operations: [operation],
+        toolingRequirements: [],
+        packagesAffected: [],
+        workItems: [],
+        wardResults: [],
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });
@@ -131,12 +165,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [contract],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [flow],
       });
     });
@@ -164,12 +198,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });
@@ -204,12 +238,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });
@@ -254,12 +288,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });
@@ -285,26 +319,28 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: quest.flows,
       });
     });
 
-    it('VALID: {sections: ["planningNotes", "steps", "contracts"]} => planning-stage set passes through', () => {
+    it('VALID: {sections: ["planningNotes", "operations", "contracts"]} => planning-stage set passes through', () => {
       const contract = QuestContractEntryStub();
+      const operation = OperationItemStub();
       const quest = QuestStub({
         contracts: [contract],
+        operations: [operation],
         flows: [FlowStub()],
       });
 
       const result = questSectionFilterTransformer({
         quest,
-        sections: ['planningNotes', 'steps', 'contracts'],
+        sections: ['planningNotes', 'operations', 'contracts'],
       });
 
       expect(result).toStrictEqual({
@@ -318,24 +354,24 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [contract],
-        steps: [],
+        operations: [operation],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });
 
-    it('VALID: {sections: ["planningNotes", "steps", "contracts", "toolingRequirements"]} => implementation-stage set passes through', () => {
+    it('VALID: {sections: ["planningNotes", "operations", "contracts", "toolingRequirements"]} => implementation-stage set passes through', () => {
       const quest = QuestStub({
         flows: [FlowStub()],
       });
 
       const result = questSectionFilterTransformer({
         quest,
-        sections: ['planningNotes', 'steps', 'contracts', 'toolingRequirements'],
+        sections: ['planningNotes', 'operations', 'contracts', 'toolingRequirements'],
       });
 
       expect(result).toStrictEqual({
@@ -349,12 +385,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });
@@ -380,12 +416,12 @@ describe('questSectionFilterTransformer', () => {
         needsDesign: false,
         designDecisions: [],
         contracts: [],
-        steps: [],
+        operations: [],
         toolingRequirements: [],
         packagesAffected: [],
         workItems: [],
         wardResults: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+        planningNotes: { blightReports: [] },
         flows: [],
       });
     });

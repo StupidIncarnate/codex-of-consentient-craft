@@ -1,13 +1,11 @@
 import {
   AgentIdStub,
-  DependencyStepStub,
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
   QuestWorkItemIdStub,
   SessionIdStub,
-  StepAssertionStub,
   WorkItemForUpsertStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -236,60 +234,50 @@ describe('questItemDeepMergeTransformer', () => {
     });
   });
 
-  describe('assertion merge by id (regression: preserve per-assertion fields)', () => {
-    it('VALID: {update patches one assertion by id, omitting observablesSatisfied} => preserves the untouched observablesSatisfied', () => {
-      const keptAssertion = StepAssertionStub({
-        id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-        prefix: 'VALID',
-        input: '{x}',
-        expected: 'old expected',
-        observablesSatisfied: ['obs-delete'],
+  describe('observable merge by id (regression: preserve per-observable fields)', () => {
+    it('VALID: {update patches one observable by id, omitting verificationStatus and verificationNotes} => preserves the untouched fields', () => {
+      const keptObservable = FlowObservableStub({
+        id: 'obs-1',
+        description: 'old description',
+        verificationStatus: 'verified',
+        verificationNotes: 'confirmed via manual QA',
       });
-      const siblingAssertion = StepAssertionStub({
-        id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
-        prefix: 'ERROR',
-        input: '{y}',
-        expected: 'throws',
+      const siblingObservable = FlowObservableStub({
+        id: 'obs-2',
+        description: 'sibling description',
       });
-      const existing = DependencyStepStub({
-        id: 'web-quest-delete-broker' as never,
-        assertions: [keptAssertion, siblingAssertion],
+      const existingNode = FlowNodeStub({
+        id: 'n1',
+        observables: [keptObservable, siblingObservable],
       });
+      const existing = FlowStub({ id: 'flow-a', nodes: [existingNode] });
 
-      const update = DependencyStepStub({
-        id: 'web-quest-delete-broker' as never,
-        assertions: [
-          StepAssertionStub({
-            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-            prefix: 'VALID',
-            input: '{x}',
-            expected: 'new expected',
+      const updateNode = FlowNodeStub({
+        id: 'n1',
+        observables: [
+          FlowObservableStub({
+            id: 'obs-1',
+            description: 'new description',
           }),
         ],
       });
-      // Partial assertion patch: strip everything but id + expected AFTER the stub parses, so only
-      // those two fields travel into the merge. The rest must be preserved from the existing entry.
-      Reflect.deleteProperty(update.assertions[0] as Record<PropertyKey, unknown>, 'prefix');
-      Reflect.deleteProperty(update.assertions[0] as Record<PropertyKey, unknown>, 'input');
+      const update = FlowStub({ id: 'flow-a', nodes: [updateNode] });
+      Reflect.deleteProperty(update, 'edges');
 
       const result = questItemDeepMergeTransformer({ existing, update });
 
-      const { assertions } = result as ReturnType<typeof DependencyStepStub>;
+      const { nodes } = result as Flow;
+      const { observables } = nodes[0]!;
 
-      expect(assertions).toStrictEqual([
+      expect(observables).toStrictEqual([
         {
-          id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-          prefix: 'VALID',
-          input: '{x}',
-          expected: 'new expected',
-          observablesSatisfied: ['obs-delete'],
+          id: 'obs-1',
+          type: 'ui-state',
+          description: 'new description',
+          verificationStatus: 'verified',
+          verificationNotes: 'confirmed via manual QA',
         },
-        {
-          id: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e',
-          prefix: 'ERROR',
-          input: '{y}',
-          expected: 'throws',
-        },
+        siblingObservable,
       ]);
     });
   });

@@ -127,7 +127,7 @@ export const questRunWardBroker = async ({
 
   // 4. ONE atomic ledger + work-item write: terminal work-item status, ward operation item
   //    complete, and (on red, budget permitting) the spiritmender + fresh-ward continuation.
-  let blockedOnSpentWardChain = false;
+  const blockedOnSpentWardChain = { value: false };
 
   await questOperationsUpdateBroker({
     questId,
@@ -176,26 +176,29 @@ export const questRunWardBroker = async ({
       }
 
       // RED — bound the fix loop: count the ward operation items of this wardMode since the
-      // last GREEN ward of the same mode (a ward op is green when its linked work item
+      // last GREEN ward of the same mode (a ward op is green when its linked ward work item
       // completed). Reaching the budget blocks instead of appending another spiritmender+ward.
-      const isGreenWardOp = (operationId: string): boolean =>
-        quest.workItems.some(
-          (item) =>
-            item.relatedDataItems.some((ref) => String(ref) === `operations/${operationId}`) &&
-            item.role === 'ward' &&
-            isCompleteWorkItemStatusGuard({ status: item.status }),
-        );
       const sameModeWardOps = quest.operations.filter(
         (operation) => operation.role === 'ward' && operation.wardMode === mode,
       );
       const lastGreenIndex = sameModeWardOps.reduce(
-        (acc, operation, index) => (isGreenWardOp(String(operation.id)) ? index : acc),
+        (acc, operation, index) =>
+          quest.workItems.some(
+            (item) =>
+              item.relatedDataItems.some(
+                (ref) => String(ref) === `operations/${String(operation.id)}`,
+              ) &&
+              item.role === 'ward' &&
+              isCompleteWorkItemStatusGuard({ status: item.status }),
+          )
+            ? index
+            : acc,
         -1,
       );
       const redChainLength = sameModeWardOps.length - (lastGreenIndex + 1);
 
       if (redChainLength >= slotManagerStatics.ward.maxRetries) {
-        blockedOnSpentWardChain = true;
+        blockedOnSpentWardChain.value = true;
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
@@ -233,7 +236,7 @@ export const questRunWardBroker = async ({
     },
   });
 
-  if (blockedOnSpentWardChain) {
+  if (blockedOnSpentWardChain.value) {
     await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
   } else {
     await questAdvanceBroker({ questId });

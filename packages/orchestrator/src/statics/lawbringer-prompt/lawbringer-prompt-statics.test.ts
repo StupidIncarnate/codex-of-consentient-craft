@@ -14,13 +14,91 @@ describe('lawbringerPromptStatics', () => {
     });
   });
 
-  it('VALID: title => frames Lawbringer as a review orchestrator', () => {
+  it('VALID: template => carries the $ARGUMENTS placeholder exactly once, on its own line', () => {
+    expect(lawbringerPromptStatics.prompt.template.split('$ARGUMENTS').length - 1).toBe(1);
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^\$ARGUMENTS$/mu);
+  });
+
+  it('VALID: title => frames Lawbringer as a standards review relay worker', () => {
     expect(lawbringerPromptStatics.prompt.template).toMatch(
-      /^# Lawbringer - Code Review Orchestrator$/mu,
+      /^# Lawbringer - Standards Review Relay Worker$/mu,
     );
   });
 
-  it('VALID: prompt template => summons lawbringer-minion sub-agents via get-agent-prompt', () => {
+  it('VALID: template => frames the role as owning ONE operation item on the ledger', () => {
+    const needle = "You own ONE operation item on the quest's operations ledger";
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => scopes the review to the whole quest diff, self-scoped from git', () => {
+    const needle =
+      'Your scope is the **WHOLE quest diff** — every changed file\non the branch, self-scoped by you from git; there is no per-package or per-file dispatch.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => declares there is no failure, only moving forward', () => {
+    const needle = '**There is no failure — only moving forward.** You have no failure signal.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => forbids editing the operations ledger', () => {
+    const needle = '**You do NOT edit the operations ledger.**';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => has a verify-against-git step that trusts git over the ledger', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(
+      /^### 1\. Verify Your Operation Item Against Git \(BLOCKING\)$/mu,
+    );
+
+    const needle = '**Trust git over\nthe ledger.**';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => reads the whole diff against the default branch as pairs', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^### 3\. Read the Whole Diff$/mu);
+
+    const needle = 'Treat every changed non-test file + its colocated test as a pair.';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => summons lawbringer-minion sub-agents via get-agent-prompt', () => {
     const { template } = lawbringerPromptStatics.prompt;
 
     const minion = "agent: 'lawbringer-minion'";
@@ -36,41 +114,45 @@ describe('lawbringerPromptStatics', () => {
     );
   });
 
-  it('VALID: prompt template => partitions at the parent discretion, not one minion per pair', () => {
+  it('VALID: template => partitions at the parent discretion, not one minion per pair', () => {
     expect(lawbringerPromptStatics.prompt.template).toMatch(
       /^Do NOT mechanically spawn one minion per pair\.$/mu,
     );
   });
 
-  it('VALID: prompt template => runs one ward across the whole batch (Run Ward & Fix On Red)', () => {
-    expect(lawbringerPromptStatics.prompt.template).toMatch(/^### 6\. Run Ward & Fix On Red$/mu);
+  it('VALID: template => runs one ward across the whole batch (Run Ward & Fix On Red)', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^### 7\. Run Ward & Fix On Red$/mu);
   });
 
-  it('VALID: focus => defers business-logic to siegemaster and flow-walk coverage to PathSeeker', () => {
+  it('VALID: focus => defers running the system to Siegemaster and flow coverage to Flowrider', () => {
     expect(lawbringerPromptStatics.prompt.template).toMatch(
-      /^Business-logic correctness is siegemaster's and observable \/ flow-walk coverage is PathSeeker's — don't re-litigate those, but if a minion spots a clear bug it fixes it\.$/mu,
+      /^Running the system for real is Siegemaster's job and flow-level test coverage is Flowrider's — don't re-litigate those, but if a minion spots a clear bug it fixes it\.$/mu,
     );
   });
 
-  it('VALID: prompt template => carries the hard DO NOT STASH rule', () => {
-    expect(lawbringerPromptStatics.prompt.template).toMatch(
-      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
-    );
-  });
-
-  it('VALID: prompt template => has the commit-before-signal section', () => {
-    expect(lawbringerPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
-  });
-
-  it('VALID: prompt template => documents the whole-diff bug-hunt review mode', () => {
-    expect(lawbringerPromptStatics.prompt.template).toMatch(/^## Review Mode$/mu);
-  });
-
-  it('VALID: prompt template => does not reference removed verify-minion roles', () => {
+  it('VALID: template => carries the hard DO NOT STASH rule', () => {
+    const needle = '**Hard rule — DO NOT STASH.**';
     const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
 
-    expect(template.indexOf('Verify Minion')).toBe(-1);
-    expect(template.indexOf('Quest Review Minion')).toBe(-1);
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => has the commit-before-signal section with the handoff doctrine', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^## Committing & Signaling$/mu);
+
+    const needle =
+      '**The commit message is the ONLY handoff channel — git carries the context, not the ledger.**';
+    const { template } = lawbringerPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
   });
 
   it('VALID: template => embeds the shared agent operating rules', () => {
@@ -81,7 +163,7 @@ describe('lawbringerPromptStatics', () => {
     expect(found).toBe(rules);
   });
 
-  it('VALID: prompt template => forbids pasting a standards digest into the minion brief', () => {
+  it('VALID: template => forbids pasting a standards digest into the minion brief', () => {
     const needle =
       'Do NOT paste a standards digest into the brief — the minion loads its own standards.';
     const { template } = lawbringerPromptStatics.prompt;
@@ -93,7 +175,7 @@ describe('lawbringerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => pins subagent_type general-purpose on each Agent spawn', () => {
+  it('VALID: template => pins subagent_type general-purpose on each Agent spawn', () => {
     const needle = 'subagent_type: "general-purpose"';
     const { template } = lawbringerPromptStatics.prompt;
     const found = template.slice(
@@ -104,7 +186,7 @@ describe('lawbringerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => recovery play pulls a no-artifact minion edits via git', () => {
+  it('VALID: template => recovery play pulls a no-artifact minion edits via git', () => {
     const needle =
       'If a summoned minion returns NO artifact (or comes back stuck waiting on a backgrounded command), do NOT resume or re-summon it.';
     const { template } = lawbringerPromptStatics.prompt;
@@ -116,9 +198,21 @@ describe('lawbringerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => failed signals a code failure a spiritmender fixes, never blocking the quest', () => {
+  it('VALID: template => signals partial when the pass changed code (fresh session re-reviews)', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => signals done when the pass changed nothing', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(
+      /^signal-back\(\{ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' \}\)$/mu,
+    );
+  });
+
+  it('VALID: template => states convergence is the verdict (fresh pass that changes nothing)', () => {
     const needle =
-      'Signal `failed` for a **code failure** — a violation or bug you found but could NOT fix within your own scope — so a spiritmender fixes the code and you re-review it; this NEVER blocks the quest.';
+      '**Convergence IS the verdict: only a fresh pass that changes nothing proves the diff meets\nstandards.**';
     const { template } = lawbringerPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -128,32 +222,22 @@ describe('lawbringerPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => failed-replan signals a plan hole PathSeeker re-plans, never blocking the quest', () => {
-    const needle =
-      'Signal `failed-replan` for a **plan hole** — the code is structurally wrong against the plan itself, or a missing/incorrect contract or step no in-scope fix can close — so PathSeeker can re-plan; this NEVER blocks the quest either.';
+  it('VALID: template => carries no legacy signal or planning-model references', () => {
     const { template } = lawbringerPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
+    const legacyNeedles = [
+      'failed-replan',
+      "'failed'",
+      'PathSeeker',
+      'spiritmender',
+      'Review Mode',
+      'replan',
+    ];
+    const legacyHits = legacyNeedles.filter((needle) => template.includes(needle));
 
-    expect(found).toBe(needle);
+    expect(legacyHits.join(', ')).toBe('');
   });
 
-  it('VALID: prompt template => signal-back examples cover complete, code-failure, and plan-hole outcomes', () => {
-    const complete = "signal-back({ signal: 'complete',";
-    const failed = "signal-back({ signal: 'failed',";
-    const failedReplan = "signal-back({ signal: 'failed-replan',";
-    const { template } = lawbringerPromptStatics.prompt;
-
-    expect(template.indexOf(complete)).toBeGreaterThan(-1);
-    expect(template.indexOf(failed)).toBeGreaterThan(-1);
-    expect(template.indexOf(failedReplan)).toBeGreaterThan(-1);
-  });
-
-  it('VALID: prompt template => never describes a signal as blocking the quest', () => {
-    const { template } = lawbringerPromptStatics.prompt;
-
-    expect(template.indexOf('BLOCKs the quest')).toBe(-1);
+  it('VALID: template => has the Operation Context heading', () => {
+    expect(lawbringerPromptStatics.prompt.template).toMatch(/^## Operation Context$/mu);
   });
 });

@@ -9,11 +9,11 @@ describe('questResumeBroker', () => {
       const proxy = questResumeBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupResume({ restoredStatus: 'seek_scope' });
+      proxy.setupResume({ restoredStatus: 'in_progress' });
 
       const result = await questResumeBroker({ questId });
 
-      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'seek_scope' });
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
     });
   });
 

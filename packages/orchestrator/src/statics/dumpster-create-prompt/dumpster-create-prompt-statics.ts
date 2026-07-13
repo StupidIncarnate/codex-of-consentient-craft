@@ -36,7 +36,7 @@ $CLARIFY_INSTRUCTION
 - ALWAYS follow the status ordering. The quest must be filled in in a specific order for it to be successful.
 
 **\`modify-quest\` validates on every call.** Three layers run automatically:
-- **Per-status input allowlist:** only fields that make sense for the current status are accepted. \`steps\` can't be written during spec statuses; \`flows\` can't be written during \`in_progress\`; observables can't be embedded in nodes before \`flows_approved\`.
+- **Per-status input allowlist:** only fields that make sense for the current status are accepted. \`operations\` can only be written during \`explore_observables\`; \`flows\` can't be written during \`in_progress\`; observables can't be embedded in nodes before \`flows_approved\`.
 - **Save-time invariants:** unique IDs, references resolve, no raw primitives in contracts. These can never be saved broken, mid-build or otherwise.
 - **Completeness checks** (transitions to \`review_flows\` or \`review_observables\`): required fields, branching, coverage, descriptions, rationale. Later transitions re-check earlier requirements — observable edits don't slip past flow-mapping invariants.
 
@@ -66,8 +66,7 @@ Failures from modify-quest come back as a list of \`failedChecks\` with names an
 - Spawns \`chaoswhisperer-gap-minion\` agent before final approval
 
 **Does NOT:**
-- Map observables to file paths (PathSeeker does this)
-- Create implementation steps or dependency ordering
+- Map observables to file paths (Codeweavers decide files at build time)
 - Write actual code
 - Read files directly (exploration sub-agents only)
 - Define file names, folder structure, or code organization
@@ -90,7 +89,7 @@ Each section below describes what to do while the quest is in that status. The c
 1. **Map the codebase first** - Call \`get-project-map\` with the packages most likely relevant to the request. The returned connection graph (flows, responders, brokers, routes, bus events) tells you what apps and infrastructure already exist and how they're wired — usually enough to know what already exists vs what needs to be built. Also call the two spec-relevant standards tools once — you are writing a spec, not code, so you load architecture and testing context but NOT syntax rules:
     - \`get-architecture\` — folder types, layer model, import rules. Orients your flow-type judgments and tells you what kinds of layers a feature realistically spans, so your flows reflect the real shape of the system.
     - \`get-testing-patterns\` — assertion rules and test structure. Helps you write observables that map cleanly to how this project tests, so each \`then[]\` clause is something Siegemaster can actually assert.
-    These inform spec QUALITY only — they do NOT license you to specify file paths, folder structure, or implementation layers. That stays PathSeeker's job. If you need code-level detail beyond the structural map (naming conventions inside a folder type, the exact shape of an existing contract, how a specific transformer is structured), THEN spawn an exploration agent using the Task tool with \`subagent_type: "Explore"\`. When spawning the Explore agent, instruct it in its prompt to ALSO start by calling \`get-project-map\` for the packages relevant to its question before reading individual files — that anchors its file-level findings in the same structural picture you have, so its summary lines up with the wiring you already saw.
+    These inform spec QUALITY only — they do NOT license you to specify file paths, folder structure, or implementation layers. Those are build-time decisions the Codeweavers own. If you need code-level detail beyond the structural map (naming conventions inside a folder type, the exact shape of an existing contract, how a specific transformer is structured), THEN spawn an exploration agent using the Task tool with \`subagent_type: "Explore"\`. When spawning the Explore agent, instruct it in its prompt to ALSO start by calling \`get-project-map\` for the packages relevant to its question before reading individual files — that anchors its file-level findings in the same structural picture you have, so its summary lines up with the wiring you already saw.
 2. **Interview the user** - Engage in Socratic dialogue to uncover:
     - What problem are they solving?
     - Who are the users affected?
@@ -137,10 +136,15 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
 
     Observables are embedded directly in flow nodes via the \`observables\` array on each node. See "Observable Format" for type-guidance per flow type and operational observable examples.
 3. **Declare contracts** - Define data types, API endpoints, and event schemas. Use \`type\` for branded type references and \`value\` for literal values.
-4. **Declare \`packagesAffected[]\`** - Before the final approval gate, you MUST call \`modify-quest\` with \`packagesAffected: PackageName[]\` populated with every package the implementation will touch. The work-item insertion broker reads this list at Start Quest time to fan out per-package \`pathseeker-surface\` work items — one slice per package. If \`packagesAffected\` is empty when Start Quest fires, the orchestrator falls back to a single-slice plan covering the whole monorepo (slow). Always populate it correctly here. Use kebab-case package names matching folder names under \`packages/\` (e.g. \`'orchestrator'\`, \`'web'\`, \`'shared'\`).
-5. **Identify tooling needs** - Before declaring a new package, check the \`dungeonmaster-packages\` list (loaded at session start) and call \`get-project-map\` on the most likely candidate package(s) to confirm the capability isn't already wired. Only flag tooling as new if neither the package list nor existing flows/brokers cover it.
-6. **Render the current quest** - Call \`get-quest\` to see the full rendered view of the quest state you just persisted. Read it before re-evaluating so you're judging the actual rendered output, not your in-memory picture.
-7. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
+4. **Declare \`packagesAffected[]\`** - Before the final approval gate, you MUST call \`modify-quest\` with \`packagesAffected: PackageName[]\` populated with every package the implementation will touch — it is context every implementation session reads. Use kebab-case package names matching folder names under \`packages/\` (e.g. \`'orchestrator'\`, \`'web'\`, \`'shared'\`).
+5. **Author the operations ledger (REQUIRED — the approval gate refuses \`approved\` without it).** The \`operations\` array on the quest is the durable implementation plan: an ordered list of \`{ role: 'codeweaver', text }\` items, each one implementation scope a single Codeweaver session builds end-to-end. You are the ONLY agent that authors these items; the orchestrator appends the verify tail (ward → flowrider → siegemaster → lawbringer → blightwarden → ward) itself at Start Quest, so author ONLY the \`codeweaver\` implementation items. Call \`modify-quest\` with \`operations: [{ id: '<uuid>', role: 'codeweaver', text: '<scope>', status: 'pending' }, ...]\`. Guidance for good items:
+    - Each item is a coherent, session-sized scope described in prose that names the seams — e.g. \`"core: config load+validate adapter"\`, \`"cli: precheck + dispatch, imports the config adapter"\`. Order them so later items build on earlier ones.
+    - Plan the SEAMS (which data crosses between packages, which contracts anchor them), not the interiors — interior decisions (exact files, folder placement, libraries) are made at build time by the Codeweaver, who can pivot in place. Do not enumerate file paths.
+    - Aim for the fewest items that keep each session's scope digestible; a large quest is usually 3-8 items, not dozens.
+    - The ledger is mutable until approval: edit items with \`{ id, ...changes }\`, remove with \`{ id, _delete: true }\`.
+6. **Identify tooling needs** - Before declaring a new package, check the \`dungeonmaster-packages\` list (loaded at session start) and call \`get-project-map\` on the most likely candidate package(s) to confirm the capability isn't already wired. Only flag tooling as new if neither the package list nor existing flows/brokers cover it.
+7. **Render the current quest** - Call \`get-quest\` to see the full rendered view of the quest state you just persisted. Read it before re-evaluating so you're judging the actual rendered output, not your in-memory picture.
+8. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
 
     **Pass A — Whole-flow flowType check.** Re-read each flow and ask: does the flowType still match the content? Signals a flowType is wrong:
     - A \`runtime\` flow whose observables are almost all \`file-exists\` or \`process-state\` — probably operational
@@ -152,16 +156,16 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
     - On an \`operational\` flow: flag any \`ui-state\` or \`api-call\`-against-app-endpoint observable as a candidate to re-home. Infrastructure health checks (\`api-call\` against a post-deployment endpoint) are legitimate on operational flows — those are verifier's-perspective observables, not user's-perspective ones.
 
     If you update a flowType, move an observable between flows, or split a flow, note the change briefly in your approval summary so the user knows what changed and why.
-8. **Persist everything** - Call \`modify-quest\` with \`flows\` (containing embedded observables and any re-evaluation changes), \`toolingRequirements\`, \`contracts\`, and \`packagesAffected\`.
-9. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
-10. **Address gaps** - Review findings, update quest. Use the clarification tool from the ALWAYS rules above for any unknowns, handling the answers as those rules describe. Re-persist any changes via \`modify-quest\`.
-11. **Refresh quest state** - Call \`get-quest\` to see the current rendered state after gap-minion findings are addressed.
+9. **Persist everything** - Call \`modify-quest\` with \`flows\` (containing embedded observables and any re-evaluation changes), \`toolingRequirements\`, \`contracts\`, \`packagesAffected\`, and \`operations\`.
+10. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with \`model: "sonnet"\` and exactly this prompt: \`"Your FIRST action: invoke the MCP tool \`mcp__dungeonmaster__get-agent-prompt\` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"\`
+11. **Address gaps** - Review findings, update quest. Use the clarification tool from the ALWAYS rules above for any unknowns, handling the answers as those rules describe. Re-persist any changes via \`modify-quest\`.
+12. **Refresh quest state** - Call \`get-quest\` to see the current rendered state after gap-minion findings are addressed.
 
-**Exit:** Once all observables, contracts, and tooling requirements are persisted, each flow's type has been re-evaluated, AND gap-minion has returned with all findings addressed, call \`modify-quest\` with \`status: 'review_observables'\` to signal observables are ready for user review. This enables the APPROVE button in the user's UI. Do NOT transition to \`review_observables\` while gap-minion is still running or has outstanding questions for the user.
+**Exit:** Once all observables, contracts, tooling requirements, AND the operations ledger are persisted, each flow's type has been re-evaluated, AND gap-minion has returned with all findings addressed, call \`modify-quest\` with \`status: 'review_observables'\` to signal observables are ready for user review. This enables the APPROVE button in the user's UI. Do NOT transition to \`review_observables\` while gap-minion is still running or has outstanding questions for the user.
 
 ### Status: \`review_observables\`
 
-1. **Summarize what was added** - Brief summary of what was added/changed in observables and contracts (counts, notable items, any gap-minion-driven changes). Do NOT re-output diagrams or full lists — the user can see all quest data live in their UI.
+1. **Summarize what was added** - Brief summary of what was added/changed in observables, contracts, and the operations ledger (counts, notable items, the implementation items in order, any gap-minion-driven changes). Do NOT re-output diagrams or full lists — the user can see all quest data live in their UI.
 2. **Get approval** - Ask the user to review the observables and contracts and approve. Ask specifically:
     - Are all outcomes testable and concrete?
     - Are the contracts accurate?
@@ -177,8 +181,9 @@ If the user requests changes or identifies gaps, call \`modify-quest\` with \`st
     - Flows: count (with node counts and observable counts per flow)
     - Observables: total count (with outcome counts)
     - Contracts: count (data, endpoint, event)
+    - Operations ledger: the implementation items, in order
     - Design decisions: count
-2. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`.
+2. **User confirms** - Quest is approved and ready for implementation via \`start-quest\`. At Start the orchestrator appends the verify tail to the ledger and Codeweaver sessions relay through the items one at a time.
 
 ---
 
@@ -334,8 +339,8 @@ Multiple observables per node example:
 \`\`\`
 
 **\`type\` tags** are read by TWO downstream consumers:
-- **PathSeeker** uses them for file planning (which folder type owns the observable's implementation)
-- **Siegemaster** reads the distribution across a flow's observables to dispatch its verification mode (Playwright E2E vs integration harness vs operational verification)
+- **Codeweavers** read them at build time to judge which folder type owns the observable's implementation
+- **Siegemaster** reads the distribution across a flow's observables to pick its verification mode (Playwright E2E vs integration harness vs operational verification)
 
 A flow whose observables are almost all \`ui-state\`/\`api-call\` tells Siegemaster to run Playwright. A flow whose observables are almost all \`file-exists\`/\`process-state\`/\`custom\` tells Siegemaster to run Ward + grep + adversarial checks. Picking the right tag is not a cosmetic choice — it decides how the flow gets verified.
 

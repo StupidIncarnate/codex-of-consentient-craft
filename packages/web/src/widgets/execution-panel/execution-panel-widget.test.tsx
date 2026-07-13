@@ -2,24 +2,26 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import {
-  DependencyStepStub,
+  AssistantTextChatEntryStub,
+  OperationItemStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  TaskToolUseChatEntryStub,
   WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import {
-  AssistantTextChatEntryStub,
-  TaskToolUseChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+
+const OP_ID_1 = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d401';
+const OP_ID_2 = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d402';
+const OP_ID_3 = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d403';
 
 describe('ExecutionPanelWidget', () => {
   describe('tab bar', () => {
@@ -81,10 +83,10 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('execution tab content', () => {
-    it('VALID: {quest with no steps} => renders PLANNING status and floor header', () => {
+  describe('status bar operations progress', () => {
+    it('EMPTY: {non-terminal quest with no operations} => renders AWAITING PLAN status', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'in_progress', steps: [] });
+      const quest: Quest = QuestStub({ status: 'in_progress', operations: [] });
 
       mantineRenderAdapter({
         ui: <ExecutionPanelWidget quest={quest} />,
@@ -92,43 +94,151 @@ describe('ExecutionPanelWidget', () => {
 
       expect(proxy.hasStatusBar()).toBe(true);
       expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-        'EXECUTIONPLANNING',
+        'EXECUTIONAWAITING PLAN',
       );
     });
 
-    it('VALID: {quest with steps} => renders step rows', () => {
+    it('VALID: {3 operations, 1 complete} => status bar shows 1/3 OPERATIONS', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'in_progress' }),
+          OperationItemStub({ id: OP_ID_3, text: 'polish widgets', status: 'pending' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION1/3 OPERATIONS',
+      );
+    });
+
+    it('VALID: {2 operations, 0 complete} => status bar shows 0/2 OPERATIONS', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'pending' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION0/2 OPERATIONS',
+      );
+    });
+  });
+
+  describe('operations ledger', () => {
+    it('EMPTY: {no operations} => does not render the operations ledger', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress', operations: [] });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasOperationsLedger()).toBe(false);
+    });
+
+    it('VALID: {operations with mixed statuses} => renders ledger rows in ledger order with status markers', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Build auth module',
-            focusFile: { path: 'src/auth.ts', action: 'create' },
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'in_progress' }),
+          OperationItemStub({
+            id: OP_ID_3,
+            role: 'ward',
+            text: 'verify: ward',
+            status: 'pending',
+            wardMode: 'changed',
           }),
-          DependencyStepStub({
-            id: 'step-2',
-            name: 'Add user model',
-            focusFile: { path: 'src/user.ts', action: 'create' },
-          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasOperationsLedger()).toBe(true);
+      expect(proxy.getOperationsLedgerRows().map((r) => r.textContent)).toStrictEqual([
+        '[x][CODEWEAVER]build the broker',
+        '[>][CODEWEAVER]wire the flow',
+        '[ ][WARD]verify: ward(changed)',
+      ]);
+    });
+
+    it('VALID: {operations and work items} => ledger renders above the work-item rows', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'in_progress' }),
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000010',
-            role: 'pathseeker-surface',
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasOperationsLedger()).toBe(true);
+
+      const floorContent = screen.getByTestId('execution-panel-floor-content');
+      const orderedTestIds = Array.from(
+        floorContent.querySelectorAll(
+          '[data-testid="OPERATIONS_LEDGER"], [data-testid="execution-row-layer-widget"]',
+        ),
+      ).map((el) => el.getAttribute('data-testid'));
+
+      expect(orderedTestIds).toStrictEqual(['OPERATIONS_LEDGER', 'execution-row-layer-widget']);
+    });
+  });
+
+  describe('flat work-item rows', () => {
+    it('VALID: {work items linked to operations} => renders rows in quest.workItems order named by operation text', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({ id: OP_ID_2, text: 'wire the flow', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
             status: 'complete',
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000011',
+            id: 'a0000000-0000-0000-0000-000000000002',
             role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-1'],
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000012',
+            id: 'a0000000-0000-0000-0000-000000000003',
             role: 'codeweaver',
             status: 'pending',
-            relatedDataItems: ['steps/step-2'],
+            relatedDataItems: [`operations/${OP_ID_2}`],
           }),
         ],
       });
@@ -139,41 +249,26 @@ describe('ExecutionPanelWidget', () => {
 
       const stepRows = proxy.getStepRows();
 
-      // pathseeker done row + 2 step rows = 3
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
+      expect(stepRows.map((r) => r.textContent)).toStrictEqual([
+        '▸01[CHAOSWHISPERER]ChaoswhispererDONE',
+        '▸02[CODEWEAVER]build the brokerDONE',
+        '···03[CODEWEAVER]wire the flowPENDING',
       ]);
     });
 
-    it('VALID: {quest with completed steps} => shows correct count in status bar', () => {
-      ExecutionPanelWidgetProxy();
+    it('EDGE: {work item with operations ref that does not resolve} => falls back to capitalized role name', () => {
+      const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
-        steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Step A' }),
-          DependencyStepStub({ id: 'step-2', name: 'Step B' }),
-          DependencyStepStub({ id: 'step-3', name: 'Step C' }),
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'pending' }),
         ],
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
             role: 'codeweaver',
             status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-2'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-3'],
+            relatedDataItems: [`operations/${OP_ID_2}`],
           }),
         ],
       });
@@ -182,47 +277,29 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-        'EXECUTION1/3 COMPLETE',
-      );
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CODEWEAVER]CodeweaverDONE',
+      ]);
     });
 
-    it('VALID: {6 work items, 1 step, 2 complete} => status bar shows 2/6 not step-count', () => {
-      ExecutionPanelWidgetProxy();
+    it('VALID: {non-terminal quest with skipped work item} => skipped row is hidden', () => {
+      const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'pending' }),
+        ],
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
-            status: 'complete',
+            role: 'codeweaver',
+            status: 'skipped',
+            relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
+            role: 'ward',
             status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'in_progress',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'codeweaver',
-            status: 'in_progress',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000005',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000006',
-            role: 'codeweaver',
-            status: 'pending',
           }),
         ],
       });
@@ -231,47 +308,22 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-        'EXECUTION2/6 COMPLETE',
-      );
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual(['▸01[WARD]WardDONE']);
     });
 
-    it('VALID: {6 work items, 1 step, 0 complete} => status bar shows 0/6', () => {
-      ExecutionPanelWidgetProxy();
+    it('VALID: {expanded complete row} => never renders a Files line (files are always empty)', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'complete' }),
+        ],
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
-            status: 'in_progress',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
             role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000005',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000006',
-            role: 'codeweaver',
-            status: 'pending',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
           }),
         ],
       });
@@ -280,46 +332,158 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-        'EXECUTION0/6 COMPLETE',
-      );
+      const rowHeader = proxy
+        .getStepRows()[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(rowHeader);
+
+      expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
+      expect(screen.queryByTestId('execution-row-files')).toBe(null);
     });
 
-    it('VALID: {6 work items including 1 skipped, 1 step, 2 complete} => status bar shows 2/5 excluding skipped', () => {
+    it('EMPTY: {no work items} => renders no rows', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress', workItems: [] });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getStepRows()).toStrictEqual([]);
+    });
+  });
+
+  describe('dependsOn labels', () => {
+    it('VALID: {work item with dependsOn} => subtitle shows the dependency role labels', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
         workItems: [
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker',
+            role: 'chaoswhisperer',
             status: 'complete',
           }),
           WorkItemStub({
             id: 'a0000000-0000-0000-0000-000000000002',
             role: 'codeweaver',
+            status: 'pending',
+            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
+
+      expect(subtitles.map((s) => s.textContent)).toStrictEqual(['└─ depends on: chaoswhisperer']);
+    });
+  });
+
+  describe('ward results', () => {
+    it('VALID: {ward work item with wardResults ref} => shows ward exit code and mode in expanded content', async () => {
+      ExecutionPanelWidgetProxy();
+      const wardResult = WardResultStub({
+        id: 'b0000000-0000-0000-0000-000000000001',
+        exitCode: 1,
+        wardMode: 'changed',
+      });
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'ward',
+            text: 'verify: ward',
             status: 'complete',
-            relatedDataItems: ['steps/step-1'],
+            wardMode: 'changed',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'ward',
+            status: 'failed',
+            relatedDataItems: [
+              `operations/${OP_ID_1}`,
+              'wardResults/b0000000-0000-0000-0000-000000000001',
+            ],
+          }),
+        ],
+        wardResults: [wardResult],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const wardRowHeader = screen
+        .getAllByTestId('execution-row-layer-widget')[0]!
+        .querySelector('[data-testid="execution-row-header"]')!;
+
+      await userEvent.click(wardRowHeader);
+
+      expect(screen.getByTestId('execution-row-ward-result').textContent).toBe(
+        'Ward exit code: 1 (changed)',
+      );
+    });
+  });
+
+  describe('abandon-early skipped items', () => {
+    it('VALID: {abandoned quest, no operations, skipped chaoswhisperer with session entries} => skipped row renders and auto-expands its transcript', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const sessionId = SessionIdStub({ value: '91c4944d-55e3-4231-bd48-140245f11867' });
+      const entry = AssistantTextChatEntryStub({ content: 'Capturing the spec...' });
+      const sessionEntries = new Map([[sessionId, [entry]]]);
+      const quest: Quest = QuestStub({
+        status: 'abandoned',
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'skipped',
+            sessionId,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
+      });
+
+      expect(proxy.getStepRows().map((r) => r.getAttribute('data-testid'))).toStrictEqual([
+        'execution-row-layer-widget',
+      ]);
+
+      const messages = proxy.getExecutionMessages();
+
+      expect(messages.map((m) => m.textContent)).toStrictEqual([
+        'CHAOSWHISPERERCapturing the spec...',
+      ]);
+    });
+
+    it('VALID: {abandoned quest WITH operations, skipped work item} => skipped row stays hidden', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'abandoned',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000005',
-            role: 'codeweaver',
-            status: 'pending',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000006',
-            role: 'codeweaver',
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'ward',
             status: 'skipped',
           }),
         ],
@@ -329,9 +493,252 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-        'EXECUTION2/5 COMPLETE',
-      );
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CODEWEAVER]build the brokerDONE',
+      ]);
+    });
+  });
+
+  describe('ad-hoc detection', () => {
+    it('VALID: {work item has insertedBy} => renders row with AD-HOC indicator', () => {
+      ExecutionPanelWidgetProxy();
+      const insertedById = QuestWorkItemIdStub({
+        value: 'b0000000-0000-0000-0000-000000000001',
+      });
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'spiritmender',
+            status: 'in_progress',
+            insertedBy: insertedById,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
+    });
+
+    it('VALID: {work item has no insertedBy} => does not render AD-HOC indicator', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.queryByTestId('execution-row-adhoc-tag')).toBe(null);
+    });
+  });
+
+  describe('session entries for work items', () => {
+    it('VALID: {terminal quest, no operations, work item sessionId with matching sessionEntries} => auto-expands row showing entries', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const sessionId = SessionIdStub({ value: '91c4944d-55e3-4231-bd48-140245f11867' });
+      const entry = AssistantTextChatEntryStub({ content: 'Exploring codebase...' });
+      const sessionEntries = new Map([[sessionId, [entry]]]);
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            sessionId,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
+      });
+
+      const messages = proxy.getExecutionMessages();
+
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
+      expect(messages[0]?.textContent).toBe('CHAOSWHISPERERExploring codebase...');
+    });
+
+    it('VALID: {work item without sessionId} => renders row with no entries', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getExecutionMessages()).toStrictEqual([]);
+    });
+
+    it('VALID: {in_progress work item with sessionId and entries} => row auto-expands with streaming entries', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const sessionId = SessionIdStub({ value: 'c0000000-0000-0000-0000-000000000001' });
+      const entry = AssistantTextChatEntryStub({ content: 'Writing auth-login-broker.ts' });
+      const sessionEntries = new Map([[sessionId, [entry]]]);
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({ id: OP_ID_1, text: 'build the broker', status: 'in_progress' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+            sessionId,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
+      });
+
+      const messages = proxy.getExecutionMessages();
+
+      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
+      expect(messages[0]?.textContent).toBe('CODEWEAVERWriting auth-login-broker.ts');
+      expect(proxy.hasStreamingBar()).toBe(true);
+    });
+  });
+
+  describe('nested sub-agent entries', () => {
+    it('VALID: {parent row whose transcript spawns a nested sub-agent whose own entries live only in the session pool} => nested chain shows its real entry count and renders its entries', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const sessionId = SessionIdStub({ value: '5e5510a4-0000-0000-0000-000000000abc' });
+      const parentWorkItemId = QuestWorkItemIdStub({
+        value: 'b0000000-0000-0000-0000-0000000000aa',
+      });
+
+      // The parent transcript: a Task tool_use line that spawned the nested sub-agent.
+      // This is the only entry routed to the parent's own work-item bucket.
+      const nestedTaskToolUse = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
+
+      // The nested sub-agent's OWN transcript entries. They arrive bucketed under the
+      // session pool (sessionEntries), NOT the parent's work-item bucket.
+      const nestedEntry1 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'minion-1',
+        content: 'nested line one',
+      });
+      const nestedEntry2 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'minion-1',
+        content: 'nested line two',
+      });
+      const nestedEntry3 = AssistantTextChatEntryStub({
+        source: 'subagent',
+        agentId: 'minion-1',
+        content: 'nested line three',
+      });
+
+      const workItemEntries = new Map([[parentWorkItemId, [nestedTaskToolUse]]]);
+      const sessionEntries = new Map([
+        [sessionId, [nestedTaskToolUse, nestedEntry1, nestedEntry2, nestedEntry3]],
+      ]);
+
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        operations: [],
+        workItems: [
+          WorkItemStub({
+            id: parentWorkItemId,
+            role: 'codeweaver',
+            status: 'complete',
+            sessionId,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            sessionEntries={sessionEntries}
+            workItemEntries={workItemEntries}
+          />
+        ),
+      });
+
+      const chainHeader = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
+
+      expect(chainHeader.textContent).toBe('▾ SUB-AGENT"Run tests" (3 entries)');
+
+      const messages = proxy.getExecutionMessages();
+
+      expect(messages.map((m) => m.textContent)).toStrictEqual(['SUB-AGENTnested line three']);
+    });
+  });
+
+  describe('retry badge and duration', () => {
+    it('VALID: {work item with attempt > 0} => shows retry badge in header', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'in_progress',
+            attempt: 1,
+            maxAttempts: 3,
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-row-retry-badge').textContent).toBe('retry 1/3');
+    });
+
+    it('VALID: {work item with startedAt and completedAt} => shows duration in header', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'codeweaver',
+            status: 'complete',
+            startedAt: '2024-01-15T10:00:00.000Z',
+            completedAt: '2024-01-15T10:02:34.000Z',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(screen.getByTestId('execution-row-duration').textContent).toBe('2m 34s');
     });
   });
 
@@ -411,6 +818,7 @@ describe('ExecutionPanelWidget', () => {
       await proxy.clickButtonByLabel({ label: 'PAUSE QUEST' });
 
       expect(onPause).toHaveBeenCalledTimes(1);
+      expect(onPause).toHaveBeenCalledWith();
       expect(onStatusChange.mock.calls).toStrictEqual([]);
     });
 
@@ -447,6 +855,7 @@ describe('ExecutionPanelWidget', () => {
 
       await proxy.clickButtonByLabel({ label: 'RESUME QUEST' });
 
+      expect(onStatusChange).toHaveBeenCalledTimes(1);
       expect(onStatusChange).toHaveBeenCalledWith({ status: 'in_progress' });
     });
   });
@@ -504,6 +913,7 @@ describe('ExecutionPanelWidget', () => {
       await proxy.clickConfirmAbandon();
 
       expect(onAbandon).toHaveBeenCalledTimes(1);
+      expect(onAbandon).toHaveBeenCalledWith();
     });
 
     it('VALID: {click CANCEL after ABANDON QUEST} => returns to ABANDON QUEST button', async () => {
@@ -568,1374 +978,6 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('pathseeker entrance collapse', () => {
-    it('VALID: {planning quest with 4 pathseeker-* workItems at depths 0/1/2/2/3} => single ENTRANCE: MAPPING DUMPSTER floor with chaoswhisperer + 4 pathseeker rows', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'pathseeker-dedup',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000002'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'pathseeker-assertion-correctness',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000002'],
-            createdAt: '2024-01-15T10:02:01.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000005',
-            role: 'pathseeker-walk',
-            status: 'pending',
-            dependsOn: [
-              'a0000000-0000-0000-0000-000000000003',
-              'a0000000-0000-0000-0000-000000000004',
-            ],
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
-
-      const roleBadges = screen.queryAllByTestId('execution-row-role-badge');
-
-      expect(roleBadges.map((b) => b.textContent)).toStrictEqual([
-        '[CHAOSWHISPERER]',
-        '[PATHSEEKER-SURFACE]',
-        '[PATHSEEKER-DEDUP]',
-        '[PATHSEEKER-ASSERTION-CORRECTNESS]',
-        '[PATHSEEKER-WALK]',
-      ]);
-    });
-  });
-
-  describe('pathseeker done row', () => {
-    it('VALID: {quest with steps} => renders pathseeker done row with step count', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Step A' }),
-          DependencyStepStub({ id: 'step-2', name: 'Step B' }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000099',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-2'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = proxy.getStepRows();
-
-      // Should have pathseeker done row + 2 step rows = 3 total
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-      ]);
-
-      // First row should be pathseeker (no #1 since it's the only item in its group)
-      const firstRowText = stepRows[0]?.textContent;
-
-      expect(firstRowText).toMatch(/^\u25B801\[PATHSEEKER-SURFACE\]Pathseeker-surface(?! #)DONE$/u);
-    });
-  });
-
-  describe('[X8] ad-hoc step detection', () => {
-    it('VALID: {work item has insertedBy} => renders step with AD-HOC indicator', () => {
-      ExecutionPanelWidgetProxy();
-      const insertedById = QuestWorkItemIdStub({
-        value: 'b0000000-0000-0000-0000-000000000001',
-      });
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-adhoc',
-            name: 'Fix lint errors',
-            focusFile: { path: 'src/broker.ts', action: 'modify' },
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-adhoc'],
-            insertedBy: insertedById,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(screen.getByTestId('execution-row-adhoc-tag')).toBeInTheDocument();
-      expect(screen.getByTestId('execution-row-adhoc-tag').textContent).toBe('AD-HOC');
-    });
-
-    it('VALID: {work item has no insertedBy} => does not render AD-HOC indicator', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-normal',
-            name: 'Build auth module',
-            focusFile: { path: 'src/auth.ts', action: 'create' },
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-normal'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(screen.queryByTestId('execution-row-adhoc-tag')).toBe(null);
-    });
-  });
-
-  describe('terminal quest with work items only', () => {
-    it('VALID: {complete quest with chaoswhisperer work item} => renders work item row, not planning', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = proxy.getStepRows();
-
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-      ]);
-
-      const firstRowText = stepRows[0]?.textContent;
-
-      expect(firstRowText).toBe('\u25B801[CHAOSWHISPERER]ChaoswhispererDONE');
-    });
-
-    it('VALID: {complete quest with work items} => shows terminal banner instead of status bar', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(screen.queryByTestId('execution-status-bar-layer-widget')).toBe(null);
-      expect(screen.getByTestId('execution-panel-terminal-banner').textContent).toBe(
-        questStatusMetadataStatics.statuses.complete.displayHeader,
-      );
-    });
-
-    it('VALID: {abandoned quest with work items} => renders work item rows, not planning', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'abandoned',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.getStepRows().map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-      ]);
-    });
-
-    it('VALID: {complete quest with no work items and no steps} => renders no step rows', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.getStepRows()).toStrictEqual([]);
-    });
-  });
-
-  describe('dynamic floor headers', () => {
-    it('VALID: {complete quest with chaoswhisperer work item} => renders HOMEBASE floor header', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-    });
-
-    it('VALID: {complete quest with two different role work items} => renders two floor headers in config order', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
-    });
-
-    it('VALID: {steps with ward and codeweaver roles} => renders FORGE and MINI BOSS floors', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Build module' }),
-          DependencyStepStub({ id: 'step-2', name: 'Run quality checks' }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'ward',
-            status: 'pending',
-            relatedDataItems: ['steps/step-2'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──FLOOR \d+: FORGE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──FLOOR \d+: MINI BOSS──+$/u);
-    });
-
-    it('VALID: {multiple pathseeker work items} => renders single CARTOGRAPHY floor with both rows', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
-
-      const stepRows = proxy.getStepRows();
-
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-      ]);
-    });
-
-    it('VALID: {multiple ward work items} => renders single MINI BOSS floor with both rows', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'ward',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'ward',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──FLOOR \d+: MINI BOSS──+$/u);
-
-      const stepRows = proxy.getStepRows();
-
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-      ]);
-    });
-
-    it('VALID: {pathseeker and ward work items mixed} => renders ENTRANCE: CARTOGRAPHY then MINI BOSS floors', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'ward',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'ward',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──FLOOR \d+: MINI BOSS──+$/u);
-
-      const stepRows = proxy.getStepRows();
-
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-      ]);
-    });
-
-    it('VALID: {complete quest with no work items} => renders no floor headers', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.getFloorHeaders()).toStrictEqual([]);
-    });
-  });
-
-  describe('floor ordering with mixed step and non-step work items', () => {
-    const getFloorNames = () =>
-      screen.queryAllByTestId('floor-header-layer-widget').map((h) =>
-        (h.textContent ?? '')
-          .replace(/──+/gu, '')
-          .replace(/Concurrent.*$/u, '')
-          .trim(),
-      );
-
-    it('VALID: {happy path chain with steps} => floors in topological order', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000002'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'ward',
-            status: 'in_progress',
-            dependsOn: ['a0000000-0000-0000-0000-000000000003'],
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'HOMEBASE',
-        'ENTRANCE: MAPPING DUMPSTER',
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-      ]);
-    });
-
-    it('VALID: {ward fail → spiritmender → ward retry} => FORGE before MINI BOSS, INFIRMARY between bosses', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000010',
-            role: 'pathseeker-surface',
-            status: 'complete',
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000011',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000010'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000012',
-            role: 'ward',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000011'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000013',
-            role: 'spiritmender',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000012'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000012' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000014',
-            role: 'ward',
-            status: 'in_progress',
-            dependsOn: ['a0000000-0000-0000-0000-000000000013'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000012' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:04:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'ENTRANCE: MAPPING DUMPSTER',
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'FLOOR 3: INFIRMARY',
-        'FLOOR 4: MINI BOSS',
-      ]);
-    });
-
-    it('VALID: {ward exhausts retries → pathseeker replan} => CARTOGRAPHY reappears after MINI BOSS', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000030',
-            role: 'pathseeker-surface',
-            status: 'complete',
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000031',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000030'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000032',
-            role: 'ward',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000031'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-            attempt: 2,
-            maxAttempts: 3,
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000033',
-            role: 'pathseeker-surface',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000032'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000032' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'ENTRANCE: MAPPING DUMPSTER',
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'ENTRANCE: MAPPING DUMPSTER',
-      ]);
-    });
-
-    it('VALID: {siegemaster fail → pathseeker replan} => CARTOGRAPHY after ARENA, skipped excluded', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000040',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000041',
-            role: 'ward',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000040'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000042',
-            role: 'siegemaster',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000041'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000043',
-            role: 'lawbringer',
-            status: 'skipped',
-            dependsOn: ['a0000000-0000-0000-0000-000000000042'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000044',
-            role: 'ward',
-            status: 'skipped',
-            dependsOn: ['a0000000-0000-0000-0000-000000000043'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000045',
-            role: 'pathseeker-surface',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000042'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000042' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'FLOOR 3: ARENA',
-        'ENTRANCE: MAPPING DUMPSTER',
-      ]);
-    });
-
-    it('VALID: {lawbringer fail → spiritmender} => INFIRMARY after TRIBUNAL', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000050',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000051',
-            role: 'ward',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000050'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000052',
-            role: 'siegemaster',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000051'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000053',
-            role: 'lawbringer',
-            status: 'failed',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000052'],
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000054',
-            role: 'spiritmender',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000053'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000053' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:04:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'FLOOR 3: ARENA',
-        'FLOOR 4: TRIBUNAL',
-        'FLOOR 5: INFIRMARY',
-      ]);
-    });
-
-    it('VALID: {spiritmender fail → pathseeker replan} => CARTOGRAPHY after INFIRMARY', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000060',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000061',
-            role: 'ward',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000060'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000062',
-            role: 'spiritmender',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000061'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000061' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000063',
-            role: 'pathseeker-surface',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000062'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000062' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'FLOOR 3: INFIRMARY',
-        'ENTRANCE: MAPPING DUMPSTER',
-      ]);
-    });
-
-    it('VALID: {pathseeker-surface retry after ward exhaustion} => two ENTRANCE: MAPPING DUMPSTER entrances with consecutive replan attempts merged into the second', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Build module' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000070',
-            role: 'pathseeker-surface',
-            status: 'complete',
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000071',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000070'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000072',
-            role: 'ward',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000071'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-            attempt: 2,
-            maxAttempts: 3,
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000073',
-            role: 'pathseeker-surface',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000072'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000072' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:03:00.000Z',
-            attempt: 0,
-            maxAttempts: 3,
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000074',
-            role: 'pathseeker-surface',
-            status: 'in_progress',
-            dependsOn: ['a0000000-0000-0000-0000-000000000073'],
-            insertedBy: 'a0000000-0000-0000-0000-000000000073' as ReturnType<
-              typeof QuestWorkItemIdStub
-            >,
-            createdAt: '2024-01-15T10:04:00.000Z',
-            attempt: 1,
-            maxAttempts: 3,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'ENTRANCE: MAPPING DUMPSTER',
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'ENTRANCE: MAPPING DUMPSTER',
-      ]);
-    });
-
-    it('VALID: {full happy chain with lawbringer step ref} => TRIBUNAL between ARENA and FLOOR BOSS', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Implement feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000020',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000021',
-            role: 'ward',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000020'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000022',
-            role: 'siegemaster',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000021'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000023',
-            role: 'lawbringer',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000022'],
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000024',
-            role: 'ward',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000023'],
-            createdAt: '2024-01-15T10:04:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect(getFloorNames()).toStrictEqual([
-        'FLOOR 1: FORGE',
-        'FLOOR 2: MINI BOSS',
-        'FLOOR 3: ARENA',
-        'FLOOR 4: TRIBUNAL',
-        'FLOOR 5: FLOOR BOSS',
-      ]);
-    });
-
-    it('VALID: {blightwarden failed → bare pathseeker replan} => full-width divider + HOMEBASE re-entry + FLOOR count restarts at 1', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Feature' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000030',
-            role: 'chaoswhisperer',
-            status: 'complete',
-            dependsOn: [],
-            createdAt: '2024-01-15T10:00:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000031',
-            role: 'pathseeker',
-            status: 'complete',
-            dependsOn: ['a0000000-0000-0000-0000-000000000030'],
-            createdAt: '2024-01-15T10:01:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000032',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            dependsOn: ['a0000000-0000-0000-0000-000000000031'],
-            createdAt: '2024-01-15T10:02:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000033',
-            role: 'ward',
-            status: 'complete',
-            wardMode: 'changed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000032'],
-            createdAt: '2024-01-15T10:03:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000034',
-            role: 'blightwarden',
-            status: 'failed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000033'],
-            createdAt: '2024-01-15T10:04:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000035',
-            role: 'pathseeker',
-            status: 'pending',
-            dependsOn: [],
-            insertedBy: 'a0000000-0000-0000-0000-000000000034',
-            createdAt: '2024-01-15T10:05:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000036',
-            role: 'codeweaver',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000035'],
-            createdAt: '2024-01-15T10:06:00.000Z',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000037',
-            role: 'ward',
-            status: 'pending',
-            wardMode: 'changed',
-            dependsOn: ['a0000000-0000-0000-0000-000000000036'],
-            createdAt: '2024-01-15T10:07:00.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={quest} /> });
-
-      expect({
-        floorNames: getFloorNames(),
-        dividerCount: screen.queryAllByTestId('floor-generation-divider').length,
-      }).toStrictEqual({
-        floorNames: [
-          'HOMEBASE',
-          'FLOOR 1: FORGE',
-          'FLOOR 2: MINI BOSS',
-          'FLOOR 3: QUARANTINE',
-          'HOMEBASE',
-          'FLOOR 1: FORGE',
-          'FLOOR 2: MINI BOSS',
-        ],
-        dividerCount: 1,
-      });
-    });
-  });
-
-  describe('session entries for work items', () => {
-    it('VALID: {terminal quest with work item sessionId and matching sessionEntries} => auto-expands row showing entries', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: '91c4944d-55e3-4231-bd48-140245f11867' });
-      const entry = AssistantTextChatEntryStub({ content: 'Exploring codebase...' });
-      const sessionEntries = new Map([[sessionId, [entry]]]);
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-            sessionId,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      const messages = proxy.getExecutionMessages();
-
-      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
-      expect(messages[0]?.textContent).toBe('CHAOSWHISPERERExploring codebase...');
-    });
-
-    it('VALID: {work item without sessionId} => renders row with no entries', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.getExecutionMessages()).toStrictEqual([]);
-    });
-  });
-
-  describe('nested sub-agent entries', () => {
-    it('VALID: {parent row whose transcript spawns a nested sub-agent whose own entries live only in the session pool} => nested chain shows its real entry count and renders its entries', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: '5e5510a4-0000-0000-0000-000000000abc' });
-      const parentWorkItemId = QuestWorkItemIdStub({
-        value: 'b0000000-0000-0000-0000-0000000000aa',
-      });
-
-      // The parent (pathseeker) transcript: a Task tool_use line that spawned the nested
-      // sub-agent. This is the only entry routed to the parent's own work-item bucket.
-      const nestedTaskToolUse = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
-
-      // The nested sub-agent's OWN transcript entries. They arrive bucketed under the
-      // session pool (sessionEntries), NOT the parent's work-item bucket.
-      const nestedEntry1 = AssistantTextChatEntryStub({
-        source: 'subagent',
-        agentId: 'minion-1',
-        content: 'nested line one',
-      });
-      const nestedEntry2 = AssistantTextChatEntryStub({
-        source: 'subagent',
-        agentId: 'minion-1',
-        content: 'nested line two',
-      });
-      const nestedEntry3 = AssistantTextChatEntryStub({
-        source: 'subagent',
-        agentId: 'minion-1',
-        content: 'nested line three',
-      });
-
-      const workItemEntries = new Map([[parentWorkItemId, [nestedTaskToolUse]]]);
-      const sessionEntries = new Map([
-        [sessionId, [nestedTaskToolUse, nestedEntry1, nestedEntry2, nestedEntry3]],
-      ]);
-
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: parentWorkItemId,
-            role: 'pathseeker',
-            status: 'complete',
-            sessionId,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: (
-          <ExecutionPanelWidget
-            quest={quest}
-            sessionEntries={sessionEntries}
-            workItemEntries={workItemEntries}
-          />
-        ),
-      });
-
-      const chainHeader = screen.getByTestId('SUBAGENT_CHAIN_HEADER');
-
-      expect(chainHeader.textContent).toBe('▾ SUB-AGENT"Run tests" (3 entries)');
-
-      const messages = proxy.getExecutionMessages();
-
-      expect(messages.map((m) => m.textContent)).toStrictEqual(['SUB-AGENTnested line three']);
-    });
-  });
-
-  describe('step row session entries', () => {
-    it('VALID: {step with work item sessionId and matching sessionEntries} => shows session logs on expand', async () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'c0000000-0000-0000-0000-000000000001' });
-      const entry = AssistantTextChatEntryStub({ content: 'Writing auth-login-broker.ts' });
-      const sessionEntries = new Map([[sessionId, [entry]]]);
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Create auth broker',
-            focusFile: { path: 'src/auth.ts', action: 'create' },
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            sessionId,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      const stepRows = proxy.getStepRows();
-      const codeWeaverRow = stepRows[0]!;
-      const rowHeader = codeWeaverRow.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(rowHeader);
-
-      const messages = proxy.getExecutionMessages();
-
-      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
-      expect(messages[0]?.textContent).toBe('CODEWEAVERWriting auth-login-broker.ts');
-    });
-
-    it('VALID: {step with work item but no sessionId} => shows no entries on expand', async () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Create auth broker',
-            focusFile: { path: 'src/auth.ts', action: 'create' },
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = proxy.getStepRows();
-      const codeWeaverRow = stepRows[0]!;
-      const rowHeader = codeWeaverRow.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(rowHeader);
-
-      expect(proxy.getExecutionMessages()).toStrictEqual([]);
-    });
-
-    it('VALID: {two steps with different sessionIds} => each step shows its own session logs', async () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const sessionA = SessionIdStub({ value: 'a1111111-0000-0000-0000-000000000001' });
-      const sessionB = SessionIdStub({ value: 'b2222222-0000-0000-0000-000000000002' });
-      const entryA = AssistantTextChatEntryStub({ content: 'Building contracts' });
-      const entryB = AssistantTextChatEntryStub({ content: 'Building adapters' });
-      const sessionEntries = new Map([
-        [sessionA, [entryA]],
-        [sessionB, [entryB]],
-      ]);
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Create contract' }),
-          DependencyStepStub({ id: 'step-2', name: 'Create adapter' }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            sessionId: sessionA,
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-2'],
-            sessionId: sessionB,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      const stepRows = proxy.getStepRows();
-      const contractRow = stepRows[0]!;
-      const contractHeader = contractRow.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(contractHeader);
-
-      const messagesAfterFirst = proxy.getExecutionMessages();
-
-      expect(messagesAfterFirst.map((m) => m.getAttribute('data-testid'))).toStrictEqual([
-        'CHAT_MESSAGE',
-      ]);
-      expect(messagesAfterFirst[0]?.textContent).toBe('CODEWEAVERBuilding contracts');
-    });
-
-    it('VALID: {step with pathseeker session present elsewhere} => step row stays empty unless its own sessionId is in sessionEntries', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const otherSessionId = SessionIdStub({ value: 'session-elsewhere' });
-      const otherEntry = AssistantTextChatEntryStub({ content: 'Wrong session logs' });
-      const sessionEntries = new Map([[otherSessionId, [otherEntry]]]);
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Create module',
-            focusFile: { path: 'src/module.ts', action: 'create' },
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      expect(proxy.getExecutionMessages()).toStrictEqual([]);
-    });
-  });
-
   describe('quest title bar', () => {
     it('VALID: {quest with title} => renders quest title', () => {
       ExecutionPanelWidgetProxy();
@@ -1946,724 +988,6 @@ describe('ExecutionPanelWidget', () => {
       });
 
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Implement Auth Flow');
-    });
-  });
-
-  describe('pathseeker work item state', () => {
-    it('VALID: {pathseeker work item failed} => planned row shows FAILED status', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker-surface',
-            status: 'failed',
-            errorMessage: 'Could not plan steps',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const plannedRow = stepRows[0]!;
-
-      const plannedRowText = plannedRow.textContent;
-
-      expect(plannedRowText).toMatch(
-        /^\u25B801\[PATHSEEKER-SURFACE\]Pathseeker-surface(?! #)FAILED$/u,
-      );
-    });
-
-    it('VALID: {pathseeker work item with sessionId} => planned row shows session entries on expand', async () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'ps-session-0000-0000-000000000001' });
-      const entry = AssistantTextChatEntryStub({ content: 'Mapping dependency graph...' });
-      const sessionEntries = new Map([[sessionId, [entry]]]);
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Step A' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'pathseeker-surface',
-            status: 'complete',
-            sessionId,
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'pending',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const plannedRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(plannedRowHeader);
-
-      const messages = proxy.getExecutionMessages();
-
-      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
-      expect(messages[0]?.textContent).toBe('PATHSEEKER-SURFACEMapping dependency graph...');
-    });
-  });
-
-  describe('concurrent count on floor header', () => {
-    it('VALID: {in_progress work items for a role} => floor header shows concurrent count', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Step A' }),
-          DependencyStepStub({ id: 'step-2', name: 'Step B' }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-2'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──FLOOR \d+: \w+──+Concurrent: 2\/2$/u);
-    });
-  });
-
-  describe('step metadata in expanded content', () => {
-    it('VALID: {step expanded} => does not render description element', async () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Create auth broker',
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const stepRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(stepRowHeader);
-
-      expect(screen.queryByTestId('execution-row-description')).toBe(null);
-    });
-
-    it('VALID: {step with observablesSatisfied} => shows observables when expanded', async () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Create login endpoint',
-            observablesSatisfied: ['obs-1', 'obs-2'],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const stepRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(stepRowHeader);
-
-      expect(screen.getByTestId('execution-row-observables').textContent).toBe(
-        'Satisfies: obs-1, obs-2',
-      );
-    });
-
-    it('VALID: {step with contracts} => shows input and output contracts when expanded', async () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({
-            id: 'step-1',
-            name: 'Create auth broker',
-            inputContracts: ['LoginCredentials'],
-            outputContracts: ['AuthTokenPair'],
-          }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const stepRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(stepRowHeader);
-
-      expect(screen.getByTestId('execution-row-input-contracts').textContent).toBe(
-        'Inputs: LoginCredentials',
-      );
-      expect(screen.getByTestId('execution-row-output-contracts').textContent).toBe(
-        'Outputs: AuthTokenPair',
-      );
-    });
-  });
-
-  describe('ward results', () => {
-    it('VALID: {ward work item with wardResults} => shows ward exit code and mode in expanded content', async () => {
-      ExecutionPanelWidgetProxy();
-      const wardResult = WardResultStub({
-        id: 'b0000000-0000-0000-0000-000000000001',
-        exitCode: 1,
-        wardMode: 'changed',
-      });
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Run ward' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'ward',
-            status: 'failed',
-            relatedDataItems: ['steps/step-1', 'wardResults/b0000000-0000-0000-0000-000000000001'],
-          }),
-        ],
-        wardResults: [wardResult],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-      const wardRowHeader = stepRows[0]!.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(wardRowHeader);
-
-      const wardResultEl = screen.getByTestId('execution-row-ward-result');
-
-      expect(wardResultEl.textContent).toBe('Ward exit code: 1 (changed)');
-    });
-
-    it('VALID: {ward work item with NO step ref, only wardResults ref} => shows ward exit code', async () => {
-      // Real ward work items carry no `steps/` ref — only `wardResults/<id>`. They render
-      // through the panel's non-stepped branch, which must still resolve + pass wardResults.
-      ExecutionPanelWidgetProxy();
-      const wardResult = WardResultStub({
-        id: 'b0000000-0000-0000-0000-000000000002',
-        exitCode: 1,
-        wardMode: 'changed',
-      });
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Build broker' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'ward',
-            status: 'failed',
-            relatedDataItems: ['wardResults/b0000000-0000-0000-0000-000000000002'],
-          }),
-        ],
-        wardResults: [wardResult],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const wardRowHeader = screen
-        .getAllByTestId('execution-row-layer-widget')[0]!
-        .querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(wardRowHeader);
-
-      expect(screen.getByTestId('execution-row-ward-result').textContent).toBe(
-        'Ward exit code: 1 (changed)',
-      );
-    });
-  });
-
-  describe('retry badge', () => {
-    it('VALID: {work item with attempt > 0} => shows retry badge in header', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Create broker' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-1'],
-            attempt: 1,
-            maxAttempts: 3,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(screen.getByTestId('execution-row-retry-badge').textContent).toBe('retry 1/3');
-    });
-
-    it('VALID: {work item with attempt 0} => does not show retry badge', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Create broker' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'in_progress',
-            relatedDataItems: ['steps/step-1'],
-            attempt: 0,
-            maxAttempts: 1,
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(screen.queryByTestId('execution-row-retry-badge')).toBe(null);
-    });
-  });
-
-  describe('duration display', () => {
-    it('VALID: {work item with startedAt and completedAt} => shows duration in header', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Create broker' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-            startedAt: '2024-01-15T10:00:00.000Z',
-            completedAt: '2024-01-15T10:02:34.000Z',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(screen.getByTestId('execution-row-duration').textContent).toBe('2m 34s');
-    });
-  });
-
-  describe('work items only dependsOn', () => {
-    it('VALID: {work item with dependsOn} => shows dependency labels from referenced work items', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
-      const depSubtitle = subtitles.find((el) => el.textContent?.includes('depends on'));
-
-      expect(depSubtitle?.textContent).toBe('\u2514\u2500 depends on: chaoswhisperer');
-    });
-
-    it('VALID: {ward depends on step-linked work items} => shows step names in subtitle', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [
-          DependencyStepStub({ id: 'step-1', name: 'Build login form' }),
-          DependencyStepStub({ id: 'step-2', name: 'Add validation logic' }),
-        ],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-2'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'spiritmender',
-            status: 'pending',
-            dependsOn: [
-              'a0000000-0000-0000-0000-000000000001',
-              'a0000000-0000-0000-0000-000000000002',
-            ],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
-      const depSubtitle = subtitles.find((el) => el.textContent?.includes('depends on'));
-
-      expect(depSubtitle?.textContent).toBe(
-        '\u2514\u2500 depends on: Build login form, Add validation logic',
-      );
-    });
-
-    it('EDGE: {work item with step ref but step not found} => falls back to role name in dependency label', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/nonexistent-step'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'spiritmender',
-            status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const subtitles = screen.queryAllByTestId('execution-row-subtitle');
-      const depSubtitle = subtitles.find((el) => el.textContent?.includes('depends on'));
-
-      expect(depSubtitle?.textContent).toBe('\u2514\u2500 depends on: codeweaver');
-    });
-  });
-
-  describe('work items only naming', () => {
-    it('VALID: {single work item in group} => shows capitalized role without index number', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-
-      expect(stepRows[0]?.textContent).toBe('\u25B801[CHAOSWHISPERER]ChaoswhispererDONE');
-    });
-
-    it('VALID: {multiple work items in same group} => shows #N index on each', () => {
-      ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'complete',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'codeweaver',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const stepRows = screen.queryAllByTestId('execution-row-layer-widget');
-
-      expect(stepRows[0]?.textContent).toBe('\u25B801[CODEWEAVER]Codeweaver #1DONE');
-      expect(stepRows[1]?.textContent).toBe('\u25B802[CODEWEAVER]Codeweaver #2DONE');
-    });
-  });
-
-  describe('non-step work items alongside steps', () => {
-    it('VALID: {quest with steps AND chaoswhisperer work item without relatedDataItems} => renders chaoswhisperer in SANCTUM floor', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Render test content' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
-      expect(floorHeaders[2]?.textContent).toMatch(/^──FLOOR \d+: FORGE──+$/u);
-
-      const stepRows = proxy.getStepRows();
-
-      // chaoswhisperer row + pathseeker row + codeweaver row = 3
-      expect(stepRows.map((r) => r.getAttribute('data-testid'))).toStrictEqual([
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-        'execution-row-layer-widget',
-      ]);
-    });
-
-    it('VALID: {quest with steps and multiple non-step roles} => renders all floors in topological order', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Build module' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
-            role: 'spiritmender',
-            status: 'complete',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      // All at depth 0, sorted by role config index: chaoswhisperer, pathseeker, codeweaver, spiritmender
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(/^──ENTRANCE: MAPPING DUMPSTER──+$/u);
-      expect(floorHeaders[2]?.textContent).toMatch(/^──FLOOR \d+: FORGE──+$/u);
-      expect(floorHeaders[3]?.textContent).toMatch(/^──FLOOR \d+: INFIRMARY──+$/u);
-    });
-
-    it('VALID: {quest with steps and non-step work item with sessionId} => shows session entries for non-step work item on expand', async () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'cw-session-0000-0000-000000000001' });
-      const entry = AssistantTextChatEntryStub({ content: 'Defining quest spec...' });
-      const sessionEntries = new Map([[sessionId, [entry]]]);
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [DependencyStepStub({ id: 'step-1', name: 'Build module' })],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-            sessionId,
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'codeweaver',
-            status: 'complete',
-            relatedDataItems: ['steps/step-1'],
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
-      });
-
-      const stepRows = proxy.getStepRows();
-      const cwRow = stepRows[0]!;
-      const cwHeader = cwRow.querySelector('[data-testid="execution-row-header"]')!;
-
-      await userEvent.click(cwHeader);
-
-      const messages = proxy.getExecutionMessages();
-
-      expect(messages.map((m) => m.getAttribute('data-testid'))).toStrictEqual(['CHAT_MESSAGE']);
-      expect(messages[0]?.textContent).toBe('CHAOSWHISPERERDefining quest spec...');
-    });
-
-    it('VALID: {planning quest with chaoswhisperer and pathseeker-surface} => renders HOMEBASE and ENTRANCE: MAPPING DUMPSTER floors with both work items', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({
-        status: 'in_progress',
-        steps: [],
-        workItems: [
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
-            role: 'chaoswhisperer',
-            status: 'complete',
-          }),
-          WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
-            role: 'pathseeker-surface',
-            status: 'in_progress',
-          }),
-        ],
-      });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      const floorHeaders = proxy.getFloorHeaders();
-
-      expect(floorHeaders.map((h) => h.getAttribute('data-testid'))).toStrictEqual([
-        'floor-header-layer-widget',
-        'floor-header-layer-widget',
-      ]);
-      expect(floorHeaders[0]?.textContent).toMatch(/^──HOMEBASE──+$/u);
-      expect(floorHeaders[1]?.textContent).toMatch(
-        /^──ENTRANCE: MAPPING DUMPSTER──+Concurrent: 1\/1$/u,
-      );
-
-      const roleBadges = screen.queryAllByTestId('execution-row-role-badge');
-
-      expect(roleBadges.map((b) => b.textContent)).toStrictEqual([
-        '[CHAOSWHISPERER]',
-        '[PATHSEEKER-SURFACE]',
-      ]);
     });
   });
 
@@ -2687,7 +1011,7 @@ describe('ExecutionPanelWidget', () => {
         !questStatusMetadataStatics.statuses[s].isResumable,
     ).map((status) => ({ status }));
 
-    describe('PAUSE button visible (seek_* and in_progress)', () => {
+    describe('PAUSE button visible (agent-running statuses)', () => {
       it.each(PAUSE_VISIBLE_STATUSES)(
         'VALID: {status: $status} => PAUSE button visible, RESUME button not visible',
         ({ status }) => {
@@ -2763,9 +1087,9 @@ describe('ExecutionPanelWidget', () => {
     });
 
     describe('click behavior', () => {
-      it('VALID: {click PAUSE button on seek_walk} => calls onPause once', async () => {
+      it('VALID: {click PAUSE button on in_progress} => calls onPause once', async () => {
         const proxy = ExecutionPanelWidgetProxy();
-        const quest: Quest = QuestStub({ status: 'seek_walk' });
+        const quest: Quest = QuestStub({ status: 'in_progress' });
         const onStatusChange = jest.fn();
         const onPause = jest.fn();
 

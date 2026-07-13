@@ -15,10 +15,10 @@ describe('questSectionContract', () => {
       expect(result).toBe('contracts');
     });
 
-    it('VALID: {value: "steps"} => parses successfully', () => {
-      const result = questSectionContract.parse(QuestSectionStub({ value: 'steps' }));
+    it('VALID: {value: "operations"} => parses successfully', () => {
+      const result = questSectionContract.parse(QuestSectionStub({ value: 'operations' }));
 
-      expect(result).toBe('steps');
+      expect(result).toBe('operations');
     });
 
     it('VALID: {value: "toolingRequirements"} => parses successfully', () => {
@@ -80,6 +80,12 @@ describe('questSectionContract', () => {
     it('INVALID: {value: "observables"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('observables');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: {value: "steps"} => throws validation error (removed section)', () => {
+      expect(() => {
+        return questSectionContract.parse('steps');
       }).toThrow(/Invalid enum value/u);
     });
   });

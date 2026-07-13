@@ -18,10 +18,10 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
+import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { ExecutionStepStatusStub } from '../../contracts/execution-step-status/execution-step-status.stub';
-import { StepNameStub } from '../../contracts/step-name/step-name.stub';
-import { StepOrderStub } from '../../contracts/step-order/step-order.stub';
+import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import type { ExecutionRowLayerWidgetProps } from './execution-row-layer-widget';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy';
@@ -29,8 +29,8 @@ import { ExecutionRowLayerWidgetProxy } from './execution-row-layer-widget.proxy
 type Props = ExecutionRowLayerWidgetProps;
 
 const defaultProps = (): Props => ({
-  order: StepOrderStub({ value: 1 }),
-  name: StepNameStub({ value: 'Build auth flow' }),
+  order: RowOrderStub({ value: 1 }),
+  name: DisplayLabelStub({ value: 'Build auth flow' }),
   role: ExecutionRoleStub({ value: 'codeweaver' }),
   status: ExecutionStepStatusStub({ value: 'pending' }),
   files: [],
@@ -1161,15 +1161,15 @@ describe('ExecutionRowLayerWidget', () => {
   });
 
   describe('signal rendering', () => {
-    it('VALID: {actualSignal=failed} => renders actual signal line', async () => {
+    it('VALID: {actualSignal=complete} => renders actual signal line', async () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderAdapter({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
-            actualSignal={'failed'}
+            status={ExecutionStepStatusStub({ value: 'complete' })}
+            actualSignal={'complete'}
           />
         ),
       });
@@ -1179,7 +1179,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const actualEl = screen.getByTestId('execution-row-actual-signal');
 
-      expect(actualEl.textContent).toBe('Actual signal: failed');
+      expect(actualEl.textContent).toBe('Actual signal: complete');
     });
 
     it('VALID: {failed status, actualSignal} => signal text is rendered in danger color', async () => {
@@ -1190,7 +1190,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status={ExecutionStepStatusStub({ value: 'failed' })}
-            actualSignal={'failed'}
+            actualSignal={'complete'}
           />
         ),
       });

@@ -741,21 +741,6 @@ describe('ChatMessageWidget', () => {
       expect(message.textContent).toBe('GLYPHSMITHresponse');
     });
 
-    it('VALID: {roleLabel: pathseeker} => renders PATHSEEKER label', () => {
-      ChatMessageWidgetProxy();
-      const entry = AssistantTextChatEntryStub({ content: 'response' });
-
-      mantineRenderAdapter({
-        ui: (
-          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'pathseeker' })} />
-        ),
-      });
-
-      const message = screen.getByTestId('CHAT_MESSAGE');
-
-      expect(message.textContent).toBe('PATHSEEKERresponse');
-    });
-
     it('VALID: {roleLabel: codeweaver} => renders CODEWEAVER label', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });

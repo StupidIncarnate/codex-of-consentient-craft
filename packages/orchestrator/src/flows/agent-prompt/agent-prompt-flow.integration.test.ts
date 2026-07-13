@@ -6,12 +6,17 @@
  */
 
 import { BaseNameStub, installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { QuestStub, QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  OperationItemIdStub,
+  OperationItemStub,
+  QuestStub,
+  QuestWorkItemIdStub,
+  RelatedDataItemStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { pathseekerAssertionCorrectnessMinionStatics } from '../../statics/pathseeker-assertion-correctness-minion/pathseeker-assertion-correctness-minion-statics';
-import { pathseekerDedupMinionStatics } from '../../statics/pathseeker-dedup-minion/pathseeker-dedup-minion-statics';
-import { pathseekerSurfaceMinionStatics } from '../../statics/pathseeker-surface-minion/pathseeker-surface-minion-statics';
+import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { questSeedHarness } from '../../../test/harnesses/quest-seed/quest-seed.harness';
@@ -51,79 +56,29 @@ describe('AgentPromptFlow', () => {
       });
     });
 
-    it('VALID: {agent: pathseeker-surface, questId, workItemId, no sliceName} => returns substituted prompt with Quest ID only', async () => {
+    it('VALID: {agent: codeweaver, questId, workItemId, operation linked} => returns substituted prompt with the operation-relay context resolved from the persisted quest.json', async () => {
       const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-surface' }),
+        baseName: BaseNameStub({ value: 'agent-prompt-flow-codeweaver' }),
       });
       const env = envHarness.setupHome({ tempDir: testbed.guildPath });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'pathseeker-surface' });
-      const quest = QuestStub({ workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
-
-      const result = await AgentPromptFlow.get({
-        agent: 'pathseeker-surface',
-        questId: quest.id,
-        workItemId,
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'cccccccc-2222-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
       });
-
-      env.restore();
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({
-        name: 'pathseeker-surface',
-        model: 'sonnet',
-        prompt: pathseekerSurfaceMinionStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(quest.id)}`,
-        ),
-      });
-    });
-
-    it('VALID: {agent: pathseeker-dedup, questId, workItemId} => returns substituted prompt with Quest ID', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-dedup' }),
-      });
-      const env = envHarness.setupHome({ tempDir: testbed.guildPath });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'pathseeker-dedup' });
-      const quest = QuestStub({ workItems: [workItem] });
-      seeder.seed({ tempDir: testbed.guildPath, quest });
-
-      const result = await AgentPromptFlow.get({
-        agent: 'pathseeker-dedup',
-        questId: quest.id,
-        workItemId,
-      });
-
-      env.restore();
-      testbed.cleanup();
-
-      expect(result).toStrictEqual({
-        name: 'pathseeker-dedup',
-        model: 'sonnet',
-        prompt: pathseekerDedupMinionStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(quest.id)}`,
-        ),
-      });
-    });
-
-    it('VALID: {agent: pathseeker-assertion-correctness, questId, workItemId} => returns substituted prompt with Quest ID', async () => {
-      const testbed = installTestbedCreateBroker({
-        baseName: BaseNameStub({ value: 'agent-prompt-flow-assertion' }),
-      });
-      const env = envHarness.setupHome({ tempDir: testbed.guildPath });
-      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const workItem = WorkItemStub({
         id: workItemId,
-        role: 'pathseeker-assertion-correctness',
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
       });
-      const quest = QuestStub({ workItems: [workItem] });
+      const quest = QuestStub({ operations: [operation], workItems: [workItem] });
       seeder.seed({ tempDir: testbed.guildPath, quest });
 
       const result = await AgentPromptFlow.get({
-        agent: 'pathseeker-assertion-correctness',
+        agent: 'codeweaver',
         questId: quest.id,
         workItemId,
       });
@@ -131,13 +86,20 @@ describe('AgentPromptFlow', () => {
       env.restore();
       testbed.cleanup();
 
+      const expectedArgs = [
+        `Quest ID: ${String(quest.id)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] core: config load+validate adapter',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+      ].join('\n');
+
       expect(result).toStrictEqual({
-        name: 'pathseeker-assertion-correctness',
-        model: 'sonnet',
-        prompt: pathseekerAssertionCorrectnessMinionStatics.prompt.template.replace(
-          '$ARGUMENTS',
-          `Quest ID: ${String(quest.id)}`,
-        ),
+        name: 'codeweaver',
+        model: 'opus',
+        prompt: codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       });
     });
   });
@@ -155,6 +117,29 @@ describe('AgentPromptFlow', () => {
 
       const promise = AgentPromptFlow.get({
         agent: 'non-existent-agent',
+        questId: quest.id,
+        workItemId,
+      });
+      const awaited = await promise.catch((error: unknown) => error);
+
+      env.restore();
+      testbed.cleanup();
+
+      expect(awaited).toBeInstanceOf(Error);
+    });
+
+    it('ERROR: {agent: codeweaver, questId, workItemId, no operations reference} => rejects with no-resolvable-operations-ref error', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'agent-prompt-flow-no-op-ref' }),
+      });
+      const env = envHarness.setupHome({ tempDir: testbed.guildPath });
+      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'codeweaver', relatedDataItems: [] });
+      const quest = QuestStub({ workItems: [workItem] });
+      seeder.seed({ tempDir: testbed.guildPath, quest });
+
+      const promise = AgentPromptFlow.get({
+        agent: 'codeweaver',
         questId: quest.id,
         workItemId,
       });

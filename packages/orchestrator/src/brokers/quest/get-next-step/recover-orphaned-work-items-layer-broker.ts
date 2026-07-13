@@ -103,7 +103,11 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
     ...quest,
     workItems: quest.workItems.map((item) => {
       if (resetIds.has(item.id)) {
-        return { ...item, status: 'pending', ...(item.sessionId === undefined ? {} : { resume: true }) };
+        return {
+          ...item,
+          status: 'pending',
+          ...(item.sessionId === undefined ? {} : { resume: true }),
+        };
       }
       if (escalated !== undefined && item.id === escalated.id) {
         return { ...item, status: 'failed' };

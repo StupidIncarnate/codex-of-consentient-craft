@@ -5,7 +5,7 @@
  * getQuestPlanningNotesInputContract.parse({questId: 'add-auth'});
  * // Returns: GetQuestPlanningNotesInput branded object
  *
- * getQuestPlanningNotesInputContract.parse({questId: 'add-auth', section: 'surface'});
+ * getQuestPlanningNotesInputContract.parse({questId: 'add-auth', section: 'blight'});
  * // Returns: GetQuestPlanningNotesInput with section filter
  */
 
@@ -19,14 +19,10 @@ export const getQuestPlanningNotesInputContract = z
       .describe('The ID of the quest to load planning notes for')
       .brand<'QuestId'>(),
     section: z
-      .enum(['scope', 'surface', 'synthesis', 'walk', 'blight'])
+      .enum(['blight'])
       .describe(
         [
           'Optional section filter. Omit to return the full planningNotes object. Section values:',
-          '- "scope": planningNotes.scopeClassification',
-          '- "surface": planningNotes.surfaceReports (array)',
-          '- "synthesis": planningNotes.synthesis',
-          '- "walk": planningNotes.walkFindings',
           '- "blight": planningNotes.blightReports (array)',
         ].join(' '),
       )
