@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Checks if a quest status indicates any agent is running (seek_* + in_progress)
+ * PURPOSE: Checks if a quest status indicates any agent is running (in_progress)
  *
  * USAGE:
  * isAnyAgentRunningQuestStatusGuard({ status: 'in_progress' });

@@ -9,7 +9,7 @@ describe('computeWorkItemDepthsTransformer', () => {
     it('VALID: {A→B→C linear chain} => depths 0, 1, 2', () => {
       const a = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'chaoswhisperer',
         status: 'complete',
         dependsOn: [],
       });
@@ -85,7 +85,7 @@ describe('computeWorkItemDepthsTransformer', () => {
       // downstream chain stays below the cycle.
       const root = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'chaoswhisperer',
         status: 'complete',
         dependsOn: [],
       });
@@ -163,7 +163,7 @@ describe('computeWorkItemDepthsTransformer', () => {
     it('VALID: {A→B, A→C, B→D, C→D diamond} => D has depth 2', () => {
       const a = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'pathseeker',
+        role: 'chaoswhisperer',
         status: 'complete',
         dependsOn: [],
       });

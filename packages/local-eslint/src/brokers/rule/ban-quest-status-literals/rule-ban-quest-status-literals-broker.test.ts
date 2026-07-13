@@ -30,7 +30,7 @@ ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), 
     },
     // === ALLOWLIST: prompt statics can quote literals ===
     {
-      code: "export const prompt = 'The quest is in_progress when status === seek_scope.';",
+      code: "export const prompt = 'The quest is in_progress when status === blocked.';",
       filename: promptStaticsFixture,
     },
     // === ALLOWLIST: test files are not linted for this rule ===
@@ -82,11 +82,11 @@ ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), 
   ],
 
   invalid: [
-    // === BinaryExpression: quest.status === 'seek_scope' (quest-only literal) ===
+    // === BinaryExpression: quest.status === 'flows_approved' (quest-only literal) ===
     {
-      code: "if (quest.status === 'seek_scope') { /* missed migration */ }",
+      code: "if (quest.status === 'flows_approved') { /* missed migration */ }",
       filename: productionFixture,
-      errors: [{ messageId: 'questStatusLiteral', data: { literal: 'seek_scope' } }],
+      errors: [{ messageId: 'questStatusLiteral', data: { literal: 'flows_approved' } }],
     },
     // === BinaryExpression: wi.status === 'failed' (work-item-only literal) ===
     {
@@ -171,7 +171,7 @@ ruleTester.run('ban-quest-status-literals', ruleBanQuestStatusLiteralsBroker(), 
 
     // === new Set([...]) with >=2 status literals ===
     {
-      code: "const recoverable = new Set(['in_progress', 'seek_scope', 'paused']);",
+      code: "const recoverable = new Set(['in_progress', 'design_approved', 'paused']);",
       filename: productionFixture,
       errors: [{ messageId: 'inlineStatusSet' }],
     },

@@ -67,6 +67,10 @@ export default defineConfig({
         FAKE_CLAUDE_QUEUE_DIR,
         FAKE_WARD_QUEUE_DIR,
         WARD_CLI_PATH: FAKE_WARD_CLI,
+        // Registers the env-gated POST /api/quests/:questId/signal-back route so the fake Claude CLI
+        // (which has no MCP client) can drive the operations-ledger relay over HTTP. Production never
+        // sets this, so the route is never exposed outside e2e.
+        E2E_SIGNAL_BACK_HTTP: '1',
         // Shorten the rate-limits.json poller from the production 5 s interval
         // so e2e tests aren't gated by the poll cycle. The orchestrator's
         // RateLimitsBootstrapResponder reads this env var on startup.

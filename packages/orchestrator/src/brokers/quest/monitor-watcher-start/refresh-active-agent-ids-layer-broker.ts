@@ -55,10 +55,9 @@ export const refreshActiveAgentIdsLayerBroker = async ({
 
   for (const quests of perGuildQuests) {
     for (const quest of quests) {
-      // Cover every status where work items can carry agentIds: seek_scope, seek_synth,
-      // seek_walk (pathseeker-* roles get stamped during these) and in_progress
-      // (downstream agents). A narrower filter would miss in-flight pathseekers and the
-      // watcher would skip their JSONL.
+      // The only status where work items carry agentIds is in_progress (execution agents
+      // get stamped during this phase). A narrower filter would miss in-flight agents and
+      // the watcher would skip their JSONL.
       if (!isAnyAgentRunningQuestStatusGuard({ status: quest.status })) continue;
       seenQuestIds.add(quest.id);
       const set = new Set<AgentId>();

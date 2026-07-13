@@ -2,14 +2,13 @@
  * PURPOSE: Defines valid phases for quest orchestration execution
  *
  * USAGE:
- * orchestrationPhaseContract.parse('pathseeker');
+ * orchestrationPhaseContract.parse('codeweaver');
  * // Returns: OrchestrationPhase branded enum value
  */
 
 import { z } from 'zod';
 
 export const orchestrationPhaseContract = z.enum([
-  'pathseeker',
   'codeweaver',
   'flowrider',
   'siegemaster',

@@ -21,7 +21,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {click PAUSE on seek_walk quest} => server broadcasts a quest-paused WS frame for that questId', async ({
+  test('VALID: {click PAUSE on in_progress quest} => server broadcasts a quest-paused WS frame for that questId', async ({
     page,
     request,
   }) => {
@@ -49,7 +49,7 @@ test.describe('Pause/Resume emits lifecycle events', () => {
       questId,
       questFolder,
       questFilePath,
-      status: 'seek_walk',
+      status: 'in_progress',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-0000000000a1',

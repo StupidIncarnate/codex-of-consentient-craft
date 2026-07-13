@@ -13,7 +13,6 @@ import { displayHeaderContract } from '../display-header/display-header-contract
 
 export const questStatusMetadataContract = z.object({
   isPreExecution: z.boolean(),
-  isPathseekerRunning: z.boolean(),
   isAnyAgentRunning: z.boolean(),
   isActivelyExecuting: z.boolean(),
   isUserPaused: z.boolean(),

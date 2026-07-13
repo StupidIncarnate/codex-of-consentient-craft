@@ -94,8 +94,12 @@ describe('QuestFlow', () => {
 
       expect({
         questStatus: afterAdvance.quest!.status,
-        operations: afterAdvance.quest!.operations.map((op) => ({ role: op.role, status: op.status })),
-        cwWorkItemStatus: afterAdvance.quest!.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
+        operations: afterAdvance.quest!.operations.map((op) => ({
+          role: op.role,
+          status: op.status,
+        })),
+        cwWorkItemStatus: afterAdvance.quest!.workItems.find((wi) => wi.id === cwWorkItemId)
+          ?.status,
         flowWorkItemStatus: flowWorkItem?.status,
         flowWorkItemLink: flowWorkItem?.relatedDataItems,
       }).toStrictEqual({
@@ -390,7 +394,8 @@ describe('QuestFlow', () => {
         freshWardMode: afterRed
           .quest!.operations.filter((op) => op.role === 'ward')
           .find((op) => op.id !== wardOpId)?.wardMode,
-        wardWorkItemStatus: afterRed.quest!.workItems.find((wi) => wi.id === wardWorkItemId)?.status,
+        wardWorkItemStatus: afterRed.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
+          ?.status,
         spiritWorkItemStatus: spiritWorkItem?.status,
         spiritWorkItemLink: spiritWorkItem?.relatedDataItems,
       }).toStrictEqual({

@@ -1,8 +1,4 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import {
-  claudeMockHarness,
-  SimpleTextResponseStub,
-} from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -11,10 +7,12 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 const GUILD_PATH = '/tmp/dm-e2e-exec-queue-stream';
 const QUEUE_TIMEOUT = 9_000;
 
-const claudeMock = wireHarnessLifecycle({
-  harness: claudeMockHarness({ guildPath: GUILD_PATH }),
-  testObj: test,
-});
+// A feature quest needs a Chaos-authored codeweaver operation item on its ledger before it can be
+// approved and before Start can seed the relay from it. Fixed ids so each quest carries a distinct
+// ledger row.
+const QUEST_ONE_CODEWEAVER_OP = '00000000-0000-4000-8000-0000000000e1';
+const QUEST_TWO_CODEWEAVER_OP = '00000000-0000-4000-8000-0000000000e2';
+
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),
@@ -44,7 +42,8 @@ test.describe('Execution Queue Streaming', () => {
 
     await expect(page.getByTestId('QUEST_QUEUE_BAR')).toHaveCount(0);
 
-    // 3. Seed the first quest at 'approved' so start is allowed
+    // 3. Seed the first quest at 'approved' with a codeweaver operation item so start is allowed
+    //    and the relay seed has a first actionable operation to link a work item to.
     const sessionId1 = `e2e-session-queue-stream-${Date.now()}-1`;
     sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
@@ -68,35 +67,30 @@ test.describe('Execution Queue Streaming', () => {
           sessionId: sessionId1,
         },
       ],
+      operations: [
+        {
+          id: QUEST_ONE_CODEWEAVER_OP,
+          role: 'codeweaver',
+          text: 'core: build the feature',
+          status: 'pending',
+        },
+      ],
     });
 
-    // 4. Queue a fake-CLI response so the runner (kicked when the browser WS
-    //    connects and web-presence flips true) can drain the pathseeker slot
-    //    without exiting on an empty queue.
-    claudeMock.queueResponse({
-      response: SimpleTextResponseStub({
-        sessionId: sessionId1,
-        text: 'Pathseeker scope analysis complete',
-      }),
-    });
-
-    // 5. Enqueue the quest via the real start API — this calls
-    //    questExecutionQueueState.enqueue() which fires onChange, triggering
-    //    the execution-queue-bootstrap-responder's onChange listener to emit
-    //    execution-queue-updated on orchestrationEventsState, which the server
-    //    relays as a global WS broadcast; useQuestQueueBinding re-fetches
+    // 4. Enqueue the quest via the real start API — OrchestrationStartResponder transitions
+    //    approved → in_progress, seeds the operations relay, and calls
+    //    questExecutionQueueState.enqueue(). That fires the execution-queue-updated event which the
+    //    server relays as a global WS broadcast; useQuestQueueBinding re-fetches
     //    GET /api/quests/queue and updates the DOM.
     await request.post(`/api/quests/${questId1}/start`);
 
-    // 5b. Pause quest 1 immediately so it stays in the queue across the
-    //     duration of the test. Without pause, the fake CLI drains its single
-    //     queued response in milliseconds, the quest advances to the next role,
-    //     hits an empty fake-CLI queue, exits 1, and the quest is removed from
-    //     the execution queue before we can enqueue quest 2 alongside it. Pause
-    //     keeps the QueueEntry in place without consuming further responses.
+    // 4b. Pause quest 1 so it stays in the execution queue for the duration of the test. Pause
+    //     restores pausedAtStatus and keeps the QueueEntry in place; no dispatcher auto-runs in
+    //     e2e (dispatch normalizes to paused on boot), so the quest sits enqueued either way — the
+    //     pause just pins a stable status while quest 2 is enqueued alongside it.
     await request.post(`/api/quests/${questId1}/pause`);
 
-    // 6. Queue bar must appear with 'Quest 1/1' — proves DOM updated via WS,
+    // 5. Queue bar must appear with 'Quest 1/1' — proves DOM updated via WS,
     //    not a page reload.
     await expect(page.getByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL')).toContainText('Quest 1/1', {
       timeout: QUEUE_TIMEOUT,
@@ -106,9 +100,9 @@ test.describe('Execution Queue Streaming', () => {
       { timeout: QUEUE_TIMEOUT },
     );
 
-    // 7. Enqueue a second quest and verify the count updates to 1/2.
+    // 6. Enqueue a second quest and verify the count updates to 1/2.
     //    The second quest can live under the same guild — it just needs a
-    //    unique sessionId and its own approved quest file.
+    //    unique sessionId and its own approved quest file with a codeweaver operation.
     const sessionId2 = `e2e-session-queue-stream-${Date.now()}-2`;
     sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
@@ -132,24 +126,25 @@ test.describe('Execution Queue Streaming', () => {
           sessionId: sessionId2,
         },
       ],
-    });
-
-    claudeMock.queueResponse({
-      response: SimpleTextResponseStub({
-        sessionId: sessionId2,
-        text: 'Second pathseeker scope analysis complete',
-      }),
+      operations: [
+        {
+          id: QUEST_TWO_CODEWEAVER_OP,
+          role: 'codeweaver',
+          text: 'core: build the second feature',
+          status: 'pending',
+        },
+      ],
     });
 
     await request.post(`/api/quests/${questId2}/start`);
 
-    // 8. Label updates to 1/2 — active entry is still quest-one (head of queue)
+    // 7. Label updates to 1/2 — active entry is still quest-one (head of queue)
     //    but total is now two.
     await expect(page.getByTestId('QUEST_QUEUE_BAR_COLLAPSED_LABEL')).toContainText('Quest 1/2', {
       timeout: QUEUE_TIMEOUT,
     });
 
-    // 9. Verify no page reload occurred — exactly one navigation entry means
+    // 8. Verify no page reload occurred — exactly one navigation entry means
     //    both DOM updates arrived via WS, not reload.
     const navigationCount = await page.evaluate(
       () => globalThis.performance.getEntriesByType('navigation').length,

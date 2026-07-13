@@ -48,9 +48,9 @@ describe('hasInlineStatusSetElementsLayerBroker', () => {
       expect(
         proxy.hasInlineStatusSetElementsLayerBroker({
           elements: [
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'seek_scope' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'seek_synth' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'seek_walk' }),
+            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'explore_flows' }),
+            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'review_flows' }),
+            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'flows_approved' }),
             TsestreeStub({ type: TsestreeNodeType.Literal, value: 'hello' }),
           ],
         }),

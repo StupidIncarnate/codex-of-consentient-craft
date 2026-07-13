@@ -8,37 +8,32 @@ describe('workItemsInDispatchOrderTransformer', () => {
   });
 
   it('VALID: {floor-3 item placed before its floor-2 siblings in input} => floor-3 sorts LAST (topological depth wins)', () => {
-    const pathseekerId = QuestWorkItemIdStub({ value: '8c858ffd-0000-4000-8000-000000000000' });
+    const rootId = QuestWorkItemIdStub({ value: '8c858ffd-0000-4000-8000-000000000000' });
     const floor2aId = QuestWorkItemIdStub({ value: '7aa7b49b-0000-4000-8000-000000000000' });
     const floor2bId = QuestWorkItemIdStub({ value: '42cd11cd-0000-4000-8000-000000000000' });
     const floor3Id = QuestWorkItemIdStub({ value: '68b54d56-0000-4000-8000-000000000000' });
 
-    const pathseeker = WorkItemStub({
-      id: pathseekerId,
-      role: 'pathseeker',
+    const root = WorkItemStub({
+      id: rootId,
+      role: 'chaoswhisperer',
       status: 'complete',
       dependsOn: [],
     });
-    const floor2a = WorkItemStub({ id: floor2aId, role: 'codeweaver', dependsOn: [pathseekerId] });
-    const floor2b = WorkItemStub({ id: floor2bId, role: 'codeweaver', dependsOn: [pathseekerId] });
+    const floor2a = WorkItemStub({ id: floor2aId, role: 'codeweaver', dependsOn: [rootId] });
+    const floor2b = WorkItemStub({ id: floor2bId, role: 'codeweaver', dependsOn: [rootId] });
     // Depends on ONE floor-2 item only — depth 2, even though unrelated to the other floor-2 work.
     const floor3 = WorkItemStub({
       id: floor3Id,
       role: 'codeweaver',
-      dependsOn: [pathseekerId, floor2aId],
+      dependsOn: [rootId, floor2aId],
     });
 
     // floor3 deliberately placed before the floor-2 items — the array position that let it jump ahead.
     const ordered = workItemsInDispatchOrderTransformer({
-      workItems: [pathseeker, floor3, floor2a, floor2b],
+      workItems: [root, floor3, floor2a, floor2b],
     });
 
-    expect(ordered.map((item) => item.id)).toStrictEqual([
-      pathseekerId,
-      floor2aId,
-      floor2bId,
-      floor3Id,
-    ]);
+    expect(ordered.map((item) => item.id)).toStrictEqual([rootId, floor2aId, floor2bId, floor3Id]);
   });
 
   it('VALID: {same depth, different roles} => orders by floor-config position (codeweaver before flowrider)', () => {
@@ -48,7 +43,7 @@ describe('workItemsInDispatchOrderTransformer', () => {
 
     const root = WorkItemStub({
       id: rootId,
-      role: 'pathseeker',
+      role: 'chaoswhisperer',
       status: 'complete',
       dependsOn: [],
     });
@@ -69,7 +64,7 @@ describe('workItemsInDispatchOrderTransformer', () => {
 
     const root = WorkItemStub({
       id: rootId,
-      role: 'pathseeker',
+      role: 'chaoswhisperer',
       status: 'complete',
       dependsOn: [],
     });

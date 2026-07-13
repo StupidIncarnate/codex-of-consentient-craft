@@ -28,4 +28,24 @@ describe('chaoswhispererGapMinionStatics', () => {
 
     expect(template.indexOf('(Ward green, grep zero, service healthy)')).toBe(-1);
   });
+
+  it('VALID: prompt template => describes implementation as operations-ledger work, not PathSeeker planning', () => {
+    const needle =
+      "those are implementation-time decisions the Codeweaver sessions make when they build the operations ledger's items, not spec-review concerns";
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => carries no stale planning-model or legacy-signal references', () => {
+    const { template } = chaoswhispererGapMinionStatics.prompt;
+
+    expect(template.indexOf('PathSeeker')).toBe(-1);
+    expect(template.indexOf('pathseeker')).toBe(-1);
+    expect(template.indexOf('failed-replan')).toBe(-1);
+  });
 });

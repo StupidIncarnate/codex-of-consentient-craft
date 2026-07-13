@@ -7,12 +7,15 @@
  * const { guild, questId } = await quest.createGuildAndQuest({ testbed });
  * await quest.seedInProgressRelay({ questId, operations, workItems });
  */
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  QuestId,
+  OperationItemStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 import {
   GuildNameStub,
   GuildPathStub,
-  OperationItemStub,
-  WorkItemStub,
   fileContentsContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';

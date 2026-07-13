@@ -8,7 +8,7 @@ import {
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
 import { computeNextStepFromQuestLayerBrokerProxy } from './compute-next-step-from-quest-layer-broker.proxy';
 
-// Bug-hunt chain ids (shape produced by questBuildBugHuntGraphBroker, whose own test verifies it).
+// Bug-hunt chain ids (shape seeded at Start Quest by questBuildRelayGraphBroker for the bug-hunt quest type).
 const PESTEATER_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 const WARD_CHANGED_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
 const LAWBRINGER_ID = QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });

@@ -30,19 +30,6 @@ describe('orchestrationStatusContract', () => {
       expect(result.slots).toStrictEqual([{ slotId: 0, status: 'running', step: 'Step 1' }]);
     });
 
-    it('VALID: {phase: "pathseeker"} => parses pathseeker phase', () => {
-      const result = OrchestrationStatusStub({ phase: 'pathseeker' });
-
-      expect(orchestrationStatusContract.parse(result)).toStrictEqual({
-        processId: 'proc-12345',
-        questId: 'add-auth',
-        phase: 'pathseeker',
-        completed: 0,
-        total: 5,
-        slots: [],
-      });
-    });
-
     it('VALID: {phase: "codeweaver"} => parses codeweaver phase', () => {
       const result = OrchestrationStatusStub({ phase: 'codeweaver' });
 

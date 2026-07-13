@@ -16,8 +16,9 @@ export const agentRoleContract = z.enum([
    * `flows/` + `startup/` implementation files. Self-scopes over ALL quest flows per session. */
   'flowrider',
   'siegemaster',
-  /** Blightwarden minions — five report-only parallel finders (one per cross-cutting concern).
-   * Dispatched as work items; each writes a `PlanningBlightReport` and never fixes or blocks. */
+  /** Blightwarden minions — five report-only parallel finders (one per cross-cutting concern),
+   * summoned by the blightwarden parent via the Agent tool (no work item of their own); each
+   * writes a `PlanningBlightReport` and never fixes or blocks. */
   'blightwarden-security-minion',
   'blightwarden-dedup-minion',
   'blightwarden-perf-minion',

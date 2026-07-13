@@ -8,10 +8,14 @@
  * // Loads the quest, marks the failed item `failed` (if not already terminal), skips every pending
  * //   item, flips quest status to `blocked`, and persists via questModifyBroker. Returns { blocked }.
  *
- * WHEN-TO-USE: From the signal-back handler / run-ward broker when a failure routes to BLOCK
- *   (pathseeker-replan-class failures, exhausted ward retries, agent gave-up signals).
- * WHEN-NOT-TO-USE: For recoverable failures (ward retry budget remains, lawbringer) — those splice
- *   fixers via questSpliceFixerBroker and keep the quest `in_progress`.
+ * WHEN-TO-USE: From the three bounded-loop-exhaustion paths that route to BLOCK —
+ *   quest-run-ward-broker (ward retry budget spent), quest-handle-signal-back-responder (a
+ *   locked role's pt-N chain spent), and recover-orphaned-work-items-layer-broker
+ *   (orphan-recovery reset budget spent). These are the ONLY routes to `blocked` — the
+ *   orchestrator has no other failure signal.
+ * WHEN-NOT-TO-USE: While any of those budgets still has room — the quest stays `in_progress`
+ *   and the loop continues (a fresh ward retry, pt-N continuation, or orphan reset) instead of
+ *   blocking.
  */
 
 import type { ModifyQuestInput, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Checks if a quest status indicates the quest can be paused (seek_* + in_progress)
+ * PURPOSE: Checks if a quest status indicates the quest can be paused (any live status except paused, complete, and abandoned)
  *
  * USAGE:
  * isQuestPauseableQuestStatusGuard({ status: 'in_progress' });

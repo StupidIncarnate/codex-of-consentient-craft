@@ -19,7 +19,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {seek_scope quest with in-progress pathseeker-surface workItem} => its execution row shows replayed pathseeker text on reload', async ({
+  test('VALID: {in_progress quest with in-progress codeweaver workItem} => its execution row shows replayed codeweaver text on reload', async ({
     page,
     request,
   }) => {
@@ -27,37 +27,46 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const guild = await guilds.createGuild({
-      name: 'Replay Pathseeker Guild',
+      name: 'Replay Codeweaver Guild',
       path: GUILD_PATH,
     });
     const guildId = String(guild.id);
 
     const chaosSessionId = `e2e-replay-chaos-${Date.now()}`;
-    const pathseekerSessionId = `e2e-replay-pathseeker-${Date.now()}`;
+    const codeweaverSessionId = `e2e-replay-codeweaver-${Date.now()}`;
 
     const chaosText = 'Chaoswhisperer summary captured during streaming';
-    const pathseekerText = 'Pathseeker analysis captured before pause';
+    const codeweaverText = 'Codeweaver analysis captured before pause';
 
     sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
     sessions.createSessionWithAssistantText({
-      sessionId: pathseekerSessionId,
-      text: pathseekerText,
+      sessionId: codeweaverSessionId,
+      text: codeweaverText,
     });
 
     const created = await quests.createQuest({
       guildId,
-      title: 'E2E Replay Pathseeker Quest',
+      title: 'E2E Replay Codeweaver Quest',
       userRequest: 'Build the feature',
     });
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    const pathseekerWorkItemId = 'e2e00000-0000-4000-8000-000000000011';
+    const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000011';
+    const codeweaverOpId = '00000000-0000-4000-8000-0000000000c5';
     quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
-      status: 'seek_scope',
+      status: 'in_progress',
+      operations: [
+        {
+          id: codeweaverOpId,
+          role: 'codeweaver',
+          text: 'analyze scope',
+          status: 'in_progress',
+        },
+      ],
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000010',
@@ -66,10 +75,11 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
           status: 'complete',
         },
         {
-          id: pathseekerWorkItemId,
-          role: 'pathseeker-surface',
-          sessionId: pathseekerSessionId,
+          id: codeweaverWorkItemId,
+          role: 'codeweaver',
+          sessionId: codeweaverSessionId,
           status: 'in_progress',
+          relatedDataItems: [`operations/${codeweaverOpId}`],
         },
       ],
     });
@@ -81,19 +91,18 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // The actual pathseeker-surface workItem row (no longer a synthetic
-    // "Planning steps..." row) must surface the in-progress workItem's replayed
-    // assistant text. Streaming and replay paths converge on the same
-    // workItem.sessionId, so this row sources from sessionEntries — both paths
-    // populate the same key.
-    const pathseekerRoleBadge = executionPanel
+    // The codeweaver workItem row must surface the in-progress workItem's replayed assistant
+    // text. Streaming and replay paths converge on the same workItem.sessionId, so this row
+    // sources from sessionEntries — both paths populate the same key. The row name resolves
+    // from the linked operation's `text`.
+    const codeweaverRoleBadge = executionPanel
       .getByTestId('execution-row-role-badge')
-      .filter({ hasText: '[PATHSEEKER-SURFACE]' });
+      .filter({ hasText: '[CODEWEAVER]' });
 
-    await expect(pathseekerRoleBadge).toHaveCount(1, { timeout: PANEL_TIMEOUT });
-    await expect(pathseekerRoleBadge).toHaveText('[PATHSEEKER-SURFACE]');
+    await expect(codeweaverRoleBadge).toHaveCount(1, { timeout: PANEL_TIMEOUT });
+    await expect(codeweaverRoleBadge).toHaveText('[CODEWEAVER]');
 
-    await expect(executionPanel.getByText(pathseekerText)).toBeVisible({
+    await expect(executionPanel.getByText(codeweaverText)).toBeVisible({
       timeout: REPLAY_TEXT_TIMEOUT,
     });
   });

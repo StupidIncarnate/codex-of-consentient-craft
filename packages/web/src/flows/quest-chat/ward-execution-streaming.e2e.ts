@@ -25,10 +25,11 @@ const sessions = wireHarnessLifecycle({
   testObj: test,
 });
 
-// Skipped: these tests exercise the legacy in-process ward dispatch via the orchestration
-// loop's `runWardLayerBroker`. That dispatch was retired in favor of the MCP `run-ward`
-// tool driven by /dumpster-launch — POST /api/quests/:id/start no longer spawns ward.
-// Re-enable (or rewrite) once an e2e harness exists for the `/dumpster-launch` MCP flow.
+// Skipped: ward runs via the Node-dispatch `run-ward` command path that the operations relay
+// dispatches — `POST /api/quests/:id/start` does not spawn ward. The relay's ward dispatch is
+// covered end-to-end by operations-driven-dispatch.e2e.ts (its ward operation drives to green).
+// These tests drive ward through `POST /api/quests/:id/start`, which reaches no ward run, so
+// they stay skipped until an operations-ledger harness drives run-ward here.
 test.describe.skip('Ward Execution Streaming', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
@@ -65,8 +66,8 @@ test.describe.skip('Ward Execution Streaming', () => {
     const now = new Date().toISOString();
 
     // Seed quest with approved status + prior work items complete + pending ward.
-    // POST /start transitions the quest to seek_scope and kicks the orchestration loop,
-    // which skips the already-complete pathseeker and picks up the pending ward directly.
+    // POST /start transitions the quest to in_progress and kicks the orchestration loop,
+    // which picks up the pending ward directly.
     const quests = questHarness({ request });
     quests.writeQuestFile({
       questId,
@@ -136,7 +137,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     });
 
     // Kick orchestration off before navigation so the quest is already in an
-    // execution-phase status (seek_scope) by the time the browser renders —
+    // execution-phase status (in_progress) by the time the browser renders —
     // the WS execution listener activates on first paint and no ward output is lost.
     await request.post(`/api/quests/${questId}/start`);
 
@@ -147,7 +148,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     const nav = navigationHarness({ page });
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
-    // Execution panel renders immediately since quest status is seek_scope
+    // Execution panel renders immediately since quest status is in_progress
     const executionPanel = page.getByTestId('execution-panel-widget');
 
     await expect(executionPanel).toBeVisible({
@@ -222,8 +223,8 @@ test.describe.skip('Ward Execution Streaming', () => {
     const now = new Date().toISOString();
 
     // Seed quest with approved status + full prior chain complete + pending floor-boss ward.
-    // POST /start transitions to seek_scope; the loop skips the complete pathseeker and
-    // other satisfied items and dispatches the ready floor-boss ward.
+    // POST /start transitions to in_progress; the loop skips the already-complete items
+    // and dispatches the ready floor-boss ward.
     const quests = questHarness({ request });
     quests.writeQuestFile({
       questId,
@@ -335,7 +336,7 @@ test.describe.skip('Ward Execution Streaming', () => {
     const nav = navigationHarness({ page });
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
-    // Execution panel renders immediately since quest status is seek_scope
+    // Execution panel renders immediately since quest status is in_progress
     const executionPanel = page.getByTestId('execution-panel-widget');
 
     await expect(executionPanel).toBeVisible({

@@ -193,18 +193,15 @@ test.describe('Multi-widget coexistence', () => {
     claudeMock.queueResponse({
       response: SimpleTextResponseStub({
         sessionId: sessionId2,
-        text: 'Pathseeker scope analysis complete',
+        text: 'Codeweaver scope analysis complete',
       }),
     });
     await request.post(`/api/quests/${queuedQuestId}/start`);
 
-    // 7c-bis. Pause the queued quest immediately so it stays in the execution
-    //         queue for the duration of the visibility/text assertions below.
-    //         Without this, the fake CLI drains the single queued response in
-    //         milliseconds, the quest advances to the next role with an empty
-    //         CLI queue, exits 1, and the orchestration loop hits a terminal
-    //         state — removing the queue entry before the React render that
-    //         would have shown QUEST_QUEUE_BAR_COLLAPSED_LABEL completes.
+    // 7c-bis. Pause the queued quest immediately so it stays in the execution queue with a stable
+    //         status for the duration of the visibility/text assertions below. No dispatcher
+    //         auto-runs in e2e (dispatch normalizes to paused on boot), so the quest sits enqueued
+    //         either way; the pause just pins the status while the queue bar render settles.
     //         (Pattern mirrored from execution-queue-streaming.e2e.ts.)
     await request.post(`/api/quests/${queuedQuestId}/pause`);
 

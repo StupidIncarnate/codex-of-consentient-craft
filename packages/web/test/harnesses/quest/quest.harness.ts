@@ -84,6 +84,14 @@ export const questHarness = ({
       runId?: string;
       createdAt?: string;
     }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
+    }[];
   }) => void;
   writeWardResultDetail: (params: {
     questFilePath: string;
@@ -102,7 +110,31 @@ export const questHarness = ({
       sessionId: string;
       status?: string;
     }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
+    }[];
   }) => Record<PropertyKey, unknown>;
+  seedInProgressWithOperations: (params: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+    title?: string;
+    operations: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
+    }[];
+    firstWorkItemId: string;
+    firstWorkItemStatus?: string;
+  }) => void;
 } => {
   const createQuest = async ({
     guildId,
@@ -142,6 +174,7 @@ export const questHarness = ({
     planningNotes,
     flows,
     wardResults = [],
+    operations = [],
   }: {
     questId: string;
     questFolder: string;
@@ -174,6 +207,14 @@ export const questHarness = ({
       wardMode?: string;
       runId?: string;
       createdAt?: string;
+    }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
     }[];
   }): void => {
     const seededPlanningNotes = questGateContentSeedTransformer({
@@ -250,6 +291,15 @@ export const questHarness = ({
         ...(wr.runId === undefined ? {} : { runId: wr.runId }),
         ...(wr.wardMode === undefined ? {} : { wardMode: wr.wardMode }),
       })),
+      // Written verbatim as quest.operations — the ordered ledger the relay dispatches from.
+      operations: operations.map((op) => ({
+        id: op.id,
+        role: op.role,
+        text: op.text,
+        status: op.status,
+        locked: op.locked ?? false,
+        ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
+      })),
     };
 
     writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
@@ -309,6 +359,7 @@ export const questHarness = ({
     questFolder,
     status,
     workItems,
+    operations = [],
   }: {
     questId: string;
     questFolder: string;
@@ -318,6 +369,14 @@ export const questHarness = ({
       role: string;
       sessionId: string;
       status?: string;
+    }[];
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
     }[];
   }): Record<PropertyKey, unknown> => ({
     id: questId,
@@ -334,6 +393,14 @@ export const questHarness = ({
       createdAt: new Date().toISOString(),
       relatedDataItems: [],
       dependsOn: [],
+    })),
+    operations: operations.map((op) => ({
+      id: op.id,
+      role: op.role,
+      text: op.text,
+      status: op.status,
+      locked: op.locked ?? false,
+      ...(op.wardMode === undefined ? {} : { wardMode: op.wardMode }),
     })),
     userRequest: 'Build the feature',
     designDecisions: [],
@@ -356,6 +423,59 @@ export const questHarness = ({
     ],
   });
 
+  // Seeds a quest directly to `in_progress` with an operations ledger + ONE work item linked 1:1 to
+  // the first operation item (relatedDataItems: ['operations/<op0.id>']) — mirroring a quest whose
+  // Start Quest transition already seeded the relay. The first operation item is expected to be
+  // `in_progress` and the linked work item `pending` (dispatch pre-stamps it in_progress on spawn).
+  const seedInProgressWithOperations = ({
+    questId,
+    questFolder,
+    questFilePath,
+    title,
+    operations,
+    firstWorkItemId,
+    firstWorkItemStatus = 'pending',
+  }: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+    title?: string;
+    operations: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
+    }[];
+    firstWorkItemId: string;
+    firstWorkItemStatus?: string;
+  }): void => {
+    const [firstOp] = operations;
+    if (firstOp === undefined) {
+      throw new Error('seedInProgressWithOperations requires at least one operation');
+    }
+
+    writeQuestFile({
+      questId,
+      questFolder,
+      questFilePath,
+      ...(title === undefined ? {} : { title }),
+      status: 'in_progress',
+      operations,
+      workItems: [
+        {
+          id: firstWorkItemId,
+          role: firstOp.role,
+          status: firstWorkItemStatus,
+          spawnerType: firstOp.role === 'ward' ? 'command' : 'agent',
+          relatedDataItems: [`operations/${firstOp.id}`],
+          ...(firstOp.wardMode === undefined ? {} : { wardMode: firstOp.wardMode }),
+        },
+      ],
+    });
+  };
+
   return {
     createQuest,
     writeQuestFile,
@@ -363,5 +483,6 @@ export const questHarness = ({
     patchQuestStatus,
     questFolderExists,
     buildQuestJson,
+    seedInProgressWithOperations,
   };
 };

@@ -22,7 +22,7 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {monitor-session announced + sub-agent JSONL appended live} => the pathseeker-surface execution row shows the streamed assistant text WITHOUT page refresh', async ({
+  test('VALID: {monitor-session announced + sub-agent JSONL appended live} => the codeweaver execution row shows the streamed assistant text WITHOUT page refresh', async ({
     page,
     request,
   }) => {
@@ -40,9 +40,9 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     const realAgentId = `e2elivestreamagent${Date.now()}`;
     const chaosSessionId = `e2e-stream-chaos-${Date.now()}`;
     const chaosWorkItemId = 'e2e00000-0000-4000-8000-000000000060';
-    const pathseekerWorkItemId = 'e2e00000-0000-4000-8000-000000000061';
-    const REPLAY_MARKER = 'REPLAY_PATHSEEKER_SURFACE_MARKER_abc';
-    const LIVE_MARKER = 'LIVE_PATHSEEKER_SURFACE_MARKER_xyz123';
+    const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000061';
+    const REPLAY_MARKER = 'REPLAY_CODEWEAVER_MARKER_abc';
+    const LIVE_MARKER = 'LIVE_CODEWEAVER_MARKER_xyz123';
 
     sessions.createSessionWithAssistantText({
       sessionId: chaosSessionId,
@@ -90,22 +90,22 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
     });
 
     // Pre-stamp wi.sessionId = parentSessionId + wi.agentId = realAgentId on the
-    // pathseeker-surface workItem. This matches what the MCP get-agent-prompt handler
+    // codeweaver workItem. This matches what the MCP get-agent-prompt handler
     // would do in production (interaction-handle-responder ~line 96). Per-work-item
     // replay's path encoding (chat-history-replay-broker) is
     // `<encoded-projectPath>/<sessionId>/subagents/agent-<agentId>.jsonl`, so
     // sessionId MUST be the parent session id for replay to find the subagent file.
     //
-    // Quest status is `seek_scope` (not `in_progress`) to keep the orchestration loop
-    // from kicking in — the loop's orphan-reset would demote pathseeker-surface from
-    // in_progress back to pending while it re-dispatches, and execution-row-layer-widget
-    // only auto-expands rows whose status is in_progress. Pending rows render their
-    // body as `null`, hiding the entries and breaking the text assertion.
+    // The codeweaver work item stays `in_progress` so execution-row-layer-widget
+    // auto-expands it and renders its streamed entries — a pending row renders its body
+    // as `null`, hiding the entries and breaking the text assertion. The Node dispatcher
+    // is paused by default in e2e (it never auto-plays after boot), so no get-next-step
+    // orphan-reset runs to demote the in_progress row back to pending.
     quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
-      status: 'seek_scope',
+      status: 'in_progress',
       workItems: [
         {
           id: chaosWorkItemId,
@@ -114,8 +114,8 @@ test.describe('Per-work-item LIVE streaming reads `<sessionId>/subagents/agent-<
           status: 'complete',
         },
         {
-          id: pathseekerWorkItemId,
-          role: 'pathseeker-surface',
+          id: codeweaverWorkItemId,
+          role: 'codeweaver',
           status: 'in_progress',
           sessionId: parentSessionId,
           agentId: realAgentId,

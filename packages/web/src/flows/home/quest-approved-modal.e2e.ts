@@ -192,7 +192,7 @@ test.describe('Quest Approved Modal', () => {
     });
   });
 
-  test('VALID: Begin Quest rests the quest at seek_scope (PathSeeker planning)', async ({
+  test('VALID: Begin Quest transitions the quest to in_progress and seeds the operations relay', async ({
     page,
     request,
   }) => {
@@ -222,9 +222,9 @@ test.describe('Quest Approved Modal', () => {
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest leaves a PathSeeker-planned feature quest RESTING at seek_scope: the pathseeker
-    // work item dispatches there and PathSeeker drives the seek_scope → in_progress completeness
-    // gate itself. No dispatcher runs in e2e, so the quest stays at seek_scope.
+    // start-quest transitions the approved feature quest straight to in_progress and seeds the
+    // operations relay (questBuildRelayGraphBroker). No dispatcher runs in e2e; the ledger + first
+    // work item are persisted and the quest rests at in_progress for the active dispatcher.
     await expect
       .poll(
         async () => {
@@ -237,6 +237,9 @@ test.describe('Quest Approved Modal', () => {
         },
         { timeout: PANEL_TIMEOUT },
       )
-      .toBe('seek_scope');
+      .toBe('in_progress');
+
+    // The seeded operations relay renders as the ledger inside the execution panel.
+    await expect(page.getByTestId('OPERATIONS_LEDGER')).toBeVisible({ timeout: PANEL_TIMEOUT });
   });
 });

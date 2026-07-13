@@ -14,7 +14,6 @@ export const orchestrationStatusContract = z.object({
   processId: z.string().brand<'ProcessId'>(),
   questId: z.string().brand<'QuestId'>(),
   phase: z.enum([
-    'pathseeker',
     'codeweaver',
     'flowrider',
     'siegemaster',

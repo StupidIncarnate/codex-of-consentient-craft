@@ -7,6 +7,7 @@
  */
 
 import { isQuestPauseableQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { orchestratorPauseQuestAdapter } from '../../../adapters/orchestrator/pause-quest/orchestrator-pause-quest-adapter';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -45,11 +46,15 @@ export const QuestPauseResponder = async ({
 
     const { quest } = questResult;
     if (!isQuestPauseableQuestStatusGuard({ status: quest.status })) {
+      const pauseableStatuses = (
+        Object.keys(
+          questStatusMetadataStatics.statuses,
+        ) as (keyof typeof questStatusMetadataStatics.statuses)[]
+      ).filter((status) => questStatusMetadataStatics.statuses[status].isPauseable);
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: {
-          error:
-            'Quest must be in a pauseable status (in_progress, seek_scope, seek_synth, or seek_walk) to pause',
+          error: `Quest must be in a pauseable status (${pauseableStatuses.join(', ')}) to pause`,
         },
       });
     }

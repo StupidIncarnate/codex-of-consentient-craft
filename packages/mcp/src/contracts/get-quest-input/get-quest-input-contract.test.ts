@@ -70,22 +70,7 @@ describe('getQuestInputContract', () => {
       expect(result).toStrictEqual({ questId: 'add-auth', format: 'text' });
     });
 
-    it('VALID: {questId with slice} => parses slice array passed through from shared contract', () => {
-      const result = getQuestInputContract.parse({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: ['backend', 'frontend'],
-      });
-
-      expect(result).toStrictEqual({
-        questId: 'add-auth',
-        stage: 'planning',
-        slice: ['backend', 'frontend'],
-        format: 'text',
-      });
-    });
-
-    it('VALID: {questId without slice} => slice omitted from result', () => {
+    it('VALID: {questId with planning stage} => parses successfully', () => {
       const result = getQuestInputContract.parse({ questId: 'add-auth', stage: 'planning' });
 
       expect(result).toStrictEqual({

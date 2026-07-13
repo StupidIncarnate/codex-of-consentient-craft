@@ -7,7 +7,6 @@ describe('questStatusMetadataContract', () => {
     it('VALID: {fully populated metadata} => parses successfully', () => {
       const result = questStatusMetadataContract.parse({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -28,7 +27,6 @@ describe('questStatusMetadataContract', () => {
 
       expect(result).toStrictEqual({
         isPreExecution: true,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,
@@ -51,7 +49,6 @@ describe('questStatusMetadataContract', () => {
     it('VALID: {nextApprovalStatus null} => parses successfully', () => {
       const result = questStatusMetadataContract.parse({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: true,
         isUserPaused: false,
@@ -79,7 +76,6 @@ describe('questStatusMetadataContract', () => {
       expect(() =>
         questStatusMetadataContract.parse({
           isPreExecution: false,
-          isPathseekerRunning: false,
           isAnyAgentRunning: false,
           isActivelyExecuting: false,
           isUserPaused: false,
@@ -103,7 +99,6 @@ describe('questStatusMetadataContract', () => {
       expect(() =>
         questStatusMetadataContract.parse({
           isPreExecution: 'false',
-          isPathseekerRunning: false,
           isAnyAgentRunning: false,
           isActivelyExecuting: false,
           isUserPaused: false,
@@ -128,7 +123,6 @@ describe('questStatusMetadataContract', () => {
       expect(() =>
         questStatusMetadataContract.parse({
           isPreExecution: false,
-          isPathseekerRunning: false,
           isAnyAgentRunning: false,
           isActivelyExecuting: false,
           isUserPaused: false,
@@ -156,7 +150,6 @@ describe('questStatusMetadataContract', () => {
 
       expect(result).toStrictEqual({
         isPreExecution: false,
-        isPathseekerRunning: false,
         isAnyAgentRunning: false,
         isActivelyExecuting: false,
         isUserPaused: false,

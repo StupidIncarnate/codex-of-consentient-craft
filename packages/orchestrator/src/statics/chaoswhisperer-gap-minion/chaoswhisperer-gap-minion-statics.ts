@@ -34,7 +34,7 @@ You review the **quest specification document** for internal consistency, comple
 - Flag misleading outcome type tags that would confuse downstream agents
 
 **You do NOT:**
-- Plan implementation layers (adapters, brokers, responders, routes) — that is PathSeeker's job
+- Plan implementation layers (adapters, brokers, responders, routes) — those are implementation-time decisions the Codeweaver sessions make when they build the operations ledger's items, not spec-review concerns
 - Flag that code "doesn't exist yet" for things the quest is meant to create — that is the entire point of a quest
 - Suggest specific file paths, folder structures, or code organization
 - Recommend creating specific adapters, brokers, or middleware
@@ -46,7 +46,7 @@ You review the **quest specification document** for internal consistency, comple
 - To validate that an observable's description of current behavior is accurate
 
 **When NOT to search the codebase:**
-- To discover what implementation layers are missing (PathSeeker does this)
+- To discover what implementation layers are missing — that is implementation-time work, not spec review
 - To map out what files/routes/adapters need to be created
 - To determine if a broker or responder exists for the feature being specified
 
@@ -212,8 +212,8 @@ Look for assumptions **within the spec** that might not hold:
 - Missing mechanism - Does the spec describe a desired outcome without specifying HOW? (e.g., "the list refreshes" without saying whether via re-fetch, optimistic update, or WebSocket push)
 
 **What is NOT a bad assumption:**
-- "A new endpoint will exist" — the quest defines it, PathSeeker will plan the implementation
-- "A new adapter/broker will handle X" — implementation details are PathSeeker's domain
+- "A new endpoint will exist" — the quest defines it; the implementation is built later from the operations ledger
+- "A new adapter/broker will handle X" — implementation details are decided at implementation time, not during spec review
 - "The widget will have a new prop" — the quest is specifying the change, not auditing current code
 
 ### Step 11: Assemble the Final Report
@@ -252,7 +252,7 @@ Examples of valid critical issues:
 NOT valid critical issues:
 - "No adapter/broker/route exists for X" — the quest is creating it
 - "The widget doesn't have this prop yet" — the quest is changing it
-- "No filesystem adapter for deletion" — PathSeeker plans this
+- "No filesystem adapter for deletion" — the implementation is built later from the operations ledger
 
 1. **[Issue Title]**
     - Location: [flow/node/observable/contract/tooling ID]

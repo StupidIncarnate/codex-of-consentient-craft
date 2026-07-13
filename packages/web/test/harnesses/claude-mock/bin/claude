@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const http = require('http');
 
 const queueDir = process.env.FAKE_CLAUDE_QUEUE_DIR;
 
@@ -96,12 +97,78 @@ const lines = response.lines || [];
 const exitCode = response.exitCode ?? 0;
 const delayMs = response.delayMs ?? 10;
 const sessionId = response.sessionId || null;
+// E2E dispatch-loop driver fields (see claude-queue-response-contract).
+const signalBack = response.signalBack || null;
+const hang = response.hang === true;
 
 // Extract user message from -p argument (matches real Claude CLI behavior)
 const pFlagIndex = process.argv.indexOf('-p');
 const userMessage = pFlagIndex !== -1 && pFlagIndex + 1 < process.argv.length
     ? process.argv[pFlagIndex + 1]
     : null;
+
+// The Node dispatcher hands each child a task prompt containing questId + workItemId literally
+// (build-task-prompt-layer-broker). Parse the first `<key>: "<value>"` occurrence — both the
+// get-agent-prompt block and the signal-back block repeat the same values, so the first match wins.
+const parsePromptId = (key) => {
+    if (!userMessage) return null;
+    const match = userMessage.match(new RegExp(`${key}\\s*:\\s*"([^"]+)"`));
+    return match ? match[1] : null;
+};
+
+// The server binds to environmentStatics.hostname ('dungeonmaster.localhost'), NOT a raw loopback
+// IP — posting to 127.0.0.1 hits the wrong address family (IPv4 vs IPv6) and gets ECONNREFUSED.
+// Resolving the SAME hostname both sides bind/fetch through keeps them aligned regardless of the
+// host's /etc/hosts configuration.
+const SIGNAL_BACK_HOST = 'dungeonmaster.localhost';
+
+// POST the env-gated HTTP signal-back endpoint and AWAIT the full response so the operations relay
+// advances (work item terminal + operation complete + next work item created) BEFORE this child
+// exits — the dispatch loop awaits the exit and re-scans, and an in_progress work item seen at scan
+// is treated as orphaned. Using the node `http` module (not global fetch) keeps this independent of
+// the runtime Node version.
+function postSignalBack() {
+    return new Promise((resolve) => {
+        const questId = parsePromptId('questId');
+        const workItemId = parsePromptId('workItemId');
+        const port = process.env.DUNGEONMASTER_PORT;
+        if (!questId || !workItemId || !port) {
+            process.stderr.write(
+                `Fake Claude CLI: cannot signal-back (questId=${questId}, workItemId=${workItemId}, port=${port})\n`,
+            );
+            resolve();
+            return;
+        }
+        const payload = JSON.stringify({
+            workItemId,
+            signal: 'complete',
+            operationStatus: signalBack.operationStatus,
+        });
+        const req = http.request(
+            {
+                host: SIGNAL_BACK_HOST,
+                port: Number(port),
+                path: `/api/quests/${questId}/signal-back`,
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                    'content-length': Buffer.byteLength(payload),
+                },
+            },
+            (res) => {
+                // Drain the body so the socket settles before the process exits.
+                res.on('data', () => {});
+                res.on('end', () => resolve());
+            },
+        );
+        req.on('error', (err) => {
+            process.stderr.write(`Fake Claude CLI: signal-back POST failed: ${String(err)}\n`);
+            resolve();
+        });
+        req.write(payload);
+        req.end();
+    });
+}
 
 // Write JSONL session file (mimics real Claude CLI writing ~/.claude/projects/...)
 function writeJsonlSessionFile() {
@@ -152,12 +219,29 @@ function writeJsonlSessionFile() {
     }
 }
 
+// Runs once every queued stream line has been emitted. In hang mode the process blocks forever
+// (init line already emitted so sessionId stamps). Otherwise it optionally signals back (awaited),
+// writes the JSONL session file, and exits.
+async function finish() {
+    if (hang) {
+        // Keep the event loop alive indefinitely — a restart spec kills this child.
+        setInterval(() => {}, 1 << 30);
+        return;
+    }
+
+    if (signalBack) {
+        await postSignalBack();
+    }
+
+    writeJsonlSessionFile();
+    process.exit(exitCode);
+}
+
 let index = 0;
 
 function writeLine() {
     if (index >= lines.length) {
-        writeJsonlSessionFile();
-        process.exit(exitCode);
+        void finish();
         return;
     }
 
@@ -165,8 +249,7 @@ function writeLine() {
     index++;
 
     if (index >= lines.length) {
-        writeJsonlSessionFile();
-        process.exit(exitCode);
+        void finish();
     } else {
         setTimeout(writeLine, delayMs);
     }

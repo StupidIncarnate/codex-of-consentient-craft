@@ -73,7 +73,7 @@ test.describe('Two Task-dispatched rows that share one parent /dumpster-launch s
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
-      status: 'seek_scope',
+      status: 'in_progress',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000030',

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await QuestResumeResponder({ params: { questId: 'abc' } });
- * // Returns { status: 200, data: { resumed: true, restoredStatus: 'seek_scope' } } or { status: 400/500, data: { error } }
+ * // Returns { status: 200, data: { resumed: true, restoredStatus: 'in_progress' } } or { status: 400/500, data: { error } }
  */
 
 import { isQuestResumableQuestStatusGuard } from '@dungeonmaster/shared/guards';

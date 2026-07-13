@@ -324,7 +324,7 @@ export const questModifyBroker = async ({
         } else if (validated.workItems !== undefined) {
           // Work items changed with no explicit status: the new status is whatever they imply.
           // workItemsToQuestStatusTransformer is authoritative — it preserves the statuses it must
-          // not derive over (pathseeker/pre-execution/paused/abandoned) and otherwise returns the
+          // not derive over (pre-execution/paused/abandoned) and otherwise returns the
           // canonical complete / in_progress / blocked, including re-opening a quest that briefly
           // derived `complete` when fresh pending work is appended. Derived transitions are
           // consequences, not user transitions, so they bypass the transition-validity guard

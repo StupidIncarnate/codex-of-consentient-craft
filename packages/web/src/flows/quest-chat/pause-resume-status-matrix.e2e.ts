@@ -34,6 +34,22 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
   // `execution-panel-pause-button.e2e.ts`, `chat-stop-pauses-quest.e2e.ts`, and
   // `chat-send-auto-resumes.e2e.ts`.
   for (const status of PAUSEABLE_STATUSES) {
+    // A feature quest can only rest at `approved` with a codeweaver operation on its ledger
+    // (hasQuestGateContentGuard). Resume restores paused → approved, which re-runs that gate, so
+    // the approved case must seed one. Every other pauseable status is ungated on this axis, so an
+    // empty ledger (writeQuestFile's default) keeps those cases identical.
+    const operations =
+      status === 'approved'
+        ? [
+            {
+              id: '00000000-0000-4000-8000-0000000000c1',
+              role: 'codeweaver',
+              text: 'core: build the feature',
+              status: 'pending',
+            },
+          ]
+        : [];
+
     test(`VALID: {status: ${status}} => POST /pause sets pausedAtStatus=${status}; POST /resume restores status=${status}`, async ({
       request,
     }) => {
@@ -60,6 +76,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
         questFolder: String(questFolder),
         questFilePath: String(questFilePath),
         status,
+        operations,
         workItems: [
           {
             id: 'e2e00000-0000-4000-8000-0000000000a1',

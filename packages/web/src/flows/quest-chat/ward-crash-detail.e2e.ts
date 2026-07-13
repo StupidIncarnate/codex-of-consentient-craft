@@ -53,6 +53,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
     const chaoswhispererId = 'e2e00000-0000-4000-8000-000000000001';
     const wardId = 'e2e00000-0000-4000-8000-000000000002';
     const wardResultId = 'e2e00000-0000-4000-8000-0000000000a1';
+    const wardOpId = '00000000-0000-4000-8000-0000000000d1';
     const crashStdout = 'FATAL: jest failed to run @dungeonmaster/shared integration suite';
 
     quests.writeQuestFile({
@@ -60,6 +61,18 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
       status: 'blocked',
+      // The operations ledger holds the ward run as one locked ward operation. The failed ward
+      // work item links 1:1 to it (operations/<id>) and to its crash-only ward-result.
+      operations: [
+        {
+          id: wardOpId,
+          role: 'ward',
+          text: 'ward (changed)',
+          status: 'in_progress',
+          locked: true,
+          wardMode: 'changed',
+        },
+      ],
       workItems: [
         {
           id: chaoswhispererId,
@@ -73,15 +86,11 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
           status: 'failed',
           spawnerType: 'command',
           dependsOn: [chaoswhispererId],
-          relatedDataItems: [`wardResults/${wardResultId}`],
+          relatedDataItems: [`operations/${wardOpId}`, `wardResults/${wardResultId}`],
           attempt: 2,
           maxAttempts: 3,
         },
       ],
-      // A step is required so the panel renders the non-planning branch (the one that passes
-      // wardResults/questId to rows) — matching a real feature quest, which always has steps by
-      // the time ward runs.
-      steps: [{ id: 'orch-autocreate', name: 'Auto-create guild on quest creation' }],
       wardResults: [{ id: wardResultId, exitCode: 1, wardMode: 'changed' }],
     });
 

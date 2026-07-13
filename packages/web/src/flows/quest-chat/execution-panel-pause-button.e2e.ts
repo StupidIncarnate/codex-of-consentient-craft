@@ -18,7 +18,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {status: seek_walk} => PAUSE button visible in execution panel', async ({
+  test('VALID: {status: in_progress} => PAUSE button visible in execution panel', async ({
     page,
     request,
   }) => {
@@ -26,12 +26,12 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const guild = await guilds.createGuild({
-      name: 'Exec Panel Pause Seek Walk Guild',
+      name: 'Exec Panel Pause In Progress Guild',
       path: GUILD_PATH,
     });
     const guildId = String(guild.id);
 
-    const sessionId = `e2e-pause-btn-seek-walk-${Date.now()}`;
+    const sessionId = `e2e-pause-btn-in-progress-${Date.now()}`;
     sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
@@ -46,7 +46,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
       questId,
       questFolder,
       questFilePath,
-      status: 'seek_walk',
+      status: 'in_progress',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-0000000000aa',
@@ -171,7 +171,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     await expect(page.getByTestId('EXECUTION_PAUSE_BUTTON')).not.toBeVisible();
   });
 
-  test('VALID: {click PAUSE on seek_walk} => POST /api/quests/:questId/pause fires', async ({
+  test('VALID: {click PAUSE on in_progress} => POST /api/quests/:questId/pause fires', async ({
     page,
     request,
   }) => {
@@ -199,7 +199,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
       questId,
       questFolder,
       questFilePath,
-      status: 'seek_walk',
+      status: 'in_progress',
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-0000000000dd',

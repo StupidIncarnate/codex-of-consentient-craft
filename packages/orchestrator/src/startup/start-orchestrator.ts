@@ -345,8 +345,7 @@ export const StartOrchestrator = {
     questId,
     workItemId,
     signal,
-    operationItemId,
-    operationStatus,
+    ...operationOutcome
   }: {
     questId: QuestId;
     workItemId: QuestWorkItemId;
@@ -354,13 +353,7 @@ export const StartOrchestrator = {
     operationItemId?: OperationItemId;
     operationStatus?: 'done' | 'partial';
   }): Promise<AdapterResult> =>
-    QuestFlow.handleSignalBack({
-      questId,
-      workItemId,
-      signal,
-      ...(operationItemId === undefined ? {} : { operationItemId }),
-      ...(operationStatus === undefined ? {} : { operationStatus }),
-    }),
+    QuestFlow.handleSignalBack({ questId, workItemId, signal, ...operationOutcome }),
 
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)
   getServerConfig: (): QuestGetServerConfigResult => QuestFlow.getServerConfig(),

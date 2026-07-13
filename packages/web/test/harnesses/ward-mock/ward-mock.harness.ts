@@ -100,6 +100,7 @@ export const wardMockHarness = ({
 }): {
   beforeEach: () => void;
   queueResponse: (params: { response: WardQueueResponse }) => void;
+  queueRootResponse: (params: { response: WardQueueResponse }) => void;
   clearQueue: () => void;
 } => ({
   beforeEach: (): void => {
@@ -108,6 +109,13 @@ export const wardMockHarness = ({
   },
   queueResponse: ({ response }: { response: WardQueueResponse }): void => {
     queueWardResponse({ queueDir: getScopedQueueDir({ guildPath }), response });
+  },
+  // Queue into the ROOT (un-scoped) ward queue. The Node dispatcher's run-ward spawns the fake
+  // ward with `cwd = processCwdAdapter()` (the SERVER's cwd, not the guild path), so the fake
+  // ward's cwd-scoped lookup misses and it falls back to this root queue. Node-dispatch e2e
+  // (workers:1, serial dispatch, beforeEach clears both queues) uses this for ward outcomes.
+  queueRootResponse: ({ response }: { response: WardQueueResponse }): void => {
+    queueWardResponse({ queueDir: getRootQueueDir(), response });
   },
   clearQueue: (): void => {
     clearWardQueue({ queueDir: getRootQueueDir() });

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await OrchestrationResumeResponder({ questId });
- * // Returns { resumed: true, restoredStatus: 'seek_scope' } when the paused quest transitions back to its pre-pause status and the loop is relaunched
+ * // Returns { resumed: true, restoredStatus: 'in_progress' } when the paused quest transitions back to its pre-pause status and the loop is relaunched
  */
 
 import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';

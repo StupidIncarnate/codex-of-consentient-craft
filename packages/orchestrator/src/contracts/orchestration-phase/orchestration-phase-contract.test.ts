@@ -3,14 +3,6 @@ import { OrchestrationPhaseStub } from './orchestration-phase.stub';
 
 describe('orchestrationPhaseContract', () => {
   describe('valid phases', () => {
-    it('VALID: {pathseeker} => parses successfully', () => {
-      const phase = OrchestrationPhaseStub({ value: 'pathseeker' });
-
-      const result = orchestrationPhaseContract.parse(phase);
-
-      expect(result).toBe('pathseeker');
-    });
-
     it('VALID: {codeweaver} => parses successfully', () => {
       const phase = OrchestrationPhaseStub({ value: 'codeweaver' });
 

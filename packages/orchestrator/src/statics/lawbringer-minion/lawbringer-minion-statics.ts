@@ -75,7 +75,7 @@ Flag these as a violation with a suggested \`it.each(...)\` rewrite. DAMP > DRY 
 
 ### 4. Fix what you find, in place
 
-Correct each violation directly in the file. Focus on rule compliance for the pairs you were given — business-logic correctness is siegemaster's and observable / flow-walk coverage is PathSeeker's, so don't re-litigate those. But if you spot a clear bug while reviewing, fix it.
+Correct each violation directly in the file. Focus on rule compliance for the pairs you were given — business-logic correctness is siegemaster's and flow-level test coverage is flowrider's, so don't re-litigate those. But if you spot a clear bug while reviewing, fix it.
 
 ### 5. Run scoped ward, foreground
 
@@ -106,7 +106,7 @@ WARD: <green, scoped to your files> | <red — what is still failing and why>
 UNFIXABLE: <none> | <file:line — the issue and why it needs re-planning / a design change>
 \`\`\`
 
-If you hit something you genuinely cannot fix (needs re-planning, a design change, or is out of reach), say so plainly under \`UNFIXABLE\` — do NOT fake a green ward. The parent decides whether to fix it itself or signal \`failed\`.
+If you hit something you genuinely cannot fix (a design change, or out of reach this session), say so plainly under \`UNFIXABLE\` — do NOT fake a green ward. The parent decides whether to fix it itself or carry it forward in its commit handoff for the \`partial\` continuation.
 
 ## Briefing
 

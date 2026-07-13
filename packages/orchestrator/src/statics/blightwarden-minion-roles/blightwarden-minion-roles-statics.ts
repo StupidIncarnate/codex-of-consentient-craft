@@ -1,9 +1,9 @@
 /**
- * PURPOSE: The five Blightwarden minion work-item roles, in dispatch order. Single source of truth
- *          for the parallel report-only finder set — consumed by stepsToWorkItemsTransformer (emits
- *          one work item per role), selectBatchLayerBroker (batches them together), and
- *          isBlightwardenMinionRoleGuard (membership test). Each entry must also exist in
- *          workItemRoleContract + agentRoleContract; the guard enforces that at compile time.
+ * PURPOSE: The five Blightwarden minion roles the blightwarden parent summons via the Agent tool
+ *          (report-only, run in parallel — no work item, no operation item of their own). Single
+ *          source of truth for the minion set — consumed by isBlightwardenMinionRoleGuard
+ *          (membership test). Each entry must also exist in workItemRoleContract +
+ *          agentRoleContract; the guard enforces that at compile time.
  *
  * USAGE:
  * blightwardenMinionRolesStatics.roles;

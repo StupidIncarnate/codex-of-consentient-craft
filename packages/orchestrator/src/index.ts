@@ -77,13 +77,11 @@ export { orchestrationProcessesState } from './state/orchestration-processes/orc
 export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';
 
-
 export { isoTimestampContract } from './contracts/iso-timestamp/iso-timestamp-contract';
 export type { IsoTimestamp } from './contracts/iso-timestamp/iso-timestamp-contract';
 
 export { slotCountContract } from './contracts/slot-count/slot-count-contract';
 export type { SlotCount } from './contracts/slot-count/slot-count-contract';
-
 
 export { slotIndexContract } from './contracts/slot-index/slot-index-contract';
 export type { SlotIndex } from './contracts/slot-index/slot-index-contract';
@@ -96,8 +94,6 @@ export type { FollowupDepth } from './contracts/followup-depth/followup-depth-co
 
 export { workItemIdContract } from './contracts/work-item-id/work-item-id-contract';
 export type { WorkItemId } from './contracts/work-item-id/work-item-id-contract';
-
-
 
 export { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 export type { StreamJsonLine } from '@dungeonmaster/shared/contracts';

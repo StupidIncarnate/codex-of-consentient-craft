@@ -2,7 +2,7 @@
  * PURPOSE: Checks if a quest status indicates a recoverable quest that should be auto-resumed on server restart
  *
  * USAGE:
- * isRecoverableQuestStatusGuard({ status: 'seek_walk' });
+ * isRecoverableQuestStatusGuard({ status: 'in_progress' });
  * // Returns true for non-terminal non-paused active statuses
  */
 

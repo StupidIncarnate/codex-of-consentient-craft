@@ -44,8 +44,8 @@ export const questOrchestrationLoopBrokerProxy = (): {
   configProxy.setupConfigResolved({ config: configProxy.makeRealConfig() });
   // Chat layer is the only remaining role-specific dispatch in the loop —
   // chaoswhisperer / glyphsmith still flow through the legacy spawn surface.
-  // Every execution role (codeweaver, ward, siegemaster, lawbringer,
-  // blightwarden, spiritmender, pathseeker) is dispatched by /dumpster-launch
+  // Every execution role (codeweaver, ward, flowrider, siegemaster, lawbringer,
+  // blightwarden, spiritmender, pesteater) is dispatched by /dumpster-launch
   // via the MCP `get-next-step` tool now.
   runChatLayerBrokerProxy();
 

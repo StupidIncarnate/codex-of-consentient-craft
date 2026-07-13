@@ -49,15 +49,23 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     });
     const { questId, questFolder, filePath: questFilePath } = created;
 
-    // Seed a chaoswhisperer for quest→session linking and an in_progress codeweaver
-    // pointing at the seeded session. Status `in_progress` ensures the row triggers
-    // the auto-expand effect under test.
+    // Seed a chaoswhisperer for quest→session linking and an in_progress codeweaver linked
+    // 1:1 to a codeweaver operation item. Status `in_progress` ensures the row triggers the
+    // auto-expand effect under test; the row name resolves from the operation `text`.
+    const codeweaverOpId = '00000000-0000-4000-8000-0000000000c1';
     quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
       status: 'in_progress',
-      steps: [{ id: 'step-active-row', name: 'Active row collapse step' }],
+      operations: [
+        {
+          id: codeweaverOpId,
+          role: 'codeweaver',
+          text: 'Active row collapse step',
+          status: 'in_progress',
+        },
+      ],
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-0000000000a1',
@@ -70,7 +78,7 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
           role: 'codeweaver',
           sessionId: codeweaverSessionId,
           status: 'in_progress',
-          relatedDataItems: ['steps/step-active-row'],
+          relatedDataItems: [`operations/${codeweaverOpId}`],
         },
       ],
     });

@@ -19,7 +19,7 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
     sessions.cleanSessionDirectory();
   });
 
-  test('VALID: {pathseeker-surface workItem carries sessionId+agentId} => its execution row shows replayed subagent text, NOT main session content', async ({
+  test('VALID: {codeweaver workItem carries sessionId+agentId} => its execution row shows replayed subagent text, NOT main session content', async ({
     page,
     request,
   }) => {
@@ -39,7 +39,7 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
     const realAgentId = `e2eagent${Date.now()}`;
 
     const chaosText = 'Chaos summary';
-    const subagentText = 'Pathseeker-surface subagent replayed assistant text';
+    const subagentText = 'Codeweaver subagent replayed assistant text';
 
     sessions.createSessionWithAssistantText({ sessionId: chaosSessionId, text: chaosText });
     // Seed ONLY the sub-agent JSONL at `<parentSessionId>/subagents/agent-<realAgentId>.jsonl`.
@@ -61,12 +61,21 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
-    const pathseekerWorkItemId = 'e2e00000-0000-4000-8000-000000000022';
+    const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000022';
+    const codeweaverOpId = '00000000-0000-4000-8000-0000000000c6';
     quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
-      status: 'seek_scope',
+      status: 'in_progress',
+      operations: [
+        {
+          id: codeweaverOpId,
+          role: 'codeweaver',
+          text: 'decompose feature',
+          status: 'in_progress',
+        },
+      ],
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000020',
@@ -75,11 +84,12 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
           status: 'complete',
         },
         {
-          id: pathseekerWorkItemId,
-          role: 'pathseeker-surface',
+          id: codeweaverWorkItemId,
+          role: 'codeweaver',
           sessionId: parentSessionId,
           agentId: realAgentId,
           status: 'in_progress',
+          relatedDataItems: [`operations/${codeweaverOpId}`],
         },
       ],
     });
@@ -91,9 +101,9 @@ test.describe('Per-work-item replay reads `<sessionId>/subagents/agent-<agentId>
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // Pathseeker-surface row must render the subagent's assistant text — that text only
-    // appears in `<parentSessionId>/subagents/agent-<realAgentId>.jsonl`. If the agentId
-    // filter isn't honored end-to-end (MCP-stamp → server-init-responder forwards agentId →
+    // Codeweaver row must render the subagent's assistant text — that text only appears in
+    // `<parentSessionId>/subagents/agent-<realAgentId>.jsonl`. If the agentId filter isn't
+    // honored end-to-end (MCP-stamp → server-init-responder forwards agentId →
     // chat-history-replay-broker scopes), the panel renders empty for this row.
     await expect(executionPanel.getByText(subagentText)).toBeVisible({
       timeout: REPLAY_TEXT_TIMEOUT,

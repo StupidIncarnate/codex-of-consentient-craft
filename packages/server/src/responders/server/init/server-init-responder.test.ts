@@ -221,7 +221,7 @@ describe('ServerInitResponder', () => {
         workItems: [
           WorkItemStub({
             id: workItemId,
-            role: 'pathseeker-surface',
+            role: 'codeweaver',
             sessionId,
             agentId,
           }),

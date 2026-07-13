@@ -2,8 +2,9 @@
  * PURPOSE: Builds the work-item context block appended to an agent prompt when a sub-agent calls
  * get-agent-prompt with both questId and workItemId. Provides the minimum identity the sub-agent
  * needs to call signal-back: questId, workItemId, role, and any slice/package info attached to
- * the quest/work item. Richer interpolation (steps, file paths) is added by the PathSeeker
- * decomposition step (Step 12 of plan/piped-dancing-boole.md).
+ * the quest/work item. Richer interpolation (the linked operation item's scope, contracts, file
+ * paths) is added separately by workItemToPromptTransformer, which resolves the work item's
+ * `operations/<id>` ref.
  *
  * USAGE:
  * const block = workItemContextBlockTransformer({ quest, workItem });

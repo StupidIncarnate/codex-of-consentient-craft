@@ -84,7 +84,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // false and are never tailed.
   isAgentIdActive: (params: { agentId: AgentId }) => boolean;
   // Set when the tailed session is a top-level node-dispatch worker: its own agent
-  // (pathseeker/codeweaver/…) writes its work to the MAIN session JSONL — there is no
+  // (codeweaver/lawbringer/…) writes its work to the MAIN session JSONL — there is no
   // dispatcher above it. Main-session tail emits then carry `sessionId: parentSessionId`
   // + this `workItemId`, so the web routes them to the worker's execution row exactly as
   // the replay path does. Omitted for /dumpster-launch dispatcher sessions, whose
@@ -163,7 +163,7 @@ export const questMonitorJsonlWatcherBroker = ({
 
   // Periodic re-scan so sub-agent JSONL files created AFTER startup get a tail before the
   // parent's `user.tool_result` line fires `agent-detected`. Real-world flow: /dumpster-launch
-  // Task()s pathseeker-surface; Claude CLI starts writing `subagents/agent-<id>.jsonl`
+  // Task()s codeweaver; Claude CLI starts writing `subagents/agent-<id>.jsonl`
   // immediately; the completion `user.tool_result` only lands minutes later. Without this
   // poll, the sub-agent's live activity is invisible to the web until the user refreshes
   // (replay path reads the full JSONL from disk). The poll also re-reads not-yet-paired

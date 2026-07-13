@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Unified spawn harness — composes `agentSpawnUnifiedBroker`, `chatStreamProcessHandleBroker`, and `chatMainSessionTailBroker` (via the post-exit tail layer) into one entry point so EVERY agent (chaoswhisperer, glyphsmith, pathseeker, codeweaver, lawbringer, siegemaster, spiritmender, blightwarden) launches the same way and is individually addressable for future per-agent message-injection. Process-state registration lives at the responder layer; the launcher exposes its composed `kill` for the responder to attach via `registerProcess`.
+ * PURPOSE: Unified spawn harness — composes `agentSpawnUnifiedBroker`, `chatStreamProcessHandleBroker`, and `chatMainSessionTailBroker` (via the post-exit tail layer) into one entry point so EVERY agent (chaoswhisperer, glyphsmith, codeweaver, lawbringer, siegemaster, spiritmender, blightwarden) launches the same way and is individually addressable for future per-agent message-injection. Process-state registration lives at the responder layer; the launcher exposes its composed `kill` for the responder to attach via `registerProcess`.
  *
  * USAGE:
  * const { processId, handle, kill, sessionId$ } = agentLaunchBroker({

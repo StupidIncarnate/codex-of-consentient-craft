@@ -193,7 +193,7 @@ describe('QuestHandleResponder', () => {
         tool: ToolNameStub({ value: 'modify-quest' }),
         args: {
           questId: 'test-quest-id',
-          pausedAtStatus: 'seek_scope',
+          pausedAtStatus: 'in_progress',
         },
       });
 
@@ -234,12 +234,17 @@ describe('QuestHandleResponder', () => {
         args: {
           questId: 'test-quest-id',
           planningNotes: {
-            scopeClassification: {
-              size: 'medium',
-              slicing: 'Slice A',
-              rationale: 'Two surfaces',
-              classifiedAt: '2024-01-15T10:00:00.000Z',
-            },
+            blightReports: [
+              {
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
+                minion: 'security',
+                status: 'active',
+                findings: [],
+                createdAt: '2024-01-15T10:00:00.000Z',
+                reviewedOn: [],
+              },
+            ],
           },
           workItems: [{ id: 'sneaky-item', status: 'complete' }],
         },
@@ -250,12 +255,17 @@ describe('QuestHandleResponder', () => {
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
         planningNotes: {
-          scopeClassification: {
-            size: 'medium',
-            slicing: 'Slice A',
-            rationale: 'Two surfaces',
-            classifiedAt: '2024-01-15T10:00:00.000Z',
-          },
+          blightReports: [
+            {
+              id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+              workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
+              minion: 'security',
+              status: 'active',
+              findings: [],
+              createdAt: '2024-01-15T10:00:00.000Z',
+              reviewedOn: [],
+            },
+          ],
         },
       });
     });
@@ -665,7 +675,7 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify(
               {
                 success: true,
-                data: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+                data: { blightReports: [] },
               },
               null,
               JSON_INDENT_SPACES,
@@ -675,7 +685,7 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {questId, section: "surface"} => forwards section and returns surfaceReports', async () => {
+    it('VALID: {questId, section: "blight"} => forwards section and returns blightReports', async () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesReturns({
         result: { success: true, data: [] },
@@ -683,7 +693,7 @@ describe('QuestHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
-        args: { questId: 'test-quest-id', section: 'surface' },
+        args: { questId: 'test-quest-id', section: 'blight' },
       });
 
       expect(result).toStrictEqual({
@@ -696,7 +706,7 @@ describe('QuestHandleResponder', () => {
       });
       expect(proxy.getLastGetPlanningNotesInput()).toStrictEqual({
         questId: 'test-quest-id',
-        section: 'surface',
+        section: 'blight',
       });
     });
 

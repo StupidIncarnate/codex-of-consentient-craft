@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Multi-quest scan that returns the next dispatch instruction for /dumpster-launch. Picks the oldest post-Start-Quest quest (FIFO by createdAt) that still has incomplete work, sets it as the active quest, computes ready work items, and returns either a parallel spawn-agents batch (pathseeker-surface or pathseeker-corrections cases), a solo spawn-agents response, a run-ward response, or idle. Long-polls internally up to ~25s before giving up.
+ * PURPOSE: Multi-quest scan that returns the next dispatch instruction for /dumpster-launch. Picks the oldest post-Start-Quest quest (FIFO by createdAt) that still has incomplete work, sets it as the active quest, computes ready work items, and returns either a spawn-agents response for the next ready work item (the relay runs one session at a time, so this is always a single agent), a run-ward response, or idle. Long-polls internally up to ~25s before giving up.
  *
  * USAGE:
  * const step = await questGetNextStepBroker({ activeQuest });

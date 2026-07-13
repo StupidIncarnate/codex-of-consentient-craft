@@ -54,12 +54,20 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
     const { questId, questFolder } = created;
     const questFilePath = created.filePath;
 
+    const codeweaverOpId = '00000000-0000-4000-8000-0000000000c2';
     quests.writeQuestFile({
       questId: String(questId),
       questFolder: String(questFolder),
       questFilePath: String(questFilePath),
       status: 'paused',
-      steps: [{ id: 'step-build-broker', name: 'Create auth broker' }],
+      operations: [
+        {
+          id: codeweaverOpId,
+          role: 'codeweaver',
+          text: 'Create auth broker',
+          status: 'in_progress',
+        },
+      ],
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-0000000000a1',
@@ -72,7 +80,7 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
           role: 'codeweaver',
           sessionId: codeweaverSessionId,
           status: 'pending',
-          relatedDataItems: ['steps/step-build-broker'],
+          relatedDataItems: [`operations/${codeweaverOpId}`],
         },
       ],
     });
@@ -90,7 +98,7 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
     });
     await expect(page.getByTestId('EXECUTION_PAUSE_BUTTON')).not.toBeVisible();
 
-    // The pending codeweaver row shows its step name. Status badge confirms it's pending.
+    // The pending codeweaver row shows its operation name. Status badge confirms it's pending.
     const codeweaverRow = executionPanel
       .getByTestId('execution-row-layer-widget')
       .filter({ hasText: 'Create auth broker' });

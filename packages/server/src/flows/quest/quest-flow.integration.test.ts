@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 
@@ -88,6 +88,60 @@ describe('QuestFlow', () => {
       expect(harness.toPlain(body)).toStrictEqual({
         error: 'Quest not found',
       });
+    });
+  });
+
+  describe('POST /api/quests/:questId/signal-back (env-gated)', () => {
+    it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, body missing workItemId} => 400 route registered, responder validates before the orchestrator call', async () => {
+      process.env.E2E_SIGNAL_BACK_HTTP = '1';
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const app = QuestFlow();
+
+      const response = await app.request(`/api/quests/${questId}/signal-back`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signal: 'complete' }),
+      });
+      const body: unknown = await response.json();
+
+      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'Invalid signal-back input' });
+    });
+
+    it('VALID: {E2E_SIGNAL_BACK_HTTP=1, valid body, no matching quest} => 500 drives the real StartOrchestrator.handleSignalBack which surfaces the missing-quest error', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-signal-back' });
+      process.env.E2E_SIGNAL_BACK_HTTP = '1';
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
+      const app = QuestFlow();
+
+      const response = await app.request(`/api/quests/${questId}/signal-back`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workItemId, signal: 'complete', operationStatus: 'done' }),
+      });
+
+      restore();
+      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+
+      expect(response.status).toBe(500);
+    });
+
+    it('VALID: {E2E_SIGNAL_BACK_HTTP unset} => 404 route not registered so production never exposes it', async () => {
+      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
+      const app = QuestFlow();
+
+      const response = await app.request(`/api/quests/${questId}/signal-back`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workItemId, signal: 'complete' }),
+      });
+
+      expect(response.status).toBe(404);
     });
   });
 });

@@ -116,4 +116,25 @@ describe('lawbringerMinionStatics', () => {
 
     expect(found).toBe(needle);
   });
+
+  it('VALID: template => an unfixable finding is carried forward via the parent partial continuation, not a failure signal', () => {
+    const needle =
+      'The parent decides whether to fix it itself or carry it forward in its commit handoff for the `partial` continuation.';
+    const { template } = lawbringerMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => carries no stale planning-model or legacy-signal references', () => {
+    const { template } = lawbringerMinionStatics.prompt;
+
+    expect(template.indexOf('PathSeeker')).toBe(-1);
+    expect(template.indexOf('pathseeker')).toBe(-1);
+    expect(template.indexOf('failed-replan')).toBe(-1);
+    expect(template.indexOf('signal `failed`')).toBe(-1);
+  });
 });

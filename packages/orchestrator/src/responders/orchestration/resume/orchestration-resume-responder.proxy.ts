@@ -61,7 +61,8 @@ export const OrchestrationResumeResponderProxy = (): {
       // Inline launch dispatch mirrors RecoverGuildLayerResponder. Wire the full chain:
       // - questFindQuestPathBroker → guildId
       // - guildGetBroker → guild.path
-      // - questModifyBroker additional calls (orphan reset + pathseeker insert)
+      // - questModifyBroker additional call (inline orphan reset, conditional on orphaned
+      //   active work items)
       // - questOrchestrationLoopBroker (layer brokers auto-resolve to undefined)
 
       const guildId = GuildIdStub();
@@ -108,7 +109,9 @@ export const OrchestrationResumeResponderProxy = (): {
         }),
       });
 
-      // Two additional modify slots for the inline orphan reset + pathseeker insertion.
+      // Two modify slots queued for the inline orphan reset: it fires at most one more
+      // modifyQuestBroker call (only when orphaned active work items exist), so the second
+      // slot is spare headroom in the mock queue.
       modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },

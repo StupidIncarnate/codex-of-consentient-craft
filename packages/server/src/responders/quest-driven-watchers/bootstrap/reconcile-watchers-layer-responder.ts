@@ -58,11 +58,9 @@ export const ReconcileWatchersLayerResponder = async ({
       }),
   );
   // Any quest with an agent currently running counts as a watcher target — that's
-  // seek_scope (pathseeker-surface), seek_synth (dedup + assertion-correctness),
-  // seek_walk (pathseeker-walk), and in_progress (codeweaver/ward/etc). Restricting to
-  // `isActivelyExecuting` (in_progress only) misses every pathseeker phase, where the
-  // first sub-agent stamp lands. Startable statuses stay in the filter so a quest can
-  // be tailed the moment its first agent dispatches even before status transitions.
+  // in_progress (codeweaver/ward/etc). Startable statuses (approved/design_approved) stay
+  // in the filter too, so a quest can be tailed the moment its first agent dispatches,
+  // even before status transitions to in_progress.
   const activeQuestSummaries = questsByGuild.flat().filter((summary) => {
     const questStatus = summary.status;
     return (
@@ -80,7 +78,7 @@ export const ReconcileWatchersLayerResponder = async ({
   const projectDirBySessionId = new Map<SessionId, GuildPath>();
   // Sessions whose active work item carries a sessionId but NO agentId are top-level
   // node-dispatch workers (spawn-batch stamps sessionId, never agentId; /dumpster-launch
-  // get-agent-prompt stamps BOTH). Their own agent (pathseeker/codeweaver/…) writes the
+  // get-agent-prompt stamps BOTH). Their own agent (codeweaver/lawbringer/…) writes the
   // MAIN session JSONL, so the watcher must route that content to the work item's row
   // instead of dropping it as dispatcher chatter. Keyed sessionId → owning workItemId;
   // dispatcher (/dumpster-launch parent) sessions never appear here.

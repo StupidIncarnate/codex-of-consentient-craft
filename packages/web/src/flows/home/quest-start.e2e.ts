@@ -7,6 +7,10 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 const GUILD_PATH = '/tmp/dm-e2e-quest-start';
 const HTTP_OK = 200;
 
+// A feature quest carries a Chaos-authored codeweaver operation item on its ledger; Start seeds the
+// verify tail after it and marks it the first actionable operation.
+const CODEWEAVER_OP_ID = '00000000-0000-4000-8000-0000000000c1';
+
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
   harness: sessionHarness({ guildPath: GUILD_PATH }),
@@ -18,7 +22,7 @@ test.describe('Quest Start Pipeline', () => {
     await guildHarness({ request }).cleanGuilds();
   });
 
-  test('VALID: POST /api/quests/:questId/start returns processId and rests quest at seek_scope', async ({
+  test('VALID: POST /api/quests/:questId/start returns processId and transitions quest to in_progress', async ({
     request,
   }) => {
     const quests = questHarness({ request });
@@ -51,6 +55,14 @@ test.describe('Quest Start Pipeline', () => {
           sessionId,
         },
       ],
+      operations: [
+        {
+          id: CODEWEAVER_OP_ID,
+          role: 'codeweaver',
+          text: 'core: build the feature',
+          status: 'pending',
+        },
+      ],
     });
 
     const startResponse = await request.post(`/api/quests/${questId}/start`);
@@ -69,11 +81,17 @@ test.describe('Quest Start Pipeline', () => {
 
     const questData = await questResponse.json();
 
-    // start-quest leaves a PathSeeker-planned feature quest RESTING at seek_scope: the pathseeker
-    // work item dispatches while the quest is there, and PathSeeker drives the seek_scope →
-    // in_progress transition itself (the retryable completeness gate). Only bug-hunt / already-
-    // planned quests promote straight to in_progress at Start.
-    expect(questData.quest.status).toBe('seek_scope');
+    // start-quest transitions an approved feature quest straight to in_progress and seeds the
+    // operations relay (questBuildRelayGraphBroker): the Chaos-authored codeweaver plan item plus
+    // the fixed verify tail, with the first actionable operation marked in_progress and its work
+    // item created. The operations ledger IS the plan; dispatch begins immediately at in_progress.
+    expect(questData.quest.status).toBe('in_progress');
+    expect(
+      questData.quest.operations.some((op: { role: string }) => op.role === 'codeweaver'),
+    ).toBe(true);
+    expect(
+      questData.quest.workItems.every((wi: { role: string }) => wi.role !== 'pathseeker'),
+    ).toBe(true);
   });
 
   test('VALID: POST /api/quests/:questId/start launches pipeline (process is registered)', async ({

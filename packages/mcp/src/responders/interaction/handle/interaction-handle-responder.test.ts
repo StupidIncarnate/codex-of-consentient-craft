@@ -1,5 +1,6 @@
 import {
   AgentPromptResultStub,
+  OperationItemIdStub,
   QuestIdStub,
   QuestWorkItemIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -9,14 +10,15 @@ import { InteractionHandleResponderProxy } from './interaction-handle-responder.
 
 describe('InteractionHandleResponder', () => {
   describe('signal-back', () => {
-    it('VALID: {signal: complete, questId, workItemId} => returns JSON result', async () => {
+    it('VALID: {signal: complete, operationStatus: done, questId, workItemId} => returns JSON result', async () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'signal-back' }),
         args: {
           signal: 'complete',
-          summary: 'Step completed successfully',
+          operationItemId: OperationItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' }),
+          operationStatus: 'done',
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
         },
@@ -27,14 +29,14 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    it('VALID: {signal: failed, questId, workItemId} => returns JSON result', async () => {
+    it('VALID: {signal: complete, operationStatus: partial, questId, workItemId} => returns JSON result', async () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'signal-back' }),
         args: {
-          signal: 'failed',
-          summary: 'Tests failing in user-fetch-broker',
+          signal: 'complete',
+          operationStatus: 'partial',
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
         },

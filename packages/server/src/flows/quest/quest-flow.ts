@@ -22,6 +22,7 @@ import { QuestDeleteResponder } from '../../responders/quest/delete/quest-delete
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
 import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-responder';
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
+import { QuestSignalBackResponder } from '../../responders/quest/signal-back/quest-signal-back-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
 import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestWardDetailResponder } from '../../responders/quest/ward-detail/quest-ward-detail-responder';
@@ -129,6 +130,20 @@ export const QuestFlow = (): Hono => {
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
+
+  // E2E-only surface: registered ONLY when E2E_SIGNAL_BACK_HTTP=1 so production never exposes it.
+  // In e2e the fake Claude CLI has no MCP client, so it POSTs here to invoke the SAME
+  // StartOrchestrator.handleSignalBack the MCP signal-back tool uses and advance the relay.
+  if (process.env.E2E_SIGNAL_BACK_HTTP === '1') {
+    app.post(apiRoutesStatics.quests.signalBack, async (c) => {
+      const body: unknown = await c.req.json().catch(() => ({}));
+      const result = await QuestSignalBackResponder({
+        params: { questId: c.req.param('questId') },
+        body,
+      });
+      return c.json(result.data as object, result.status as ContentfulStatusCode);
+    });
+  }
 
   return app;
 };

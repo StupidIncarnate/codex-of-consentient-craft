@@ -14,7 +14,7 @@
  * // the orchestration loop without racing the first dispatch. Call driver.stop() to unsubscribe.
  *
  * WHEN-TO-USE: For orchestration smoketest cases that exercise retry paths where dynamically-inserted work items
- * (replans, spiritmender, fix chains) cannot be pre-stamped by the hydrator.
+ * (spiritmender insertions, pt-N continuation chains) cannot be pre-stamped by the hydrator.
  * WHEN-NOT-TO-USE: Outside smoketests. Production orchestration must never stamp prompt overrides.
  *
  * WHY subscribe/unsubscribe/dispense are injected: brokers/ cannot import state/ per folder rules. The caller
@@ -106,9 +106,9 @@ export const smoketestScenarioDriverBroker = async ({
 
   // Periodic re-sweep — quest-modified events go through the file outbox (cross-process), not the
   // in-memory event bus, so subscribing alone will never catch retry-inserted work items in this
-  // process. The poll guarantees dynamically-added work items (codeweaver-fail replan pathseeker,
-  // lawbringer-fail spiritmender, blightwarden failed-replan pathseeker) get stamped before the
-  // orchestration loop dispatches them with a real role template.
+  // process. The poll guarantees dynamically-added work items (a spiritmender inserted on ward
+  // red, a pt-N continuation appended on an `operationStatus: 'partial'` signal) get stamped
+  // before the orchestration loop dispatches them with a real role template.
   //
   // The tick body (sweep + self-destruct on quest-gone) lives in createDriverPollTickLayerBroker
   // so no nested function is declared inside this broker. The layer takes a stopNow callback that

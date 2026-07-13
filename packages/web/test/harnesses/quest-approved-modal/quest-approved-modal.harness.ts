@@ -12,6 +12,19 @@ import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
 import type { sessionHarness } from '../session/session.harness';
 
+// A feature quest cannot transition to `approved` unless its operations ledger carries at least one
+// `role: codeweaver` item (enforced by hasQuestGateContentGuard). The APPROVE-gate specs patch
+// review_observables → approved, so the seed MUST include a codeweaver operation or the modify
+// broker rejects the PATCH and the quest never reaches approved (no modal).
+const DEFAULT_APPROVAL_OPERATIONS = [
+  {
+    id: '00000000-0000-4000-8000-0000000000d1',
+    role: 'codeweaver',
+    text: 'core: build the feature',
+    status: 'pending',
+  },
+];
+
 export const questApprovedModalHarness = ({
   sessions,
   guildPath,
@@ -24,6 +37,14 @@ export const questApprovedModalHarness = ({
     guildName: string;
     sessionId: string;
     status: string;
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
+    }[];
   }) => Promise<{
     guild: Record<PropertyKey, unknown>;
     questId: QuestId;
@@ -36,11 +57,20 @@ export const questApprovedModalHarness = ({
     guildName,
     sessionId,
     status,
+    operations = DEFAULT_APPROVAL_OPERATIONS,
   }: {
     request: APIRequestContext;
     guildName: string;
     sessionId: string;
     status: string;
+    operations?: {
+      id: string;
+      role: string;
+      text: string;
+      status: string;
+      locked?: boolean;
+      wardMode?: string;
+    }[];
   }): Promise<{
     guild: Record<PropertyKey, unknown>;
     questId: QuestId;
@@ -75,6 +105,7 @@ export const questApprovedModalHarness = ({
           status: 'complete',
         },
       ],
+      operations,
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });

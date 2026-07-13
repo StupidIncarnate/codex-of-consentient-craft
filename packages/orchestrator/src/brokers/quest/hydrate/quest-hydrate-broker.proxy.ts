@@ -18,6 +18,7 @@ import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questHydrateBroker } from './quest-hydrate-broker';
+import { questBuildRelayGraphBrokerProxy } from '../build-relay-graph/quest-build-relay-graph-broker.proxy';
 import { questCreateBrokerProxy } from '../create/quest-create-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
@@ -35,6 +36,7 @@ export const questHydrateBrokerProxy = (): {
   setupRejects: (params: { error: Error }) => void;
   getCallArgs: () => readonly unknown[][];
 } => {
+  questBuildRelayGraphBrokerProxy();
   questCreateBrokerProxy();
   questLoadBrokerProxy();
   questModifyBrokerProxy();

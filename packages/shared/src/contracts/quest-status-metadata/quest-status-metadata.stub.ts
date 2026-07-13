@@ -11,7 +11,6 @@ export const QuestStatusMetadataStub = ({
 }: StubArgument<QuestStatusMetadata> = {}): QuestStatusMetadata =>
   questStatusMetadataContract.parse({
     isPreExecution: false,
-    isPathseekerRunning: false,
     isAnyAgentRunning: false,
     isActivelyExecuting: false,
     isUserPaused: false,

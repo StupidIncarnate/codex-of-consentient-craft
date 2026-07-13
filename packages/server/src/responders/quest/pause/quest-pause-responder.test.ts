@@ -16,8 +16,7 @@ const QUEST_PAUSE_REJECTED_STATUSES: readonly StatusKey[] = STATUSES.filter(
   (status) => !QUEST_PAUSE_ALLOWED_SET.has(status),
 );
 
-const QUEST_PAUSE_REJECTED_ERROR =
-  'Quest must be in a pauseable status (in_progress, seek_scope, seek_synth, or seek_walk) to pause';
+const QUEST_PAUSE_REJECTED_ERROR = `Quest must be in a pauseable status (${QUEST_PAUSE_ALLOWED_STATUSES.join(', ')}) to pause`;
 
 describe('QuestPauseResponder', () => {
   describe('allowed statuses', () => {

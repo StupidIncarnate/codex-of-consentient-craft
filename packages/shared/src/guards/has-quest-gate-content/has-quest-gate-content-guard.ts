@@ -44,7 +44,10 @@ export const hasQuestGateContentGuard = ({
     }
 
     if (typeof requirement !== 'string') {
-      if ('questTypes' in requirement && !requirement.questTypes.some((t) => t === quest.questType)) {
+      if (
+        'questTypes' in requirement &&
+        !requirement.questTypes.some((t) => t === quest.questType)
+      ) {
         return true;
       }
       if (!Array.isArray(current)) {

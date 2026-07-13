@@ -33,7 +33,7 @@ describe('isClassifiedStatusLiteralElementGuard', () => {
   });
 
   describe('status-literal string', () => {
-    it.each(['seek_scope', 'in_progress', 'approved', 'failed', 'complete', 'pending'] as const)(
+    it.each(['blocked', 'in_progress', 'approved', 'failed', 'complete', 'pending'] as const)(
       'VALID: {element: Literal(%s)} => returns true',
       (value) => {
         expect(

@@ -55,7 +55,12 @@ describe('questStageToSectionsTransformer', () => {
         stage: QuestStageStub({ value: 'implementation' }),
       });
 
-      expect(result).toStrictEqual(['planningNotes', 'operations', 'contracts', 'toolingRequirements']);
+      expect(result).toStrictEqual([
+        'planningNotes',
+        'operations',
+        'contracts',
+        'toolingRequirements',
+      ]);
     });
   });
 

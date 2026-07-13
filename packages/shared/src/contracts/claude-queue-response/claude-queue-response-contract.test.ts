@@ -144,6 +144,22 @@ describe('claudeQueueResponseContract', () => {
         delayMs: TimeoutMsStub(),
       });
     });
+
+    it('VALID: {signalBack + hang} => parses the e2e dispatch-loop driver fields', () => {
+      const result = claudeQueueResponseContract.parse({
+        sessionId: SessionIdStub(),
+        lines: [],
+        signalBack: { operationStatus: 'done' },
+        hang: true,
+      });
+
+      expect(result).toStrictEqual({
+        sessionId: SessionIdStub(),
+        lines: [],
+        signalBack: { operationStatus: 'done' },
+        hang: true,
+      });
+    });
   });
 
   describe('stub', () => {

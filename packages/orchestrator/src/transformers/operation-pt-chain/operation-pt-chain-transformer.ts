@@ -9,6 +9,10 @@
  */
 
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
+import { operationItemContract } from '@dungeonmaster/shared/contracts';
+
+import type { PtChainLength } from '../../contracts/pt-chain-length/pt-chain-length-contract';
+import { ptChainLengthContract } from '../../contracts/pt-chain-length/pt-chain-length-contract';
 
 const PT_PREFIX = /^pt \d+: /u;
 
@@ -18,13 +22,15 @@ export const operationPtChainTransformer = ({
 }: {
   operations: OperationItem[];
   item: OperationItem;
-}): { base: string; chainLength: number } => {
-  const base = String(item.text).replace(PT_PREFIX, '');
+}): { base: OperationItem['text']; chainLength: PtChainLength } => {
+  const base = operationItemContract.shape.text.parse(String(item.text).replace(PT_PREFIX, ''));
 
-  const chainLength = operations.filter(
-    (operation) =>
-      operation.role === item.role && String(operation.text).replace(PT_PREFIX, '') === base,
-  ).length;
+  const chainLength = ptChainLengthContract.parse(
+    operations.filter(
+      (operation) =>
+        operation.role === item.role && String(operation.text).replace(PT_PREFIX, '') === base,
+    ).length,
+  );
 
   return { base, chainLength };
 };

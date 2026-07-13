@@ -42,7 +42,7 @@ describe('ReconcileWatchersLayerResponder', () => {
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: workerWorkItemId }),
-            role: 'pathseeker',
+            role: 'codeweaver',
             status: 'in_progress',
             sessionId: SessionIdStub({ value: workerSessionId }),
           }),
