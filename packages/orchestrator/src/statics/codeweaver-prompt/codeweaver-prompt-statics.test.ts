@@ -14,10 +14,15 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
-  it('VALID: prompt template => declares unit-tests-only scope (no integration/e2e, no flows/startup)', () => {
-    expect(codeweaverPromptStatics.prompt.template).toMatch(
-      /^\*\*Unit tests only\.\*\* The slice produces `\.test\.ts` unit tests for its focusFiles — your minions author$/mu,
+  it('VALID: prompt template => declares unit-tests-only scope for the files it builds', () => {
+    const needle = '**Unit tests only** for the files you';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
     );
+
+    expect(found).toBe(needle);
   });
 
   it('VALID: prompt template => has the commit-before-signal section', () => {
@@ -25,9 +30,14 @@ describe('codeweaverPromptStatics', () => {
   });
 
   it('VALID: prompt template => carries the hard DO NOT STASH rule', () => {
-    expect(codeweaverPromptStatics.prompt.template).toMatch(
-      /^\*\*Hard rule — DO NOT STASH\.\*\*$/mu,
+    const needle = '**Hard rule — DO NOT STASH.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
     );
+
+    expect(found).toBe(needle);
   });
 
   it('VALID: template => embeds the shared agent operating rules', () => {
@@ -44,8 +54,8 @@ describe('codeweaverPromptStatics', () => {
     );
   });
 
-  it('VALID: prompt template => persists the tactical plan to planningNotes.codeweaverPlans', () => {
-    const needle = '**Persist the plan to the quest so it survives a respawn.**';
+  it('VALID: prompt template => forbids editing the operations ledger', () => {
+    const needle = '**You do NOT edit the operations ledger.**';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -55,8 +65,8 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => partitions the slice into dependency-ordered minion tasks', () => {
-    const needle = '**Partition your slice into minion tasks and order them by dependency.**';
+  it('VALID: prompt template => partitions the work into dependency-ordered minion tasks', () => {
+    const needle = '**Partition into minion tasks and order them by dependency.**';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -66,9 +76,8 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => builds the seams by sequencing minions, not parent hand-coding', () => {
-    const needle =
-      '**This is how the seams get built — by ordering, not by you hand-coding the wiring.**';
+  it('VALID: prompt template => builds the seams by sequencing dependent pieces', () => {
+    const needle = '**Sequence the seams** — dependent pieces in order, one owner per seam';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -90,8 +99,8 @@ describe('codeweaverPromptStatics', () => {
     );
   });
 
-  it('VALID: prompt template => reserves hand-written code for fixing only', () => {
-    expect(codeweaverPromptStatics.prompt.template).toMatch(/^### Gate 7: Fix on Red$/mu);
+  it('VALID: prompt template => reserves hand-written code for fixing and integrating', () => {
+    expect(codeweaverPromptStatics.prompt.template).toMatch(/^### Gate 7: Fix & Integrate$/mu);
   });
 
   it('VALID: prompt template => has a Codeweaver-Minion Delegation Protocol section', () => {
@@ -122,9 +131,8 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => forbids pasting a standards digest into the minion brief', () => {
-    const needle =
-      'Do NOT paste a standards digest into the brief — the minion loads its own standards.';
+  it('VALID: prompt template => the minion loads its own project standards', () => {
+    const needle = 'then load the project standards itself';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -146,8 +154,30 @@ describe('codeweaverPromptStatics', () => {
   });
 
   it('VALID: prompt template => recovery play pulls a struggling minion edits via git', () => {
+    const needle = 'If a minion returns no artifact, pull its';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => verifies by reading files, not trusting the artifact summary', () => {
+    const needle = 'do NOT trust the artifact summary alone';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => grants authority over interior implementation decisions', () => {
     const needle =
-      'If a minion returns no artifact or is stuck on a backgrounded command, do NOT resume it';
+      'implementation decision, local approach choice, and interior discovery (a dependency that won';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -157,9 +187,31 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => cautions against offloading verification to an Explore agent', () => {
+  it('VALID: prompt template => forbids rewriting unrelated areas of the codebase', () => {
+    const needle = 'Do not rewrite unrelated areas of the';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => declares there is no failure, only moving forward', () => {
+    const needle = '**There is no failure — only moving forward.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => signals complete with operationStatus done when scope is finished', () => {
     const needle =
-      'an `Explore` agent finds files and usages but does NOT reliably audit line-level semantics';
+      "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'done' })";
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -169,31 +221,9 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => grants in-slice planning authority', () => {
-    const needle = '**You have authority over your own slice.**';
-    const { template } = codeweaverPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: prompt template => forbids touching other slices', () => {
-    const needle = '**Stay inside your slice.**';
-    const { template } = codeweaverPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: prompt template => distinguishes the failed vs failed-replan escape hatches by kind of wall', () => {
+  it('VALID: prompt template => signals complete with operationStatus partial when work remains', () => {
     const needle =
-      "A cross-slice contract mismatch or an architectural gap no in-slice decision can close is `signal-back({ signal: 'failed-replan', ... })`; it routes to PathSeeker, which fixes the quest's plan.";
+      "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'partial' })";
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -203,32 +233,9 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => Codeweaver emits three signals', () => {
-    const needle = '**Codeweaver emits three signals: `complete`, `failed`, or `failed-replan`.**';
-    const { template } = codeweaverPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: prompt template => failed never blocks the quest, spiritmender fixes and re-runs', () => {
+  it('VALID: prompt template => rule 9 forbids ledger writes and failure signals', () => {
     const needle =
-      '`failed` is an in-slice code failure you could not fix — a spiritmender fixes it, ward re-verifies, then you re-run to continue; it NEVER blocks the quest.';
-    const { template } = codeweaverPromptStatics.prompt;
-    const found = template.slice(
-      template.indexOf(needle),
-      template.indexOf(needle) + needle.length,
-    );
-
-    expect(found).toBe(needle);
-  });
-
-  it('VALID: prompt template => failed-replan never blocks the quest, PathSeeker re-plans', () => {
-    const needle =
-      "`failed-replan` is a plan hole you could not reconcile in-slice — PathSeeker fixes the quest's plan; it NEVER blocks the quest either.";
+      '**No ledger writes, no failure signals** — outcome rides on signal-back as done|partial';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

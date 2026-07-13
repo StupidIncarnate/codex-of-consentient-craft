@@ -22,9 +22,9 @@ describe('OrchestrationPauseResponder', () => {
       expect(capturedPreviousStatuses).toStrictEqual(['in_progress']);
     });
 
-    it('VALID: {quest at seek_scope found} => passes previousStatus=seek_scope to broker', async () => {
-      const questId = QuestIdStub({ value: 'pause-delegate-seek' });
-      const quest = QuestStub({ id: questId, status: 'seek_scope' });
+    it('VALID: {quest at explore_observables found} => passes previousStatus=explore_observables to broker', async () => {
+      const questId = QuestIdStub({ value: 'pause-delegate-explore' });
+      const quest = QuestStub({ id: questId, status: 'explore_observables' });
       const proxy = OrchestrationPauseResponderProxy();
       proxy.setupQuestFound({ quest });
 
@@ -33,7 +33,7 @@ describe('OrchestrationPauseResponder', () => {
       const calls = proxy.getPauseBrokerCalls();
       const capturedPreviousStatuses = calls.map((c) => c.previousStatus);
 
-      expect(capturedPreviousStatuses).toStrictEqual(['seek_scope']);
+      expect(capturedPreviousStatuses).toStrictEqual(['explore_observables']);
     });
   });
 

@@ -17,8 +17,8 @@ const WI_4 = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4'
 const completeQuest = QuestStub({
   status: 'complete',
   workItems: [
-    WorkItemStub({ id: WI_1, role: 'pathseeker', status: 'complete' }),
-    WorkItemStub({ id: WI_2, role: 'pathseeker', status: 'complete' }),
+    WorkItemStub({ id: WI_1, role: 'flowrider', status: 'complete' }),
+    WorkItemStub({ id: WI_2, role: 'flowrider', status: 'complete' }),
     WorkItemStub({ id: WI_3, role: 'codeweaver', status: 'complete' }),
     WorkItemStub({ id: WI_4, role: 'codeweaver', status: 'skipped' }),
   ],
@@ -37,7 +37,7 @@ describe('smoketestAssertFinalStateBroker', () => {
       const histogramAssertion = WorkItemStatusHistogramAssertionStub({
         expected: { complete: 3, skipped: 1 },
       });
-      const roleAssertion = WorkItemRoleCountAssertionStub({ role: 'pathseeker', minCount: 2 });
+      const roleAssertion = WorkItemRoleCountAssertionStub({ role: 'flowrider', minCount: 2 });
 
       const result = smoketestAssertFinalStateBroker({
         quest: completeQuest,
@@ -79,9 +79,9 @@ describe('smoketestAssertFinalStateBroker', () => {
   });
 
   describe('work-item-role-count below minCount', () => {
-    it('INVALID: {requires 3 pathseekers, quest has 2} => returns failures containing role assertion', () => {
+    it('INVALID: {requires 3 flowriders, quest has 2} => returns failures containing role assertion', () => {
       smoketestAssertFinalStateBrokerProxy();
-      const roleAssertion = WorkItemRoleCountAssertionStub({ role: 'pathseeker', minCount: 3 });
+      const roleAssertion = WorkItemRoleCountAssertionStub({ role: 'flowrider', minCount: 3 });
 
       const result = smoketestAssertFinalStateBroker({
         quest: completeQuest,
@@ -108,20 +108,13 @@ describe('smoketestAssertFinalStateBroker', () => {
           }),
           WorkItemStub({
             id: WI_2,
-            role: 'codeweaver',
+            role: 'flowrider',
             status: 'complete',
-            smoketestExpectedSignal: 'failed',
-            actualSignal: 'failed',
-          }),
-          WorkItemStub({
-            id: WI_3,
-            role: 'codeweaver',
-            status: 'complete',
-            smoketestExpectedSignal: 'failed-replan',
-            actualSignal: 'failed-replan',
+            smoketestExpectedSignal: 'complete',
+            actualSignal: 'complete',
           }),
           // Items without expected signal are ignored
-          WorkItemStub({ id: WI_4, role: 'pathseeker', status: 'complete' }),
+          WorkItemStub({ id: WI_3, role: 'blightwarden', status: 'complete' }),
         ],
       });
 
@@ -133,7 +126,7 @@ describe('smoketestAssertFinalStateBroker', () => {
       expect(result).toStrictEqual({ passed: true, failures: [] });
     });
 
-    it('INVALID: {one item with expected=failed has actual=complete} => returns failures containing signal-match assertion', () => {
+    it('INVALID: {one item expects complete but never signaled (actual undefined)} => returns failures containing signal-match assertion', () => {
       smoketestAssertFinalStateBrokerProxy();
       const signalMatchAssertion = WorkItemSignalMatchAssertionStub();
       const quest = QuestStub({
@@ -150,8 +143,7 @@ describe('smoketestAssertFinalStateBroker', () => {
             id: WI_2,
             role: 'codeweaver',
             status: 'complete',
-            smoketestExpectedSignal: 'failed',
-            actualSignal: 'complete',
+            smoketestExpectedSignal: 'complete',
           }),
         ],
       });

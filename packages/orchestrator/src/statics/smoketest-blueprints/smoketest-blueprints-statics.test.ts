@@ -8,8 +8,7 @@ describe('smoketestBlueprintsStatics', () => {
       flowCount: smoketestBlueprintsStatics.minimal.flows.length,
       designDecisionCount: smoketestBlueprintsStatics.minimal.designDecisions.length,
       contractCount: smoketestBlueprintsStatics.minimal.contracts.length,
-      stepCount: smoketestBlueprintsStatics.minimal.steps.length,
-      surfaceReportCount: smoketestBlueprintsStatics.minimal.planningNotes.surfaceReports.length,
+      operationCount: smoketestBlueprintsStatics.minimal.operations.length,
       skipRoles: smoketestBlueprintsStatics.minimal.skipRoles,
     }).toStrictEqual({
       hasTitle: true,
@@ -17,29 +16,20 @@ describe('smoketestBlueprintsStatics', () => {
       flowCount: 1,
       designDecisionCount: 1,
       contractCount: 1,
-      stepCount: 1,
-      surfaceReportCount: 1,
+      operationCount: 1,
       skipRoles: ['ward'],
     });
   });
 
-  it('VALID: {minimal.planningNotes} => every planningNotes sub-field required for seek_walk -> in_progress gate is defined', () => {
-    const { planningNotes } = smoketestBlueprintsStatics.minimal;
+  it('VALID: {minimal.operations[0]} => single codeweaver operation item satisfies the approved gate', () => {
+    const [operation] = smoketestBlueprintsStatics.minimal.operations;
 
-    expect({
-      scopeClassificationKeys: Object.keys(planningNotes.scopeClassification).sort(),
-      synthesisKeys: Object.keys(planningNotes.synthesis).sort(),
-      walkFindingsKeys: Object.keys(planningNotes.walkFindings).sort(),
-    }).toStrictEqual({
-      scopeClassificationKeys: ['classifiedAt', 'rationale', 'size', 'slicing'],
-      synthesisKeys: [
-        'claudemdRulesInEffect',
-        'crossSliceResolutions',
-        'openAssumptions',
-        'orderOfOperations',
-        'synthesizedAt',
-      ],
-      walkFindingsKeys: ['filesRead', 'planPatches', 'structuralIssuesFound', 'verifiedAt'],
+    expect(operation).toStrictEqual({
+      id: '00000000-0000-4000-8000-00000000c0de',
+      role: 'codeweaver',
+      text: 'Smoketest: implement the single-flow signal emitter',
+      status: 'pending',
+      locked: false,
     });
   });
 
@@ -58,9 +48,8 @@ describe('smoketestBlueprintsStatics', () => {
     });
   });
 
-  it('VALID: {orchestrator dispatches scripted agent} => Agent emits scripted signal-back signal exactly once', () => {
+  it('VALID: {minimal signal flow} => terminal node carries the scripted signal-back observable', () => {
     const { minimal } = smoketestBlueprintsStatics;
-    const emitSignalStep = minimal.steps.find((step) => step.id === 'smoketest-emit-signal-step');
     const signalFlow = minimal.flows.find((flow) => flow.id === 'smoketest-signal-flow');
     const terminalNode = signalFlow?.nodes.find((node) => node.type === 'terminal');
     const signalReceivedObservable = terminalNode?.observables.find(
@@ -68,34 +57,16 @@ describe('smoketestBlueprintsStatics', () => {
     );
 
     expect({
-      stepCount: minimal.steps.length,
-      stepId: emitSignalStep?.id,
-      stepObservablesSatisfied: emitSignalStep?.observablesSatisfied,
       terminalNodeId: terminalNode?.id,
       terminalNodeLabel: terminalNode?.label,
       terminalObservableType: signalReceivedObservable?.type,
       terminalObservableDescription: signalReceivedObservable?.description,
     }).toStrictEqual({
-      stepCount: 1,
-      stepId: 'smoketest-emit-signal-step',
-      stepObservablesSatisfied: ['smoketest-signal-received'],
       terminalNodeId: 'emit-signal',
       terminalNodeLabel: 'Agent emits signal-back',
       terminalObservableType: 'log-output',
       terminalObservableDescription:
         'Agent stream includes exactly one mcp__dungeonmaster__signal-back tool-use with the scripted signal',
-    });
-  });
-
-  it('VALID: {minimal.steps[0]} => slice is "smoketest" and id starts with "smoketest-" (V1 slice-prefix invariant)', () => {
-    const [step] = smoketestBlueprintsStatics.minimal.steps;
-
-    expect({
-      slice: step?.slice,
-      idStartsWithSmoketestPrefix: step?.id.startsWith('smoketest-'),
-    }).toStrictEqual({
-      slice: 'smoketest',
-      idStartsWithSmoketestPrefix: true,
     });
   });
 });

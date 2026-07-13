@@ -16,13 +16,13 @@ describe('smoketestScenarioState', () => {
 
     smoketestScenarioState.register({
       questId,
-      scripts: { codeweaver: ['signalFailed', 'signalComplete'] },
+      scripts: { codeweaver: ['signalComplete', 'siegeVerifyDevServer'] },
     });
     const active = smoketestScenarioState.getActive({ questId });
     smoketestScenarioState.unregister({ questId });
 
     expect(active).toStrictEqual({
-      scripts: { codeweaver: ['signalFailed', 'signalComplete'] },
+      scripts: { codeweaver: ['signalComplete', 'siegeVerifyDevServer'] },
       callOrdinals: {},
     });
   });
@@ -32,7 +32,7 @@ describe('smoketestScenarioState', () => {
 
     smoketestScenarioState.register({
       questId,
-      scripts: { codeweaver: ['signalFailed', 'signalComplete'] },
+      scripts: { codeweaver: ['signalComplete', 'siegeVerifyDevServer'] },
     });
     const first = smoketestScenarioState.dispense({ questId, role: 'codeweaver' });
     const second = smoketestScenarioState.dispense({ questId, role: 'codeweaver' });
@@ -40,8 +40,8 @@ describe('smoketestScenarioState', () => {
     smoketestScenarioState.unregister({ questId });
 
     expect({ first, second, third }).toStrictEqual({
-      first: 'signalFailed',
-      second: 'signalComplete',
+      first: 'signalComplete',
+      second: 'siegeVerifyDevServer',
       third: null,
     });
   });
@@ -53,9 +53,9 @@ describe('smoketestScenarioState', () => {
       questId,
       scripts: { codeweaver: ['signalComplete'] },
     });
-    const pathseekerDispense = smoketestScenarioState.dispense({
+    const flowriderDispense = smoketestScenarioState.dispense({
       questId,
-      role: 'pathseeker',
+      role: 'flowrider',
     });
     const codeweaverDispense = smoketestScenarioState.dispense({
       questId,
@@ -63,8 +63,8 @@ describe('smoketestScenarioState', () => {
     });
     smoketestScenarioState.unregister({ questId });
 
-    expect({ pathseekerDispense, codeweaverDispense }).toStrictEqual({
-      pathseekerDispense: null,
+    expect({ flowriderDispense, codeweaverDispense }).toStrictEqual({
+      flowriderDispense: null,
       codeweaverDispense: 'signalComplete',
     });
   });
@@ -96,8 +96,8 @@ describe('smoketestScenarioState', () => {
     smoketestScenarioState.register({
       questId,
       scripts: {
-        codeweaver: ['signalFailed', 'signalComplete'],
-        pathseeker: ['signalComplete'],
+        codeweaver: ['signalComplete', 'siegeVerifyDevServer'],
+        blightwarden: ['signalComplete'],
       },
     });
     smoketestScenarioState.dispense({ questId, role: 'codeweaver' });
@@ -117,7 +117,7 @@ describe('smoketestScenarioState', () => {
     });
     smoketestScenarioState.register({
       questId: secondQuestId,
-      scripts: { codeweaver: ['signalFailed'] },
+      scripts: { codeweaver: ['siegeVerifyDevServer'] },
     });
     const firstDispense = smoketestScenarioState.dispense({
       questId: firstQuestId,
@@ -134,13 +134,13 @@ describe('smoketestScenarioState', () => {
 
     expect({ firstDispense, secondDispense, firstActive, secondActive }).toStrictEqual({
       firstDispense: 'signalComplete',
-      secondDispense: 'signalFailed',
+      secondDispense: 'siegeVerifyDevServer',
       firstActive: {
         scripts: { codeweaver: ['signalComplete'] },
         callOrdinals: { codeweaver: 1 },
       },
       secondActive: {
-        scripts: { codeweaver: ['signalFailed'] },
+        scripts: { codeweaver: ['siegeVerifyDevServer'] },
         callOrdinals: { codeweaver: 1 },
       },
     });
@@ -156,7 +156,7 @@ describe('smoketestScenarioState', () => {
     const thrown = (): void => {
       smoketestScenarioState.register({
         questId,
-        scripts: { codeweaver: ['signalFailed'] },
+        scripts: { codeweaver: ['siegeVerifyDevServer'] },
       });
     };
     let caught: unknown = null;

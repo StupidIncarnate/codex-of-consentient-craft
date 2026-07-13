@@ -35,12 +35,12 @@ describe('smoketestAssertionContract', () => {
       });
     });
 
-    it('VALID: {kind: "work-item-role-count", role: "pathseeker", minCount: 2} => parses to role-count assertion', () => {
+    it('VALID: {kind: "work-item-role-count", role: "blightwarden", minCount: 2} => parses to role-count assertion', () => {
       const result = WorkItemRoleCountAssertionStub();
 
       expect(result).toStrictEqual({
         kind: 'work-item-role-count',
-        role: 'pathseeker',
+        role: 'blightwarden',
         minCount: 2,
       });
     });
@@ -121,7 +121,7 @@ describe('smoketestAssertionContract', () => {
       expect(() => {
         smoketestAssertionContract.parse({
           kind: 'work-item-role-count',
-          role: 'pathseeker',
+          role: 'codeweaver',
           minCount: -1,
         });
       }).toThrow(/greater than or equal to 0/u);

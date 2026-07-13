@@ -13,8 +13,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-        steps: [],
+        operations: [],
         skipRoles: [],
         rolePromptOverrides: {},
       });
@@ -30,8 +29,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-        steps: [],
+        operations: [],
         skipRoles: [],
         targetStatus: 'flows_approved',
         rolePromptOverrides: {},
@@ -48,8 +46,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-        steps: [],
+        operations: [],
         skipRoles: ['ward'],
         rolePromptOverrides: {},
       });
@@ -67,8 +64,7 @@ describe('questBlueprintContract', () => {
         designDecisions: [],
         contracts: [],
         toolingRequirements: [],
-        planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-        steps: [],
+        operations: [],
         skipRoles: [],
         fixedQuestId: '00000000-0000-0000-0000-000000000000',
         rolePromptOverrides: {},
@@ -85,8 +81,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-          steps: [],
+          operations: [],
         });
       }).toThrow(/Required/u);
     });
@@ -99,8 +94,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-          steps: [],
+          operations: [],
         });
       }).toThrow(/Required/u);
     });
@@ -114,8 +108,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-          steps: [],
+          operations: [],
           skipRoles: ['bogus' as never],
         });
       }).toThrow(/Invalid enum value/u);
@@ -130,8 +123,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-          steps: [],
+          operations: [],
           targetStatus: 'nonsense' as never,
         });
       }).toThrow(/Invalid enum value/u);
@@ -146,8 +138,7 @@ describe('questBlueprintContract', () => {
           designDecisions: [],
           contracts: [],
           toolingRequirements: [],
-          planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
-          steps: [],
+          operations: [],
           fixedQuestId: '',
         });
       }).toThrow(/String must contain at least 1/u);

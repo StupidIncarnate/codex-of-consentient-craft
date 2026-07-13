@@ -54,9 +54,36 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: prompt template => documents that packagesAffected is read by the work-item insertion broker at Start Quest', () => {
+  it('VALID: prompt template => documents packagesAffected as context every implementation session reads', () => {
+    const needle = 'it is context every implementation session reads';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => requires authoring the operations ledger before approval', () => {
     const needle =
-      'The work-item insertion broker reads this list at Start Quest time to fan out per-package `pathseeker-surface` work items';
+      '**Author the operations ledger (REQUIRED — the approval gate refuses `approved` without it).**';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => documents ChaosWhisperer as the only agent that authors operation items', () => {
+    const needle = 'You are the ONLY agent that authors these items';
+    const { template } = dumpsterCreatePromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+    const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+    expect(foundSlice).toBe(needle);
+  });
+
+  it('VALID: prompt template => documents operations can only be written during explore_observables', () => {
+    const needle = '`operations` can only be written during `explore_observables`';
     const { template } = dumpsterCreatePromptStatics.prompt;
     const foundIndex = template.indexOf(needle);
     const foundSlice = template.slice(foundIndex, foundIndex + needle.length);

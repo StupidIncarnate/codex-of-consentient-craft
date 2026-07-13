@@ -8,6 +8,5 @@ type StubArgument<T> = {
 export const StreamSignalStub = ({ ...props }: StubArgument<StreamSignal> = {}): StreamSignal =>
   streamSignalContract.parse({
     signal: 'complete',
-    summary: 'Task completed successfully',
     ...props,
   });

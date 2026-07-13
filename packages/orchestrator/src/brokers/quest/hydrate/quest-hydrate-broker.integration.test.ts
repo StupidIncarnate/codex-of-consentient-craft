@@ -91,7 +91,7 @@ describe('questHydrateBroker', () => {
     expect(loaded.quest?.questSource).toBe(undefined);
   });
 
-  it('VALID: {smoketestBlueprintsStatics.minimal} => hydrates to in_progress with work items for every orchestration role', async () => {
+  it('VALID: {smoketestBlueprintsStatics.minimal} => hydrates to in_progress, seeding the operations relay tail and ONE codeweaver work item', async () => {
     const testbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'hydrate-minimal-in-progress' }),
     });
@@ -106,43 +106,47 @@ describe('questHydrateBroker', () => {
     const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
 
     const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
-    const rolesPresent = new Set(loaded.quest?.workItems.map((wi) => wi.role));
-    const pathseekerItem = loaded.quest?.workItems.find((wi) => wi.role === 'pathseeker');
+    const { operations, workItems } = loaded.quest!;
 
     restore();
     testbed.cleanup();
 
+    // The forced-complete intake plan item, the Chaos-authored codeweaver item (advance marked it
+    // in_progress), then the fixed verify tail as pending operation items — ward is skipped via the
+    // blueprint's skipRoles. The relay creates ONE work item for the first actionable (codeweaver)
+    // operation item; the verify tail lives only on the ledger until the relay reaches it.
     expect({
       success: loaded.success,
       status: loaded.quest?.status,
-      hasPathseeker: rolesPresent.has('pathseeker'),
-      pathseekerStatus: pathseekerItem?.status,
-      hasCodeweaver: rolesPresent.has('codeweaver'),
-      hasSiegemaster: rolesPresent.has('siegemaster'),
-      hasLawbringer: rolesPresent.has('lawbringer'),
-      hasBlightwarden: rolesPresent.has('blightwarden'),
-      hasWard: rolesPresent.has('ward'),
+      operationRoles: operations.map((op) => op.role),
+      operationStatuses: operations.map((op) => op.status),
+      workItemRoles: workItems.map((wi) => wi.role),
+      workItemStatuses: workItems.map((wi) => wi.status),
     }).toStrictEqual({
       success: true,
       status: 'in_progress',
-      hasPathseeker: true,
-      pathseekerStatus: 'complete',
-      hasCodeweaver: true,
-      hasSiegemaster: true,
-      hasLawbringer: true,
-      hasBlightwarden: true,
-      hasWard: false,
+      operationRoles: [
+        'chaoswhisperer',
+        'codeweaver',
+        'flowrider',
+        'siegemaster',
+        'lawbringer',
+        'blightwarden',
+      ],
+      operationStatuses: ['complete', 'in_progress', 'pending', 'pending', 'pending', 'pending'],
+      workItemRoles: ['codeweaver'],
+      workItemStatuses: ['pending'],
     });
   });
 
-  it('VALID: {smoketestBlueprintsStatics.minimal} => generates a single blightwarden depending on the lawbringers (no minion work items — blightwarden summons them itself)', async () => {
+  it('VALID: {smoketestBlueprintsStatics.minimal} => seeds the verify tail as locked operation items and no minion/ward work items (roles summon minions as sub-agents)', async () => {
     const testbed = installTestbedCreateBroker({
-      baseName: BaseNameStub({ value: 'hydrate-blightwarden-minions' }),
+      baseName: BaseNameStub({ value: 'hydrate-verify-tail' }),
     });
     const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
     const guild = await guildAddBroker({
-      name: GuildNameStub({ value: 'Blightwarden Minion Guild' }),
+      name: GuildNameStub({ value: 'Verify Tail Guild' }),
       path: GuildPathStub({ value: testbed.guildPath }),
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
@@ -150,22 +154,31 @@ describe('questHydrateBroker', () => {
     const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
 
     const loaded = await questGetBroker({ input: GetQuestInputStub({ questId }) });
-    const { workItems } = loaded.quest!;
+    const { operations, workItems } = loaded.quest!;
 
-    // Chain order is deterministic: lawbringers, then a SINGLE blightwarden depending on the full
-    // lawbringer set. Blightwarden summons its five minions itself as sub-agents — they are NOT
-    // work items. (The minimal smoketest blueprint generates no ward items — final-ward wiring is
-    // covered by the steps-to-work-items-transformer unit tests.)
-    const lawbringerIds = workItems.filter((wi) => wi.role === 'lawbringer').map((wi) => wi.id);
+    // The verify tail is seeded as LOCKED operation items (the intake plan item is also locked, so
+    // filter it out by role). Ward is skipped for the minimal blueprint. No minion/ward WORK items
+    // exist — blightwarden/codeweaver/lawbringer summon their minions as sub-agents, not work items.
+    const lockedTailRoles = operations
+      .filter((op) => op.locked)
+      .filter((op) => op.role !== 'chaoswhisperer')
+      .map((op) => op.role);
     const minionItems = workItems.filter((wi) => wi.role.endsWith('-minion'));
-    const blightwarden = workItems.find((wi) => wi.role === 'blightwarden');
+    const wardOpCount = operations.filter((op) => op.role === 'ward').length;
 
     restore();
     testbed.cleanup();
 
-    // No minion work items — blightwarden is a single item that summons its minions as sub-agents.
-    expect(minionItems).toStrictEqual([]);
-    // The single blightwarden depends on the full lawbringer set.
-    expect(blightwarden?.dependsOn).toStrictEqual(lawbringerIds);
+    expect({
+      lockedTailRoles,
+      minionItems,
+      wardOpCount,
+      workItemRoles: workItems.map((wi) => wi.role),
+    }).toStrictEqual({
+      lockedTailRoles: ['flowrider', 'siegemaster', 'lawbringer', 'blightwarden'],
+      minionItems: [],
+      wardOpCount: 0,
+      workItemRoles: ['codeweaver'],
+    });
   });
 });

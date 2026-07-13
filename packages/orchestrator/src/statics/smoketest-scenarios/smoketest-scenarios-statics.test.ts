@@ -1,88 +1,93 @@
 import { smoketestScenariosStatics } from './smoketest-scenarios-statics';
 
 describe('smoketestScenariosStatics', () => {
-  it('VALID: {orchHappyPath} => exposes every role script and a single quest-status assertion', () => {
+  it('VALID: {orchHappyPath} => scripts every relay role and asserts a complete quest status', () => {
     expect({
       caseId: smoketestScenariosStatics.orchHappyPath.caseId,
       name: smoketestScenariosStatics.orchHappyPath.name,
       scriptRoles: Object.keys(smoketestScenariosStatics.orchHappyPath.scripts).sort(),
+      scripts: smoketestScenariosStatics.orchHappyPath.scripts,
       assertions: smoketestScenariosStatics.orchHappyPath.assertions,
     }).toStrictEqual({
       caseId: 'orch-happy-path',
-      name: 'Orchestration: happy path',
-      scriptRoles: [
-        'blightwarden',
-        'codeweaver',
-        'lawbringer',
-        'pathseeker',
-        'siegemaster',
-        'spiritmender',
-      ],
+      name: 'Orchestration: feature relay converges to complete',
+      scriptRoles: ['blightwarden', 'codeweaver', 'flowrider', 'lawbringer', 'siegemaster'],
+      scripts: {
+        codeweaver: ['signalDone'],
+        flowrider: ['signalDone'],
+        siegemaster: ['signalDone'],
+        lawbringer: ['signalDone'],
+        blightwarden: ['signalDone'],
+      },
       assertions: [{ kind: 'quest-status', expected: 'complete' }],
     });
   });
 
-  it('VALID: {orchCodeweaverFail} => codeweaver scripts signalFailed then signalComplete; spiritmender scripts the recovery fix', () => {
+  it('VALID: {orchCodeweaverPartial} => codeweaver scripts partial-then-done and asserts two codeweaver work items', () => {
     expect({
-      caseId: smoketestScenariosStatics.orchCodeweaverFail.caseId,
-      codeweaverScript: smoketestScenariosStatics.orchCodeweaverFail.scripts.codeweaver,
-      spiritmenderScript: smoketestScenariosStatics.orchCodeweaverFail.scripts.spiritmender,
-      assertions: smoketestScenariosStatics.orchCodeweaverFail.assertions,
+      caseId: smoketestScenariosStatics.orchCodeweaverPartial.caseId,
+      name: smoketestScenariosStatics.orchCodeweaverPartial.name,
+      scripts: smoketestScenariosStatics.orchCodeweaverPartial.scripts,
+      assertions: smoketestScenariosStatics.orchCodeweaverPartial.assertions,
     }).toStrictEqual({
-      caseId: 'orch-codeweaver-fail',
-      codeweaverScript: ['signalFailed', 'signalComplete'],
-      spiritmenderScript: ['signalComplete'],
+      caseId: 'orch-codeweaver-partial',
+      name: 'Orchestration: codeweaver partial spawns a pt continuation',
+      scripts: {
+        codeweaver: ['signalPartial', 'signalDone'],
+        flowrider: ['signalDone'],
+        siegemaster: ['signalDone'],
+        lawbringer: ['signalDone'],
+        blightwarden: ['signalDone'],
+      },
       assertions: [
         { kind: 'quest-status', expected: 'complete' },
-        { kind: 'work-item-role-count', role: 'spiritmender', minCount: 1 },
+        { kind: 'work-item-role-count', role: 'codeweaver', minCount: 2 },
       ],
     });
   });
 
-  it('VALID: {orchLawbringerFail} => lawbringer scripts signalFailed; spiritmender scripts signalComplete', () => {
+  it('VALID: {orchReachesLawbringer} => asserts complete plus at least one lawbringer work item', () => {
     expect({
-      caseId: smoketestScenariosStatics.orchLawbringerFail.caseId,
-      lawbringerScript: smoketestScenariosStatics.orchLawbringerFail.scripts.lawbringer,
-      spiritmenderScript: smoketestScenariosStatics.orchLawbringerFail.scripts.spiritmender,
-      assertions: smoketestScenariosStatics.orchLawbringerFail.assertions,
+      caseId: smoketestScenariosStatics.orchReachesLawbringer.caseId,
+      name: smoketestScenariosStatics.orchReachesLawbringer.name,
+      assertions: smoketestScenariosStatics.orchReachesLawbringer.assertions,
     }).toStrictEqual({
-      caseId: 'orch-lawbringer-fail',
-      lawbringerScript: ['signalFailed'],
-      spiritmenderScript: ['signalComplete'],
+      caseId: 'orch-reaches-lawbringer',
+      name: 'Orchestration: relay reaches the lawbringer review role',
       assertions: [
         { kind: 'quest-status', expected: 'complete' },
-        { kind: 'work-item-role-count', role: 'spiritmender', minCount: 1 },
+        { kind: 'work-item-role-count', role: 'lawbringer', minCount: 1 },
       ],
     });
   });
 
-  it('VALID: {orchDepthExhaustion} => codeweaver over-provisions signalFailed entries; asserts blocked (replan loop exhausted)', () => {
-    const scenario = smoketestScenariosStatics.orchDepthExhaustion;
-
+  it('VALID: {orchReachesBlightwarden} => asserts complete plus at least one blightwarden work item', () => {
     expect({
-      caseId: scenario.caseId,
-      codeweaverSignals: [...new Set(scenario.scripts.codeweaver)],
-      codeweaverCount: scenario.scripts.codeweaver.length,
-      assertions: scenario.assertions,
+      caseId: smoketestScenariosStatics.orchReachesBlightwarden.caseId,
+      name: smoketestScenariosStatics.orchReachesBlightwarden.name,
+      assertions: smoketestScenariosStatics.orchReachesBlightwarden.assertions,
     }).toStrictEqual({
-      caseId: 'orch-depth-exhaustion',
-      codeweaverSignals: ['signalFailed'],
-      codeweaverCount: 24,
-      assertions: [{ kind: 'quest-status', expected: 'blocked' }],
+      caseId: 'orch-reaches-blightwarden',
+      name: 'Orchestration: relay reaches the blightwarden audit role',
+      assertions: [
+        { kind: 'quest-status', expected: 'complete' },
+        { kind: 'work-item-role-count', role: 'blightwarden', minCount: 1 },
+      ],
     });
   });
 
-  it('VALID: {orchBlightwardenReplan} => blightwarden scripts signalFailedReplan; pathseeker script covers replan', () => {
+  it('VALID: {orchReachesFlowrider} => asserts complete plus at least one flowrider work item', () => {
     expect({
-      caseId: smoketestScenariosStatics.orchBlightwardenReplan.caseId,
-      blightwardenScript: smoketestScenariosStatics.orchBlightwardenReplan.scripts.blightwarden,
-      pathseekerScript: smoketestScenariosStatics.orchBlightwardenReplan.scripts.pathseeker,
-      assertions: smoketestScenariosStatics.orchBlightwardenReplan.assertions,
+      caseId: smoketestScenariosStatics.orchReachesFlowrider.caseId,
+      name: smoketestScenariosStatics.orchReachesFlowrider.name,
+      assertions: smoketestScenariosStatics.orchReachesFlowrider.assertions,
     }).toStrictEqual({
-      caseId: 'orch-blightwarden-replan',
-      blightwardenScript: ['signalFailedReplan'],
-      pathseekerScript: ['signalComplete', 'signalComplete'],
-      assertions: [{ kind: 'work-item-role-count', role: 'pathseeker', minCount: 2 }],
+      caseId: 'orch-reaches-flowrider',
+      name: 'Orchestration: relay reaches the flowrider verify role',
+      assertions: [
+        { kind: 'quest-status', expected: 'complete' },
+        { kind: 'work-item-role-count', role: 'flowrider', minCount: 1 },
+      ],
     });
   });
 
@@ -92,11 +97,11 @@ describe('smoketestScenariosStatics', () => {
       .sort();
 
     expect(caseIds).toStrictEqual([
-      'orch-blightwarden-replan',
-      'orch-codeweaver-fail',
-      'orch-depth-exhaustion',
+      'orch-codeweaver-partial',
       'orch-happy-path',
-      'orch-lawbringer-fail',
+      'orch-reaches-blightwarden',
+      'orch-reaches-flowrider',
+      'orch-reaches-lawbringer',
     ]);
   });
 

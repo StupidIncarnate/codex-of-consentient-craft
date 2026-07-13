@@ -21,17 +21,17 @@ describe('buildHydrateInputLayerBroker', () => {
       expect(result).toStrictEqual({ questId: QUEST_ID, status: 'flows_approved' });
     });
 
-    it('VALID: {toStatus: seek_scope} => returns only questId and status', () => {
+    it('VALID: {toStatus: approved} => returns only questId and status', () => {
       buildHydrateInputLayerBrokerProxy();
       const blueprint = QuestBlueprintStub();
 
       const result = buildHydrateInputLayerBroker({
         blueprint,
-        toStatus: 'seek_scope',
+        toStatus: 'approved',
         questId: QUEST_ID,
       });
 
-      expect(result).toStrictEqual({ questId: QUEST_ID, status: 'seek_scope' });
+      expect(result).toStrictEqual({ questId: QUEST_ID, status: 'approved' });
     });
   });
 
@@ -69,21 +69,22 @@ describe('buildHydrateInputLayerBroker', () => {
       });
     });
 
-    it('VALID: {toStatus: in_progress} => includes steps + planningNotes.walkFindings', () => {
+    it('VALID: {toStatus: explore_observables} => includes contracts + toolingRequirements + operations', () => {
       buildHydrateInputLayerBrokerProxy();
       const blueprint = QuestBlueprintStub();
 
       const result = buildHydrateInputLayerBroker({
         blueprint,
-        toStatus: 'in_progress',
+        toStatus: 'explore_observables',
         questId: QUEST_ID,
       });
 
       expect(result).toStrictEqual({
         questId: QUEST_ID,
-        status: 'in_progress',
-        steps: blueprint.steps,
-        planningNotes: { walkFindings: blueprint.planningNotes.walkFindings },
+        status: 'explore_observables',
+        contracts: blueprint.contracts,
+        toolingRequirements: blueprint.toolingRequirements,
+        operations: blueprint.operations,
       });
     });
   });

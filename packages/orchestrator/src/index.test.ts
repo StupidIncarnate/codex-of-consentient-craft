@@ -33,7 +33,6 @@ describe('orchestrator', () => {
       'addQuestResultContract',
       'agentPromptResultContract',
       'agentRoleContract',
-      'agentSlotContract',
       'codeweaverPromptStatics',
       'dispatchPlayResponseContract',
       'dumpsterCreatePromptStatics',
@@ -64,10 +63,8 @@ describe('orchestrator', () => {
       'siegemasterPromptStatics',
       'signalFromStreamTransformer',
       'slotCountContract',
-      'slotDataContract',
       'slotIndexContract',
       'slotManagerResultContract',
-      'slotOperationsContract',
       'spawnInstructionContract',
       'spiritmenderPromptStatics',
       'streamJsonLineContract',
@@ -78,7 +75,6 @@ describe('orchestrator', () => {
       'toolInputToDisplayTransformer',
       'verifyQuestCheckContract',
       'workItemIdContract',
-      'workTrackerContract',
     ]);
   });
 });

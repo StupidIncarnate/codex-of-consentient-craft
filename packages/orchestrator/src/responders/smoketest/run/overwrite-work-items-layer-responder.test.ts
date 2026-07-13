@@ -11,27 +11,27 @@ import { OverwriteWorkItemsLayerResponderProxy } from './overwrite-work-items-la
 type Quest = ReturnType<typeof QuestStub>;
 
 const QUEST_ID = QuestIdStub({ value: 'overwrite-work-items-quest' });
-const PATHSEEKER_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' });
+const PRIOR_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' });
 const WI_1_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' });
 const WI_2_ID = QuestWorkItemIdStub({ value: 'cccccccc-cccc-cccc-cccc-cccccccccccc' });
 
-const pathseekerPreCompleted = WorkItemStub({
-  id: PATHSEEKER_ID,
-  role: 'pathseeker',
+const priorHead = WorkItemStub({
+  id: PRIOR_ID,
+  role: 'codeweaver',
   status: 'complete',
 });
 
-const questWithPathseeker = QuestStub({
+const questWithPriorItem = QuestStub({
   id: QUEST_ID,
-  workItems: [pathseekerPreCompleted],
+  workItems: [priorHead],
 });
 
 describe('OverwriteWorkItemsLayerResponder', () => {
-  describe('pathseeker preservation', () => {
-    it('VALID: {existing pathseeker head, new chain [wi1, wi2]} => persists [pathseeker, wi1, wi2]', async () => {
+  describe('wholesale overwrite', () => {
+    it('VALID: {prior head, new chain [wi1, wi2]} => persists ONLY the new chain (prior head dropped)', async () => {
       const proxy = OverwriteWorkItemsLayerResponderProxy();
       proxy.setupPassthrough();
-      proxy.setupQuestFound({ quest: questWithPathseeker });
+      proxy.setupQuestFound({ quest: questWithPriorItem });
 
       const codeweaver1 = WorkItemStub({ id: WI_1_ID, role: 'codeweaver', status: 'pending' });
       const codeweaver2 = WorkItemStub({
@@ -57,22 +57,22 @@ describe('OverwriteWorkItemsLayerResponder', () => {
         workItemStatuses: parsed.workItems.map((wi) => wi.status),
       }).toStrictEqual({
         result: { success: true },
-        workItemIds: [PATHSEEKER_ID, WI_1_ID, WI_2_ID],
-        workItemRoles: ['pathseeker', 'codeweaver', 'codeweaver'],
-        workItemStatuses: ['complete', 'pending', 'pending'],
+        workItemIds: [WI_1_ID, WI_2_ID],
+        workItemRoles: ['codeweaver', 'codeweaver'],
+        workItemStatuses: ['pending', 'pending'],
       });
     });
 
-    it('VALID: {caller chain pre-wires dependsOn to pathseeker} => dependsOn passes through unchanged', async () => {
+    it('VALID: {caller chain pre-wires dependsOn} => dependsOn passes through unchanged', async () => {
       const proxy = OverwriteWorkItemsLayerResponderProxy();
       proxy.setupPassthrough();
-      proxy.setupQuestFound({ quest: questWithPathseeker });
+      proxy.setupQuestFound({ quest: questWithPriorItem });
 
       const codeweaver1 = WorkItemStub({
         id: WI_1_ID,
         role: 'codeweaver',
         status: 'pending',
-        dependsOn: [PATHSEEKER_ID],
+        dependsOn: [],
       });
       const codeweaver2 = WorkItemStub({
         id: WI_2_ID,
@@ -91,20 +91,19 @@ describe('OverwriteWorkItemsLayerResponder', () => {
       const parsed = JSON.parse(String(lastWritten)) as Quest;
 
       expect(parsed.workItems.map((wi) => ({ id: wi.id, dependsOn: wi.dependsOn }))).toStrictEqual([
-        { id: PATHSEEKER_ID, dependsOn: [] },
-        { id: WI_1_ID, dependsOn: [PATHSEEKER_ID] },
+        { id: WI_1_ID, dependsOn: [] },
         { id: WI_2_ID, dependsOn: [WI_1_ID] },
       ]);
     });
 
-    it('VALID: {no pre-existing pathseeker} => persists only caller chain', async () => {
+    it('VALID: {no prior work items} => persists only the caller chain', async () => {
       const proxy = OverwriteWorkItemsLayerResponderProxy();
       proxy.setupPassthrough();
-      const questWithoutPathseeker = QuestStub({
+      const questWithoutItems = QuestStub({
         id: QUEST_ID,
         workItems: [],
       });
-      proxy.setupQuestFound({ quest: questWithoutPathseeker });
+      proxy.setupQuestFound({ quest: questWithoutItems });
 
       const codeweaver1 = WorkItemStub({ id: WI_1_ID, role: 'codeweaver', status: 'pending' });
 
@@ -125,7 +124,7 @@ describe('OverwriteWorkItemsLayerResponder', () => {
     it('VALID: {overwrite call} => acquires modify lock via questWithModifyLockBroker', async () => {
       const proxy = OverwriteWorkItemsLayerResponderProxy();
       proxy.setupPassthrough();
-      proxy.setupQuestFound({ quest: questWithPathseeker });
+      proxy.setupQuestFound({ quest: questWithPriorItem });
 
       const codeweaver1 = WorkItemStub({ id: WI_1_ID, role: 'codeweaver', status: 'pending' });
 
@@ -154,7 +153,7 @@ describe('OverwriteWorkItemsLayerResponder', () => {
       const proxy = OverwriteWorkItemsLayerResponderProxy();
       proxy.setupPassthrough();
       proxy.setupQuestFoundWithWriteFailure({
-        quest: questWithPathseeker,
+        quest: questWithPriorItem,
         error: new Error('disk full'),
       });
 

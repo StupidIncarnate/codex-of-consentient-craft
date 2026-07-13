@@ -29,7 +29,7 @@ describe('ExecutionQueueGetAllResponder', () => {
       createdAt: '2026-07-08T21:00:00.000Z',
       workItems: [
         WorkItemStub({ role: 'chaoswhisperer', status: 'complete' }),
-        WorkItemStub({ role: 'pathseeker', status: 'in_progress', sessionId }),
+        WorkItemStub({ role: 'codeweaver', status: 'in_progress', sessionId }),
       ],
     });
     proxy.setupActiveQuests({

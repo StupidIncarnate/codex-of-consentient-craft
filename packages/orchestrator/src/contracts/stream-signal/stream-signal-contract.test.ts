@@ -1,93 +1,72 @@
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts';
+
 import { streamSignalContract } from './stream-signal-contract';
 import { StreamSignalStub } from './stream-signal.stub';
 
-type StreamSignal = ReturnType<typeof StreamSignalStub>;
+const OPERATION_ITEM_ID = OperationItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
 
 describe('streamSignalContract', () => {
   describe('valid signals', () => {
-    it('VALID: {signal: "complete", summary} => parses complete signal', () => {
+    it('VALID: {signal: "complete"} => parses complete signal', () => {
       const result = streamSignalContract.parse({
         signal: 'complete',
-        summary: 'Done',
       });
 
       expect(result).toStrictEqual({
         signal: 'complete',
-        summary: 'Done',
       });
     });
 
-    it('VALID: {signal: "failed", summary} => parses failed signal', () => {
+    it('VALID: {signal: "complete", operationItemId, operationStatus: "done"} => parses done outcome', () => {
       const result = streamSignalContract.parse({
-        signal: 'failed',
-        summary: 'Tests failing in user-fetch-broker',
+        signal: 'complete',
+        operationItemId: OPERATION_ITEM_ID,
+        operationStatus: 'done',
       });
 
       expect(result).toStrictEqual({
-        signal: 'failed',
-        summary: 'Tests failing in user-fetch-broker',
+        signal: 'complete',
+        operationItemId: OPERATION_ITEM_ID,
+        operationStatus: 'done',
       });
     });
 
-    it('VALID: stub default => returns complete signal with expected structure', () => {
-      const signal: StreamSignal = StreamSignalStub();
+    it('VALID: {signal: "complete", operationStatus: "partial"} => parses partial outcome', () => {
+      const result = streamSignalContract.parse({
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+    });
+
+    it('VALID: stub default => returns complete signal with no outcome fields', () => {
+      const signal = StreamSignalStub();
 
       expect(signal).toStrictEqual({
         signal: 'complete',
-        summary: 'Task completed successfully',
-      });
-    });
-
-    it('VALID: {signal: "complete"} => parses without optional summary', () => {
-      const result = streamSignalContract.parse({
-        signal: 'complete',
-      });
-
-      expect(result).toStrictEqual({
-        signal: 'complete',
-      });
-    });
-
-    it('VALID: {signal: "failed"} => parses without optional summary', () => {
-      const result = streamSignalContract.parse({
-        signal: 'failed',
-      });
-
-      expect(result).toStrictEqual({
-        signal: 'failed',
-      });
-    });
-
-    it('VALID: {signal: "failed-replan", summary} => parses failed-replan signal', () => {
-      const result = streamSignalContract.parse({
-        signal: 'failed-replan',
-        summary: 'Semantic findings require new steps',
-      });
-
-      expect(result).toStrictEqual({
-        signal: 'failed-replan',
-        summary: 'Semantic findings require new steps',
-      });
-    });
-
-    it('VALID: {signal: "failed-replan"} => parses without optional summary', () => {
-      const result = streamSignalContract.parse({
-        signal: 'failed-replan',
-      });
-
-      expect(result).toStrictEqual({
-        signal: 'failed-replan',
       });
     });
   });
 
   describe('invalid signals', () => {
-    it('INVALID: {signal: "unknown"} => throws for invalid signal type', () => {
+    it('INVALID: {signal: "failed"} => throws for the removed failure signal', () => {
       expect(() =>
         streamSignalContract.parse({
-          signal: 'unknown',
+          signal: 'failed',
         }),
-      ).toThrow(/invalid_enum_value/u);
+      ).toThrow(/Invalid literal value/u);
+    });
+
+    it('INVALID: {signal: "failed-replan"} => throws for the removed replan signal', () => {
+      expect(() =>
+        streamSignalContract.parse({
+          signal: 'failed-replan',
+        }),
+      ).toThrow(/Invalid literal value/u);
     });
 
     it('INVALID: {signal: "partially-complete"} => throws for removed signal type', () => {
@@ -95,28 +74,20 @@ describe('streamSignalContract', () => {
         streamSignalContract.parse({
           signal: 'partially-complete',
         }),
-      ).toThrow(/invalid_enum_value/u);
+      ).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID: {signal: "needs-role-followup"} => throws for removed signal type', () => {
-      expect(() =>
-        streamSignalContract.parse({
-          signal: 'needs-role-followup',
-        }),
-      ).toThrow(/invalid_enum_value/u);
+    it('INVALID: {signal: missing} => throws (the complete literal is required)', () => {
+      expect(() => streamSignalContract.parse({})).toThrow(/Invalid literal value/u);
     });
 
-    it('INVALID: {signal: missing} => throws for missing signal', () => {
-      expect(() => streamSignalContract.parse({})).toThrow(/Required/u);
-    });
-
-    it('INVALID: {summary: ""} => throws for empty summary', () => {
+    it('INVALID: {operationStatus: "bogus"} => throws for an unknown operation status', () => {
       expect(() =>
         streamSignalContract.parse({
           signal: 'complete',
-          summary: '',
+          operationStatus: 'bogus',
         }),
-      ).toThrow(/too_small/u);
+      ).toThrow(/Invalid enum value/u);
     });
   });
 });

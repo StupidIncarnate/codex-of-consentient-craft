@@ -585,7 +585,7 @@ describe('chatStreamProcessHandleBroker', () => {
                     type: 'tool_use',
                     id: 'toolu_01signalback',
                     name: 'mcp__dungeonmaster__signal-back',
-                    input: { signal: 'complete', summary: 'Quest plan ready' },
+                    input: { signal: 'complete', operationStatus: 'done' },
                   },
                 ],
               },
@@ -601,7 +601,7 @@ describe('chatStreamProcessHandleBroker', () => {
           chatProcessId: 'proc-signal',
           signal: {
             signal: 'complete',
-            summary: 'Quest plan ready',
+            operationStatus: 'done',
           },
         },
       ]);

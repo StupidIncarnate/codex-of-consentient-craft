@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Canned prompt bank for smoketest scenarios — signal prompts (complete/failed/failed-replan), a dynamically-generated probe prompt per MCP tool from `mcpToolsStatics.tools.names`, and a dev-server verification prompt
+ * PURPOSE: Canned prompt bank for smoketest scenarios — signal prompts (complete + the two operation outcomes done/partial), a dynamically-generated probe prompt per MCP tool from `mcpToolsStatics.tools.names`, and a dev-server verification prompt
  *
  * USAGE:
  * smoketestPromptsStatics.signalComplete;
  * // Returns: the signal-complete prompt string
+ * smoketestPromptsStatics.signalDone;
+ * // Returns: the signal-back complete + operationStatus:done prompt string
  * smoketestPromptsStatics.discover;
  * // Returns: the probe prompt for mcp__dungeonmaster__discover
  *
@@ -18,8 +20,9 @@
  * strings. These are substituted with live ids at enqueue time
  * (`enqueue-bundled-suite-layer-responder`). With every placeholder resolved, the probe is expected
  * to succeed; a tool-call error means a real regression (permission gap, contract drift, broken
- * handler), so the agent signals `failed` with `mcp-<tool>-tool-error` instead of masking it as
- * `complete`.
+ * handler). There is no failure signal in the relay model, so on a tool-call error the probe reports
+ * the error and stops WITHOUT signaling — leaving its work item non-terminal instead of masking the
+ * error as `complete`.
  *
  * NO ToolSearch preamble: smoketest agents spawn via `claude --print` (headless) which pre-loads every
  * MCP tool configured in `.mcp.json` directly into the tool list. `ToolSearch` is an interactive
@@ -46,8 +49,7 @@ const probePromptEntries = mcpToolsStatics.tools.names.flatMap((toolName) => {
   }
   const fullToolName = `mcp__${SERVER}__${toolName}`;
   const argsJson = JSON.stringify(spec.args);
-  const errorSummary = `mcp-${toolName}-tool-error`;
-  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) If the tool call errors, call "${SIGNAL}" with { "signal": "failed", "summary": "${errorSummary}" } and stop. If the tool call succeeds, call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
+  const prompt = `Do exactly two things and nothing else: 1) Call "${fullToolName}" with ${argsJson}. 2) If the tool call errors, report the error and stop without signaling. If the tool call succeeds, call "${SIGNAL}" with { "signal": "complete", "summary": "${spec.summary}" }. Do not output anything else.`;
   return [[toolName, prompt] as const];
 });
 
@@ -55,8 +57,8 @@ const probePrompts = Object.fromEntries(probePromptEntries);
 
 export const smoketestPromptsStatics = {
   signalComplete: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "summary": "smoketest-complete" }. Do not output anything else.`,
-  signalFailed: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "failed", "summary": "smoketest-failed" }. Do not output anything else.`,
-  signalFailedReplan: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "failed-replan", "summary": "smoketest-failed-replan" }. Do not output anything else.`,
+  signalDone: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.`,
+  signalPartial: `Do exactly one thing and nothing else: Call "${SIGNAL}" with { "signal": "complete", "operationStatus": "partial" }. Do not output anything else.`,
 
   ...probePrompts,
 

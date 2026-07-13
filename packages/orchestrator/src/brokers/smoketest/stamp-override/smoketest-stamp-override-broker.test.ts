@@ -20,7 +20,7 @@ const questWithTargetItem = QuestStub({
   id: QUEST_ID,
   workItems: [
     WorkItemStub({ id: TARGET_WORK_ITEM_ID, role: 'codeweaver', status: 'pending' }),
-    WorkItemStub({ id: OTHER_WORK_ITEM_ID, role: 'pathseeker', status: 'complete' }),
+    WorkItemStub({ id: OTHER_WORK_ITEM_ID, role: 'blightwarden', status: 'complete' }),
   ],
 });
 
@@ -38,7 +38,7 @@ const questWithAlreadyStampedItem = QuestStub({
 
 const questWithoutTargetItem = QuestStub({
   id: QUEST_ID,
-  workItems: [WorkItemStub({ id: OTHER_WORK_ITEM_ID, role: 'pathseeker', status: 'complete' })],
+  workItems: [WorkItemStub({ id: OTHER_WORK_ITEM_ID, role: 'blightwarden', status: 'complete' })],
 });
 
 describe('smoketestStampOverrideBroker', () => {

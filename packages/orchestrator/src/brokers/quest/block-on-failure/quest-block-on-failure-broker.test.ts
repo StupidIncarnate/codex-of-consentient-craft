@@ -25,7 +25,7 @@ describe('questBlockOnFailureBroker', () => {
         folder: '001-test-quest',
         status: 'in_progress',
         workItems: [
-          WorkItemStub({ id: completeOneId, role: 'pathseeker-walk', status: 'complete' }),
+          WorkItemStub({ id: completeOneId, role: 'flowrider', status: 'complete' }),
           WorkItemStub({ id: completeTwoId, role: 'codeweaver', status: 'complete' }),
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({

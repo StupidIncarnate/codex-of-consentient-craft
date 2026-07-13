@@ -117,7 +117,7 @@ describe('QuestModifyResponder', () => {
 
   describe('resume from paused with work items', () => {
     it('VALID: {paused quest with pending items, status→in_progress} => registers orchestration process', async () => {
-      const ps1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
+      const planId = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
       const cw1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000002' });
       const cw2Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000003' });
 
@@ -126,9 +126,9 @@ describe('QuestModifyResponder', () => {
         folder: '001-add-auth',
         status: 'paused',
         workItems: [
-          WorkItemStub({ id: ps1Id, role: 'pathseeker', status: 'complete' }),
-          WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'pending', dependsOn: [ps1Id] }),
-          WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'pending', dependsOn: [ps1Id] }),
+          WorkItemStub({ id: planId, role: 'chaoswhisperer', status: 'complete' }),
+          WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'pending', dependsOn: [planId] }),
+          WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'pending', dependsOn: [planId] }),
         ],
       });
 
@@ -156,7 +156,7 @@ describe('QuestModifyResponder', () => {
     });
 
     it('VALID: {paused quest with mixed complete/failed/pending, status→in_progress} => registers orchestration process', async () => {
-      const ps1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
+      const planId = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
       const cw1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000002' });
       const cw2Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000003' });
       const lb1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000004' });
@@ -166,9 +166,9 @@ describe('QuestModifyResponder', () => {
         folder: '001-add-auth',
         status: 'paused',
         workItems: [
-          WorkItemStub({ id: ps1Id, role: 'pathseeker', status: 'complete' }),
-          WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'complete', dependsOn: [ps1Id] }),
-          WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'failed', dependsOn: [ps1Id] }),
+          WorkItemStub({ id: planId, role: 'chaoswhisperer', status: 'complete' }),
+          WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'complete', dependsOn: [planId] }),
+          WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'failed', dependsOn: [planId] }),
           WorkItemStub({ id: lb1Id, role: 'lawbringer', status: 'pending', dependsOn: [cw1Id] }),
         ],
       });

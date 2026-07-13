@@ -12,7 +12,7 @@ export const SmoketestScenarioStub = ({
     caseId: 'orch-happy',
     name: 'Orchestration: happy path',
     blueprint: QuestBlueprintStub(),
-    scripts: { codeweaver: ['signalComplete'], pathseeker: ['signalComplete'] },
+    scripts: { codeweaver: ['signalComplete'] },
     assertions: [QuestStatusAssertionStub({ expected: 'complete' })],
     ...props,
   });

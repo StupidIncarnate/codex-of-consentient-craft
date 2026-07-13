@@ -186,19 +186,19 @@ describe('ChatReplayResponder', () => {
       const chatProcessId = ProcessIdStub({ value: 'replay-agent-scope' });
       const guild = GuildStub({ id: guildId });
 
-      // Two pathseeker-surface work items under the same /dumpster-launch parent
+      // Two codeweaver work items under the same /dumpster-launch parent
       // session — they share sessionId. The agentId param is what disambiguates them.
       const matchingAgentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
       const otherAgentId = AgentIdStub({ value: 'bbb000000other000' });
       const matchingWorkItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: '875c3364-2d64-4606-b9e3-25dd365c7792' }),
-        role: 'pathseeker-surface',
+        role: 'codeweaver',
         sessionId,
         agentId: matchingAgentId,
       });
       const otherWorkItem = WorkItemStub({
         id: QuestWorkItemIdStub({ value: 'cccccccc-2d64-4606-b9e3-25dd365c7792' }),
-        role: 'pathseeker-surface',
+        role: 'codeweaver',
         sessionId,
         agentId: otherAgentId,
       });
@@ -239,7 +239,7 @@ describe('ChatReplayResponder', () => {
           // The agentId filter must steer the lookup to matchingWorkItem (not otherWorkItem
           // even though both have the same sessionId).
           workItemId: matchingWorkItem.id,
-          role: 'pathseeker-surface',
+          role: 'codeweaver',
         },
       });
     });

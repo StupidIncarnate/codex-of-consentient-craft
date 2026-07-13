@@ -15,7 +15,7 @@ describe('scenarioInstanceContract', () => {
     it('VALID: {multiple roles and ordinals} => parses successfully', () => {
       const result = ScenarioInstanceStub({
         scripts: {
-          codeweaver: ['signalFailed', 'signalComplete'],
+          codeweaver: ['signalPartial', 'signalDone'],
           spiritmender: ['signalComplete'],
         },
         callOrdinals: { codeweaver: 1 },
@@ -23,7 +23,7 @@ describe('scenarioInstanceContract', () => {
 
       expect(result).toStrictEqual({
         scripts: {
-          codeweaver: ['signalFailed', 'signalComplete'],
+          codeweaver: ['signalPartial', 'signalDone'],
           spiritmender: ['signalComplete'],
         },
         callOrdinals: { codeweaver: 1 },

@@ -30,7 +30,7 @@ export const WorkItemRoleCountAssertionStub = ({
 > = {}): SmoketestAssertion =>
   smoketestAssertionContract.parse({
     kind: 'work-item-role-count',
-    role: 'pathseeker',
+    role: 'blightwarden',
     minCount: 2,
     ...props,
   });

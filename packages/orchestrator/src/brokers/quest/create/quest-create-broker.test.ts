@@ -10,9 +10,10 @@ import { questCreateBroker } from './quest-create-broker';
 import { questCreateBrokerProxy } from './quest-create-broker.proxy';
 
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 
 describe('questCreateBroker', () => {
-  it('VALID: {questId, guildId, input} => writes quest.json at status created with empty-array defaults', async () => {
+  it('VALID: {questId, guildId, input} => writes quest.json at status created with empty-array defaults + the chaoswhisperer plan operation item', async () => {
     const brokerProxy = questCreateBrokerProxy();
     const questId = QuestIdStub({ value: 'add-auth-quest' });
     const guildId = GuildIdStub();
@@ -36,7 +37,10 @@ describe('questCreateBroker', () => {
     expect(result).toStrictEqual({ questFilePath, questFolderPath });
 
     const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
-    const { createdAt, ...rest } = writtenQuest;
+    const { createdAt, operations, ...rest } = writtenQuest;
+    // The plan operation item's id is a generated UUID — assert its shape separately.
+    const [planOp] = operations;
+    const { id: planOpId, ...planOpRest } = planOp;
 
     expect(createdAt).toMatch(ISO_TIMESTAMP_PATTERN);
     expect(rest).toStrictEqual({
@@ -47,7 +51,6 @@ describe('questCreateBroker', () => {
       questType: 'feature',
       userRequest: 'User wants authentication',
       designDecisions: [],
-      steps: [],
       toolingRequirements: [],
       packagesAffected: [],
       contracts: [],
@@ -55,7 +58,14 @@ describe('questCreateBroker', () => {
       needsDesign: false,
       workItems: [],
       wardResults: [],
-      planningNotes: { surfaceReports: [], blightReports: [], codeweaverPlans: [] },
+      planningNotes: { blightReports: [] },
+    });
+    expect(planOpId).toMatch(UUID_PATTERN);
+    expect(planOpRest).toStrictEqual({
+      role: 'chaoswhisperer',
+      text: 'Author spec + implementation plan',
+      status: 'in_progress',
+      locked: true,
     });
   });
 

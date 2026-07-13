@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Derives a bundled MCP/Signals smoketest blueprint plus a pre-stamped codeweaver work-item chain from a list of case-catalog entries
+ * PURPOSE: Derives a bundled MCP/Signals smoketest blueprint plus a pre-stamped codeweaver work-item
+ * chain from a list of case-catalog entries
  *
  * USAGE:
  * const { blueprint, workItems } = caseCatalogToBlueprintTransformer({
@@ -7,18 +8,23 @@
  *   cases: smoketestCaseCatalogStatics.mcp,
  *   now: IsoTimestampStub(),
  * });
- * // Returns a QuestBlueprint whose hydrator walk lands at in_progress with N chained steps (one per case),
- * // plus N codeweaver work items linearly chained via dependsOn, each carrying the case's promptKey-resolved
- * // smoketestPromptOverride. Ward/siegemaster/lawbringer/blightwarden roles are skipped so the chain is
- * // codeweaver-only.
+ * // Returns a QuestBlueprint carrying one codeweaver operation item per case, plus N codeweaver work
+ * // items linearly chained via dependsOn — each linked to its operation item via
+ * // relatedDataItems: ['operations/<id>'] and stamped with the case's promptKey-resolved
+ * // smoketestPromptOverride. Ward/flowrider/siegemaster/lawbringer/blightwarden roles are skipped so
+ * // the relay tail never runs — the chain is codeweaver-only.
  *
- * WHEN-TO-USE: The smoketest-run responder's MCP and Signals suites — one quest per suite with N floors.
+ * WHEN-TO-USE: The smoketest-run responder's MCP and Signals suites — one quest per suite with N cases.
  * WHEN-NOT-TO-USE: Orchestration scenarios — those use their own per-scenario blueprints from
  * smoketestScenariosStatics.
  */
 
-import { streamSignalKindContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
+import {
+  operationItemContract,
+  streamSignalKindContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
+import type { OperationItem, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
@@ -47,35 +53,23 @@ export const caseCatalogToBlueprintTransformer = ({
   const suiteRequest =
     suite === 'mcp'
       ? 'Probe every registered MCP tool once and emit a signal-back per case'
-      : 'Emit each scripted signal (complete / failed / failed-replan) once';
+      : 'Emit a scripted signal-back once per case';
 
-  const steps = cases.map((entry, index) => {
-    const stepId = `case-${entry.caseId}`;
-    const prev = index === 0 ? undefined : cases[index - 1];
-    const prevStepId = prev === undefined ? undefined : `case-${prev.caseId}`;
-    return {
-      id: stepId,
-      slice: 'case',
-      name: entry.name,
-      assertions: [
-        {
-          prefix: 'VALID' as const,
-          input: `{orchestrator dispatches scripted agent for ${entry.caseId}}`,
-          expected: `Agent emits scripted signal-back signal exactly once for ${entry.caseId}`,
-        },
-      ],
-      observablesSatisfied: ['smoketest-signal-received'],
-      dependsOn: prevStepId === undefined ? [] : [prevStepId],
-      focusFile: {
-        path: 'packages/orchestrator/src/statics/smoketest-case-catalog/smoketest-case-catalog-statics.ts',
-      },
-      accompanyingFiles: [],
-      exportName: 'smoketestCaseCatalogStatics',
-      inputContracts: ['Void'],
-      outputContracts: ['SmoketestPlaceholder'],
-      uses: [],
-    };
-  });
+  // One operation item + one work-item id per case, generated in a single pass so each work item
+  // can link to its own operation item via `operations/<id>` (the strict 1:1 link invariant).
+  const built = cases.map((entry) => ({
+    entry,
+    operation: operationItemContract.parse({
+      id: crypto.randomUUID(),
+      role: 'codeweaver',
+      text: entry.name,
+      status: 'pending',
+      locked: false,
+    }),
+    workItemId: workItemContract.shape.id.parse(crypto.randomUUID()),
+  }));
+
+  const operations: OperationItem[] = built.map((item) => item.operation);
 
   const blueprint: QuestBlueprint = questBlueprintContract.parse({
     title: suiteTitle,
@@ -84,18 +78,12 @@ export const caseCatalogToBlueprintTransformer = ({
     contracts: minimal.contracts,
     toolingRequirements: minimal.toolingRequirements,
     flows: minimal.flows,
-    planningNotes: minimal.planningNotes,
-    steps,
+    operations,
     skipRoles: ['ward', 'flowrider', 'siegemaster', 'lawbringer', 'blightwarden'],
   });
 
-  const workItemIds: QuestWorkItemId[] = cases.map(() =>
-    workItemContract.shape.id.parse(crypto.randomUUID()),
-  );
-
-  const workItems: WorkItem[] = cases.map((entry, index) => {
-    const id = workItemIds[index];
-    const prevId = index === 0 ? undefined : workItemIds[index - 1];
+  const workItems: WorkItem[] = built.map(({ entry, operation, workItemId }, index) => {
+    const prev = index === 0 ? undefined : built[index - 1];
     const resolved: unknown =
       smoketestPromptsStatics[entry.promptKey as keyof typeof smoketestPromptsStatics];
     if (typeof resolved !== 'string') {
@@ -106,12 +94,12 @@ export const caseCatalogToBlueprintTransformer = ({
     const override = promptTextContract.parse(resolved);
     const expectedSignal = streamSignalKindContract.parse(entry.expectedSignal);
     return workItemContract.parse({
-      id,
+      id: workItemId,
       role: 'codeweaver',
       status: 'pending',
       spawnerType: 'agent',
-      relatedDataItems: [`steps/case-${entry.caseId}`],
-      dependsOn: prevId === undefined ? [] : [prevId],
+      relatedDataItems: [`operations/${String(operation.id)}`],
+      dependsOn: prev === undefined ? [] : [prev.workItemId],
       maxAttempts: 1,
       createdAt: now,
       smoketestPromptOverride: override,

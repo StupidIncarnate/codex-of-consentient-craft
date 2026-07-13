@@ -4,23 +4,23 @@ import { OrchestrationResumeResponderProxy } from './orchestration-resume-respon
 
 describe('OrchestrationResumeResponder', () => {
   describe('successful resume', () => {
-    it('VALID: {paused quest with pausedAtStatus seek_scope} => restores status to seek_scope', async () => {
-      const questId = QuestIdStub({ value: 'resume-to-scope' });
+    it('VALID: {paused quest with pausedAtStatus explore_observables} => restores status to explore_observables', async () => {
+      const questId = QuestIdStub({ value: 'resume-to-observables' });
       const quest = QuestStub({
         id: questId,
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'explore_observables',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
 
       const result = await proxy.callResponder({ questId });
 
-      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'seek_scope' });
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'explore_observables' });
 
       const persisted = proxy.getLastPersistedQuest();
 
-      expect(persisted.status).toBe('seek_scope');
+      expect(persisted.status).toBe('explore_observables');
     });
 
     it('VALID: {paused quest with pausedAtStatus in_progress} => restores status to in_progress', async () => {
@@ -97,7 +97,7 @@ describe('OrchestrationResumeResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'in_progress',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
@@ -122,7 +122,7 @@ describe('OrchestrationResumeResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'in_progress',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
@@ -136,7 +136,7 @@ describe('OrchestrationResumeResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'in_progress',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
@@ -156,20 +156,20 @@ describe('OrchestrationResumeResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'in_progress',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
 
       const result = await proxy.callResponder({ questId });
 
-      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'seek_scope' });
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
 
       const persistedContents = proxy.getAllPersistedContents();
       const [firstWrite] = persistedContents;
       const parsedFirst = JSON.parse(String(firstWrite)) as Record<PropertyKey, unknown>;
 
-      expect(parsedFirst.status).toBe('seek_scope');
+      expect(parsedFirst.status).toBe('in_progress');
       expect('pausedAtStatus' in parsedFirst).toBe(false);
     });
 
@@ -178,7 +178,7 @@ describe('OrchestrationResumeResponder', () => {
       const quest = QuestStub({
         id: questId,
         status: 'paused',
-        pausedAtStatus: 'seek_scope',
+        pausedAtStatus: 'in_progress',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });

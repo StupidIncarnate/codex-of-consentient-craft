@@ -1,10 +1,11 @@
 /**
- * PURPOSE: Catalog of the five orchestration smoketest scenarios (happy path, codeweaver-fail
- * spiritmender recovery, lawbringer-fail spiritmender, codeweaver replan-loop exhaustion, blightwarden
- * failed-replan) — each couples the minimal blueprint with per-role prompt scripts and final-state
- * assertions. All five exercise the RECOVERY-FIRST model: a `failed` (code) splices a spiritmender +
- * re-run of the role; a `failed-replan` (plan hole) splices a PathSeeker replan; only PathSeeker's
- * exhausted replan loop blocks the quest.
+ * PURPOSE: Catalog of the five orchestration smoketest scenarios — each couples the minimal blueprint
+ * with a per-role script of canned prompt names and a final-state assertion. Every scenario drives the
+ * reactive operations relay: the scenario driver stamps a canned signal prompt on each pending work
+ * item as the relay creates it one at a time (codeweaver -> flowrider -> siegemaster -> lawbringer ->
+ * blightwarden; ward is skipped via the blueprint's skipRoles), and each canned agent signals
+ * `complete` with an operationStatus so the orchestrator advances (done) or spawns a pt continuation
+ * (partial) until the quest completes.
  *
  * USAGE:
  * smoketestScenariosStatics.orchHappyPath;
@@ -15,155 +16,81 @@
  * WHEN-NOT-TO-USE: MCP / Signals suites that do not exercise the work-item loop.
  *
  * NOTE: Scenario values are literal — statics/ cannot import the zod contract. The colocated test
- * parses every scenario through `smoketestScenarioContract` so drift surfaces immediately. The exact
- * intermediate work-item counts on the failure scenarios depend on the recovery chain and are
- * confirmed by a live `/smoketest` run; the assertions here pin only the invariants (terminal status
- * and the presence of the spliced fixer role).
+ * asserts each scenario's shape so drift surfaces immediately. There is no failure signal in the
+ * relay model: an agent only ever signals `complete`. The scenarios differ by which reached role
+ * their assertion pins, plus one that exercises duplicate-on-partial (a codeweaver pt continuation);
+ * the whole relay converging to `complete` is the shared invariant.
  */
 
 import { smoketestBlueprintsStatics } from '../smoketest-blueprints/smoketest-blueprints-statics';
 
-const happyScripts = {
-  codeweaver: ['signalComplete'],
-  siegemaster: ['signalComplete'],
-  lawbringer: ['signalComplete'],
-  blightwarden: ['signalComplete'],
-  spiritmender: ['signalComplete'],
-  pathseeker: ['signalComplete'],
-};
-
-// Codeweaver signals a CODE failure (with retry budget) → the handler splices a spiritmender + a
-// ward(changed) gate + a fresh codeweaver. The spiritmender fixes the code, the fresh codeweaver
-// completes, and the quest finishes. No PathSeeker replan on a first code failure with budget.
-const codeweaverFailRecoveryScripts = {
-  codeweaver: ['signalFailed', 'signalComplete'],
-  spiritmender: ['signalComplete'],
-  siegemaster: ['signalComplete'],
-  lawbringer: ['signalComplete'],
-  blightwarden: ['signalComplete'],
-};
-
-const lawbringerFailSpiritmenderScripts = {
-  codeweaver: ['signalComplete'],
-  siegemaster: ['signalComplete'],
-  lawbringer: ['signalFailed'],
-  spiritmender: ['signalComplete'],
-  pathseeker: ['signalComplete'],
-  blightwarden: ['signalComplete'],
-};
-
-// The SOLE block path: a codeweaver that fails every attempt exhausts its retry budget, escalates to
-// a PathSeeker replan, the replan regenerates the chain, the new codeweaver fails again … until the
-// PathSeeker replan loop (`slotManagerStatics.pathseeker.replanMaxCycles`) is spent and the quest
-// blocks. The scripts over-provision `signalFailed`/`signalComplete` entries so every dispatch in the
-// (recovery-chain-dependent) unfold has a canned prompt; excess entries are ignored by the driver.
-const replanExhaustionScripts = {
-  codeweaver: [
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-    'signalFailed',
-  ],
-  spiritmender: [
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-  ],
-  pathseeker: [
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-    'signalComplete',
-  ],
-};
-
-const blightwardenReplanScripts = {
-  codeweaver: ['signalComplete'],
-  siegemaster: ['signalComplete'],
-  lawbringer: ['signalComplete'],
-  blightwarden: ['signalFailedReplan'],
-  pathseeker: ['signalComplete', 'signalComplete'],
+// Every relay role that receives a scripted agent work item once ward is skipped. The scenario
+// driver dispenses these per role, one per work item, as the relay creates them in order. Each role
+// signals `complete` (operationStatus done) so the orchestrator advances to the next operation item.
+const relayScripts = {
+  codeweaver: ['signalDone'],
+  flowrider: ['signalDone'],
+  siegemaster: ['signalDone'],
+  lawbringer: ['signalDone'],
+  blightwarden: ['signalDone'],
 };
 
 export const smoketestScenariosStatics = {
   orchHappyPath: {
     caseId: 'orch-happy-path',
-    name: 'Orchestration: happy path',
+    name: 'Orchestration: feature relay converges to complete',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: happyScripts,
+    scripts: relayScripts,
     assertions: [{ kind: 'quest-status', expected: 'complete' }],
   },
-  orchCodeweaverFail: {
-    caseId: 'orch-codeweaver-fail',
-    name: 'Orchestration: codeweaver fail then spiritmender recovery',
+  // The codeweaver signals `partial` on its first pass, so the orchestrator marks the operation
+  // item complete and appends a "pt N" continuation; a fresh codeweaver work item runs the
+  // continuation and signals `done`. Two codeweaver work items over the operation item's life
+  // prove duplicate-on-partial dispatched the pt continuation.
+  orchCodeweaverPartial: {
+    caseId: 'orch-codeweaver-partial',
+    name: 'Orchestration: codeweaver partial spawns a pt continuation',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: codeweaverFailRecoveryScripts,
+    scripts: {
+      codeweaver: ['signalPartial', 'signalDone'],
+      flowrider: ['signalDone'],
+      siegemaster: ['signalDone'],
+      lawbringer: ['signalDone'],
+      blightwarden: ['signalDone'],
+    },
     assertions: [
       { kind: 'quest-status', expected: 'complete' },
-      { kind: 'work-item-role-count', role: 'spiritmender', minCount: 1 },
+      { kind: 'work-item-role-count', role: 'codeweaver', minCount: 2 },
     ],
   },
-  orchLawbringerFail: {
-    caseId: 'orch-lawbringer-fail',
-    name: 'Orchestration: lawbringer fail then spiritmender fix',
+  orchReachesLawbringer: {
+    caseId: 'orch-reaches-lawbringer',
+    name: 'Orchestration: relay reaches the lawbringer review role',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: lawbringerFailSpiritmenderScripts,
+    scripts: relayScripts,
     assertions: [
       { kind: 'quest-status', expected: 'complete' },
-      { kind: 'work-item-role-count', role: 'spiritmender', minCount: 1 },
+      { kind: 'work-item-role-count', role: 'lawbringer', minCount: 1 },
     ],
   },
-  orchDepthExhaustion: {
-    caseId: 'orch-depth-exhaustion',
-    name: 'Orchestration: codeweaver replan-loop exhaustion then blocked',
+  orchReachesBlightwarden: {
+    caseId: 'orch-reaches-blightwarden',
+    name: 'Orchestration: relay reaches the blightwarden audit role',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: replanExhaustionScripts,
-    assertions: [{ kind: 'quest-status', expected: 'blocked' }],
+    scripts: relayScripts,
+    assertions: [
+      { kind: 'quest-status', expected: 'complete' },
+      { kind: 'work-item-role-count', role: 'blightwarden', minCount: 1 },
+    ],
   },
-  orchBlightwardenReplan: {
-    caseId: 'orch-blightwarden-replan',
-    name: 'Orchestration: blightwarden failed-replan',
+  orchReachesFlowrider: {
+    caseId: 'orch-reaches-flowrider',
+    name: 'Orchestration: relay reaches the flowrider verify role',
     blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: blightwardenReplanScripts,
-    assertions: [{ kind: 'work-item-role-count', role: 'pathseeker', minCount: 2 }],
+    scripts: relayScripts,
+    assertions: [
+      { kind: 'quest-status', expected: 'complete' },
+      { kind: 'work-item-role-count', role: 'flowrider', minCount: 1 },
+    ],
   },
 };

@@ -13,11 +13,10 @@ import { orchestrationLoopSummaryTransformer } from '../../../transformers/orche
 import { questOrchestrationLoopBroker } from './quest-orchestration-loop-broker';
 import { questOrchestrationLoopBrokerProxy } from './quest-orchestration-loop-broker.proxy';
 
-// Step 16 (piped-dancing-boole): the orchestration loop no longer spawns any layer
-// brokers — dispatch lives in `quest-get-next-step-broker` under the `/dumpster-launch`
-// model. The minimal coverage below exercises the surviving state-mutation behaviour
-// (terminal/blocked transitions, abort/no-ready short-circuits). The previous 8000+ line
-// dispatch-shape test suite is sidelined to `tmp/step16-sideline/orchestration-loop/`.
+// The orchestration loop dispatches only chat roles (chaoswhisperer / glyphsmith); every
+// execution role is dispatched through `quest-get-next-step-broker`. The coverage below
+// exercises the state-mutation behaviour the loop owns: terminal/blocked transitions and
+// the abort / no-ready / execution-role-defer short-circuits.
 
 describe('questOrchestrationLoopBroker', () => {
   describe('terminal states', () => {
@@ -75,26 +74,26 @@ describe('questOrchestrationLoopBroker', () => {
   });
 
   describe('execution-role work items', () => {
-    it('VALID: {ready pathseeker-surface items} => left pending, loop persists nothing', async () => {
+    it('VALID: {ready codeweaver items} => left pending, loop persists nothing', async () => {
       const proxy = questOrchestrationLoopBrokerProxy();
       const questId = QuestIdStub({ value: 'add-guild' });
       const chatId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const surfaceOneId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
-      const surfaceTwoId = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f' });
+      const cwOneId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
+      const cwTwoId = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
         workItems: [
           WorkItemStub({ id: chatId, role: 'chaoswhisperer', status: 'complete' }),
           WorkItemStub({
-            id: surfaceOneId,
-            role: 'pathseeker-surface',
+            id: cwOneId,
+            role: 'codeweaver',
             status: 'pending',
             dependsOn: [chatId],
           }),
           WorkItemStub({
-            id: surfaceTwoId,
-            role: 'pathseeker-surface',
+            id: cwTwoId,
+            role: 'codeweaver',
             status: 'pending',
             dependsOn: [chatId],
           }),
@@ -188,22 +187,22 @@ describe('questOrchestrationLoopBroker', () => {
       const proxy = questOrchestrationLoopBrokerProxy();
       const questId = QuestIdStub({ value: 'log-exec' });
       const chatId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const surfaceOneId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
-      const surfaceTwoId = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f' });
+      const cwOneId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
+      const cwTwoId = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
         workItems: [
           WorkItemStub({ id: chatId, role: 'chaoswhisperer', status: 'complete' }),
           WorkItemStub({
-            id: surfaceOneId,
-            role: 'pathseeker-surface',
+            id: cwOneId,
+            role: 'codeweaver',
             status: 'pending',
             dependsOn: [chatId],
           }),
           WorkItemStub({
-            id: surfaceTwoId,
-            role: 'pathseeker-surface',
+            id: cwTwoId,
+            role: 'codeweaver',
             status: 'pending',
             dependsOn: [chatId],
           }),
@@ -238,7 +237,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       expect(loopWrites).toStrictEqual([
         `${expectedSnapshot}\n`,
-        '[orchestration-loop] quest=log-exec decision: 2 ready, 0 chat-role -> execution roles dispatch via /dumpster-launch; chat loop idle\n',
+        '[orchestration-loop] quest=log-exec decision: 2 ready, 0 chat-role -> execution roles dispatch via the dispatch loop; chat loop idle\n',
       ]);
     });
 
@@ -246,15 +245,15 @@ describe('questOrchestrationLoopBroker', () => {
       const proxy = questOrchestrationLoopBrokerProxy();
       const questId = QuestIdStub({ value: 'log-noready' });
       const chatId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const surfaceId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
+      const cwId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
         workItems: [
           WorkItemStub({ id: chatId, role: 'chaoswhisperer', status: 'complete' }),
           WorkItemStub({
-            id: surfaceId,
-            role: 'pathseeker-surface',
+            id: cwId,
+            role: 'codeweaver',
             status: 'in_progress',
             dependsOn: [chatId],
           }),

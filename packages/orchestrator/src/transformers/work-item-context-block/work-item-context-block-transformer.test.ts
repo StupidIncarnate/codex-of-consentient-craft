@@ -58,7 +58,7 @@ describe('workItemContextBlockTransformer', () => {
   it('VALID: {quest with packagesAffected only} => appends packagesAffected line but not wardMode', () => {
     const workItem = WorkItemStub({
       id: QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' }),
-      role: 'pathseeker',
+      role: 'flowrider',
     });
     const quest = QuestStub({
       packagesAffected: ['shared'],
@@ -76,7 +76,7 @@ describe('workItemContextBlockTransformer', () => {
         '',
         `- questId: ${quest.id}`,
         `- workItemId: ${workItem.id}`,
-        '- role: pathseeker',
+        '- role: flowrider',
         '- packagesAffected: shared',
       ].join('\n'),
     );

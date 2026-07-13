@@ -16,7 +16,7 @@ describe('smoketestScenarioContract', () => {
         caseId: 'orch-happy',
         name: 'Orchestration: happy path',
         blueprint: QuestBlueprintStub(),
-        scripts: { codeweaver: ['signalComplete'], pathseeker: ['signalComplete'] },
+        scripts: { codeweaver: ['signalComplete'] },
         assertions: [{ kind: 'quest-status', expected: 'complete' }],
       });
     });
@@ -43,14 +43,14 @@ describe('smoketestScenarioContract', () => {
             kind: 'work-item-status-histogram',
             expected: { complete: 3, skipped: 0 },
           },
-          WorkItemRoleCountAssertionStub({ role: 'pathseeker', minCount: 2 }),
+          WorkItemRoleCountAssertionStub({ role: 'blightwarden', minCount: 2 }),
         ],
       });
 
       expect(result.assertions).toStrictEqual([
         { kind: 'quest-status', expected: 'complete' },
         { kind: 'work-item-status-histogram', expected: { complete: 3, skipped: 0 } },
-        { kind: 'work-item-role-count', role: 'pathseeker', minCount: 2 },
+        { kind: 'work-item-role-count', role: 'blightwarden', minCount: 2 },
       ]);
     });
   });

@@ -4,29 +4,15 @@ describe('slotManagerStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(slotManagerStatics).toStrictEqual({
       codeweaver: {
-        slotCount: 3,
-        maxFollowupDepth: 5,
         maxAttempts: 3,
       },
       flowrider: {
-        concurrentLimit: 3,
-        maxRetries: 2,
-        maxDispatchDepth: 3,
-        maxFollowupDepth: 3,
         maxAttempts: 3,
       },
       siegemaster: {
-        concurrentLimit: 3,
-        maxRetries: 2,
-        maxDispatchDepth: 3,
-        maxFollowupDepth: 3,
         maxAttempts: 3,
       },
       lawbringer: {
-        concurrentLimit: 3,
-        maxRetries: 2,
-        maxDispatchDepth: 3,
-        maxFollowupDepth: 3,
         maxAttempts: 3,
       },
       blightwarden: {
@@ -35,13 +21,11 @@ describe('slotManagerStatics', () => {
       pesteater: {
         maxAttempts: 3,
       },
+      spiritmender: {
+        maxAttempts: 3,
+      },
       ward: {
         maxRetries: 3,
-        spiritmenderMaxConcurrent: 3,
-        spiritmenderBatchSize: 3,
-      },
-      pathseeker: {
-        replanMaxCycles: 5,
       },
       orphanRecovery: {
         maxResets: 3,

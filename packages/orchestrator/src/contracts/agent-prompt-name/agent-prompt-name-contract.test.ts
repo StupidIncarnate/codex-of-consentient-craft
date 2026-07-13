@@ -10,30 +10,6 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
-  it('VALID: {value: "pathseeker-surface"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-surface' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('pathseeker-surface');
-  });
-
-  it('VALID: {value: "pathseeker-dedup"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-dedup' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('pathseeker-dedup');
-  });
-
-  it('VALID: {value: "pathseeker-assertion-correctness"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'pathseeker-assertion-correctness' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('pathseeker-assertion-correctness');
-  });
-
   it('VALID: {value: "codeweaver"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'codeweaver' });
 
@@ -149,6 +125,12 @@ describe('agentPromptNameContract', () => {
   it('INVALID: {value: "unknown-agent"} => throws validation error', () => {
     expect(() => {
       agentPromptNameContract.parse('unknown-agent');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "pathseeker-surface"} => throws validation error', () => {
+    expect(() => {
+      agentPromptNameContract.parse('pathseeker-surface');
     }).toThrow(/Invalid enum value/u);
   });
 

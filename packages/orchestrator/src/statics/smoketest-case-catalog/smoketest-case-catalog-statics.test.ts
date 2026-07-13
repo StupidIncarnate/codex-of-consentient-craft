@@ -36,20 +36,28 @@ describe('smoketestCaseCatalogStatics', () => {
     expect(hasStartQuest).toBe(false);
   });
 
-  it('VALID: {signals} => case IDs list matches the 3-signal set', () => {
+  it('VALID: {signals} => case IDs list matches the complete/done/partial signal set', () => {
     expect(smoketestCaseCatalogStatics.signals.map((c) => c.caseId).sort()).toStrictEqual(
-      ['signal-complete', 'signal-failed', 'signal-failed-replan'].sort(),
+      ['signal-complete', 'signal-done', 'signal-partial'].sort(),
     );
+  });
+
+  it('VALID: {signals} => every entry expects the complete signal (the sole signal kind)', () => {
+    expect(smoketestCaseCatalogStatics.signals.map((c) => c.expectedSignal)).toStrictEqual([
+      'complete',
+      'complete',
+      'complete',
+    ]);
   });
 
   it('VALID: {orchestration} => references the 5 scenarios from smoketestScenariosStatics', () => {
     expect(smoketestCaseCatalogStatics.orchestration.map((c) => c.caseId).sort()).toStrictEqual(
       [
-        'orch-blightwarden-replan',
-        'orch-codeweaver-fail',
-        'orch-depth-exhaustion',
+        'orch-codeweaver-partial',
         'orch-happy-path',
-        'orch-lawbringer-fail',
+        'orch-reaches-blightwarden',
+        'orch-reaches-flowrider',
+        'orch-reaches-lawbringer',
       ].sort(),
     );
   });

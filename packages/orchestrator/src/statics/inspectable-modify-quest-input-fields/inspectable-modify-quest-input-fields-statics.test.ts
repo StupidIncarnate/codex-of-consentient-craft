@@ -4,7 +4,7 @@ describe('inspectableModifyQuestInputFieldsStatics', () => {
   it('VALID: exported value => matches expected list of inspectable input fields (questId intentionally omitted)', () => {
     expect(inspectableModifyQuestInputFieldsStatics).toStrictEqual([
       'designDecisions',
-      'steps',
+      'operations',
       'toolingRequirements',
       'contracts',
       'flows',

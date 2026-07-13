@@ -1,33 +1,38 @@
 /**
- * PURPOSE: Hand-crafted minimal-but-valid quest blueprint literal that satisfies every gate along the hydrator's walk to in_progress and drives stepsToWorkItemsTransformer to produce a full work-item chain (codeweaver + siegemaster + lawbringer + blightwarden) for orchestration smoketests
+ * PURPOSE: Hand-crafted minimal-but-valid quest blueprint literal that satisfies every gate along
+ * the hydrator's walk to in_progress — including the `approved` gate's ">=1 codeweaver operation
+ * item" requirement — so the relay seeds a codeweaver -> verify-tail work-item chain for
+ * orchestration smoketests.
  *
  * USAGE:
  * const blueprint = questBlueprintContract.parse(smoketestBlueprintsStatics.minimal);
  * // Returns: validated QuestBlueprint; pass to questHydrateBroker to persist a quest at in_progress
  *
- * WHEN-TO-USE: Every orchestration smoketest scenario hydrates this blueprint, then optionally overrides `fixedQuestId`, `rolePromptOverrides`, or `skipRoles` per scenario.
+ * WHEN-TO-USE: Every orchestration smoketest scenario hydrates this blueprint, then optionally
+ * overrides `fixedQuestId`, `rolePromptOverrides`, or `skipRoles` per scenario.
  * WHEN-NOT-TO-USE: MCP and Signals suites that only spawn a single agent — they do not need a quest at all.
  *
  * NOTE: The object is a plain literal (not `as const`) so consumers like `QuestBlueprintStub` —
  * which expects mutable `StubArgument<QuestBlueprint>` — can accept it without readonly conflicts.
  * statics/ cannot import the zod contract, so `quest-hydrate-broker.integration.test.ts` is the
  * place that parses this literal through `questBlueprintContract` (via `QuestBlueprintStub`) and
- * will fail if any gate requirement drifts.
+ * will fail if any gate requirement drifts. The `operations` array stands in for the codeweaver
+ * implementation items ChaosWhisperer authors during explore_observables; the hydrator appends the
+ * fixed verify tail (flowrider, siegemaster, lawbringer, blightwarden — ward is skipped here) at
+ * in_progress.
  */
-
-const FIXED_TIMESTAMP = '2026-04-21T00:00:00.000Z';
 
 export const smoketestBlueprintsStatics = {
   minimal: {
     title: 'Smoketest Orchestration Quest',
     userRequest:
-      'Drive every orchestration role once through the work-item loop with canned prompt overrides',
+      'Drive every orchestration role once through the operations relay with canned prompt overrides',
     designDecisions: [
       {
         id: 'smoketest-design-decision',
-        title: 'Smoketest uses minimal hand-crafted quest',
+        title: 'Smoketest uses a hand-crafted spec + operations ledger',
         rationale:
-          'Avoids PathSeeker and ChaosWhisperer so scenarios can target the orchestration loop deterministically',
+          'Hand-crafts the spec and one codeweaver operation item so scenarios drive the orchestration relay deterministically instead of running a real ChaosWhisperer session',
         relatedNodeIds: [],
       },
     ],
@@ -88,65 +93,13 @@ export const smoketestBlueprintsStatics = {
         ],
       },
     ],
-    planningNotes: {
-      scopeClassification: {
-        size: 'small',
-        slicing: 'Single operational flow with one terminal observable',
-        rationale:
-          'Smoketest flow is intentionally trivial so orchestration behavior is the only variable',
-        classifiedAt: FIXED_TIMESTAMP,
-      },
-      surfaceReports: [
-        {
-          id: '00000000-0000-0000-0000-00000000beef',
-          sliceName: 'smoketest-slice',
-          packages: ['@dungeonmaster/orchestrator'],
-          flowIds: ['smoketest-signal-flow'],
-          observableIds: ['smoketest-signal-received'],
-          rawReport:
-            '# Smoketest surface report\nMinimal single-slice report authored by the smoketest blueprint; no real research performed.',
-          submittedAt: FIXED_TIMESTAMP,
-        },
-      ],
-      synthesis: {
-        orderOfOperations:
-          'Orchestrator dispatches the scripted agent. Agent emits canned signal. Loop records result.',
-        crossSliceResolutions:
-          'No cross-slice concerns — a single agent runs per work-item within a single orchestration pass.',
-        claudemdRulesInEffect: [],
-        openAssumptions: [],
-        synthesizedAt: FIXED_TIMESTAMP,
-      },
-      walkFindings: {
-        filesRead: [],
-        structuralIssuesFound: [],
-        planPatches: [],
-        verifiedAt: FIXED_TIMESTAMP,
-      },
-      blightReports: [],
-    },
-    steps: [
+    operations: [
       {
-        id: 'smoketest-emit-signal-step',
-        slice: 'smoketest',
-        name: 'Smoketest emit-signal step',
-        assertions: [
-          {
-            prefix: 'VALID',
-            input: '{orchestrator dispatches scripted agent}',
-            expected: 'Agent emits scripted signal-back signal exactly once',
-          },
-        ],
-        observablesSatisfied: ['smoketest-signal-received'],
-        dependsOn: [],
-        focusFile: {
-          path: 'packages/orchestrator/src/statics/smoketest-blueprints/smoketest-blueprints-statics.ts',
-        },
-        accompanyingFiles: [],
-        exportName: 'smoketestBlueprintsStatics',
-        inputContracts: ['Void'],
-        outputContracts: ['SmoketestPlaceholder'],
-        uses: [],
+        id: '00000000-0000-4000-8000-00000000c0de',
+        role: 'codeweaver',
+        text: 'Smoketest: implement the single-flow signal emitter',
+        status: 'pending',
+        locked: false,
       },
     ],
     skipRoles: ['ward'],

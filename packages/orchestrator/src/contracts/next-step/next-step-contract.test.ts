@@ -59,23 +59,23 @@ describe('nextStepContract', () => {
     });
 
     it('VALID: {type: spawn-agents, agents: [multiple]} => parses parallel batch', () => {
-      const surfaceA = SpawnInstructionStub({
-        role: 'pathseeker',
+      const agentA = SpawnInstructionStub({
+        role: 'flowrider',
         workItemId: QuestWorkItemIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
       });
-      const surfaceB = SpawnInstructionStub({
-        role: 'pathseeker',
+      const agentB = SpawnInstructionStub({
+        role: 'siegemaster',
         workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4222-9333-555555555555' }),
       });
 
       const result = nextStepContract.parse({
         type: 'spawn-agents',
-        agents: [surfaceA, surfaceB],
+        agents: [agentA, agentB],
       });
 
       expect(result).toStrictEqual({
         type: 'spawn-agents',
-        agents: [surfaceA, surfaceB],
+        agents: [agentA, agentB],
       });
     });
   });

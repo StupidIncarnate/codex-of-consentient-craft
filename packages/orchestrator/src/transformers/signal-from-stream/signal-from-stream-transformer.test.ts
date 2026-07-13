@@ -1,6 +1,7 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
+  OperationItemIdStub,
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -8,91 +9,97 @@ import { signalFromStreamTransformer } from './signal-from-stream-transformer';
 
 describe('signalFromStreamTransformer', () => {
   describe('valid signal extraction', () => {
-    it('VALID: {assistant message with signal-back tool call} => returns StreamSignal', () => {
+    it('VALID: {signal-back tool call, operationStatus done} => returns StreamSignal', () => {
+      const operationItemId = OperationItemIdStub();
       const parsed = snakeKeysToCamelKeysTransformer({
-        value: JSON.parse(
-          JSON.stringify({
-            type: 'assistant',
-            message: {
-              content: [
-                {
-                  type: 'tool_use',
-                  name: 'mcp__dungeonmaster__signal-back',
-                  input: {
-                    signal: 'complete',
-                    summary: 'Task completed',
-                  },
+        value: AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                name: 'mcp__dungeonmaster__signal-back',
+                input: {
+                  signal: 'complete',
+                  operationItemId,
+                  operationStatus: 'done',
                 },
-              ],
-            },
-          }),
-        ),
+              },
+            ],
+          },
+        }),
       });
 
       const result = signalFromStreamTransformer({ parsed });
 
       expect(result).toStrictEqual({
         signal: 'complete',
-        summary: 'Task completed',
+        operationItemId,
+        operationStatus: 'done',
       });
     });
 
-    it('VALID: {failed signal} => returns StreamSignal with summary', () => {
+    it('VALID: {signal-back tool call, operationStatus partial} => returns StreamSignal', () => {
+      const operationItemId = OperationItemIdStub();
       const parsed = snakeKeysToCamelKeysTransformer({
-        value: JSON.parse(
-          JSON.stringify({
-            type: 'assistant',
-            message: {
-              content: [
-                {
-                  type: 'tool_use',
-                  name: 'mcp__dungeonmaster__signal-back',
-                  input: {
-                    signal: 'failed',
-                    summary: 'Tests failing in user-fetch-broker',
-                  },
+        value: AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'tool_use',
+                id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                name: 'mcp__dungeonmaster__signal-back',
+                input: {
+                  signal: 'complete',
+                  operationItemId,
+                  operationStatus: 'partial',
                 },
-              ],
-            },
-          }),
-        ),
-      });
-
-      const result = signalFromStreamTransformer({ parsed });
-
-      expect(result).toStrictEqual({
-        signal: 'failed',
-        summary: 'Tests failing in user-fetch-broker',
-      });
-    });
-
-    it('VALID: {multiple tool calls with signal-back} => returns first signal', () => {
-      const parsed = snakeKeysToCamelKeysTransformer({
-        value: JSON.parse(
-          JSON.stringify({
-            type: 'assistant',
-            message: {
-              content: [
-                { type: 'text', text: 'Some text' },
-                {
-                  type: 'tool_use',
-                  name: 'mcp__dungeonmaster__signal-back',
-                  input: {
-                    signal: 'complete',
-                    summary: 'Done',
-                  },
-                },
-              ],
-            },
-          }),
-        ),
+              },
+            ],
+          },
+        }),
       });
 
       const result = signalFromStreamTransformer({ parsed });
 
       expect(result).toStrictEqual({
         signal: 'complete',
-        summary: 'Done',
+        operationItemId,
+        operationStatus: 'partial',
+      });
+    });
+
+    it('VALID: {text then signal-back tool call} => returns first signal', () => {
+      const operationItemId = OperationItemIdStub();
+      const parsed = snakeKeysToCamelKeysTransformer({
+        value: AssistantToolUseStreamLineStub({
+          message: {
+            role: 'assistant',
+            content: [
+              { type: 'text', text: 'Some text' },
+              {
+                type: 'tool_use',
+                id: 'toolu_02SignalBack1234567890AB',
+                name: 'mcp__dungeonmaster__signal-back',
+                input: {
+                  signal: 'complete',
+                  operationItemId,
+                  operationStatus: 'done',
+                },
+              },
+            ],
+          },
+        }),
+      });
+
+      const result = signalFromStreamTransformer({ parsed });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+        operationItemId,
+        operationStatus: 'done',
       });
     });
   });

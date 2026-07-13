@@ -5,9 +5,6 @@ describe('agentPromptClassificationStatics', () => {
     expect(agentPromptClassificationStatics).toStrictEqual({
       minionNames: [
         'chaoswhisperer-gap-minion',
-        'pathseeker-surface',
-        'pathseeker-dedup',
-        'pathseeker-assertion-correctness',
         'codeweaver-minion',
         'lawbringer-minion',
         'blightwarden-security-minion',

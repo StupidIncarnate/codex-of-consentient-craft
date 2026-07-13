@@ -1,6 +1,7 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
+  OperationItemIdStub,
 } from '@dungeonmaster/shared/contracts';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -8,72 +9,98 @@ import { signalExtractorTransformer } from './signal-extractor-transformer';
 
 describe('signalExtractorTransformer', () => {
   describe('valid signal extraction', () => {
-    it('VALID: {parsed with signal-back tool call} => returns extracted signal', () => {
+    it('VALID: {parsed with signal-back tool call, operationStatus done} => returns extracted signal', () => {
+      const operationItemId = OperationItemIdStub();
       const result = signalExtractorTransformer({
         parsed: snakeKeysToCamelKeysTransformer({
-          value: JSON.parse(
-            JSON.stringify({
-              type: 'assistant',
-              message: {
-                content: [
-                  {
-                    type: 'tool_use',
-                    name: 'mcp__dungeonmaster__signal-back',
-                    input: {
-                      signal: 'complete',
-                      summary: 'Task completed',
-                    },
+          value: AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'mcp__dungeonmaster__signal-back',
+                  input: {
+                    signal: 'complete',
+                    operationItemId,
+                    operationStatus: 'done',
                   },
-                ],
-              },
-            }),
-          ),
+                },
+              ],
+            },
+          }),
         }),
       });
 
       expect(result).toStrictEqual({
         signal: {
           signal: 'complete',
-          summary: 'Task completed',
+          operationItemId,
+          operationStatus: 'done',
         },
       });
     });
 
-    it('VALID: {mixed tool_use items, one signal-back} => extracts signal', () => {
+    it('VALID: {mixed tool_use items, one signal-back with operationStatus partial} => extracts signal', () => {
+      const operationItemId = OperationItemIdStub();
       const result = signalExtractorTransformer({
         parsed: snakeKeysToCamelKeysTransformer({
-          value: JSON.parse(
-            JSON.stringify({
-              type: 'assistant',
-              message: {
-                content: [
-                  {
-                    type: 'tool_use',
-                    id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
-                    name: 'mcp__dungeonmaster__other-tool',
-                    input: { foo: 'bar' },
+          value: AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'mcp__dungeonmaster__other-tool',
+                  input: { foo: 'bar' },
+                },
+                {
+                  type: 'tool_use',
+                  id: 'toolu_02SignalBack1234567890AB',
+                  name: 'mcp__dungeonmaster__signal-back',
+                  input: {
+                    signal: 'complete',
+                    operationItemId,
+                    operationStatus: 'partial',
                   },
-                  {
-                    type: 'tool_use',
-                    name: 'mcp__dungeonmaster__signal-back',
-                    input: {
-                      signal: 'complete',
-                      summary: 'Done',
-                    },
-                  },
-                ],
-              },
-            }),
-          ),
+                },
+              ],
+            },
+          }),
         }),
       });
 
       expect(result).toStrictEqual({
         signal: {
           signal: 'complete',
-          summary: 'Done',
+          operationItemId,
+          operationStatus: 'partial',
         },
       });
+    });
+
+    it('VALID: {signal-back with only signal, no operationItemId/operationStatus} => extracts bare complete signal', () => {
+      const result = signalExtractorTransformer({
+        parsed: snakeKeysToCamelKeysTransformer({
+          value: AssistantToolUseStreamLineStub({
+            message: {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
+                  name: 'mcp__dungeonmaster__signal-back',
+                  input: { signal: 'complete' },
+                },
+              ],
+            },
+          }),
+        }),
+      });
+
+      expect(result).toStrictEqual({ signal: { signal: 'complete' } });
     });
   });
 
