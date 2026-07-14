@@ -16,5 +16,13 @@ describe('eslintInstanceContract', () => {
 
       expect(result).toStrictEqual({});
     });
+
+    it('VALID: {isPathIgnored} => defaults to not ignored', async () => {
+      const instance = EslintInstanceStub();
+
+      const result = await instance.isPathIgnored?.('/test.ts');
+
+      expect(result).toBe(false);
+    });
   });
 });

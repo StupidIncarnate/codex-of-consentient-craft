@@ -17,6 +17,7 @@ registerModuleMock({ module: 'eslint' });
 const mockCalculateConfigForFile = jest.fn();
 const mockLintText = jest.fn();
 const mockLintFiles = jest.fn();
+const mockIsPathIgnored = jest.fn();
 
 // Create mock instance that passes instanceof checks
 const mockEslintInstance = Object.create(ESLint.prototype) as ESLint;
@@ -24,6 +25,7 @@ mockEslintInstance.calculateConfigForFile =
   mockCalculateConfigForFile as ESLint['calculateConfigForFile'];
 mockEslintInstance.lintText = mockLintText as ESLint['lintText'];
 mockEslintInstance.lintFiles = mockLintFiles as ESLint['lintFiles'];
+mockEslintInstance.isPathIgnored = mockIsPathIgnored as ESLint['isPathIgnored'];
 
 const createMockHandle = (): MockHandle => {
   const mockedConstructor = jest.fn();
@@ -64,6 +66,7 @@ export const eslintEslintAdapterProxy = (): {
   setLintTextBehavior: (implementation: () => Promise<unknown[]>) => void;
   getLintTextHandler: () => jest.Mock;
   getLintFilesHandler: () => jest.Mock;
+  getIsPathIgnoredHandler: () => jest.Mock;
   getHandle: () => MockHandle;
 } => {
   const MockESLintConstructor = createMockHandle();
@@ -80,6 +83,9 @@ export const eslintEslintAdapterProxy = (): {
   // Default: lintFiles returns empty results
   mockLintFiles.mockResolvedValue([]);
 
+  // Default: isPathIgnored reports paths as not ignored
+  mockIsPathIgnored.mockResolvedValue(false);
+
   return {
     returns: ({ config }: { config: Linter.Config }) => {
       mockCalculateConfigForFile.mockResolvedValueOnce(config);
@@ -94,6 +100,7 @@ export const eslintEslintAdapterProxy = (): {
     },
     getLintTextHandler: () => mockLintText,
     getLintFilesHandler: () => mockLintFiles,
+    getIsPathIgnoredHandler: () => mockIsPathIgnored,
     getHandle: () => MockESLintConstructor,
   };
 };

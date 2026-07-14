@@ -70,7 +70,9 @@ export const hookPersistentRunnerHarness = (): {
     child = spawn('npx', ['tsx', WORKER_PATH, String(flowPath)], {
       cwd: process.cwd(),
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env },
+      // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
+      // ESLint-ignored paths so violation detection is still exercised.
+      env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
     });
 
     rl = readline.createInterface({

@@ -11,6 +11,8 @@ import { eslintLoadConfigBroker } from '../../eslint/load-config/eslint-load-con
 import { eslintConfigFilterTransformer } from '../../../transformers/eslint-config-filter/eslint-config-filter-transformer';
 import { violationsAnalyzeBroker } from '../analyze/violations-analyze-broker';
 import { eslintLintRunTargetedBroker } from '../../eslint/lint-run-targeted/eslint-lint-run-targeted-broker';
+import { eslintIsPathIgnoredBroker } from '../../eslint/is-path-ignored/eslint-is-path-ignored-broker';
+import { processHookLintIgnoredPathsAdapter } from '../../../adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import {
   violationComparisonContract,
@@ -49,6 +51,19 @@ export const violationsCheckNewBroker = async ({
       hasNewViolations: false,
       newViolations: [],
     });
+  }
+
+  // Honor the project's ESLint ignore list: a file `npm run ward` would never lint must not be
+  // blocked by the hook either. The env seam lets this repo's own hook integration tests lint
+  // their `.test-tmp` sandbox, which the repo config globally ignores.
+  if (!processHookLintIgnoredPathsAdapter()) {
+    const isIgnored = await eslintIsPathIgnoredBroker({ cwd: workingDir, filePath });
+    if (isIgnored) {
+      return violationComparisonContract.parse({
+        hasNewViolations: false,
+        newViolations: [],
+      });
+    }
   }
 
   // Load configuration if not provided

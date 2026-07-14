@@ -9,8 +9,10 @@ import { z } from 'zod';
 
 export const eslintInstanceContract = z.object({
   calculateConfigForFile: z.function().optional(),
+  isPathIgnored: z.function().optional(),
 });
 
 export type EslintInstance = z.infer<typeof eslintInstanceContract> & {
   calculateConfigForFile?: (filePath: string) => Promise<unknown>;
+  isPathIgnored?: (filePath: string) => Promise<boolean>;
 };

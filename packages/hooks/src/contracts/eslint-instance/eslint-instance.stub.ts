@@ -5,15 +5,19 @@ import type { EslintInstance } from './eslint-instance-contract';
 export const EslintInstanceStub = ({
   ...props
 }: StubArgument<EslintInstance> = {}): EslintInstance => {
-  const { calculateConfigForFile, ...dataProps } = props;
+  const { calculateConfigForFile, isPathIgnored, ...dataProps } = props;
 
   const defaultCalculateConfigForFile = async (_filePath: string): Promise<unknown> =>
     Promise.resolve({});
+
+  const defaultIsPathIgnored = async (_filePath: string): Promise<boolean> =>
+    Promise.resolve(false);
 
   return {
     ...eslintInstanceContract.parse({
       ...dataProps,
     }),
     calculateConfigForFile: calculateConfigForFile ?? (defaultCalculateConfigForFile as never),
+    isPathIgnored: isPathIgnored ?? (defaultIsPathIgnored as never),
   };
 };

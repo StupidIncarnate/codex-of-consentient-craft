@@ -23,4 +23,27 @@ describe('violationsCheckNewBroker', () => {
       });
     });
   });
+
+  describe('ESLint-ignored paths', () => {
+    it('VALID: {file ignored by project config} => skips linting and returns no violations', async () => {
+      const proxy = violationsCheckNewBrokerProxy();
+      proxy.setupViolationCheck({ hasViolations: true });
+      proxy.setPathIgnored({ ignored: true });
+
+      const toolInput = WriteToolInputStub({
+        content: 'const x = new;',
+        file_path: FilePathStub({ value: '/test/project/smoke-repo/fixture.ts' }),
+      });
+
+      const result = await violationsCheckNewBroker({
+        toolInput,
+        cwd: FilePathStub({ value: '/test/project' }),
+      });
+
+      expect(result).toStrictEqual({
+        hasNewViolations: false,
+        newViolations: [],
+      });
+    });
+  });
 });

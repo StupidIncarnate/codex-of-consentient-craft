@@ -55,6 +55,9 @@ export const hookRunnerHarness = (): {
       input,
       encoding: 'utf8',
       cwd: process.cwd(),
+      // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
+      // ESLint-ignored paths so violation detection is still exercised.
+      env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
     });
 
     return ExecResultStub({
@@ -79,6 +82,9 @@ export const hookRunnerHarness = (): {
       input: String(input),
       encoding: 'utf8',
       cwd: process.cwd(),
+      // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
+      // ESLint-ignored paths so violation detection is still exercised.
+      env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
     });
   };
 
