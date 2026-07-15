@@ -29,34 +29,27 @@ export const filepathBasenameWithoutSuffixTransformer = ({
 
   // For suffixes that include the extension (like .proxy.ts), don't remove extension first
   const suffixIncludesExtension = /\.[^.]+$/u;
+  const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
+  const suffixes = Array.isArray(suffix) ? suffix.map((s) => String(s)) : [String(suffix)];
 
-  if (Array.isArray(suffix)) {
-    for (const s of suffix) {
-      const sStr = String(s);
-      if (suffixIncludesExtension.test(sStr)) {
-        if (fullFilename.endsWith(sStr)) {
-          return identifierContract.parse(fullFilename.slice(0, -sStr.length));
-        }
-      } else {
-        const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
-        if (withoutExt.endsWith(sStr)) {
-          return identifierContract.parse(withoutExt.slice(0, -sStr.length));
-        }
+  for (const candidate of suffixes) {
+    if (suffixIncludesExtension.test(candidate)) {
+      if (fullFilename.endsWith(candidate)) {
+        return identifierContract.parse(fullFilename.slice(0, -candidate.length));
       }
-    }
-  } else if (typeof suffix === 'string') {
-    if (suffixIncludesExtension.test(suffix)) {
-      if (fullFilename.endsWith(suffix)) {
-        return identifierContract.parse(fullFilename.slice(0, -suffix.length));
+
+      // Extension differs but the stem still marks where the base ends. Callers append
+      // the canonical suffix to this base, so a base that kept its own suffix would
+      // double it — 'user-profile-responder' + '-responder'.
+      const stem = candidate.replace(/\.[^.]+$/u, '');
+      if (withoutExt.endsWith(stem)) {
+        return identifierContract.parse(withoutExt.slice(0, -stem.length));
       }
-    } else {
-      const withoutExt = fullFilename.replace(/\.[^.]+$/u, '');
-      if (withoutExt.endsWith(suffix)) {
-        return identifierContract.parse(withoutExt.slice(0, -suffix.length));
-      }
+    } else if (withoutExt.endsWith(candidate)) {
+      return identifierContract.parse(withoutExt.slice(0, -candidate.length));
     }
   }
 
   // Fallback: just remove extension
-  return identifierContract.parse(fullFilename.replace(/\.[^.]+$/u, ''));
+  return identifierContract.parse(withoutExt);
 };

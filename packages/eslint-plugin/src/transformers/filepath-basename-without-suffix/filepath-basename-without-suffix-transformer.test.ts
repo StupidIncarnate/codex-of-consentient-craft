@@ -97,6 +97,26 @@ describe('filepathBasenameWithoutSuffixTransformer', () => {
     });
   });
 
+  describe('suffix stem matches but extension does not', () => {
+    it('VALID: {filePath: "user-profile-responder.tsx", suffix: "-responder.ts"} => returns "user-profile"', () => {
+      expect(
+        filepathBasenameWithoutSuffixTransformer({
+          filePath: 'user-profile-responder.tsx',
+          suffix: '-responder.ts',
+        }),
+      ).toBe('user-profile');
+    });
+
+    it('VALID: {filePath: "user-fetch-broker.tsx", suffix: ["-broker.ts"]} => returns "user-fetch"', () => {
+      expect(
+        filepathBasenameWithoutSuffixTransformer({
+          filePath: 'user-fetch-broker.tsx',
+          suffix: ['-broker.ts'],
+        }),
+      ).toBe('user-fetch');
+    });
+  });
+
   describe('no suffix match (fallback)', () => {
     it('EDGE: {filePath: "/path/to/user-broker.ts", suffix: "-contract"} => returns "user-broker"', () => {
       expect(

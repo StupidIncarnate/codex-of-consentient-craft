@@ -21,7 +21,9 @@ export const jestRegisterModuleMockAdapter = ({
   factory: _factory,
 }: {
   module: string;
-  factory?: () => Record<PropertyKey, unknown>;
+  // `unknown`, not an object shape: a module's export can be any value — Electron's
+  // Node-context export is a bare path string, not a record.
+  factory?: () => unknown;
 }): AdapterResult =>
   // Intentionally empty — jest.mock() is hoisted by the AST transformer
 

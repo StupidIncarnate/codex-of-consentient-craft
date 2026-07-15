@@ -81,7 +81,7 @@ describe('jestRuleStatics', () => {
         'jest/prefer-snapshot-hint': 'off',
         'jest/prefer-spy-on': 'error',
         'jest/prefer-strict-equal': 'error',
-        'jest/prefer-to-be': 'error',
+        'jest/prefer-to-be': 'off',
         'jest/prefer-to-contain': 'off',
         'jest/prefer-to-have-length': 'error',
         'jest/prefer-todo': 'off',

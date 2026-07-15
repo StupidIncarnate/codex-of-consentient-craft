@@ -186,8 +186,12 @@ export const jestRuleStatics = {
     // Requires toStrictEquals()
     'jest/prefer-strict-equal': 'error',
 
-    // Enforces toBe on primitive literals
-    'jest/prefer-to-be': 'error',
+    // Would rewrite toBe(undefined)/toBe(null) into toBeUndefined()/toBeNull(),
+    // which @dungeonmaster/ban-weak-existence-matchers bans. Both on, every spelling
+    // is an error and --fix flips between them. ban-weak-existence-matchers owns this
+    // call: assert undefined/null as toBe(undefined)/toBe(null).
+    // jest/prefer-strict-equal still steers other equality matchers.
+    'jest/prefer-to-be': 'off',
 
     // Enforces toContains on array evals
     // ToContain should not be used

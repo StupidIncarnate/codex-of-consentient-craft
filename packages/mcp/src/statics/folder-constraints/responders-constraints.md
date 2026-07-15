@@ -8,8 +8,8 @@ responders/
       user-get-responder.test.ts
       user-get-responder.proxy.ts
     profile/
-      user-profile-responder.tsx      # Frontend page
-      user-profile-responder.test.tsx
+      user-profile-responder.ts       # Frontend page (.ts — JSX lives in the widget)
+      user-profile-responder.test.ts
       user-profile-responder.proxy.ts
   email/
     process-queue/
@@ -20,10 +20,27 @@ responders/
 
 **FOUR TYPES OF RESPONDERS:**
 
-1. **Frontend pages** - Return `JSX.Element`, called from Route components
+1. **Frontend pages** - Name the widget a route renders. `.ts` only — no JSX
 2. **Backend controllers** - Accept `{req, res}`, call response methods
 3. **Queue processors** - Process message queue jobs
 4. **Scheduled tasks** - Execute on cron/time triggers
+
+**RESPONDERS ARE `.ts`, NEVER `.tsx`:**
+
+`fileSuffix` is `-responder.ts` only — a `-responder.tsx` fails the project-structure
+rule. A frontend page responder therefore holds **no JSX**: it names the widget the route
+renders, and that widget (`.tsx`) owns the markup, the hooks, and the route-param reads.
+
+```typescript
+// responders/user/profile/user-profile-responder.ts
+import {UserProfileWidget} from '../../../widgets/user-profile/user-profile-widget';
+
+export const UserProfileResponder = UserProfileWidget;
+```
+
+The responder stays a component reference, so a flow renders `<UserProfileResponder />`
+exactly as before. When a page needs its own setup before delegating, keep the JSX in a
+widget and have the responder call it — never introduce JSX into the `.ts` file.
 
 **GOLDEN RULE:**
 
@@ -35,10 +52,8 @@ responders/
 <Route path="/users/:id" element={<UserProfileResponder />} />
 // ↑ Route points to it = RESPONDER
 
-// responders/user/profile/user-profile-responder.tsx
-export const UserProfileResponder = (): JSX.Element => {
-    return <UserCardWidget user={user} />;  // ← Component renders it = WIDGET
-};
+// responders/user/profile/user-profile-responder.ts
+export const UserProfileResponder = UserCardWidget;  // ← Component renders it = WIDGET
 ```
 
 **RESPONDER RESPONSIBILITIES:**
@@ -162,8 +177,13 @@ export const UserCreateResponder = async ({req, res}: {
     res.json(user);
 };
 
-// Frontend boundary (React Router)
-export const UserProfileResponder = (): JSX.Element => {
+// Frontend boundary (React Router) — the WIDGET validates, because the
+// responder is JSX-free .ts. The responder just names the widget:
+//   responders/user/profile/user-profile-responder.ts
+//   export const UserProfileResponder = UserProfileWidget;
+
+// widgets/user-profile/user-profile-widget.tsx
+export const UserProfileWidget = (): React.JSX.Element => {
     const params = useParams();  // External source
     const validated = userIdContract.safeParse(params.id);
     if (!validated.success) {
@@ -171,7 +191,7 @@ export const UserProfileResponder = (): JSX.Element => {
     }
     // Use validated.data with full type safety
     const userId = validated.data;
-    return <UserProfileWidget userId={userId} />;
+    return <UserCardWidget userId={userId} />;
 };
 
 // CLI/Hook boundary
@@ -283,19 +303,28 @@ export const UserGetResponder = async ({req, res}: {
 };
 
 /**
- * PURPOSE: Renders user profile page with user data from route params
+ * PURPOSE: Provides the user profile page as a route element
  *
  * USAGE:
  * <Route path="/users/:id" element={<UserProfileResponder />} />
  * // Renders user profile page at /users/:id
  */
-// responders/user/profile/user-profile-responder.tsx (Frontend page)
-import {useParams} from 'react-router-dom';
-import {useUserDataBinding} from '../../../bindings/use-user-data/use-user-data-binding';
-import {UserCardWidget} from '../../../widgets/user-card/user-card-widget';
-import type {UserId} from '../../../contracts/user/user-contract';
+// responders/user/profile/user-profile-responder.ts (Frontend page)
+import {UserProfileWidget} from '../../../widgets/user-profile/user-profile-widget';
 
-export const UserProfileResponder = (): JSX.Element => {
+export const UserProfileResponder = UserProfileWidget;
+```
+
+The widget behind it holds every hook and all the JSX:
+
+```typescript
+// widgets/user-profile/user-profile-widget.tsx
+import {useParams} from 'react-router-dom';
+import {useUserDataBinding} from '../../bindings/use-user-data/use-user-data-binding';
+import {UserCardWidget} from '../user-card/user-card-widget';
+import type {UserId} from '../../contracts/user/user-contract';
+
+export const UserProfileWidget = (): React.JSX.Element => {
     const {id} = useParams<{ id: UserId }>();
     const {data: user, loading, error} = useUserDataBinding({userId: id});
 

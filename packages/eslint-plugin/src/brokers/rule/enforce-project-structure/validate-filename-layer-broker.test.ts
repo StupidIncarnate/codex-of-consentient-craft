@@ -563,6 +563,33 @@ describe('validateFilenameLayerBroker', () => {
     });
   });
 
+  describe('correct suffix stem with wrong extension', () => {
+    it('INVALID: responder named -responder.tsx => reports only the suffix error', () => {
+      validateFilenameLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = EslintContextStub({ report: mockReport });
+      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const firstFolder = IdentifierStub({ value: 'responders' });
+
+      const result = validateFilenameLayerBroker({
+        node,
+        context,
+        filename: '/project/src/responders/user/profile/user-profile-responder.tsx',
+        firstFolder,
+        folderConfig: folderConfigStatics.responders,
+        isLayerFile: false,
+      });
+
+      expect(result).toBe(false);
+      expect(mockReport).toHaveBeenCalledTimes(1);
+      expect(mockReport).toHaveBeenCalledWith({
+        node,
+        messageId: 'invalidFileSuffixWithLayer',
+        data: { expected: '-responder.ts', folderType: firstFolder },
+      });
+    });
+  });
+
   describe('assets and migrations skip validation', () => {
     it('VALID: assets (empty exportSuffix and exportCase) => returns true', () => {
       validateFilenameLayerBrokerProxy();

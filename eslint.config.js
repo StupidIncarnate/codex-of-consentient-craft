@@ -124,7 +124,6 @@ module.exports = [
       'max-lines-per-function': 'off',
       'max-nested-callbacks': 'off',
       'jest/unbound-method': 'off',
-      'jest/prefer-to-be': 'off',
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
     },
