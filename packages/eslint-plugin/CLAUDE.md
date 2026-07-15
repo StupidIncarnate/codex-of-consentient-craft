@@ -201,6 +201,7 @@ if (isLayerFile && !folderConfig?.allowsLayerFiles) {
 
 **Layer files are allowed in:**
 
+- `adapters/` - Complex I/O translation steps (request building, response parsing)
 - `brokers/` - Complex business logic decomposition
 - `widgets/` - Complex UI sub-components
 - `responders/` - Complex request handling layers

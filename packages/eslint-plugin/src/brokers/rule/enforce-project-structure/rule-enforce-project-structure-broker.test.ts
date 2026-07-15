@@ -39,6 +39,10 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       filename:
         '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.ts',
     },
+    {
+      code: 'export const parseResponseLayerAdapter = () => {};',
+      filename: '/project/src/adapters/axios/get/parse-response-layer-adapter.ts',
+    },
 
     // ========== SKIP CONDITIONS ==========
     {

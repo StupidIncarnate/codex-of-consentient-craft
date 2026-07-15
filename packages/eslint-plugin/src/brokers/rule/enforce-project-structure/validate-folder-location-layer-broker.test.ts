@@ -124,6 +124,25 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(result).toBe(true);
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
+
+    it('VALID: layer file in adapters => returns true', () => {
+      validateFolderLocationLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = EslintContextStub({ report: mockReport });
+      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const firstFolder = IdentifierStub({ value: 'adapters' });
+
+      const result = validateFolderLocationLayerBroker({
+        node,
+        context,
+        firstFolder,
+        folderConfig: folderConfigStatics.adapters,
+        isLayerFile: true,
+      });
+
+      expect(result).toBe(true);
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
   });
 
   describe('forbidden folders', () => {
@@ -311,30 +330,6 @@ describe('validateFolderLocationLayerBroker', () => {
         context,
         firstFolder,
         folderConfig: folderConfigStatics.transformers,
-        isLayerFile: true,
-      });
-
-      expect(result).toBe(false);
-      expect(mockReport).toHaveBeenCalledTimes(1);
-      expect(mockReport).toHaveBeenCalledWith({
-        node,
-        messageId: 'layerFilesNotAllowed',
-        data: { folderType: firstFolder },
-      });
-    });
-
-    it('INVALID: layer file in adapters/ => reports layerFilesNotAllowed', () => {
-      validateFolderLocationLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
-
-      const result = validateFolderLocationLayerBroker({
-        node,
-        context,
-        firstFolder,
-        folderConfig: folderConfigStatics.adapters,
         isLayerFile: true,
       });
 

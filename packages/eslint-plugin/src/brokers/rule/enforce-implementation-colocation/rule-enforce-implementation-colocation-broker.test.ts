@@ -257,7 +257,10 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     {
       code: 'export const axiosPostAdapter = () => {};',
       filename: '/project/src/adapters/axios/axios-post-adapter.ts',
-      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingProxyFile' }],
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
     },
     {
       code: 'export const isAdminGuard = () => {};',

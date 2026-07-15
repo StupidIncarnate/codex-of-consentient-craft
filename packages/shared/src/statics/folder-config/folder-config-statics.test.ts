@@ -159,7 +159,7 @@ describe('folderConfigStatics', () => {
         ],
         disallowAdhocTypes: false,
         requireProxy: true,
-        allowsLayerFiles: false,
+        allowsLayerFiles: true,
         allowRegex: false,
         requireContractDeclarations: true,
         testType: 'unit',

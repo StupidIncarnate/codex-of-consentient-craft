@@ -19,6 +19,11 @@ import { collectExportsLayerBroker } from './collect-exports-layer-broker';
 import { validateExportLayerBroker } from './validate-export-layer-broker';
 
 export const ruleEnforceProjectStructureBroker = (): EslintRule => {
+  const layerAllowedFolders = Object.entries(folderConfigStatics)
+    .filter(([, config]) => config.allowsLayerFiles)
+    .map(([folderType]) => `${folderType}/`)
+    .join(', ');
+
   const parsedMeta = eslintRuleContract.parse({
     meta: {
       type: 'problem',
@@ -65,8 +70,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
           'Lvl4: Proxy must export arrow function (export const x = () => {}), not {{actualType}}',
 
         // Layer file errors
-        layerFilesNotAllowed:
-          'Layer files (-layer-) are not allowed in {{folderType}}/. Only allowed in: brokers/, widgets/, responders/',
+        layerFilesNotAllowed: `Layer files (-layer-) are not allowed in {{folderType}}/. Only allowed in: ${layerAllowedFolders}`,
       },
       schema: [],
     },

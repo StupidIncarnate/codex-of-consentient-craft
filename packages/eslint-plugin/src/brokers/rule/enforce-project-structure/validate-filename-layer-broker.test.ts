@@ -422,7 +422,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('INVALID: adapter missing -adapter.ts => reports invalidFileSuffix', () => {
+    it('INVALID: adapter missing -adapter.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -441,7 +441,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(result).toBe(false);
       expect(mockReport).toHaveBeenCalledWith({
         node,
-        messageId: 'invalidFileSuffix',
+        messageId: 'invalidFileSuffixWithLayer',
         data: { expected: '-adapter.ts', folderType: firstFolder },
       });
     });
@@ -518,12 +518,12 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).toHaveBeenCalledTimes(2);
       expect(mockReport).toHaveBeenNthCalledWith(1, {
         node,
-        messageId: 'invalidFileSuffix',
+        messageId: 'invalidFileSuffixWithLayer',
         data: { expected: '-adapter.ts', folderType: firstFolder },
       });
       expect(mockReport).toHaveBeenNthCalledWith(2, {
         node,
-        messageId: 'invalidFilenameCase',
+        messageId: 'invalidFilenameCaseWithLayer',
         data: {
           actual: 'eslintRuleTester-adapter',
           expected: 'eslint-rule-tester-adapter',

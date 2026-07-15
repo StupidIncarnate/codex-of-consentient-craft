@@ -27,12 +27,39 @@ adapters/
 - **CRITICAL: One export per file** - Each adapter file exports exactly ONE arrow function
 - **MUST be arrow function** - `export const x = () => {}` NOT `export function x() {}` or re-exports
 - **CANNOT import other adapters** - Adapters only call functions from their associated npm package (folder name =
-  package name)
+  package name). The sole exception is a `-layer-` file in the SAME folder, which is part of this adapter, not another
+  one.
 - **MUST add project-specific configuration** - Add timeout, auth headers, retry logic, logging, etc. to npm package
   calls
 - **MUST return a meaningful value** — adapters must NOT return `void` or `Promise<void>`. Side-effect adapters (write,
   delete, mkdir) return `AdapterResult` from `@dungeonmaster/shared/contracts`. Enforced by
   `@dungeonmaster/enforce-folder-return-types`.
+
+**LAYER FILES:**
+
+Adapters allow `-layer-` files to decompose a complex I/O boundary into focused steps — building a request, parsing a
+response, mapping external error codes. Layers are co-located flat with their parent and are internal to it.
+
+```
+adapters/
+  axios/
+    get/
+      axios-get-adapter.ts               # Parent - calls axios, orchestrates layers
+      axios-get-adapter.proxy.ts
+      axios-get-adapter.test.ts
+
+      parse-response-layer-adapter.ts    # Layer - translates AxiosResponse to contract
+      parse-response-layer-adapter.proxy.ts
+      parse-response-layer-adapter.test.ts
+```
+
+- **Layers are NOT "other adapters"** — the parent imports them by relative path (`./parse-response-layer-adapter`).
+  They belong to the same folder, so the same-npm-package rule still holds.
+- **Only the parent calls the npm package** — layers translate shapes the parent already fetched. Keep the actual
+  `axios.get`/`readFile` call in the parent so the proxy keeps mocking one boundary.
+- **Layers are internal** — never import a layer from another folder. Reusable logic belongs in `transformers/` or
+  `guards/`, not a layer.
+- **Same return rule applies** — layers end in `-adapter.ts`, so they must NOT return `void` or `Promise<void>`.
 
 **ERROR HANDLING:**
 
