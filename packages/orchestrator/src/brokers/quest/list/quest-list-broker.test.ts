@@ -97,6 +97,91 @@ describe('questListBroker', () => {
     });
   });
 
+  describe('unloadable quest files', () => {
+    it('EDGE: {one quest file rejected by questContract} => returns the loadable quests and skips it', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub();
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
+      proxy.setupQuestDirectories({
+        files: [FileNameStub({ value: '001-legacy' }), FileNameStub({ value: '002-good' })],
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-legacy/quest.json' }),
+      });
+      // Written by an older schema: `pathseeker` is no longer in workItemRoleContract.
+      proxy.setupQuestFile({
+        questJson: JSON.stringify({
+          id: 'legacy-quest',
+          folder: '001-legacy',
+          title: 'Legacy Quest',
+          status: 'complete',
+          createdAt: '2024-01-01T00:00:00Z',
+          userRequest: 'Legacy request',
+          workItems: [
+            {
+              id: 'e2e00000-0000-4000-8000-0000000000ff',
+              role: 'pathseeker',
+              status: 'complete',
+              spawnerType: 'agent',
+              createdAt: '2024-01-01T00:00:00Z',
+              relatedDataItems: [],
+              dependsOn: [],
+            },
+          ],
+          toolingRequirements: [],
+        }),
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({ value: '/project/.dungeonmaster-quests/002-good/quest.json' }),
+      });
+      proxy.setupQuestFile({
+        questJson: JSON.stringify({
+          id: 'good-quest',
+          folder: '002-good',
+          title: 'Good Quest',
+          status: 'in_progress',
+          createdAt: '2024-01-02T00:00:00Z',
+          userRequest: 'Good request',
+          steps: [],
+          toolingRequirements: [],
+        }),
+      });
+
+      const result = await questListBroker({ guildId });
+
+      expect(result.map((q) => q.id)).toStrictEqual(['good-quest']);
+    });
+
+    it('EDGE: {one quest file rejected by questContract} => names the file and the rejected field on stderr', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub();
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
+      proxy.setupQuestDirectories({
+        files: [FileNameStub({ value: '001-legacy' })],
+      });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({ value: '/project/.dungeonmaster-quests/001-legacy/quest.json' }),
+      });
+      proxy.setupQuestFile({ questJson: '{ not valid json' });
+
+      await questListBroker({ guildId });
+
+      expect(process.stderr.write).toHaveBeenCalledWith(
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/001-legacy/quest.json: file contents are not valid JSON\n',
+      );
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {projectId with hidden files} => handles hidden files in quest folder', async () => {
       const proxy = questListBrokerProxy();

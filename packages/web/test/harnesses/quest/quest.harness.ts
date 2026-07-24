@@ -93,6 +93,11 @@ export const questHarness = ({
       wardMode?: string;
     }[];
   }) => void;
+  writeUnparseableQuestFile: (params: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+  }) => void;
   writeWardResultDetail: (params: {
     questFilePath: string;
     wardResultId: string;
@@ -317,6 +322,51 @@ export const questHarness = ({
     appendFileSync(outboxPath, outboxLine);
   };
 
+  // Writes a quest.json that questContract REJECTS, into a real quest folder the guild's
+  // quests dir enumerates. Mirrors a file written by an older schema: a workItem role that is
+  // no longer in workItemRoleContract plus relatedDataItems as bare uuids instead of the
+  // `{collection}/{id}` shape. Used to prove one such file cannot take the whole guild's quest
+  // list — and therefore the dispatcher's active-quest scan — down with it.
+  const writeUnparseableQuestFile = ({
+    questId,
+    questFolder,
+    questFilePath,
+  }: {
+    questId: string;
+    questFolder: string;
+    questFilePath: string;
+  }): void => {
+    const quest = {
+      id: questId,
+      folder: questFolder,
+      title: 'Legacy schema quest',
+      status: 'complete',
+      createdAt: new Date().toISOString(),
+      userRequest: 'Written by an older schema',
+      designDecisions: [],
+      operations: [],
+      toolingRequirements: [],
+      contracts: [],
+      flows: [],
+      wardResults: [],
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-0000000000ff',
+          role: 'pathseeker',
+          status: 'complete',
+          spawnerType: 'agent',
+          createdAt: new Date().toISOString(),
+          relatedDataItems: ['e2e00000-0000-4000-8000-0000000000fe'],
+          dependsOn: [],
+          attempt: 0,
+          maxAttempts: 1,
+        },
+      ],
+    };
+
+    writeFileSync(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+  };
+
   const writeWardResultDetail = ({
     questFilePath,
     wardResultId,
@@ -479,6 +529,7 @@ export const questHarness = ({
   return {
     createQuest,
     writeQuestFile,
+    writeUnparseableQuestFile,
     writeWardResultDetail,
     patchQuestStatus,
     questFolderExists,

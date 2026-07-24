@@ -1,6 +1,10 @@
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath, FileName, GuildId, QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  registerModuleMock,
+  registerSpyOn,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
@@ -24,6 +28,9 @@ export const questListBrokerProxy = (): {
   const fsReaddirProxy = fsReaddirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const questLoadProxy = questLoadBrokerProxy();
+  // The broker reports every skipped quest file on stderr. Capture it so test output stays
+  // clean and tests can assert on `process.stderr.write` that a skip is never silent.
+  registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
 
   const mocked = questListBroker as jest.MockedFunction<typeof questListBroker>;
   // Default: passthrough so existing consumers driving the fs chain keep working.
