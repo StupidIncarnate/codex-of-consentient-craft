@@ -16,6 +16,7 @@
  */
 
 import type { APIRequestContext } from '@playwright/test';
+import { z } from 'zod';
 
 import type { FilePath, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import {
@@ -28,6 +29,13 @@ import { claudeMockHarness } from '../claude-mock/claude-mock.harness';
 import { questHarness } from '../quest/quest.harness';
 import { wardMockHarness } from '../ward-mock/ward-mock.harness';
 
+const DISPATCH_STATE_ROUTE = '/api/orchestration/dispatch';
+const DISPATCH_PLAYING_MODE = 'node-playing';
+
+// The dispatch-state endpoint's body, narrowed to the one field a spec cares about.
+const dispatchStateModeContract = z
+  .object({ state: z.object({ mode: z.string().brand<'DispatchMode'>() }) })
+  .transform((body) => body.state.mode);
 const DISPATCH_PLAY_ROUTE = '/api/orchestration/dispatch/play';
 const DISPATCH_PAUSE_ROUTE = '/api/orchestration/dispatch/pause';
 const POLL_INTERVAL_MS = 100;
@@ -64,10 +72,14 @@ export const dispatchHarness = ({
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
   }) => Promise<{ questId: QuestId; questFolder: QuestId; questFilePath: FilePath }>;
+  queueScript: (params: {
+    script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
+  }) => void;
   playAndDrive: (params: {
     questId: string;
     script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
   }) => Promise<void>;
+  isDispatchPlaying: () => Promise<boolean>;
   waitForQuest: (params: {
     questId: string;
     predicate: (params: { quest: Quest }) => boolean;
@@ -80,6 +92,36 @@ export const dispatchHarness = ({
 
   const pause = async (): Promise<void> => {
     await request.post(DISPATCH_PAUSE_ROUTE);
+  };
+
+  // Split the script FIFO into the claude queue (agent outcomes: done/partial) and the ward queue
+  // (ward outcomes: green/red). The relay dispatches ONE work item at a time, so FIFO order maps
+  // each outcome to the matching dispatch.
+  const queueScript = ({
+    script,
+  }: {
+    script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
+  }): void => {
+    for (const step of script) {
+      if (step.outcome === 'done' || step.outcome === 'partial') {
+        claudeMock.queueResponse({
+          response: SimpleTextResponseStub({
+            sessionId: `e2e-dispatch-session-${nextUnique()}`,
+            signalBack: { operationStatus: step.outcome },
+          }),
+        });
+      } else {
+        // Root queue: run-ward spawns the fake ward with the server's cwd, not the guild path, so
+        // the cwd-scoped queue never matches — the fake ward falls back to the root queue.
+        wardMock.queueRootResponse({
+          response: WardQueueResponseStub({
+            exitCode: step.outcome === 'green' ? 0 : 1,
+            runId: `e2e-dispatch-ward-${nextUnique()}`,
+            wardResultJson: { checks: [] },
+          }),
+        });
+      }
+    }
   };
 
   return {
@@ -115,33 +157,22 @@ export const dispatchHarness = ({
         questFilePath: created.filePath,
       };
     },
+    // Load the mock queues WITHOUT playing — for specs where something other than an explicit
+    // play starts the dispatcher (resuming a quest does), so the agent it spawns still finds a
+    // queued outcome instead of exiting red-on-empty and churning orphan recovery.
+    queueScript,
     playAndDrive: async ({ script }) => {
-      // Split the script FIFO into the claude queue (agent outcomes: done/partial) and the ward
-      // queue (ward outcomes: green/red). The relay dispatches ONE work item at a time, so FIFO
-      // order maps each outcome to the matching dispatch.
-      for (const step of script) {
-        if (step.outcome === 'done' || step.outcome === 'partial') {
-          claudeMock.queueResponse({
-            response: SimpleTextResponseStub({
-              sessionId: `e2e-dispatch-session-${nextUnique()}`,
-              signalBack: { operationStatus: step.outcome },
-            }),
-          });
-        } else {
-          // Root queue: run-ward spawns the fake ward with the server's cwd, not the guild path,
-          // so the cwd-scoped queue never matches — the fake ward falls back to the root queue.
-          wardMock.queueRootResponse({
-            response: WardQueueResponseStub({
-              exitCode: step.outcome === 'green' ? 0 : 1,
-              runId: `e2e-dispatch-ward-${nextUnique()}`,
-              wardResultJson: { checks: [] },
-            }),
-          });
-        }
-      }
+      queueScript({ script });
 
       // force: true overrides the play gate for e2e (no MCP heartbeat, no in-flight Task agent).
       await request.post(DISPATCH_PLAY_ROUTE, { data: { force: true } });
+    },
+    // True when the Node dispatcher is actively driving the queue. Read back from the server
+    // rather than trusted from a response body, so a spec can prove the switch really flipped.
+    isDispatchPlaying: async (): Promise<boolean> => {
+      const response = await request.get(DISPATCH_STATE_ROUTE);
+      const raw: unknown = await response.json();
+      return dispatchStateModeContract.parse(raw) === DISPATCH_PLAYING_MODE;
     },
     waitForQuest: async ({ questId, predicate, timeoutMs }) => {
       const deadline = Date.now() + timeoutMs;

@@ -34,6 +34,7 @@ export * from './src/guards/should-show-begin-quest-modal-quest-status/should-sh
 
 // Work Item Dependency Graph Guards
 export * from './src/guards/has-lawbringer-in-deps/has-lawbringer-in-deps-guard';
+export * from './src/guards/has-incomplete-quest-work/has-incomplete-quest-work-guard';
 
 // Work Item Status Guards
 export * from './src/guards/is-terminal-work-item-status/is-terminal-work-item-status-guard';

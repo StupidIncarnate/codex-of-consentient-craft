@@ -13,7 +13,11 @@ describe('questResumeBroker', () => {
 
       const result = await questResumeBroker({ questId });
 
-      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+      expect(result).toStrictEqual({
+        resumed: true,
+        restoredStatus: 'in_progress',
+        dispatch: { started: true },
+      });
     });
   });
 

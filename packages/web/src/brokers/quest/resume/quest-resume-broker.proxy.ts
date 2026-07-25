@@ -22,7 +22,9 @@ export const questResumeBrokerProxy = (): {
 
   return {
     setupResume: ({ restoredStatus }: { restoredStatus: QuestStatus }): void => {
-      endpoint.resolves({ data: { resumed: true, restoredStatus } });
+      endpoint.resolves({
+        data: { resumed: true, restoredStatus, dispatch: { started: true } },
+      });
     },
     setupError: (): void => {
       endpoint.networkError();

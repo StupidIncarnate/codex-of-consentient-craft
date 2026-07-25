@@ -115,7 +115,14 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
 
       const resumeBody = await resumeResponse.json();
 
-      expect(resumeBody).toStrictEqual({ resumed: true, restoredStatus: status });
+      // These fixtures carry no work items and no operations, so resume leaves the GLOBAL
+      // dispatcher alone — starting it would do nothing for this quest and would reach across
+      // every other quest in the suite.
+      expect(resumeBody).toStrictEqual({
+        resumed: true,
+        restoredStatus: status,
+        dispatch: { started: false, reason: 'quest has no dispatchable work' },
+      });
 
       // Assert: quest.status is back to the original pre-pause status
       const afterResumeResponse = await request.get(`/api/quests/${questId}`);

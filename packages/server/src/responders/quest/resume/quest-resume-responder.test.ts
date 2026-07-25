@@ -1,4 +1,9 @@
-import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  OperationItemStub,
+  QuestIdStub,
+  QuestStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { QuestResumeResponderProxy } from './quest-resume-responder.proxy';
 
@@ -22,22 +27,190 @@ const QUEST_RESUME_REJECTED_ERROR =
 describe('QuestResumeResponder', () => {
   describe('allowed statuses', () => {
     it.each(QUEST_RESUME_ALLOWED_STATUSES)(
-      'VALID: {status: %s} => returns 200 with resumed true and restoredStatus',
+      'VALID: {status: %s} => returns 200 with resumed true, restoredStatus, and the queue started',
       async (status) => {
         const proxy = QuestResumeResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ status: status as never, pausedAtStatus: 'in_progress' });
+        const quest = QuestStub({
+          status: status as never,
+          pausedAtStatus: 'in_progress',
+          workItems: [WorkItemStub({ status: 'pending' })],
+        });
         proxy.setupQuest({ quest });
         proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
+        proxy.setupDispatchPlays();
 
         const result = await proxy.callResponder({ params: { questId } });
 
         expect(result).toStrictEqual({
           status: 200,
-          data: { resumed: true, restoredStatus: 'in_progress' },
+          data: {
+            resumed: true,
+            restoredStatus: 'in_progress',
+            dispatch: { started: true },
+          },
         });
       },
     );
+  });
+
+  // Resuming flips quest status only; the Node dispatcher is a separate switch that normalizes to
+  // `paused` on every server boot. Without this, a resumed quest sits at `in_progress` with a ready
+  // work item and nothing picks it up.
+  describe('resume starts the dispatcher', () => {
+    it('VALID: {paused quest} => plays dispatch exactly once, with no force', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({
+        status: 'paused' as never,
+        pausedAtStatus: 'in_progress',
+        workItems: [WorkItemStub({ status: 'pending' })],
+      });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
+      proxy.setupDispatchPlays();
+
+      await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([{}]);
+    });
+
+    it('VALID: {launch loop owns the queue} => still resumes, reports the gate refusal instead of failing', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({
+        status: 'paused' as never,
+        pausedAtStatus: 'in_progress',
+        workItems: [WorkItemStub({ status: 'pending' })],
+      });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
+      proxy.setupDispatchRefused({ reason: 'a /dumpster-launch loop is driving the queue' });
+
+      const result = await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: {
+          resumed: true,
+          restoredStatus: 'in_progress',
+          dispatch: {
+            started: false,
+            reason: 'a /dumpster-launch loop is driving the queue',
+          },
+        },
+      });
+    });
+
+    it('ERROR: {play throws} => the resume still succeeds and the play failure rides back on the response', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({
+        status: 'paused' as never,
+        pausedAtStatus: 'in_progress',
+        workItems: [WorkItemStub({ status: 'pending' })],
+      });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
+      proxy.setupDispatchError({ message: 'dispatch-state.json is unwritable' });
+
+      const result = await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: {
+          resumed: true,
+          restoredStatus: 'in_progress',
+          dispatch: { started: false, reason: 'dispatch-state.json is unwritable' },
+        },
+      });
+    });
+
+    it('ERROR: {resume itself fails} => dispatch is never played', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({
+        status: 'paused' as never,
+        pausedAtStatus: 'in_progress',
+        workItems: [WorkItemStub({ status: 'pending' })],
+      });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuestError({ message: 'Quest resume failed' });
+
+      await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([]);
+    });
+
+    // The dispatcher is global. Starting it for a quest whose ledger is already drained does
+    // nothing for that quest and reaches across every other one.
+    it('VALID: {drained ledger, every work item terminal} => never touches the global dispatcher', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({
+        status: 'paused' as never,
+        pausedAtStatus: 'in_progress',
+        workItems: [WorkItemStub({ status: 'complete' })],
+        operations: [OperationItemStub({ status: 'complete' })],
+      });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
+
+      const result = await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect({ result, playCalls: proxy.getDispatchPlayCalls() }).toStrictEqual({
+        result: {
+          status: 200,
+          data: {
+            resumed: true,
+            restoredStatus: 'in_progress',
+            dispatch: { started: false, reason: 'quest has no dispatchable work' },
+          },
+        },
+        playCalls: [],
+      });
+    });
+
+    it('VALID: {restored to approved with a seeded ledger} => never touches the global dispatcher, which only scans executing quests', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({
+        status: 'paused' as never,
+        pausedAtStatus: 'approved',
+        operations: [OperationItemStub({ role: 'codeweaver', status: 'pending' })],
+      });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuest({ resumed: true, restoredStatus: 'approved' });
+
+      const result = await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect({ result, playCalls: proxy.getDispatchPlayCalls() }).toStrictEqual({
+        result: {
+          status: 200,
+          data: {
+            resumed: true,
+            restoredStatus: 'approved',
+            dispatch: { started: false, reason: 'quest has no dispatchable work' },
+          },
+        },
+        playCalls: [],
+      });
+    });
+
+    it('EMPTY: {bare quest, no work items and no operations} => never touches the global dispatcher', async () => {
+      const proxy = QuestResumeResponderProxy();
+      const quest = QuestStub({ status: 'paused' as never, pausedAtStatus: 'in_progress' });
+      proxy.setupQuest({ quest });
+      proxy.setupResumeQuest({ resumed: true, restoredStatus: 'in_progress' });
+
+      const result = await proxy.callResponder({ params: { questId: QuestIdStub() } });
+
+      expect({ result, playCalls: proxy.getDispatchPlayCalls() }).toStrictEqual({
+        result: {
+          status: 200,
+          data: {
+            resumed: true,
+            restoredStatus: 'in_progress',
+            dispatch: { started: false, reason: 'quest has no dispatchable work' },
+          },
+        },
+        playCalls: [],
+      });
+    });
   });
 
   describe('rejected statuses', () => {

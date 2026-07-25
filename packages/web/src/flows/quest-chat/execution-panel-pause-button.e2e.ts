@@ -298,9 +298,12 @@ test.describe('Execution Panel Pause/Resume Button', () => {
 
     expect(resumeResponse.url()).toContain(`/api/quests/${questId}/resume`);
     expect(resumeResponse.status()).toBe(200);
+    // This fixture's only work item is already `complete` and its ledger is empty, so resume
+    // leaves the global dispatcher alone.
     expect(await resumeResponse.json()).toStrictEqual({
       resumed: true,
       restoredStatus: 'in_progress',
+      dispatch: { started: false, reason: 'quest has no dispatchable work' },
     });
   });
 });
