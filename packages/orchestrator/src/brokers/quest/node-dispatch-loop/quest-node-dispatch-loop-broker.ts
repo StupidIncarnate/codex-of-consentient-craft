@@ -11,7 +11,10 @@
  * // Resolves when paused or when the state machine reports idle
  *
  * WHY isPlaying is a parameter: brokers cannot import state/ — the bootstrap responder supplies
- * the real orchestrationDispatchState facade; tests inject a stub.
+ * the real orchestrationDispatchState facade; tests inject a stub. `onWardLine` is a parameter for
+ * the same reason, and is REQUIRED: ward is the one work item nothing else can stream (no
+ * sessionId, so the JSONL watcher cannot see it), so dropping this callback means minutes of a
+ * dead panel with nothing at the call site to show for it.
  */
 
 import type {
@@ -36,8 +39,10 @@ const INERT_ACTIVE_QUEST_FACADE: ActiveQuestFacade = {
 export const questNodeDispatchLoopBroker = async ({
   isPlaying,
   registerProcess,
+  onWardLine,
 }: {
   isPlaying: () => boolean;
+  onWardLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
   registerProcess?: (params: {
     processId: ProcessId;
     questId: QuestId;
@@ -64,10 +69,15 @@ export const questNodeDispatchLoopBroker = async ({
   }
 
   if (step.type === 'run-ward') {
+    const wardQuestId = step.questId;
+    const wardWorkItemId = step.workItemId;
     await questRunWardBroker({
-      questId: step.questId,
-      workItemId: step.workItemId,
+      questId: wardQuestId,
+      workItemId: wardWorkItemId,
       mode: step.mode,
+      onLine: (line: string): void => {
+        onWardLine({ questId: wardQuestId, workItemId: wardWorkItemId, line });
+      },
     });
   } else {
     await spawnBatchLayerBroker({
@@ -78,6 +88,7 @@ export const questNodeDispatchLoopBroker = async ({
 
   return questNodeDispatchLoopBroker({
     isPlaying,
+    onWardLine,
     ...(registerProcess === undefined ? {} : { registerProcess }),
   });
 };

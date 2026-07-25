@@ -52,6 +52,28 @@ Claude CLI outputs newline-delimited JSON (JSONL) during sessions. Each line has
 
 **Design decision:** One `assistant-stream-line` contract with variant stubs (not separate contracts per content type). The outer shape `{type: 'assistant', message: {content: [...]}}` is identical — only content items differ.
 
+## Streaming Adapters: the output callback is REQUIRED, never optional
+
+`childProcessSpawnStreamLinesAdapter` takes `onLine` as a **required** parameter. Any future adapter
+that streams a long-running process's output must do the same. This is a deliberate ergonomic
+choice, and it is load-bearing:
+
+- The adapter is the ONLY place a subprocess's output exists **while the process is still running**.
+  The returned `output` does not resolve until exit, so it can never drive a live UI.
+- An optional callback makes "no live output" the default, and choosing it is **invisible**: the
+  code compiles, the command runs, the returned result is correct, and the only symptom is a
+  surface that shows nothing. Nobody reviews an argument that isn't there.
+- Ward shipped exactly that way — `questRunWardBroker` called this adapter without `onLine`, with a
+  comment claiming a JSONL watcher covered it. The watcher keys on `workItems[].sessionId` and tails
+  Claude session JSONL; a ward work item is `spawnerType: 'command'` with no sessionId and ward is
+  not Claude, so nothing tailed it. Ward ran for minutes with a dead panel, in BOTH dispatch modes.
+
+Making the parameter required turns that into a compile error, so every caller has to answer "where
+does this output go?" To opt out deliberately, pass `() => undefined` — then the decision is on the
+page where a reviewer can see it.
+
+**Do not relax this to `onLine?`** to make a caller compile. Wire the output, or opt out explicitly.
+
 ## Resolving the Repo Root / Project Root
 
 To resolve "the repo root", "the project root", or "the guild path" from a working directory, use the canonical

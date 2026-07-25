@@ -49,4 +49,41 @@ describe('QuestRunWardResponder', () => {
       lastWardRunId: runId,
     });
   });
+
+  // Ward is `spawnerType: 'command'` with no sessionId, so the JSONL watcher can never tail it.
+  // This emit is the ONLY route its output has to the workspace.
+  it('VALID: {ward runs} => emits every ward line as a chat-output entry keyed on the ward work item', async () => {
+    const proxy = QuestRunWardResponderProxy();
+    const questId = QuestIdStub({ value: 'test-quest' });
+    const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+    const runId = FileNameStub({ value: '1739625600000-a3f1' });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      workItems: [
+        WorkItemStub({
+          id: workItemId,
+          role: 'ward',
+          status: 'pending',
+          spawnerType: 'command',
+          maxAttempts: 3,
+        }),
+      ],
+    });
+
+    proxy.setupQuest({ quest });
+    proxy.wardExits({
+      exitCode: ExitCodeStub({ value: 0 }),
+      runId,
+      detailJson: FileContentsStub({ value: '{"checks":[]}' }),
+    });
+    const emits = proxy.captureWardChatEmits();
+
+    await proxy.callResponder({ questId, workItemId, mode: 'changed' });
+
+    // One emit per ward line, each routed to the ward work item so the execution panel groups
+    // them under its row. That the line CONTENT reaches the callback is covered by the broker's
+    // own `streams every ward line to onLine` test.
+    expect(emits.getProcessIds()).toStrictEqual([WARD_WORK_ITEM_ID, WARD_WORK_ITEM_ID]);
+  });
 });

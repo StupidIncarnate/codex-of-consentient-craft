@@ -11,7 +11,10 @@ describe('questNodeDispatchLoopBroker', () => {
     it('VALID: {isPlaying: false} => returns ok without consulting the state machine', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying: (): boolean => false });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => false,
+        onWardLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getNextStepCalls()).toStrictEqual([]);
@@ -25,7 +28,7 @@ describe('questNodeDispatchLoopBroker', () => {
       proxy.queueStep({ step: spawnStep });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying });
+      const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents }]);
@@ -43,7 +46,10 @@ describe('questNodeDispatchLoopBroker', () => {
     it('VALID: {idle step} => returns ok after one scan', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying: (): boolean => true });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getNextStepCalls()).toStrictEqual([
@@ -67,7 +73,10 @@ describe('questNodeDispatchLoopBroker', () => {
       } as never);
       proxy.queueStep({ step: wardStep });
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying: (): boolean => true });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getRunWardCalls()).toStrictEqual([
@@ -75,6 +84,8 @@ describe('questNodeDispatchLoopBroker', () => {
           questId: 'add-auth',
           workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           mode: 'changed',
+          // Ward's only route to a UI — the loop must hand it down, never drop it.
+          onLine: expect.any(Function),
         },
       ]);
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
@@ -86,7 +97,10 @@ describe('questNodeDispatchLoopBroker', () => {
       const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
       proxy.queueStep({ step: spawnStep });
 
-      const result = await questNodeDispatchLoopBroker({ isPlaying: (): boolean => true });
+      const result = await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+      });
 
       expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents }]);
@@ -100,7 +114,11 @@ describe('questNodeDispatchLoopBroker', () => {
       proxy.queueStep({ step: spawnStep });
       const registerProcess = jest.fn();
 
-      await questNodeDispatchLoopBroker({ isPlaying: (): boolean => true, registerProcess });
+      await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+        registerProcess,
+      });
 
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, registerProcess }]);
     });
@@ -112,7 +130,10 @@ describe('questNodeDispatchLoopBroker', () => {
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents: firstAgents }) });
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents: secondAgents }) });
 
-      await questNodeDispatchLoopBroker({ isPlaying: (): boolean => true });
+      await questNodeDispatchLoopBroker({
+        isPlaying: (): boolean => true,
+        onWardLine: () => undefined,
+      });
 
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([
         { agents: firstAgents },

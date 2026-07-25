@@ -44,6 +44,7 @@ import {
   type FilePath,
   type Quest,
   type QuestStub,
+  type QuestWorkItemIdStub,
 } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -100,6 +101,8 @@ const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 const UUID_SUFFIX_WIDTH = 2;
 
+type WorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
+
 export const questRunWardBrokerProxy = (): {
   setupQuest: (params: { quest: QuestInput }) => void;
   wardExits: (params: { exitCode: ExitCode; runId: FileName; detailJson: FileContents }) => void;
@@ -108,6 +111,9 @@ export const questRunWardBrokerProxy = (): {
   getSpawnedWardArgs: () => unknown;
   getDetailWrites: () => readonly { path: unknown; contents: unknown }[];
   getMkdirPaths: () => readonly unknown[];
+  getPersistedWorkItemStatusesInWriteOrder: (params: {
+    workItemId: WorkItemId;
+  }) => readonly unknown[];
 } => {
   // Child proxies for every adapter/broker the implementation imports. Their npm-level queue
   // mocks are inert here — the fs/child-process ADAPTER modules themselves are automocked above
@@ -171,12 +177,20 @@ export const questRunWardBrokerProxy = (): {
     },
   );
 
+  const questWrites: ReturnType<typeof fileContentsContract.parse>[] = [];
+
   (fsWriteFileAdapter as jest.MockedFunction<typeof fsWriteFileAdapter>).mockImplementation(
     async ({ filePath, contents }) => {
       files.set(
         filePathContract.parse(String(filePath)),
         fileContentsContract.parse(String(contents)),
       );
+      // Keep every quest persist, not just the last one: an intermediate status the final state
+      // has already moved past (ward stamped `in_progress` before the spawn) is invisible in
+      // `files`, which only holds the newest contents per path. Matched on CONTENT, not filename —
+      // the atomic persist writes a temp path and renames — so the ward-detail blob, which is not
+      // a quest, never enters the sequence.
+      questWrites.push(fileContentsContract.parse(String(contents)));
       return Promise.resolve(adapterResultContract.parse({ success: true }));
     },
   );
@@ -210,10 +224,17 @@ export const questRunWardBrokerProxy = (): {
     childProcessSpawnStreamLinesAdapter as jest.MockedFunction<
       typeof childProcessSpawnStreamLinesAdapter
     >
-  ).mockImplementation(async () => {
+  ).mockImplementation(async ({ onLine }) => {
     const next = wardRuns.shift();
     if (next === undefined) {
       return Promise.reject(new Error('questRunWardBrokerProxy: no ward spawn result queued'));
+    }
+    // Replay the queued output through the caller's callback exactly as the real adapter does,
+    // so a test can assert ward's lines actually reach the caller instead of only its exit code.
+    for (const line of String(next.output)
+      .split('\n')
+      .filter((entry) => entry.length > 0)) {
+      onLine(line);
     }
     return Promise.resolve(next);
   });
@@ -305,5 +326,27 @@ export const questRunWardBrokerProxy = (): {
         .map(([path, contents]) => ({ path, contents })),
 
     getMkdirPaths: (): readonly unknown[] => [...mkdirPaths],
+
+    // One entry per quest-file write that touched this work item, in write order, deduped so
+    // unrelated persists (wardResults append) do not pad the sequence.
+    getPersistedWorkItemStatusesInWriteOrder: ({
+      workItemId,
+    }: {
+      workItemId: WorkItemId;
+    }): readonly unknown[] => {
+      // Drop non-quest writes BEFORE collapsing repeats — a gap left in the middle would break
+      // adjacency and let an unchanged status through twice.
+      const statuses = questWrites
+        .map((contents) => {
+          const parsed = questContract.safeParse(JSON.parse(String(contents)));
+          if (!parsed.success) {
+            return undefined;
+          }
+          return parsed.data.workItems.find((item) => item.id === workItemId)?.status;
+        })
+        .filter((status) => status !== undefined);
+
+      return statuses.filter((status, index) => status !== statuses[index - 1]);
+    },
   };
 };

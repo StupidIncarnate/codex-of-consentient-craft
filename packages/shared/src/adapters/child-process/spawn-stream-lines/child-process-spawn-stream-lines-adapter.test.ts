@@ -35,8 +35,12 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
     });
   });
 
-  describe('no onLine callback', () => {
-    it('VALID: {stdout with lines, no onLine} => returns accumulated output without callback', async () => {
+  // `onLine` is a REQUIRED parameter — omitting it is a compile error, not a runtime one, so
+  // there is nothing to assert about a missing callback. Opting out is spelled `() => undefined`,
+  // which makes "this process streams nowhere" a visible decision at the call site instead of an
+  // absent argument nobody notices. See the adapter's PURPOSE block.
+  describe('explicit opt-out', () => {
+    it('VALID: {onLine: () => undefined} => still accumulates the full output for the caller', async () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupSuccess({
@@ -48,6 +52,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         command: 'dungeonmaster-ward',
         args: ['run'],
         cwd: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: () => undefined,
       });
 
       expect(result).toStrictEqual({
@@ -98,6 +103,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         command: 'dungeonmaster-ward',
         args: ['run'],
         cwd: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: () => undefined,
       });
 
       expect(result).toStrictEqual({
@@ -120,6 +126,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         command: 'dungeonmaster-ward',
         args: ['run'],
         cwd: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: () => undefined,
       });
 
       expect(result).toStrictEqual({
@@ -142,6 +149,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         command: 'dungeonmaster-ward',
         args: ['run', '--changed'],
         cwd: AbsoluteFilePathStub({ value: '/my/project' }),
+        onLine: () => undefined,
       });
 
       expect(proxy.getSpawnedCommand()).toBe('dungeonmaster-ward');
@@ -160,6 +168,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         command: 'nonexistent',
         args: [],
         cwd: AbsoluteFilePathStub({ value: '/project' }),
+        onLine: () => undefined,
       });
 
       expect(result).toStrictEqual({

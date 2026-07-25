@@ -17,6 +17,13 @@
  * WHEN-TO-USE: Called by the run-ward MCP tool / Node dispatch loop when a `run-ward` step
  *   dispatches. This broker owns the ONLY failure concept in the orchestrator (ward exit-code
  *   red) — agent roles have no failure signal.
+ *
+ * `onLine` is REQUIRED. Ward is the one work item nothing else can stream: the JSONL watcher keys
+ * on `workItems[].sessionId` and tails Claude session JSONL, but a ward work item is
+ * `spawnerType: 'command'` with no sessionId, and ward is not Claude — it never writes a JSONL.
+ * This callback is therefore the ONLY route ward output has to a UI, for minutes at a time. Callers
+ * with genuinely nowhere to send it pass `() => undefined` explicitly. See
+ * `packages/shared/CLAUDE.md` → "Streaming Adapters".
  */
 
 import {
@@ -60,28 +67,41 @@ export const questRunWardBroker = async ({
   questId,
   workItemId,
   mode,
+  onLine,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
   mode: 'changed' | 'full';
+  onLine: (line: string) => void;
 }): Promise<QuestRunWardResult> => {
   const startPath = absoluteFilePathContract.parse(processCwdAdapter());
 
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  // 1. Spawn ward and stream stdout (no callback — the JSONL watcher owns live UI streaming).
+  // 1. Mark the work item running BEFORE spawning. Ward can run for minutes; without this the row
+  //    reads `pending` the whole time, indistinguishable from "nothing is happening". The agent
+  //    path does the same in spawnBatchLayerBroker.
+  await questModifyBroker({
+    input: {
+      questId,
+      workItems: [{ id: workItemId, status: 'in_progress', startedAt: new Date().toISOString() }],
+    } as ModifyQuestInput,
+  });
+
+  // 2. Spawn ward, streaming each stdout/stderr line to the caller as it arrives.
   const args = mode === 'changed' ? ['run', '--changed'] : ['run'];
 
   const { exitCode: rawExitCode, output } = await childProcessSpawnStreamLinesAdapter({
     command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
     args,
     cwd: startPath,
+    onLine,
   });
 
   const exitCode = rawExitCode ?? exitCodeContract.parse(1);
   const runId = wardOutputToRunIdTransformer({ output });
 
-  // 2. Capture and persist the detail blob (best effort — ward may exit without a runId on crash).
+  // 3. Capture and persist the detail blob (best effort — ward may exit without a runId on crash).
   const detailJson = runId ? await wardDetailBroker({ startPath, runId }) : null;
 
   const wardResultId = crypto.randomUUID();
@@ -100,7 +120,7 @@ export const questRunWardBroker = async ({
     });
   }
 
-  // 3. Append the lightweight ref to quest.wardResults.
+  // 4. Append the lightweight ref to quest.wardResults.
   const wardResult = wardResultContract.parse({
     id: wardResultId,
     createdAt: new Date().toISOString(),
@@ -125,7 +145,7 @@ export const questRunWardBroker = async ({
   const completedAt = new Date().toISOString();
   const green = exitCode === 0;
 
-  // 4. ONE atomic ledger + work-item write: terminal work-item status, ward operation item
+  // 5. ONE atomic ledger + work-item write: terminal work-item status, ward operation item
   //    complete, and (on red, budget permitting) the spiritmender + fresh-ward continuation.
   const blockedOnSpentWardChain = { value: false };
 

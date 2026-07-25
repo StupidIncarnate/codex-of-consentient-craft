@@ -4,6 +4,14 @@
  * USAGE:
  * const result = await childProcessSpawnStreamLinesAdapter({ command: 'npm', args: ['run', 'ward'], cwd: '/project', onLine: (line) => emit(line) });
  * // Returns { exitCode: ExitCode | null, output: ErrorMessage }
+ *
+ * `onLine` is REQUIRED — deliberately, not for convenience. This adapter is the only place a
+ * long-running subprocess's output exists while it is still running; `output` is not resolved
+ * until the process exits, so a caller that omits the callback has silently chosen "no live
+ * output" for a process that may run for minutes. That is invisible at the call site: the code
+ * compiles, the command runs, the result is correct, and the only symptom is a UI that shows
+ * nothing. Ward shipped exactly that way. Making the parameter required forces every caller to
+ * answer "where does this go?" — pass `() => undefined` to opt out and the choice is on the page.
  */
 
 import { createInterface } from 'readline';
@@ -26,7 +34,8 @@ export const childProcessSpawnStreamLinesAdapter = async ({
   command: string;
   args: string[];
   cwd: AbsoluteFilePath;
-  onLine?: (line: string) => void;
+  // Required. See the PURPOSE block — an optional streaming callback drops live output silently.
+  onLine: (line: string) => void;
   abortSignal?: AbortSignal;
 }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> =>
   new Promise((resolve) => {
@@ -43,17 +52,13 @@ export const childProcessSpawnStreamLinesAdapter = async ({
     const rl = createInterface({ input: child.stdout });
     rl.on('line', (line: string) => {
       stdoutChunks.push(errorMessageContract.parse(line));
-      if (onLine) {
-        onLine(line);
-      }
+      onLine(line);
     });
 
     child.stderr.on('data', (chunk: Buffer) => {
       const text = chunk.toString();
       stderrChunks.push(errorMessageContract.parse(text));
-      if (onLine) {
-        onLine(text);
-      }
+      onLine(text);
     });
 
     child.on('error', (error: Error) => {
