@@ -36,7 +36,8 @@ export const QuestSignalBackResponder = async ({
       });
     }
 
-    const { questId, workItemId, signal, operationItemId, operationStatus } = parsed.data;
+    const { questId, workItemId, signal, operationItemId, operationStatus, blockedReason } =
+      parsed.data;
 
     await orchestratorHandleSignalBackAdapter({
       questId,
@@ -44,6 +45,7 @@ export const QuestSignalBackResponder = async ({
       signal,
       ...(operationItemId === undefined ? {} : { operationItemId }),
       ...(operationStatus === undefined ? {} : { operationStatus }),
+      ...(blockedReason === undefined ? {} : { blockedReason }),
     });
 
     return responderResultContract.parse({

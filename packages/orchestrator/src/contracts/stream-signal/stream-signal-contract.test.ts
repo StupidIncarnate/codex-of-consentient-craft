@@ -43,6 +43,22 @@ describe('streamSignalContract', () => {
       });
     });
 
+    it('VALID: {signal: "complete", operationStatus: "blocked", blockedReason} => parses the environment-wall outcome', () => {
+      const result = streamSignalContract.parse({
+        signal: 'complete',
+        operationItemId: OPERATION_ITEM_ID,
+        operationStatus: 'blocked',
+        blockedReason: 'git commit is denied in this dispatched session',
+      });
+
+      expect(result).toStrictEqual({
+        signal: 'complete',
+        operationItemId: OPERATION_ITEM_ID,
+        operationStatus: 'blocked',
+        blockedReason: 'git commit is denied in this dispatched session',
+      });
+    });
+
     it('VALID: stub default => returns complete signal with no outcome fields', () => {
       const signal = StreamSignalStub();
 

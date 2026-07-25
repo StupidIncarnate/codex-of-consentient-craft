@@ -8,6 +8,7 @@
 import { z } from 'zod';
 
 import {
+  blockedReasonContract,
   operationItemIdContract,
   questIdContract,
   questWorkItemIdContract,
@@ -17,9 +18,11 @@ import {
 // `complete` is the sole signal kind (session-terminal marker); the outcome rides on the call
 // as operationStatus and the handler applies it server-side (authoritative): 'done' marks the
 // linked operation item complete and advances; 'partial' marks it complete AND appends a
-// "pt N" continuation item a fresh session continues. There is NO note field — the next-session
-// handoff is the git commit message, not the ledger. questId + workItemId are required so the
-// broker routes on explicit ids rather than inferring from process state.
+// "pt N" continuation item a fresh session continues; 'blocked' also appends the continuation but
+// halts the quest immediately with `blockedReason` recorded, because a fresh session would hit the
+// same wall. There is NO note field — the next-session handoff is the git commit message, not the
+// ledger. questId + workItemId are required so the broker routes on explicit ids rather than
+// inferring from process state.
 export const signalBackInputContract = z
   .object({
     questId: questIdContract.describe('The quest the signalling agent is working on'),
@@ -33,12 +36,21 @@ export const signalBackInputContract = z
       .describe('The operation item this session worked (from the operations ledger)')
       .optional(),
     operationStatus: z
-      .enum(['done', 'partial'])
+      .enum(['done', 'partial', 'blocked'])
       .describe(
-        "Outcome of the operation item: 'done' = scope complete / verify pass changed nothing (advance); 'partial' = more remains (the orchestrator marks this item complete and appends a pt N continuation)",
+        "Outcome of the operation item: 'done' = scope complete / verify pass changed nothing (advance); 'partial' = more remains (the orchestrator marks this item complete and appends a pt N continuation); 'blocked' = an environment wall no fresh session of this role could pass (requires blockedReason; halts the quest for the user)",
+      )
+      .optional(),
+    blockedReason: blockedReasonContract
+      .describe(
+        "Why this role cannot proceed without the user — required when operationStatus is 'blocked'. Names the wall and what the user must change (e.g. a denied command, a missing credential, an unreachable service)",
       )
       .optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (input) => input.operationStatus !== 'blocked' || input.blockedReason !== undefined,
+    "operationStatus 'blocked' requires blockedReason — the user needs to know what wall to clear",
+  );
 
 export type SignalBackInput = z.infer<typeof signalBackInputContract>;

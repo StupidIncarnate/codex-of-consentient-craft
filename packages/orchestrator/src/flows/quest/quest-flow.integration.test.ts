@@ -1,6 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AddQuestInputStub,
+  BlockedReasonStub,
   GuildNameStub,
   GuildPathStub,
   OperationItemIdStub,
@@ -206,6 +207,113 @@ describe('QuestFlow', () => {
         codeweaverWorkItemCount: 2,
         freshWorkItemStatus: 'pending',
         freshWorkItemLink: [`operations/${String(ptOp!.id)}`],
+      });
+    }, 30_000);
+  });
+
+  describe('operations relay — blocked halts on the environment wall', () => {
+    it('VALID: {pesteater signals complete/blocked} => work item failed with the reason, pt continuation queued for a resume, downstream skipped, quest blocked', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-relay-blocked' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const pestOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b1' });
+      const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000b2' });
+      const pestWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const wardWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        operations: [
+          OperationItemStub({
+            id: pestOpId,
+            role: 'pesteater',
+            text: 'hunt the bug',
+            status: 'in_progress',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: wardOpId,
+            role: 'ward',
+            text: 'ward (changed)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'changed',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: pestWorkItemId,
+            role: 'pesteater',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(pestOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+          WorkItemStub({
+            id: wardWorkItemId,
+            role: 'ward',
+            status: 'pending',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${String(wardOpId)}`],
+            dependsOn: [pestWorkItemId],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: pestWorkItemId,
+        signal: 'complete',
+        operationItemId: pestOpId,
+        operationStatus: 'blocked',
+        blockedReason: BlockedReasonStub({
+          value: 'git commit is denied in this dispatched session',
+        }),
+      });
+
+      const afterBlocked = await QuestGetResponder({ questId });
+      const pestWorkItem = afterBlocked.quest!.workItems.find((wi) => wi.id === pestWorkItemId);
+      const ptOp = afterBlocked.quest!.operations.find((op) => String(op.text).startsWith('pt 2:'));
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterBlocked.quest!.status,
+        operations: afterBlocked.quest!.operations.map((op) => ({
+          role: op.role,
+          status: op.status,
+          text: String(op.text),
+        })),
+        signalledWorkItem: {
+          status: pestWorkItem?.status,
+          errorMessage: String(pestWorkItem?.errorMessage),
+        },
+        downstreamWardStatus: afterBlocked.quest!.workItems.find((wi) => wi.id === wardWorkItemId)
+          ?.status,
+        // The continuation has NO work item: a resume's advance mints one and re-dispatches
+        // this same scope. Advance must not have run here.
+        continuationHasWorkItem: afterBlocked.quest!.workItems.some((wi) =>
+          wi.relatedDataItems.some((ref) => String(ref) === `operations/${String(ptOp!.id)}`),
+        ),
+      }).toStrictEqual({
+        questStatus: 'blocked',
+        operations: [
+          { role: 'pesteater', status: 'complete', text: 'hunt the bug' },
+          { role: 'pesteater', status: 'pending', text: 'pt 2: hunt the bug' },
+          { role: 'ward', status: 'pending', text: 'ward (changed)' },
+        ],
+        signalledWorkItem: {
+          status: 'failed',
+          errorMessage: 'git commit is denied in this dispatched session',
+        },
+        downstreamWardStatus: 'skipped',
+        continuationHasWorkItem: false,
       });
     }, 30_000);
   });

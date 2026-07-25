@@ -11,11 +11,20 @@
  *   immutable pt audit trail instead of reverting a shared item's status. For a locked (verify
  *   tail) role the pt chain is bounded by `slotManagerStatics.<role>.maxAttempts`; a spent chain
  *   blocks the quest via questBlockOnFailureBroker instead of appending.
+ * - `operationStatus: 'blocked'` → an environment wall (a denied command, a missing credential, an
+ *   unreachable service) that no fresh session of the same role could pass. The item is marked
+ *   `complete` and a continuation is appended exactly as for `partial`, so a resume re-dispatches
+ *   this same scope — but the work item is marked `failed` carrying `blockedReason` as its
+ *   `errorMessage`, and the quest blocks IMMEDIATELY. The pt budget does NOT gate this append: the
+ *   block is itself the bound, and skipping the append would silently drop the operation on resume.
+ *   Spending the budget on sessions that provably cannot succeed is exactly what this outcome
+ *   exists to prevent.
  *
  * Work-item-terminal + operation-complete + the optional pt N land in ONE persist
  * (questOperationsUpdateBroker), so a crash is all-or-nothing; afterwards questAdvanceBroker
- * creates the next work item. There is no failure signal — agents fix their own problems and move
- * forward; the only failure concept is a ward exit-code red, handled in quest-run-ward-broker.
+ * creates the next work item. Agents have no failure signal for work they could have done — they
+ * fix their own problems and move forward; the only other failure concept is a ward exit-code red,
+ * handled in quest-run-ward-broker.
  *
  * USAGE:
  * await QuestHandleSignalBackResponder({ questId, workItemId, signal: 'complete', operationItemId, operationStatus: 'done' });
@@ -23,6 +32,7 @@
 
 import type {
   AdapterResult,
+  BlockedReason,
   OperationItem,
   OperationItemId,
   QuestId,
@@ -30,6 +40,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
+  errorMessageContract,
   getQuestInputContract,
   operationItemContract,
   workItemContract,
@@ -50,12 +61,14 @@ export const QuestHandleSignalBackResponder = async ({
   signal,
   operationItemId,
   operationStatus,
+  blockedReason,
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
   signal: 'complete';
   operationItemId?: OperationItemId;
-  operationStatus?: 'done' | 'partial';
+  operationStatus?: 'done' | 'partial' | 'blocked';
+  blockedReason?: BlockedReason;
 }): Promise<AdapterResult> => {
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
@@ -86,6 +99,7 @@ export const QuestHandleSignalBackResponder = async ({
   // Object holder (not a bare `let`): the flag is assigned inside the update callback, which
   // TypeScript's flow analysis cannot see — a bare boolean would read as always-false.
   const blockedOnSpentPtChain = { value: false };
+  const isEnvironmentWall = operationStatus === 'blocked';
 
   await questOperationsUpdateBroker({
     questId,
@@ -96,13 +110,18 @@ export const QuestHandleSignalBackResponder = async ({
       }
 
       const completedAt = new Date().toISOString();
+      // An environment wall is a `failed` work item carrying the reason, so the execution row
+      // renders WHY the quest halted. Every other outcome is a `complete` session.
       const nextWorkItems = quest.workItems.map((wi) =>
         wi.id === workItemId
           ? workItemContract.parse({
               ...wi,
-              status: 'complete',
+              status: isEnvironmentWall ? 'failed' : 'complete',
               completedAt,
               actualSignal: 'complete',
+              ...(blockedReason === undefined
+                ? {}
+                : { errorMessage: errorMessageContract.parse(String(blockedReason)) }),
             })
           : wi,
       );
@@ -126,7 +145,7 @@ export const QuestHandleSignalBackResponder = async ({
           : operation,
       );
 
-      if (operationStatus !== 'partial') {
+      if (operationStatus !== 'partial' && !isEnvironmentWall) {
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
@@ -159,7 +178,15 @@ export const QuestHandleSignalBackResponder = async ({
                     ? budgets.pesteater.maxAttempts
                     : budgets.spiritmender.maxAttempts;
       })();
-      if (linkedOperation.locked && maxAttempts !== undefined && chainLength >= maxAttempts) {
+      // The pt budget gates `partial` only. An environment wall always appends its continuation:
+      // the quest blocks either way, and withholding the append would leave the operation with no
+      // pending item, so a resume would silently skip this scope entirely.
+      if (
+        !isEnvironmentWall &&
+        linkedOperation.locked &&
+        maxAttempts !== undefined &&
+        chainLength >= maxAttempts
+      ) {
         blockedOnSpentPtChain.value = true;
         return { operations: completedOperations, workItems: nextWorkItems };
       }
@@ -185,7 +212,9 @@ export const QuestHandleSignalBackResponder = async ({
     },
   });
 
-  if (blockedOnSpentPtChain.value) {
+  // Both halt routes drain pending work items and flip the quest to `blocked`; neither advances,
+  // because the next session would hit the very wall (or spent budget) that stopped this one.
+  if (blockedOnSpentPtChain.value || isEnvironmentWall) {
     await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
     return adapterResultContract.parse({ success: true });
   }

@@ -19,6 +19,7 @@ import type {
   AddQuestResult,
   AgentId,
   AgentPromptResult,
+  BlockedReason,
   DirectoryEntry,
   DispatchState,
   GetQuestResult,
@@ -340,7 +341,7 @@ export const StartOrchestrator = {
   }): Promise<QuestRunWardResult> => QuestFlow.runWard({ questId, workItemId, mode }),
 
   // MCP-driven signal-back post-processing — applies the session's operation outcome
-  // (done/partial) to the ledger atomically, then advances the relay.
+  // (done/partial/blocked) to the ledger atomically, then advances the relay.
   handleSignalBack: async ({
     questId,
     workItemId,
@@ -351,7 +352,8 @@ export const StartOrchestrator = {
     workItemId: QuestWorkItemId;
     signal: 'complete';
     operationItemId?: OperationItemId;
-    operationStatus?: 'done' | 'partial';
+    operationStatus?: 'done' | 'partial' | 'blocked';
+    blockedReason?: BlockedReason;
   }): Promise<AdapterResult> =>
     QuestFlow.handleSignalBack({ questId, workItemId, signal, ...operationOutcome }),
 

@@ -177,8 +177,111 @@ describe('questListBroker', () => {
       await questListBroker({ guildId });
 
       expect(process.stderr.write).toHaveBeenCalledWith(
-        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/001-legacy/quest.json: file contents are not valid JSON\n',
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/001-legacy/quest.json: file contents are not valid JSON (repeats suppressed until this file changes)\n',
       );
+    });
+  });
+
+  // Nothing caches quests — every caller re-reads and re-parses, and timer-driven callers reach
+  // this broker many times a minute — so an unchanged bad file fails identically forever. Only
+  // the REPORT is deduped. Each test uses its own quest folder because the dedupe memo is
+  // module-level and outlives a single test.
+  describe('skip reports are deduped per file', () => {
+    it('VALID: {same bad file, two list calls} => reported once, not once per pass', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub();
+
+      for (const _pass of [0, 1]) {
+        proxy.setupQuestsPath({
+          homeDir: '/home/testuser',
+          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+          questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        });
+        proxy.setupQuestDirectories({ files: [FileNameStub({ value: '010-repeat' })] });
+        proxy.setupQuestFilePath({
+          result: FilePathStub({ value: '/project/.dungeonmaster-quests/010-repeat/quest.json' }),
+        });
+        proxy.setupQuestFile({ questJson: '{ not valid json' });
+      }
+
+      await questListBroker({ guildId });
+      await questListBroker({ guildId });
+
+      expect(proxy.getSkipReports()).toStrictEqual([
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/010-repeat/quest.json: file contents are not valid JSON (repeats suppressed until this file changes)\n',
+      ]);
+    });
+
+    it('VALID: {bad file edited, still bad for a new reason} => reported again with the new reason', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub();
+
+      for (const _pass of [0, 1]) {
+        proxy.setupQuestsPath({
+          homeDir: '/home/testuser',
+          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+          questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        });
+        proxy.setupQuestDirectories({ files: [FileNameStub({ value: '011-changed' })] });
+        proxy.setupQuestFilePath({
+          result: FilePathStub({ value: '/project/.dungeonmaster-quests/011-changed/quest.json' }),
+        });
+      }
+      proxy.setupQuestFile({ questJson: '{ not valid json' });
+      proxy.setupQuestFile({ questJson: '[]' });
+
+      await questListBroker({ guildId });
+      await questListBroker({ guildId });
+
+      expect(proxy.getSkipReports()).toStrictEqual([
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/011-changed/quest.json: file contents are not valid JSON (repeats suppressed until this file changes)\n',
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/011-changed/quest.json: (root): Expected object, received array (repeats suppressed until this file changes)\n',
+      ]);
+    });
+
+    it('VALID: {bad file fixed, then broken again the same way} => reported again after the good pass', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub();
+
+      for (const _pass of [0, 1, 2]) {
+        proxy.setupQuestsPath({
+          homeDir: '/home/testuser',
+          homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+          questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+        });
+        proxy.setupQuestDirectories({ files: [FileNameStub({ value: '012-flapping' })] });
+        proxy.setupQuestFilePath({
+          result: FilePathStub({ value: '/project/.dungeonmaster-quests/012-flapping/quest.json' }),
+        });
+      }
+      proxy.setupQuestFile({ questJson: '{ not valid json' });
+      proxy.setupQuestFile({
+        questJson: JSON.stringify({
+          id: 'flapping-quest',
+          folder: '012-flapping',
+          title: 'Flapping Quest',
+          status: 'in_progress',
+          createdAt: '2024-01-02T00:00:00Z',
+          userRequest: 'Flapping request',
+          toolingRequirements: [],
+        }),
+      });
+      proxy.setupQuestFile({ questJson: '{ not valid json' });
+
+      await questListBroker({ guildId });
+      const healthy = await questListBroker({ guildId });
+      await questListBroker({ guildId });
+
+      const line =
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/012-flapping/quest.json: file contents are not valid JSON (repeats suppressed until this file changes)\n';
+
+      expect({
+        healthyIds: healthy.map((q) => q.id),
+        reports: proxy.getSkipReports(),
+      }).toStrictEqual({
+        healthyIds: ['flapping-quest'],
+        reports: [line, line],
+      });
     });
   });
 

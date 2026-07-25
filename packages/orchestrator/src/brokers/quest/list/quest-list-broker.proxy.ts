@@ -23,6 +23,7 @@ export const questListBrokerProxy = (): {
   setupQuestFile: (params: { questJson: string }) => void;
   setupDirectList: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
   setupDirectListFailure: (params: { error: Error }) => void;
+  getSkipReports: () => readonly unknown[];
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const fsReaddirProxy = fsReaddirAdapterProxy();
@@ -30,7 +31,8 @@ export const questListBrokerProxy = (): {
   const questLoadProxy = questLoadBrokerProxy();
   // The broker reports every skipped quest file on stderr. Capture it so test output stays
   // clean and tests can assert on `process.stderr.write` that a skip is never silent.
-  registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
+  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrSpy.mockImplementation(() => true);
 
   const mocked = questListBroker as jest.MockedFunction<typeof questListBroker>;
   // Default: passthrough so existing consumers driving the fs chain keep working.
@@ -79,5 +81,11 @@ export const questListBrokerProxy = (): {
     setupDirectListFailure: ({ error }: { error: Error }): void => {
       mocked.mockRejectedValueOnce(error);
     },
+    // Only the broker's own skip lines, in write order — so a test can assert HOW MANY times an
+    // unchanged bad file was reported across repeated list calls, not just that it was reported.
+    getSkipReports: (): readonly unknown[] =>
+      stderrSpy.mock.calls
+        .map((call) => call[0])
+        .filter((line) => String(line).startsWith('[quest-list] skipping unloadable quest')),
   };
 };

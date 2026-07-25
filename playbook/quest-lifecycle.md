@@ -170,18 +170,22 @@ calls the `run-ward` MCP tool for it (§10).
 ## 7. Result handoff — `signal-back`
 
 When an agent finishes it calls `signal-back({ questId, workItemId, signal: 'complete', operationItemId?,
-operationStatus? })`. `complete` is the **sole** signal kind — a session-terminal marker. The operation OUTCOME rides
-on the same call as `operationStatus` (`done | partial`; `failed` is rejected). There is **no failure signal** — agents
-fix their own problems and move forward. `quest-handle-signal-back-responder` applies the outcome server-side
-(authoritative — an agent cannot forget to patch the ledger, because agents never write it), in ONE atomic
-`questOperationsUpdateBroker` persist:
+operationStatus?, blockedReason? })`. `complete` is the **sole** signal kind — a session-terminal marker. The operation
+OUTCOME rides on the same call as `operationStatus` (`done | partial | blocked`; `failed` is rejected). There is **no
+failure signal for work the agent could have done** — agents fix their own problems and move forward.
+`quest-handle-signal-back-responder` applies the outcome server-side (authoritative — an agent cannot forget to patch
+the ledger, because agents never write it), in ONE atomic `questOperationsUpdateBroker` persist:
 
-1. Marks the signaled work item terminal (`complete`, `completedAt`).
+1. Marks the signaled work item terminal (`completedAt`) — `complete`, or `failed` on `blocked`.
 2. Resolves the linked operation item (the call's `operationItemId`, else the work item's `operations/<id>` ref).
 3. `operationStatus: 'done'` (or absent) → marks that operation item `complete`.
 4. `operationStatus: 'partial'` → marks it `complete` AND appends a `"pt N: {text}"` continuation item (same role,
    `locked`/`wardMode` preserved) immediately after it — **duplicate-on-partial**.
-5. Calls `questAdvanceBroker` to create the next work item.
+5. `operationStatus: 'blocked'` (requires `blockedReason`) → the **environment wall**: same `complete` + `pt N` append
+   as `partial` (so a resume re-dispatches this scope), but the work item carries `blockedReason` as its
+   `errorMessage`, the pt budget is bypassed, and the quest halts immediately instead of advancing. Use it when no fresh
+   session of the role could pass the wall — a denied command, a missing credential, an unreachable service.
+6. Calls `questAdvanceBroker` to create the next work item — skipped on the halt routes (`blocked`, spent pt chain).
 
 The handler is **idempotent**: a redelivered signal for an already-terminal work item is a no-op (no second `pt N`, no
 second work item).
@@ -207,7 +211,8 @@ blightwarden), a session signals `partial` when its pass changed code; the appen
 session of the same role re-run against the new state. The role converges when a pass changes nothing and signals
 `done` — convergence IS the verdict. A locked role's `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`
 (ward by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest. An unlocked `codeweaver` item's `pt N`
-chain is unbounded — codeweavers pivot in place freely.
+chain is unbounded — codeweavers pivot in place freely. A `blocked` signal appends its `pt N` regardless of budget — the
+halt is the bound, and dropping the append would make a resume skip the scope.
 
 Trace a feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → siegemaster → lawbringer → blightwarden
 → ward(full)`. After `ward(full)` is green, no `pending` operation item remains and the operation-aware status
@@ -283,6 +288,9 @@ Terminal statuses are `complete` and `abandoned`.
 There is **no PathSeeker, no replan, no `failed` agent signal.** The three non-failure "sad" paths all keep the quest
 `in_progress` and move it forward:
 
+- **blocked → halt** (§7) — an agent that hits an ENVIRONMENT wall (denied command, missing credential, unreachable
+  service) signals `blocked` with a reason; the quest stops for the user instead of burning the pt budget on successors
+  that hit the identical wall.
 - **partial → pt N** (§8) — an agent that can't finish its scope signals `partial`; the orchestrator continues its work
   as a fresh `pt N` session.
 - **ward red → spiritmender → re-ward** (§9) — a red ward inserts a spiritmender fix + a fresh ward.

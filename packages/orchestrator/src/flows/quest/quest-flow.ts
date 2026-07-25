@@ -111,6 +111,7 @@ export const QuestFlow = {
     signal,
     operationItemId,
     operationStatus,
+    blockedReason,
   }: HandleSignalBackParams): Promise<HandleSignalBackResult> =>
     QuestHandleSignalBackResponder({
       questId,
@@ -118,6 +119,7 @@ export const QuestFlow = {
       signal,
       ...(operationItemId === undefined ? {} : { operationItemId }),
       ...(operationStatus === undefined ? {} : { operationStatus }),
+      ...(blockedReason === undefined ? {} : { blockedReason }),
     }),
 
   getServerConfig: (): GetServerConfigResult => QuestGetServerConfigResponder(),

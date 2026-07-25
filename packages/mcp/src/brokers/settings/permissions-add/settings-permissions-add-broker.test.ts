@@ -4,7 +4,7 @@ import { FileContentsStub, PathSegmentStub } from '@dungeonmaster/shared/contrac
 
 describe('settingsPermissionsAddBroker', () => {
   describe('no existing settings file', () => {
-    it('VALID: {targetProjectRoot: /project, settings: none} => creates settings with MCP permissions', async () => {
+    it('VALID: {targetProjectRoot: /project, settings: none} => creates settings with MCP + git permissions', async () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
@@ -40,6 +40,14 @@ describe('settingsPermissionsAddBroker', () => {
                   'mcp__dungeonmaster__get-next-step',
                   'mcp__dungeonmaster__run-ward',
                   'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git add:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
+                  'Bash(git commit:*)',
                 ],
               },
             },
@@ -92,6 +100,14 @@ describe('settingsPermissionsAddBroker', () => {
                   'mcp__dungeonmaster__get-next-step',
                   'mcp__dungeonmaster__run-ward',
                   'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git add:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
+                  'Bash(git commit:*)',
                 ],
               },
             },
@@ -148,6 +164,77 @@ describe('settingsPermissionsAddBroker', () => {
                   'mcp__dungeonmaster__get-next-step',
                   'mcp__dungeonmaster__run-ward',
                   'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git add:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
+                  'Bash(git commit:*)',
+                ],
+              },
+            },
+            null,
+            2,
+          ),
+        }),
+      );
+    });
+  });
+
+  describe('git permissions for dispatched relay agents', () => {
+    it('VALID: {settings: already has the git grants} => a re-run keeps them in place exactly once', async () => {
+      const proxy = settingsPermissionsAddBrokerProxy();
+      const targetProjectRoot = PathSegmentStub({ value: '/project' });
+      const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
+      const existingContents = FileContentsStub({
+        value: JSON.stringify({
+          permissions: {
+            allow: ['Bash(git add:*)', 'Bash(git commit:*)'],
+          },
+        }),
+      });
+
+      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+
+      const result = await settingsPermissionsAddBroker({ targetProjectRoot });
+
+      expect(result).toStrictEqual(
+        FileContentsStub({
+          value: JSON.stringify(
+            {
+              permissions: {
+                allow: [
+                  'Bash(git add:*)',
+                  'Bash(git commit:*)',
+                  'mcp__dungeonmaster__discover',
+                  'mcp__dungeonmaster__get-architecture',
+                  'mcp__dungeonmaster__get-folder-detail',
+                  'mcp__dungeonmaster__get-syntax-rules',
+                  'mcp__dungeonmaster__get-testing-patterns',
+                  'mcp__dungeonmaster__get-quest',
+                  'mcp__dungeonmaster__modify-quest',
+                  'mcp__dungeonmaster__signal-back',
+                  'mcp__dungeonmaster__start-quest',
+                  'mcp__dungeonmaster__get-quest-status',
+                  'mcp__dungeonmaster__list-quests',
+                  'mcp__dungeonmaster__list-guilds',
+                  'mcp__dungeonmaster__ask-user-question',
+                  'mcp__dungeonmaster__get-agent-prompt',
+                  'mcp__dungeonmaster__get-project-map',
+                  'mcp__dungeonmaster__get-quest-planning-notes',
+                  'mcp__dungeonmaster__get-project-inventory',
+                  'mcp__dungeonmaster__create-quest',
+                  'mcp__dungeonmaster__get-next-step',
+                  'mcp__dungeonmaster__run-ward',
+                  'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
                 ],
               },
             },
@@ -208,6 +295,14 @@ describe('settingsPermissionsAddBroker', () => {
                   'mcp__dungeonmaster__get-next-step',
                   'mcp__dungeonmaster__run-ward',
                   'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git add:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
+                  'Bash(git commit:*)',
                 ],
               },
             },
@@ -264,6 +359,14 @@ describe('settingsPermissionsAddBroker', () => {
                   'mcp__dungeonmaster__get-next-step',
                   'mcp__dungeonmaster__run-ward',
                   'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git add:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
+                  'Bash(git commit:*)',
                 ],
               },
             },
@@ -322,6 +425,14 @@ describe('settingsPermissionsAddBroker', () => {
                   'mcp__dungeonmaster__get-next-step',
                   'mcp__dungeonmaster__run-ward',
                   'mcp__dungeonmaster__get-server-config',
+                  'Bash(git status:*)',
+                  'Bash(git log:*)',
+                  'Bash(git diff:*)',
+                  'Bash(git show:*)',
+                  'Bash(git add:*)',
+                  'Bash(git rm:*)',
+                  'Bash(git mv:*)',
+                  'Bash(git commit:*)',
                 ],
               },
             },

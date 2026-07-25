@@ -38,7 +38,8 @@ export const InteractionHandleResponder = async ({
     if (result.success) {
       // After validating the signal, apply it server-side: the handler marks the work item
       // terminal, applies the operation outcome (done -> complete; partial -> complete + a
-      // "pt N" continuation) to the ledger atomically, then advances the relay.
+      // "pt N" continuation; blocked -> the same continuation plus an immediate quest block) to
+      // the ledger atomically, then advances the relay.
       await orchestratorHandleSignalBackAdapter({
         questId: result.signal.questId,
         workItemId: result.signal.workItemId,
@@ -49,6 +50,9 @@ export const InteractionHandleResponder = async ({
         ...(result.signal.operationStatus === undefined
           ? {}
           : { operationStatus: result.signal.operationStatus }),
+        ...(result.signal.blockedReason === undefined
+          ? {}
+          : { blockedReason: result.signal.blockedReason }),
       });
     }
 

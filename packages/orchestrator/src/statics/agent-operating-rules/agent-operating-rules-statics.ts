@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Shared "Operating Rules" block embedded at the top of every file-changing worker prompt (codeweaver onward) — the turn-discipline + ward-scope rules that stop a sub-agent from stranding its work item and wedging the quest
+ * PURPOSE: Shared "Operating Rules" block embedded at the top of every file-changing worker prompt (codeweaver onward) — the turn-discipline, ward-scope, and environment-wall rules that stop a sub-agent from stranding its work item, wedging the quest, or burning its pt-chain budget on a wall no session of its role can pass
  *
  * USAGE:
  * agentOperatingRulesStatics.markdown;
@@ -17,5 +17,15 @@ You are a Task-dispatched sub-agent. These rules are non-negotiable for every fi
 
 **3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo \`npm run ward\`.** Always \`npm run ward -- --only <checks> -- <paths>\` with \`timeout: 600000\`, scoped to the files you touched — it stays in the foreground and finishes fast. Those \`<paths>\` MUST be explicit FILE paths (\`-- <file1> <file2>\`), NEVER a bare directory (\`-- packages/<pkg>\`): a directory scope pulls in the whole package, runs for minutes, and the harness auto-backgrounds it exactly like the whole-repo command — which strands your turn (see Rule 2). A bare whole-repo \`npm run ward\` runs for minutes and the harness auto-backgrounds it, which strands your turn (see Rule 2) — so never run it. The full-repo regression sweep is the dispatcher's own \`run-ward\` work item that runs after you; your job is only to prove the files YOU changed are green.
 
-**4. The \`Agent\`/Task tool is SYNCHRONOUS — awaiting a helper you spawn is allowed and does NOT violate Rule 2.** Rule 2 forbids ending your turn waiting on a backgrounded *shell* command. A sub-agent you spawn via \`Agent\` returns its result inline as the tool result within the same turn — you stay alive, read what it returns, and continue. If your role's prompt tells you to delegate isolated work to a helper, decide it EARLY (the model will not reliably stop to delegate deep into a long turn), brief the helper fully, and block on its result.`,
+**4. The \`Agent\`/Task tool is SYNCHRONOUS — awaiting a helper you spawn is allowed and does NOT violate Rule 2.** Rule 2 forbids ending your turn waiting on a backgrounded *shell* command. A sub-agent you spawn via \`Agent\` returns its result inline as the tool result within the same turn — you stay alive, read what it returns, and continue. If your role's prompt tells you to delegate isolated work to a helper, decide it EARLY (the model will not reliably stop to delegate deep into a long turn), brief the helper fully, and block on its result.
+
+**5. When the wall is the ENVIRONMENT, not the work, signal \`operationStatus: 'blocked'\` — never \`partial\`.** You are dispatched with no interactive approver: a command outside the project's permission allowlist comes back \`This command requires approval\` and is DENIED outright, not queued for someone to accept. The same goes for a missing credential, an unreachable service, or a tool the sandbox does not expose. Retrying it, rephrasing it, or handing it to a fresh session of your role cannot work — every one of them hits the identical wall.
+
+\`partial\` means *scope remains that another session of my role can pick up*; it costs a pt-chain attempt and spawns exactly the successor that will fail the same way. \`blocked\` means *no session of my role can proceed until a human changes something*: it halts the quest immediately, surfaces your reason to the user, and re-queues your operation item so a resume picks up right here. Include a \`blockedReason\` that names the wall AND what the user must change:
+
+\`\`\`
+signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'blocked', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })
+\`\`\`
+
+Commit whatever you finished first, exactly as you would for \`partial\` — a blocked quest still hands its work forward through git.`,
 } as const;

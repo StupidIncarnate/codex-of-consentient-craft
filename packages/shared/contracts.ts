@@ -39,6 +39,8 @@ export * from './src/contracts/module-path/module-path.stub';
 // Error Message Contracts
 export * from './src/contracts/error-message/error-message-contract';
 export * from './src/contracts/error-message/error-message.stub';
+export * from './src/contracts/blocked-reason/blocked-reason-contract';
+export * from './src/contracts/blocked-reason/blocked-reason.stub';
 
 // Extracted Metadata Contracts
 export * from './src/contracts/extracted-metadata/extracted-metadata-contract';

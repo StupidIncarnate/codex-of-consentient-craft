@@ -67,6 +67,32 @@ describe('installOrchestrateBroker', () => {
       ]);
     });
 
+    it('VALID: {packages: two that share .claude/settings.json} => the second install starts only after the first finished', async () => {
+      const proxy = installOrchestrateBrokerProxy();
+      const context = InstallContextStub({
+        value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm',
+        },
+      });
+
+      const hooksPkg = Object.assign(Object.create(null), {
+        packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
+        installPath: FilePathStub({ value: '/path/to/hooks/start-install.ts' }),
+      });
+      const mcpPkg = Object.assign(Object.create(null), {
+        packageName: PackageNameStub({ value: '@dungeonmaster/mcp' }),
+        installPath: FilePathStub({ value: '/path/to/mcp/start-install.ts' }),
+      });
+      const packages = [hooksPkg, mcpPkg];
+
+      proxy.setupOverlapRecordingInstalls();
+
+      await installOrchestrateBroker({ packages, context });
+
+      expect(proxy.hadOverlappingInstalls()).toBe(false);
+    });
+
     it('VALID: {packages: [], context} => returns empty array for no packages', async () => {
       installOrchestrateBrokerProxy();
       const context = InstallContextStub({

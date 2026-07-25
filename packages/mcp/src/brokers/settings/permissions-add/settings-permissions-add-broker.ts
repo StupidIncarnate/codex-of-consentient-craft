@@ -1,9 +1,15 @@
 /**
- * PURPOSE: Adds MCP permissions to .claude/settings.json, creating the file and directory if needed
+ * PURPOSE: Adds the dungeonmaster-managed permissions to .claude/settings.json — every MCP tool
+ * grant plus the git Bash grants dispatched relay agents need — creating the file and directory
+ * if needed.
  *
  * USAGE:
  * await settingsPermissionsAddBroker({ targetProjectRoot: PathSegmentStub() });
- * // Creates/updates .claude/settings.json with MCP tool permissions in permissions.allow array
+ * // Creates/updates .claude/settings.json with the MCP tool + git permissions in permissions.allow
+ *
+ * Third-party entries already in `allow` are preserved verbatim. Stale dungeonmaster MCP grants
+ * (tools no longer in `mcpToolsStatics.tools.names`) are pruned; `Bash(…)` entries are never
+ * pruned, because this broker cannot tell which of them the user added themselves.
  */
 
 import {
@@ -17,8 +23,13 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
-import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
-import type { McpPermission } from '../../../contracts/mcp-permission/mcp-permission-contract';
+import {
+  agentGitPermissionsStatics,
+  locationsStatics,
+  mcpToolsStatics,
+} from '@dungeonmaster/shared/statics';
+import { claudePermissionContract } from '../../../contracts/claude-permission/claude-permission-contract';
+import type { ClaudePermission } from '../../../contracts/claude-permission/claude-permission-contract';
 
 const JSON_INDENT_SPACES = 2;
 const DUNGEONMASTER_PERMISSION_PREFIX = `mcp__${mcpToolsStatics.server.name}__`;
@@ -53,25 +64,34 @@ export const settingsPermissionsAddBroker = async ({
     // File doesn't exist or is invalid JSON - will create new settings
   }
 
-  // Get current valid MCP permissions
-  const mcpPermissions = mcpPermissionsCreatorTransformer();
-  const currentPermissionsSet = new Set<McpPermission>(mcpPermissions);
+  // Every permission dungeonmaster manages: the MCP tool grants, then the git grants that let a
+  // dispatched relay agent read history and land its handoff commit (a headless child has no
+  // interactive approver, so an ungranted command is denied outright rather than prompted).
+  const managedPermissions: ClaudePermission[] = [
+    ...mcpPermissionsCreatorTransformer().map((permission) =>
+      claudePermissionContract.parse(permission),
+    ),
+    ...agentGitPermissionsStatics.allow.map((permission) =>
+      claudePermissionContract.parse(permission),
+    ),
+  ];
+  const managedPermissionsSet = new Set<ClaudePermission>(managedPermissions);
 
   // Get existing permissions
   const existingPermissions = existingSettings.permissions as
     | Record<PropertyKey, unknown>
     | undefined;
-  const existingAllow = (existingPermissions?.allow ?? []) as McpPermission[];
+  const existingAllow = (existingPermissions?.allow ?? []) as ClaudePermission[];
 
-  // Prune stale dungeonmaster permissions (tools no longer in mcpToolsStatics.tools.names),
-  // leave all other permissions untouched, then union with current dungeonmaster permissions.
+  // Prune stale dungeonmaster MCP permissions (tools no longer in mcpToolsStatics.tools.names),
+  // leave all other permissions untouched, then union with the current managed set.
   const prunedExisting = existingAllow.filter((permission) => {
     if (!permission.startsWith(DUNGEONMASTER_PERMISSION_PREFIX)) {
       return true;
     }
-    return currentPermissionsSet.has(permission);
+    return managedPermissionsSet.has(permission);
   });
-  const mergedAllow = [...new Set<McpPermission>([...prunedExisting, ...mcpPermissions])];
+  const mergedAllow = [...new Set<ClaudePermission>([...prunedExisting, ...managedPermissions])];
 
   // Update settings with merged permissions
   const updatedSettings = {

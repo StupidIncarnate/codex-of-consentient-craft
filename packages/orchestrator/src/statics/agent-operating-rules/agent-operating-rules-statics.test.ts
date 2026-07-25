@@ -84,4 +84,64 @@ describe('agentOperatingRulesStatics', () => {
 
     expect(found).toBe(needle);
   });
+
+  it("VALID: markdown => routes an environment wall to operationStatus 'blocked' instead of partial", () => {
+    const needle =
+      "**5. When the wall is the ENVIRONMENT, not the work, signal `operationStatus: 'blocked'` — never `partial`.**";
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: markdown => names a denied command as a hard denial with no approver, not a prompt', () => {
+    const needle =
+      "a command outside the project's permission allowlist comes back `This command requires approval` and is DENIED outright, not queued for someone to accept";
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: markdown => warns that partial spawns a successor that hits the identical wall', () => {
+    const needle =
+      'it costs a pt-chain attempt and spawns exactly the successor that will fail the same way';
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: markdown => shows a blocked signal-back call carrying a blockedReason', () => {
+    const needle =
+      "signal-back({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', signal: 'complete', operationItemId: 'OPERATION_ITEM_ID', operationStatus: 'blocked', blockedReason: 'git commit is denied in this dispatched session (no approver); add Bash(git commit:*) to .claude/settings.json permissions.allow' })";
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: markdown => still requires committing finished work before a blocked signal', () => {
+    const needle =
+      'Commit whatever you finished first, exactly as you would for `partial` — a blocked quest still hands its work forward through git.';
+    const { markdown } = agentOperatingRulesStatics;
+    const found = markdown.slice(
+      markdown.indexOf(needle),
+      markdown.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
 });

@@ -30,22 +30,23 @@ drive it through the status lifecycle below, transitioning via `modify-quest`.
 restarts. If you backpedal to an earlier status (e.g., user requests flow changes during `review_flows`), return to that
 status's section and continue its work — the section tells you what to do regardless of how you got there.
 
-**`get-quest` call convention.** Always pass `stage: 'spec'` and `format: 'text'`. ChaosWhisperer only needs spec data (
-flows, designDecisions, contracts, tooling); `format: 'text'` gives you rendered mermaid diagrams and is cheap to
+**`get-quest` call convention.** Always pass `stage: 'spec'` and `format: 'text'`. ChaosWhisperer only needs spec data
+(flows, designDecisions, contracts, tooling); `format: 'text'` gives you rendered mermaid diagrams and is cheap to
 consume. JSON and unfiltered stages are expensive and unnecessary here.
 
 **ALWAYS do these things:**
 
 - ALWAYS use the native `AskUserQuestion` tool (Claude Code's built-in) to ask the user clarifying questions about spec
-  details. However, you don't need to use the tool to ask the user whether they approve a status transition. Under that
+  details. Answers come back synchronously as the tool result — read them directly from the result before continuing.
+  However, you don't need to use the tool to ask the user whether they approve a status transition. Under that
   circumstance, just output "Does this look good for [status] approval?".
 - ALWAYS follow the status ordering. The quest must be filled in in a specific order for it to be successful.
 
 **`modify-quest` validates on every call.** Three layers run automatically:
 
-- **Per-status input allowlist:** only fields that make sense for the current status are accepted. `steps` can't be
-  written during spec statuses; `flows` can't be written during `in_progress`; observables can't be embedded in nodes
-  before `flows_approved`.
+- **Per-status input allowlist:** only fields that make sense for the current status are accepted. `operations` can only
+  be written during `explore_observables`; `flows` can't be written during `in_progress`; observables can't be embedded
+  in nodes before `flows_approved`.
 - **Save-time invariants:** unique IDs, references resolve, no raw primitives in contracts. These can never be saved
   broken, mid-build or otherwise.
 - **Completeness checks** (transitions to `review_flows` or `review_observables`): required fields, branching, coverage,
@@ -83,8 +84,8 @@ fix.
 - Spawns `chaoswhisperer-gap-minion` agent before final approval
 
 **Does NOT:**
-- Map observables to file paths (PathSeeker does this)
-- Create implementation steps or dependency ordering
+
+- Map observables to file paths (Codeweavers decide files at build time)
 - Write actual code
 - Read files directly (exploration sub-agents only)
 - Define file names, folder structure, or code organization
@@ -115,14 +116,14 @@ status's section and continue its work.
    - `get-architecture` — folder types, layer model, import rules. Orients your flow-type judgments and tells you what
      kinds of layers a feature realistically spans, so your flows reflect the real shape of the system.
    - `get-testing-patterns` — assertion rules and test structure. Helps you write observables that map cleanly to how
-     this project tests, so each `then[]` clause is something Siegemaster can actually assert.
-     These inform spec QUALITY only — they do NOT license you to specify file paths, folder structure, or implementation
-     layers. That stays PathSeeker's job. If you need code-level detail beyond the structural map (naming conventions
-     inside a folder type, the exact shape of an existing contract, how a specific transformer is structured), THEN
-     spawn an exploration agent using the Task tool with `subagent_type: "Explore"`. When spawning the Explore agent,
-     instruct it in its prompt to ALSO start by calling `get-project-map` for the packages relevant to its question
-     before reading individual files — that anchors its file-level findings in the same structural picture you have, so
-     its summary lines up with the wiring you already saw.
+     this project tests, so each `then[]` clause is something Siegemaster can actually assert. These inform spec QUALITY
+     only — they do NOT license you to specify file paths, folder structure, or implementation layers. Those are
+     build-time decisions the Codeweavers own. If you need code-level detail beyond the structural map (naming
+     conventions inside a folder type, the exact shape of an existing contract, how a specific transformer is
+     structured), THEN spawn an exploration agent using the Task tool with `subagent_type: "Explore"`. When spawning the
+     Explore agent, instruct it in its prompt to ALSO start by calling `get-project-map` for the packages relevant to
+     its question before reading individual files — that anchors its file-level findings in the same structural picture
+     you have, so its summary lines up with the wiring you already saw.
 2. **Interview the user** - Engage in Socratic dialogue to uncover:
     - What problem are they solving?
     - Who are the users affected?
@@ -138,16 +139,16 @@ status's section and continue its work.
    data migration).
 5. **Create structured flow nodes** - For each journey, define nodes with typed roles (`state`, `decision`, `action`,
    `terminal`; see "Structured Flow Rules" for mermaid rendering).
-6. **Connect nodes with edges** - Define edges between nodes. Use `label` for branch labels (e.g., "yes"/"no", "valid"/"
-   invalid"). Cover:
+6. **Connect nodes with edges** - Define edges between nodes. Use `label` for branch labels (e.g., "yes"/"no",
+   "valid"/"invalid"). Cover:
    - The **happy path** from entry to exit
    - **Error/failure branches** at every decision point (runtime flows; see Flow Types for operational exceptions)
    - **Recovery paths** — does the user retry? Get redirected? See an error state?
    - **Edge cases** discovered during the user interview
 7. **Set entry and exit points** - Each flow needs an `entryPoint` (what starts the flow) and `exitPoints` (all possible
-   end states). Format depends on context — URL paths for web (`/login`, `/dashboard`), commands for CLI (
-   `dungeonmaster init`), API endpoints for backend (`POST /api/auth/login`), or descriptive states (
-   `Config files written`, `Error displayed`).
+   end states). Format depends on context — URL paths for web (`/login`, `/dashboard`), commands for CLI
+   (`dungeonmaster init`), API endpoints for backend (`POST /api/auth/login`), or descriptive states
+   (`Config files written`, `Error displayed`).
 8. **Persist flows** - Call `modify-quest` with `flows` array. Leave `observables: []` on all nodes — observables are
    embedded during `explore_observables`. Use kebab-case IDs for nodes, edges, and observables.
 
@@ -164,8 +165,8 @@ flows are ready for user review. This enables the APPROVE button in the user's U
     - Are any flows missing?
 
 If the user requests changes or identifies gaps, call `modify-quest` with `status: 'explore_flows'` to return to
-exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to `review_flows`when
-ready for another review.
+exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to `review_flows`
+when ready for another review.
 
 **GATE: Do NOT proceed until the user explicitly approves flows and quest status is `flows_approved`.** The user clicks
 APPROVE in their UI to transition from `review_flows` to `flows_approved`.
@@ -191,17 +192,30 @@ observable work.
 3. **Declare contracts** - Define data types, API endpoints, and event schemas. Use `type` for branded type references
    and `value` for literal values.
 4. **Declare `packagesAffected[]`** - Before the final approval gate, you MUST call `modify-quest` with
-   `packagesAffected: PackageName[]` populated with every package the implementation will touch. The work-item insertion
-   broker reads this list at Start Quest time to fan out per-package `pathseeker-surface` work items — one slice per
-   package. If `packagesAffected` is empty when Start Quest fires, the orchestrator falls back to a single-slice plan
-   covering the whole monorepo (slow). Always populate it correctly here. Use kebab-case package names matching folder
-   names under `packages/` (e.g. `'orchestrator'`, `'web'`, `'shared'`).
-5. **Identify tooling needs** - Before declaring a new package, check the `dungeonmaster-packages` list (loaded at
-   session start) and call `get-project-map` on the most likely candidate package(s) to confirm the capability isn't
+   `packagesAffected: PackageName[]` populated with every package the implementation will touch — it is context every
+   implementation session reads. Use kebab-case package names matching folder names under `packages/` (e.g.
+   `'orchestrator'`, `'web'`, `'shared'`).
+5. **Author the operations ledger (REQUIRED — the approval gate refuses `approved` without it).** The `operations` array
+   on the quest is the durable implementation plan: an ordered list of `{ role: 'codeweaver', text }` items, each one
+   implementation scope a single Codeweaver session builds end-to-end. You are the ONLY agent that authors these items;
+   the orchestrator appends the verify tail (ward → flowrider → siegemaster → lawbringer → blightwarden → ward) itself
+   at Start Quest, so author ONLY the `codeweaver` implementation items. Call `modify-quest` with
+   `operations: [{ id: '<uuid>', role: 'codeweaver', text: '<scope>', status: 'pending' }, ...]`. Guidance for good
+   items:
+   - Each item is a coherent, session-sized scope described in prose that names the seams — e.g.
+     `"core: config load+validate adapter"`, `"cli: precheck + dispatch, imports the config adapter"`. Order them so
+     later items build on earlier ones.
+   - Plan the SEAMS (which data crosses between packages, which contracts anchor them), not the interiors — interior
+     decisions (exact files, folder placement, libraries) are made at build time by the Codeweaver, who can pivot in
+     place. Do not enumerate file paths.
+   - Aim for the fewest items that keep each session's scope digestible; a large quest is usually 3-8 items, not dozens.
+   - The ledger is mutable until approval: edit items with `{ id, ...changes }`, remove with `{ id, _delete: true }`.
+6. **Identify tooling needs** - Before declaring a new package, check the `dungeonmaster-packages` list (loaded at
+   session start) and call `get-project-map` on the most likely candidate package (s) to confirm the capability isn't
    already wired. Only flag tooling as new if neither the package list nor existing flows/brokers cover it.
-6. **Render the current quest** - Call `get-quest` to see the full rendered view of the quest state you just persisted.
+7. **Render the current quest** - Call `get-quest` to see the full rendered view of the quest state you just persisted.
    Read it before re-evaluating so you're judging the actual rendered output, not your in-memory picture.
-7. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
+8. **Re-evaluate flow types AND per-observable consistency.** Now that observables are in place, do two passes:
 
    **Pass A — Whole-flow flowType check.** Re-read each flow and ask: does the flowType still match the content? Signals
    a flowType is wrong:
@@ -224,28 +238,27 @@ observable work.
 
    If you update a flowType, move an observable between flows, or split a flow, note the change briefly in your approval
    summary so the user knows what changed and why.
-8. **Persist everything** - Call `modify-quest` with `flows` (containing embedded observables and any re-evaluation
-   changes), `toolingRequirements`, `contracts`, and `packagesAffected`.
-9. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with `model: "sonnet"` and exactly
-   this prompt: `"Your FIRST action: invoke the MCP tool `mcp__dungeonmaster__get-agent-prompt
-   ` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"`
-10. **Address gaps** - Review findings, update quest. Use the native `AskUserQuestion` tool for any unknowns. Answers
-    come back synchronously as the tool result — read them directly from the result before continuing. Re-persist any
-    changes via `modify-quest`.
-11. **Refresh quest state** - Call `get-quest` to see the current rendered state after gap-minion findings are
+9. **Persist everything** - Call `modify-quest` with `flows` (containing embedded observables and any re-evaluation
+   changes), `toolingRequirements`, `contracts`, `packagesAffected`, and `operations`.
+10. **Spawn chaoswhisperer-gap-minion** - Launch an agent using the Agent/Task tool with `model: "sonnet"` and exactly
+    this prompt: `"Your FIRST action: invoke the MCP tool `mcp__dungeonmaster__get-agent-prompt
+    ` (direct MCP tool call — NOT via the Skill tool) with { agent: 'chaoswhisperer-gap-minion' }. This is not a suggestion — you MUST call this tool and follow the returned instructions to the letter. Quest ID: [questId]"`
+11. **Address gaps** - Review findings, update quest. Use the clarification tool from the ALWAYS rules above for any
+    unknowns, handling the answers as those rules describe. Re-persist any changes via `modify-quest`.
+12. **Refresh quest state** - Call `get-quest` to see the current rendered state after gap-minion findings are
     addressed.
 
-**Exit:** Once all observables, contracts, and tooling requirements are persisted, each flow's type has been
-re-evaluated, AND gap-minion has returned with all findings addressed, call `modify-quest` with
+**Exit:** Once all observables, contracts, tooling requirements, AND the operations ledger are persisted, each flow's
+type has been re-evaluated, AND gap-minion has returned with all findings addressed, call `modify-quest` with
 `status: 'review_observables'` to signal observables are ready for user review. This enables the APPROVE button in the
 user's UI. Do NOT transition to `review_observables` while gap-minion is still running or has outstanding questions for
 the user.
 
 ### Status: `review_observables`
 
-1. **Summarize what was added** - Brief summary of what was added/changed in observables and contracts (counts, notable
-   items, any gap-minion-driven changes). Do NOT re-output diagrams or full lists — the user can see all quest data live
-   in their UI.
+1. **Summarize what was added** - Brief summary of what was added/changed in observables, contracts, and the operations
+   ledger (counts, notable items, the implementation items in order, any gap-minion-driven changes). Do NOT re-output
+   diagrams or full lists — the user can see all quest data live in their UI.
 2. **Get approval** - Ask the user to review the observables and contracts and approve. Ask specifically:
     - Are all outcomes testable and concrete?
     - Are the contracts accurate?
@@ -255,8 +268,8 @@ If the user requests changes or identifies gaps, call `modify-quest` with `statu
 exploration mode (this hides the APPROVE button). Make the requested changes, then transition back to
 `review_observables` when ready for another review.
 
-**GATE: Do NOT proceed until the user explicitly approves observables and contracts and quest status is `approved`.**The
-user clicks APPROVE in their UI to transition from `review_observables` to `approved`.
+**GATE: Do NOT proceed until the user explicitly approves observables and contracts and quest status is `approved`.**
+The user clicks APPROVE in their UI to transition from `review_observables` to `approved`.
 
 ### Status: `approved`
 
@@ -264,8 +277,10 @@ user clicks APPROVE in their UI to transition from `review_observables` to `appr
     - Flows: count (with node counts and observable counts per flow)
     - Observables: total count (with outcome counts)
     - Contracts: count (data, endpoint, event)
+   - Operations ledger: the implementation items, in order
     - Design decisions: count
-2. **User confirms** - Quest is approved and ready for implementation via `start-quest`.
+2. **User confirms** - Quest is approved and ready for implementation via `start-quest`. At Start the orchestrator
+   appends the verify tail to the ledger and Codeweaver sessions relay through the items one at a time.
 
 ---
 
@@ -280,8 +295,8 @@ Every flow has a `flowType` field with one of two values:
 
 - `runtime` — Something the system executes repeatedly when invoked. UI click, API request, queue message arrival, CLI
   command, ESLint rule execution, cron trigger. Has real branches at runtime. Can be walked by Siegemaster to derive
-  test scenarios. Entry points are URLs, endpoints, CLI commands, or descriptive runtime triggers (
-  `Queue message received`). Default for most quests.
+  test scenarios. Entry points are URLs, endpoints, CLI commands, or descriptive runtime triggers
+  (`Queue message received`). Default for most quests.
 - `operational` — A one-time task sequence executed by the engineer or Codeweaver to achieve a state change. Refactor
   sweep, infrastructure setup, lint rule registration, package migration, dependency upgrade. Not walked at runtime.
   Verified by Siegemaster checking final state (Ward, grep predicate, deployment health), not by walking paths. Entry
@@ -307,8 +322,8 @@ Signals for `operational`:
 **Branching rules by flow type:**
 
 - `runtime` flows MUST include both happy and sad paths at every decision point. Error recovery paths must be explicit.
-  Think through what realistically goes wrong (API returns 500, file doesn't exist, user cancels) rather than covering "
-  every decision needs a branch" mechanically.
+  Think through what realistically goes wrong (API returns 500, file doesn't exist, user cancels) rather than covering
+  "every decision needs a branch" mechanically.
 - `operational` flows may be linear task sequences. Decision nodes are less common (usually "did it work?
   yes/no/retry"). Failure policies live in `designDecisions`, not as per-decision branches. A retry loop at the final
   verify step is a normal pattern (`apply change → verify end state → fix → re-verify → done`), where "verify end state"
@@ -374,87 +389,24 @@ observables, contracts, design decisions, etc.
 {
   "name": "User Login",
   "entryPoint": "/login",
-   "exitPoints": [
-      "/dashboard",
-      "/login (error)",
-      "/forgot-password"
-   ],
+  "exitPoints": ["/dashboard", "/login (error)", "/forgot-password"],
   "nodes": [
-     {
-        "id": "login-form",
-        "label": "Login form displayed",
-        "type": "state"
-     },
-     {
-        "id": "submit-creds",
-        "label": "User submits credentials",
-        "type": "action"
-     },
-     {
-        "id": "server-validates",
-        "label": "Server validates?",
-        "type": "decision"
-     },
-     {
-        "id": "set-cookie",
-        "label": "Set auth cookie",
-        "type": "action"
-     },
-     {
-        "id": "dashboard",
-        "label": "Redirect to /dashboard",
-        "type": "terminal"
-     },
-     {
-        "id": "show-error",
-        "label": "Show: Invalid email or password",
-        "type": "terminal"
-     },
-     {
-        "id": "forgot-password",
-        "label": "Link to /forgot-password",
-        "type": "terminal"
-     }
+    { "id": "login-form", "label": "Login form displayed", "type": "state" },
+    { "id": "submit-creds", "label": "User submits credentials", "type": "action" },
+    { "id": "server-validates", "label": "Server validates?", "type": "decision" },
+    { "id": "set-cookie", "label": "Set auth cookie", "type": "action" },
+    { "id": "dashboard", "label": "Redirect to /dashboard", "type": "terminal" },
+    { "id": "show-error", "label": "Show: Invalid email or password", "type": "terminal" },
+    { "id": "forgot-password", "label": "Link to /forgot-password", "type": "terminal" }
   ],
   "edges": [
-     {
-        "id": "form-to-submit",
-        "from": "login-form",
-        "to": "submit-creds"
-     },
-     {
-        "id": "submit-to-validate",
-        "from": "submit-creds",
-        "to": "server-validates"
-     },
-     {
-        "id": "validate-valid",
-        "from": "server-validates",
-        "to": "set-cookie",
-        "label": "valid"
-     },
-     {
-        "id": "validate-invalid",
-        "from": "server-validates",
-        "to": "show-error",
-        "label": "invalid"
-     },
-     {
-        "id": "cookie-to-dashboard",
-        "from": "set-cookie",
-        "to": "dashboard"
-     },
-     {
-        "id": "error-to-form",
-        "from": "show-error",
-        "to": "login-form"
-     },
-     {
-        "id": "form-to-forgot",
-        "from": "login-form",
-        "to": "forgot-password",
-        "label": "clicks forgot"
-     }
+    { "id": "form-to-submit", "from": "login-form", "to": "submit-creds" },
+    { "id": "submit-to-validate", "from": "submit-creds", "to": "server-validates" },
+    { "id": "validate-valid", "from": "server-validates", "to": "set-cookie", "label": "valid" },
+    { "id": "validate-invalid", "from": "server-validates", "to": "show-error", "label": "invalid" },
+    { "id": "cookie-to-dashboard", "from": "set-cookie", "to": "dashboard" },
+    { "id": "error-to-form", "from": "show-error", "to": "login-form" },
+    { "id": "form-to-forgot", "from": "login-form", "to": "forgot-password", "label": "clicks forgot" }
   ]
 }
 ```
@@ -464,100 +416,26 @@ observables, contracts, design decisions, etc.
 {
   "name": "CLI Project Init",
   "entryPoint": "dungeonmaster init",
-   "exitPoints": [
-      "Config files written",
-      "Init aborted",
-      "Init failed"
-   ],
+  "exitPoints": ["Config files written", "Init aborted", "Init failed"],
   "nodes": [
-     {
-        "id": "run-init",
-        "label": "User runs dungeonmaster init",
-        "type": "action"
-     },
-     {
-        "id": "check-package-json",
-        "label": "package.json exists?",
-        "type": "decision"
-     },
-     {
-        "id": "no-package-json",
-        "label": "Error: No package.json",
-        "type": "terminal"
-     },
-     {
-        "id": "check-config",
-        "label": "Config already exists?",
-        "type": "decision"
-     },
-     {
-        "id": "prompt-overwrite",
-        "label": "Prompt: Overwrite?",
-        "type": "decision"
-     },
-     {
-        "id": "abort",
-        "label": "Init aborted by user",
-        "type": "terminal"
-     },
-     {
-        "id": "write-config",
-        "label": "Write config files",
-        "type": "action"
-     },
-     {
-        "id": "done",
-        "label": "Config files written",
-        "type": "terminal"
-     }
+    { "id": "run-init", "label": "User runs dungeonmaster init", "type": "action" },
+    { "id": "check-package-json", "label": "package.json exists?", "type": "decision" },
+    { "id": "no-package-json", "label": "Error: No package.json", "type": "terminal" },
+    { "id": "check-config", "label": "Config already exists?", "type": "decision" },
+    { "id": "prompt-overwrite", "label": "Prompt: Overwrite?", "type": "decision" },
+    { "id": "abort", "label": "Init aborted by user", "type": "terminal" },
+    { "id": "write-config", "label": "Write config files", "type": "action" },
+    { "id": "done", "label": "Config files written", "type": "terminal" }
   ],
   "edges": [
-     {
-        "id": "init-to-check-pkg",
-        "from": "run-init",
-        "to": "check-package-json"
-     },
-     {
-        "id": "no-pkg-json",
-        "from": "check-package-json",
-        "to": "no-package-json",
-        "label": "no"
-     },
-     {
-        "id": "has-pkg-json",
-        "from": "check-package-json",
-        "to": "check-config",
-        "label": "yes"
-     },
-     {
-        "id": "config-exists",
-        "from": "check-config",
-        "to": "prompt-overwrite",
-        "label": "yes"
-     },
-     {
-        "id": "no-config",
-        "from": "check-config",
-        "to": "write-config",
-        "label": "no"
-     },
-     {
-        "id": "overwrite-no",
-        "from": "prompt-overwrite",
-        "to": "abort",
-        "label": "no"
-     },
-     {
-        "id": "overwrite-yes",
-        "from": "prompt-overwrite",
-        "to": "write-config",
-        "label": "yes"
-     },
-     {
-        "id": "write-to-done",
-        "from": "write-config",
-        "to": "done"
-     }
+    { "id": "init-to-check-pkg", "from": "run-init", "to": "check-package-json" },
+    { "id": "no-pkg-json", "from": "check-package-json", "to": "no-package-json", "label": "no" },
+    { "id": "has-pkg-json", "from": "check-package-json", "to": "check-config", "label": "yes" },
+    { "id": "config-exists", "from": "check-config", "to": "prompt-overwrite", "label": "yes" },
+    { "id": "no-config", "from": "check-config", "to": "write-config", "label": "no" },
+    { "id": "overwrite-no", "from": "prompt-overwrite", "to": "abort", "label": "no" },
+    { "id": "overwrite-yes", "from": "prompt-overwrite", "to": "write-config", "label": "yes" },
+    { "id": "write-to-done", "from": "write-config", "to": "done" }
   ]
 }
 ```
@@ -577,15 +455,16 @@ Observables are flat assertions embedded directly in flow nodes. Each observable
 Multiple observables per node example:
 ```json
 "observables": [
-{"id": "check-login-api-called", "type": "api-call", "description": "POST /api/auth/login called with credentials"},
-{"id": "check-redirect-dashboard", "type": "ui-state", "description": "redirected to /dashboard"}
+  { "id": "check-login-api-called", "type": "api-call", "description": "POST /api/auth/login called with credentials" },
+  { "id": "check-redirect-dashboard", "type": "ui-state", "description": "redirected to /dashboard" }
 ]
 ```
 
 **`type` tags** are read by TWO downstream consumers:
-- **PathSeeker** uses them for file planning (which folder type owns the observable's implementation)
-- **Siegemaster** reads the distribution across a flow's observables to dispatch its verification mode (Playwright E2E
-  vs integration harness vs operational verification)
+
+- **Codeweavers** read them at build time to judge which folder type owns the observable's implementation
+- **Siegemaster** reads the distribution across a flow's observables to pick its verification mode (Playwright E2E vs
+  integration harness vs operational verification)
 
 A flow whose observables are almost all `ui-state`/`api-call` tells Siegemaster to run Playwright. A flow whose
 observables are almost all `file-exists`/`process-state`/`custom` tells Siegemaster to run Ward + grep + adversarial
@@ -637,8 +516,8 @@ auto-route to fixer agents that repair and re-run). An observable like
 `{ type: "process-state", description: "npm run ward … exits 0 with zero failures across lint, typecheck, unit" }` — or
 any "lint + typecheck + tests all pass" outcome — is therefore ALWAYS redundant: it adds nothing the baked-in ward
 floors don't already enforce, and it makes a downstream agent burn a whole build floor re-running ward. Operational
-acceptance is the concrete end-state predicate (a grep returns zero, a directory is gone, a symbol is absent), never "
-the quality gate passes". Same for a standalone "npm run build exits 0" observable — building is part of the ward
+acceptance is the concrete end-state predicate (a grep returns zero, a directory is gone, a symbol is absent), never
+"the quality gate passes". Same for a standalone "npm run build exits 0" observable — building is part of the ward
 floors.
 
 **Each observable must be independently verifiable.** If an outcome has two parts, split them into separate observables.
@@ -648,7 +527,7 @@ floors.
 - `type` field = branded type references (e.g., "EmailAddress", "UserId"). Use named contracts, not anonymous shapes.
 - `value` field = literal/fixed values (e.g., "POST", "/api/auth/login")
 - For `existing` contracts, use exploration agents to find the actual shape. In the agent's prompt, instruct it to call
-  `get-project-inventory({ packageName })` for the relevant package(s) and scan the full contract list — NOT `discover`
+  `get-project-inventory({ packageName })` for the relevant package (s) and scan the full contract list — NOT `discover`
   with a glob, because naming variants (`email/` vs `email-address/` vs `user-email/`) make globs miss. Once the agent
   has the right contract folder name from the inventory, it can `Read` the contract file directly
 - Properties support nesting for complex objects
@@ -666,23 +545,17 @@ floors.
   "kind": "endpoint",
   "nodeId": "submit-creds",
   "properties": [
-     {
-        "name": "method",
-        "value": "POST"
-     },
-     {
-        "name": "path",
-        "value": "/api/auth/login"
-     }
+    { "name": "method", "value": "POST" },
+    { "name": "path", "value": "/api/auth/login" }
   ]
 }
 ```
 
 ### Design Decisions
 
-Design decisions are **automatically captured** when you call the native `AskUserQuestion` tool. A `PostToolUse` hook on
-`AskUserQuestion` reads the tool result, queries the server to find the active quest by session, and PATCHes a
-`designDecisions[]` entry per answered question onto the quest.
+Design decisions are **automatically captured** from your clarification-tool answers. Each answered question is
+persisted as a `designDecisions[]` entry on the quest: a `PostToolUse` hook captures native `AskUserQuestion` answers in
+the interactive flow, and the clarify-answer handler captures the browser answers in the headless flow.
 
 **The option `label` and `description` values you write become the persisted `rationale` text on each design decision.**
 Write high-quality descriptions so the captured rationale is meaningful to implementers — not just which option was

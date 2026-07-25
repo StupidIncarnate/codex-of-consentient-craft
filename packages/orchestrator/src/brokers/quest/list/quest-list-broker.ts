@@ -12,16 +12,28 @@
  * quest in the guild from all of them, which strands an in_progress quest with the dispatcher
  * permanently idle. Each skip is written to stderr naming the file and the rejected field, so a
  * dropped quest is never silent.
+ *
+ * SKIP REPORTS ARE DEDUPED per quest file, for the process lifetime. Nothing caches the quests
+ * themselves — quest.json mutates constantly, so every caller MUST re-read and re-parse, and the
+ * timer-driven callers (the watcher reconcile's 3s poll, the dispatch loop, the play gate) reach
+ * this broker many times a minute. An unchanged bad file therefore fails identically on every
+ * pass; re-reporting it adds no information and buries every other line in the log (a rejected
+ * quest.json produces a multi-KB zod message). `lastReportedReason` remembers what was last said
+ * about each path: a NEW reason re-reports (the file changed and is still broken), and a
+ * successful load forgets the path (so a file that breaks again later reports again).
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-folder-guard';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
+
+const lastReportedReason = new Map<FilePath, ErrorMessage>();
 
 export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
@@ -35,12 +47,22 @@ export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promis
       const questFilePath = pathJoinAdapter({
         paths: [questsPath, folderName, locationsStatics.quest.questFile],
       });
+      const reportKey = filePathContract.parse(String(questFilePath));
       try {
-        return await questLoadBroker({ questFilePath });
+        const quest = await questLoadBroker({ questFilePath });
+        lastReportedReason.delete(reportKey);
+        return quest;
       } catch (error: unknown) {
         // questLoadBroker's message already names the file and the rejected field.
-        const reason = error instanceof Error ? error.message : String(error);
-        process.stderr.write(`[quest-list] skipping unloadable quest — ${reason}\n`);
+        const reason = errorMessageContract.parse(
+          error instanceof Error ? error.message : String(error),
+        );
+        if (lastReportedReason.get(reportKey) !== reason) {
+          lastReportedReason.set(reportKey, reason);
+          process.stderr.write(
+            `[quest-list] skipping unloadable quest — ${reason} (repeats suppressed until this file changes)\n`,
+          );
+        }
         return null;
       }
     }),

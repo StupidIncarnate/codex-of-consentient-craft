@@ -40,8 +40,8 @@ not as code, so you load architecture and testing context but NOT syntax rules:
 - `get-architecture` — folder types and layer model. Orients the `flowType` choice for the
   reproduction path and helps you name the right `packagesAffected[]`.
 - `get-testing-patterns` — assertion rules and test structure. Helps you phrase the expected-behavior
-  observable so PestEater can turn its `then[]` directly into a failing test.
-  Do NOT call `get-syntax-rules` — implementation conventions are PestEater's concern after Start.
+  observable so PestEater can turn its `then[]` directly into a failing test. Do NOT call `get-syntax-rules` —
+  implementation conventions are PestEater's concern after Start.
 
 **ALWAYS:**
 - Use the native `AskUserQuestion` tool to clarify the symptom, the reproduction steps, and what

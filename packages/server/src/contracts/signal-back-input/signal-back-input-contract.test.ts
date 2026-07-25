@@ -63,6 +63,26 @@ describe('signalBackInputContract', () => {
       });
     });
 
+    it('VALID: {operationStatus: "blocked", blockedReason} => parses the environment-wall outcome', () => {
+      const result = signalBackInputContract.parse({
+        questId,
+        workItemId,
+        signal: 'complete',
+        operationItemId,
+        operationStatus: 'blocked',
+        blockedReason: 'git commit is denied in this dispatched session',
+      });
+
+      expect(result).toStrictEqual({
+        questId: 'aaaaaaaa-1111-4222-9333-444444444444',
+        workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
+        signal: 'complete',
+        operationItemId: 'cccccccc-1111-4222-9333-444444444444',
+        operationStatus: 'blocked',
+        blockedReason: 'git commit is denied in this dispatched session',
+      });
+    });
+
     it('VALID: {default stub} => parses with defaults', () => {
       const input = SignalBackInputStub();
 
@@ -73,6 +93,33 @@ describe('signalBackInputContract', () => {
         workItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
         signal: 'complete',
       });
+    });
+  });
+
+  describe('blocked outcome requires its reason', () => {
+    it('INVALID: {operationStatus: "blocked", no blockedReason} => throws so the user is never left an unexplained block', () => {
+      expect(() =>
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'complete',
+          operationItemId,
+          operationStatus: 'blocked',
+        }),
+      ).toThrow(/operationStatus 'blocked' requires blockedReason/u);
+    });
+
+    it('EMPTY: {operationStatus: "blocked", blockedReason: ""} => throws because an empty reason explains nothing', () => {
+      expect(() =>
+        signalBackInputContract.parse({
+          questId,
+          workItemId,
+          signal: 'complete',
+          operationItemId,
+          operationStatus: 'blocked',
+          blockedReason: '',
+        }),
+      ).toThrow(/String must contain at least 1 character/u);
     });
   });
 

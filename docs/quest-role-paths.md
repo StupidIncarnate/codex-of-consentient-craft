@@ -56,6 +56,9 @@ reached only when a bounded loop is spent.
   flag preserved) immediately after it; advance creates the next work item against the new item. This
   preserves strict 1:1 and gives an immutable `pt` audit trail instead of reverting a shared item's
   status.
+- **Environment wall** — `operationStatus: 'blocked'`. Duplicate-on-partial still appends the `pt N`
+  continuation, but the work item is marked `failed` with the agent's `blockedReason`, the pt budget is bypassed, and
+  the quest halts for the user instead of advancing (see § (d)).
 - **Fixpoint** — the `pt N` chain for a verify/review role. Each pass that changes something completes
   its item and spawns `pt N+1`; a pass that changes nothing signals `done` and the chain ends.
   Convergence IS the verdict: a fresh pass that changed nothing is acceptance.
@@ -242,9 +245,14 @@ Runs inside `questOperationsUpdateBroker` on every ledger write (this is where t
 ## Per-role paths (happy + sad)
 
 Every execution role signals with the sole signal kind `complete`; the outcome rides on the call as
-`operationStatus: 'done' | 'partial'` and the orchestrator applies it server-side (authoritative — an
-agent cannot forget to patch the ledger, because agents never write the ledger). Ward is the one
-role whose terminal state comes from an exit code, not a signal.
+`operationStatus: 'done' | 'partial' | 'blocked'` and the orchestrator applies it server-side (authoritative — an agent
+cannot forget to patch the ledger, because agents never write the ledger). Ward is the one role whose terminal state
+comes from an exit code, not a signal.
+
+`blocked` is available to EVERY role in the tables below and behaves identically for all of them, so it is documented
+once in § (d) rather than repeated per role: the operation item completes and gets a
+`pt N` continuation exactly as for `partial`, but the work item is marked `failed` carrying
+`blockedReason`, the pt budget is bypassed, and the quest halts immediately.
 
 ### Chat / intake
 
@@ -293,9 +301,10 @@ Each is a single **locked** operation item. `done` (a pass that changed nothing)
 
 ---
 
-## The three non-failure "sad" paths in detail
+## The sad paths in detail
 
-None of these is a failure signal. They all keep the quest `in_progress` and move it forward.
+(a)– (c) are not failure signals: they keep the quest `in_progress` and move it forward. (d) is the one agent-emitted
+halt — reserved for a wall no session of that role could pass.
 
 ### (a) partial → pt N (duplicate-on-partial) — `QuestHandleSignalBackResponder`
 
@@ -315,8 +324,8 @@ A red ward marks its work item `failed` and its ward operation item `complete`, 
 Advance dispatches the spiritmender next, then the fresh ward re-runs. The red chain is **bounded**:
 the broker counts the ward operation items of this `wardMode` since the last GREEN ward of the same
 mode; once that count reaches `slotManagerStatics.ward.maxRetries`, it calls
-`quest-block-on-failure-broker` instead of appending another fix loop. Ward is the **only** failure
-concept in the orchestrator.
+`quest-block-on-failure-broker` instead of appending another fix loop. A red ward is the only failure the orchestrator
+detects on an agent's behalf; § (d) is the one an agent reports itself.
 
 ### (c) orphan → resume — `recover-orphaned-work-items-layer-broker`
 
@@ -336,13 +345,33 @@ terminal but its operation item is still `in_progress`: flip the work item back 
 identity + resume marker) so it re-dispatches and re-signals. It can never un-complete a quest,
 because the status transformer never derived `complete` while an operation was non-complete.
 
+### (d) blocked → pt N + immediate halt — `QuestHandleSignalBackResponder`
+
+`operationStatus: 'blocked'` (with a required `blockedReason`) is the **environment wall**: a command the dispatched
+session is denied, a missing credential, an unreachable service — something no fresh session of the same role could get
+past. In one atomic write the linked operation item is marked
+`complete` and a `pt N` continuation is appended (identical to (a), so a resume re-dispatches this exact scope), while
+the signalling work item is marked **`failed`** carrying `blockedReason` as its
+`errorMessage` — which the execution row renders, so the user reads WHY the quest stopped. Then
+`quest-block-on-failure-broker` drains pending work items to `skipped` and sets the quest `blocked`.
+
+Two deliberate asymmetries with (a):
+
+- **The pt budget does not gate the append.** The halt is itself the bound. Withholding the continuation would leave the
+  operation with no pending item, so a resume would silently skip the scope entirely.
+- **Advance never runs.** The next session would hit the identical wall; that is precisely the waste this outcome exists
+  to prevent (a role that signals `partial` at a wall burns its whole pt budget on sessions that cannot succeed, then
+  blocks anyway with nothing recorded about why).
+
+Roles learn to reach for this via `agentOperatingRulesStatics` Rule 5, embedded in every file-changing worker prompt.
+
 ---
 
 ## Block ownership
 
 `quest-block-on-failure-broker` is the **sole** path to `blocked`. It marks the failed work item
-`failed`, drains every still-`pending` work item to `skipped`, and sets quest status `blocked`. It is
-reached only from a spent bounded loop:
+`failed`, drains every still-`pending` work item to `skipped`, and sets quest status `blocked`. It is reached from a
+spent bounded loop or from an agent-reported environment wall:
 
 1. **Ward retry exhausted** — `quest-run-ward-broker`, when the red-ward chain of a `wardMode` reaches
    `ward.maxRetries` since the last green of that mode.
@@ -350,6 +379,9 @@ reached only from a spent bounded loop:
    reaches `slotManagerStatics.<role>.maxAttempts`.
 3. **Orphan recovery exhausted** — `recover-orphaned-work-items-layer-broker`, when a work item's
    `retryCount` reaches `orphanRecovery.maxResets`.
+4. **Environment wall reported** — `QuestHandleSignalBackResponder`, on `operationStatus: 'blocked'`
+   (§ (d)). Unlike 1–3 this halts on the FIRST occurrence rather than a spent budget, because the budget could only be
+   spent on sessions that provably cannot succeed.
 
 There is no PathSeeker and no replan. A `blocked` quest is not dispatched: the scan filters on
 `isAnyAgentRunningQuestStatusGuard` (`== in_progress`), so a `blocked` quest is skipped and dispatch

@@ -545,28 +545,30 @@ type added to `questTypeContract`.
 ## Agent Roles
 
 Every relay role is one operation item → one work item → one agent session. An agent does its work, then signals
-`complete` with an `operationStatus` (`done` or `partial`); the orchestrator applies the outcome to the ledger and
-advances. Agents have **no failure signal** — they fix their own problems and move forward. The ONLY failure concept
-is a **ward exit-code red** (`quest-run-ward-broker`), which inserts a spiritmender + a fresh ward and, when the ward
-retry budget is spent, blocks the quest. Quest status is then derived from work-item + operation state.
+`complete` with an `operationStatus` (`done`, `partial`, or `blocked`); the orchestrator applies the outcome to the
+ledger and advances. Agents have **no failure signal for work they could have done** — they fix their own problems and
+move forward; `blocked` is reserved for an environment wall outside their reach and halts the quest for the user rather
+than spawning a successor that hits the same wall. The other failure concept is a **ward exit-code red**
+(`quest-run-ward-broker`), which inserts a spiritmender + a fresh ward and, when the ward retry budget is spent, blocks
+the quest. Quest status is then derived from work-item + operation state.
 
 The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
 Claude-dispatched agent roles (codeweaver, spiritmender, lawbringer, flowrider, siegemaster, blightwarden, the five
 `blightwarden-*-minion`s, pesteater); the broader `workItemRoleContract` (shared) adds the command/interactive roles
 (`ward`, `chaoswhisperer`, `glyphsmith`) an operation item may carry.
 
-| Role           | Dispatched By                                                       | Operation outcome         | Ledger writes (modify-quest)                    |
-|----------------|---------------------------------------------------------------------|---------------------------|-------------------------------------------------|
-| ChaosWhisperer | `/dumpster-create` (interactive)                                    | N/A (spec)                | full spec surface + authors codeweaver op items |
-| Glyphsmith     | startDesignChat (interactive)                                       | N/A (design)              | status                                          |
-| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)          | complete (done / partial) | none                                            |
-| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)                | exit code (green / red)   | none (broker writes wardResults + item status)  |
-| flowrider      | `/dumpster-launch` via Task() (one session over ALL flows)          | complete (done / partial) | none (owns flows/ + startup/ files inline)      |
-| siegemaster    | `/dumpster-launch` via Task() (one session over ALL flows)          | complete (done / partial) | none (edits inline)                             |
-| lawbringer     | `/dumpster-launch` via Task() (whole-diff review)                   | complete (done / partial) | none (fixes findings inline)                    |
-| blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                    | complete (done / partial) | planningNotes.blightReports (via its minions)   |
-| spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)                | complete (done / partial) | none                                            |
-| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself)  | complete (done / partial) | none                                            |
+| Role           | Dispatched By                                                      | Operation outcome                   | Ledger writes (modify-quest)                    |
+|----------------|--------------------------------------------------------------------|-------------------------------------|-------------------------------------------------|
+| ChaosWhisperer | `/dumpster-create` (interactive)                                   | N/A (spec)                          | full spec surface + authors codeweaver op items |
+| Glyphsmith     | startDesignChat (interactive)                                      | N/A (design)                        | status                                          |
+| codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)         | complete (done / partial / blocked) | none                                            |
+| ward           | `/dumpster-launch` via `run-ward` MCP tool (command)               | exit code (green / red)             | none (broker writes wardResults + item status)  |
+| flowrider      | `/dumpster-launch` via Task() (one session over ALL flows)         | complete (done / partial / blocked) | none (owns flows/ + startup/ files inline)      |
+| siegemaster    | `/dumpster-launch` via Task() (one session over ALL flows)         | complete (done / partial / blocked) | none (edits inline)                             |
+| lawbringer     | `/dumpster-launch` via Task() (whole-diff review)                  | complete (done / partial / blocked) | none (fixes findings inline)                    |
+| blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                   | complete (done / partial / blocked) | planningNotes.blightReports (via its minions)   |
+| spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)               | complete (done / partial / blocked) | none                                            |
+| pesteater      | `/dumpster-launch` via Task() (bug-hunt front; reads quest itself) | complete (done / partial / blocked) | none                                            |
 
 ### The pt-N verify fixpoint
 
@@ -591,11 +593,11 @@ synthesizer judges and cleans up.
 
 Agents report via the `signal-back` MCP tool. `complete` is the SOLE signal kind — a session-terminal marker. The
 operation OUTCOME rides on the same call as `operationStatus` (`signalBackInputContract`: `signal: 'complete'`,
-`operationItemId?`, `operationStatus?: 'done' | 'partial'` — `failed` is explicitly rejected). The live handler is
-`quest-handle-signal-back-responder.ts`, which applies the outcome server-side (authoritative — an agent cannot forget
-to patch the ledger, because agents never write it):
+`operationItemId?`, `operationStatus?: 'done' | 'partial' | 'blocked'`, `blockedReason?` — `failed` is explicitly
+rejected). The live handler is `quest-handle-signal-back-responder.ts`, which applies the outcome server-side
+(authoritative — an agent cannot forget to patch the ledger, because agents never write it):
 
-1. Marks the signaled work item terminal (`complete`, `completedAt`, `actualSignal`).
+1. Marks the signaled work item terminal (`completedAt`, `actualSignal`) — `complete`, or `failed` on `blocked`.
 2. Resolves the linked operation item (the call's `operationItemId`, else the work item's `operations/<id>` ref).
 3. `operationStatus: 'done'` (or absent) → marks that operation item `complete`.
 4. `operationStatus: 'partial'` → marks it `complete` AND appends a `"pt N: {text}"` continuation item (same role,
@@ -603,15 +605,28 @@ to patch the ledger, because agents never write it):
    operation↔work-item invariant and an immutable pt audit trail (instead of reverting a shared item's status). The pt
    chain is the verify fixpoint; for a locked role it is bounded by `slotManagerStatics.<role>.maxAttempts`, and a
    spent chain blocks via `quest-block-on-failure-broker` instead of appending.
+5. `operationStatus: 'blocked'` (requires `blockedReason`) → the **environment wall**: a denied command, a missing
+   credential, an unreachable service — something no fresh session of the same role could pass. The item is marked
+   `complete` and a `pt N` continuation is appended exactly as for `partial`, so a resume re-dispatches this same scope;
+   but the work item is marked `failed` carrying `blockedReason` as its `errorMessage` (the execution row renders it),
+   and the quest blocks IMMEDIATELY via `quest-block-on-failure-broker`. The pt budget does NOT gate this append — the
+   block is itself the bound, and withholding the continuation would leave the operation with no pending item, so a
+   resume would silently skip the scope. Spending the budget on successors that provably cannot succeed is exactly what
+   this outcome exists to prevent.
 
 Work-item-terminal + operation-complete + the optional pt N land in ONE `questOperationsUpdateBroker` persist
 (all-or-nothing on crash). The handler is **idempotent**: a redelivered signal for an already-terminal work item is a
-no-op (no second pt N, no second work item). Afterwards `questAdvanceBroker` creates the next work item.
+no-op (no second pt N, no second work item). Afterwards `questAdvanceBroker` creates the next work item — except on the
+two halt routes (`blocked`, spent pt chain), which block instead of advancing.
+
+`agentOperatingRulesStatics` (Rule 5), embedded in every file-changing worker prompt, is what teaches each role to pick
+`blocked` over `partial` when the wall is environmental.
 
 ### Failure handling
 
-The orchestrator has ONE failure concept: **a ward exit-code red**. There is no `failed`/`failed-replan` agent signal
-and no PathSeeker replan. Terminal-failure routing lives entirely in `quest-run-ward-broker.ts`:
+The orchestrator has TWO failure concepts: **a ward exit-code red** and an agent's **`operationStatus: 'blocked'`**
+environment wall (see "Signal System" step 5). There is no `failed`/`failed-replan` agent signal for work an agent could
+have done, and no PathSeeker replan. Ward routing lives entirely in `quest-run-ward-broker.ts`:
 
 - **ward green** → mark the ward operation item complete, advance to the next pending item.
 - **ward red** → mark the ward work item `failed` and the ward operation item `complete`, then append a `spiritmender`

@@ -1,4 +1,5 @@
 import {
+  BlockedReasonStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
@@ -814,6 +815,211 @@ describe('QuestHandleSignalBackResponder', () => {
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
+  });
+
+  describe("operationStatus 'blocked' — environment wall halts the quest with the reason recorded", () => {
+    it("VALID: {operationStatus: 'blocked', blockedReason} => work item failed carrying the reason, continuation appended, quest blocked, pending items skipped", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const pendingId = QuestWorkItemIdStub({ value: PENDING_ITEM_ID });
+      const blockedReason = BlockedReasonStub({
+        value: 'git commit is denied in this dispatched session',
+      });
+      const pesteaterOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'pesteater',
+        text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+        status: 'in_progress',
+        locked: true,
+      });
+      const quest = QuestStub({
+        operations: [
+          pesteaterOp,
+          OperationItemStub({ id: OP2_ID, role: 'ward', text: 'Ward gate', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'pesteater',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+          WorkItemStub({ id: pendingId, role: 'ward', status: 'pending', dependsOn: [itemId] }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'pesteater',
+            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            status: 'complete',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: CONTINUATION_UUID,
+            role: 'pesteater',
+            text: 'pt 2: PestEater: reproduce the bug with a failing test first, then fix it',
+            status: 'pending',
+            locked: true,
+          }),
+          OperationItemStub({ id: OP2_ID, role: 'ward', text: 'Ward gate', status: 'pending' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'pesteater',
+            status: 'failed',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+            errorMessage: 'git commit is denied in this dispatched session',
+          }),
+          WorkItemStub({ id: pendingId, role: 'ward', status: 'pending', dependsOn: [itemId] }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalBlocked({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'blocked',
+        blockedReason,
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
+
+      const finalQuest = proxy.getLastPersistedQuest();
+
+      expect({
+        persistedStatuses: proxy.getAllPersistedQuests().map(({ status }) => status),
+        finalWorkItems: finalQuest.workItems.map(({ id, status, errorMessage }) => ({
+          id,
+          status,
+          errorMessage,
+        })),
+        finalOperations: finalQuest.operations.map(({ text, status }) => ({
+          text: String(text),
+          status,
+        })),
+      }).toStrictEqual({
+        persistedStatuses: ['in_progress', 'blocked'],
+        finalWorkItems: [
+          {
+            id: itemId,
+            status: 'failed',
+            errorMessage: 'git commit is denied in this dispatched session',
+          },
+          { id: pendingId, status: 'skipped', errorMessage: undefined },
+        ],
+        finalOperations: [
+          {
+            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            status: 'complete',
+          },
+          {
+            text: 'pt 2: PestEater: reproduce the bug with a failing test first, then fix it',
+            status: 'pending',
+          },
+          { text: 'Ward gate', status: 'pending' },
+        ],
+      });
+    });
+
+    it.each(PT_BUDGET_ROLES)(
+      "VALID: {role: %s, LOCKED chain at maxAttempts, 'blocked'} => the pt budget does NOT gate a wall — 'pt 4' is still appended so a resume re-dispatches this scope",
+      async (role) => {
+        const proxy = QuestHandleSignalBackResponderProxy();
+        const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+        const chainOriginal = OperationItemStub({
+          id: OP1_ID,
+          role,
+          text: 'verify: quest flows',
+          status: 'complete',
+          locked: true,
+        });
+        const chainPt2 = OperationItemStub({
+          id: OP2_ID,
+          role,
+          text: 'pt 2: verify: quest flows',
+          status: 'complete',
+          locked: true,
+        });
+        const chainPt3 = OperationItemStub({
+          id: OP3_ID,
+          role,
+          text: 'pt 3: verify: quest flows',
+          status: 'in_progress',
+          locked: true,
+        });
+        const quest = QuestStub({
+          operations: [chainOriginal, chainPt2, chainPt3],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP3_ID}`],
+            }),
+          ],
+        });
+        const questAfterOutcome = QuestStub({
+          operations: [
+            chainOriginal,
+            chainPt2,
+            OperationItemStub({
+              id: OP3_ID,
+              role,
+              text: 'pt 3: verify: quest flows',
+              status: 'complete',
+              locked: true,
+            }),
+            OperationItemStub({
+              id: CONTINUATION_UUID,
+              role,
+              text: 'pt 4: verify: quest flows',
+              status: 'pending',
+              locked: true,
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role,
+              status: 'failed',
+              relatedDataItems: [`operations/${OP3_ID}`],
+              completedAt: FIXED_TIMESTAMP,
+              actualSignal: 'complete',
+              errorMessage: 'the dev server port is already bound by another process',
+            }),
+          ],
+          updatedAt: FIXED_TIMESTAMP,
+        });
+        proxy.setupSignalBlocked({ quest, questAfterOutcome });
+        proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+
+        const result = await QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'blocked',
+          blockedReason: BlockedReasonStub({
+            value: 'the dev server port is already bound by another process',
+          }),
+        });
+
+        expect(result).toStrictEqual({ success: true });
+        expect(proxy.getPersistedQuestAt({ index: 0 })).toStrictEqual(questAfterOutcome);
+        expect(proxy.getAllPersistedQuests().map(({ status }) => status)).toStrictEqual([
+          'in_progress',
+          'blocked',
+        ]);
+      },
+    );
   });
 
   describe('locked pt-chain budget spent — quest blocks instead of appending', () => {
