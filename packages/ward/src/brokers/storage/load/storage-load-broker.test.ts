@@ -1,4 +1,8 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  FileContentsStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -48,6 +52,47 @@ describe('storageLoadBroker', () => {
       const result = await storageLoadBroker({ rootPath });
 
       expect(result).toStrictEqual(wardResult);
+    });
+
+    it('VALID: {no runId, run files with non-RunId names} => returns the latest RunId-named run', async () => {
+      const wardResult = WardResultStub({ runId: '1739625700000-b4e2' });
+      const proxy = storageLoadBrokerProxy();
+      proxy.setupLatestRunByPath({
+        entries: [
+          'run-1739625600000-a3f1.json',
+          'run-1739625700000-b4e2.json',
+          'run-e2e-dispatch-ward-5.json',
+        ],
+        contents: {
+          [FilePathStub({ value: '/home/user/project/.ward/run-1739625700000-b4e2.json' })]:
+            FileContentsStub({ value: JSON.stringify(wardResult) }),
+          [FilePathStub({ value: '/home/user/project/.ward/run-e2e-dispatch-ward-5.json' })]:
+            FileContentsStub({ value: JSON.stringify({ checks: [] }) }),
+        },
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+
+      const result = await storageLoadBroker({ rootPath });
+
+      expect(result).toStrictEqual(wardResult);
+    });
+
+    it('EMPTY: {no runId, only non-RunId-named run files} => returns null', async () => {
+      const proxy = storageLoadBrokerProxy();
+      proxy.setupLatestRunByPath({
+        entries: ['run-e2e-dispatch-ward-5.json'],
+        contents: {
+          [FilePathStub({ value: '/home/user/project/.ward/run-e2e-dispatch-ward-5.json' })]:
+            FileContentsStub({ value: JSON.stringify(WardResultStub()) }),
+        },
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+
+      const result = await storageLoadBroker({ rootPath });
+
+      expect(result).toBe(null);
     });
 
     it('EMPTY: {no runId, no files} => returns null', async () => {

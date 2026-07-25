@@ -47,7 +47,7 @@ describe('commandRunBroker', () => {
   });
 
   describe('failing run', () => {
-    it('VALID: {checks fail} => sets process.exitCode to 1 instead of calling process.exit', async () => {
+    it('VALID: {checks fail with errors} => sets process.exitCode to 1 instead of calling process.exit', async () => {
       process.exitCode = 0;
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageFail();
@@ -62,6 +62,27 @@ describe('commandRunBroker', () => {
         exitCalls: proxy.getExitCalls(),
       }).toStrictEqual({
         exitCode: 1,
+        exitCalls: [],
+      });
+    });
+  });
+
+  describe('crashed run', () => {
+    it('VALID: {check fails with no findings} => sets process.exitCode to 2', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackageCrash();
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        exitCode: process.exitCode,
+        exitCalls: proxy.getExitCalls(),
+      }).toStrictEqual({
+        exitCode: 2,
         exitCalls: [],
       });
     });

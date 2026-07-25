@@ -6,7 +6,9 @@
  * so the next dispatched item is the spiritmender (never another ward back-to-back), and the
  * fresh ward re-verifies after the fix. The red chain is bounded: once the ward items of this
  * wardMode since the last green ward of the same mode reach `slotManagerStatics.ward.maxRetries`,
- * the quest blocks instead of appending another fix loop.
+ * the quest blocks instead of appending another fix loop. A CRASH exit
+ * (`wardExitCodeStatics.exitCodes.crash` — ward could not run a check at all) skips the fix loop
+ * entirely and blocks immediately: there is no failing file to hand a spiritmender.
  *
  * USAGE:
  * const result = await questRunWardBroker({ questId, workItemId, mode: 'changed' });
@@ -46,7 +48,7 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import { isCompleteWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questRunWardResultContract } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
@@ -98,7 +100,7 @@ export const questRunWardBroker = async ({
     onLine,
   });
 
-  const exitCode = rawExitCode ?? exitCodeContract.parse(1);
+  const exitCode = rawExitCode ?? exitCodeContract.parse(wardExitCodeStatics.exitCodes.failing);
   const runId = wardOutputToRunIdTransformer({ output });
 
   // 3. Capture and persist the detail blob (best effort — ward may exit without a runId on crash).
@@ -143,11 +145,15 @@ export const questRunWardBroker = async ({
 
   const lastWardRunId = runId === null ? undefined : fileNameContract.parse(String(runId));
   const completedAt = new Date().toISOString();
-  const green = exitCode === 0;
+  const green = exitCode === wardExitCodeStatics.exitCodes.pass;
+  // Ward could not run a check at all (a child ward died, a tool crashed) — there is no failing
+  // file for a spiritmender to fix, so this halts the quest instead of spending the retry budget.
+  const crashed = exitCode === wardExitCodeStatics.exitCodes.crash;
 
   // 5. ONE atomic ledger + work-item write: terminal work-item status, ward operation item
   //    complete, and (on red, budget permitting) the spiritmender + fresh-ward continuation.
   const blockedOnSpentWardChain = { value: false };
+  const blockedOnWardCrash = { value: false };
 
   await questOperationsUpdateBroker({
     questId,
@@ -170,7 +176,7 @@ export const questRunWardBroker = async ({
                 `wardResults/${String(wardResult.id)}`,
               ],
               ...(lastWardRunId === undefined ? {} : { lastWardRunId }),
-              ...(green ? {} : { errorMessage: 'ward_failed' }),
+              ...(green ? {} : { errorMessage: crashed ? 'ward_crashed' : 'ward_failed' }),
             })
           : item,
       );
@@ -192,6 +198,13 @@ export const questRunWardBroker = async ({
       );
 
       if (green) {
+        return { operations: completedOperations, workItems: nextWorkItems };
+      }
+
+      // CRASH — ward never reported on the code. A spiritmender has nothing to fix and the next
+      // ward would crash the same way, so block for the user instead of appending a fix loop.
+      if (crashed) {
+        blockedOnWardCrash.value = true;
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
@@ -256,7 +269,7 @@ export const questRunWardBroker = async ({
     },
   });
 
-  if (blockedOnSpentWardChain.value) {
+  if (blockedOnSpentWardChain.value || blockedOnWardCrash.value) {
     await questBlockOnFailureBroker({ questId, failedWorkItemId: workItemId });
   } else {
     await questAdvanceBroker({ questId });

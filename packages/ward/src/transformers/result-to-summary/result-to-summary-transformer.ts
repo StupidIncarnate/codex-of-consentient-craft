@@ -19,6 +19,7 @@ import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/disco
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
 import { toCwdRelativePathTransformer } from '../to-cwd-relative-path/to-cwd-relative-path-transformer';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
+import { isCrashedProjectResultGuard } from '../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 
 const CHECK_TYPE_PAD = 10;
 const MS_PER_SECOND = 1000;
@@ -93,10 +94,10 @@ export const resultToSummaryTransformer = ({
     const failingNames = check.projectResults
       .filter((pr) => pr.status === 'fail')
       .map((pr) => {
-        const failureCount = pr.testFailures.length + pr.errors.length;
-        if (failureCount === 0) {
+        if (isCrashedProjectResultGuard({ projectResult: pr })) {
           return `${pr.projectFolder.name} (crash)`;
         }
+        const failureCount = pr.testFailures.length + pr.errors.length;
         return `${pr.projectFolder.name} (${String(failureCount)})`;
       });
     const failPart = failingNames.length > 0 ? `  ${failingNames.join(', ')}` : '';
@@ -132,7 +133,7 @@ export const resultToSummaryTransformer = ({
         return `${displayPath}\n  FAIL "${failure.testName}"\n    ${summaryLine}`;
       });
 
-      if (project.status === 'fail' && errorLines.length === 0 && failureLines.length === 0) {
+      if (isCrashedProjectResultGuard({ projectResult: project })) {
         const MAX_CRASH_OUTPUT = 200;
         const rawText = project.rawOutput.stderr || project.rawOutput.stdout;
         const truncated =

@@ -29,6 +29,7 @@ import { checkResultBuildTransformer } from '../../../transformers/check-result-
 import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
+import { commandRunLayerChildCrashBroker } from './command-run-layer-child-crash-broker';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
@@ -135,7 +136,20 @@ export const commandRunLayerMultiBroker = async ({
         ...(childRunId === null ? {} : { runId: childRunId }),
       });
 
-      return result;
+      if (result !== null) {
+        return result;
+      }
+
+      // The child wrote no readable result. Its checks cannot be merged, so report the package as
+      // crashed — silently dropping it would render the whole package as passing.
+      return {
+        checks: commandRunLayerChildCrashBroker({
+          projectFolder: folder,
+          checkTypes: effectiveCheckTypes,
+          exitCode: spawnResult.exitCode,
+          output: spawnResult.output,
+        }),
+      };
     },
   });
 

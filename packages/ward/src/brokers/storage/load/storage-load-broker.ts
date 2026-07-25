@@ -12,9 +12,12 @@ import {
   wardResultContract,
   type WardResult,
 } from '../../../contracts/ward-result/ward-result-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
+import { runIdContract, type RunId } from '../../../contracts/run-id/run-id-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+
+const RUN_FILE_PREFIX = 'run-';
+const RUN_FILE_SUFFIX = '.json';
 
 export const storageLoadBroker = async ({
   rootPath,
@@ -38,8 +41,17 @@ export const storageLoadBroker = async ({
 
   try {
     const entries = await fsReaddirAdapter({ dirPath: wardDir });
+    // Only `run-<RunId>.json` files are real runs. Test harnesses that emulate ward write
+    // arbitrarily-named run files into the same directory; those sort after the timestamped ones
+    // and would otherwise shadow the newest real run.
     const runFiles = entries
-      .filter((entry) => String(entry).startsWith('run-') && String(entry).endsWith('.json'))
+      .map(String)
+      .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
+      .filter(
+        (entry) =>
+          runIdContract.safeParse(entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length))
+            .success,
+      )
       .sort();
 
     if (runFiles.length === 0) {

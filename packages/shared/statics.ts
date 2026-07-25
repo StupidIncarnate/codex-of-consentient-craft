@@ -34,3 +34,4 @@ export * from './src/statics/quest-type-registry/quest-type-registry-statics';
 // Execution dungeon floor config — the canonical role/floor pipeline order shared by the web floor
 // view and the orchestrator dispatcher.
 export * from './src/statics/execution-floor-config/execution-floor-config-statics';
+export * from './src/statics/ward-exit-code/ward-exit-code-statics';

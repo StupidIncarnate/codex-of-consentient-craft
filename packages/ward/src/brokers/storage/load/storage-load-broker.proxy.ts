@@ -1,9 +1,15 @@
+import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
+
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 
 export const storageLoadBrokerProxy = (): {
   setupRunById: (params: { content: string }) => void;
   setupLatestRun: (params: { entries: string[]; content: string }) => void;
+  setupLatestRunByPath: (params: {
+    entries: string[];
+    contents: Record<FilePath, FileContents>;
+  }) => void;
   setupEmptyDir: () => void;
   setupReadFail: (params: { error: Error }) => void;
   setupReaddirFail: (params: { error: Error }) => void;
@@ -18,6 +24,16 @@ export const storageLoadBrokerProxy = (): {
     setupLatestRun: ({ entries, content }: { entries: string[]; content: string }): void => {
       readdirProxy.returns({ entries });
       readFileProxy.returns({ content });
+    },
+    setupLatestRunByPath: ({
+      entries,
+      contents,
+    }: {
+      entries: string[];
+      contents: Record<FilePath, FileContents>;
+    }): void => {
+      readdirProxy.returns({ entries });
+      readFileProxy.returnsByPath({ contents });
     },
     setupEmptyDir: (): void => {
       readdirProxy.returns({ entries: [] });

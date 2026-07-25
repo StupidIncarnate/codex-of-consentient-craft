@@ -7,9 +7,21 @@ import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-bro
 import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
 import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
 
+// One eslint finding — a genuine red run, as opposed to a check that exits non-zero while
+// reporting nothing (the crash shape below).
+const LINT_ERROR_REPORT = JSON.stringify([
+  {
+    filePath: '/project/src/index.ts',
+    messages: [
+      { ruleId: 'no-explicit-any', severity: 2, message: 'Unexpected any', line: 10, column: 5 },
+    ],
+  },
+]);
+
 export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
   setupSinglePackageFail: () => void;
+  setupSinglePackageCrash: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
   getStdoutCalls: () => unknown[][];
   getExitCalls: () => unknown[][];
@@ -35,6 +47,11 @@ export const commandRunBrokerProxy = (): {
       singleProxy.setupAllChecksPass();
     },
     setupSinglePackageFail: (): void => {
+      workspaceProxy.setupSinglePackage();
+      folderProxy.setupReturnsPackage({ name: 'test-pkg' });
+      singleProxy.setupLintOnlyFail({ stdout: LINT_ERROR_REPORT });
+    },
+    setupSinglePackageCrash: (): void => {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
       singleProxy.setupLintOnlyFail({ stdout: '[]' });

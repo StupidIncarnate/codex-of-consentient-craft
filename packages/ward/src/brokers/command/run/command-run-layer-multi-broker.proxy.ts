@@ -7,8 +7,11 @@ import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.prox
 import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.proxy';
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
+import { commandRunLayerChildCrashBrokerProxy } from './command-run-layer-child-crash-broker.proxy';
 
 const CHILD_RUN_ID = '1739625600000-a38e';
+// Matches what a child ward actually prints — id plus the trailing total-duration suffix.
+const CHILD_SUMMARY_LINE = `run: ${CHILD_RUN_ID}  (1.2s)\n`;
 
 export const commandRunLayerMultiBrokerProxy = (): {
   setupSpawnAndLoad: (params: { packageCount: number; subResultContent: string }) => void;
@@ -28,6 +31,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
   const saveProxy = storageSaveBrokerProxy();
   const pruneProxy = storagePruneBrokerProxy();
   const loadProxy = storageLoadBrokerProxy();
+  commandRunLayerChildCrashBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
 
   return {
@@ -42,7 +46,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
       Array.from({ length: packageCount }).forEach(() => {
         streamProxy.setupSuccess({
           exitCode: successCode,
-          stdout: `run: ${CHILD_RUN_ID}\n`,
+          stdout: CHILD_SUMMARY_LINE,
           stderr: '',
         });
         loadProxy.setupRunById({ content: subResultContent });
@@ -59,7 +63,7 @@ export const commandRunLayerMultiBrokerProxy = (): {
       for (const pkg of packages) {
         streamProxy.setupSuccess({
           exitCode: successCode,
-          stdout: `run: ${CHILD_RUN_ID}\n`,
+          stdout: CHILD_SUMMARY_LINE,
           stderr: '',
         });
         loadProxy.setupRunById({ content: pkg.subResultContent });
@@ -70,8 +74,8 @@ export const commandRunLayerMultiBrokerProxy = (): {
     setupSpawnWithNullLoad: (): void => {
       binProxy.setupFound();
       streamProxy.setupSuccess({
-        exitCode: successCode,
-        stdout: `run: ${CHILD_RUN_ID}\n`,
+        exitCode: ExitCodeStub({ value: 1 }),
+        stdout: CHILD_SUMMARY_LINE,
         stderr: '',
       });
       loadProxy.setupReadFail({ error: new Error('ENOENT') });

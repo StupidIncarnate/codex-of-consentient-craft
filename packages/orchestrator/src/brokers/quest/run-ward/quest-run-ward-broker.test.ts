@@ -9,6 +9,7 @@ import {
   WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { questRunWardBroker } from './quest-run-ward-broker';
@@ -476,6 +477,94 @@ describe('questRunWardBroker', () => {
         wardResultId: WARD_RESULT_ID,
         lastWardRunId: runId,
       });
+    });
+  });
+
+  describe('CRASH — ward could not run', () => {
+    it('VALID: {crash exit code, runId} => ward item failed with ward_crashed; no spiritmender/ward appended; quest blocked and pending items skipped', async () => {
+      const questId = QuestIdStub();
+      const workItemId = QuestWorkItemIdStub({ value: WARD_WORK_ITEM_ID });
+      const runId = FileNameStub({ value: '1739625600000-ffff' });
+      const wardOp = OperationItemStub({
+        id: WARD_OP_ID,
+        role: 'ward',
+        text: 'verify build (changed)',
+        status: 'in_progress',
+        locked: true,
+        wardMode: 'changed',
+      });
+      const flowriderOp = OperationItemStub({
+        id: FLOWRIDER_OP_ID,
+        role: 'flowrider',
+        text: 'flow: login',
+        status: 'pending',
+      });
+      const wardItem = WorkItemStub({
+        id: workItemId,
+        role: 'ward',
+        status: 'in_progress',
+        spawnerType: 'command',
+        relatedDataItems: [`operations/${WARD_OP_ID}`],
+        wardMode: 'changed',
+      });
+      const pendingItem = WorkItemStub({
+        id: PENDING_WORK_ITEM_ID,
+        role: 'flowrider',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: [`operations/${FLOWRIDER_OP_ID}`],
+        dependsOn: [workItemId],
+      });
+      const proxy = questRunWardBrokerProxy();
+      proxy.setupQuest({
+        quest: QuestStub({
+          id: questId,
+          status: 'in_progress',
+          operations: [wardOp, flowriderOp],
+          workItems: [wardItem, pendingItem],
+        }),
+      });
+      proxy.wardExits({
+        exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.crash }),
+        runId,
+        detailJson: FileContentsStub({ value: WARD_DETAIL_JSON }),
+      });
+
+      await questRunWardBroker({ questId, workItemId, mode: 'changed', onLine: () => undefined });
+
+      expect(proxy.getPersistedQuest()).toStrictEqual(
+        QuestStub({
+          id: questId,
+          status: 'blocked',
+          updatedAt: FIXED_TIMESTAMP,
+          // No spiritmender and no fresh ward — a crash leaves nothing to fix.
+          operations: [OperationItemStub({ ...wardOp, status: 'complete' }), flowriderOp],
+          workItems: [
+            WorkItemStub({
+              id: workItemId,
+              role: 'ward',
+              status: 'failed',
+              startedAt: FIXED_TIMESTAMP,
+              spawnerType: 'command',
+              relatedDataItems: [`operations/${WARD_OP_ID}`, `wardResults/${WARD_RESULT_ID}`],
+              wardMode: 'changed',
+              completedAt: FIXED_TIMESTAMP,
+              lastWardRunId: runId,
+              errorMessage: 'ward_crashed',
+            }),
+            WorkItemStub({ ...pendingItem, status: 'skipped' }),
+          ],
+          wardResults: [
+            WardResultStub({
+              id: WARD_RESULT_ID,
+              createdAt: FIXED_TIMESTAMP,
+              exitCode: wardExitCodeStatics.exitCodes.crash,
+              runId: '1739625600000-ffff',
+              wardMode: 'changed',
+            }),
+          ],
+        }),
+      );
     });
   });
 

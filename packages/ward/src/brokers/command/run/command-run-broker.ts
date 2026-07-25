@@ -8,11 +8,13 @@
 
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
+import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
 import { commandRunLayerFolderBroker } from './command-run-layer-folder-broker';
 import { commandRunLayerSingleBroker } from './command-run-layer-single-broker';
@@ -134,7 +136,18 @@ export const commandRunBroker = async ({
     process.stdout.write(
       `\nFull error details: npm run ward -- detail ${wardResult.runId} <filePath>\n`,
     );
-    process.exitCode = 1;
+    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+  }
+
+  // A crashed project means a check never reported on the code at all. Consumers that dispatch
+  // ward route on this separately: there is no failing file to fix, so a fix-and-retry loop would
+  // just crash again.
+  const hasCrash = wardResult.checks.some((check) =>
+    check.projectResults.some((projectResult) => isCrashedProjectResultGuard({ projectResult })),
+  );
+
+  if (hasCrash) {
+    process.exitCode = wardExitCodeStatics.exitCodes.crash;
   }
   return adapterResultContract.parse({ success: true });
 };

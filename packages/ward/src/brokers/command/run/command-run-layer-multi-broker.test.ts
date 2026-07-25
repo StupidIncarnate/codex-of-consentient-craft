@@ -65,7 +65,7 @@ describe('commandRunLayerMultiBroker', () => {
   });
 
   describe('null sub-result', () => {
-    it('VALID: {one package, storage load returns null} => skips package and returns empty checks', async () => {
+    it('VALID: {one package, storage load returns null} => reports the package as crashed', async () => {
       const proxy = commandRunLayerMultiBrokerProxy();
       proxy.setupSpawnWithNullLoad();
 
@@ -78,9 +78,31 @@ describe('commandRunLayerMultiBroker', () => {
       expect(result.checks).toStrictEqual([
         {
           checkType: 'lint',
-          status: 'pass',
+          status: 'fail',
           durationMs: 0,
-          projectResults: [],
+          projectResults: [
+            {
+              projectFolder: {
+                name: 'ward',
+                path: '/home/user/project/packages/ward',
+              },
+              status: 'fail',
+              errors: [],
+              testFailures: [],
+              filesCount: 0,
+              discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
+              rawOutput: {
+                stdout: 'run: 1739625600000-a38e  (1.2s)\n',
+                stderr:
+                  'ward child process for ward exited with code 1 and wrote no readable result file',
+                exitCode: 1,
+              },
+              fileTimings: [],
+              passingTests: [],
+            },
+          ],
         },
       ]);
     });

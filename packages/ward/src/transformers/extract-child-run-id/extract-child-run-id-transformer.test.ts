@@ -19,6 +19,14 @@ describe('extractChildRunIdTransformer', () => {
 
       expect(result).toStrictEqual(RunIdStub({ value: '1771741106262-1b29' }));
     });
+
+    it('VALID: {run: line with duration suffix} => returns RunId', () => {
+      const result = extractChildRunIdTransformer({
+        output: 'run: 1771741106262-1b29  (23.4s)\nlint:      PASS  1 packages',
+      });
+
+      expect(result).toStrictEqual(RunIdStub({ value: '1771741106262-1b29' }));
+    });
   });
 
   describe('returns null', () => {
