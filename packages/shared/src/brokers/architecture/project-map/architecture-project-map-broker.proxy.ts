@@ -23,9 +23,9 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
   }) as Dirent;
 
 /**
- * All sub-proxies share the same underlying `readdirSync` and `readFileSync` mock handles
- * via registerMock's stack-based dispatch. When multiple sub-proxies call setupImplementation,
- * each one overwrites the shared baseImpl. The LAST setup call wins.
+ * All sub-proxies share the same underlying `readdirSync` and `readFileSync` staging — one
+ * function, one behaviour. Each sub-proxy's setupImplementation describes those calls at the
+ * same specificity, and at equal specificity the most recently staged description wins.
  *
  * Setup ordering rule: call proxy setups that install readdir/readFile implementations
  * (sectionProxy) BEFORE typeDetectProxy.setupPackage so that the type-detect routing
