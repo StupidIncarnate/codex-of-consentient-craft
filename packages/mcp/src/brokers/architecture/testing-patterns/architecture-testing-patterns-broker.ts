@@ -358,21 +358,21 @@ Only 2 things mocked: I/O npm dependencies + global functions
 \`\`\``;
 
   // Quick Reference Table
-  const quickReference = `| Category      | Needs Proxy? | Purpose                                                                                         |
-|---------------|--------------|-------------------------------------------------------------------------------------------------|
-| Contracts     | ❌ No         | Use stubs (.stub.ts files) - includes service objects with methods                            |
-| Errors        | ❌ No         | Throw directly in tests                                                                         |
-| Adapters      | ✅ Sometimes  | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
-| Brokers       | ✅ Sometimes  | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked          |
-| Guards        | ❌ No         | Pure boolean functions - run real, no mocking needed                                            |
-| Transformers  | ❌ No         | Pure data transformation - run real, no mocking needed                                          |
-| Statics       | ❌ No         | Immutable values - test with actual values                                                      |
-| State         | ✅ Yes        | Spy on methods, clear state, mock external stores                                               |
-| Bindings      | ✅ Yes        | Delegate to broker proxies                                                                      |
-| Middleware    | ✅ Yes        | Delegate to adapter proxies                                                                     |
-| Responders    | ✅ Yes        | Delegate to broker proxies                                                                      |
-| Widgets       | ✅ Yes        | Delegate to bindings + provide UI triggers/selectors                                            |
-| Flows/Startup | ✅ Sometimes  | Integration tests with .integration.proxy.ts for complex setup (spawning processes, clients)  |`;
+  const quickReference = `| Category | Needs Proxy? | Purpose |
+|---|---|---|
+| Contracts | ❌ No | Use stubs (.stub.ts files) - includes service objects with methods |
+| Errors | ❌ No | Throw directly in tests |
+| Adapters | ✅ Sometimes | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
+| Brokers | ✅ Sometimes | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked |
+| Guards | ❌ No | Pure boolean functions - run real, no mocking needed |
+| Transformers | ❌ No | Pure data transformation - run real, no mocking needed |
+| Statics | ❌ No | Immutable values - test with actual values |
+| State | ✅ Yes | Spy on methods, clear state, mock external stores |
+| Bindings | ✅ Yes | Delegate to broker proxies |
+| Middleware | ✅ Yes | Delegate to adapter proxies |
+| Responders | ✅ Yes | Delegate to broker proxies |
+| Widgets | ✅ Yes | Delegate to bindings + provide UI triggers/selectors |
+| Flows/Startup | ✅ Sometimes | Integration tests with .integration.proxy.ts for complex setup (spawning processes, clients) |`;
 
   // Proxy Patterns Overview
   const proxyPatterns = `**Detailed proxy patterns for each folder type** - Use \`get-folder-detail({ folderType: "..." })\` to see specific examples:
@@ -828,13 +828,22 @@ Scenario files are **scenario descriptions only** — test blocks and assertions
 | \`handle.onceFor([args])\` | Same, applies ONCE — when identical calls must get different results |
 | \`handle.callsMatching([args])\` | Which calls actually happened with these arguments (use in assertions) |
 
+An unaddressed \`callsMatching([])\` has no \`.at()\`/index — address it, or assert the whole list.
+
 \`calledWith\` / \`onceFor\` return \`{ returns, resolves, rejects, throws, implement }\` — \`.returns()\`/\`.throws()\` hand back the value/error as-is, \`.resolves()\`/\`.rejects()\` wrap it in a Promise (staging async with \`.returns()\` hands back a raw value the caller then calls \`.then()\` on). \`callsMatching([args])\` is a FRESH SNAPSHOT per call, not a live reference — capture it once and poll it and later calls never show up.
 
-**Staging is SHARED across every proxy mocking the same function** — one function, one behaviour. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere: seen with \`readline.createInterface\` (stdout reader vs file tailer), \`fs.readdirSync\` (filenames vs \`{withFileTypes:true}\`), \`path.join\` (sticky description vs one-shot queue), an argument-less broker composing three describers. Fix with a DISCRIMINATING address — a predicate, or just more arguments (an argument-count mismatch auto-fails to match) — never by reordering construction, which restores the order-dependency this removes. Two DIFFERENT results for the SAME address is what \`onceFor\` is for; staging both as \`calledWith\` means the later wins on the first call, silently disabling the sequence.
+**Staging is SHARED across every proxy mocking the same function** — one function, one behaviour. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere — the shape recurs whenever two callers share one Node API: \`readline.createInterface\` (stdout reader vs file tailer), \`fs.readdirSync\` (filenames vs \`{withFileTypes: true}\`), \`path.join\` (sticky default vs one-shot queue). Fix with a DISCRIMINATING address — a predicate, or just more arguments (an argument-count mismatch auto-fails to match) — never by reordering construction, which restores the order-dependency this removes. Two DIFFERENT results for the SAME address is what \`onceFor\` is for; staging both as \`calledWith\` means the later wins on the first call, silently disabling the sequence.
 
 **How arguments are compared:**
 
 Describing fewer arguments than the call passes is a PREFIX match — \`['/a/f.json']\` matches \`readFile('/a/f.json', 'utf8')\`. Objects compare only on the keys you write. RegExp matches a string, Date by time, and a FUNCTION is a test you write yourself, for values you cannot know in advance. Most specific wins; when equally specific a live one-shot wins, then the most recent.
+
+**Where's the address, per target:**
+
+| Target | The address |
+|---|---|
+| \`fs\` reads/writes (\`readFile\`, \`writeFile\`, \`existsSync\`, \`readdir\`, …) | the PATH (arg 0); write body is arg 1 (\`callsMatching([path]).at(-1)?.[1]\`) |
+| \`crypto.randomUUID\`, \`Date.now\`, \`Date.prototype.toISOString\`, \`Math.random\`, \`process.cwd\`, \`os.homedir\` | NO argument — \`calledWith([])\` is honest, not lazy |
 
 **Check the arguments you describe are the ones the function really receives.** \`calledWith([X])\` only fires if X equals what the npm function is actually called with, and callers often change it on the way down — a broker joining a cwd onto a glob pattern. Read the adapter to confirm.
 

@@ -9,7 +9,7 @@ export const InstallWriteGitignoreResponderProxy = (): {
   setupReadFileContent: (params: { filePath: FilePath; content: string }) => void;
   setupReadFileThrows: (params: { filePath: FilePath }) => void;
   getWrittenContent: (params: { filePath: FilePath }) => unknown;
-  getWrittenPath: () => unknown;
+  getWrittenPath: (params: { filePath: FilePath }) => unknown;
 } => {
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
@@ -36,6 +36,9 @@ export const InstallWriteGitignoreResponderProxy = (): {
     getWrittenContent: ({ filePath }: { filePath: FilePath }): unknown =>
       writeProxy.getWrittenContent({ filePath }),
 
-    getWrittenPath: (): unknown => writeProxy.getWrittenPath(),
+    // Trivial echo of the known address — the write having actually landed there is proven by
+    // getWrittenContent returning a value; a caller that only wants the path back doesn't need
+    // to re-derive it (matches quest-persist-broker.proxy.ts's same idiom).
+    getWrittenPath: ({ filePath }: { filePath: FilePath }): unknown => filePath,
   };
 };

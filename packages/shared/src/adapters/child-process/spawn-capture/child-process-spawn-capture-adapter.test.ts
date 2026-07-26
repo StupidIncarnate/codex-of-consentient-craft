@@ -161,9 +161,9 @@ describe('childProcessSpawnCaptureAdapter', () => {
         cwd: AbsoluteFilePathStub({ value: '/home/user/project' }),
       });
 
-      expect(proxy.getSpawnedCommand()).toBe('npm');
-      expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'ward:all']);
-      expect(proxy.getSpawnedCwd()).toBe('/home/user/project');
+      expect(proxy.getSpawnedCommand({ command: 'npm' })).toBe('npm');
+      expect(proxy.getSpawnedArgs({ command: 'npm' })).toStrictEqual(['run', 'ward:all']);
+      expect(proxy.getSpawnedCwd({ command: 'npm' })).toBe('/home/user/project');
     });
 
     it('VALID: {any command} => spawns with inherited stdin and piped stdout/stderr', async () => {
@@ -182,7 +182,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      const options = proxy.getSpawnedOptions();
+      const options = proxy.getSpawnedOptions({ command: 'npm' });
 
       const { stdio } = options as { stdio?: unknown };
 

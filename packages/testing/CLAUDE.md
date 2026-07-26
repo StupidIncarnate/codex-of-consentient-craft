@@ -1,5 +1,61 @@
 # E2E Test Harness
 
+## Mock Staging Conventions
+
+Two repo-specific `registerMock`/`registerSpyOn` conventions live here because this package owns
+both APIs. The published `get-testing-patterns` doc keeps only the portable mechanism (argument
+addressing, plus the highest-value rows of the address-per-target table); the conventions below —
+and the rest of that table — are specific to how this repo's own proxies use that mechanism.
+
+### Where's the address, per target (full table)
+
+The published doc carries only the `fs` and no-argument rows for space. The rest:
+
+| Target | The address |
+|---|---|
+| `child_process` (`spawn`, `exec`, `execSync`) | the COMMAND |
+| `path.join` / `dirname` / `basename` / `resolve` | the SEGMENTS |
+| `glob` / `globSync` / `minimatch` | the PATTERN |
+| `fetch` | the URL |
+| `process.stdout.write` / `stderr.write` / `console.error` | the WRITTEN STRING |
+| `process.exit` | the EXIT CODE |
+
+### Path adapter proxies: real passthrough via `requireActual`
+
+`packages/shared/src/adapters/path/{join,dirname,basename}` (and their `packages/config` /
+`packages/orchestrator` counterparts) mock their npm `path` function with a REAL passthrough
+default, not a fabricated stand-in:
+
+```typescript
+const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+handle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+```
+
+Dozens of composing broker proxies across `packages/shared` build a real path through these
+adapters, and the segments/receiver each one passes are themselves the output of another mocked
+call (a directory search, dirname of a path just loaded, a config path just resolved) — there is no
+single caller-known segment list or receiver to key on across every composing proxy the way there
+is for `fs`/`child_process`. Staying on a real passthrough means an unstaged call still computes a
+genuine joined/dirname/basename value instead of `''` or an echo of the input. `returns()` stays
+call-order-scoped (`onceFor([])`) on top of that default — a live one-shot still outranks the sticky
+passthrough, so explicit per-test staging keeps working normally.
+
+### `console.error` needs `passthrough: true`
+
+Every web binding/widget that logs an inner-catch error via `globalThis.console.error(...)` mocks it
+with:
+
+```typescript
+registerSpyOn({ object: globalThis.console, method: 'error', passthrough: true })
+  .calledWith(['[binding-name]'])
+  .returns(undefined);
+```
+
+React's own internal warnings (e.g. `act()` warnings) also flow through `console.error`, and the
+unconditional throw-on-unmatched default would throw on those instead of letting them print.
+`passthrough: true` makes the real implementation the catch-all, so React's own logging keeps
+working while a test can still stage its own prefix to assert the binding's own log line.
+
 ## What Is Real, What Is Mocked, What Is Isolated
 
 E2E tests have three layers. Understanding these prevents mistakes.

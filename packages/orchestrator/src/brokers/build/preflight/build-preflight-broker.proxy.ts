@@ -6,8 +6,8 @@ export const buildPreflightBrokerProxy = (): {
   setupBuildSuccess: (params: { command: string }) => void;
   setupBuildFailure: (params: { command: string; exitCode: ExitCode; output: string }) => void;
   setupBuildError: (params: { command: string; error: Error }) => void;
-  getSpawnedCommand: () => unknown;
-  getSpawnedArgs: () => unknown;
+  getSpawnedCommand: (params: { command: string }) => unknown;
+  getSpawnedArgs: (params: { command: string }) => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
 
@@ -42,8 +42,10 @@ export const buildPreflightBrokerProxy = (): {
       captureProxy.setupError({ command, error });
     },
 
-    getSpawnedCommand: (): unknown => captureProxy.getSpawnedCommand(),
+    getSpawnedCommand: ({ command }: { command: string }): unknown =>
+      captureProxy.getSpawnedCommand({ command }),
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+    getSpawnedArgs: ({ command }: { command: string }): unknown =>
+      captureProxy.getSpawnedArgs({ command }),
   };
 };

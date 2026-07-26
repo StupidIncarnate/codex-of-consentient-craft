@@ -63,9 +63,9 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
               // Check if it's calling a mock method (allowed)
               const { property } = callee;
               const propertyName = property?.name;
-              const isLegacyMockMethod =
+              const isNativeJestMockMethod =
                 propertyName !== undefined &&
-                jestMockingStatics.mockMethods.some((method) => method === propertyName);
+                jestMockingStatics.nativeJestMockMethods.some((method) => method === propertyName);
 
               // Bare argument-addressed staging/query call: handle.calledWith([args]),
               // handle.onceFor([args]), handle.callsMatching([args]) — allowed on their own.
@@ -89,7 +89,7 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
                 jestMockingStatics.chainedMockStagingMethodSet.has(stagingAntecedentName);
 
               const isMockMethod =
-                isLegacyMockMethod || isBareChainedMockCall || isChainedResultCall;
+                isNativeJestMockMethod || isBareChainedMockCall || isChainedResultCall;
 
               if (!isMockMethod) {
                 const objectName = object?.name ?? 'unknown';

@@ -8,11 +8,10 @@ export const pathJoinAdapterProxy = (): {
   // Mock the npm package, not the adapter
   const mock = registerMock({ fn: join });
 
-  // THE JOIN/DIRNAME/BASENAME TRAP (see tmp/sweep-guidance.md): configFileFindBrokerProxy,
-  // configResolveBrokerProxy, and findParentConfigsLayerBrokerProxy each build a real path
-  // through this adapter where the segments are themselves the output of another mocked call
-  // (dirname, or configRootFindBrokerProxy's own directory search) — there is no single
-  // caller-known segment list to key on across every composing proxy. `returns()` stays
+  // configFileFindBrokerProxy, configResolveBrokerProxy, and findParentConfigsLayerBrokerProxy
+  // each build a real path through this adapter where the segments are themselves the output of
+  // another mocked call (dirname, or configRootFindBrokerProxy's own directory search) — there is
+  // no single caller-known segment list to key on across every composing proxy. `returns()` stays
   // call-order-scoped (`onceFor([])`), matching @dungeonmaster/shared's own path-join-adapter
   // proxy. Any call nobody staged falls through to a real passthrough via requireActual, so a
   // join the test doesn't care about still computes a genuine value instead of ''.

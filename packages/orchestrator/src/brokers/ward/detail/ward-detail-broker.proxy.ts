@@ -34,8 +34,8 @@ export const wardDetailBrokerProxy = (): {
       });
     },
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs({ command: WARD_COMMAND }),
 
-    getSpawnedCommand: (): unknown => captureProxy.getSpawnedCommand(),
+    getSpawnedCommand: (): unknown => captureProxy.getSpawnedCommand({ command: WARD_COMMAND }),
   };
 };

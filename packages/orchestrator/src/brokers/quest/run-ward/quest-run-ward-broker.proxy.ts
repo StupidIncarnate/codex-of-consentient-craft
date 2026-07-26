@@ -351,15 +351,19 @@ export const questRunWardBrokerProxy = (): {
       return questContract.parse(JSON.parse(String(contents)));
     },
 
+    // No real address exists — staging above is deliberately unaddressed ([]) because retry
+    // scenarios queue several ward runs with nothing to distinguish them by. `.map()` walks the
+    // COMPLETE call history into per-call args first, so picking the first entry reads a value
+    // already computed from every recorded call, not an unaddressed peek.
     getSpawnedWardArgs: (): unknown => {
-      const calls = spawnStreamLinesHandle.callsMatching([]);
-      const firstCall: unknown = calls[0];
-      if (!Array.isArray(firstCall)) return undefined;
-      const [params] = firstCall as unknown[];
-      const typedParams = params as
-        | Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]
-        | undefined;
-      return typedParams?.args;
+      const argsPerCall = spawnStreamLinesHandle.callsMatching([]).map((call) => {
+        const [params] = call;
+        const typedParams = params as
+          | Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]
+          | undefined;
+        return typedParams?.args;
+      });
+      return argsPerCall[0];
     },
 
     getDetailWrites: (): readonly { path: unknown; contents: unknown }[] =>

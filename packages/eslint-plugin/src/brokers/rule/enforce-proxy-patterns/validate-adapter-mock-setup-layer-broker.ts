@@ -72,7 +72,7 @@ export const validateAdapterMockSetupLayerBroker = ({
               // Check if calling mockImplementation, mockResolvedValue, mockRejectedValue, mockReturnValue
               const isMockMethod =
                 property?.name &&
-                jestMockingStatics.mockMethods.some((method) => method === property.name);
+                jestMockingStatics.nativeJestMockMethods.some((method) => method === property.name);
 
               if (isMockMethod) {
                 hasMockSetup = true;

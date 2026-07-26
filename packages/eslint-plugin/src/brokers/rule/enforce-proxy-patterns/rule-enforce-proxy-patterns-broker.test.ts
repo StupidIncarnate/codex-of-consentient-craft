@@ -102,66 +102,66 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
       `,
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
     },
-    // ✅ CORRECT - jest.mocked() with npm package
+    // ✅ CORRECT - registerMock default staging via calledWith([]) (adapter mock setup satisfied)
     {
       code: `
         import axios from 'axios';
-        jest.mock('axios');
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
 
         export const httpAdapterProxy = () => {
-          const mock = jest.mocked(axios);
-          mock.mockImplementation(async () => ({ data: {}, status: 200 }));
+          const handle = registerMock({ fn: axios });
+          handle.calledWith([]).resolves({ data: {}, status: 200 });
           return { returns: () => {} };
         };
       `,
       filename: '/project/src/adapters/http/http-adapter.proxy.ts',
     },
-    // ✅ CORRECT - jest.mocked() with npm package (named import)
+    // ✅ CORRECT - registerMock default staging via calledWith([]), named npm import
     {
       code: `
         import { readFile } from 'fs/promises';
-        jest.mock('fs/promises');
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
 
         export const fsAdapterProxy = () => {
-          const mock = jest.mocked(readFile);
-          mock.mockResolvedValue(Buffer.from(''));
+          const handle = registerMock({ fn: readFile });
+          handle.calledWith([]).resolves(Buffer.from(''));
           return { returns: () => {} };
         };
       `,
       filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
     },
-    // ✅ CORRECT - Adapter proxy with mockImplementation in constructor
+    // ✅ CORRECT - registerMock staging keyed on url in setup method (adapter mock setup satisfied)
     {
       code: `
         import axios from 'axios';
-        jest.mock('axios');
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
 
         export const httpAdapterProxy = () => {
-          const mock = jest.mocked(axios);
-          mock.mockImplementation(async () => ({ data: {}, status: 200 }));
+          const handle = registerMock({ fn: axios });
+          handle.calledWith([]).resolves({ data: {}, status: 200 });
 
           return {
             returns: ({ url, response }) => {
-              mock.mockResolvedValueOnce(response);
+              handle.calledWith([url]).resolves(response);
             }
           };
         };
       `,
       filename: '/project/src/adapters/http/http-adapter.proxy.ts',
     },
-    // ✅ CORRECT - Adapter proxy with mockResolvedValue in constructor
+    // ✅ CORRECT - registerMock staging keyed on path in setup method (adapter mock setup satisfied)
     {
       code: `
         import { readFile } from 'fs/promises';
-        jest.mock('fs/promises');
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
 
         export const fsAdapterProxy = () => {
-          const mock = jest.mocked(readFile);
-          mock.mockResolvedValue(Buffer.from('default'));
+          const handle = registerMock({ fn: readFile });
+          handle.calledWith([]).resolves(Buffer.from('default'));
 
           return {
             returns: ({ path, contents }) => {
-              mock.mockResolvedValueOnce(contents);
+              handle.calledWith([path]).resolves(contents);
             }
           };
         };

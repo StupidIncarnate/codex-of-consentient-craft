@@ -45,7 +45,7 @@ describe('DumpsterCommandBannerWidget', () => {
         expect(proxy.getCopyButtonLabel()).toBe('COPIED');
       });
 
-      expect(proxy.getCopiedText()).toBe('/dumpster-launch');
+      expect(proxy.wasCopiedWith({ text: '/dumpster-launch' })).toBe(true);
     });
 
     it('ERROR: {clipboard rejects} => label stays COPY and console.error logs the failure tag', async () => {

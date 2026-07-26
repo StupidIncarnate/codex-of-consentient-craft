@@ -36,7 +36,13 @@ export const jestMockingStatics = {
     // Property mocking
     'replaceProperty',
   ],
-  mockMethods: [
+  // Native Jest mock-function methods (mockImplementation, mockReturnValue, etc). These are NOT
+  // part of registerMock's MockHandle (which exposes only calledWith/onceFor/callsMatching) —
+  // a MockHandle never carries these names. They stay real and checked-for wherever raw
+  // jest.fn()/jest.mocked()/jest.spyOn() results are still legitimately used directly: a harness
+  // constructor building its own jest.fn() stub, or the adapter/side-effect layer brokers
+  // recognizing native jest mocking as already-set-up rather than a banned side effect.
+  nativeJestMockMethods: [
     'mockImplementation',
     'mockResolvedValue',
     'mockRejectedValue',
@@ -45,7 +51,7 @@ export const jestMockingStatics = {
     'mockResolvedValueOnce',
     'mockRejectedValueOnce',
   ],
-  mockMethodSet: new Set([
+  nativeJestMockMethodSet: new Set([
     'mockImplementation',
     'mockResolvedValue',
     'mockRejectedValue',

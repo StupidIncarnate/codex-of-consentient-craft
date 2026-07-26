@@ -9,7 +9,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type {
@@ -82,7 +82,7 @@ export const HomeContentWidgetProxy = (): {
   clickBanish: () => Promise<void>;
   isPopoverVisible: (params: { testId: string }) => boolean;
   getShownToast: () => unknown;
-  getDeleteBrokerCalls: () => unknown[][];
+  getDeleteBrokerCalls: () => RecordedCalls;
 } => {
   const sessionsProxy = useSessionListBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
@@ -228,7 +228,7 @@ export const HomeContentWidgetProxy = (): {
     isPopoverVisible: ({ testId }: { testId: string }): boolean =>
       sessionList.isPopoverVisible({ testId }),
     getShownToast: (): unknown => notificationsProxy.getShownNotification(),
-    getDeleteBrokerCalls: (): unknown[][] => deleteBrokerSpy.callsMatching([]),
+    getDeleteBrokerCalls: (): RecordedCalls => deleteBrokerSpy.callsMatching([]),
     clearStorage: (): void => {
       localStorage.clear();
     },

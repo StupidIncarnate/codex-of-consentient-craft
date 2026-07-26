@@ -6,6 +6,7 @@ import {
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { DeletedCountStub } from '../../../contracts/deleted-count/deleted-count.stub';
 import { questDeleteBrokerProxy } from '../../quest/delete/quest-delete-broker.proxy';
@@ -30,10 +31,10 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   setupQuestDirectoryListing: (params: { files: readonly never[] }) => void;
   setupQuestFolderListing: (params: { files: readonly FileName[] }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
-  getRmCallArgs: () => readonly unknown[][];
+  getRmCallArgs: () => RecordedCalls;
   setupSucceeds: (params: { questSource: QuestSource }) => void;
   setupPassthrough: () => void;
-  getCallArgs: () => readonly unknown[][];
+  getCallArgs: () => RecordedCalls;
 } => {
   const ensureGuild = smoketestEnsureGuildBrokerProxy();
   const list = questListBrokerProxy();
@@ -78,7 +79,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       // chain via setupSmoketestGuildPresent, so ensure-guild must run real here too.
       ensureGuild.setupPassthrough();
     },
-    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
+    getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
     setupSmoketestGuildPresent: ({
       config,
       homeDir,
@@ -124,6 +125,6 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
     // deleteBroker.getRmCallArgs() filters by a questFolderPath this proxy never addresses
     // (see the comment above questDeleteBrokerProxy() for why); read straight off rmMock,
     // which every real questDeleteBroker call in this test actually dispatches through.
-    getRmCallArgs: (): readonly unknown[][] => rmMock.callsMatching([]),
+    getRmCallArgs: (): RecordedCalls => rmMock.callsMatching([]),
   };
 };

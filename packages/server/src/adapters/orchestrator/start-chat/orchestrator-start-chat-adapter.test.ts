@@ -46,7 +46,7 @@ describe('orchestratorStartChatAdapter', () => {
 
       await orchestratorStartChatAdapter({ guildId, message: 'continue', sessionId });
 
-      expect(proxy.getLastCalledArgs()).toStrictEqual({
+      expect(proxy.getLastCalledArgs({ guildId })).toStrictEqual({
         guildId,
         message: 'continue',
         sessionId,

@@ -21,7 +21,7 @@ describe('jestMockingStatics', () => {
         'isolateModulesAsync',
         'replaceProperty',
       ],
-      mockMethods: [
+      nativeJestMockMethods: [
         'mockImplementation',
         'mockResolvedValue',
         'mockRejectedValue',
@@ -30,7 +30,7 @@ describe('jestMockingStatics', () => {
         'mockResolvedValueOnce',
         'mockRejectedValueOnce',
       ],
-      mockMethodSet: new Set([
+      nativeJestMockMethodSet: new Set([
         'mockImplementation',
         'mockResolvedValue',
         'mockRejectedValue',

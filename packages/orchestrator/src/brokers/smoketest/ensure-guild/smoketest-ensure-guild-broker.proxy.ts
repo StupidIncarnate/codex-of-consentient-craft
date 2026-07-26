@@ -15,6 +15,7 @@ import {
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { Dirent } from 'fs';
 
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';
@@ -39,7 +40,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
   }) => void;
   setupReturnsGuildId: (params: { guildId: GuildId }) => void;
   setupPassthrough: () => void;
-  getCallArgs: () => readonly unknown[][];
+  getCallArgs: () => RecordedCalls;
 } => {
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
@@ -67,7 +68,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       });
       mocked.calledWith([]).implement(realMod.smoketestEnsureGuildBroker);
     },
-    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
+    getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
     setupGuildPresent: ({
       config,
       homeDir,

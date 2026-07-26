@@ -14,7 +14,7 @@ export const DumpsterCommandBannerWidgetProxy = (): {
   setupClipboardSucceeds: (params: { text: string }) => void;
   setupClipboardThrows: (params: { text: string; error: Error }) => void;
   setupConsoleErrorCapture: () => SpyOnHandle;
-  getCopiedText: () => unknown;
+  wasCopiedWith: (params: { text: string }) => boolean;
   getCopyButtonLabel: () => HTMLElement['textContent'];
 } => {
   PixelBtnWidgetProxy();
@@ -48,7 +48,7 @@ export const DumpsterCommandBannerWidgetProxy = (): {
       handle.calledWith(['[dumpster-command-banner] copy failed']).implement(() => undefined);
       return handle;
     },
-    getCopiedText: (): unknown => clipboard.getWrittenText(),
+    wasCopiedWith: ({ text }: { text: string }): boolean => clipboard.wasWrittenWith({ text }),
     getCopyButtonLabel: (): HTMLElement['textContent'] => {
       const banner = screen.getByTestId('DUMPSTER_COMMAND_BANNER');
       const button = within(banner).getByTestId('PIXEL_BTN');

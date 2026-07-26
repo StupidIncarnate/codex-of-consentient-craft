@@ -1,9 +1,10 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 export const processDevLogAdapterProxy = (): {
   enableVerbose: () => void;
   disableVerbose: () => void;
-  getWrittenLines: () => unknown[][];
+  getWrittenLines: () => RecordedCalls;
 } => {
   const spy = registerSpyOn({ object: process.stdout, method: 'write', passthrough: true });
   // Every write must resolve the same way (true, no real terminal output) no matter what was
@@ -17,6 +18,6 @@ export const processDevLogAdapterProxy = (): {
     disableVerbose: (): void => {
       Reflect.deleteProperty(process.env, 'VERBOSE');
     },
-    getWrittenLines: (): unknown[][] => spy.callsMatching([]),
+    getWrittenLines: (): RecordedCalls => spy.callsMatching([]),
   };
 };

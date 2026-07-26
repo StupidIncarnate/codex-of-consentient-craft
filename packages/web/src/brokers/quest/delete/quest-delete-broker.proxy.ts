@@ -29,8 +29,11 @@ export const questDeleteBrokerProxy = (): {
     setupError: (): void => {
       endpoint.networkError();
     },
+    // This broker only ever issues DELETE requests — that's the one real invariant to address
+    // by. Unfiltered `.at(-1)` on every fetch call in the test would risk grabbing an unrelated
+    // request; filtering to DELETE calls first keeps the read honest even if that changes.
     getRequestUrl: (): unknown => {
-      const lastCall = fetchSpy.callsMatching([]).at(-1);
+      const lastCall = fetchSpy.callsMatching([(): boolean => true, { method: 'DELETE' }]).at(-1);
       if (!lastCall) {
         return null;
       }
@@ -38,7 +41,7 @@ export const questDeleteBrokerProxy = (): {
       return typeof input === 'string' ? input : String(input);
     },
     getRequestMethod: (): unknown => {
-      const lastCall = fetchSpy.callsMatching([]).at(-1);
+      const lastCall = fetchSpy.callsMatching([(): boolean => true, { method: 'DELETE' }]).at(-1);
       if (!lastCall) {
         return null;
       }

@@ -11,7 +11,7 @@ describe('clipboardWriteAdapter', () => {
       await expect(clipboardWriteAdapter({ text: '/dumpster-launch' })).resolves.toStrictEqual({
         success: true,
       });
-      expect(proxy.getWrittenText()).toBe('/dumpster-launch');
+      expect(proxy.wasWrittenWith({ text: '/dumpster-launch' })).toBe(true);
     });
   });
 

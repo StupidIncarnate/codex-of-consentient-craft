@@ -270,6 +270,9 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(
         /^\| `handle\.callsMatching\(\[args\]\)` \| Which calls actually happened with these arguments \(use in assertions\) \|$/mu,
       );
+      expect(result).toMatch(
+        /^An unaddressed `callsMatching\(\[\]\)` has no `\.at\(\)`\/index — address it, or assert the whole list\.$/mu,
+      );
       expect(result).toMatch(/^\*\*How arguments are compared:\*\*$/mu);
     });
 
@@ -289,7 +292,21 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(
-        /^\*\*Staging is SHARED across every proxy mocking the same function\*\* — one function, one behaviour\. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere: seen with `readline\.createInterface` \(stdout reader vs file tailer\), `fs\.readdirSync` \(filenames vs `\{withFileTypes:true\}`\), `path\.join` \(sticky description vs one-shot queue\), an argument-less broker composing three describers\. Fix with a DISCRIMINATING address — a predicate, or just more arguments \(an argument-count mismatch auto-fails to match\) — never by reordering construction, which restores the order-dependency this removes\. Two DIFFERENT results for the SAME address is what `onceFor` is for; staging both as `calledWith` means the later wins on the first call, silently disabling the sequence\.$/mu,
+        /^\*\*Staging is SHARED across every proxy mocking the same function\*\* — one function, one behaviour\. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere — the shape recurs whenever two callers share one Node API: `readline\.createInterface` \(stdout reader vs file tailer\), `fs\.readdirSync` \(filenames vs `\{withFileTypes: true\}`\), `path\.join` \(sticky default vs one-shot queue\)\. Fix with a DISCRIMINATING address — a predicate, or just more arguments \(an argument-count mismatch auto-fails to match\) — never by reordering construction, which restores the order-dependency this removes\. Two DIFFERENT results for the SAME address is what `onceFor` is for; staging both as `calledWith` means the later wins on the first call, silently disabling the sequence\.$/mu,
+      );
+    });
+
+    it('VALID: {} => documents the address-per-target table for common mock targets', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^\*\*Where's the address, per target:\*\*$/mu);
+      expect(result).toMatch(
+        /^\| `fs` reads\/writes \(`readFile`, `writeFile`, `existsSync`, `readdir`, …\) \| the PATH \(arg 0\); write body is arg 1 \(`callsMatching\(\[path\]\)\.at\(-1\)\?\.\[1\]`\) \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `crypto\.randomUUID`, `Date\.now`, `Date\.prototype\.toISOString`, `Math\.random`, `process\.cwd`, `os\.homedir` \| NO argument — `calledWith\(\[\]\)` is honest, not lazy \|$/mu,
       );
     });
 

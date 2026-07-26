@@ -47,16 +47,22 @@ export const checkRunE2eBrokerProxy = (): {
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
+  // The resolved bin path depends on projectFolder.path, so the getters below (which take no
+  // params) address the spawn read against whatever setup last resolved — set here, read there.
+  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
   const queueFreePorts = (): void => {
     freePortProxy.setupPort({ port: 40_000 });
   };
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
-    binProxy.setupFound({
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
+    const command = binProxy.setupFound({
       cwd: absoluteFilePathContract.parse(projectFolder.path),
       binName: BinCommandStub({ value: checkCommandsStatics.e2e.bin }),
     });
+    resolvedCommandRef.value = command;
+    return command;
+  };
 
   const setupPlaywrightConfigExists = ({
     projectFolder,
@@ -154,7 +160,9 @@ export const checkRunE2eBrokerProxy = (): {
       });
     },
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
-    getSpawnedOptions: (): unknown => captureProxy.getSpawnedOptions(),
+    getSpawnedArgs: (): unknown =>
+      captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
+    getSpawnedOptions: (): unknown =>
+      captureProxy.getSpawnedOptions({ command: String(resolvedCommandRef.value) }),
   };
 };

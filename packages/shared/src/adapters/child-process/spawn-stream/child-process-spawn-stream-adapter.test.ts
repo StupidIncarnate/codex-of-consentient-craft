@@ -206,9 +206,9 @@ describe('childProcessSpawnStreamAdapter', () => {
         cwd: AbsoluteFilePathStub({ value: '/home/user/project' }),
       });
 
-      expect(proxy.getSpawnedCommand()).toBe('npm');
-      expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'ward:all']);
-      expect(proxy.getSpawnedCwd()).toBe('/home/user/project');
+      expect(proxy.getSpawnedCommand({ command: 'npm' })).toBe('npm');
+      expect(proxy.getSpawnedArgs({ command: 'npm' })).toStrictEqual(['run', 'ward:all']);
+      expect(proxy.getSpawnedCwd({ command: 'npm' })).toBe('/home/user/project');
     });
   });
 });

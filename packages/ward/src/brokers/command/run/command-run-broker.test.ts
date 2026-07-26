@@ -20,8 +20,8 @@ describe('commandRunBroker', () => {
       const stdoutCalls = proxy.getStdoutCalls();
 
       expect({
-        summary: stdoutCalls[0]?.[0],
-        guidance: stdoutCalls[1]?.[0],
+        summary: stdoutCalls[0],
+        guidance: stdoutCalls[1],
         exitCode: process.exitCode,
         exitCalls: proxy.getExitCalls(),
       }).toStrictEqual({

@@ -9,10 +9,11 @@
 
 import { mkdirSync } from 'fs';
 import { registerMock } from '../../../register-mock';
+import type { RecordedCalls } from '../../../register-mock';
 
 export const fsMkdirAdapterProxy = (): {
   throws: ({ dirPath, error }: { dirPath: string; error: Error }) => void;
-  getCallArgs: () => readonly unknown[][];
+  getCallArgs: () => RecordedCalls;
 } => {
   const mock = registerMock({ fn: mkdirSync });
 
@@ -22,6 +23,6 @@ export const fsMkdirAdapterProxy = (): {
     throws: ({ dirPath, error }: { dirPath: string; error: Error }): void => {
       mock.calledWith([dirPath]).throws(error);
     },
-    getCallArgs: (): readonly unknown[][] => mock.callsMatching([]),
+    getCallArgs: (): RecordedCalls => mock.callsMatching([]),
   };
 };

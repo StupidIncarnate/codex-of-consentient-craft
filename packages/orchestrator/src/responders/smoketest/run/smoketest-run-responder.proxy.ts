@@ -1,5 +1,6 @@
 import type { GuildIdStub, QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
 import { GuildStub, questSourceContract } from '@dungeonmaster/shared/contracts';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { smoketestClearPriorQuestsBrokerProxy } from '../../../brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy';
@@ -22,7 +23,7 @@ export const SmoketestRunResponderProxy = (): {
     orchestrationRecords?: readonly { questId: QuestId; guildSlug: UrlSlug }[];
   }) => void;
   setupOrchestrationLayerRejectsOnce: (params: { error: Error }) => void;
-  getClearPriorCallArgs: () => readonly unknown[][];
+  getClearPriorCallArgs: () => RecordedCalls;
   getEnqueueBundledCallArgs: () => readonly unknown[][];
   getEnqueueOrchestrationCallArgs: () => readonly unknown[][];
 } => {
@@ -95,7 +96,7 @@ export const SmoketestRunResponderProxy = (): {
     setupOrchestrationLayerRejectsOnce: ({ error }: { error: Error }): void => {
       orchProxy.setupRejectsOnce({ error });
     },
-    getClearPriorCallArgs: (): readonly unknown[][] => clearProxy.getCallArgs(),
+    getClearPriorCallArgs: (): RecordedCalls => clearProxy.getCallArgs(),
     getEnqueueBundledCallArgs: (): readonly unknown[][] => bundledProxy.getCallArgs(),
     getEnqueueOrchestrationCallArgs: (): readonly unknown[][] => orchProxy.getCallArgs(),
   };

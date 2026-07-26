@@ -20,6 +20,7 @@ import {
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { processTerminalEventLayerBroker } from './process-terminal-event-layer-broker';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -37,7 +38,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupRejects: (params: { error: Error }) => void;
   setupPassthrough: () => void;
   setupQuestDeleted: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
-  getCallArgs: () => readonly unknown[][];
+  getCallArgs: () => RecordedCalls;
 } => {
   pathJoinAdapterProxy();
   const findProxy = questFindQuestPathBrokerProxy();
@@ -85,6 +86,6 @@ export const processTerminalEventLayerBrokerProxy = (): {
       // guild dirs exist on disk.
       findProxy.setupNoGuilds({ homeDir, homePath, guildsDir });
     },
-    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
+    getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
   };
 };

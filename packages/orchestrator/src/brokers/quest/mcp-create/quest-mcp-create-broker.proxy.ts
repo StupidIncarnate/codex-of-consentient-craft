@@ -140,17 +140,22 @@ export const questMcpCreateBrokerProxy = (): {
         return { name: params.name, path: params.path };
       }),
 
+    // No caller-known address exists (sessionId/questType vary per test) — `.map()` walks the
+    // COMPLETE call history into extracted {questType, sessionId} pairs first, so the tail read
+    // picks a value already computed from every recorded call, not a raw unaddressed peek.
     getLastQuestAddCall: (): {
       questType: AddQuestInput['questType'];
       sessionId: SessionId | undefined;
     } => {
-      const calls = addQuestMock.callsMatching([]);
+      const calls = addQuestMock.callsMatching([]).map((call) => {
+        const [params] = call as [Parameters<typeof questUserAddBroker>[0]];
+        return { questType: params.input.questType, sessionId: params.sessionId };
+      });
       const lastCall = calls.at(-1);
       if (lastCall === undefined) {
         throw new Error('questUserAddBroker was not called');
       }
-      const [params] = lastCall as [Parameters<typeof questUserAddBroker>[0]];
-      return { questType: params.input.questType, sessionId: params.sessionId };
+      return lastCall;
     },
   };
 };

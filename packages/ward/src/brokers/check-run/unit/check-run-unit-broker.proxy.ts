@@ -49,6 +49,9 @@ export const checkRunUnitBrokerProxy = (): {
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
+  // The resolved bin path depends on projectFolder.path, so the getter below (which takes no
+  // params) addresses the spawn read against whatever setup last resolved — set here, read there.
+  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
   // The broker calls globSync once per unit discovery pattern (8 patterns from
   // jestDiscoverPatternsTransformer). These tests assert on jest output parsing, not which
@@ -59,11 +62,14 @@ export const checkRunUnitBrokerProxy = (): {
   // queueFsExists (below) overrides this for the companion-filtering tests.
   existsProxy.implementation({ fn: () => true });
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
-    binProxy.setupFound({
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
+    const command = binProxy.setupFound({
       cwd: absoluteFilePathContract.parse(projectFolder.path),
       binName: BinCommandStub({ value: checkCommandsStatics.unit.bin }),
     });
+    resolvedCommandRef.value = command;
+    return command;
+  };
 
   return {
     setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
@@ -162,6 +168,7 @@ export const checkRunUnitBrokerProxy = (): {
       existsHandle.onceFor([]).returns(result);
     },
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+    getSpawnedArgs: (): unknown =>
+      captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
   };
 };

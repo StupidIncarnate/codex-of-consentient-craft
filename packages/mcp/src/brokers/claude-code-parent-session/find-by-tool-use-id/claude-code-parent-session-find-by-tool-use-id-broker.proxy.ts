@@ -14,9 +14,9 @@ type PathSegment = ReturnType<typeof PathSegmentStub>;
 
 // Mirrors the broker's own directory-path computation — a real, unmocked transformer plus plain
 // string concatenation for the per-session subagents dir — so every readdir/readFile address
-// below matches what the broker really calls them with. Because answers are argument-addressed
-// (not FIFO), setup calls no longer need to happen in the broker's call order; each just needs
-// to name the real directory or file it is answering for.
+// below matches what the broker really calls them with. Answers are argument-addressed, so each
+// setup call only needs to name the real directory or file it is answering for, independent of
+// the order these setup calls run in.
 const sessionsDirFor = ({
   homedir,
   projectDir,

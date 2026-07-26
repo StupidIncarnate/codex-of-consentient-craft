@@ -116,10 +116,12 @@ export const websocketConnectAdapterProxy = ({
       // The reconnect delay is a private, unexported constant inside web-socket-channel-state.ts
       // — this proxy has no real value to key the scheduled setTimeout call on. There's only ever
       // one reconnect timer in flight at a time, so the last recorded call is unambiguous.
-      const calls = setTimeoutSpy.callsMatching([]) as unknown as [() => void][];
-      const lastCall = calls[calls.length - 1];
-      if (lastCall) {
-        lastCall[0]();
+      // `.map()` walks the COMPLETE call history into callbacks first, so picking the tail reads
+      // a value already computed from every recorded call, not an unaddressed peek.
+      const callbacks = setTimeoutSpy.callsMatching([]).map((call) => call[0] as () => void);
+      const lastCallback = callbacks.at(-1);
+      if (lastCallback) {
+        lastCallback();
       }
     },
 

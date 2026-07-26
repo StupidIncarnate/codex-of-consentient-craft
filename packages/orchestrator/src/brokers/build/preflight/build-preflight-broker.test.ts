@@ -30,8 +30,8 @@ describe('buildPreflightBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getSpawnedCommand()).toBe('npm');
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
+      expect(proxy.getSpawnedCommand({ command: 'npm' })).toBe('npm');
+      expect(proxy.getSpawnedArgs({ command: 'npm' })).toStrictEqual([
         'run',
         'build',
         '--workspace=@dungeonmaster/shared',

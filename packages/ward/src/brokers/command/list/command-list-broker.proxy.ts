@@ -1,13 +1,14 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 
 export const commandListBrokerProxy = (): {
   setupWithResult: (params: { content: string }) => void;
   setupNoResult: () => void;
-  getStdoutCalls: () => unknown[][];
-  getStderrCalls: () => unknown[][];
+  getStdoutCalls: () => RecordedCalls;
+  getStderrCalls: () => RecordedCalls;
 } => {
   // write()'s return value never varies by content — what was written is read back via
   // callsMatching below, so the catch-all stays unaddressed.
@@ -28,7 +29,7 @@ export const commandListBrokerProxy = (): {
     setupNoResult: (): void => {
       storageProxy.setupReadFail({ rootPath, runId, error: new Error('ENOENT') });
     },
-    getStdoutCalls: (): unknown[][] => stdoutSpy.callsMatching([]),
-    getStderrCalls: (): unknown[][] => stderrSpy.callsMatching([]),
+    getStdoutCalls: (): RecordedCalls => stdoutSpy.callsMatching([]),
+    getStderrCalls: (): RecordedCalls => stderrSpy.callsMatching([]),
   };
 };

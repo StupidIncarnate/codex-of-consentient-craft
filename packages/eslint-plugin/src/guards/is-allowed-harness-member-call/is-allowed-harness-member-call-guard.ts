@@ -15,7 +15,7 @@ export const isAllowedHarnessMemberCallGuard = ({
   objectName?: string | undefined;
   propertyName?: string | undefined;
 }): boolean => {
-  if (propertyName !== undefined && jestMockingStatics.mockMethodSet.has(propertyName)) {
+  if (propertyName !== undefined && jestMockingStatics.nativeJestMockMethodSet.has(propertyName)) {
     return true;
   }
 

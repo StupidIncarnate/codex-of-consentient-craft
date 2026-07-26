@@ -35,7 +35,7 @@ export const elkLayoutAdapterProxy = (): {
   }) => void;
   returnsNoChildren: () => void;
   throws: ({ error }: { error: Error }) => void;
-  getGraphChildIds: () => readonly ElkGraphChildId[];
+  getGraphChildIds: () => readonly (readonly ElkGraphChildId[])[];
 } => {
   const mockLayout = jest.fn();
   const layoutHandle: MockHandle = registerMock({ fn: mockLayout });
@@ -73,9 +73,14 @@ export const elkLayoutAdapterProxy = (): {
     throws: ({ error }: { error: Error }): void => {
       layoutHandle.onceFor([]).rejects(error);
     },
-    getGraphChildIds: (): readonly ElkGraphChildId[] => {
-      const [graph] = capturedCallSchema.parse(layoutHandle.callsMatching([]).at(-1));
-      return graph.children.map((c) => c.id);
-    },
+    // No real address exists (the graph argument is assembled from label-length card-height math
+    // this proxy can't predict). `.map()` walks the COMPLETE call history into child-id lists
+    // first — every recorded call is parsed, not just an unaddressed tail peek — so the returned
+    // list-of-lists is a whole-history read a caller can index or assert on directly.
+    getGraphChildIds: (): readonly (readonly ElkGraphChildId[])[] =>
+      layoutHandle.callsMatching([]).map((call) => {
+        const [graph] = capturedCallSchema.parse(call);
+        return graph.children.map((c) => c.id);
+      }),
   };
 };

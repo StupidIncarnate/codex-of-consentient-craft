@@ -41,6 +41,9 @@ export const checkRunIntegrationBrokerProxy = (): {
   const successCode = ExitCodeStub({ value: 0 });
   const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
+  // The resolved bin path depends on projectFolder.path, so the getter below (which takes no
+  // params) addresses the spawn read against whatever setup last resolved — set here, read there.
+  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
   // The broker calls globSync once per integration discovery pattern (16 patterns from
   // jestDiscoverPatternsTransformer). These tests assert on jest output parsing, not which
@@ -49,11 +52,14 @@ export const checkRunIntegrationBrokerProxy = (): {
   // The broker only checks jest.config.js's existence — every scenario here wants it to exist.
   existsProxy.implementation({ fn: () => true });
 
-  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
-    binProxy.setupFound({
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
+    const command = binProxy.setupFound({
       cwd: absoluteFilePathContract.parse(projectFolder.path),
       binName: BinCommandStub({ value: checkCommandsStatics.integration.bin }),
     });
+    resolvedCommandRef.value = command;
+    return command;
+  };
 
   return {
     setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
@@ -148,6 +154,7 @@ export const checkRunIntegrationBrokerProxy = (): {
       globProxy.returnsForAnyPattern({ files });
     },
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),
+    getSpawnedArgs: (): unknown =>
+      captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
   };
 };

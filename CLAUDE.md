@@ -145,6 +145,13 @@ is produced the next time someone runs `npm run init`.
    This applies to scoped ward too (`npm run ward -- --only unit -- packages/X`). The build is
    fast (~7s); the time lost to re-diagnosing a stale-dist failure is much larger.
 
+   **Run the build as its own command and check its exit code.** Never pipe it
+   (`npm run build | tail -3 && npm run ward`) — piping discards the build's exit code, so a
+   partial or failed build passes silently into ward. A stale `@dungeonmaster/testing` dist means
+   every proxy runs against an older mocking dispatcher than the source it was written for, which
+   produces phantom RUNTIME test failures indistinguishable from real mocking bugs. Confirm the
+   build exits 0 before trusting any ward result.
+
 2. **NEVER `cd` into a package to run ward.** Ward runs from the repo root. To scope to a package, pass paths after
    `--`:
    ```bash

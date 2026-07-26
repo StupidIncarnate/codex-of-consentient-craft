@@ -145,7 +145,9 @@ describe('elkLayoutAdapter', () => {
 
       // The portal id must be a graph child — otherwise real ELK throws on the unresolvable
       // edge target (the crash this fix repairs).
-      expect(proxy.getGraphChildIds()).toStrictEqual(['run-compile', 'compile-flow:compile-entry']);
+      expect(proxy.getGraphChildIds()).toStrictEqual([
+        ['run-compile', 'compile-flow:compile-entry'],
+      ]);
       expect(result.positions).toStrictEqual(
         ElkPositionMapStub({
           'run-compile': { x: 0, y: 0 },

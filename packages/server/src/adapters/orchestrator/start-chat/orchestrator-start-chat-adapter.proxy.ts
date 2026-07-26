@@ -10,7 +10,7 @@ type GuildId = ReturnType<typeof GuildIdStub>;
 export const orchestratorStartChatAdapterProxy = (): {
   returns: (params: { guildId: GuildId; chatProcessId: ProcessId; questId?: QuestId }) => void;
   throws: (params: { guildId: GuildId; error: Error }) => void;
-  getLastCalledArgs: () => unknown;
+  getLastCalledArgs: (params: { guildId: GuildId }) => unknown;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.startChat });
 
@@ -31,6 +31,7 @@ export const orchestratorStartChatAdapterProxy = (): {
     throws: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
       mock.calledWith([{ guildId }]).rejects(error);
     },
-    getLastCalledArgs: (): unknown => mock.callsMatching([]).at(-1)?.[0],
+    getLastCalledArgs: ({ guildId }: { guildId: GuildId }): unknown =>
+      mock.callsMatching([{ guildId }]).at(-1)?.[0],
   };
 };

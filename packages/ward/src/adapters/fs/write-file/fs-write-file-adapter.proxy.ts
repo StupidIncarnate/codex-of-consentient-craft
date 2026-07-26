@@ -6,7 +6,6 @@ export const fsWriteFileAdapterProxy = (): {
   succeeds: (params: { filePath: FilePath }) => void;
   throws: (params: { filePath: FilePath; error: Error }) => void;
   getWrittenContent: (params: { filePath: FilePath }) => unknown;
-  getWrittenPath: () => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const mock = registerMock({ fn: writeFile });
@@ -22,8 +21,6 @@ export const fsWriteFileAdapterProxy = (): {
 
     getWrittenContent: ({ filePath }: { filePath: FilePath }): unknown =>
       mock.callsMatching([filePath]).at(-1)?.[1],
-
-    getWrittenPath: (): unknown => mock.callsMatching([]).at(-1)?.[0],
 
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
       mock.callsMatching([]).map((call) => ({

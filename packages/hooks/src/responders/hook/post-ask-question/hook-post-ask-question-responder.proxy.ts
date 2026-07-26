@@ -57,7 +57,8 @@ export const HookPostAskQuestionResponderProxy = (): {
   const fetchHandle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
   const nowHandle = registerSpyOn({ object: Date, method: 'now' });
-  // Date.now() takes no arguments to key on — see sweep-guidance.md.
+  // Date.now() takes no arguments to key on, so a bare calledWith([]) is the honest
+  // description, not a lazy fallback.
   nowHandle.calledWith([]).returns(DEFAULT_NOW_MS);
 
   return {

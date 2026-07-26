@@ -158,9 +158,12 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
         onLine: () => undefined,
       });
 
-      expect(proxy.getSpawnedCommand()).toBe('dungeonmaster-ward');
-      expect(proxy.getSpawnedArgs()).toStrictEqual(['run', '--changed']);
-      expect(proxy.getSpawnedCwd()).toBe('/my/project');
+      expect(proxy.getSpawnedCommand({ command: 'dungeonmaster-ward' })).toBe('dungeonmaster-ward');
+      expect(proxy.getSpawnedArgs({ command: 'dungeonmaster-ward' })).toStrictEqual([
+        'run',
+        '--changed',
+      ]);
+      expect(proxy.getSpawnedCwd({ command: 'dungeonmaster-ward' })).toBe('/my/project');
     });
   });
 

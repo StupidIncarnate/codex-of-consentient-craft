@@ -7,7 +7,7 @@ type ProcessId = ReturnType<typeof ProcessIdStub>;
 export const orchestratorClarifyAdapterProxy = (): {
   returns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   throws: (params: { questId: QuestId; error: Error }) => void;
-  getLastCalledArgs: () => unknown;
+  getLastCalledArgs: (params: { questId: QuestId }) => unknown;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.clarifyAnswer });
 
@@ -18,6 +18,7 @@ export const orchestratorClarifyAdapterProxy = (): {
     throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       mock.calledWith([{ questId }]).rejects(error);
     },
-    getLastCalledArgs: (): unknown => mock.callsMatching([]).at(-1)?.[0],
+    getLastCalledArgs: ({ questId }: { questId: QuestId }): unknown =>
+      mock.callsMatching([{ questId }]).at(-1)?.[0],
   };
 };

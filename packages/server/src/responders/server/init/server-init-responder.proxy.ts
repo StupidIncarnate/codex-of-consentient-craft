@@ -15,6 +15,7 @@ import {
   locationsWardResultsPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 // Preserve real orchestrator exports (contracts, types) while mocking functions used by adapters
 registerModuleMock({
@@ -89,7 +90,7 @@ export const ServerInitResponderProxy = (): {
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
   enableDevLogs: () => void;
-  getDevLogOutput: () => unknown[][];
+  getDevLogOutput: () => RecordedCalls;
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getOutboxWatchCallbacks: () => {
     onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
@@ -191,7 +192,7 @@ export const ServerInitResponderProxy = (): {
     enableDevLogs: (): void => {
       devLogProxy.enableVerbose();
     },
-    getDevLogOutput: (): unknown[][] => devLogProxy.getWrittenLines(),
+    getDevLogOutput: (): RecordedCalls => devLogProxy.getWrittenLines(),
     getReplayChatHistoryCalls: (): unknown[] => replayProxy.getAllCalledArgs(),
     setupFindQuestPathSuccess: ({
       questId,

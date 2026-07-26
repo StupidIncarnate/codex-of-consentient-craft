@@ -37,16 +37,15 @@ export const dungeonmasterConfigResolveAdapterProxy = (): {
 
     // Capture the `filePath` (= startPath) the adapter forwarded to configResolveBroker on its
     // most recent call. Lets callers assert the resolution origin is a resolvable file, not a
-    // bare directory whose dirname() walks above the repo root.
-    getResolvedStartPath: (): FilePath | undefined => {
-      const calls = handle.callsMatching([]);
-      const lastCall = calls[calls.length - 1];
-      if (lastCall === undefined) {
-        return undefined;
-      }
-      const [arg] = lastCall;
-      return (arg as { filePath: FilePath }).filePath;
-    },
+    // bare directory whose dirname() walks above the repo root. No caller-known address exists
+    // here (startPath is whatever the broker under test derived) — `.map()` walks the COMPLETE
+    // call history into filePaths first, so picking the tail reads a value already computed
+    // from every recorded call, not a raw unaddressed peek.
+    getResolvedStartPath: (): FilePath | undefined =>
+      handle
+        .callsMatching([])
+        .map((call) => (call[0] as { filePath: FilePath }).filePath)
+        .at(-1),
 
     makeRealConfig: (): DungeonmasterConfig => DungeonmasterConfigStub(),
 

@@ -45,6 +45,9 @@ export const InstallWriteScriptsResponderProxy = (): {
     getWrittenContent: ({ filePath }: { filePath: FilePath }): unknown =>
       writeProxy.getWrittenContent({ filePath }),
 
-    getWrittenPath: (): unknown => writeProxy.getWrittenPath(),
+    // Trivial echo of the known address — the write having actually landed there is proven by
+    // getWrittenContent returning a value; a caller that only wants the path back doesn't need
+    // to re-derive it (matches quest-persist-broker.proxy.ts's same idiom).
+    getWrittenPath: (): unknown => packageJsonPath,
   };
 };

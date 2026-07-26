@@ -1,4 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { processTerminalEventLayerBrokerProxy } from './process-terminal-event-layer-broker.proxy';
 
@@ -6,7 +7,7 @@ export const createTerminalHandlerLayerBrokerProxy = (): {
   reset: () => void;
   setupProcessSucceeds: () => void;
   setupProcessRejects: (params: { error: Error }) => void;
-  getProcessCallArgs: () => readonly unknown[][];
+  getProcessCallArgs: () => RecordedCalls;
   silenceStderrAndCaptureLogs: () => { wroteRejectionLog: () => boolean };
 } => {
   const processProxy = processTerminalEventLayerBrokerProxy();
@@ -21,7 +22,7 @@ export const createTerminalHandlerLayerBrokerProxy = (): {
     setupProcessRejects: ({ error }: { error: Error }): void => {
       processProxy.setupRejects({ error });
     },
-    getProcessCallArgs: (): readonly unknown[][] => processProxy.getCallArgs(),
+    getProcessCallArgs: (): RecordedCalls => processProxy.getCallArgs(),
     silenceStderrAndCaptureLogs: (): { wroteRejectionLog: () => boolean } => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });
       // Every write must succeed regardless of content — this silences stderr wholesale

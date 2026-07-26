@@ -9,10 +9,11 @@
 
 import { rmSync } from 'fs';
 import { registerMock } from '../../../register-mock';
+import type { RecordedCalls } from '../../../register-mock';
 
 export const fsRmAdapterProxy = (): {
   throws: ({ filePath, error }: { filePath: string; error: Error }) => void;
-  getCallArgs: () => readonly unknown[][];
+  getCallArgs: () => RecordedCalls;
 } => {
   const mock = registerMock({ fn: rmSync });
 
@@ -22,6 +23,6 @@ export const fsRmAdapterProxy = (): {
     throws: ({ filePath, error }: { filePath: string; error: Error }): void => {
       mock.onceFor([filePath]).throws(error);
     },
-    getCallArgs: (): readonly unknown[][] => mock.callsMatching([]),
+    getCallArgs: (): RecordedCalls => mock.callsMatching([]),
   };
 };

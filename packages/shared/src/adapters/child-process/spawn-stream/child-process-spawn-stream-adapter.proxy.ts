@@ -22,10 +22,10 @@ export const childProcessSpawnStreamAdapterProxy = (): {
   setupError: (params: { command: string; error: Error; stdout?: string }) => void;
   setupErrorWithCode: (params: { command: string; error: Error; exitCode: ExitCode }) => void;
   setupCloseNull: (params: { command: string; stdout: string }) => void;
-  getSpawnedCommand: () => unknown;
-  getSpawnedArgs: () => unknown;
+  getSpawnedCommand: (params: { command: string }) => unknown;
+  getSpawnedArgs: (params: { command: string }) => unknown;
   getAllSpawnedArgs: () => unknown[];
-  getSpawnedCwd: () => unknown;
+  getSpawnedCwd: (params: { command: string }) => unknown;
 } => {
   const handle = registerMock({ fn: spawn });
 
@@ -212,27 +212,16 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       });
     },
 
-    getSpawnedCommand: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[0];
-    },
+    getSpawnedCommand: ({ command }: { command: string }): unknown =>
+      handle.callsMatching([command]).at(-1)?.[0],
 
-    getSpawnedArgs: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[1];
-    },
+    getSpawnedArgs: ({ command }: { command: string }): unknown =>
+      handle.callsMatching([command]).at(-1)?.[1],
 
     getAllSpawnedArgs: (): unknown[] => handle.callsMatching([]).map((call) => call[1]),
 
-    getSpawnedCwd: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      const [, , opts] = lastCall as unknown[];
+    getSpawnedCwd: ({ command }: { command: string }): unknown => {
+      const opts: unknown = handle.callsMatching([command]).at(-1)?.[2];
       if (typeof opts !== 'object' || opts === null) return undefined;
       const { cwd } = opts as { cwd?: unknown };
       return cwd;

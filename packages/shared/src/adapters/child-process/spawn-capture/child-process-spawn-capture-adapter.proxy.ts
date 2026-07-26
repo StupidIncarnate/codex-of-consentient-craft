@@ -66,10 +66,10 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
     stderr: ErrorMessage;
   }) => void;
   setupError: (params: { command: string; error: Error }) => void;
-  getSpawnedCommand: () => unknown;
-  getSpawnedArgs: () => unknown;
-  getSpawnedCwd: () => unknown;
-  getSpawnedOptions: () => unknown;
+  getSpawnedCommand: (params: { command: string }) => unknown;
+  getSpawnedArgs: (params: { command: string }) => unknown;
+  getSpawnedCwd: (params: { command: string }) => unknown;
+  getSpawnedOptions: (params: { command: string }) => unknown;
 } => {
   const handle = registerMock({ fn: spawn });
 
@@ -115,35 +115,20 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
       handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },
 
-    getSpawnedCommand: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[0];
-    },
+    getSpawnedCommand: ({ command }: { command: string }): unknown =>
+      handle.callsMatching([command]).at(-1)?.[0],
 
-    getSpawnedArgs: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[1];
-    },
+    getSpawnedArgs: ({ command }: { command: string }): unknown =>
+      handle.callsMatching([command]).at(-1)?.[1],
 
-    getSpawnedCwd: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      const opts: unknown = lastCall[2];
+    getSpawnedCwd: ({ command }: { command: string }): unknown => {
+      const opts: unknown = handle.callsMatching([command]).at(-1)?.[2];
       if (typeof opts !== 'object' || opts === null) return undefined;
       const { cwd } = opts as { cwd?: unknown };
       return cwd;
     },
 
-    getSpawnedOptions: (): unknown => {
-      const calls = handle.callsMatching([]);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[2];
-    },
+    getSpawnedOptions: ({ command }: { command: string }): unknown =>
+      handle.callsMatching([command]).at(-1)?.[2],
   };
 };

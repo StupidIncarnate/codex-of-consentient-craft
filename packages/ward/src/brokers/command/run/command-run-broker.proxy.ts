@@ -1,4 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
@@ -25,8 +26,8 @@ export const commandRunBrokerProxy = (): {
   setupSinglePackageFail: () => void;
   setupSinglePackageCrash: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
-  getStdoutCalls: () => unknown[][];
-  getExitCalls: () => unknown[][];
+  getStdoutCalls: () => unknown[];
+  getExitCalls: () => RecordedCalls;
 } => {
   // process.exit is never actually called by this broker (it sets process.exitCode instead) —
   // the catch-all only guards against an accidental future call, so there is no exit code to key on.
@@ -80,7 +81,10 @@ export const commandRunBrokerProxy = (): {
       const projectFolders = Array.from({ length: packageCount }, () => ProjectFolderStub());
       multiProxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent });
     },
-    getStdoutCalls: (): unknown[][] => stdoutSpy.callsMatching([]),
-    getExitCalls: (): unknown[][] => exitSpy.callsMatching([]),
+    // No independent address exists for arbitrary stdout text — flatten via .map() (a real
+    // transform over the WHOLE call history, not an unaddressed peek) so callers needing a
+    // specific write's text by position (summary vs guidance) can still index the result.
+    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
+    getExitCalls: (): RecordedCalls => exitSpy.callsMatching([]),
   };
 };

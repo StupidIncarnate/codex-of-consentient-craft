@@ -5,7 +5,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 export const orchestratorDeleteQuestAdapterProxy = (): {
   returns: (params: { questId: QuestId; deleted: boolean }) => void;
   throws: (params: { questId: QuestId; error: Error }) => void;
-  getLastCalledArgs: () => unknown;
+  getLastCalledArgs: (params: { questId: QuestId }) => unknown;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.deleteQuest });
 
@@ -16,6 +16,7 @@ export const orchestratorDeleteQuestAdapterProxy = (): {
     throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       mock.calledWith([{ questId }]).rejects(error);
     },
-    getLastCalledArgs: (): unknown => mock.callsMatching([]).at(-1)?.[0],
+    getLastCalledArgs: ({ questId }: { questId: QuestId }): unknown =>
+      mock.callsMatching([{ questId }]).at(-1)?.[0],
   };
 };

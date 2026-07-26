@@ -13,6 +13,12 @@ import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-st
 import { SmoketestRunResponder } from './smoketest-run-responder';
 import { SmoketestRunResponderProxy } from './smoketest-run-responder.proxy';
 
+// Derived from the proxy's own return type (not a direct contracts import) — clearPrior reads
+// are unaddressed RecordedCalls (no independent questSource is known ahead of the assertion).
+type ClearPriorCalls = ReturnType<
+  ReturnType<typeof SmoketestRunResponderProxy>['getClearPriorCallArgs']
+>;
+
 const EnqueuedRecordStub = ({
   questId,
   guildSlug,
@@ -27,7 +33,7 @@ const EnqueuedRecordStub = ({
 const extractQuestSources = ({
   calls,
 }: {
-  calls: readonly unknown[][];
+  calls: ClearPriorCalls;
 }): readonly ReturnType<typeof QuestSourceStub>[] =>
   calls.map((c) => {
     const [arg] = c as [{ questSource: ReturnType<typeof QuestSourceStub> }];

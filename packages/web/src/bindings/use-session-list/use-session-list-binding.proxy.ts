@@ -32,6 +32,7 @@ export const useSessionListBindingProxy = (): {
   getConsoleErrorCalls: () => unknown[][];
   getConsoleErrorHandle: () => SpyOnHandle;
 } => {
+  const CONSOLE_ERROR_TAG = '[use-session-list]';
   const brokerProxy = guildSessionListBrokerProxy();
   // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
   // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
@@ -40,7 +41,7 @@ export const useSessionListBindingProxy = (): {
     method: 'error',
     passthrough: true,
   });
-  consoleErrorHandle.calledWith(['[use-session-list]']).returns(undefined);
+  consoleErrorHandle.calledWith([CONSOLE_ERROR_TAG]).returns(undefined);
 
   return {
     setupSessions: ({ sessions }: { sessions: SessionListItem[] }): void => {
@@ -56,7 +57,7 @@ export const useSessionListBindingProxy = (): {
       });
       brokerHandle.calledWith([{ guildId }]).implement(rejectWithPoisonToString as never);
     },
-    getConsoleErrorCalls: (): unknown[][] => consoleErrorHandle.callsMatching([]),
+    getConsoleErrorCalls: (): unknown[][] => consoleErrorHandle.callsMatching([CONSOLE_ERROR_TAG]),
     getConsoleErrorHandle: (): SpyOnHandle => consoleErrorHandle,
   };
 };

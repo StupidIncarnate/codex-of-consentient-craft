@@ -27,6 +27,7 @@ import {
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { questPauseBroker } from './quest-pause-broker';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
@@ -45,7 +46,7 @@ export const questPauseBrokerProxy = (): {
   setupQuestNotFound: () => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Parsed;
-  getCallArgs: () => readonly unknown[][];
+  getCallArgs: () => RecordedCalls;
 } => {
   const mocked = registerMock({ fn: questPauseBroker });
   // questId/guildId/previousStatus vary per call but neither the stub result nor the passthrough
@@ -90,6 +91,6 @@ export const questPauseBrokerProxy = (): {
       );
     },
 
-    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
+    getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
   };
 };

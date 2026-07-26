@@ -26,7 +26,7 @@ describe('orchestratorDeleteQuestAdapter', () => {
 
       await orchestratorDeleteQuestAdapter({ questId, guildId });
 
-      expect(proxy.getLastCalledArgs()).toStrictEqual({ questId, guildId });
+      expect(proxy.getLastCalledArgs({ questId })).toStrictEqual({ questId, guildId });
     });
   });
 

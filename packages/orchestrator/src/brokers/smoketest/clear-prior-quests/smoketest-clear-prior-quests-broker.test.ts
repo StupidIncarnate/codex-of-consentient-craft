@@ -13,6 +13,9 @@ import { smoketestClearPriorQuestsBrokerProxy } from './smoketest-clear-prior-qu
 
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
+// Derived from the proxy's own return type (not a direct contracts import) — the recorded-calls
+// read-back RecordedCalls supports .map() but not .flatMap(), so extraction below maps then flats.
+type RmCalls = ReturnType<ReturnType<typeof smoketestClearPriorQuestsBrokerProxy>['getRmCallArgs']>;
 
 const SMOKETEST_HOME = '/home/testuser/.dungeonmaster';
 const SMOKETEST_GUILD_ID: GuildId = GuildIdStub({
@@ -28,21 +31,23 @@ const QUEST_DELETE_PATH_PATTERN = /\/guilds\/([^/]+)\/quests\/([^/]+)$/u;
 const extractDeleteTargets = ({
   rmCalls,
 }: {
-  rmCalls: readonly unknown[][];
+  rmCalls: RmCalls;
 }): readonly { guildId: GuildId; questId: QuestId }[] =>
-  rmCalls.flatMap((call) => {
-    const path = String(call[0]);
-    const match = QUEST_DELETE_PATH_PATTERN.exec(path);
-    if (match?.[1] === undefined || match[2] === undefined) {
-      return [];
-    }
-    return [
-      {
-        guildId: GuildIdStub({ value: match[1] }),
-        questId: QuestIdStub({ value: match[2] }),
-      },
-    ];
-  });
+  rmCalls
+    .map((call) => {
+      const path = String(call[0]);
+      const match = QUEST_DELETE_PATH_PATTERN.exec(path);
+      if (match?.[1] === undefined || match[2] === undefined) {
+        return [];
+      }
+      return [
+        {
+          guildId: GuildIdStub({ value: match[1] }),
+          questId: QuestIdStub({ value: match[2] }),
+        },
+      ];
+    })
+    .flat();
 
 const primeGuildAndQuestsPath = ({
   proxy,
