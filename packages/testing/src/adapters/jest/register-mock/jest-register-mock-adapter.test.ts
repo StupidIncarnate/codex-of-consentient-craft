@@ -356,9 +356,11 @@ describe('jestRegisterMockAdapter', () => {
 
       handle.calledWith(['/a/quest.json']).resolves('quest-json');
 
-      expect(() => mockFn('/a/other.json')).toThrow(/^registerMock: no staged response/u);
+      expect(() => mockFn('/a/other.json')).toThrow(/^registerMock: nothing set up for the call/u);
       expect(() => mockFn('/a/other.json')).toThrow(/"\/a\/other\.json"/u);
-      expect(() => mockFn('/a/other.json')).toThrow(/Staged: \("\/a\/quest\.json"\)/u);
+      expect(() => mockFn('/a/other.json')).toThrow(
+        /Calls that ARE set up: \("\/a\/quest\.json"\)/u,
+      );
     });
 
     it('VALID: {base default declared} => unmatched call falls back instead of throwing', async () => {

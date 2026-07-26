@@ -196,13 +196,13 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
         if (staged.length > 0 && !hasFallback) {
           throw new Error(
             [
-              `registerMock: no staged response for ${mock.name || 'mock'}(`,
+              `registerMock: nothing set up for the call ${mock.name || 'mock'}(`,
               args
                 .map((value) =>
                   typeof value === 'function' ? '<predicate>' : JSON.stringify(value),
                 )
                 .join(', '),
-              '). Staged: ',
+              '). Calls that ARE set up: ',
               staged
                 .map(
                   (entry) =>
