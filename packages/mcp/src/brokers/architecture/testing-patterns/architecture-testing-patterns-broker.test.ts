@@ -251,9 +251,26 @@ describe('architectureTestingPatternsBroker', () => {
         /^\*\*Use `registerMock` for all mocking in proxy files\.\*\* It replaces `jest\.mock\(\)`\/`jest\.mocked\(\)`\/`jest\.spyOn\(\)`\.$/mu,
       );
       expect(result).toMatch(
-        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* Stack-based dispatch lets multiple proxies mock the same `jest\.fn\(\)` without collision\. When a broker proxy composes two adapter proxies that both mock the same npm function, `registerMock` routes each call to the correct proxy based on the call stack\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
+        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* Answers are addressed by the ARGUMENTS a mocked function receives, and the staging is shared across every proxy that mocks it — one function, one behaviour, the way prod behaves\. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
       );
       expect(result).toMatch(/^\*\*MockHandle API:\*\*$/mu);
+    });
+
+    it('VALID: {} => documents argument-addressed staging', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^\| `handle\.calledWith\(\[args\]\)` \| Stage by argument — sticky, answers every matching call \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `handle\.onceFor\(\[args\]\)` \| Stage by argument — one-shot, when identical calls must differ \|$/mu,
+      );
+      expect(result).toMatch(
+        /^\| `handle\.callsMatching\(\[args\]\)` \| Recorded calls for that address \(use in assertion helpers\) \|$/mu,
+      );
+      expect(result).toMatch(/^\*\*Matching rules:\*\*$/mu);
     });
 
     it('VALID: {} => includes integration testing section', () => {

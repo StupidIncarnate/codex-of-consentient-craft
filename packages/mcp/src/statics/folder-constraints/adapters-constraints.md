@@ -227,22 +227,13 @@ import {HttpResponseStub} from '../../../contracts/http-response/http-response.s
 import {UrlStub} from '../../../contracts/url/url.stub';
 
 export const axiosGetAdapterProxy = () => {
-    // registerMock wraps the npm package mock with stack-based dispatch
+    // registerMock stages answers by the arguments the npm function receives
     const handle = registerMock({ fn: axios.get });
 
-    // Default mock behavior in constructor
-    handle.mockResolvedValue({
-        data: {},
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: {} as never,
-    });
-
     return {
-        // Semantic method for success
+        // Addressed by url, so two urls in one test cannot be paired by call order
         returns: ({url, data}: { url: ReturnType<typeof UrlStub>; data: unknown }) => {
-            handle.mockResolvedValueOnce({
+            handle.calledWith([url]).resolves({
                 data,
                 status: 200,
                 statusText: 'OK',
@@ -253,7 +244,7 @@ export const axiosGetAdapterProxy = () => {
 
         // Semantic method for error
         throws: ({url, error}: { url: ReturnType<typeof UrlStub>; error: Error }) => {
-            handle.mockRejectedValueOnce(error);
+            handle.calledWith([url]).rejects(error);
         },
     };
 };

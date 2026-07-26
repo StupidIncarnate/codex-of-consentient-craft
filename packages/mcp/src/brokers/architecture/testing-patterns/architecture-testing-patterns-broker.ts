@@ -425,28 +425,7 @@ it('VALID: {userId} => fetches user', async () => {
 
 **CRITICAL ORDERING:** Proxy MUST be instantiated BEFORE calling the implementation under test. Proxies set up mocks in their constructor - if you call the implementation first, it runs without mocked dependencies.
 
-**Assignment vs Just Calling:**
-
-\`\`\`typescript
-// ✅ CORRECT - Assign when you need to call setup methods
-it('VALID: {userId} => fetches user', async () => {
-  const proxy = userFetchBrokerProxy(); // Assign to variable
-  proxy.setupUserFetch({userId, user}); // Call setup method
-  const result = await userFetchBroker({userId});
-  expect(result).toStrictEqual(user);
-});
-
-// ✅ CORRECT - Just call when proxy returns {} and no setup needed
-it('VALID: {value} => transforms correctly', () => {
-  formatDateTransformerProxy(); // Just instantiate, don't assign
-  const result = formatDateTransformer({date: new Date()});
-  expect(result).toBe('2024-01-15');
-});
-\`\`\`
-
-**When to assign:** You call setup methods on the proxy (most common case)
-
-**When to just call:** Proxy returns \`{}\` with no setup methods (rare - usually pure functions/transformers)
+**Assignment vs Just Calling:** assign the proxy to a variable when you call setup methods on it (the common case). Just call it without assigning when it returns \`{}\` and has no setup methods — rare, usually pure functions and transformers.
 
 **Constructor setup:** Proxies set up all mocks in their constructor (function body). No beforeEach hooks, no bootstrap() methods.
 
@@ -872,47 +851,44 @@ Scenario files are **scenario descriptions only** — test blocks and assertions
   // Mocking Mechanics - registerMock
   const mockingMechanics = `**Use \`registerMock\` for all mocking in proxy files.** It replaces \`jest.mock()\`/\`jest.mocked()\`/\`jest.spyOn()\`.
 
-\`\`\`typescript
-import { writeFile } from 'fs/promises';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
-\`\`\`
+**Why registerMock over jest.mock/jest.spyOn?** Answers are addressed by the ARGUMENTS a mocked function receives, and the staging is shared across every proxy that mocks it — one function, one behaviour, the way prod behaves. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in. With raw \`jest.mock()\`, the second proxy would overwrite the first.
 
-**Why registerMock over jest.mock/jest.spyOn?** Stack-based dispatch lets multiple proxies mock the same \`jest.fn()\` without collision. When a broker proxy composes two adapter proxies that both mock the same npm function, \`registerMock\` routes each call to the correct proxy based on the call stack. With raw \`jest.mock()\`, the second proxy would overwrite the first.
-
-**How it works:**
-1. Call \`registerMock({ fn })\` with the imported function
-2. It auto-derives the caller's file path from the stack trace
-3. Returns a \`MockHandle\` scoped to that caller — other proxies get their own independent handle
-4. When the mocked function is called at runtime, the dispatcher inspects the call stack and routes to the matching handle
+**How it works:** stage answers with \`calledWith\`, keyed on the arguments the function will receive. Every proxy mocking that function shares the staging, so two proxies cannot disagree about one address. A call matching nothing THROWS, naming its own arguments and everything staged — unless the proxy declared a base default as an explicit catch-all.
 
 **MockHandle API:**
 
 | Method | Purpose |
 |--------|---------|
-| \`handle.mockImplementation(fn)\` | Set base implementation |
-| \`handle.mockImplementationOnce(fn)\` | Queue one-shot implementation (FIFO) |
-| \`handle.mockReturnValue(val)\` | Set base return value |
-| \`handle.mockReturnValueOnce(val)\` | Queue one-shot return value |
-| \`handle.mockResolvedValue(val)\` | Set base resolved promise |
-| \`handle.mockResolvedValueOnce(val)\` | Queue one-shot resolved promise |
-| \`handle.mockRejectedValueOnce(val)\` | Queue one-shot rejected promise |
-| \`handle.mock.calls\` | Array of call argument arrays (per-proxy) |
+| \`handle.calledWith([args])\` | Stage by argument — sticky, answers every matching call |
+| \`handle.onceFor([args])\` | Stage by argument — one-shot, when identical calls must differ |
+| \`handle.callsMatching([args])\` | Recorded calls for that address (use in assertion helpers) |
+| \`handle.mockImplementation(fn)\` / \`mockReturnValue\` / \`mockResolvedValue\` | Base value — the explicit catch-all |
+| \`handle.mockImplementationOnce(fn)\` / \`…ReturnValueOnce\` / \`…ResolvedValueOnce\` / \`…RejectedValueOnce\` | FIFO queue — only for calls with no address |
+| \`handle.mock.calls\` | Every recorded call, unfiltered |
 | \`handle.mockClear()\` | Clear calls, queue, and base impl |
+
+\`calledWith\` / \`onceFor\` return \`{ returns, resolves, rejects, throws, implement }\`.
+
+**Matching rules:**
+
+Staging fewer arguments than the call passes is a PREFIX match (\`['/a/f.json']\` matches \`readFile('/a/f.json', 'utf8')\`). Objects match by SUBSET, so a test never spells out the full options bag. RegExp matches a string, Date by time, and a FUNCTION is a predicate — for values a test cannot reconstruct. Most specific wins; at equal specificity a one-shot beats a sticky, then the latest staging wins.
+
+**Verify the key reaches the function.** Confirm the value you stage is the argument the npm function receives — callers often transform it first (a broker joining a cwd onto a glob pattern).
 
 **Adapter proxy example (I/O boundary):**
 
 \`\`\`typescript
-import { writeFile } from 'fs/promises';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
-
 export const fsWriteFileAdapterProxy = () => {
   const handle = registerMock({ fn: writeFile });
-  handle.mockResolvedValue(undefined); // Default: writes succeed
 
   return {
-    succeeds: (): void => handle.mockResolvedValueOnce(undefined),
-    throws: ({ error }: { error: Error }): void => handle.mockRejectedValueOnce(error),
-    getWrittenContent: (): unknown => handle.mock.calls.at(-1)?.[1],
+    succeeds: ({ filePath }: { filePath: FilePath }): void =>
+      handle.calledWith([filePath]).resolves(undefined),
+    // Addressed by path — a manifest read can never be handed another file's body
+    getWrittenFor: ({ filePath }: { filePath: FilePath }): unknown =>
+      handle.callsMatching([filePath]).at(-1)?.[1],
+    // ❌ WRONG: getWrittenContent: () => handle.mock.calls.at(-1)?.[1] — returns whatever
+    //    was written LAST, which may be a completely different file
   };
 };
 \`\`\`
