@@ -292,6 +292,146 @@ describe('jestRegisterMockAdapter', () => {
     });
   });
 
+  describe('argument-addressed staging', () => {
+    it('VALID: {two paths staged} => each call gets the contents for the path it asked for', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.calledWith(['/a/quest.json']).resolves('quest-json');
+      handle.calledWith(['/a/manifest.json']).resolves('manifest-json');
+
+      // Called in the opposite order to the staging — order must not matter
+      const manifest = await mockFn('/a/manifest.json');
+      const quest = await mockFn('/a/quest.json');
+
+      expect(manifest).toBe('manifest-json');
+      expect(quest).toBe('quest-json');
+    });
+
+    it('VALID: {staged one arg, called with encoding} => prefix match still answers', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.calledWith(['/a/quest.json']).resolves('quest-json');
+
+      await expect(mockFn('/a/quest.json', 'utf-8')).resolves.toBe('quest-json');
+    });
+
+    it('VALID: {staging answers repeatedly} => sticky across calls', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.calledWith(['/a/quest.json']).resolves('quest-json');
+
+      await expect(mockFn('/a/quest.json')).resolves.toBe('quest-json');
+      await expect(mockFn('/a/quest.json')).resolves.toBe('quest-json');
+    });
+
+    it('VALID: {options matcher and pattern-only matcher} => most specific staging wins', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.calledWith(['src/**']).resolves([]);
+      handle.calledWith(['src/**', { nodir: true }]).resolves(['src/a.ts']);
+
+      await expect(mockFn('src/**', { nodir: true, cwd: '/x' })).resolves.toStrictEqual([
+        'src/a.ts',
+      ]);
+      await expect(mockFn('src/**', { cwd: '/x' })).resolves.toStrictEqual([]);
+    });
+
+    it('ERROR: {call matches no staging and no base default} => throws naming the arguments', () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.calledWith(['/a/quest.json']).resolves('quest-json');
+
+      expect(() => mockFn('/a/other.json')).toThrow(/^registerMock: no staged response/u);
+      expect(() => mockFn('/a/other.json')).toThrow(/"\/a\/other\.json"/u);
+      expect(() => mockFn('/a/other.json')).toThrow(/Staged: \("\/a\/quest\.json"\)/u);
+    });
+
+    it('VALID: {base default declared} => unmatched call falls back instead of throwing', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.mockResolvedValue('default');
+      handle.calledWith(['/a/quest.json']).resolves('quest-json');
+
+      await expect(mockFn('/a/other.json')).resolves.toBe('default');
+      await expect(mockFn('/a/quest.json')).resolves.toBe('quest-json');
+    });
+
+    it('VALID: {onceFor same args} => one-shot answers first, sticky answers after', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.calledWith(['/a/quest.json']).resolves('after');
+      handle.onceFor(['/a/quest.json']).resolves('first');
+
+      await expect(mockFn('/a/quest.json')).resolves.toBe('first');
+      await expect(mockFn('/a/quest.json')).resolves.toBe('after');
+    });
+
+    it('VALID: {rejects staging} => the matching call rejects', async () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      const error = new Error('ENOENT');
+
+      handle.calledWith(['/a/missing.json']).rejects(error);
+
+      await expect(mockFn('/a/missing.json')).rejects.toBe(error);
+    });
+  });
+
+  describe('callsMatching', () => {
+    it('VALID: {writes to two paths} => returns only the calls for the requested path', () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.mockReturnValue(undefined);
+
+      mockFn('/out/manifest.json', 'manifest-body');
+      mockFn('/out/bundle.js', 'compiled-blob');
+
+      expect(handle.callsMatching(['/out/manifest.json'])).toStrictEqual([
+        ['/out/manifest.json', 'manifest-body'],
+      ]);
+    });
+
+    it('EMPTY: {path never called} => returns no calls', () => {
+      jestRegisterMockAdapterProxy();
+
+      const mockFn = jest.fn();
+      const handle = jestRegisterMockAdapter({ fn: mockFn });
+
+      handle.mockReturnValue(undefined);
+
+      mockFn('/out/bundle.js', 'compiled-blob');
+
+      expect(handle.callsMatching(['/out/manifest.json'])).toStrictEqual([]);
+    });
+  });
+
   describe('fresh proxies per it block', () => {
     it('VALID: {first it block} => gets independent handle', () => {
       jestRegisterMockAdapterProxy();

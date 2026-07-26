@@ -9,20 +9,19 @@ export const globFindAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: glob });
 
-  mock.mockImplementation(async () => Promise.resolve([]));
-
   return {
     returns: ({
+      pattern,
       filePaths,
     }: {
       pattern: GlobPattern;
       filePaths: readonly AbsoluteFilePath[];
     }): void => {
-      mock.mockResolvedValueOnce([...filePaths]);
+      mock.calledWith([pattern]).resolves([...filePaths]);
     },
 
-    throws: ({ error }: { pattern: GlobPattern; error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ pattern, error }: { pattern: GlobPattern; error: Error }): void => {
+      mock.calledWith([pattern]).rejects(error);
     },
   };
 };

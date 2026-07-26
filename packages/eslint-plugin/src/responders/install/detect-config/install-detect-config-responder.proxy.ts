@@ -10,7 +10,11 @@ import { InstallDetectConfigResponder } from './install-detect-config-responder'
 export const InstallDetectConfigResponderProxy = (): {
   callResponder: typeof InstallDetectConfigResponder;
   setupNoConfigExists: () => void;
-  setupConfigExists: (params: { configFileName: string; contents: FileContents }) => void;
+  setupConfigExists: (params: {
+    targetProjectRoot: string;
+    configFileName: string;
+    contents: FileContents;
+  }) => void;
 } => {
   pathJoinAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
@@ -25,15 +29,19 @@ export const InstallDetectConfigResponderProxy = (): {
     },
 
     setupConfigExists: ({
+      targetProjectRoot,
       configFileName,
       contents,
     }: {
+      targetProjectRoot: string;
       configFileName: string;
       contents: FileContents;
     }): void => {
       existsProxy.setupFileSystem((path: PathLike) => String(path).endsWith(configFileName));
-      const dummyPath = filePathContract.parse(`/mock/${configFileName}`);
-      readProxy.returns({ filePath: dummyPath, contents });
+      // Matches pathJoinAdapterProxy's default join behavior (segments.join('/')), so the
+      // staged key equals what actually reaches readFileSync via pathJoinAdapter + fsReadFileSyncAdapter.
+      const filePath = filePathContract.parse(`${targetProjectRoot}/${configFileName}`);
+      readProxy.returns({ filePath, contents });
     },
   };
 };

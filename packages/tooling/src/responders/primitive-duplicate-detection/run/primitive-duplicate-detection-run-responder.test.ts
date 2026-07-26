@@ -1,6 +1,7 @@
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
 import { PrimitiveDuplicateDetectionRunResponderProxy } from './primitive-duplicate-detection-run-responder.proxy';
 import { SourceCodeStub } from '../../../contracts/source-code/source-code.stub';
+import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 
 describe('PrimitiveDuplicateDetectionRunResponder', () => {
   describe('default args (no flags)', () => {
@@ -22,7 +23,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
   describe('custom --pattern= arg', () => {
     it('VALID: {--pattern=src/**/*.ts} => outputs custom pattern in scanning header', async () => {
       const proxy = PrimitiveDuplicateDetectionRunResponderProxy();
-      proxy.setupNoDuplicates();
+      proxy.setupNoDuplicates({ pattern: GlobPatternStub({ value: 'src/**/*.ts' }) });
 
       await PrimitiveDuplicateDetectionRunResponder({ args: ['--pattern=src/**/*.ts'] });
 

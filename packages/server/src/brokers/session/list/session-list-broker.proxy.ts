@@ -20,7 +20,7 @@ type FileContents = ReturnType<typeof FileContentsStub>;
 export const sessionListBrokerProxy = (): {
   setupGuild: (params: { guild: Guild }) => void;
   setupHomeDir: (params: { path: string }) => void;
-  setupGlobFiles: (params: { files: string[] }) => void;
+  setupGlobFiles: (params: { files: string[]; pattern?: string }) => void;
   setupFileStat: (params: { birthtime: Date; mtimeMs: number }) => void;
   setupFileContent: (params: { content: string }) => void;
   setupFileContentError: (params: { error: Error }) => void;
@@ -38,6 +38,12 @@ export const sessionListBrokerProxy = (): {
   const statProxy = fsStatAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
+  // sessionListBroker reads each globbed file's contents in the same order the glob results were
+  // produced (dedupedFiles.map). Tracking the real paths here — instead of a dummy key — lets
+  // setupFileContent/setupFileContentError address the specific disk file a test means, rather
+  // than relying on call-order luck to pair the right content with the right path.
+  const pendingReadFilePaths: FilePath[] = [];
+
   return {
     setupGuild: ({ guild }: { guild: Guild }): void => {
       guildProxy.returns({ guild });
@@ -45,24 +51,28 @@ export const sessionListBrokerProxy = (): {
     setupHomeDir: ({ path }: { path: string }): void => {
       homedirProxy.returns({ path });
     },
-    setupGlobFiles: ({ files }: { files: string[] }): void => {
+    setupGlobFiles: ({ files, pattern }: { files: string[]; pattern?: string }): void => {
+      const filePaths = files.map((f) => f as FilePath);
       globProxy.returns({
-        pattern: '*.jsonl' as GlobPattern,
-        files: files.map((f) => f as FilePath),
+        pattern: (pattern ?? '*.jsonl') as GlobPattern,
+        files: filePaths,
       });
+      pendingReadFilePaths.push(...filePaths);
     },
     setupFileStat: ({ birthtime, mtimeMs }: { birthtime: Date; mtimeMs: number }): void => {
       statProxy.returns({ stats: { birthtime, mtimeMs } });
     },
     setupFileContent: ({ content }: { content: string }): void => {
+      const filepath = pendingReadFilePaths.shift() ?? ('' as FilePath);
       readFileProxy.returns({
-        filepath: '' as FilePath,
+        filepath,
         contents: content as FileContents,
       });
     },
     setupFileContentError: ({ error }: { error: Error }): void => {
+      const filepath = pendingReadFilePaths.shift() ?? ('' as FilePath);
       readFileProxy.throws({
-        filepath: '' as FilePath,
+        filepath,
         error,
       });
     },

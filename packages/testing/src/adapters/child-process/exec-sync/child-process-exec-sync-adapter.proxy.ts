@@ -12,21 +12,19 @@ import type { FileContent } from '../../../contracts/file-content/file-content-c
 import { registerMock } from '../../../register-mock';
 
 export const childProcessExecSyncAdapterProxy = (): {
-  returns: ({ output }: { command: string; output: Buffer | FileContent }) => void;
-  throws: ({ error }: { command: string; error: Error }) => void;
+  returns: ({ command, output }: { command: string; output: Buffer | FileContent }) => void;
+  throws: ({ command, error }: { command: string; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: execSync });
 
   mock.mockReturnValue(Buffer.from(''));
 
   return {
-    returns: ({ output }: { command: string; output: Buffer | FileContent }): void => {
-      mock.mockReturnValueOnce(output as never);
+    returns: ({ command, output }: { command: string; output: Buffer | FileContent }): void => {
+      mock.calledWith([command]).returns(output);
     },
-    throws: ({ error }: { command: string; error: Error }): void => {
-      mock.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ command, error }: { command: string; error: Error }): void => {
+      mock.calledWith([command]).throws(error);
     },
   };
 };

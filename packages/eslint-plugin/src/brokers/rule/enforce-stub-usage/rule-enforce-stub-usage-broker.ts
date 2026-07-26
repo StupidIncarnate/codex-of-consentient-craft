@@ -12,6 +12,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { isAstObjectStubSpreadGuard } from '../../../guards/is-ast-object-stub-spread/is-ast-object-stub-spread-guard';
 import { typeNameFromAnnotationTransformer } from '../../../transformers/type-name-from-annotation/type-name-from-annotation-transformer';
 
 export const ruleEnforceStubUsageBroker = (): EslintRule => ({
@@ -52,6 +53,12 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
         const isArrayLiteral = actualInit?.type === 'ArrayExpression';
 
         if (!isObjectLiteral && !isArrayLiteral) {
+          return;
+        }
+
+        // A clone built only from stub spreads IS stub usage. It is the way to reach shapes
+        // a stub cannot return, such as dropping a required key to test contract rejection.
+        if (actualInit && isAstObjectStubSpreadGuard({ node: actualInit })) {
           return;
         }
 

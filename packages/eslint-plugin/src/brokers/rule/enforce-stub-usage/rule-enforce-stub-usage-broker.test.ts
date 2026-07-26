@@ -101,6 +101,26 @@ ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
       `,
       filename: '/project/src/brokers/user/user-broker.test.ts',
     },
+
+    // ✅ Clone built only from a stub spread - allowed (reaches shapes a stub cannot return)
+    {
+      code: `
+        it('test', () => {
+          const facts = { ...WalkFactsStub() };
+        });
+      `,
+      filename: '/project/src/contracts/walk-facts/walk-facts-contract.test.ts',
+    },
+
+    // ✅ Clone merging two stub spreads - allowed
+    {
+      code: `
+        it('test', () => {
+          const merged = { ...UserStub(), ...AddressStub({ city: 'Springfield' }) };
+        });
+      `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+    },
   ],
 
   invalid: [
@@ -332,6 +352,38 @@ ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
         {
           messageId: 'useStubInsteadOfTypedLiteral',
           data: { typeName: 'User' },
+        },
+      ],
+    },
+
+    // ❌ Stub spread mixed with a hand-written property - still a hand-built literal
+    {
+      code: `
+        it('test', () => {
+          const user: User = { ...UserStub(), name: 'John' };
+        });
+      `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'useStubInsteadOfTypedLiteral',
+          data: { typeName: 'User' },
+        },
+      ],
+    },
+
+    // ❌ Spread of a non-stub call
+    {
+      code: `
+        it('test', () => {
+          const user = { ...buildUser() };
+        });
+      `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        {
+          messageId: 'useStubInsteadOfTypedLiteral',
+          data: { typeName: 'Object' },
         },
       ],
     },

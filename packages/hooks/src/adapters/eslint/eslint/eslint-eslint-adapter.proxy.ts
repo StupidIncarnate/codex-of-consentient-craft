@@ -32,6 +32,16 @@ const createMockHandle = (): MockHandle => {
   (ESLint as unknown as jest.Mock).mockImplementation(mockedConstructor);
 
   return {
+    // This handle wraps the ESLint constructor rather than a registerMock dispatch, so there is
+    // no argument-addressed staging behind it — the constructor is addressed by nothing useful.
+    calledWith: (): never => {
+      throw new Error('eslintEslintAdapterProxy: constructor mock does not support calledWith');
+    },
+    onceFor: (): never => {
+      throw new Error('eslintEslintAdapterProxy: constructor mock does not support onceFor');
+    },
+    callsMatching: (): unknown[][] =>
+      (mockedConstructor.mock.calls as unknown[][]).filter((call) => call.length > 0),
     mockImplementation: (impl: (...args: never[]) => unknown): void => {
       mockedConstructor.mockImplementation(impl);
     },

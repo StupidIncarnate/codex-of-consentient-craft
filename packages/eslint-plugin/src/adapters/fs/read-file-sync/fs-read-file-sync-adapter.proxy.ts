@@ -7,12 +7,9 @@ export const fsReadFileSyncAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: readFileSync });
 
-  // Set up default mock behavior
-  mock.mockReturnValue('');
-
   return {
-    returns: ({ contents }: { filePath: FilePath; contents: FileContents }): void => {
-      mock.mockReturnValue(contents);
+    returns: ({ filePath, contents }: { filePath: FilePath; contents: FileContents }): void => {
+      mock.calledWith([filePath]).returns(contents);
     },
   };
 };

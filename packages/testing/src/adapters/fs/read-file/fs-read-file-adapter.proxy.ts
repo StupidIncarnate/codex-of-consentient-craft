@@ -12,21 +12,19 @@ import type { FileContent } from '../../../contracts/file-content/file-content-c
 import { registerMock } from '../../../register-mock';
 
 export const fsReadFileAdapterProxy = (): {
-  returns: ({ content }: { filePath: string; content: FileContent }) => void;
-  throws: ({ error }: { filePath: string; error: Error }) => void;
+  returns: ({ filePath, content }: { filePath: string; content: FileContent }) => void;
+  throws: ({ filePath, error }: { filePath: string; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: readFileSync });
 
   mock.mockReturnValue('');
 
   return {
-    returns: ({ content }: { filePath: string; content: FileContent }): void => {
-      mock.mockReturnValueOnce(content);
+    returns: ({ filePath, content }: { filePath: string; content: FileContent }): void => {
+      mock.calledWith([filePath]).returns(content);
     },
-    throws: ({ error }: { filePath: string; error: Error }): void => {
-      mock.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ filePath, error }: { filePath: string; error: Error }): void => {
+      mock.calledWith([filePath]).throws(error);
     },
   };
 };

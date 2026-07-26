@@ -11,21 +11,25 @@ import type { QueueMetadata } from '../../../contracts/queue-metadata/queue-meta
 import { registerMock } from '../../../register-mock';
 
 export const fsQueueMetadataReadAdapterProxy = (): {
-  returns: ({ metadata }: { metadataPath: string; metadata: QueueMetadata }) => void;
-  throws: ({ error }: { metadataPath: string; error: Error }) => void;
+  returns: ({ metadataPath, metadata }: { metadataPath: string; metadata: QueueMetadata }) => void;
+  throws: ({ metadataPath, error }: { metadataPath: string; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: readFileSync });
 
   mock.mockReturnValue(JSON.stringify({ counter: 0 }));
 
   return {
-    returns: ({ metadata }: { metadataPath: string; metadata: QueueMetadata }): void => {
-      mock.mockReturnValueOnce(JSON.stringify(metadata));
+    returns: ({
+      metadataPath,
+      metadata,
+    }: {
+      metadataPath: string;
+      metadata: QueueMetadata;
+    }): void => {
+      mock.calledWith([metadataPath]).returns(JSON.stringify(metadata));
     },
-    throws: ({ error }: { metadataPath: string; error: Error }): void => {
-      mock.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ metadataPath, error }: { metadataPath: string; error: Error }): void => {
+      mock.calledWith([metadataPath]).throws(error);
     },
   };
 };

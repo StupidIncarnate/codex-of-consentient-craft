@@ -11,15 +11,15 @@ import { existsSync } from 'fs';
 import { registerMock } from '../../../register-mock';
 
 export const fsExistsAdapterProxy = (): {
-  returns: ({ exists }: { filePath: string; exists: boolean }) => void;
+  returns: ({ filePath, exists }: { filePath: string; exists: boolean }) => void;
 } => {
   const mock = registerMock({ fn: existsSync });
 
   mock.mockReturnValue(false);
 
   return {
-    returns: ({ exists }: { filePath: string; exists: boolean }): void => {
-      mock.mockReturnValueOnce(exists);
+    returns: ({ filePath, exists }: { filePath: string; exists: boolean }): void => {
+      mock.calledWith([filePath]).returns(exists);
     },
   };
 };

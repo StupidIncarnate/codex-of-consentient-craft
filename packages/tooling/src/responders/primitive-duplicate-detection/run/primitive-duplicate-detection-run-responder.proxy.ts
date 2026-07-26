@@ -4,12 +4,13 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
+import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   callResponder: typeof PrimitiveDuplicateDetectionRunResponder;
-  setupNoDuplicates: () => void;
-  setupWithSourceCode: (params: { sourceCode: SourceCode }) => void;
+  setupNoDuplicates: (params?: { pattern?: GlobPattern }) => void;
+  setupWithSourceCode: (params: { sourceCode: SourceCode; pattern?: GlobPattern }) => void;
   getStdoutOutput: () => readonly unknown[];
 } => {
   const brokerProxy = duplicateDetectionDetectBrokerProxy();
@@ -26,13 +27,19 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   return {
     callResponder: PrimitiveDuplicateDetectionRunResponder,
 
-    setupNoDuplicates: (): void => {
-      brokerProxy.setupFiles({ pattern: GlobPatternStub(), files: [] });
+    setupNoDuplicates: ({ pattern = GlobPatternStub() }: { pattern?: GlobPattern } = {}): void => {
+      brokerProxy.setupFiles({ pattern, files: [] });
     },
 
-    setupWithSourceCode: ({ sourceCode }: { sourceCode: SourceCode }): void => {
+    setupWithSourceCode: ({
+      sourceCode,
+      pattern = GlobPatternStub(),
+    }: {
+      sourceCode: SourceCode;
+      pattern?: GlobPattern;
+    }): void => {
       brokerProxy.setupFiles({
-        pattern: GlobPatternStub(),
+        pattern,
         files: [{ filePath: AbsoluteFilePathStub(), sourceCode }],
       });
     },

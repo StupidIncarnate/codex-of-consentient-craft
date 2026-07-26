@@ -11,7 +11,7 @@ import { rmSync } from 'fs';
 import { registerMock } from '../../../register-mock';
 
 export const fsRmAdapterProxy = (): {
-  throws: ({ error }: { filePath: string; error: Error }) => void;
+  throws: ({ filePath, error }: { filePath: string; error: Error }) => void;
   getCallArgs: () => readonly unknown[][];
 } => {
   const mock = registerMock({ fn: rmSync });
@@ -19,10 +19,8 @@ export const fsRmAdapterProxy = (): {
   mock.mockImplementation(() => undefined);
 
   return {
-    throws: ({ error }: { filePath: string; error: Error }): void => {
-      mock.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ filePath, error }: { filePath: string; error: Error }): void => {
+      mock.onceFor([filePath]).throws(error);
     },
     getCallArgs: (): readonly unknown[][] => mock.mock.calls,
   };

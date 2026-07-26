@@ -27,6 +27,7 @@ describe('InstallDetectConfigResponder', () => {
     it('VALID: {context: eslint.config.js exists with @dungeonmaster} => skips installation', () => {
       const proxy = InstallDetectConfigResponderProxy();
       proxy.setupConfigExists({
+        targetProjectRoot: '/test/project',
         configFileName: 'eslint.config.js',
         contents: FileContentsStub({
           value: "const dungeonmaster = require('@dungeonmaster/eslint-plugin');",
@@ -53,6 +54,7 @@ describe('InstallDetectConfigResponder', () => {
     it('VALID: {context: eslint.config.js exists without @dungeonmaster} => skips with manual instruction', () => {
       const proxy = InstallDetectConfigResponderProxy();
       proxy.setupConfigExists({
+        targetProjectRoot: '/test/project',
         configFileName: 'eslint.config.js',
         contents: FileContentsStub({ value: 'module.exports = { rules: {} };' }),
       });
@@ -75,6 +77,7 @@ describe('InstallDetectConfigResponder', () => {
     it('VALID: {context: eslint.config.mjs exists without @dungeonmaster} => skips with manual instruction', () => {
       const proxy = InstallDetectConfigResponderProxy();
       proxy.setupConfigExists({
+        targetProjectRoot: '/test/project',
         configFileName: 'eslint.config.mjs',
         contents: FileContentsStub({ value: 'export default { rules: {} };' }),
       });

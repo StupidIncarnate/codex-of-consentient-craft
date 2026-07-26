@@ -285,6 +285,7 @@ describe('sessionListBroker', () => {
       // Second glob (cross-project lookup by sessionId) finds the JSONL under the repo-root encoded dir
       proxy.setupGlobFiles({
         files: ['/home/user/.claude/projects/-repo/smoketest-session.jsonl'],
+        pattern: '*/smoketest-session.jsonl',
       });
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Smoketest run"}' });
@@ -504,6 +505,13 @@ describe('sessionListBroker', () => {
       proxy.setupHomeDir({ path: '/home/user' });
       proxy.setupGlobFiles({
         files: ['/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl'],
+      });
+      // activeSessionId below doesn't match the direct-scan file, so the broker also runs a
+      // cross-project lookup for it — which finds nothing, consistent with the expected result
+      // below having no quest correlation.
+      proxy.setupGlobFiles({
+        files: [],
+        pattern: '*/different-session.jsonl',
       });
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Built login page"}' });

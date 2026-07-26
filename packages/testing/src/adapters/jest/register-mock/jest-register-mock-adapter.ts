@@ -2,15 +2,32 @@
  * PURPOSE: Stack-based mock dispatch so multiple proxies can mock the same jest.fn without collision
  *
  * USAGE:
- * const handle = jestRegisterMockAdapter({ fn: execFile });
- * handle.mockImplementation((_cmd, _args, _opts, cb) => cb(null, '', ''));
- * // callerPath auto-derived from call stack; each proxy gets its own independent handle
+ * const handle = jestRegisterMockAdapter({ fn: readFile });
+ * handle.calledWith(['/a/quest.json']).resolves(questJson);
+ * handle.calledWith(['/a/manifest.json']).resolves(manifestJson);
+ * // Answers are addressed by the arguments, so every caller in the chain reading a path agrees
+ *
+ * Argument staging is shared across every proxy that mocks this function — one function, one
+ * behaviour, the way prod behaves. Once any argument staging exists, a call whose arguments match
+ * nothing throws instead of silently falling through, unless the proxy declared a base default.
  */
 
 import { mockCallerPathContract } from '../../../contracts/mock-caller-path/mock-caller-path-contract';
 import type { MockHandleEntry } from '../../../contracts/mock-handle-entry/mock-handle-entry-contract';
+import { mockArgsMatchTransformer } from '../../../transformers/mock-args-match/mock-args-match-transformer';
+
+export interface MockStaging {
+  returns: (val: unknown) => void;
+  resolves: (val: unknown) => void;
+  rejects: (val: unknown) => void;
+  throws: (val: unknown) => void;
+  implement: (impl: (...args: never[]) => unknown) => void;
+}
 
 export interface MockHandle {
+  calledWith: (args: readonly unknown[]) => MockStaging;
+  onceFor: (args: readonly unknown[]) => MockStaging;
+  callsMatching: (args: readonly unknown[]) => unknown[][];
   mockImplementation: (impl: (...args: never[]) => unknown) => void;
   mockImplementationOnce: (impl: (...args: never[]) => unknown) => void;
   mockReturnValue: (val: unknown) => void;
@@ -20,6 +37,13 @@ export interface MockHandle {
   mockRejectedValueOnce: (val: unknown) => void;
   mock: { calls: unknown[][] };
   mockClear: () => void;
+}
+
+export interface StagedCall {
+  args: readonly unknown[];
+  impl: (...args: never[]) => unknown;
+  once: boolean;
+  consumed: boolean;
 }
 
 type MockFunction = (...args: never[]) => unknown;
@@ -36,6 +60,8 @@ const DISPATCHER = Symbol('registerMockDispatcher');
 
 const handlesByMock = new WeakMap<object, MockHandleEntry[]>();
 const realsByMock = new WeakMap<object, MockFunction>();
+const stagedByMock = new WeakMap<object, StagedCall[]>();
+const callsByMock = new WeakMap<object, unknown[][]>();
 
 export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandle => {
   // Auto-derive callerPath from call stack (frame 2 = caller of this function)
@@ -94,6 +120,8 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
     }
 
     handlesByMock.set(mock, []);
+    stagedByMock.set(mock, []);
+    callsByMock.set(mock, []);
 
     if (typeof mock.mockImplementation === 'function') {
       mock.mockImplementation(((...args: unknown[]): unknown => {
@@ -103,57 +131,106 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
           return undefined;
         }
 
+        callsByMock.get(mock)?.push([...args]);
+
+        const staged = stagedByMock.get(mock) ?? [];
+
+        // Higher specificity wins. At equal specificity the later staging wins, so a test
+        // overrides a proxy default — except that a live one-shot outranks a sticky staging.
+        const best = staged.reduce<StagedCall | undefined>((winner, candidate) => {
+          const score =
+            candidate.once && candidate.consumed
+              ? null
+              : mockArgsMatchTransformer({ staged: candidate.args, actual: args });
+
+          if (score === null) {
+            return winner;
+          }
+
+          if (winner === undefined) {
+            return candidate;
+          }
+
+          const winnerScore = mockArgsMatchTransformer({ staged: winner.args, actual: args }) ?? -1;
+
+          return score > winnerScore || (score === winnerScore && !winner.once)
+            ? candidate
+            : winner;
+        }, undefined);
+
         const stack = new Error().stack ?? '';
         const lines = stack.split('\n');
 
         // Stack-based routing: find which adapter file is calling
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i];
+        const callerLineMatch = lines
+          .slice(1)
+          .find((line) =>
+            handles.some(
+              (handleEntry) => handleEntry.callerPath && line.includes(handleEntry.callerPath),
+            ),
+          );
 
-          if (!line) {
-            continue;
+        const matchedHandle =
+          callerLineMatch === undefined
+            ? undefined
+            : handles.find(
+                (handleEntry) =>
+                  handleEntry.callerPath && callerLineMatch.includes(handleEntry.callerPath),
+              );
+
+        const routed = matchedHandle ?? handles.find((handleEntry) => !handleEntry.callerPath);
+
+        routed?.calls.push([...args]);
+
+        if (best) {
+          if (best.once) {
+            best.consumed = true;
           }
 
-          for (const handle of handles) {
-            if (handle.callerPath && line.includes(handle.callerPath)) {
-              handle.calls.push([...args]);
-
-              if (handle.onceQueue.length > 0) {
-                const onceFn = handle.onceQueue.shift();
-
-                if (onceFn) {
-                  return onceFn(...args);
-                }
-              }
-
-              if (handle.baseImpl) {
-                return handle.baseImpl(...args);
-              }
-
-              return undefined;
-            }
-          }
+          return best.impl(...(args as never[]));
         }
 
-        // No stack match — try catch-all handle (empty callerPath)
-        for (const h of handles) {
-          if (!h.callerPath) {
-            h.calls.push([...args]);
+        const hasFallback =
+          routed !== undefined && (routed.onceQueue.length > 0 || routed.baseImpl);
 
-            if (h.onceQueue.length > 0) {
-              const onceFn = h.onceQueue.shift();
+        if (staged.length > 0 && !hasFallback) {
+          throw new Error(
+            [
+              `registerMock: no staged response for ${mock.name || 'mock'}(`,
+              args
+                .map((value) =>
+                  typeof value === 'function' ? '<predicate>' : JSON.stringify(value),
+                )
+                .join(', '),
+              '). Staged: ',
+              staged
+                .map(
+                  (entry) =>
+                    `(${entry.args
+                      .map((value) =>
+                        typeof value === 'function' ? '<predicate>' : JSON.stringify(value),
+                      )
+                      .join(', ')})`,
+                )
+                .join(' | '),
+            ].join(''),
+          );
+        }
 
-              if (onceFn) {
-                return onceFn(...args);
-              }
+        if (routed) {
+          if (routed.onceQueue.length > 0) {
+            const onceFn = routed.onceQueue.shift();
+
+            if (onceFn) {
+              return onceFn(...args);
             }
-
-            if (h.baseImpl) {
-              return h.baseImpl(...args);
-            }
-
-            return undefined;
           }
+
+          if (routed.baseImpl) {
+            return routed.baseImpl(...args);
+          }
+
+          return undefined;
         }
 
         // Passthrough to real impl
@@ -192,7 +269,50 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
     handles.push(entry);
   }
 
-  return {
+  const handle: MockHandle = {
+    calledWith: (args: readonly unknown[]): MockStaging => {
+      const staged = stagedByMock.get(mock) ?? [];
+      const record: StagedCall = { args, impl: () => undefined, once: false, consumed: false };
+
+      staged.push(record);
+      stagedByMock.set(mock, staged);
+
+      return {
+        returns: (val: unknown): void => {
+          record.impl = () => val;
+        },
+        resolves: (val: unknown): void => {
+          record.impl = async () => Promise.resolve(val);
+        },
+        rejects: (val: unknown): void => {
+          const reason = val instanceof Error ? val : new Error(String(val));
+          record.impl = async () => Promise.reject(reason);
+        },
+        throws: (val: unknown): void => {
+          const reason = val instanceof Error ? val : new Error(String(val));
+          record.impl = () => {
+            throw reason;
+          };
+        },
+        implement: (impl: (...args: never[]) => unknown): void => {
+          record.impl = impl;
+        },
+      };
+    },
+    onceFor: (args: readonly unknown[]): MockStaging => {
+      const staging = handle.calledWith(args);
+      const record = stagedByMock.get(mock)?.at(-1);
+
+      if (record) {
+        record.once = true;
+      }
+
+      return staging;
+    },
+    callsMatching: (args: readonly unknown[]): unknown[][] =>
+      (callsByMock.get(mock) ?? []).filter(
+        (call) => mockArgsMatchTransformer({ staged: args, actual: call }) !== null,
+      ),
     mockImplementation: (impl: (...args: never[]) => unknown): void => {
       entry.baseImpl = impl as EntryImpl;
     },
@@ -222,4 +342,6 @@ export const jestRegisterMockAdapter = ({ fn }: { fn: MockFunction }): MockHandl
       entry.baseImpl = null;
     },
   };
+
+  return handle;
 };

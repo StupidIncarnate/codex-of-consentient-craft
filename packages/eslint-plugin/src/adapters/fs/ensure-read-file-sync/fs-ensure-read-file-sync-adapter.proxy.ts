@@ -11,14 +11,10 @@ export const fsEnsureReadFileSyncAdapterProxy = (): {
   const mockExistsSync = registerMock({ fn: existsSync });
   const mockReadFileSync = registerMock({ fn: readFileSync });
 
-  // Set up default mock behavior
-  mockExistsSync.mockReturnValue(false);
-  mockReadFileSync.mockReturnValue('');
-
   return {
-    returns: ({ contents }: { filePath: FilePath; contents: FileContents }): void => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(contents);
+    returns: ({ filePath, contents }: { filePath: FilePath; contents: FileContents }): void => {
+      mockExistsSync.calledWith([filePath]).returns(true);
+      mockReadFileSync.calledWith([filePath]).returns(contents);
     },
 
     throwsFileNotFound: (): void => {

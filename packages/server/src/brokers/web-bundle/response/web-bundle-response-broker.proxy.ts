@@ -3,7 +3,6 @@ import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { webBundleDistPathAdapterProxy } from '../../../adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 export const webBundleResponseBrokerProxy = (): {
   setupFileContents: (params: { contents: FileContents }) => void;
@@ -15,7 +14,11 @@ export const webBundleResponseBrokerProxy = (): {
 
   return {
     setupFileContents: ({ contents }: { contents: FileContents }): void => {
-      readProxy.returns({ filepath: FilePathStub({ value: '/dist/index.html' }), contents });
+      // The real filepath is `${webBundleDistPathAdapter()}/index.html` (or the requested asset
+      // path), and webBundleDistPathAdapter resolves a real, environment-dependent path via
+      // require.resolve — not something this test can construct. Each test exercises exactly one
+      // fsReadFileAdapter call, so a wildcard match carries no pairing risk.
+      readProxy.returns({ filepath: () => true, contents });
     },
     setupMissingBundle: (): void => {
       distPathProxy.bundleMissing();

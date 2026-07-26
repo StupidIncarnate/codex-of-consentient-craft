@@ -10,8 +10,10 @@ export const fsGlobAdapterProxy = (): {
   handle.mockImplementation(async () => Promise.resolve([]));
 
   return {
-    returns: ({ files }: { pattern: GlobPattern; files: PathSegment[] }): void => {
-      handle.mockResolvedValueOnce(files);
+    // fsGlobAdapter hands the pattern to glob(pattern, { cwd?, absolute }) untouched, so the
+    // pattern IS the address. Staging it alone leaves the options bag unconstrained.
+    returns: ({ pattern, files }: { pattern: GlobPattern; files: PathSegment[] }): void => {
+      handle.calledWith([pattern]).resolves(files);
     },
   };
 };

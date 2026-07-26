@@ -9,15 +9,19 @@ export const fsReadFileAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: readFile });
 
-  mock.mockImplementation(async () => Promise.resolve(''));
-
   return {
-    returns: ({ sourceCode }: { filePath: AbsoluteFilePath; sourceCode: SourceCode }): void => {
-      mock.mockResolvedValueOnce(sourceCode as unknown as Buffer);
+    returns: ({
+      filePath,
+      sourceCode,
+    }: {
+      filePath: AbsoluteFilePath;
+      sourceCode: SourceCode;
+    }): void => {
+      mock.calledWith([filePath]).resolves(sourceCode);
     },
 
-    throws: ({ error }: { filePath: AbsoluteFilePath; error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ filePath, error }: { filePath: AbsoluteFilePath; error: Error }): void => {
+      mock.calledWith([filePath]).rejects(error);
     },
   };
 };

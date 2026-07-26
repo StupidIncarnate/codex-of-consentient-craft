@@ -11,6 +11,8 @@ import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adap
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
 import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fileScannerBrokerProxy = (): {
@@ -28,6 +30,10 @@ export const fileScannerBrokerProxy = (): {
   }) => void;
 } => {
   processCwdAdapterProxy();
+  // The scan root the broker will resolve, read from the same mocked adapter the broker calls.
+  // The broker joins it onto the caller's glob before the glob package sees it, and passes it as
+  // glob's cwd, so staged answers are addressed to a scan from this root.
+  const scanRoot = PathSegmentStub({ value: processCwdAdapter() });
   const globProxy = globFindAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   sharedPackageResolveAdapterProxy();
@@ -40,9 +46,9 @@ export const fileScannerBrokerProxy = (): {
       files: readonly { filepath: PathSegment; contents: FileContents }[];
       pattern: GlobPattern;
     }): void => {
-      globProxy.returns({ pattern, files: files.map((f) => f.filepath) });
+      globProxy.returns({ pattern, cwd: scanRoot, files: files.map((f) => f.filepath) });
       for (const { filepath, contents } of files) {
-        readFileProxy.returns({ filepath, contents });
+        readFileProxy.returnsFor({ filepath, contents });
       }
     },
     setupFilesWithFailingReads: ({
@@ -56,12 +62,12 @@ export const fileScannerBrokerProxy = (): {
       }[];
       pattern: GlobPattern;
     }): void => {
-      globProxy.returns({ pattern, files: files.map((f) => f.filepath) });
+      globProxy.returns({ pattern, cwd: scanRoot, files: files.map((f) => f.filepath) });
       for (const entry of files) {
         if (entry.error) {
-          readFileProxy.throws({ filepath: entry.filepath, error: entry.error });
+          readFileProxy.throwsFor({ filepath: entry.filepath, error: entry.error });
         } else if (entry.contents) {
-          readFileProxy.returns({ filepath: entry.filepath, contents: entry.contents });
+          readFileProxy.returnsFor({ filepath: entry.filepath, contents: entry.contents });
         }
       }
     },
