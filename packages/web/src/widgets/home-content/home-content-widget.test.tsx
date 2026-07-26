@@ -11,6 +11,7 @@ import {
   QuestListItemStub,
   SessionIdStub,
   SessionListItemStub,
+  SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -826,6 +827,84 @@ describe('HomeContentWidget', () => {
         color: 'red',
       });
       expect(screen.getByTestId(`QUEST_ITEM_${questId}`).tagName).toBe('DIV');
+    });
+  });
+
+  describe('unreadable quest files', () => {
+    it('VALID: {list reports one unreadable quest file} => raises a red toast and renders the unreadable row', async () => {
+      const proxy = HomeContentWidgetProxy();
+      const guildId = GuildIdStub({ value: 'c3c3c3d4-e5f6-7890-abcd-ef1234567890' });
+      const guild = GuildListItemStub({ id: guildId, name: 'Unreadable Guild' });
+      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuestsWithSkips({
+        quests: [QuestListItemStub({ id: QuestIdStub({ value: 'readable-quest' }) })],
+        skipped: [
+          SkippedQuestFileStub({
+            questFolder: '4226b8d1' as never,
+            reason: "workItems.1.role: received 'pathseeker'" as never,
+          }),
+        ],
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([
+          "4226b8d1/quest.jsonUNREADABLEworkItems.1.role: received 'pathseeker'",
+        ]);
+      });
+
+      expect(proxy.getShownToast()).toStrictEqual({
+        message: '1 quest file could not be read \u2014 see the unreadable rows in the quest list',
+        color: 'red',
+      });
+    });
+
+    it('EMPTY: {list reports no unreadable quest files} => raises no toast and renders no unreadable row', async () => {
+      const proxy = HomeContentWidgetProxy();
+      const guildId = GuildIdStub({ value: 'c4c4c3d4-e5f6-7890-abcd-ef1234567890' });
+      const guild = GuildListItemStub({ id: guildId, name: 'Healthy Guild' });
+      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+
+      proxy.setupGuilds({ guilds: [guild] });
+      proxy.setupSessions({ sessions: [] });
+      proxy.setupQuests({
+        quests: [QuestListItemStub({ id: QuestIdStub({ value: 'only-quest' }) })],
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('QUEST_ITEM_only-quest').tagName).toBe('DIV');
+      });
+
+      expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([]);
+      expect(proxy.getShowToastCalls()).toStrictEqual([]);
     });
   });
 });

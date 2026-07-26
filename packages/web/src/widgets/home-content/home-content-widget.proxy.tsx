@@ -17,6 +17,7 @@ import type {
   GuildListItemStub,
   QuestListItemStub,
   SessionListItemStub,
+  SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
 import * as questDeleteBrokerModule from '../../brokers/quest/delete/quest-delete-broker';
@@ -36,6 +37,7 @@ type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
+type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
 
 export const HomeContentWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
@@ -44,7 +46,10 @@ export const HomeContentWidgetProxy = (): {
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupSessionsError: () => void;
   setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQuestsWithSkips: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
   setupQuestsError: () => void;
+  getUnreadableQuestRowTexts: () => readonly HTMLElement['textContent'][];
+  getShowToastCalls: () => unknown[];
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
@@ -108,6 +113,18 @@ export const HomeContentWidgetProxy = (): {
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       questsProxy.setupQuests({ quests });
     },
+    setupQuestsWithSkips: ({
+      quests,
+      skipped,
+    }: {
+      quests: QuestListItem[];
+      skipped: SkippedQuestFile[];
+    }): void => {
+      questsProxy.setupQuestsWithSkips({ quests, skipped });
+    },
+    getUnreadableQuestRowTexts: (): readonly HTMLElement['textContent'][] =>
+      sessionList.getUnreadableQuestRowTexts(),
+    getShowToastCalls: (): unknown[] => notificationsProxy.getShowCalls(),
     setupQuestsError: (): void => {
       questsProxy.setupError();
     },

@@ -1,9 +1,13 @@
-import { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  QuestListItemStub,
+  SkippedQuestFileStub,
+} from '@dungeonmaster/shared/contracts';
 import { QuestListResponderProxy } from './quest-list-responder.proxy';
 
 describe('QuestListResponder', () => {
   describe('successful listing', () => {
-    it('VALID: {valid guildId} => returns 200 with quests array', async () => {
+    it('VALID: {valid guildId} => returns 200 with the quests and an empty skip list', async () => {
       const proxy = QuestListResponderProxy();
       const quest = QuestListItemStub();
       proxy.setupListQuests({ quests: [quest] });
@@ -13,11 +17,11 @@ describe('QuestListResponder', () => {
 
       expect(result).toStrictEqual({
         status: 200,
-        data: [quest],
+        data: { quests: [quest], skipped: [] },
       });
     });
 
-    it('EMPTY: {no quests} => returns 200 with empty array', async () => {
+    it('EMPTY: {no quests} => returns 200 with empty quests and empty skips', async () => {
       const proxy = QuestListResponderProxy();
       proxy.setupListQuests({ quests: [] });
       const guildId = GuildIdStub();
@@ -26,7 +30,22 @@ describe('QuestListResponder', () => {
 
       expect(result).toStrictEqual({
         status: 200,
-        data: [],
+        data: { quests: [], skipped: [] },
+      });
+    });
+
+    it('VALID: {one quest file could not be read} => returns 200 naming it alongside the loadable quests', async () => {
+      const proxy = QuestListResponderProxy();
+      const quest = QuestListItemStub();
+      const skipped = SkippedQuestFileStub();
+      proxy.setupListQuestsWithSkips({ quests: [quest], skipped: [skipped] });
+      const guildId = GuildIdStub();
+
+      const result = await proxy.callResponder({ query: { guildId } });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { quests: [quest], skipped: [skipped] },
       });
     });
   });

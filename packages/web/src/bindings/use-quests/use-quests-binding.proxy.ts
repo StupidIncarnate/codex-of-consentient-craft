@@ -1,12 +1,13 @@
 import * as questListBrokerModule from '../../brokers/quest/list/quest-list-broker';
 
-import type { QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import type { QuestListItemStub, SkippedQuestFileStub } from '@dungeonmaster/shared/contracts';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { questListBrokerProxy } from '../../brokers/quest/list/quest-list-broker.proxy';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
+type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
 
 const createPoisonError = (): Error => {
   const error = new Error('poison');
@@ -27,7 +28,9 @@ const rejectWithPoisonToString = async (): Promise<never> => {
 
 export const useQuestsBindingProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQuestsWithSkips: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
   setupError: () => void;
+  setupInvalidResponse: (params: { data: unknown }) => void;
   setupOuterCatchTrigger: () => void;
   getConsoleErrorCalls: () => SpyOnHandle['mock']['calls'];
   getConsoleErrorHandle: () => SpyOnHandle;
@@ -39,8 +42,20 @@ export const useQuestsBindingProxy = (): {
     setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
       brokerProxy.setupQuests({ quests });
     },
+    setupQuestsWithSkips: ({
+      quests,
+      skipped,
+    }: {
+      quests: QuestListItem[];
+      skipped: SkippedQuestFile[];
+    }): void => {
+      brokerProxy.setupQuestsWithSkips({ quests, skipped });
+    },
     setupError: (): void => {
       brokerProxy.setupError();
+    },
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      brokerProxy.setupInvalidResponse({ data });
     },
     setupOuterCatchTrigger: (): void => {
       const brokerHandle = registerSpyOn({

@@ -4,6 +4,7 @@ import {
   QuestListItemStub,
   SessionIdStub,
   SessionListItemStub,
+  SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -27,6 +28,7 @@ const StatefulDeleteHarness = ({
     <GuildSessionListWidget
       quests={quests}
       sessions={[]}
+      skippedQuestFiles={[]}
       loading={false}
       filter={SessionFilterStub({ value: 'quests-only' })}
       onFilterChange={jest.fn()}
@@ -54,6 +56,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -82,6 +85,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -97,6 +101,155 @@ describe('GuildSessionListWidget', () => {
       });
 
       expect(proxy.isSessionVisible({ testId: `SESSION_ITEM_${sessionId}` })).toBe(true);
+    });
+  });
+
+  describe('unreadable quest files', () => {
+    it('VALID: {quests-only mode with one skipped file} => renders one unreadable row per skipped file naming the folder and the reason', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const skipped = SkippedQuestFileStub({
+        questFolder: '4226b8d1' as never,
+        reason: "workItems.1.role: received 'pathseeker'" as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[QuestListItemStub({ id: 'quest-1', title: 'Readable Quest' })]}
+            sessions={[]}
+            skippedQuestFiles={[skipped]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([
+        "4226b8d1/quest.jsonUNREADABLEworkItems.1.role: received 'pathseeker'",
+      ]);
+      expect(proxy.isSessionVisible({ testId: 'QUEST_ITEM_quest-1' })).toBe(true);
+    });
+
+    it('VALID: {all-sessions mode with one skipped file} => renders the same unreadable row so a quest-less session is explained', () => {
+      const proxy = GuildSessionListWidgetProxy();
+      const skipped = SkippedQuestFileStub({
+        questFolder: '4226b8d1' as never,
+        reason: "workItems.1.role: received 'pathseeker'" as never,
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[]}
+            sessions={[SessionListItemStub({ sessionId: SessionIdStub({ value: 'orphan' }) })]}
+            skippedQuestFiles={[skipped]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'all' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([
+        "4226b8d1/quest.jsonUNREADABLEworkItems.1.role: received 'pathseeker'",
+      ]);
+    });
+
+    it('EMPTY: {no quests but one skipped file} => shows the unreadable row instead of the no-quests empty state', () => {
+      const proxy = GuildSessionListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[]}
+            sessions={[]}
+            skippedQuestFiles={[SkippedQuestFileStub()]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.hasEmptyState()).toBe(false);
+      expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([
+        "4226b8d1-2827-4250-8d82-c278d66bcd2d/quest.jsonUNREADABLEworkItems.1.role: Invalid enum value, received 'pathseeker'",
+      ]);
+    });
+
+    it('EMPTY: {no quests and no skipped files} => keeps the no-quests empty state and renders no unreadable row', () => {
+      const proxy = GuildSessionListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[]}
+            sessions={[]}
+            skippedQuestFiles={[]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.hasEmptyState()).toBe(true);
+      expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([]);
+    });
+
+    it('VALID: {loading with a skipped file} => renders no unreadable row until the load settles', () => {
+      const proxy = GuildSessionListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[]}
+            sessions={[]}
+            skippedQuestFiles={[SkippedQuestFileStub()]}
+            loading
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.getUnreadableQuestRowTexts()).toStrictEqual([]);
     });
   });
 
@@ -116,6 +269,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -145,6 +299,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -179,6 +334,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -214,6 +370,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -245,6 +402,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -272,6 +430,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -300,6 +459,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -327,6 +487,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={onFilterChange}
@@ -366,6 +527,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[quest]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -404,6 +566,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[questSession, nonQuestSession]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -433,6 +596,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -465,6 +629,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -495,6 +660,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -532,6 +698,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -565,6 +732,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -597,6 +765,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[]}
             sessions={[session]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={filter}
             onFilterChange={jest.fn()}
@@ -762,6 +931,7 @@ describe('GuildSessionListWidget', () => {
           <GuildSessionListWidget
             quests={[quest]}
             sessions={[]}
+            skippedQuestFiles={[]}
             loading={false}
             filter={SessionFilterStub({ value: 'quests-only' })}
             onFilterChange={jest.fn()}

@@ -5,6 +5,7 @@
  * const result = await QuestFlow.add({ title, userRequest, guildId });
  * const quest = await QuestFlow.get({ questId, stage });
  * const items = await QuestFlow.list({ guildId });
+ * const listing = await QuestFlow.listWithSkips({ guildId });
  * const fullQuest = await QuestFlow.load({ questId });
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
@@ -23,6 +24,7 @@ import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-plann
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
 import { QuestHandleSignalBackResponder } from '../../responders/quest/handle-signal-back/quest-handle-signal-back-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
+import { QuestListWithSkipsResponder } from '../../responders/quest/list-with-skips/quest-list-with-skips-responder';
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest-mcp-create-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
@@ -40,6 +42,9 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof QuestGetPlanningNotesRes
 
 type ListParams = Parameters<typeof QuestListResponder>[0];
 type ListResult = Awaited<ReturnType<typeof QuestListResponder>>;
+
+type ListWithSkipsParams = Parameters<typeof QuestListWithSkipsResponder>[0];
+type ListWithSkipsResult = Awaited<ReturnType<typeof QuestListWithSkipsResponder>>;
 
 type LoadParams = Parameters<typeof QuestLoadResponder>[0];
 type LoadResult = Awaited<ReturnType<typeof QuestLoadResponder>>;
@@ -83,6 +88,9 @@ export const QuestFlow = {
     QuestGetPlanningNotesResponder({ questId, ...(section !== undefined && { section }) }),
 
   list: async ({ guildId }: ListParams): Promise<ListResult> => QuestListResponder({ guildId }),
+
+  listWithSkips: async ({ guildId }: ListWithSkipsParams): Promise<ListWithSkipsResult> =>
+    QuestListWithSkipsResponder({ guildId }),
 
   load: async ({ questId }: LoadParams): Promise<LoadResult> => QuestLoadResponder({ questId }),
 

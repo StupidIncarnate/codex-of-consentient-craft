@@ -1,7 +1,7 @@
 // PURPOSE: Proxy for quest-list-broker providing test control over HTTP responses
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-import type { QuestListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem, SkippedQuestFile } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 
 import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
@@ -9,6 +9,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 
 export const questListBrokerProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQuestsWithSkips: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
@@ -21,7 +22,10 @@ export const questListBrokerProxy = (): {
 
   return {
     setupQuests: ({ quests }) => {
-      endpoint.resolves({ data: quests });
+      endpoint.resolves({ data: { quests, skipped: [] } });
+    },
+    setupQuestsWithSkips: ({ quests, skipped }) => {
+      endpoint.resolves({ data: { quests, skipped } });
     },
     setupError: () => {
       endpoint.networkError();

@@ -1,4 +1,8 @@
-import { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildIdStub,
+  QuestListItemStub,
+  SkippedQuestFileStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
@@ -21,6 +25,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [],
+        skipped: [],
         loading: true,
         error: null,
         refresh: expect.any(Function),
@@ -52,6 +57,37 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: quests,
+        skipped: [],
+        loading: false,
+        error: null,
+        refresh: expect.any(Function),
+      });
+    });
+  });
+
+  describe('skipped quest files', () => {
+    it('VALID: {list reports one skipped quest file} => exposes it in `skipped` with error still null', async () => {
+      const proxy = useQuestsBindingProxy();
+      const quests = [QuestListItemStub({ id: 'quest-1', title: 'First Quest' })];
+      const skipped = [SkippedQuestFileStub()];
+
+      proxy.setupQuestsWithSkips({ quests, skipped });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestsBinding({ guildId }),
+      });
+
+      const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
+
+      await testingLibraryWaitForAdapter({
+        callback: () => {
+          expect(currentState().loading).toBe(false);
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        data: quests,
+        skipped,
         loading: false,
         error: null,
         refresh: expect.any(Function),
@@ -78,6 +114,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [],
+        skipped: [],
         loading: false,
         error: null,
         refresh: expect.any(Function),
@@ -108,6 +145,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [],
+        skipped: [],
         loading: false,
         error,
         refresh: expect.any(Function),
@@ -160,6 +198,7 @@ describe('useQuestsBinding', () => {
           QuestListItemStub({ id: 'quest-1', title: 'First' }),
           QuestListItemStub({ id: 'quest-2', title: 'Second' }),
         ],
+        skipped: [],
         loading: false,
         error: null,
         refresh: expect.any(Function),
@@ -204,6 +243,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [QuestListItemStub({ id: 'quest-1', title: 'Recovered' })],
+        skipped: [],
         loading: false,
         error: null,
         refresh: expect.any(Function),
@@ -252,6 +292,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [QuestListItemStub({ id: 'quest-1', title: 'Original' })],
+        skipped: [],
         loading: false,
         error,
         refresh: expect.any(Function),
@@ -279,9 +320,9 @@ describe('useQuestsBinding', () => {
       expect(result.current.error?.name).toBe('ZodError');
     });
 
-    it('ERROR: {broker resolves with undefined} => does not crash', async () => {
+    it('ERROR: {broker resolves with an empty body} => does not crash', async () => {
       const proxy = useQuestsBindingProxy();
-      proxy.setupQuests({ quests: undefined as never });
+      proxy.setupInvalidResponse({ data: undefined });
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestsBinding({ guildId }),
@@ -301,6 +342,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [],
+        skipped: [],
         loading: false,
         error,
         refresh: expect.any(Function),
@@ -331,6 +373,7 @@ describe('useQuestsBinding', () => {
 
       expect(result.current).toStrictEqual({
         data: [],
+        skipped: [],
         loading: false,
         error,
         refresh: expect.any(Function),

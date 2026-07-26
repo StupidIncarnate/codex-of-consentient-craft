@@ -56,6 +56,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
   });
   const {
     data: questsList,
+    skipped: skippedQuestFiles,
     loading: questsLoading,
     refresh: refreshQuests,
   } = useQuestsBinding({
@@ -83,6 +84,21 @@ export const HomeContentWidget = (): React.JSX.Element => {
       setSelectedGuildId(null);
     }
   }, [guilds, guildsLoading, selectedGuildId]);
+
+  // One toast per distinct set of unreadable quest files. The list request itself succeeds, so
+  // this is the only moment the user is actively told; the unreadable rows below carry it after.
+  const skippedQuestFilesSignature = skippedQuestFiles
+    .map((skippedQuestFile) => String(skippedQuestFile.questFolder))
+    .join(',');
+
+  useEffect(() => {
+    if (skippedQuestFilesSignature === '') return;
+    const skippedCount = skippedQuestFilesSignature.split(',').length;
+    mantineNotificationsShowAdapter({
+      message: `${skippedCount} quest file${skippedCount === 1 ? '' : 's'} could not be read — see the unreadable rows in the quest list`,
+      color: 'red',
+    });
+  }, [skippedQuestFilesSignature]);
 
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;
@@ -156,6 +172,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
               <GuildSessionListWidget
                 sessions={sessions}
                 quests={questsList}
+                skippedQuestFiles={skippedQuestFiles}
                 loading={sessionFilter === 'quests-only' ? questsLoading : sessionsLoading}
                 filter={sessionFilter}
                 onFilterChange={({ filter }) => {

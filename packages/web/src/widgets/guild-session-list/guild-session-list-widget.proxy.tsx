@@ -6,6 +6,7 @@ import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 export const GuildSessionListWidgetProxy = (): {
   hasHeader: () => boolean;
   hasEmptyState: () => boolean;
+  getUnreadableQuestRowTexts: () => readonly HTMLElement['textContent'][];
   isSessionVisible: (params: { testId: string }) => boolean;
   hasQuestBadge: (params: { testId: string }) => boolean;
   getQuestBadgeText: (params: { testId: string }) => HTMLElement['textContent'];
@@ -33,6 +34,8 @@ export const GuildSessionListWidgetProxy = (): {
   return {
     hasHeader: (): boolean => screen.queryByText('SESSIONS') !== null,
     hasEmptyState: (): boolean => screen.queryByTestId('SESSION_EMPTY_STATE') !== null,
+    getUnreadableQuestRowTexts: (): readonly HTMLElement['textContent'][] =>
+      screen.queryAllByTestId('UNREADABLE_QUEST_ROW').map((element) => element.textContent),
     isSessionVisible: ({ testId }: { testId: string }): boolean =>
       screen.queryByTestId(testId) !== null,
     hasQuestBadge: ({ testId }: { testId: string }): boolean =>

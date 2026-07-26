@@ -2,8 +2,12 @@
  * PURPOSE: Renders a list of sessions with status indicators, quest badges, filter toggle, and add button
  *
  * USAGE:
- * <GuildSessionListWidget sessions={sessions} quests={quests} filter={filter} onFilterChange={handleFilter} onSelect={handleSelect} onSelectQuest={handleQuestSelect} onAdd={handleAdd} />
+ * <GuildSessionListWidget sessions={sessions} quests={quests} skippedQuestFiles={skipped} filter={filter} onFilterChange={handleFilter} onSelect={handleSelect} onSelectQuest={handleQuestSelect} onAdd={handleAdd} />
  * // Renders SESSIONS header. In "quests-only" mode shows one row per quest file; in "all" mode shows one row per session JSONL.
+ *
+ * Quest files the server could not read render as their own unreadable rows in BOTH modes, so the
+ * row count matches the folder count on disk and a session whose quest is unreadable is explained
+ * rather than silently presented as quest-less.
  */
 
 import {
@@ -32,6 +36,7 @@ import type {
   QuestStatus,
   SessionId,
   SessionListItem,
+  SkippedQuestFile,
 } from '@dungeonmaster/shared/contracts';
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
@@ -45,6 +50,7 @@ import type { ButtonVariant } from '../../contracts/button-variant/button-varian
 export interface GuildSessionListWidgetProps {
   sessions: readonly SessionListItem[];
   quests: readonly QuestListItem[];
+  skippedQuestFiles: readonly SkippedQuestFile[];
   loading: boolean;
   filter: SessionFilter;
   onFilterChange: (params: { filter: SessionFilter }) => void;
@@ -96,6 +102,7 @@ const ROW_BASE_STYLE = {
 export const GuildSessionListWidget = ({
   sessions,
   quests,
+  skippedQuestFiles,
   loading,
   filter,
   onFilterChange,
@@ -108,7 +115,10 @@ export const GuildSessionListWidget = ({
   deletingQuestId,
 }: GuildSessionListWidgetProps): React.JSX.Element => {
   const isQuestMode = filter === 'quests-only';
-  const isEmpty = isQuestMode ? quests.length === 0 : sessions.length === 0;
+  const hasRows = isQuestMode ? quests.length > 0 : sessions.length > 0;
+  // An unreadable quest file is content, not emptiness — a guild whose only quest file is
+  // unreadable must never render "No quests yet".
+  const isEmpty = !hasRows && skippedQuestFiles.length === 0;
 
   return (
     <Stack gap={4} data-testid="GUILD_SESSION_LIST">
@@ -146,6 +156,50 @@ export const GuildSessionListWidget = ({
           {isQuestMode ? 'No quests yet' : 'No sessions yet'}
         </Text>
       )}
+      {!loading &&
+        skippedQuestFiles.map((skippedQuestFile) => (
+          <Box
+            key={skippedQuestFile.questFolder}
+            px="xs"
+            py={3}
+            data-testid="UNREADABLE_QUEST_ROW"
+            style={{
+              fontFamily: 'monospace',
+              fontSize: ITEM_FONT_SIZE,
+              color: colors.text,
+              borderRadius: 2,
+              borderLeft: `2px solid ${colors.danger}`,
+              backgroundColor: colors['bg-raised'],
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            <Group gap={6} wrap="nowrap" justify="space-between">
+              <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+                {`${skippedQuestFile.questFolder}/quest.json`}
+              </span>
+              <span
+                style={{
+                  color: colors.danger,
+                  fontSize: STATUS_FONT_SIZE,
+                  flexShrink: 0,
+                }}
+              >
+                UNREADABLE
+              </span>
+            </Group>
+            <span
+              style={{
+                color: colors['text-dim'],
+                fontSize: STATUS_FONT_SIZE,
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {skippedQuestFile.reason}
+            </span>
+          </Box>
+        ))}
       {!loading &&
         isQuestMode &&
         quests.map((quest) => {

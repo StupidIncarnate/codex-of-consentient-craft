@@ -37,6 +37,7 @@ import type {
   Quest,
   QuestId,
   QuestListItem,
+  QuestListResult,
   QuestQueueEntry,
   QuestStatus,
   QuestType,
@@ -127,6 +128,11 @@ export const StartOrchestrator = {
   // Quest methods
   listQuests: async ({ guildId }: { guildId: GuildId }): Promise<QuestListItem[]> =>
     QuestFlow.list({ guildId }),
+
+  // Same enumeration as listQuests, but it also hands back the quest files it could not load so
+  // the caller can report the omission instead of silently serving a short list.
+  listQuestsWithSkips: async ({ guildId }: { guildId: GuildId }): Promise<QuestListResult> =>
+    QuestFlow.listWithSkips({ guildId }),
 
   loadQuest: async ({ questId }: { questId: QuestId }): Promise<Quest> =>
     QuestFlow.load({ questId }),

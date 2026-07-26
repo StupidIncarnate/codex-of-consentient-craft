@@ -21,11 +21,27 @@
  * quest.json produces a multi-KB zod message). `lastReportedReason` remembers what was last said
  * about each path: a NEW reason re-reports (the file changed and is still broken), and a
  * successful load forgets the path (so a file that breaks again later reports again).
+ *
+ * REPORTING THE SKIP: pass `onSkipped` to receive each skip as structured data (folder, quest.json
+ * path, parse reason) instead of having to scrape stderr — that is how the HTTP quest list tells
+ * the UI which file it dropped. Callers that omit it keep this signature and behavior unchanged.
+ * `onSkipped` fires on EVERY skip, unlike the stderr line: the dedup above exists to keep the log
+ * readable, while a caller building a response needs the full skip set on every call.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { ErrorMessage, FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import type {
+  ErrorMessage,
+  FilePath,
+  GuildId,
+  Quest,
+  SkippedQuestFile,
+} from '@dungeonmaster/shared/contracts';
+import {
+  errorMessageContract,
+  filePathContract,
+  skippedQuestFileContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
@@ -35,7 +51,13 @@ import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resol
 
 const lastReportedReason = new Map<FilePath, ErrorMessage>();
 
-export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promise<Quest[]> => {
+export const questListBroker = async ({
+  guildId,
+  onSkipped,
+}: {
+  guildId: GuildId;
+  onSkipped?: (params: { skipped: SkippedQuestFile }) => void;
+}): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
 
   const entries = fsReaddirAdapter({ dirPath: questsPath });
@@ -63,6 +85,15 @@ export const questListBroker = async ({ guildId }: { guildId: GuildId }): Promis
             `[quest-list] skipping unloadable quest — ${reason} (repeats suppressed until this file changes)\n`,
           );
         }
+        onSkipped?.({
+          skipped: skippedQuestFileContract.parse({
+            questFolder: folderName,
+            questFilePath,
+            // The path prefix is already on the stderr line; the caller gets the parse reason on
+            // its own so a UI can render it without the redundant absolute path.
+            reason: String(reason).replace(`Failed to parse quest file at ${questFilePath}: `, ''),
+          }),
+        });
         return null;
       }
     }),

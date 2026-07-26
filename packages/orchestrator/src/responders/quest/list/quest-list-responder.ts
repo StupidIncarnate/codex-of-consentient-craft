@@ -9,8 +9,7 @@
 import type { GuildId, QuestListItem } from '@dungeonmaster/shared/contracts';
 
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
-import { questToListItemTransformer } from '../../../transformers/quest-to-list-item/quest-to-list-item-transformer';
-import { questsSortByRecencyTransformer } from '../../../transformers/quests-sort-by-recency/quests-sort-by-recency-transformer';
+import { questsToListItemsTransformer } from '../../../transformers/quests-to-list-items/quests-to-list-items-transformer';
 
 export const QuestListResponder = async ({
   guildId,
@@ -18,7 +17,5 @@ export const QuestListResponder = async ({
   guildId: GuildId;
 }): Promise<QuestListItem[]> => {
   const quests = await questListBroker({ guildId });
-  return questsSortByRecencyTransformer({ quests }).map((quest) =>
-    questToListItemTransformer({ quest }),
-  );
+  return questsToListItemsTransformer({ quests });
 };
