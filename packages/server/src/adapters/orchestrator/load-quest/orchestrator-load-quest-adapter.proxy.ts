@@ -1,22 +1,22 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 type Quest = ReturnType<typeof QuestStub>;
 
 export const orchestratorLoadQuestAdapterProxy = (): {
-  returns: (params: { quest: Quest }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { questId: QuestId; quest: Quest }) => void;
+  throws: (params: { questId: QuestId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.loadQuest });
-  mock.mockResolvedValue(QuestStub());
 
   return {
-    returns: ({ quest }: { quest: Quest }): void => {
-      mock.mockResolvedValueOnce(quest);
+    returns: ({ questId, quest }: { questId: QuestId; quest: Quest }): void => {
+      mock.calledWith([{ questId }]).resolves(quest);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      mock.calledWith([{ questId }]).rejects(error);
     },
   };
 };

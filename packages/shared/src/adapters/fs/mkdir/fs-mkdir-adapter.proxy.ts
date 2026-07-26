@@ -17,15 +17,18 @@ export const fsMkdirAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: mkdir });
 
-  handle.mockResolvedValue({ success: true as const });
+  // Default: any unaddressed call succeeds. Kept (not removed) because
+  // chat-subagent-tail-broker.proxy.ts (packages/orchestrator) composes this adapter proxy
+  // bare, with no per-call staging, and documents that it relies on this default.
+  handle.calledWith([]).resolves({ success: true as const });
 
   return {
-    succeeds: ({ filepath: _filepath }: { filepath: FilePath }): void => {
-      handle.mockResolvedValueOnce({ success: true as const });
+    succeeds: ({ filepath }: { filepath: FilePath }): void => {
+      handle.calledWith([filepath]).resolves({ success: true as const });
     },
-    throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ filepath, error }: { filepath: FilePath; error: Error }): void => {
+      handle.calledWith([filepath]).rejects(error);
     },
-    getCreatedDirs: (): readonly unknown[] => handle.mock.calls.map((call) => call[0]),
+    getCreatedDirs: (): readonly unknown[] => handle.callsMatching([]).map((call) => call[0]),
   };
 };

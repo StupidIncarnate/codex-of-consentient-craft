@@ -17,7 +17,7 @@ export const childProcessExecSyncAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: execSync });
 
-  mock.mockReturnValue(Buffer.from(''));
+  mock.calledWith([]).returns(Buffer.from(''));
 
   return {
     returns: ({ command, output }: { command: string; output: Buffer | FileContent }): void => {

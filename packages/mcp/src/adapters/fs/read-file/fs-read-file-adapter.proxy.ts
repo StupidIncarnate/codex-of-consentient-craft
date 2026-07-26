@@ -3,8 +3,8 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileAdapterProxy = (): {
-  returns: ({ filepath, contents }: { filepath: PathSegment; contents: FileContents }) => void;
-  throws: ({ filepath, error }: { filepath: PathSegment; error: Error }) => void;
+  returns: ({ contents }: { contents: FileContents }) => void;
+  throws: ({ error }: { error: Error }) => void;
   returnsFor: ({ filepath, contents }: { filepath: PathSegment; contents: FileContents }) => void;
   throwsFor: ({ filepath, error }: { filepath: PathSegment; error: Error }) => void;
 } => {
@@ -12,20 +12,22 @@ export const fsReadFileAdapterProxy = (): {
 
   // Default: passthrough to real readFile so tests that read real files still work
   const actualFs = requireActual<{ readFile: typeof readFile }>({ module: 'fs/promises' });
-  handle.mockImplementation((async (path: unknown) =>
-    actualFs.readFile(path as Parameters<typeof readFile>[0], 'utf-8')) as (
-    ...args: never[]
-  ) => unknown);
+  handle
+    .calledWith([])
+    .implement((async (path: unknown) =>
+      actualFs.readFile(path as Parameters<typeof readFile>[0], 'utf-8')) as (
+      ...args: never[]
+    ) => unknown);
 
   return {
     // Queued answers, for callers whose read path is not knowable at staging time — e.g. a proxy
     // whose broker builds the path with a mocked pathJoinAdapter, or one that walks a directory
     // listing and reads whatever it finds. Those address their answers by call order.
-    returns: ({ contents }: { filepath: PathSegment; contents: FileContents }): void => {
-      handle.mockResolvedValueOnce(contents);
+    returns: ({ contents }: { contents: FileContents }): void => {
+      handle.onceFor([]).resolves(contents);
     },
-    throws: ({ error }: { filepath: PathSegment; error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ error }: { error: Error }): void => {
+      handle.onceFor([]).rejects(error);
     },
 
     // Argument-addressed answers. fsReadFileAdapter calls readFile(filepath, 'utf8') — the path

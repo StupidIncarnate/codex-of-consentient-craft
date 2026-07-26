@@ -15,8 +15,8 @@ describe('index', () => {
         // Success - no error thrown
       });
 
-      expect(exitSpy.mock.calls).toStrictEqual([]);
-      expect(stderrSpy.mock.calls).toStrictEqual([]);
+      expect(exitSpy.callsMatching([])).toStrictEqual([]);
+      expect(stderrSpy.callsMatching([])).toStrictEqual([]);
     });
 
     it('ERROR: StartMcpServer throws Error => writes to stderr and exits with code 1', async () => {
@@ -29,8 +29,10 @@ describe('index', () => {
         return Promise.reject(testError);
       });
 
-      expect(stderrSpy.mock.calls).toStrictEqual([['MCP server error: Test server error\n']]);
-      expect(exitSpy.mock.calls).toStrictEqual([[1]]);
+      expect(stderrSpy.callsMatching([])).toStrictEqual([
+        ['MCP server error: Test server error\n'],
+      ]);
+      expect(exitSpy.callsMatching([])).toStrictEqual([[1]]);
     });
 
     it('ERROR: StartMcpServer throws non-Error object => writes stringified error to stderr and exits with code 1', async () => {
@@ -44,8 +46,8 @@ describe('index', () => {
         return Promise.reject(stringError);
       });
 
-      expect(stderrSpy.mock.calls).toStrictEqual([['MCP server error: String error\n']]);
-      expect(exitSpy.mock.calls).toStrictEqual([[1]]);
+      expect(stderrSpy.callsMatching([])).toStrictEqual([['MCP server error: String error\n']]);
+      expect(exitSpy.callsMatching([])).toStrictEqual([[1]]);
     });
   });
 });

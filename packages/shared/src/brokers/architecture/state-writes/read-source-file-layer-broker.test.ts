@@ -10,7 +10,7 @@ describe('readSourceFileLayerBroker', () => {
       const filePath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/broker.ts' });
       const content = ContentTextStub({ value: 'export const foo = () => {};' });
 
-      proxy.setupReturns({ content });
+      proxy.setupReturns({ filePath, content });
 
       const result = readSourceFileLayerBroker({ filePath });
 
@@ -23,7 +23,7 @@ describe('readSourceFileLayerBroker', () => {
       const proxy = readSourceFileLayerBrokerProxy();
       const filePath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/missing.ts' });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ filePath });
 
       const result = readSourceFileLayerBroker({ filePath });
 

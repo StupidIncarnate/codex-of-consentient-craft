@@ -10,7 +10,7 @@ describe('orchestratorFindQuestBySessionIdAdapter', () => {
       const questId = QuestIdStub({ value: 'q-adapter-sess-1' });
       const sessionId = SessionIdStub({ value: 'session-adapter-001' });
 
-      proxy.returns({ questId });
+      proxy.returns({ sessionId, questId });
 
       const result = await orchestratorFindQuestBySessionIdAdapter({ sessionId });
 
@@ -21,7 +21,7 @@ describe('orchestratorFindQuestBySessionIdAdapter', () => {
       const proxy = orchestratorFindQuestBySessionIdAdapterProxy();
       const sessionId = SessionIdStub({ value: 'session-adapter-002' });
 
-      proxy.returns({ questId: null });
+      proxy.returns({ sessionId, questId: null });
 
       const result = await orchestratorFindQuestBySessionIdAdapter({ sessionId });
 
@@ -34,7 +34,7 @@ describe('orchestratorFindQuestBySessionIdAdapter', () => {
       const proxy = orchestratorFindQuestBySessionIdAdapterProxy();
       const sessionId = SessionIdStub({ value: 'session-adapter-003' });
 
-      proxy.throws({ error: new Error('session lookup failed') });
+      proxy.throws({ sessionId, error: new Error('session lookup failed') });
 
       await expect(orchestratorFindQuestBySessionIdAdapter({ sessionId })).rejects.toThrow(
         /^session lookup failed$/u,

@@ -14,6 +14,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       const lines: unknown[] = [];
 
       proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
         exitCode: ExitCodeStub({ value: 0 }),
         stdoutLines: ['run: 123-abc', 'lint: PASS', 'unit: FAIL'],
       });
@@ -44,6 +45,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
         exitCode: ExitCodeStub({ value: 0 }),
         stdoutLines: ['line-one', 'line-two'],
       });
@@ -68,6 +70,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       const lines: unknown[] = [];
 
       proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
         exitCode: ExitCodeStub({ value: 1 }),
         stdoutLines: ['stdout-line'],
         stderrChunks: ['stderr-chunk'],
@@ -95,6 +98,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
         exitCode: ExitCodeStub({ value: 1 }),
         stdoutLines: ['run: 456-def'],
       });
@@ -118,6 +122,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
         exitCode: ExitCodeStub({ value: 0 }),
         stdoutLines: [],
       });
@@ -141,6 +146,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
       proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
         exitCode: ExitCodeStub({ value: 0 }),
         stdoutLines: [],
       });
@@ -162,7 +168,7 @@ describe('childProcessSpawnStreamLinesAdapter', () => {
     it('ERROR: {spawn error} => returns exit code 1 with empty output', async () => {
       const proxy = childProcessSpawnStreamLinesAdapterProxy();
 
-      proxy.setupError({ error: new Error('spawn failed') });
+      proxy.setupError({ command: 'nonexistent', error: new Error('spawn failed') });
 
       const result = await childProcessSpawnStreamLinesAdapter({
         command: 'nonexistent',

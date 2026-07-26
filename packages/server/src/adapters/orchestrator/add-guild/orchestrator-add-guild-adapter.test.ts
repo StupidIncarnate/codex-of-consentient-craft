@@ -11,7 +11,7 @@ describe('orchestratorAddGuildAdapter', () => {
       const path = GuildPathStub({ value: '/home/user/my-guild' });
       const guild = GuildStub({ name, path });
 
-      proxy.returns({ guild });
+      proxy.returns({ name, path, guild });
 
       const result = await orchestratorAddGuildAdapter({ name, path });
 
@@ -19,9 +19,10 @@ describe('orchestratorAddGuildAdapter', () => {
     });
 
     it('VALID: {name, path} => returns guild with defaults', async () => {
-      orchestratorAddGuildAdapterProxy();
+      const proxy = orchestratorAddGuildAdapterProxy();
       const name = GuildNameStub();
       const path = GuildPathStub();
+      proxy.returns({ name, path, guild: GuildStub() });
 
       const result = await orchestratorAddGuildAdapter({ name, path });
 
@@ -35,7 +36,7 @@ describe('orchestratorAddGuildAdapter', () => {
       const name = GuildNameStub();
       const path = GuildPathStub();
 
-      proxy.throws({ error: new Error('Failed to add guild') });
+      proxy.throws({ name, path, error: new Error('Failed to add guild') });
 
       await expect(orchestratorAddGuildAdapter({ name, path })).rejects.toThrow(
         /Failed to add guild/u,

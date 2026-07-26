@@ -10,14 +10,13 @@ export const orchestratorRecoverActiveQuestsAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.recoverActiveQuests });
 
-  mock.mockResolvedValue([]);
-
   return {
+    // recoverActiveQuests takes no argument — [] is the honest, non-catch-all address.
     returns: ({ questIds }: { questIds: QuestId[] }): void => {
-      mock.mockResolvedValueOnce(questIds);
+      mock.calledWith([]).resolves(questIds);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      mock.calledWith([]).rejects(error);
     },
   };
 };

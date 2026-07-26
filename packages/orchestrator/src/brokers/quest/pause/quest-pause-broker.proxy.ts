@@ -15,14 +15,18 @@
  * // ...call broker...
  * const persisted = proxy.getLastPersistedQuest();
  *
- * WHY registerModuleMock: callers of questPauseBroker live in different files; stack-based
- * registerMock dispatch won't match those callers. registerModuleMock + jest.mocked gives
- * all callers the mocked version globally, matching the questModifyBroker pattern.
+ * WHY registerModuleMock: questPauseBroker must be a mockable jest.fn() so callers in other
+ * files resolve through the mocked module. calledWith/onceFor below answer by ARGUMENTS, not by
+ * which file is calling, so every caller sees the same staged behaviour globally.
  */
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { questPauseBroker } from './quest-pause-broker';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
@@ -43,26 +47,28 @@ export const questPauseBrokerProxy = (): {
   getLastPersistedQuest: () => Parsed;
   getCallArgs: () => readonly unknown[][];
 } => {
-  const mocked = questPauseBroker as jest.MockedFunction<typeof questPauseBroker>;
-  mocked.mockResolvedValue({ paused: true });
+  const mocked = registerMock({ fn: questPauseBroker });
+  // questId/guildId/previousStatus vary per call but neither the stub result nor the passthrough
+  // depends on which quest was paused — `[]` is the honest address for both.
+  mocked.calledWith([]).resolves({ paused: true });
 
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
 
   return {
     setupPaused: (): void => {
-      mocked.mockResolvedValueOnce({ paused: true });
+      mocked.onceFor([]).resolves({ paused: true });
     },
 
     setupNotPaused: (): void => {
-      mocked.mockResolvedValueOnce({ paused: false });
+      mocked.onceFor([]).resolves({ paused: false });
     },
 
     setupPassthrough: (): void => {
       const realMod = requireActual<{ questPauseBroker: typeof questPauseBroker }>({
         module: './quest-pause-broker',
       });
-      mocked.mockImplementation(realMod.questPauseBroker);
+      mocked.calledWith([]).implement(realMod.questPauseBroker as never);
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -84,6 +90,6 @@ export const questPauseBrokerProxy = (): {
       );
     },
 
-    getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
+    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
   };
 };

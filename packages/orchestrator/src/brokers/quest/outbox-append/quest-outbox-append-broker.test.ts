@@ -17,7 +17,7 @@ describe('questOutboxAppendBroker', () => {
 
       await questOutboxAppendBroker({ questId });
 
-      expect(proxy.getAppendedContent()).toBe(
+      expect(proxy.getAppendedContent({ outboxFilePath })).toBe(
         '{"questId":"add-auth","timestamp":"2024-01-15T10:00:00.000Z"}\n',
       );
     });
@@ -49,7 +49,7 @@ describe('questOutboxAppendBroker', () => {
 
       await questOutboxAppendBroker({ questId });
 
-      expect(proxy.getAppendedContent()).toBe(
+      expect(proxy.getAppendedContent({ outboxFilePath })).toBe(
         '{"questId":"fix-login-bug","timestamp":"2024-01-15T10:00:00.000Z"}\n',
       );
     });

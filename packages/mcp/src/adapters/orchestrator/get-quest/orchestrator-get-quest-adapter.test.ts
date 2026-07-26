@@ -9,7 +9,7 @@ describe('orchestratorGetQuestAdapter', () => {
       const proxy = orchestratorGetQuestAdapterProxy();
       const expectedResult = GetQuestResultStub();
 
-      proxy.returns({ result: expectedResult });
+      proxy.returns({ questId: 'add-auth', result: expectedResult });
 
       const result = await orchestratorGetQuestAdapter({
         questId: 'add-auth',
@@ -22,7 +22,7 @@ describe('orchestratorGetQuestAdapter', () => {
       const proxy = orchestratorGetQuestAdapterProxy();
       const expectedResult = GetQuestResultStub();
 
-      proxy.returns({ result: expectedResult });
+      proxy.returns({ questId: 'add-auth', result: expectedResult });
 
       const result = await orchestratorGetQuestAdapter({
         questId: 'add-auth',
@@ -37,7 +37,7 @@ describe('orchestratorGetQuestAdapter', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorGetQuestAdapterProxy();
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId: 'non-existent', error: new Error('Quest not found') });
 
       await expect(
         orchestratorGetQuestAdapter({

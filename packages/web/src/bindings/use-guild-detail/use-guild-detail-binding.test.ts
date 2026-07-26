@@ -88,29 +88,25 @@ describe('useGuildDetailBinding', () => {
     it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-guild-detail] prefix', async () => {
       const proxy = useGuildDetailBindingProxy();
       const testGuildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      proxy.setupOuterCatchTrigger();
-
-      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+      proxy.setupOuterCatchTrigger({ guildId: testGuildId });
 
       testingLibraryRenderHookAdapter({
         renderCallback: () => useGuildDetailBinding({ guildId: testGuildId }),
       });
 
-      const getErrorCalls = (): unknown[][] => consoleErrorCalls;
-
       await testingLibraryWaitForAdapter({
         callback: () => {
-          const loggedError = getErrorCalls()[0]?.[1];
+          const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
 
           expect(loggedError).toBeInstanceOf(Error);
-          expect(getErrorCalls()).toStrictEqual([['[use-guild-detail]', loggedError]]);
+          expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guild-detail]', loggedError]]);
         },
       });
 
-      const loggedError = consoleErrorCalls[0]?.[1];
+      const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
 
       expect(loggedError).toBeInstanceOf(Error);
-      expect(consoleErrorCalls).toStrictEqual([['[use-guild-detail]', loggedError]]);
+      expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guild-detail]', loggedError]]);
     });
   });
 });

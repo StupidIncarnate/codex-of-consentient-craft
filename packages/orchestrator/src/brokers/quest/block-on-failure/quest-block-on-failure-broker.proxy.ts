@@ -15,14 +15,18 @@
  * // ...call broker...
  * const persisted = proxy.getLastPersistedQuest();
  *
- * WHY registerModuleMock: callers of questBlockOnFailureBroker live in different files; stack-based
- * registerMock dispatch won't match those callers. registerModuleMock + jest.mocked gives all
- * callers the mocked version globally, matching the questPauseBroker / questModifyBroker pattern.
+ * WHY registerModuleMock: questBlockOnFailureBroker must be a mockable jest.fn() so callers in
+ * other files resolve through the mocked module. calledWith/onceFor below answer by ARGUMENTS,
+ * not by which file is calling, so every caller sees the same staged behaviour globally.
  */
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { questBlockOnFailureBroker } from './quest-block-on-failure-broker';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
@@ -41,22 +45,24 @@ export const questBlockOnFailureBrokerProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Parsed;
 } => {
-  const mocked = questBlockOnFailureBroker as jest.MockedFunction<typeof questBlockOnFailureBroker>;
-  mocked.mockResolvedValue({ blocked: true });
+  const mocked = registerMock({ fn: questBlockOnFailureBroker });
+  // questId/failedWorkItemId vary per call but neither the stub result nor the passthrough
+  // depends on which quest was blocked — `[]` is the honest address for both.
+  mocked.calledWith([]).resolves({ blocked: true });
 
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
 
   return {
     setupBlocked: (): void => {
-      mocked.mockResolvedValueOnce({ blocked: true });
+      mocked.onceFor([]).resolves({ blocked: true });
     },
 
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         questBlockOnFailureBroker: typeof questBlockOnFailureBroker;
       }>({ module: './quest-block-on-failure-broker' });
-      mocked.mockImplementation(realMod.questBlockOnFailureBroker);
+      mocked.calledWith([]).implement(realMod.questBlockOnFailureBroker as never);
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

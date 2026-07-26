@@ -5,7 +5,7 @@ describe('InstallDetectConfigResponder', () => {
   describe('no existing config', () => {
     it('VALID: {context: no existing config} => creates eslint.config.js', () => {
       const proxy = InstallDetectConfigResponderProxy();
-      proxy.setupNoConfigExists();
+      proxy.setupNoConfigExists({ targetProjectRoot: '/test/project' });
 
       const result = proxy.callResponder({
         context: {

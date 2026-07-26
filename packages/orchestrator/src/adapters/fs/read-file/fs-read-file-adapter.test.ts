@@ -9,7 +9,7 @@ describe('fsReadFileAdapter', () => {
       const filePath = FilePathStub({ value: '/quest.json' });
       const expectedContent = FileContentsStub({ value: '{"name":"test quest"}' });
 
-      proxy.resolves({ content: expectedContent });
+      proxy.resolves({ filePath, content: expectedContent });
 
       const result = await fsReadFileAdapter({ filePath });
 
@@ -21,7 +21,7 @@ describe('fsReadFileAdapter', () => {
       const filePath = FilePathStub({ value: './relative/path/quest.json' });
       const jsonContent = FileContentsStub({ value: '{"id": "quest-1", "status": "active"}' });
 
-      proxy.resolves({ content: jsonContent });
+      proxy.resolves({ filePath, content: jsonContent });
 
       const result = await fsReadFileAdapter({ filePath });
 
@@ -33,7 +33,7 @@ describe('fsReadFileAdapter', () => {
       const filePath = FilePathStub({ value: '/absolute/path/empty.txt' });
       const expectedContent = FileContentsStub({ value: '' });
 
-      proxy.resolves({ content: expectedContent });
+      proxy.resolves({ filePath, content: expectedContent });
 
       const result = await fsReadFileAdapter({ filePath });
 
@@ -49,7 +49,7 @@ describe('fsReadFileAdapter', () => {
         code: 'ENOENT',
       });
 
-      proxy.rejects({ error: fileNotFoundError });
+      proxy.rejects({ filePath, error: fileNotFoundError });
 
       await expect(fsReadFileAdapter({ filePath })).rejects.toThrow(
         `Failed to read file at ${filePath}`,
@@ -63,7 +63,7 @@ describe('fsReadFileAdapter', () => {
         code: 'EACCES',
       });
 
-      proxy.rejects({ error: permissionError });
+      proxy.rejects({ filePath, error: permissionError });
 
       await expect(fsReadFileAdapter({ filePath })).rejects.toThrow(
         `Failed to read file at ${filePath}`,
@@ -77,7 +77,7 @@ describe('fsReadFileAdapter', () => {
         code: 'EISDIR',
       });
 
-      proxy.rejects({ error: isDirError });
+      proxy.rejects({ filePath, error: isDirError });
 
       await expect(fsReadFileAdapter({ filePath })).rejects.toThrow(
         `Failed to read file at ${filePath}`,
@@ -93,7 +93,7 @@ describe('fsReadFileAdapter', () => {
         value: 'Unicode content with special characters',
       });
 
-      proxy.resolves({ content: unicodeContent });
+      proxy.resolves({ filePath, content: unicodeContent });
 
       const result = await fsReadFileAdapter({ filePath });
 

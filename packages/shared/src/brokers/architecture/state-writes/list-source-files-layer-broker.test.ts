@@ -9,7 +9,7 @@ describe('listSourceFilesLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
       const filePath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/broker.ts' });
 
-      proxy.setupFlatDirectory({ filePaths: [filePath] });
+      proxy.setupFlatDirectory({ dirPath, filePaths: [filePath] });
 
       const result = listSourceFilesLayerBroker({ dirPath });
 
@@ -21,7 +21,7 @@ describe('listSourceFilesLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
       const testFile = AbsoluteFilePathStub({ value: '/repo/packages/server/src/broker.test.ts' });
 
-      proxy.setupFlatDirectory({ filePaths: [testFile] });
+      proxy.setupFlatDirectory({ dirPath, filePaths: [testFile] });
 
       const result = listSourceFilesLayerBroker({ dirPath });
 
@@ -35,7 +35,7 @@ describe('listSourceFilesLayerBroker', () => {
         value: '/repo/packages/server/src/broker.proxy.ts',
       });
 
-      proxy.setupFlatDirectory({ filePaths: [proxyFile] });
+      proxy.setupFlatDirectory({ dirPath, filePaths: [proxyFile] });
 
       const result = listSourceFilesLayerBroker({ dirPath });
 
@@ -47,7 +47,7 @@ describe('listSourceFilesLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
       const stubFile = AbsoluteFilePathStub({ value: '/repo/packages/server/src/user.stub.ts' });
 
-      proxy.setupFlatDirectory({ filePaths: [stubFile] });
+      proxy.setupFlatDirectory({ dirPath, filePaths: [stubFile] });
 
       const result = listSourceFilesLayerBroker({ dirPath });
 
@@ -59,7 +59,7 @@ describe('listSourceFilesLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
       const jsonFile = AbsoluteFilePathStub({ value: '/repo/packages/server/src/config.json' });
 
-      proxy.setupFlatDirectory({ filePaths: [jsonFile] });
+      proxy.setupFlatDirectory({ dirPath, filePaths: [jsonFile] });
 
       const result = listSourceFilesLayerBroker({ dirPath });
 
@@ -72,7 +72,7 @@ describe('listSourceFilesLayerBroker', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
-      proxy.setupEmpty();
+      proxy.setupEmpty({ dirPath });
 
       const result = listSourceFilesLayerBroker({ dirPath });
 

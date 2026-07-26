@@ -1,30 +1,41 @@
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+
 import { readPackageJsonSafeLayerBrokerProxy } from './read-package-json-safe-layer-broker.proxy';
 import { readTsconfigSafeLayerBrokerProxy } from './read-tsconfig-safe-layer-broker.proxy';
 
 export const workspaceInputBuildLayerBrokerProxy = (): {
-  setupWorkspace: (params: { tsconfigJson: string | null; packageJson: string | null }) => void;
+  setupWorkspace: (params: {
+    folderPath: string;
+    tsconfigJson: string | null;
+    packageJson: string | null;
+  }) => void;
 } => {
   const tsconfigProxy = readTsconfigSafeLayerBrokerProxy();
   const pkgProxy = readPackageJsonSafeLayerBrokerProxy();
 
   return {
     setupWorkspace: ({
+      folderPath,
       tsconfigJson,
       packageJson,
     }: {
+      folderPath: string;
       tsconfigJson: string | null;
       packageJson: string | null;
     }): void => {
+      const tsconfigPath = filePathContract.parse(`${folderPath}/tsconfig.json`);
+      const pkgJsonPath = filePathContract.parse(`${folderPath}/package.json`);
+
       if (tsconfigJson === null) {
-        tsconfigProxy.throws({ error: new Error('ENOENT') });
+        tsconfigProxy.throws({ tsconfigPath, error: new Error('ENOENT') });
       } else {
-        tsconfigProxy.returns({ content: tsconfigJson });
+        tsconfigProxy.returns({ tsconfigPath, content: tsconfigJson });
       }
 
       if (packageJson === null) {
-        pkgProxy.throws({ error: new Error('ENOENT') });
+        pkgProxy.throws({ pkgJsonPath, error: new Error('ENOENT') });
       } else {
-        pkgProxy.returns({ content: packageJson });
+        pkgProxy.returns({ pkgJsonPath, content: packageJson });
       }
     },
   };

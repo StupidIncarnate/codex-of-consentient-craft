@@ -3,6 +3,7 @@ import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
 import { formatFolderContentLayerBrokerProxy } from './format-folder-content-layer-broker.proxy';
 import { readPackageDescriptionLayerBrokerProxy } from './read-package-description-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
@@ -86,7 +87,13 @@ const buildPackagePathMap = ({
 };
 
 export const architecturePackageInventoryBrokerProxy = (): {
-  setupEmpty: () => void;
+  setupEmpty: ({
+    srcPath,
+    packageJsonPath,
+  }: {
+    srcPath: AbsoluteFilePath;
+    packageJsonPath: AbsoluteFilePath;
+  }) => void;
   setupPackage: ({
     packageName,
     description,
@@ -132,9 +139,15 @@ export const architecturePackageInventoryBrokerProxy = (): {
   const descriptionProxy = readPackageDescriptionLayerBrokerProxy();
 
   return {
-    setupEmpty: (): void => {
-      safeProxy.setupDirectory({ entries: [] });
-      descriptionProxy.setupNoPackageJson();
+    setupEmpty: ({
+      srcPath,
+      packageJsonPath,
+    }: {
+      srcPath: AbsoluteFilePath;
+      packageJsonPath: AbsoluteFilePath;
+    }): void => {
+      safeProxy.setupDirectory({ dirPath: srcPath, entries: [] });
+      descriptionProxy.setupNoPackageJson({ packageJsonPath });
     },
 
     setupPackage: ({

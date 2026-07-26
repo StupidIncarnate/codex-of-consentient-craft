@@ -12,12 +12,13 @@ describe('InstallConfigCreateResponder', () => {
   describe('no existing config', () => {
     it('VALID: {no .mcp.json} => creates new config with dungeonmaster', async () => {
       const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
 
-      proxy.setupFileReadError();
+      proxy.setupFileReadError({ targetProjectRoot });
 
       const result = await proxy.callResponder({
         context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
+          targetProjectRoot,
           dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
         },
       });
@@ -29,7 +30,7 @@ describe('InstallConfigCreateResponder', () => {
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
 
-      const writtenConfig = proxy.getWrittenConfig();
+      const writtenConfig = proxy.getWrittenConfig({ targetProjectRoot });
 
       expect(writtenConfig).toBe(
         JSON.stringify(
@@ -52,8 +53,10 @@ describe('InstallConfigCreateResponder', () => {
   describe('existing config with dungeonmaster', () => {
     it('VALID: {dungeonmaster already configured} => skips config but adds permissions', async () => {
       const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
 
       proxy.setupFileRead({
+        targetProjectRoot,
         content: FileContentsStub({
           value: JSON.stringify({
             mcpServers: {
@@ -69,7 +72,7 @@ describe('InstallConfigCreateResponder', () => {
 
       const result = await proxy.callResponder({
         context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
+          targetProjectRoot,
           dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
         },
       });
@@ -86,8 +89,10 @@ describe('InstallConfigCreateResponder', () => {
   describe('existing config without dungeonmaster', () => {
     it('VALID: {other servers configured} => merges dungeonmaster config', async () => {
       const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
 
       proxy.setupFileRead({
+        targetProjectRoot,
         content: FileContentsStub({
           value: JSON.stringify({
             mcpServers: {
@@ -103,7 +108,7 @@ describe('InstallConfigCreateResponder', () => {
 
       const result = await proxy.callResponder({
         context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
+          targetProjectRoot,
           dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
         },
       });
@@ -115,7 +120,7 @@ describe('InstallConfigCreateResponder', () => {
         message: 'Merged dungeonmaster into existing .mcp.json and added permissions',
       });
 
-      const writtenConfig = proxy.getWrittenConfig();
+      const writtenConfig = proxy.getWrittenConfig({ targetProjectRoot });
 
       expect(writtenConfig).toBe(
         JSON.stringify(
@@ -143,14 +148,16 @@ describe('InstallConfigCreateResponder', () => {
   describe('invalid JSON config', () => {
     it('VALID: {invalid JSON in .mcp.json} => creates new config', async () => {
       const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
 
       proxy.setupFileRead({
+        targetProjectRoot,
         content: FileContentsStub({ value: 'invalid json{' }),
       });
 
       const result = await proxy.callResponder({
         context: {
-          targetProjectRoot: FilePathStub({ value: '/project' }),
+          targetProjectRoot,
           dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
         },
       });
@@ -162,7 +169,7 @@ describe('InstallConfigCreateResponder', () => {
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
 
-      const writtenConfig = proxy.getWrittenConfig();
+      const writtenConfig = proxy.getWrittenConfig({ targetProjectRoot });
 
       expect(writtenConfig).toBe(
         JSON.stringify(

@@ -15,7 +15,7 @@ export const fsExistsAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: existsSync });
 
-  mock.mockReturnValue(false);
+  mock.calledWith([]).returns(false);
 
   return {
     returns: ({ filePath, exists }: { filePath: string; exists: boolean }): void => {

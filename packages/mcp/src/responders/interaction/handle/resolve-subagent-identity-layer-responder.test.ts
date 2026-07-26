@@ -9,10 +9,22 @@ describe('ResolveSubagentIdentityLayerResponder', () => {
     const toolUseId = 'toolu_011pw36EFwmLorR7MdaSDEQG';
 
     proxy.setupCwd({ path: '/home/user/proj' });
-    proxy.setupHomeDir({ path: '/home/user' });
-    proxy.enqueueSessionsDir({ entries: [`${parentSessionId}.jsonl`] });
-    proxy.enqueueSubagentsDir({ entries: [`agent-${realAgentId}.jsonl`] });
-    proxy.enqueueMetaFileContents({
+    proxy.setupSessionsDir({
+      homedir: '/home/user',
+      projectDir: '/home/user/proj',
+      sessionIds: [parentSessionId],
+    });
+    proxy.setupSubagentsDir({
+      homedir: '/home/user',
+      projectDir: '/home/user/proj',
+      sessionId: parentSessionId,
+      agentFilenames: [`agent-${realAgentId}.jsonl`],
+    });
+    proxy.setupAgentFile({
+      homedir: '/home/user',
+      projectDir: '/home/user/proj',
+      sessionId: parentSessionId,
+      agentFilename: `agent-${realAgentId}.jsonl`,
       contents: JSON.stringify({
         type: 'assistant',
         message: {
@@ -59,8 +71,7 @@ describe('ResolveSubagentIdentityLayerResponder', () => {
     const proxy = ResolveSubagentIdentityLayerResponderProxy();
 
     proxy.setupCwd({ path: '/home/user/proj' });
-    proxy.setupHomeDir({ path: '/home/user' });
-    proxy.enqueueSessionsDirMissing();
+    proxy.setupSessionsDirMissing({ homedir: '/home/user', projectDir: '/home/user/proj' });
 
     const result = await ResolveSubagentIdentityLayerResponder({
       meta: { 'claudecode/toolUseId': 'toolu_011pw36EFwmLorR7MdaSDEQG' },

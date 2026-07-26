@@ -7,9 +7,9 @@ import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dir
 export const configResolveBrokerProxy = (): {
   setupConfigFound: (params: { startPath: string; configPath: string }) => void;
   setupConfigNotFound: (params: { startPath: string }) => void;
-  setupValidConfig: (params: { config: Record<string, unknown> }) => void;
-  setupFileNotFound: () => void;
-  setupDirname: (params: { result: FilePath }) => void;
+  setupValidConfig: (params: { configPath: string; config: Record<string, unknown> }) => void;
+  setupFileNotFound: (params: { configPath: string }) => void;
+  setupDirname: (params: { configPath: string; result: FilePath }) => void;
 } => {
   const findProxy = configFileFindBrokerProxy();
   const loadProxy = configFileLoadBrokerProxy();
@@ -23,14 +23,24 @@ export const configResolveBrokerProxy = (): {
     setupConfigNotFound: (params: { startPath: string }): void => {
       findProxy.setupConfigNotFound(params);
     },
-    setupValidConfig: (params: { config: Record<string, unknown> }): void => {
-      loadProxy.setupValidConfig(params);
+    // configResolveBroker calls configFileLoadBroker with the configPath the preceding
+    // setupConfigFound call just described - callers pass that same value here.
+    setupValidConfig: (params: { configPath: string; config: Record<string, unknown> }): void => {
+      loadProxy.setupValidConfig({
+        configPath: params.configPath as FilePath,
+        config: params.config,
+      });
     },
-    setupFileNotFound: (): void => {
-      loadProxy.setupFileNotFound();
+    setupFileNotFound: (params: { configPath: string }): void => {
+      loadProxy.setupFileNotFound({ configPath: params.configPath as FilePath });
     },
-    setupDirname: (params: { result: FilePath }): void => {
-      dirnameProxy.returns(params);
+    // configResolveBroker calls dirname on that same configPath (when framework !== 'monorepo')
+    // to compute where to start the parent-config search. dirname is call-order-scoped (see
+    // THE JOIN/DIRNAME/BASENAME TRAP in path-dirname-adapter.proxy.ts), so configPath is kept
+    // as a parameter purely so call sites read as "dirname of this path", not because it's
+    // used to key the mock.
+    setupDirname: (params: { configPath: string; result: FilePath }): void => {
+      dirnameProxy.returns({ result: params.result });
     },
   };
 };

@@ -197,17 +197,17 @@ export const userCacheStateProxy = () => {
             userCacheState.clear(); // Already called in constructor, but semantic
         },
 
-        // Verification helpers using handle.mock.calls
+        // Verification helpers using callsMatching (a fresh snapshot on every call, not a live array)
         verifyCacheHit: () => {
-            expect(getHandle.mock.calls.length > 0).toBe(true);
+            expect(getHandle.callsMatching([]).length > 0).toBe(true);
         },
 
         verifyCacheMiss: () => {
-            expect(getHandle.mock.calls).toStrictEqual([[]]);
+            expect(getHandle.callsMatching([])).toStrictEqual([[]]);
         },
 
         verifySet: ({userId}: { userId: UserId }) => {
-            expect(setHandle.mock.calls[0]).toStrictEqual([{id: userId, user: expect.anything()}]);
+            expect(setHandle.callsMatching([])[0]).toStrictEqual([{id: userId, user: expect.anything()}]);
         }
     };
 };
@@ -229,11 +229,11 @@ export const dbPoolStateProxy = () => {
 
     return {
         setupConnection: () => {
-            mockConnect.mockResolvedValueOnce({/* mock client */});
+            mockConnect.onceFor([]).resolves({/* mock client */});
         },
 
         setupConnectionError: () => {
-            mockConnect.mockRejectedValueOnce(new Error('Connection failed'));
+            mockConnect.onceFor([]).rejects(new Error('Connection failed'));
         }
     };
 };

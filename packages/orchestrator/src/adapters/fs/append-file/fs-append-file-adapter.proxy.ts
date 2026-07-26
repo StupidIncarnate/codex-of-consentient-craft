@@ -1,43 +1,39 @@
 import { appendFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsAppendFileAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
-  getAppendedContent: () => unknown;
-  getAppendedPath: () => unknown;
+  succeeds: (params: { filePath: FilePath }) => void;
+  throws: (params: { filePath: FilePath; error: Error }) => void;
+  getAppendedFor: (params: { filePath: FilePath }) => unknown;
   getAllAppendedFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const mock: MockHandle = registerMock({ fn: appendFile });
 
-  mock.mockResolvedValue({ success: true as const });
+  // Default: any unaddressed call succeeds. Kept (not removed) because
+  // chat-subagent-tail-broker.proxy.ts composes this adapter proxy bare, with no per-call
+  // staging — it touches a dynamically-computed subagent JSONL path (built from
+  // sessionId+agentId+guildPath inside the real broker) purely to ensure the file exists,
+  // and has no way to predict that path ahead of time to address a `.succeeds()` call.
+  // Mirrors the same courtesy default fsMkdirAdapterProxy (`@dungeonmaster/shared`) keeps
+  // for the sibling mkdir call in that same broker.
+  mock.calledWith([]).resolves({ success: true as const });
 
   return {
-    succeeds: (): void => {
-      mock.mockResolvedValueOnce({ success: true as const });
+    succeeds: ({ filePath }: { filePath: FilePath }): void => {
+      mock.calledWith([filePath]).resolves({ success: true as const });
     },
 
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ filePath, error }: { filePath: FilePath; error: Error }): void => {
+      mock.calledWith([filePath]).rejects(error);
     },
 
-    getAppendedContent: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
-
-    getAppendedPath: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getAppendedFor: ({ filePath }: { filePath: FilePath }): unknown =>
+      mock.callsMatching([filePath]).at(-1)?.[1],
 
     getAllAppendedFiles: (): readonly { path: unknown; content: unknown }[] =>
-      mock.mock.calls.map((call) => ({
+      mock.callsMatching([]).map((call) => ({
         path: call[0],
         content: call[1],
       })),

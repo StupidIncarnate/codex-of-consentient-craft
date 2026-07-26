@@ -9,6 +9,7 @@ describe('tsconfigPairWriteLayerBroker()', () => {
     it('VALID: {pair with refs, ensureComposite: true} => writes updated tsconfig and returns path', async () => {
       const proxy = tsconfigPairWriteLayerBrokerProxy();
       const tsconfigPath = AbsoluteFilePathStub({ value: '/repo/packages/hooks/tsconfig.json' });
+      proxy.setupWrite({ filePath: tsconfigPath });
       const pair = TsconfigSyncPairStub({
         tsconfigPath,
         currentData: { compilerOptions: { composite: true }, references: [] },
@@ -33,6 +34,7 @@ describe('tsconfigPairWriteLayerBroker()', () => {
     it('VALID: {pair with ensureComposite: false} => writes references only without composite', async () => {
       const proxy = tsconfigPairWriteLayerBrokerProxy();
       const tsconfigPath = AbsoluteFilePathStub({ value: '/repo/tsconfig.json' });
+      proxy.setupWrite({ filePath: tsconfigPath });
       const pair = TsconfigSyncPairStub({
         tsconfigPath,
         currentData: {},

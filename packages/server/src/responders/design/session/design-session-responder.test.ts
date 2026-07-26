@@ -30,13 +30,14 @@ describe('DesignSessionResponder', () => {
       'VALID: {status: %s} => returns 200 with chatProcessId',
       async (status) => {
         const proxy = DesignSessionResponderProxy();
+        const questId = QuestIdStub();
         const chatProcessId = ProcessIdStub();
-        const quest = QuestStub({ status: status as never });
+        const quest = QuestStub({ id: questId, status: status as never });
         proxy.setupQuest({ quest });
-        proxy.setupDesignChat({ chatProcessId });
+        proxy.setupDesignChat({ questId, chatProcessId });
 
         const result = await proxy.callResponder({
-          params: { questId: QuestIdStub() },
+          params: { questId },
           body: { guildId: GuildIdStub(), message: 'Update the button color' },
         });
 
@@ -53,11 +54,12 @@ describe('DesignSessionResponder', () => {
       'INVALID: {status: %s} => returns 400 with error',
       async (status) => {
         const proxy = DesignSessionResponderProxy();
-        const quest = QuestStub({ status: status as never });
+        const questId = QuestIdStub();
+        const quest = QuestStub({ id: questId, status: status as never });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({
-          params: { questId: QuestIdStub() },
+          params: { questId },
           body: { guildId: GuildIdStub(), message: 'Update the button color' },
         });
 
@@ -138,12 +140,13 @@ describe('DesignSessionResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500', async () => {
       const proxy = DesignSessionResponderProxy();
-      const quest = QuestStub({ status: 'explore_design' as never });
+      const questId = QuestIdStub();
+      const quest = QuestStub({ id: questId, status: 'explore_design' as never });
       proxy.setupQuest({ quest });
-      proxy.setupDesignChatError({ error: new Error('Design chat failed') });
+      proxy.setupDesignChatError({ questId, error: new Error('Design chat failed') });
 
       const result = await proxy.callResponder({
-        params: { questId: QuestIdStub() },
+        params: { questId },
         body: { guildId: GuildIdStub(), message: 'Update button' },
       });
 

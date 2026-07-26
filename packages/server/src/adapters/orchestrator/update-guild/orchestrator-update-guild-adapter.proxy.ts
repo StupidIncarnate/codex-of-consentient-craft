@@ -1,23 +1,21 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
 
 export const orchestratorUpdateGuildAdapterProxy = (): {
-  returns: (params: { guild: Guild }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { guildId: GuildId; guild: Guild }) => void;
+  throws: (params: { guildId: GuildId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.updateGuild });
 
-  mock.mockResolvedValue(GuildStub());
-
   return {
-    returns: ({ guild }: { guild: Guild }): void => {
-      mock.mockResolvedValueOnce(guild);
+    returns: ({ guildId, guild }: { guildId: GuildId; guild: Guild }): void => {
+      mock.calledWith([{ guildId }]).resolves(guild);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+      mock.calledWith([{ guildId }]).rejects(error);
     },
   };
 };

@@ -4,8 +4,9 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 
 describe('safeReaddirLayerBroker', () => {
   it('VALID: {readdir succeeds with default empty} => returns empty array', () => {
-    safeReaddirLayerBrokerProxy();
+    const proxy = safeReaddirLayerBrokerProxy();
     const dirPath = AbsoluteFilePathStub({ value: '/some/dir' });
+    proxy.setupReaddirReturns({ dirPath, entries: [] });
 
     const result = safeReaddirLayerBroker({ dirPath });
 
@@ -14,8 +15,8 @@ describe('safeReaddirLayerBroker', () => {
 
   it('EMPTY: {readdir throws ENOENT} => returns empty array (swallowed)', () => {
     const proxy = safeReaddirLayerBrokerProxy();
-    proxy.setupReaddirThrows({ error: new Error('ENOENT') });
     const dirPath = AbsoluteFilePathStub({ value: '/missing/dir' });
+    proxy.setupReaddirThrows({ dirPath, error: new Error('ENOENT') });
 
     const result = safeReaddirLayerBroker({ dirPath });
 

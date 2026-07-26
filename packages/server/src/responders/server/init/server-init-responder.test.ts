@@ -163,6 +163,7 @@ describe('ServerInitResponder', () => {
       });
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
+        questId,
         questPath: AbsoluteFilePathStub({ value: '/q/path' }),
         guildId,
       });
@@ -229,6 +230,7 @@ describe('ServerInitResponder', () => {
       });
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
+        questId,
         questPath: AbsoluteFilePathStub({ value: '/q/path' }),
         guildId,
       });
@@ -265,6 +267,7 @@ describe('ServerInitResponder', () => {
       const quest = QuestStub({ id: questId, status: 'complete', workItems: [] });
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
+        questId,
         questPath: AbsoluteFilePathStub({ value: '/q/path' }),
         guildId,
       });
@@ -574,6 +577,7 @@ describe('ServerInitResponder', () => {
       });
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
+        questId,
         questPath: AbsoluteFilePathStub({ value: '/q/path' }),
         guildId,
       });

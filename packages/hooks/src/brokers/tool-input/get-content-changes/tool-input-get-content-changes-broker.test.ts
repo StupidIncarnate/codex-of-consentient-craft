@@ -10,12 +10,13 @@ describe('toolInputGetContentChangesBroker', () => {
   describe('Write tool', () => {
     it('VALID: WriteToolInput with existing file => returns old and new content', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = WriteToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         content: 'New content',
       });
 
-      proxy.setupReadFileSuccess({ content: FileContentsStub({ value: 'Old content' }) });
+      proxy.setupReadFileSuccess({ filePath, content: FileContentsStub({ value: 'Old content' }) });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -29,12 +30,13 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('VALID: WriteToolInput with new file (ENOENT) => returns empty old content and new content', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/newfile.txt' });
       const toolInput = WriteToolInputStub({
-        file_path: FilePathStub({ value: '/test/newfile.txt' }),
+        file_path: filePath,
         content: 'New file content',
       });
 
-      proxy.setupReadFileNotFound();
+      proxy.setupReadFileNotFound({ filePath });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -48,14 +50,15 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('ERROR: WriteToolInput file read error (not ENOENT) => throws error', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = WriteToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         content: 'New content',
       });
 
       const error = new Error('Permission denied') as NodeJS.ErrnoException;
       error.code = 'EACCES';
-      proxy.setupReadFileError({ error });
+      proxy.setupReadFileError({ filePath, error });
 
       await expect(toolInputGetContentChangesBroker({ toolInput })).rejects.toThrow(
         /Permission denied/u,
@@ -66,16 +69,15 @@ describe('toolInputGetContentChangesBroker', () => {
   describe('Edit tool', () => {
     it('VALID: EditToolInput simple text replacement => returns full file content with changes applied', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = EditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         old_string: 'Hello',
         new_string: 'Hi',
       });
 
       const existingContent = FileContentsStub({ value: 'Hello world!' });
-      // Set up mock for TWO file reads: one for oldContent, one for get-full-content
-      proxy.setupReadFileSuccess({ content: existingContent });
-      proxy.setupReadFileSuccess({ content: existingContent });
+      proxy.setupReadFileSuccess({ filePath, content: existingContent });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -93,16 +95,15 @@ describe('toolInputGetContentChangesBroker', () => {
   console.log(param);
 }`;
 
+      const filePath = FilePathStub({ value: '/test/example.ts' });
       const toolInput = EditToolInputStub({
-        file_path: FilePathStub({ value: '/test/example.ts' }),
+        file_path: filePath,
         old_string: 'function test(param: string): void {',
         new_string: 'function test(param: any): void {',
       });
 
       const contents = FileContentsStub({ value: existingFileContent });
-      // Set up mock for TWO file reads: one for oldContent, one for get-full-content
-      proxy.setupReadFileSuccess({ content: contents });
-      proxy.setupReadFileSuccess({ content: contents });
+      proxy.setupReadFileSuccess({ filePath, content: contents });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -120,8 +121,9 @@ describe('toolInputGetContentChangesBroker', () => {
   describe('MultiEdit tool', () => {
     it('VALID: MultiEditToolInput with existing file => returns full file before and after changes', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         edits: [
           { old_string: 'Hello', new_string: 'Hi' },
           { old_string: 'world', new_string: 'universe' },
@@ -129,9 +131,7 @@ describe('toolInputGetContentChangesBroker', () => {
       });
 
       const contents = FileContentsStub({ value: 'Hello world' });
-      // Set up mock for TWO file reads: one for oldContent, one for get-full-content
-      proxy.setupReadFileSuccess({ content: contents });
-      proxy.setupReadFileSuccess({ content: contents });
+      proxy.setupReadFileSuccess({ filePath, content: contents });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -145,14 +145,13 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('VALID: MultiEditToolInput with new file (ENOENT) => returns empty array', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/newfile.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/newfile.txt' }),
+        file_path: filePath,
         edits: [{ old_string: 'placeholder', new_string: 'content' }],
       });
 
-      // Set up mock for TWO file reads: both should fail with ENOENT
-      proxy.setupReadFileNotFound();
-      proxy.setupReadFileNotFound();
+      proxy.setupReadFileNotFound({ filePath });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -161,14 +160,15 @@ describe('toolInputGetContentChangesBroker', () => {
 
     it('ERROR: MultiEditToolInput file read error (not ENOENT) => throws error', async () => {
       const proxy = toolInputGetContentChangesBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         edits: [{ old_string: 'Hello', new_string: 'Hi' }],
       });
 
       const error = new Error('Permission denied') as NodeJS.ErrnoException;
       error.code = 'EACCES';
-      proxy.setupReadFileError({ error });
+      proxy.setupReadFileError({ filePath, error });
 
       await expect(toolInputGetContentChangesBroker({ toolInput })).rejects.toThrow(
         /Permission denied/u,

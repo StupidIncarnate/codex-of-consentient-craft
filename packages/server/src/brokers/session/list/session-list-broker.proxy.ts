@@ -1,4 +1,10 @@
-import type { GuildStub, QuestListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  GuildStub,
+  QuestId,
+  QuestListItemStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
 import { orchestratorGetGuildAdapterProxy } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter.proxy';
 import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
@@ -25,10 +31,10 @@ export const sessionListBrokerProxy = (): {
   setupFileContent: (params: { content: string }) => void;
   setupFileContentError: (params: { error: Error }) => void;
   setupFileStatError: (params: { error: Error }) => void;
-  setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQuests: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
   setupLoadQuest: (params: { quest: Quest }) => void;
-  setupLoadQuestError: (params: { error: Error }) => void;
-  setupGuildNotFound: (params: { guildId: string }) => void;
+  setupLoadQuestError: (params: { questId: QuestId; error: Error }) => void;
+  setupGuildNotFound: (params: { guildId: GuildId }) => void;
 } => {
   const guildProxy = orchestratorGetGuildAdapterProxy();
   const questsProxy = orchestratorListQuestsAdapterProxy();
@@ -38,10 +44,13 @@ export const sessionListBrokerProxy = (): {
   const statProxy = fsStatAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
-  // sessionListBroker reads each globbed file's contents in the same order the glob results were
-  // produced (dedupedFiles.map). Tracking the real paths here — instead of a dummy key — lets
-  // setupFileContent/setupFileContentError address the specific disk file a test means, rather
-  // than relying on call-order luck to pair the right content with the right path.
+  // sessionListBroker reads each globbed file's contents (and stats it first) in the same order
+  // the glob results were produced (dedupedFiles.map). Tracking the real paths here — instead of
+  // a dummy key — lets setupFileStat/setupFileContent (and their error variants) address the
+  // specific disk file a test means, rather than relying on call-order luck to pair the right
+  // stat/content with the right path. Stat and readFile each get their own queue because a test
+  // may stat a file without ever reading its content (cache hit) or vice versa.
+  const pendingStatFilePaths: FilePath[] = [];
   const pendingReadFilePaths: FilePath[] = [];
 
   return {
@@ -57,10 +66,12 @@ export const sessionListBrokerProxy = (): {
         pattern: (pattern ?? '*.jsonl') as GlobPattern,
         files: filePaths,
       });
+      pendingStatFilePaths.push(...filePaths);
       pendingReadFilePaths.push(...filePaths);
     },
     setupFileStat: ({ birthtime, mtimeMs }: { birthtime: Date; mtimeMs: number }): void => {
-      statProxy.returns({ stats: { birthtime, mtimeMs } });
+      const filePath = pendingStatFilePaths.shift() ?? ('' as FilePath);
+      statProxy.returns({ filePath, stats: { birthtime, mtimeMs } });
     },
     setupFileContent: ({ content }: { content: string }): void => {
       const filepath = pendingReadFilePaths.shift() ?? ('' as FilePath);
@@ -77,19 +88,20 @@ export const sessionListBrokerProxy = (): {
       });
     },
     setupFileStatError: ({ error }: { error: Error }): void => {
-      statProxy.throws({ error });
+      const filePath = pendingStatFilePaths.shift() ?? ('' as FilePath);
+      statProxy.throws({ filePath, error });
     },
-    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
-      questsProxy.returns({ quests });
+    setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
+      questsProxy.returns({ guildId, quests });
     },
     setupLoadQuest: ({ quest }: { quest: Quest }): void => {
-      loadQuestProxy.returns({ quest });
+      loadQuestProxy.returns({ questId: quest.id, quest });
     },
-    setupLoadQuestError: ({ error }: { error: Error }): void => {
-      loadQuestProxy.throws({ error });
+    setupLoadQuestError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      loadQuestProxy.throws({ questId, error });
     },
-    setupGuildNotFound: ({ guildId }: { guildId: string }): void => {
-      guildProxy.throws({ error: new Error(`Guild not found: ${guildId}`) });
+    setupGuildNotFound: ({ guildId }: { guildId: GuildId }): void => {
+      guildProxy.throws({ guildId, error: new Error(`Guild not found: ${guildId}`) });
     },
   };
 };

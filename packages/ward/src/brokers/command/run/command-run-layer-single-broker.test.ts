@@ -9,11 +9,11 @@ import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-bro
 describe('commandRunLayerSingleBroker', () => {
   describe('all checks pass', () => {
     it('VALID: {all checks pass, no fileList} => returns WardResult with pass checks', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = commandRunLayerSingleBrokerProxy();
-      proxy.setupAllChecksPass();
+      proxy.setupAllChecksPass({ projectFolder });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolder = ProjectFolderStub();
       const config = WardConfigStub();
 
       const result = await commandRunLayerSingleBroker({ config, projectFolder, rootPath });
@@ -25,11 +25,11 @@ describe('commandRunLayerSingleBroker', () => {
 
   describe('progress output', () => {
     it('VALID: {lint passes} => writes running then PASS to stderr', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = commandRunLayerSingleBrokerProxy();
-      proxy.setupLintOnlyPass();
+      proxy.setupLintOnlyPass({ projectFolder });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['lint'] });
 
       await commandRunLayerSingleBroker({ config, projectFolder, rootPath });
@@ -41,8 +41,10 @@ describe('commandRunLayerSingleBroker', () => {
     });
 
     it('VALID: {lint fails with errors} => writes FAIL with error count to stderr', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = commandRunLayerSingleBrokerProxy();
       proxy.setupLintOnlyFail({
+        projectFolder,
         stdout: JSON.stringify([
           {
             filePath: '/home/user/project/packages/ward/src/index.ts',
@@ -56,7 +58,6 @@ describe('commandRunLayerSingleBroker', () => {
       });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['lint'] });
 
       await commandRunLayerSingleBroker({ config, projectFolder, rootPath });
@@ -68,11 +69,11 @@ describe('commandRunLayerSingleBroker', () => {
     });
 
     it('VALID: {e2e skips, no playwright config} => shows skip label on stderr', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = commandRunLayerSingleBrokerProxy();
-      proxy.setupE2eOnlySkip();
+      proxy.setupE2eOnlySkip({ projectFolder });
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['e2e'] });
 
       await commandRunLayerSingleBroker({ config, projectFolder, rootPath });

@@ -49,7 +49,10 @@ export const guildConfigReadBrokerProxy = (): {
         homePath: DEFAULT_HOME_PATH,
       });
       pathJoinProxy.returns({ result: DEFAULT_CONFIG_FILE_PATH });
-      readFileProxy.resolves({ content: JSON.stringify(config) });
+      readFileProxy.resolves({
+        filePath: DEFAULT_CONFIG_FILE_PATH,
+        content: JSON.stringify(config),
+      });
     },
 
     setupConfigExists: ({
@@ -65,7 +68,7 @@ export const guildConfigReadBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: configFilePath });
-      readFileProxy.resolves({ content: configJson });
+      readFileProxy.resolves({ filePath: configFilePath, content: configJson });
     },
 
     setupConfigMissing: ({
@@ -83,6 +86,7 @@ export const guildConfigReadBrokerProxy = (): {
         code: 'ENOENT',
       });
       readFileProxy.rejects({
+        filePath: configFilePath,
         error: enoentCause,
       });
     },
@@ -100,7 +104,7 @@ export const guildConfigReadBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: configFilePath });
-      readFileProxy.rejects({ error });
+      readFileProxy.rejects({ filePath: configFilePath, error });
     },
   };
 };

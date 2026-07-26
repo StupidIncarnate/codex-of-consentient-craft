@@ -14,7 +14,7 @@ export const guildPathWalkUpLayerBrokerProxy = (): {
   return {
     setupGuildFoundAtStart: ({ startPath }: { startPath: string }): void => {
       pathJoinProxy.returns({ result: `${startPath}/guild.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${startPath}/guild.json` as never });
     },
 
     setupGuildFoundInParent: ({
@@ -25,15 +25,21 @@ export const guildPathWalkUpLayerBrokerProxy = (): {
       guildPath: string;
     }): void => {
       pathJoinProxy.returns({ result: `${startPath}/guild.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/guild.json` as never,
+        error: new Error('ENOENT'),
+      });
       pathDirnameProxy.returns({ result: guildPath as never });
       pathJoinProxy.returns({ result: `${guildPath}/guild.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${guildPath}/guild.json` as never });
     },
 
     setupGuildNotFound: ({ startPath }: { startPath: string }): void => {
       pathJoinProxy.returns({ result: `${startPath}/guild.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/guild.json` as never,
+        error: new Error('ENOENT'),
+      });
       pathDirnameProxy.returns({ result: startPath as never });
     },
   };

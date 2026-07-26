@@ -6,6 +6,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
     it('VALID: {questId} => returns wrapped planning-notes shape', async () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
       proxy.returns({
+        questId: 'add-auth',
         result: {
           success: true,
           data: { blightReports: [] },
@@ -22,7 +23,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
 
     it('VALID: {questId, section} => forwards section to orchestrator', async () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
-      proxy.returns({ result: { success: true, data: [] } });
+      proxy.returns({ questId: 'add-auth', result: { success: true, data: [] } });
 
       const result = await orchestratorGetQuestPlanningNotesAdapter({
         questId: 'add-auth',
@@ -30,7 +31,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
       });
 
       expect(result).toStrictEqual({ success: true, data: [] });
-      expect(proxy.getLastCalledInput()).toStrictEqual({
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
         questId: 'add-auth',
         section: 'blight',
       });
@@ -38,10 +39,16 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
 
     it('VALID: {questId, no section} => omits section in call', async () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
+      proxy.returns({
+        questId: 'add-auth',
+        result: { success: true, data: { blightReports: [] } },
+      });
 
       await orchestratorGetQuestPlanningNotesAdapter({ questId: 'add-auth' });
 
-      expect(proxy.getLastCalledInput()).toStrictEqual({ questId: 'add-auth' });
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+      });
     });
   });
 
@@ -49,7 +56,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
     it('ERROR: {orchestrator throws} => rejects with error', async () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId: 'non-existent', error: new Error('Quest not found') });
 
       await expect(
         orchestratorGetQuestPlanningNotesAdapter({ questId: 'non-existent' }),

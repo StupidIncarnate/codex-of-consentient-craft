@@ -206,6 +206,288 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
+    it('VALID: {handle.calledWith([]).resolves()} => does not report', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            TsestreeStub({
+              type: TsestreeNodeType.ExpressionStatement,
+              expression: TsestreeStub({
+                type: TsestreeNodeType.CallExpression,
+                callee: TsestreeStub({
+                  type: TsestreeNodeType.MemberExpression,
+                  object: TsestreeStub({
+                    type: TsestreeNodeType.CallExpression,
+                    callee: TsestreeStub({
+                      type: TsestreeNodeType.MemberExpression,
+                      object: TsestreeStub({
+                        type: TsestreeNodeType.Identifier,
+                        name: 'handle',
+                      }),
+                      property: TsestreeStub({
+                        type: TsestreeNodeType.Identifier,
+                        name: 'calledWith',
+                      }),
+                    }),
+                  }),
+                  property: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'resolves',
+                  }),
+                }),
+              }),
+            }),
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {handle.onceFor([]).rejects()} => does not report', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            TsestreeStub({
+              type: TsestreeNodeType.ExpressionStatement,
+              expression: TsestreeStub({
+                type: TsestreeNodeType.CallExpression,
+                callee: TsestreeStub({
+                  type: TsestreeNodeType.MemberExpression,
+                  object: TsestreeStub({
+                    type: TsestreeNodeType.CallExpression,
+                    callee: TsestreeStub({
+                      type: TsestreeNodeType.MemberExpression,
+                      object: TsestreeStub({
+                        type: TsestreeNodeType.Identifier,
+                        name: 'handle',
+                      }),
+                      property: TsestreeStub({
+                        type: TsestreeNodeType.Identifier,
+                        name: 'onceFor',
+                      }),
+                    }),
+                  }),
+                  property: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'rejects',
+                  }),
+                }),
+              }),
+            }),
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {handle.calledWith([]).returns()} => does not report', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            TsestreeStub({
+              type: TsestreeNodeType.ExpressionStatement,
+              expression: TsestreeStub({
+                type: TsestreeNodeType.CallExpression,
+                callee: TsestreeStub({
+                  type: TsestreeNodeType.MemberExpression,
+                  object: TsestreeStub({
+                    type: TsestreeNodeType.CallExpression,
+                    callee: TsestreeStub({
+                      type: TsestreeNodeType.MemberExpression,
+                      object: TsestreeStub({
+                        type: TsestreeNodeType.Identifier,
+                        name: 'handle',
+                      }),
+                      property: TsestreeStub({
+                        type: TsestreeNodeType.Identifier,
+                        name: 'calledWith',
+                      }),
+                    }),
+                  }),
+                  property: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'returns',
+                  }),
+                }),
+              }),
+            }),
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {bare handle.calledWith([])} => does not report', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            TsestreeStub({
+              type: TsestreeNodeType.ExpressionStatement,
+              expression: TsestreeStub({
+                type: TsestreeNodeType.CallExpression,
+                callee: TsestreeStub({
+                  type: TsestreeNodeType.MemberExpression,
+                  object: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'handle',
+                  }),
+                  property: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'calledWith',
+                  }),
+                }),
+              }),
+            }),
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {bare handle.onceFor([])} => does not report', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            TsestreeStub({
+              type: TsestreeNodeType.ExpressionStatement,
+              expression: TsestreeStub({
+                type: TsestreeNodeType.CallExpression,
+                callee: TsestreeStub({
+                  type: TsestreeNodeType.MemberExpression,
+                  object: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'handle',
+                  }),
+                  property: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'onceFor',
+                  }),
+                }),
+              }),
+            }),
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {bare handle.callsMatching([])} => does not report', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            TsestreeStub({
+              type: TsestreeNodeType.ExpressionStatement,
+              expression: TsestreeStub({
+                type: TsestreeNodeType.CallExpression,
+                callee: TsestreeStub({
+                  type: TsestreeNodeType.MemberExpression,
+                  object: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'handle',
+                  }),
+                  property: TsestreeStub({
+                    type: TsestreeNodeType.Identifier,
+                    name: 'callsMatching',
+                  }),
+                }),
+              }),
+            }),
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
     it('VALID: {childProxy.someMethod()} => does not report', () => {
       validateProxyConstructorSideEffectsLayerBrokerProxy();
       const mockReport = jest.fn();
@@ -296,6 +578,65 @@ describe('validateProxyConstructorSideEffectsLayerBroker', () => {
         node: statement,
         messageId: 'proxyConstructorNoSideEffects',
         data: { type: 'database.connect()' },
+      });
+    });
+
+    it('INVALID: {foo.query().returns()} => reports proxyConstructorNoSideEffects with type unknown.returns() since the chain does not bottom out in calledWith/onceFor', () => {
+      validateProxyConstructorSideEffectsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const mockContext = EslintContextStub({ report: mockReport });
+      const statement = TsestreeStub({
+        type: TsestreeNodeType.ExpressionStatement,
+        expression: TsestreeStub({
+          type: TsestreeNodeType.CallExpression,
+          callee: TsestreeStub({
+            type: TsestreeNodeType.MemberExpression,
+            object: TsestreeStub({
+              type: TsestreeNodeType.CallExpression,
+              callee: TsestreeStub({
+                type: TsestreeNodeType.MemberExpression,
+                object: TsestreeStub({
+                  type: TsestreeNodeType.Identifier,
+                  name: 'foo',
+                }),
+                property: TsestreeStub({
+                  type: TsestreeNodeType.Identifier,
+                  name: 'query',
+                }),
+              }),
+            }),
+            property: TsestreeStub({
+              type: TsestreeNodeType.Identifier,
+              name: 'returns',
+            }),
+          }),
+        }),
+      });
+
+      const functionNode = TsestreeStub({
+        type: TsestreeNodeType.ArrowFunctionExpression,
+        body: TsestreeStub({
+          type: TsestreeNodeType.BlockStatement,
+          body: [
+            statement,
+            TsestreeStub({
+              type: TsestreeNodeType.ReturnStatement,
+              argument: TsestreeStub({
+                type: TsestreeNodeType.ObjectExpression,
+                properties: [],
+              }),
+            }),
+          ],
+        }),
+      });
+
+      validateProxyConstructorSideEffectsLayerBroker({ functionNode, context: mockContext });
+
+      expect(mockReport).toHaveBeenCalledTimes(1);
+      expect(mockReport).toHaveBeenCalledWith({
+        node: statement,
+        messageId: 'proxyConstructorNoSideEffects',
+        data: { type: 'unknown.returns()' },
       });
     });
 

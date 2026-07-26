@@ -8,14 +8,14 @@ export const webBundleDistPathAdapterProxy = (): {
   const handle = registerMock({ fn: existsSync });
 
   // Default: the bundle's dist/ directory exists
-  handle.mockReturnValue(true);
+  handle.calledWith([]).returns(true);
 
   return {
     bundleExists: (): void => {
-      handle.mockReturnValue(true);
+      handle.calledWith([]).returns(true);
     },
     bundleMissing: (): void => {
-      handle.mockReturnValue(false);
+      handle.calledWith([]).returns(false);
     },
   };
 };

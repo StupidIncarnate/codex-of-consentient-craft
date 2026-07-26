@@ -7,12 +7,11 @@ describe('fsReadFileSyncAdapter', () => {
   describe('file exists', () => {
     it('VALID: {filePath: existing file} => returns file contents', () => {
       const proxy = fsReadFileSyncAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/path/to/file.json' });
 
-      proxy.returns({ content: ContentTextStub({ value: '{"name": "test"}' }) });
+      proxy.returns({ filePath, content: ContentTextStub({ value: '{"name": "test"}' }) });
 
-      const result = fsReadFileSyncAdapter({
-        filePath: AbsoluteFilePathStub({ value: '/path/to/file.json' }),
-      });
+      const result = fsReadFileSyncAdapter({ filePath });
 
       expect(result).toStrictEqual(ContentTextStub({ value: '{"name": "test"}' }));
     });
@@ -21,14 +20,11 @@ describe('fsReadFileSyncAdapter', () => {
   describe('file does not exist', () => {
     it('VALID: {filePath: non-existing file} => throws error', () => {
       const proxy = fsReadFileSyncAdapterProxy();
+      const filePath = AbsoluteFilePathStub({ value: '/path/to/missing.json' });
 
-      proxy.throws({ error: new Error('ENOENT') });
+      proxy.throws({ filePath, error: new Error('ENOENT') });
 
-      expect(() =>
-        fsReadFileSyncAdapter({
-          filePath: AbsoluteFilePathStub({ value: '/path/to/missing.json' }),
-        }),
-      ).toThrow('ENOENT');
+      expect(() => fsReadFileSyncAdapter({ filePath })).toThrow('ENOENT');
     });
   });
 });

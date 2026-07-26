@@ -18,14 +18,15 @@ export const orchestratorListGuildsAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: StartOrchestrator.listGuilds });
 
-  handle.mockResolvedValue([]);
+  // listGuilds takes no arguments — [] is the only possible address.
+  handle.calledWith([]).resolves([]);
 
   return {
     returns: ({ guilds }: { guilds: GuildListItem[] }): void => {
-      handle.mockResolvedValueOnce(guilds);
+      handle.calledWith([]).resolves(guilds);
     },
     throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+      handle.calledWith([]).rejects(error);
     },
   };
 };

@@ -15,7 +15,6 @@ import {
   locationsWardResultsPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 // Preserve real orchestrator exports (contracts, types) while mocking functions used by adapters
 registerModuleMock({
@@ -86,25 +85,29 @@ export const ServerInitResponderProxy = (): {
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
   simulateDisconnect: (params: { ws: WsClient }) => void;
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
-  setupLoadQuestFailure: (params: { error: Error }) => void;
+  setupLoadQuestFailure: (params: { questId: QuestId; error: Error }) => void;
   setupReplaySuccess: () => void;
   setupReplayFailure: (params: { error: Error }) => void;
   enableDevLogs: () => void;
-  getDevLogOutput: () => SpyOnHandle;
+  getDevLogOutput: () => unknown[][];
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getOutboxWatchCallbacks: () => {
     onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
     onError: ((args: { error: unknown }) => void) | undefined;
   };
   getReplayChatHistoryCalls: () => unknown[];
-  setupFindQuestPathSuccess: (params: { questPath: AbsoluteFilePath; guildId: GuildId }) => void;
+  setupFindQuestPathSuccess: (params: {
+    questId: QuestId;
+    questPath: AbsoluteFilePath;
+    guildId: GuildId;
+  }) => void;
 } => {
   const dateSpy = registerSpyOn({
     object: Date.prototype,
     method: 'toISOString',
     passthrough: true,
   });
-  dateSpy.mockReturnValue('2024-01-01T00:00:00.000Z');
+  dateSpy.calledWith([]).returns('2024-01-01T00:00:00.000Z');
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   const serveProxy = honoServeAdapterProxy();
   const eventsOnProxy = orchestratorEventsOnAdapterProxy();
@@ -161,11 +164,14 @@ export const ServerInitResponderProxy = (): {
     simulateDisconnect: ({ ws }: { ws: WsClient }): void => {
       wsProxy.simulateDisconnect({ ws });
     },
+    // Keyed on the quest's own id: every real caller (subscribe-quest, replay-quest-history,
+    // the outbox onQuestChanged handler) resolves `orchestratorLoadQuestAdapter({ questId })`
+    // with the quest's own id, so a test only ever needs to hand this proxy the quest.
     setupLoadQuestSuccess: ({ quest }: { quest: Quest }): void => {
-      loadQuestProxy.returns({ quest });
+      loadQuestProxy.returns({ questId: quest.id, quest });
     },
-    setupLoadQuestFailure: ({ error }: { error: Error }): void => {
-      loadQuestProxy.throws({ error });
+    setupLoadQuestFailure: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      loadQuestProxy.throws({ questId, error });
     },
     setupReplaySuccess: (): void => {
       replayProxy.setupSuccess();
@@ -185,16 +191,18 @@ export const ServerInitResponderProxy = (): {
     enableDevLogs: (): void => {
       devLogProxy.enableVerbose();
     },
-    getDevLogOutput: (): SpyOnHandle => devLogProxy.getWrittenLines(),
+    getDevLogOutput: (): unknown[][] => devLogProxy.getWrittenLines(),
     getReplayChatHistoryCalls: (): unknown[] => replayProxy.getAllCalledArgs(),
     setupFindQuestPathSuccess: ({
+      questId,
       questPath,
       guildId,
     }: {
+      questId: QuestId;
       questPath: AbsoluteFilePath;
       guildId: GuildId;
     }): void => {
-      findQuestPathProxy.returns({ questPath, guildId });
+      findQuestPathProxy.returns({ questId, questPath, guildId });
     },
   };
 };

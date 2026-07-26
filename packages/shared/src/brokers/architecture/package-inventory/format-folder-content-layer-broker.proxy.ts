@@ -1,6 +1,7 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
@@ -17,7 +18,13 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
   }) as Dirent;
 
 export const formatFolderContentLayerBrokerProxy = (): {
-  setupDepth0Files: ({ fileNames }: { fileNames: string[] }) => void;
+  setupDepth0Files: ({
+    dirPath,
+    fileNames,
+  }: {
+    dirPath: AbsoluteFilePath;
+    fileNames: string[];
+  }) => void;
   setupDepth1Subdirs: ({ subdirNames }: { subdirNames: string[] }) => void;
   setupDepth1WithEmpty: ({ subdirs }: { subdirs: { name: string; hasFiles: boolean }[] }) => void;
   setupDepth2Domains: ({ domains }: { domains: { name: string; actions: string[] }[] }) => void;
@@ -30,14 +37,21 @@ export const formatFolderContentLayerBrokerProxy = (): {
       actions: { name: string; hasFiles: boolean }[];
     }[];
   }) => void;
-  setupEmpty: () => void;
+  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
 } => {
   const safeProxy = safeReaddirLayerBrokerProxy();
   countFilesRecursiveLayerBrokerProxy();
 
   return {
-    setupDepth0Files: ({ fileNames }: { fileNames: string[] }): void => {
+    setupDepth0Files: ({
+      dirPath,
+      fileNames,
+    }: {
+      dirPath: AbsoluteFilePath;
+      fileNames: string[];
+    }): void => {
       safeProxy.setupDirectory({
+        dirPath,
         entries: fileNames.map((name) => makeDirent({ name, isDir: false })),
       });
     },
@@ -122,8 +136,8 @@ export const formatFolderContentLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: (): void => {
-      safeProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+      safeProxy.setupDirectory({ dirPath, entries: [] });
     },
   };
 };

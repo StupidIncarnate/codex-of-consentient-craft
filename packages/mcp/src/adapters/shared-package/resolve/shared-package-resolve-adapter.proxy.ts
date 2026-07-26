@@ -9,25 +9,27 @@ export const sharedPackageResolveAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: existsSync });
 
+  // No address: the checked path comes from a real require.resolve() call, never mocked, so its
+  // exact value is environment-dependent and unknowable at staging time.
   // Default: package root exists
-  handle.mockReturnValue(true);
+  handle.calledWith([]).returns(true);
 
   return {
     packageRootExists: (): void => {
-      handle.mockReturnValue(true);
+      handle.calledWith([]).returns(true);
     },
 
     packageRootDoesNotExist: (): void => {
-      handle.mockReturnValue(false);
+      handle.calledWith([]).returns(false);
     },
 
     // Backwards-compatible aliases
     srcExists: (): void => {
-      handle.mockReturnValue(true);
+      handle.calledWith([]).returns(true);
     },
 
     srcDoesNotExist: (): void => {
-      handle.mockReturnValue(false);
+      handle.calledWith([]).returns(false);
     },
   };
 };

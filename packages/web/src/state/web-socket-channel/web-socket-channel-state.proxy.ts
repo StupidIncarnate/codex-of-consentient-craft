@@ -20,7 +20,9 @@ import type { WsUrl } from '../../contracts/ws-url/ws-url-contract';
 import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
 import { webSocketChannelState } from './web-socket-channel-state';
 
-export const webSocketChannelStateProxy = (): {
+export const webSocketChannelStateProxy = ({
+  url: defaultUrl = WsUrlStub(),
+}: { url?: WsUrl } = {}): {
   setupEmpty: () => void;
   connect: ({ url }?: { url?: WsUrl }) => void;
   deliverMessage: ({ data }: { data: string }) => void;
@@ -30,7 +32,11 @@ export const webSocketChannelStateProxy = (): {
   triggerReconnect: () => void;
   getSentMessages: () => unknown[];
 } => {
-  const wsProxy = websocketConnectAdapterProxy();
+  // The underlying socket mock is staged for whichever URL this proxy was built with — callers
+  // that don't pass one get the default test port (WsUrlStub()); WebSocketChannelConnectResponderProxy
+  // passes the real jsdom-derived URL because that responder computes its own url and never
+  // accepts one from the caller.
+  const wsProxy = websocketConnectAdapterProxy({ url: defaultUrl });
   rxjsFilterAdapterProxy();
   rxjsMergeAdapterProxy();
   rxjsOfAdapterProxy();
@@ -40,7 +46,7 @@ export const webSocketChannelStateProxy = (): {
     setupEmpty: (): void => {
       webSocketChannelState.clear();
     },
-    connect: ({ url = WsUrlStub({ value: 'ws://localhost:3001/ws' }) }: { url?: WsUrl } = {}) => {
+    connect: ({ url = defaultUrl }: { url?: WsUrl } = {}) => {
       webSocketChannelState.connect({ url });
     },
     deliverMessage: ({ data }: { data: string }) => {

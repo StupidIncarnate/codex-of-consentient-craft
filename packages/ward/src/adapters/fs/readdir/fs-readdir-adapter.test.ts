@@ -9,7 +9,7 @@ describe('fsReaddirAdapter', () => {
       const proxy = fsReaddirAdapterProxy();
       const dirPath = FilePathStub({ value: '/path/to/dir' });
 
-      proxy.returns({ entries: ['file1.ts', 'file2.ts'] });
+      proxy.returns({ dirPath, entries: ['file1.ts', 'file2.ts'] });
 
       const result = await fsReaddirAdapter({ dirPath });
 
@@ -23,7 +23,7 @@ describe('fsReaddirAdapter', () => {
       const proxy = fsReaddirAdapterProxy();
       const dirPath = FilePathStub({ value: '/path/to/empty' });
 
-      proxy.returns({ entries: [] });
+      proxy.returns({ dirPath, entries: [] });
 
       const result = await fsReaddirAdapter({ dirPath });
 
@@ -36,7 +36,7 @@ describe('fsReaddirAdapter', () => {
       const proxy = fsReaddirAdapterProxy();
       const dirPath = FilePathStub({ value: '/nonexistent' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ dirPath, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsReaddirAdapter({ dirPath })).rejects.toThrow(/ENOENT/u);
     });

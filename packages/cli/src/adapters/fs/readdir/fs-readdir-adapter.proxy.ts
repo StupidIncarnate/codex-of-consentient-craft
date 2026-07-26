@@ -3,21 +3,17 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const fsReaddirAdapterProxy = (): {
-  returns: (params: { files: FileName[] }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { dirPath: string; files: FileName[] }) => void;
+  throws: (params: { dirPath: string; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: readdirSync });
 
-  handle.mockReturnValue([]);
-
   return {
-    returns: ({ files }: { files: FileName[] }): void => {
-      handle.mockReturnValueOnce(files as never);
+    returns: ({ dirPath, files }: { dirPath: string; files: FileName[] }): void => {
+      handle.calledWith([dirPath]).returns(files as never);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ dirPath, error }: { dirPath: string; error: Error }): void => {
+      handle.calledWith([dirPath]).throws(error);
     },
   };
 };

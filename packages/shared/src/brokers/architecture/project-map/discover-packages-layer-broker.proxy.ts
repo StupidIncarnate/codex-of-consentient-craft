@@ -1,19 +1,26 @@
 import type { Dirent } from 'fs';
 import { fsReaddirWithTypesAdapterProxy } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const discoverPackagesLayerBrokerProxy = (): {
-  setupPackages: ({ entries }: { entries: Dirent[] }) => void;
-  setupMissingPackagesDir: () => void;
+  setupPackages: ({ dirPath, entries }: { dirPath: AbsoluteFilePath; entries: Dirent[] }) => void;
+  setupMissingPackagesDir: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
 } => {
   const fsProxy = fsReaddirWithTypesAdapterProxy();
 
   return {
-    setupPackages: ({ entries }: { entries: Dirent[] }): void => {
-      fsProxy.returns({ entries });
+    setupPackages: ({
+      dirPath,
+      entries,
+    }: {
+      dirPath: AbsoluteFilePath;
+      entries: Dirent[];
+    }): void => {
+      fsProxy.returns({ dirPath, entries });
     },
 
-    setupMissingPackagesDir: (): void => {
-      fsProxy.throws({ error: new Error('ENOENT') });
+    setupMissingPackagesDir: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+      fsProxy.throws({ dirPath, error: new Error('ENOENT') });
     },
   };
 };

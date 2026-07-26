@@ -9,12 +9,14 @@ describe('orchestratorRunWardAdapter', () => {
     it('VALID: {questId, workItemId, mode} => returns QuestRunWardResult', async () => {
       const proxy = orchestratorRunWardAdapterProxy();
       const expected = QuestRunWardResultStub();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' });
 
-      proxy.returns({ result: expected });
+      proxy.returns({ questId, workItemId, result: expected });
 
       const result = await orchestratorRunWardAdapter({
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        questId,
+        workItemId,
         mode: 'changed',
       });
 
@@ -25,13 +27,15 @@ describe('orchestratorRunWardAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorRunWardAdapterProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' });
 
-      proxy.throws({ error: new Error('Ward spawn failed') });
+      proxy.throws({ questId, workItemId, error: new Error('Ward spawn failed') });
 
       await expect(
         orchestratorRunWardAdapter({
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+          questId,
+          workItemId,
           mode: 'full',
         }),
       ).rejects.toThrow(/Ward spawn failed/u);

@@ -1,66 +1,64 @@
+import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+
 import { tsconfigPairWriteLayerBrokerProxy } from './tsconfig-pair-write-layer-broker.proxy';
 import { readTsconfigSafeLayerBrokerProxy } from './read-tsconfig-safe-layer-broker.proxy';
 import { workspaceInputBuildLayerBrokerProxy } from './workspace-input-build-layer-broker.proxy';
 
 export const projectReferencesSyncBrokerProxy = (): {
+  /**
+   * Primes the I/O for one workspace folder. The broker reads this workspace's tsconfig.json
+   * TWICE — once for the eligibility scan (workspaceInputBuildLayerBroker) and again to build
+   * the sync pair (projectReferencesSyncBroker's own readTsconfigSafeLayerBroker call) — both
+   * reads target the identical path, so one address-keyed staging answers both; there is no
+   * separate "pair build" content to queue.
+   */
   setupWorkspace: (params: {
+    folderPath: string;
     tsconfigJson: string | null;
     packageJson: string | null;
-    pairTsconfigJson?: string;
   }) => void;
-  setupRootTsconfig: (params: { tsconfigJson: string | null }) => void;
-  flushPairReads: () => void;
+  setupRootTsconfig: (params: { rootPath: string; tsconfigJson: string | null }) => void;
   captureWrites: () => readonly { path: unknown; content: unknown }[];
 } => {
   const buildProxy = workspaceInputBuildLayerBrokerProxy();
   const tsconfigProxy = readTsconfigSafeLayerBrokerProxy();
   const writeProxy = tsconfigPairWriteLayerBrokerProxy();
-  const pendingPairReads: Parameters<typeof tsconfigProxy.returns>[] = [];
 
   return {
-    /**
-     * Primes the I/O for one workspace folder.
-     * Only queues the eligibility-scan tsconfig+pkg reads immediately.
-     * Pair-building reads are deferred — call flushPairReads() after all setupWorkspace() calls.
-     *
-     * tsconfigJson: content for the eligibility-scan read (null → file missing → ineligible)
-     * packageJson:  content for the pkg.json read (null → file missing)
-     * pairTsconfigJson: override for the pair-building tsconfig read.
-     *   When omitted and tsconfigJson is not null, the same tsconfigJson is used.
-     *   When tsconfigJson is null the workspace is ineligible so no pair read fires.
-     */
     setupWorkspace: ({
+      folderPath,
       tsconfigJson,
       packageJson,
-      pairTsconfigJson,
     }: {
+      folderPath: string;
       tsconfigJson: string | null;
       packageJson: string | null;
-      pairTsconfigJson?: string;
     }): void => {
-      buildProxy.setupWorkspace({ tsconfigJson, packageJson });
-      if (tsconfigJson !== null) {
-        pendingPairReads.push([{ content: pairTsconfigJson ?? tsconfigJson }]);
-      }
+      buildProxy.setupWorkspace({ folderPath, tsconfigJson, packageJson });
+      // Staged preemptively: whether this workspace's pair actually drifts (and therefore
+      // gets written) is a derived outcome of the broker's own comparison, not something the
+      // test dictates up front. An unconsumed staging is harmless.
+      writeProxy.setupWrite({
+        filePath: absoluteFilePathContract.parse(`${folderPath}/tsconfig.json`),
+      });
     },
 
-    /**
-     * Queues the pair-building tsconfig reads AFTER all eligibility reads.
-     * Must be called BEFORE the root tsconfig setup.
-     */
-    flushPairReads: (): void => {
-      for (const args of pendingPairReads) {
-        tsconfigProxy.returns(...args);
-      }
-      pendingPairReads.length = 0;
-    },
-
-    setupRootTsconfig: ({ tsconfigJson }: { tsconfigJson: string | null }): void => {
+    setupRootTsconfig: ({
+      rootPath,
+      tsconfigJson,
+    }: {
+      rootPath: string;
+      tsconfigJson: string | null;
+    }): void => {
+      const rootTsconfigPath = filePathContract.parse(`${rootPath}/tsconfig.json`);
       if (tsconfigJson === null) {
-        tsconfigProxy.throws({ error: new Error('ENOENT') });
+        tsconfigProxy.throws({ tsconfigPath: rootTsconfigPath, error: new Error('ENOENT') });
       } else {
-        tsconfigProxy.returns({ content: tsconfigJson });
+        tsconfigProxy.returns({ tsconfigPath: rootTsconfigPath, content: tsconfigJson });
       }
+      writeProxy.setupWrite({
+        filePath: absoluteFilePathContract.parse(String(rootTsconfigPath)),
+      });
     },
 
     captureWrites: (): readonly { path: unknown; content: unknown }[] => writeProxy.captureWrites(),

@@ -7,7 +7,7 @@ describe('InstallCreateTsconfigResponder', () => {
     it('VALID: {no tsconfig.json} => writes the base-extending tsconfig', async () => {
       const proxy = InstallCreateTsconfigResponderProxy();
 
-      proxy.setupFileNotExists();
+      proxy.setupFileNotExists({ filePath: FilePathStub({ value: '/project/tsconfig.json' }) });
 
       const result = await proxy.callResponder({
         context: {
@@ -34,7 +34,7 @@ describe('InstallCreateTsconfigResponder', () => {
     it('VALID: {tsconfig.json present} => skips without writing', async () => {
       const proxy = InstallCreateTsconfigResponderProxy();
 
-      proxy.setupFileExists();
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/tsconfig.json' }) });
 
       const result = await proxy.callResponder({
         context: {

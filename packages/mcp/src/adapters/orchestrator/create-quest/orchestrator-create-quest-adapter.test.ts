@@ -12,7 +12,7 @@ describe('orchestratorCreateQuestAdapter', () => {
       const guildSlug = UrlSlugStub({ value: 'my-guild' });
       const { userRequest } = CreateQuestInputStub();
 
-      proxy.returns({ questId, guildSlug });
+      proxy.returns({ userRequest, questId, guildSlug });
 
       const result = await orchestratorCreateQuestAdapter({ userRequest });
 
@@ -26,7 +26,7 @@ describe('orchestratorCreateQuestAdapter', () => {
       const sessionId = SessionIdStub({ value: 'dddddddd-4444-4555-9666-777777777777' });
       const { userRequest } = CreateQuestInputStub();
 
-      proxy.returns({ questId, guildSlug });
+      proxy.returns({ userRequest, questId, guildSlug });
 
       const result = await orchestratorCreateQuestAdapter({ userRequest, sessionId });
 
@@ -39,7 +39,7 @@ describe('orchestratorCreateQuestAdapter', () => {
       const guildSlug = UrlSlugStub({ value: 'my-guild' });
       const { userRequest } = CreateQuestInputStub();
 
-      proxy.returns({ questId, guildSlug });
+      proxy.returns({ userRequest, questId, guildSlug });
 
       const result = await orchestratorCreateQuestAdapter({ userRequest, questType: 'bug-hunt' });
 
@@ -52,7 +52,7 @@ describe('orchestratorCreateQuestAdapter', () => {
       const proxy = orchestratorCreateQuestAdapterProxy();
       const { userRequest } = CreateQuestInputStub();
 
-      proxy.throws({ error: new Error('No valid guild') });
+      proxy.throws({ userRequest, error: new Error('No valid guild') });
 
       await expect(orchestratorCreateQuestAdapter({ userRequest })).rejects.toThrow(
         /No valid guild/u,

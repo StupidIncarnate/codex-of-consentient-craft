@@ -2,6 +2,7 @@ import type {
   AbsoluteFilePathStub,
   GuildIdStub,
   ProcessIdStub,
+  QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
@@ -54,10 +55,14 @@ type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 
 export const QuestClarifyResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
-  setupQuestLoadError: (params: { error: Error }) => void;
-  setupFindQuestPath: (params: { guildId: GuildId; questPath: AbsoluteFilePath }) => void;
-  setupClarify: (params: { chatProcessId: ProcessId }) => void;
-  setupClarifyError: (params: { message: string }) => void;
+  setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
+  setupFindQuestPath: (params: {
+    questId: QuestId;
+    guildId: GuildId;
+    questPath: AbsoluteFilePath;
+  }) => void;
+  setupClarify: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  setupClarifyError: (params: { questId: QuestId; message: string }) => void;
   callResponder: typeof QuestClarifyResponder;
 } => {
   const loadProxy = orchestratorLoadQuestAdapterProxy();
@@ -66,25 +71,33 @@ export const QuestClarifyResponderProxy = (): {
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
-      loadProxy.returns({ quest });
+      loadProxy.returns({ questId: quest.id, quest });
     },
-    setupQuestLoadError: ({ error }: { error: Error }): void => {
-      loadProxy.throws({ error });
+    setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      loadProxy.throws({ questId, error });
     },
     setupFindQuestPath: ({
+      questId,
       guildId,
       questPath,
     }: {
+      questId: QuestId;
       guildId: GuildId;
       questPath: AbsoluteFilePath;
     }): void => {
-      findPathProxy.returns({ guildId, questPath });
+      findPathProxy.returns({ questId, guildId, questPath });
     },
-    setupClarify: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
-      clarifyProxy.returns({ chatProcessId });
+    setupClarify: ({
+      questId,
+      chatProcessId,
+    }: {
+      questId: QuestId;
+      chatProcessId: ProcessId;
+    }): void => {
+      clarifyProxy.returns({ questId, chatProcessId });
     },
-    setupClarifyError: ({ message }: { message: string }): void => {
-      clarifyProxy.throws({ error: new Error(message) });
+    setupClarifyError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+      clarifyProxy.throws({ questId, error: new Error(message) });
     },
     callResponder: QuestClarifyResponder,
   };

@@ -1,14 +1,16 @@
+import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+
 import { orchestratorGetQuestAdapter } from './orchestrator-get-quest-adapter';
 import { orchestratorGetQuestAdapterProxy } from './orchestrator-get-quest-adapter.proxy';
 
 describe('orchestratorGetQuestAdapter', () => {
   describe('successful get', () => {
     it('VALID: {questId} => returns quest result', async () => {
-      orchestratorGetQuestAdapterProxy();
+      const proxy = orchestratorGetQuestAdapterProxy();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      proxy.returns({ questId, result: { quest: {} } as never });
 
-      const result = await orchestratorGetQuestAdapter({
-        questId: 'test-quest',
-      });
+      const result = await orchestratorGetQuestAdapter({ questId });
 
       expect(result).toStrictEqual({ quest: {} });
     });
@@ -17,12 +19,11 @@ describe('orchestratorGetQuestAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorGetQuestAdapterProxy();
+      const questId = QuestIdStub({ value: 'missing' });
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId, error: new Error('Quest not found') });
 
-      await expect(orchestratorGetQuestAdapter({ questId: 'missing' })).rejects.toThrow(
-        /Quest not found/u,
-      );
+      await expect(orchestratorGetQuestAdapter({ questId })).rejects.toThrow(/Quest not found/u);
     });
   });
 });

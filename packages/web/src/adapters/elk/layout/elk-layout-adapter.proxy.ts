@@ -3,6 +3,7 @@ import ELK from 'elkjs';
 import { z } from 'zod';
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 // The child-id list the adapter hands to `elk.layout`, narrowed from the captured mock argument so
 // tests can assert portal ids were added without reading `any` off the jest call record. The brand
@@ -37,11 +38,14 @@ export const elkLayoutAdapterProxy = (): {
   getGraphChildIds: () => readonly ElkGraphChildId[];
 } => {
   const mockLayout = jest.fn();
+  const layoutHandle: MockHandle = registerMock({ fn: mockLayout });
 
   const mockInstance = { layout: mockLayout };
 
-  const elkHandle = registerMock({ fn: ELK as never });
-  elkHandle.mockReturnValue(mockInstance as never);
+  const elkHandle: MockHandle = registerMock({ fn: ELK as never });
+  // ELK is always constructed with zero arguments (`new ELK()`) — there is no call shape beyond
+  // that to key on.
+  elkHandle.calledWith([]).returns(mockInstance as never);
 
   return {
     returnsPositions: ({
@@ -58,16 +62,19 @@ export const elkLayoutAdapterProxy = (): {
         }[];
       }[];
     }): void => {
-      mockLayout.mockResolvedValueOnce({ id: 'root', children: [...children], edges: [...edges] });
+      // The graph elk.layout receives is assembled inside elkLayoutAdapter from label-length
+      // derived card heights and static layoutOptions this proxy has no way to predict ahead of
+      // the call — there's no real address beyond "the next layout call."
+      layoutHandle.onceFor([]).resolves({ id: 'root', children: [...children], edges: [...edges] });
     },
     returnsNoChildren: (): void => {
-      mockLayout.mockResolvedValueOnce({ id: 'root' });
+      layoutHandle.onceFor([]).resolves({ id: 'root' });
     },
     throws: ({ error }: { error: Error }): void => {
-      mockLayout.mockRejectedValueOnce(error);
+      layoutHandle.onceFor([]).rejects(error);
     },
     getGraphChildIds: (): readonly ElkGraphChildId[] => {
-      const [graph] = capturedCallSchema.parse(mockLayout.mock.calls.at(-1));
+      const [graph] = capturedCallSchema.parse(layoutHandle.callsMatching([]).at(-1));
       return graph.children.map((c) => c.id);
     },
   };

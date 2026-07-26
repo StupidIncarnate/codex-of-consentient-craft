@@ -11,13 +11,14 @@ describe('orchestratorClarifyAdapter', () => {
   describe('successful clarify', () => {
     it('VALID: {guildId, sessionId, questId, answers, questions} => returns chatProcessId', async () => {
       const proxy = orchestratorClarifyAdapterProxy();
+      const questId = QuestIdStub();
       const chatProcessId = ProcessIdStub({ value: 'clarify-process-123' });
-      proxy.returns({ chatProcessId });
+      proxy.returns({ questId, chatProcessId });
 
       const result = await orchestratorClarifyAdapter({
         guildId: GuildIdStub(),
         sessionId: SessionIdStub(),
-        questId: QuestIdStub(),
+        questId,
         answers: [{ header: 'Database', label: 'PostgreSQL' }],
         questions: [
           {
@@ -36,13 +37,14 @@ describe('orchestratorClarifyAdapter', () => {
   describe('error handling', () => {
     it('ERROR: {orchestrator throws} => propagates error', async () => {
       const proxy = orchestratorClarifyAdapterProxy();
-      proxy.throws({ error: new Error('Orchestrator unavailable') });
+      const questId = QuestIdStub();
+      proxy.throws({ questId, error: new Error('Orchestrator unavailable') });
 
       await expect(
         orchestratorClarifyAdapter({
           guildId: GuildIdStub(),
           sessionId: SessionIdStub(),
-          questId: QuestIdStub(),
+          questId,
           answers: [{ header: 'Database', label: 'PostgreSQL' }],
           questions: [
             {

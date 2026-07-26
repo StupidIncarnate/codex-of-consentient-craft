@@ -6,12 +6,14 @@ import { orchestratorLoadQuestAdapterProxy } from './orchestrator-load-quest-ada
 describe('orchestratorLoadQuestAdapter', () => {
   describe('successful load', () => {
     it('VALID: {questId} => returns quest', async () => {
-      orchestratorLoadQuestAdapterProxy();
+      const proxy = orchestratorLoadQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId });
+      proxy.returns({ questId, quest });
 
       const result = await orchestratorLoadQuestAdapter({ questId });
 
-      expect(result).toStrictEqual(QuestStub());
+      expect(result).toStrictEqual(quest);
     });
   });
 
@@ -20,7 +22,7 @@ describe('orchestratorLoadQuestAdapter', () => {
       const proxy = orchestratorLoadQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'missing-quest' });
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId, error: new Error('Quest not found') });
 
       await expect(orchestratorLoadQuestAdapter({ questId })).rejects.toThrow(/^Quest not found$/u);
     });

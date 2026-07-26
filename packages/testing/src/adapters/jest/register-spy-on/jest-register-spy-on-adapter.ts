@@ -1,32 +1,33 @@
 /**
- * PURPOSE: Wraps jest.spyOn for global object methods so proxy files never call jest.spyOn directly
+ * PURPOSE: Wraps jest.spyOn for global object methods with the same argument-addressed dispatch as registerMock
  *
  * USAGE:
  * const handle = jestRegisterSpyOnAdapter({ object: process.stdout, method: 'write' });
- * handle.mockImplementation(() => true);
- * // Internally calls jest.spyOn(object, method) and returns a MockHandle
+ * handle.calledWith(['hello']).returns(true);
+ * // Internally calls jest.spyOn(object, method) and dispatches by argument, same as registerMock
  *
  * WHEN-TO-USE: When a proxy needs to spy on a global object method (process.stdout.write, Date.now, etc.)
  * WHEN-NOT-TO-USE: For module-imported functions — use registerMock({ fn }) instead
  */
 
-import { mockCallerPathContract } from '../../../contracts/mock-caller-path/mock-caller-path-contract';
-import type { MockHandleEntry } from '../../../contracts/mock-handle-entry/mock-handle-entry-contract';
+import { mockFunctionNameContract } from '../../../contracts/mock-function-name/mock-function-name-contract';
+import type { MockHandle } from '../../../contracts/mock-handle/mock-handle-contract';
+import type { MockStaging } from '../../../contracts/mock-staging/mock-staging-contract';
+import type { StagedCall } from '../../../contracts/staged-call/staged-call-contract';
+import { mockArgsMatchTransformer } from '../../../transformers/mock-args-match/mock-args-match-transformer';
+import { mockStagedBestMatchTransformer } from '../../../transformers/mock-staged-best-match/mock-staged-best-match-transformer';
+import { mockStagingCreateTransformer } from '../../../transformers/mock-staging-create/mock-staging-create-transformer';
+import { mockUnmatchedCallMessageTransformer } from '../../../transformers/mock-unmatched-call-message/mock-unmatched-call-message-transformer';
 
-type EntryImpl = MockHandleEntry['baseImpl'];
-type EntryOnceQueue = MockHandleEntry['onceQueue'];
+export type SpyOnHandle = MockHandle;
 
-export interface SpyOnHandle {
-  mockImplementation: (impl: (...args: never[]) => unknown) => void;
-  mockImplementationOnce: (impl: (...args: never[]) => unknown) => void;
-  mockReturnValue: (val: unknown) => void;
-  mockReturnValueOnce: (val: unknown) => void;
-  mockResolvedValue: (val: unknown) => void;
-  mockResolvedValueOnce: (val: unknown) => void;
-  mockRejectedValueOnce: (val: unknown) => void;
-  mock: { calls: unknown[][] };
-  mockClear: () => void;
-}
+type AnyFunction = (...args: unknown[]) => unknown;
+
+const DISPATCHER = Symbol('registerSpyOnDispatcher');
+
+const realsBySpy = new WeakMap<object, AnyFunction>();
+const stagedBySpy = new WeakMap<object, StagedCall[]>();
+const callsBySpy = new WeakMap<object, unknown[][]>();
 
 export const jestRegisterSpyOnAdapter = <T extends object>({
   object,
@@ -37,92 +38,84 @@ export const jestRegisterSpyOnAdapter = <T extends object>({
   method: keyof T & string;
   passthrough?: boolean;
 }): SpyOnHandle => {
+  const realBeforeSpy = object[method] as unknown as AnyFunction;
   const spy = jest.spyOn(object, method as never);
 
-  if (passthrough) {
-    return {
-      mockImplementation: (impl: (...args: never[]) => unknown): void => {
-        spy.mockImplementation(impl as never);
-      },
-      mockImplementationOnce: (impl: (...args: never[]) => unknown): void => {
-        spy.mockImplementationOnce(impl as never);
-      },
-      mockReturnValue: (val: unknown): void => {
-        spy.mockReturnValue(val as never);
-      },
-      mockReturnValueOnce: (val: unknown): void => {
-        spy.mockReturnValueOnce(val as never);
-      },
-      mockResolvedValue: (val: unknown): void => {
-        spy.mockResolvedValue(val as never);
-      },
-      mockResolvedValueOnce: (val: unknown): void => {
-        spy.mockResolvedValueOnce(val as never);
-      },
-      mockRejectedValueOnce: (val: unknown): void => {
-        const reason = val instanceof Error ? val : new Error(String(val));
-        spy.mockRejectedValueOnce(reason as never);
-      },
-      mock: spy.mock as unknown as { calls: unknown[][] },
-      mockClear: (): void => {
-        spy.mockClear();
-      },
-    };
+  const currentImpl =
+    typeof spy.getMockImplementation === 'function' ? spy.getMockImplementation() : undefined;
+
+  const isDispatcher =
+    currentImpl !== undefined &&
+    (currentImpl as unknown as Record<symbol, boolean>)[DISPATCHER] === true;
+
+  if (!isDispatcher) {
+    realsBySpy.set(spy, realBeforeSpy);
+    stagedBySpy.set(spy, []);
+    callsBySpy.set(spy, []);
+
+    spy.mockImplementation(((...args: unknown[]): unknown => {
+      callsBySpy.get(spy)?.push([...args]);
+
+      const staged = stagedBySpy.get(spy) ?? [];
+      const best = mockStagedBestMatchTransformer({ staged, actual: args });
+
+      if (best) {
+        if (best.once) {
+          best.consumed = true;
+        }
+
+        return best.impl(...(args as never[]));
+      }
+
+      if (passthrough) {
+        const real = realsBySpy.get(spy);
+        const context = spy.mock.contexts.at(-1) as unknown;
+        const receiver = context === null || context === undefined ? object : context;
+
+        return real ? real.apply(receiver, args) : undefined;
+      }
+
+      throw new Error(
+        mockUnmatchedCallMessageTransformer({
+          name: mockFunctionNameContract.parse(method),
+          args,
+          staged,
+        }),
+      );
+    }) as never);
+
+    const installedImpl = spy.getMockImplementation();
+
+    if (installedImpl) {
+      (installedImpl as unknown as Record<symbol, boolean>)[DISPATCHER] = true;
+    }
   }
 
-  const entry: MockHandleEntry = {
-    callerPath: mockCallerPathContract.parse(''),
-    baseImpl: null,
-    onceQueue: [],
-    calls: [],
-  };
+  const handle: MockHandle = {
+    calledWith: (args: readonly unknown[]): MockStaging => {
+      const staged = stagedBySpy.get(spy) ?? [];
+      const record: StagedCall = { args, impl: () => undefined, once: false, consumed: false };
 
-  spy.mockImplementation(((...args: unknown[]): unknown => {
-    entry.calls.push([...args]);
+      staged.push(record);
+      stagedBySpy.set(spy, staged);
 
-    if (entry.onceQueue.length > 0) {
-      const onceFn = entry.onceQueue.shift();
+      return mockStagingCreateTransformer({ record });
+    },
+    onceFor: (args: readonly unknown[]): MockStaging => {
+      const staging = handle.calledWith(args);
+      const record = stagedBySpy.get(spy)?.at(-1);
 
-      if (onceFn) {
-        return onceFn(...args);
+      if (record) {
+        record.once = true;
       }
-    }
 
-    if (entry.baseImpl) {
-      return entry.baseImpl(...args);
-    }
-
-    return undefined;
-  }) as never);
-
-  return {
-    mockImplementation: (impl: (...args: never[]) => unknown): void => {
-      entry.baseImpl = impl as EntryImpl;
+      return staging;
     },
-    mockImplementationOnce: (impl: (...args: never[]) => unknown): void => {
-      entry.onceQueue.push(impl as EntryOnceQueue extends (infer U)[] ? U : never);
-    },
-    mockReturnValue: (val: unknown): void => {
-      entry.baseImpl = () => val;
-    },
-    mockReturnValueOnce: (val: unknown): void => {
-      entry.onceQueue.push(() => val);
-    },
-    mockResolvedValue: (val: unknown): void => {
-      entry.baseImpl = async () => Promise.resolve(val);
-    },
-    mockResolvedValueOnce: (val: unknown): void => {
-      entry.onceQueue.push(async () => Promise.resolve(val));
-    },
-    mockRejectedValueOnce: (val: unknown): void => {
-      const reason = val instanceof Error ? val : new Error(String(val));
-      entry.onceQueue.push(async () => Promise.reject(reason));
-    },
-    mock: { calls: entry.calls },
-    mockClear: (): void => {
-      entry.calls.length = 0;
-      entry.onceQueue.length = 0;
-      entry.baseImpl = null;
-    },
+    callsMatching: (args: readonly unknown[]): unknown[][] =>
+      (callsBySpy.get(spy) ?? []).filter(
+        (call) => mockArgsMatchTransformer({ staged: args, actual: call }) !== null,
+      ),
   };
+
+  return handle;
 };

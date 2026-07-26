@@ -9,7 +9,7 @@ describe('fsUnlinkAdapter', () => {
       const proxy = fsUnlinkAdapterProxy();
       const filePath = FilePathStub({ value: '/path/to/file.ts' });
 
-      proxy.succeeds();
+      proxy.succeeds({ filePath });
 
       await expect(fsUnlinkAdapter({ filePath })).resolves.toStrictEqual({
         success: true,
@@ -22,7 +22,7 @@ describe('fsUnlinkAdapter', () => {
       const proxy = fsUnlinkAdapterProxy();
       const filePath = FilePathStub({ value: '/nonexistent/file.ts' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ filePath, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsUnlinkAdapter({ filePath })).rejects.toThrow(/ENOENT/u);
     });

@@ -9,7 +9,7 @@ describe('fsAppendFileAdapter', () => {
       const filePath = FilePathStub({ value: '/test.jsonl' });
       const contents = FileContentsStub({ value: '{"line": "data"}\n' });
 
-      proxy.succeeds();
+      proxy.succeeds({ filePath });
 
       await expect(fsAppendFileAdapter({ filePath, contents })).resolves.toStrictEqual({
         success: true,
@@ -21,12 +21,11 @@ describe('fsAppendFileAdapter', () => {
       const filePath = FilePathStub({ value: '/log.txt' });
       const contents = FileContentsStub({ value: 'log entry\n' });
 
-      proxy.succeeds();
+      proxy.succeeds({ filePath });
 
       await fsAppendFileAdapter({ filePath, contents });
 
-      expect(proxy.getAppendedPath()).toBe(filePath);
-      expect(proxy.getAppendedContent()).toBe(contents);
+      expect(proxy.getAppendedFor({ filePath })).toBe(contents);
     });
   });
 
@@ -36,7 +35,7 @@ describe('fsAppendFileAdapter', () => {
       const filePath = FilePathStub({ value: '/readonly.txt' });
       const contents = FileContentsStub({ value: 'test' });
 
-      proxy.throws({ error: new Error('EACCES: permission denied') });
+      proxy.throws({ filePath, error: new Error('EACCES: permission denied') });
 
       await expect(fsAppendFileAdapter({ filePath, contents })).rejects.toThrow(/EACCES/u);
     });
@@ -46,7 +45,7 @@ describe('fsAppendFileAdapter', () => {
       const filePath = FilePathStub({ value: '/nonexistent/file.txt' });
       const contents = FileContentsStub({ value: 'test' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ filePath, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsAppendFileAdapter({ filePath, contents })).rejects.toThrow(/ENOENT/u);
     });

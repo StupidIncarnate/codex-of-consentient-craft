@@ -66,24 +66,36 @@ const buildVirtualTree = (filePaths: AbsoluteFilePath[]): Map<AbsoluteFilePath, 
 };
 
 export const listTsFilesLayerBrokerProxy = (): {
-  setupFlatDirectory: ({ filePaths }: { filePaths: AbsoluteFilePath[] }) => void;
-  setupEmpty: () => void;
+  setupFlatDirectory: ({
+    dirPath,
+    filePaths,
+  }: {
+    dirPath: AbsoluteFilePath;
+    filePaths: AbsoluteFilePath[];
+  }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
   setupVirtualTree: ({ filePaths }: { filePaths: AbsoluteFilePath[] }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
   return {
-    setupFlatDirectory: ({ filePaths }: { filePaths: AbsoluteFilePath[] }): void => {
+    setupFlatDirectory: ({
+      dirPath,
+      filePaths,
+    }: {
+      dirPath: AbsoluteFilePath;
+      filePaths: AbsoluteFilePath[];
+    }): void => {
       const entries = filePaths.map((fp) => {
         const parts = String(fp).split('/');
         const name = parts[parts.length - 1] ?? String(fp);
         return buildFileDirent({ name });
       });
-      readdirProxy.setupDirectory({ entries });
+      readdirProxy.setupDirectory({ dirPath, entries });
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+      readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
 
     setupVirtualTree: ({ filePaths }: { filePaths: AbsoluteFilePath[] }): void => {

@@ -1,8 +1,15 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
-  setupFlat: ({ fileNames }: { fileNames: readonly string[] }) => void;
+  setupFlat: ({
+    dirPath,
+    fileNames,
+  }: {
+    dirPath: AbsoluteFilePath;
+    fileNames: readonly string[];
+  }) => void;
   setupNested: ({
     subDirName,
     fileNames,
@@ -10,7 +17,7 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
     subDirName: string;
     fileNames: readonly string[];
   }) => void;
-  setupEmpty: () => void;
+  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
@@ -39,8 +46,17 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
     }) as Dirent;
 
   return {
-    setupFlat: ({ fileNames }: { fileNames: readonly string[] }): void => {
-      readdirProxy.setupDirectory({ entries: fileNames.map((name) => makeFileDirent({ name })) });
+    setupFlat: ({
+      dirPath,
+      fileNames,
+    }: {
+      dirPath: AbsoluteFilePath;
+      fileNames: readonly string[];
+    }): void => {
+      readdirProxy.setupDirectory({
+        dirPath,
+        entries: fileNames.map((name) => makeFileDirent({ name })),
+      });
     },
 
     setupNested: ({
@@ -60,8 +76,8 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+      readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
   };
 };

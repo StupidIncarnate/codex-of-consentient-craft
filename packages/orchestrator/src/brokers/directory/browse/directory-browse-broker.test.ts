@@ -67,7 +67,7 @@ describe('directoryBrowseBroker', () => {
       const proxy = directoryBrowseBrokerProxy();
       const path = GuildPathStub({ value: '/home/user/empty' });
 
-      proxy.setupEmpty();
+      proxy.setupEmpty({ targetPath: '/home/user/empty' });
 
       const result = directoryBrowseBroker({ path });
 
@@ -97,7 +97,10 @@ describe('directoryBrowseBroker', () => {
       const proxy = directoryBrowseBrokerProxy();
       const path = GuildPathStub({ value: '/nonexistent' });
 
-      proxy.setupThrows({ error: new Error('ENOENT: no such file or directory') });
+      proxy.setupThrows({
+        targetPath: '/nonexistent',
+        error: new Error('ENOENT: no such file or directory'),
+      });
 
       expect(() => directoryBrowseBroker({ path })).toThrow(/ENOENT/u);
     });

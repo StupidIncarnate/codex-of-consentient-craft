@@ -3,114 +3,70 @@
  *
  * USAGE:
  * const proxy = eslintEslintAdapterProxy();
- * proxy.returns({ eslint: mockEslintInstance });
+ * proxy.getLintTextHandle().calledWith(['const x = 1;']).resolves([...]);
  */
 import { ESLint } from 'eslint';
-import type { Linter } from 'eslint';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 // Auto-mock the eslint module via the AST transformer
 registerModuleMock({ module: 'eslint' });
 
-// Module-level mock functions that can be accessed across all proxy calls
-const mockCalculateConfigForFile = jest.fn();
-const mockLintText = jest.fn();
-const mockLintFiles = jest.fn();
-const mockIsPathIgnored = jest.fn();
+// Module-level so every eslintEslintAdapterProxy() call in the same test — e.g. a broker proxy
+// that composes several eslint broker proxies together — shares the same fake instance and
+// method mocks. If these were rebuilt per call, only the LAST proxy's staging would ever be
+// reachable, since the constructor mock can only hand back one instance.
+const lintTextFn = jest.fn();
+const lintFilesFn = jest.fn();
+const isPathIgnoredFn = jest.fn();
 
 // Create mock instance that passes instanceof checks
 const mockEslintInstance = Object.create(ESLint.prototype) as ESLint;
-mockEslintInstance.calculateConfigForFile =
-  mockCalculateConfigForFile as ESLint['calculateConfigForFile'];
-mockEslintInstance.lintText = mockLintText as ESLint['lintText'];
-mockEslintInstance.lintFiles = mockLintFiles as ESLint['lintFiles'];
-mockEslintInstance.isPathIgnored = mockIsPathIgnored as ESLint['isPathIgnored'];
-
-const createMockHandle = (): MockHandle => {
-  const mockedConstructor = jest.fn();
-  (ESLint as unknown as jest.Mock).mockImplementation(mockedConstructor);
-
-  return {
-    // This handle wraps the ESLint constructor rather than a registerMock dispatch, so there is
-    // no argument-addressed staging behind it — the constructor is addressed by nothing useful.
-    calledWith: (): never => {
-      throw new Error('eslintEslintAdapterProxy: constructor mock does not support calledWith');
-    },
-    onceFor: (): never => {
-      throw new Error('eslintEslintAdapterProxy: constructor mock does not support onceFor');
-    },
-    callsMatching: (): unknown[][] =>
-      (mockedConstructor.mock.calls as unknown[][]).filter((call) => call.length > 0),
-    mockImplementation: (impl: (...args: never[]) => unknown): void => {
-      mockedConstructor.mockImplementation(impl);
-    },
-    mockImplementationOnce: (impl: (...args: never[]) => unknown): void => {
-      mockedConstructor.mockImplementationOnce(impl);
-    },
-    mockReturnValue: (val: unknown): void => {
-      mockedConstructor.mockReturnValue(val);
-    },
-    mockReturnValueOnce: (val: unknown): void => {
-      mockedConstructor.mockReturnValueOnce(val);
-    },
-    mockResolvedValue: (val: unknown): void => {
-      mockedConstructor.mockResolvedValue(val);
-    },
-    mockResolvedValueOnce: (val: unknown): void => {
-      mockedConstructor.mockResolvedValueOnce(val);
-    },
-    mockRejectedValueOnce: (val: unknown): void => {
-      mockedConstructor.mockRejectedValueOnce(val);
-    },
-    mock: mockedConstructor.mock as unknown as { calls: unknown[][] },
-    mockClear: (): void => {
-      mockedConstructor.mockClear();
-    },
-  };
-};
+mockEslintInstance.lintText = lintTextFn as ESLint['lintText'];
+mockEslintInstance.lintFiles = lintFilesFn as ESLint['lintFiles'];
+mockEslintInstance.isPathIgnored = isPathIgnoredFn as ESLint['isPathIgnored'];
 
 export const eslintEslintAdapterProxy = (): {
-  returns: ({ config }: { config: Linter.Config }) => void;
-  throws: ({ error }: { error: Error }) => void;
-  setLintTextBehavior: (implementation: () => Promise<unknown[]>) => void;
-  getLintTextHandler: () => jest.Mock;
-  getLintFilesHandler: () => jest.Mock;
-  getIsPathIgnoredHandler: () => jest.Mock;
-  getHandle: () => MockHandle;
+  getConstructorHandle: () => MockHandle;
+  getLintTextHandle: () => MockHandle;
+  getLintFilesHandle: () => MockHandle;
+  getIsPathIgnoredHandle: () => MockHandle;
+  getSharedInstance: () => ESLint;
 } => {
-  const MockESLintConstructor = createMockHandle();
+  const constructorHandle: MockHandle = registerMock({ fn: ESLint as never });
+  const lintTextHandle: MockHandle = registerMock({ fn: lintTextFn });
+  const lintFilesHandle: MockHandle = registerMock({ fn: lintFilesFn });
+  const isPathIgnoredHandle: MockHandle = registerMock({ fn: isPathIgnoredFn });
 
-  // Default: return mock instance when constructor is called
-  MockESLintConstructor.mockImplementation(() => mockEslintInstance);
+  // The constructor's own argument (options) carries no information any consumer of THIS
+  // default needs — every call gets the same fake instance, and the instance's methods
+  // (addressed by their own real arguments below) are where per-call behaviour actually lives.
+  // eslint-load-config-broker.proxy.ts is the one consumer that dispatches by the constructor's
+  // cwd argument; it stages `calledWith` matchers on this same handle that score higher than
+  // this empty-array catch-all, so its staging wins regardless of registration order.
+  constructorHandle.calledWith([]).implement(() => mockEslintInstance);
 
-  // Default: calculateConfigForFile returns empty config
-  mockCalculateConfigForFile.mockResolvedValue({});
-
-  // Default: lintText returns empty results
-  mockLintText.mockResolvedValue([]);
-
-  // Default: lintFiles returns empty results
-  mockLintFiles.mockResolvedValue([]);
-
-  // Default: isPathIgnored reports paths as not ignored
-  mockIsPathIgnored.mockResolvedValue(false);
+  // lintText/lintFiles/isPathIgnored are ad-hoc methods on the fake instance above, not real
+  // npm exports, so there is no "real" implementation to fall back to. Every consumer that
+  // cares about a specific file/content stages a more specific `calledWith` on the handle it
+  // gets back (see the eslint broker proxies), which wins over these empty-array catch-alls.
+  lintTextHandle.calledWith([]).resolves([]);
+  lintFilesHandle.calledWith([]).resolves([]);
+  isPathIgnoredHandle.calledWith([]).resolves(false);
 
   return {
-    returns: ({ config }: { config: Linter.Config }) => {
-      mockCalculateConfigForFile.mockResolvedValueOnce(config);
-    },
-    throws: ({ error }: { error: Error }) => {
-      MockESLintConstructor.mockImplementationOnce(() => {
-        throw error;
-      });
-    },
-    setLintTextBehavior: (implementation: () => Promise<unknown[]>) => {
-      mockLintText.mockImplementation(implementation);
-    },
-    getLintTextHandler: () => mockLintText,
-    getLintFilesHandler: () => mockLintFiles,
-    getIsPathIgnoredHandler: () => mockIsPathIgnored,
-    getHandle: () => MockESLintConstructor,
+    getConstructorHandle: () => constructorHandle,
+    getLintTextHandle: () => lintTextHandle,
+    getLintFilesHandle: () => lintFilesHandle,
+    getIsPathIgnoredHandle: () => isPathIgnoredHandle,
+    // Exposed so a sibling proxy that must dispatch construction by an argument (cwd) — see
+    // eslint-load-config-broker.proxy.ts — can still hand back an instance with working
+    // lintText/lintFiles/isPathIgnored. Composed tests can construct ESLint through more than one
+    // broker with the SAME cwd (e.g. violations-check-new-broker.proxy.ts composes
+    // eslintIsPathIgnoredBrokerProxy and eslintLoadConfigBrokerProxy, both of which build
+    // options as a bare {cwd}), so a cwd-keyed override can answer for a construction call that
+    // was never load-config's own. Basing that override on this shared instance means it stays
+    // functional either way instead of crashing on a missing method.
+    getSharedInstance: () => mockEslintInstance,
   };
 };

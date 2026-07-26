@@ -22,12 +22,13 @@ describe('toolInputGetFullContentBroker', () => {
 
     it("EDGE: file doesn't exist for Write tool => returns content", async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/newfile.txt' });
       const toolInput = WriteToolInputStub({
-        file_path: FilePathStub({ value: '/test/newfile.txt' }),
+        file_path: filePath,
         content: 'New file content',
       });
 
-      proxy.setupReadFileNotFound();
+      proxy.setupReadFileNotFound({ filePath });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
@@ -38,14 +39,15 @@ describe('toolInputGetFullContentBroker', () => {
   describe('Edit tool', () => {
     it('VALID: EditToolInput single edit => returns modified content', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = EditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         old_string: 'Hello',
         new_string: 'Hi',
       });
 
       const contents = FileContentsStub({ value: 'Hello world' });
-      proxy.setupReadFileSuccess({ contents });
+      proxy.setupReadFileSuccess({ filePath, contents });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
@@ -54,14 +56,16 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('VALID: EditToolInput with replace_all => returns content with all replacements', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = EditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         old_string: 'test',
         new_string: 'demo',
         replace_all: true,
       });
 
       proxy.setupReadFileSuccess({
+        filePath,
         contents: FileContentsStub({ value: 'test file with test content and test data' }),
       });
 
@@ -72,13 +76,14 @@ describe('toolInputGetFullContentBroker', () => {
 
     it("ERROR: file doesn't exist for Edit tool => returns null", async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/nonexistent.txt' });
       const toolInput = EditToolInputStub({
-        file_path: FilePathStub({ value: '/test/nonexistent.txt' }),
+        file_path: filePath,
         old_string: 'Hello',
         new_string: 'Hi',
       });
 
-      proxy.setupReadFileNotFound();
+      proxy.setupReadFileNotFound({ filePath });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
@@ -87,15 +92,16 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('ERROR: file read error (not ENOENT) => throws error', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = EditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         old_string: 'Hello',
         new_string: 'Hi',
       });
 
       const error = new Error('Permission denied') as NodeJS.ErrnoException;
       error.code = 'EACCES';
-      proxy.setupReadFileError({ error });
+      proxy.setupReadFileError({ filePath, error });
 
       await expect(toolInputGetFullContentBroker({ toolInput })).rejects.toThrow(
         /Permission denied/u,
@@ -106,12 +112,16 @@ describe('toolInputGetFullContentBroker', () => {
   describe('MultiEdit tool', () => {
     it('VALID: MultiEditToolInput single edit => returns content with edit applied', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         edits: [{ old_string: 'Hello', new_string: 'Hi' }],
       });
 
-      proxy.setupReadFileSuccess({ contents: FileContentsStub({ value: 'Hello world' }) });
+      proxy.setupReadFileSuccess({
+        filePath,
+        contents: FileContentsStub({ value: 'Hello world' }),
+      });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
@@ -120,15 +130,19 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('VALID: MultiEditToolInput multiple edits => returns content with all edits applied', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         edits: [
           { old_string: 'Hello', new_string: 'Hi' },
           { old_string: 'world', new_string: 'universe' },
         ],
       });
 
-      proxy.setupReadFileSuccess({ contents: FileContentsStub({ value: 'Hello world' }) });
+      proxy.setupReadFileSuccess({
+        filePath,
+        contents: FileContentsStub({ value: 'Hello world' }),
+      });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 
@@ -137,8 +151,9 @@ describe('toolInputGetFullContentBroker', () => {
 
     it('VALID: MultiEditToolInput with replace_all edits => returns content with all replacements', async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/file.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/file.txt' }),
+        file_path: filePath,
         edits: [
           { old_string: 'test', new_string: 'demo', replace_all: true },
           { old_string: 'file', new_string: 'document' },
@@ -146,6 +161,7 @@ describe('toolInputGetFullContentBroker', () => {
       });
 
       proxy.setupReadFileSuccess({
+        filePath,
         contents: FileContentsStub({ value: 'test file with test content in test file' }),
       });
 
@@ -156,12 +172,13 @@ describe('toolInputGetFullContentBroker', () => {
 
     it("ERROR: file doesn't exist for MultiEdit tool => returns null", async () => {
       const proxy = toolInputGetFullContentBrokerProxy();
+      const filePath = FilePathStub({ value: '/test/nonexistent.txt' });
       const toolInput = MultiEditToolInputStub({
-        file_path: FilePathStub({ value: '/test/nonexistent.txt' }),
+        file_path: filePath,
         edits: [{ old_string: 'Hello', new_string: 'Hi' }],
       });
 
-      proxy.setupReadFileNotFound();
+      proxy.setupReadFileNotFound({ filePath });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
 

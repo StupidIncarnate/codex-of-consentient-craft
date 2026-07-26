@@ -9,7 +9,7 @@ describe('orchestratorResumeQuestAdapter', () => {
       const proxy = orchestratorResumeQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      proxy.returns({ resumed: true, restoredStatus: 'in_progress' });
+      proxy.returns({ questId, resumed: true, restoredStatus: 'in_progress' });
 
       const result = await orchestratorResumeQuestAdapter({ questId });
 
@@ -22,7 +22,7 @@ describe('orchestratorResumeQuestAdapter', () => {
       const proxy = orchestratorResumeQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      proxy.throws({ error: new Error('Failed to resume quest') });
+      proxy.throws({ questId, error: new Error('Failed to resume quest') });
 
       await expect(orchestratorResumeQuestAdapter({ questId })).rejects.toThrow(
         /Failed to resume quest/u,

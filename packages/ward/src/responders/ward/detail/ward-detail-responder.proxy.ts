@@ -11,10 +11,12 @@ export const WardDetailResponderProxy = (): {
 } => {
   const detailProxy = commandDetailBrokerProxy();
 
+  // write()'s return value never varies by content — what was written is read back via
+  // callsMatching below, so the catch-all stays unaddressed.
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.mockImplementation(() => true);
+  stderrSpy.calledWith([]).returns(true);
   const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.mockImplementation(() => true);
+  stdoutSpy.calledWith([]).returns(true);
 
   return {
     callResponder: WardDetailResponder,
@@ -27,8 +29,8 @@ export const WardDetailResponderProxy = (): {
       detailProxy.setupNoResult();
     },
 
-    getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
+    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
 
-    getStdoutCalls: (): unknown[] => stdoutSpy.mock.calls.map((call) => call[0]),
+    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
   };
 };

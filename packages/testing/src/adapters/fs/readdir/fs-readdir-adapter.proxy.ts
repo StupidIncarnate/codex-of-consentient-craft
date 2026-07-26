@@ -8,7 +8,7 @@ export const fsReaddirAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: readdirSync });
 
-  mock.mockReturnValue([]);
+  mock.calledWith([]).returns([]);
 
   return {
     returns: ({ dirPath, files }: { dirPath: string; files: FileName[] }): void => {

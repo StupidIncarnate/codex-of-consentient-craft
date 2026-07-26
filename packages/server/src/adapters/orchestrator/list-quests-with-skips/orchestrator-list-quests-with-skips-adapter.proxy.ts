@@ -1,30 +1,38 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { QuestListItemStub, SkippedQuestFileStub } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  QuestListItemStub,
+  SkippedQuestFileStub,
+} from '@dungeonmaster/shared/contracts';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
 
 export const orchestratorListQuestsWithSkipsAdapterProxy = (): {
-  returns: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: {
+    guildId: GuildId;
+    quests: QuestListItem[];
+    skipped: SkippedQuestFile[];
+  }) => void;
+  throws: (params: { guildId: GuildId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.listQuestsWithSkips });
 
-  mock.mockResolvedValue({ quests: [], skipped: [] });
-
   return {
     returns: ({
+      guildId,
       quests,
       skipped,
     }: {
+      guildId: GuildId;
       quests: QuestListItem[];
       skipped: SkippedQuestFile[];
     }): void => {
-      mock.mockResolvedValueOnce({ quests, skipped });
+      mock.calledWith([{ guildId }]).resolves({ quests, skipped });
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+      mock.calledWith([{ guildId }]).rejects(error);
     },
   };
 };

@@ -17,7 +17,7 @@ describe('orchestratorUpdateGuildAdapter', () => {
       const path = GuildPathStub({ value: '/home/user/updated' });
       const guild = GuildStub({ id: guildId, name, path });
 
-      proxy.returns({ guild });
+      proxy.returns({ guildId, guild });
 
       const result = await orchestratorUpdateGuildAdapter({ guildId, name, path });
 
@@ -25,9 +25,10 @@ describe('orchestratorUpdateGuildAdapter', () => {
     });
 
     it('VALID: {guildId, name only} => returns updated guild', async () => {
-      orchestratorUpdateGuildAdapterProxy();
+      const proxy = orchestratorUpdateGuildAdapterProxy();
       const guildId = GuildIdStub();
       const name = GuildNameStub({ value: 'Renamed' });
+      proxy.returns({ guildId, guild: GuildStub() });
 
       const result = await orchestratorUpdateGuildAdapter({ guildId, name });
 
@@ -35,9 +36,10 @@ describe('orchestratorUpdateGuildAdapter', () => {
     });
 
     it('VALID: {guildId, path only} => returns updated guild', async () => {
-      orchestratorUpdateGuildAdapterProxy();
+      const proxy = orchestratorUpdateGuildAdapterProxy();
       const guildId = GuildIdStub();
       const path = GuildPathStub({ value: '/new/path' });
+      proxy.returns({ guildId, guild: GuildStub() });
 
       const result = await orchestratorUpdateGuildAdapter({ guildId, path });
 
@@ -50,7 +52,7 @@ describe('orchestratorUpdateGuildAdapter', () => {
       const proxy = orchestratorUpdateGuildAdapterProxy();
       const guildId = GuildIdStub();
 
-      proxy.throws({ error: new Error('Failed to update guild') });
+      proxy.throws({ guildId, error: new Error('Failed to update guild') });
 
       await expect(orchestratorUpdateGuildAdapter({ guildId })).rejects.toThrow(
         /Failed to update guild/u,

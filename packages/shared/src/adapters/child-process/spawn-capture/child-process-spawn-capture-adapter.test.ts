@@ -13,6 +13,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       proxy.setupSuccess({
+        command: 'npm',
         exitCode,
         stdout: ErrorMessageStub({ value: '' }),
         stderr: ErrorMessageStub({ value: '' }),
@@ -34,6 +35,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       proxy.setupSuccess({
+        command: 'npm',
         exitCode,
         stdout: ErrorMessageStub({ value: 'All tests passed' }),
         stderr: ErrorMessageStub({ value: '' }),
@@ -57,6 +59,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 1 });
       proxy.setupSuccess({
+        command: 'npm',
         exitCode,
         stdout: ErrorMessageStub({ value: '' }),
         stderr: ErrorMessageStub({ value: 'Error in /src/file.ts' }),
@@ -78,6 +81,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 1 });
       proxy.setupSuccess({
+        command: 'npm',
         exitCode,
         stdout: ErrorMessageStub({ value: 'stdout content' }),
         stderr: ErrorMessageStub({ value: 'stderr content' }),
@@ -100,6 +104,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
     it('VALID: {child killed by SIGTERM} => returns exit code 1 with captured output', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       proxy.setupSignalKill({
+        command: 'playwright',
         signal: 'SIGTERM',
         stdout: ErrorMessageStub({ value: 'partial run output' }),
         stderr: ErrorMessageStub({ value: '' }),
@@ -121,7 +126,10 @@ describe('childProcessSpawnCaptureAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {spawn error} => returns exit code 1 and empty output', async () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
-      proxy.setupError({ error: new Error('ENOENT: command not found') });
+      proxy.setupError({
+        command: 'nonexistent',
+        error: new Error('ENOENT: command not found'),
+      });
 
       const result = await childProcessSpawnCaptureAdapter({
         command: 'nonexistent',
@@ -141,6 +149,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       proxy.setupSuccess({
+        command: 'npm',
         exitCode,
         stdout: ErrorMessageStub({ value: '' }),
         stderr: ErrorMessageStub({ value: '' }),
@@ -161,6 +170,7 @@ describe('childProcessSpawnCaptureAdapter', () => {
       const proxy = childProcessSpawnCaptureAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       proxy.setupSuccess({
+        command: 'npm',
         exitCode,
         stdout: ErrorMessageStub({ value: '' }),
         stderr: ErrorMessageStub({ value: '' }),

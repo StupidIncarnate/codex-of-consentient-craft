@@ -384,9 +384,7 @@ describe('useQuestsBinding', () => {
   describe('error logging', () => {
     it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-quests] prefix', async () => {
       const proxy = useQuestsBindingProxy();
-      proxy.setupOuterCatchTrigger();
-
-      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+      proxy.setupOuterCatchTrigger({ guildId });
 
       testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestsBinding({ guildId }),
@@ -394,11 +392,11 @@ describe('useQuestsBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(consoleErrorCalls[0]?.[0]).toBe('[use-quests]');
+          expect(proxy.getConsoleErrorCalls()[0]?.[0]).toBe('[use-quests]');
         },
       });
 
-      expect(consoleErrorCalls[0]?.[1]).toBeInstanceOf(Error);
+      expect(proxy.getConsoleErrorCalls()[0]?.[1]).toBeInstanceOf(Error);
     });
   });
 });

@@ -31,7 +31,7 @@ describe('fsEnsureReadFileSyncAdapter', () => {
     const adapterProxy = fsEnsureReadFileSyncAdapterProxy();
     const filePath = FilePathStub({ value: '/not-exists.ts' });
 
-    adapterProxy.throwsFileNotFound();
+    adapterProxy.throwsFileNotFound({ filePath });
 
     expect(() => {
       return fsEnsureReadFileSyncAdapter({ filePath });

@@ -10,7 +10,7 @@ describe('orchestratorListQuestsAdapter', () => {
       const guildId = GuildIdStub();
       const quests = [QuestListItemStub()];
 
-      proxy.returns({ quests });
+      proxy.returns({ guildId, quests });
 
       const result = await orchestratorListQuestsAdapter({ guildId });
 
@@ -18,8 +18,9 @@ describe('orchestratorListQuestsAdapter', () => {
     });
 
     it('VALID: {guildId, no quests} => returns empty array', async () => {
-      orchestratorListQuestsAdapterProxy();
+      const proxy = orchestratorListQuestsAdapterProxy();
       const guildId = GuildIdStub();
+      proxy.returns({ guildId, quests: [] });
 
       const result = await orchestratorListQuestsAdapter({ guildId });
 
@@ -32,7 +33,7 @@ describe('orchestratorListQuestsAdapter', () => {
       const proxy = orchestratorListQuestsAdapterProxy();
       const guildId = GuildIdStub();
 
-      proxy.throws({ error: new Error('Failed to list quests') });
+      proxy.throws({ guildId, error: new Error('Failed to list quests') });
 
       await expect(orchestratorListQuestsAdapter({ guildId })).rejects.toThrow(
         /Failed to list quests/u,

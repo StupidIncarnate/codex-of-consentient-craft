@@ -11,7 +11,7 @@ describe('fsReaddirAdapter', () => {
         FileNameStub({ value: 'quest-2.json' }),
       ];
 
-      proxy.returns({ files });
+      proxy.returns({ dirPath: '/quests', files });
 
       const result = fsReaddirAdapter({ dirPath: '/quests' });
 
@@ -21,7 +21,7 @@ describe('fsReaddirAdapter', () => {
     it('VALID: {dirPath: "/empty"} => returns empty array for empty directory', () => {
       const proxy = fsReaddirAdapterProxy();
 
-      proxy.returns({ files: [] });
+      proxy.returns({ dirPath: '/empty', files: [] });
 
       const result = fsReaddirAdapter({ dirPath: '/empty' });
 
@@ -34,7 +34,7 @@ describe('fsReaddirAdapter', () => {
       const proxy = fsReaddirAdapterProxy();
       const error = new Error('ENOENT: no such file or directory');
 
-      proxy.throws({ error });
+      proxy.throws({ dirPath: '/missing', error });
 
       expect(() => fsReaddirAdapter({ dirPath: '/missing' })).toThrow(error);
     });

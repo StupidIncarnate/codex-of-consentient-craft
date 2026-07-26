@@ -27,26 +27,22 @@ describe('eslintOutputFixesAdapter', () => {
       const proxy = eslintOutputFixesAdapterProxy();
       const results = [createLintResult({ output: 'const x = 1;' })];
 
-      proxy.writesSuccessfully();
+      proxy.writesSuccessfully({ results });
 
       await eslintOutputFixesAdapter({ results });
 
-      const handler = proxy.getOutputFixesHandler();
-
-      expect(handler.mock.calls).toStrictEqual([[results]]);
+      expect(proxy.getCallsFor({ results })).toStrictEqual([[results]]);
     });
 
     it('EMPTY: {results: empty} => calls ESLint.outputFixes with empty array', async () => {
       const proxy = eslintOutputFixesAdapterProxy();
       const emptyResults: ESLint.LintResult[] = [];
 
-      proxy.writesSuccessfully();
+      proxy.writesSuccessfully({ results: emptyResults });
 
       await eslintOutputFixesAdapter({ results: emptyResults });
 
-      const handler = proxy.getOutputFixesHandler();
-
-      expect(handler.mock.calls).toStrictEqual([[emptyResults]]);
+      expect(proxy.getCallsFor({ results: emptyResults })).toStrictEqual([[emptyResults]]);
     });
   });
 
@@ -56,7 +52,7 @@ describe('eslintOutputFixesAdapter', () => {
       const results = [createLintResult()];
       const expectedError = new Error('EACCES: permission denied');
 
-      proxy.throwsError({ error: expectedError });
+      proxy.throwsError({ results, error: expectedError });
 
       await expect(eslintOutputFixesAdapter({ results })).rejects.toThrow(/EACCES/u);
     });

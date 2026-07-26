@@ -5,7 +5,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsEnsureReadFileSyncAdapterProxy = (): {
   returns: (args: { filePath: FilePath; contents: FileContents }) => void;
-  throwsFileNotFound: () => void;
+  throwsFileNotFound: (args: { filePath: FilePath }) => void;
   setupFileSystem: (args: { getContents: (filePath: FilePath) => FileContents | null }) => void;
 } => {
   const mockExistsSync = registerMock({ fn: existsSync });
@@ -17,8 +17,8 @@ export const fsEnsureReadFileSyncAdapterProxy = (): {
       mockReadFileSync.calledWith([filePath]).returns(contents);
     },
 
-    throwsFileNotFound: (): void => {
-      mockExistsSync.mockReturnValue(false);
+    throwsFileNotFound: ({ filePath }: { filePath: FilePath }): void => {
+      mockExistsSync.calledWith([filePath]).returns(false);
     },
 
     setupFileSystem: ({
@@ -26,13 +26,15 @@ export const fsEnsureReadFileSyncAdapterProxy = (): {
     }: {
       getContents: (filePath: FilePath) => FileContents | null;
     }): void => {
-      mockExistsSync.mockImplementation((path): boolean => {
+      // No single path to key on: the rule under test probes many candidate paths decided
+      // entirely by the caller-supplied getContents callback, so [] is the honest address.
+      mockExistsSync.calledWith([]).implement((path): boolean => {
         const filePath = filePathContract.parse(String(path));
         const contents = getContents(filePath);
         return contents !== null;
       });
 
-      mockReadFileSync.mockImplementation((path) => {
+      mockReadFileSync.calledWith([]).implement((path) => {
         const filePath = filePathContract.parse(String(path));
         const contents = getContents(filePath);
         if (contents === null) {

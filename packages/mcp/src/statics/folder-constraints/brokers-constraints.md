@@ -226,7 +226,7 @@ export const userFetchBrokerProxy = () => {
 
   // Mock globals via registerMock if broker uses them
   const dateHandle = registerMock({fn: Date.now});
-  dateHandle.mockReturnValue(1609459200000);
+  dateHandle.calledWith([]).returns(1609459200000); // no args to key on — the honest catch-all
 
     return {
         // Semantic setup method

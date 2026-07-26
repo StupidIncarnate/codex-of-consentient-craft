@@ -6,7 +6,7 @@ describe('fsExistsSyncAdapter', () => {
   it('VALID: {filePath} => returns true when file exists', () => {
     const proxy = fsExistsSyncAdapterProxy();
     const filePath = FilePathStub({ value: '/test/file.ts' });
-    proxy.returns({ exists: true });
+    proxy.returns({ filePath, exists: true });
 
     const result = fsExistsSyncAdapter({ filePath });
 
@@ -16,7 +16,7 @@ describe('fsExistsSyncAdapter', () => {
   it('VALID: {filePath} => returns false when file does not exist', () => {
     const proxy = fsExistsSyncAdapterProxy();
     const filePath = FilePathStub({ value: '/test/file.ts' });
-    proxy.returns({ exists: false });
+    proxy.returns({ filePath, exists: false });
 
     const result = fsExistsSyncAdapter({ filePath });
 

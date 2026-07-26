@@ -3,29 +3,28 @@
  *
  * USAGE:
  * const proxy = orchestratorListQuestsAdapterProxy();
- * proxy.returns({ quests: [QuestListItemStub()] });
+ * proxy.returns({ guildId: GuildIdStub(), quests: [QuestListItemStub()] });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import type { GuildIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
+type GuildId = ReturnType<typeof GuildIdStub>;
 
 export const orchestratorListQuestsAdapterProxy = (): {
-  returns: (params: { quests: QuestListItem[] }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
+  throws: (params: { guildId: GuildId; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.listQuests });
 
-  handle.mockResolvedValue([]);
-
   return {
-    returns: ({ quests }: { quests: QuestListItem[] }): void => {
-      handle.mockResolvedValueOnce(quests);
+    returns: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
+      handle.calledWith([{ guildId }]).resolves(quests);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+      handle.calledWith([{ guildId }]).rejects(error);
     },
   };
 };

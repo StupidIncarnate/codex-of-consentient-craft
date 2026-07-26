@@ -8,7 +8,7 @@ describe('stateDirsFindLayerBroker', () => {
       const proxy = stateDirsFindLayerBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
 
-      proxy.setupStateDirs({ names: ['design-process', 'quest-execution-queue'] });
+      proxy.setupStateDirs({ packageRoot, names: ['design-process', 'quest-execution-queue'] });
 
       const result = stateDirsFindLayerBroker({ packageRoot });
 
@@ -21,7 +21,7 @@ describe('stateDirsFindLayerBroker', () => {
       const proxy = stateDirsFindLayerBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
-      proxy.setupEmpty();
+      proxy.setupEmpty({ packageRoot });
 
       const result = stateDirsFindLayerBroker({ packageRoot });
 
@@ -34,7 +34,7 @@ describe('stateDirsFindLayerBroker', () => {
       const proxy = stateDirsFindLayerBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/shared' });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ packageRoot });
 
       const result = stateDirsFindLayerBroker({ packageRoot });
 

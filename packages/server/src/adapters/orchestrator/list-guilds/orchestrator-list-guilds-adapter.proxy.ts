@@ -4,20 +4,22 @@ import type { GuildListItemStub } from '@dungeonmaster/shared/contracts';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 
+// listGuilds takes no arguments — `[]` is the exhaustive, honest address. The constructor
+// default answers callers that never set up their own scenario, same as the old blanket default.
 export const orchestratorListGuildsAdapterProxy = (): {
   returns: (params: { guilds: GuildListItem[] }) => void;
   throws: (params: { error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.listGuilds });
 
-  mock.mockResolvedValue([]);
+  mock.calledWith([]).resolves([]);
 
   return {
     returns: ({ guilds }: { guilds: GuildListItem[] }): void => {
-      mock.mockResolvedValueOnce(guilds);
+      mock.calledWith([]).resolves(guilds);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      mock.calledWith([]).rejects(error);
     },
   };
 };

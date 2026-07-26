@@ -8,11 +8,11 @@ describe('fsWriteFileSyncAdapter', () => {
     const filePath = FilePathStub({ value: '/test/file.js' });
     const contents = FileContentsStub({ value: 'test content' });
 
-    proxy.succeeds({ filePath, contents });
+    proxy.succeeds({ filePath });
 
     fsWriteFileSyncAdapter({ filePath, contents });
 
-    expect(proxy.getWrittenContent()).toBe('test content');
+    expect(proxy.getWrittenFor({ filePath })).toBe('test content');
   });
 
   it('VALID: writes with custom encoding', () => {
@@ -20,10 +20,10 @@ describe('fsWriteFileSyncAdapter', () => {
     const filePath = FilePathStub({ value: '/test/file.js' });
     const contents = FileContentsStub({ value: 'test content' });
 
-    proxy.succeeds({ filePath, contents });
+    proxy.succeeds({ filePath });
 
     fsWriteFileSyncAdapter({ filePath, contents, encoding: 'ascii' });
 
-    expect(proxy.getWrittenContent()).toBe('test content');
+    expect(proxy.getWrittenFor({ filePath })).toBe('test content');
   });
 });

@@ -6,6 +6,7 @@ import type { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-wit
 type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/mcp' });
+const FLOWS_DIR = AbsoluteFilePathStub({ value: '/repo/packages/mcp/src/flows' });
 
 const makeFileDirent = ({ name }: { name: string }): Dirent =>
   ({
@@ -39,7 +40,7 @@ describe('listFlowFilesLayerBroker', () => {
   describe('no flows directory', () => {
     it('EMPTY: {readdir returns []} => returns empty array', () => {
       const proxy = listFlowFilesLayerBrokerProxy();
-      proxy.returns({ entries: [] });
+      proxy.returns({ dirPath: FLOWS_DIR, entries: [] });
 
       const result = listFlowFilesLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -50,7 +51,10 @@ describe('listFlowFilesLayerBroker', () => {
   describe('flat flow files', () => {
     it('VALID: {single flow file in flows dir} => returns its absolute path', () => {
       const proxy = listFlowFilesLayerBrokerProxy();
-      proxy.returns({ entries: [makeFileDirent({ name: 'architecture-flow.ts' })] });
+      proxy.returns({
+        dirPath: FLOWS_DIR,
+        entries: [makeFileDirent({ name: 'architecture-flow.ts' })],
+      });
 
       const result = listFlowFilesLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -61,7 +65,10 @@ describe('listFlowFilesLayerBroker', () => {
 
     it('VALID: {non-flow file} => returns empty array (no match)', () => {
       const proxy = listFlowFilesLayerBrokerProxy();
-      proxy.returns({ entries: [makeFileDirent({ name: 'architecture-broker.ts' })] });
+      proxy.returns({
+        dirPath: FLOWS_DIR,
+        entries: [makeFileDirent({ name: 'architecture-broker.ts' })],
+      });
 
       const result = listFlowFilesLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -70,7 +77,10 @@ describe('listFlowFilesLayerBroker', () => {
 
     it('VALID: {test flow file excluded} => returns empty array', () => {
       const proxy = listFlowFilesLayerBrokerProxy();
-      proxy.returns({ entries: [makeFileDirent({ name: 'architecture-flow.test.ts' })] });
+      proxy.returns({
+        dirPath: FLOWS_DIR,
+        entries: [makeFileDirent({ name: 'architecture-flow.test.ts' })],
+      });
 
       const result = listFlowFilesLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -81,8 +91,12 @@ describe('listFlowFilesLayerBroker', () => {
   describe('subdirectory traversal', () => {
     it('VALID: {subdir containing a flow file} => recurses and returns nested flow path', () => {
       const proxy = listFlowFilesLayerBrokerProxy();
-      proxy.returns({ entries: [makeDirDirent({ name: 'architecture' })] });
-      proxy.returns({ entries: [makeFileDirent({ name: 'architecture-flow.ts' })] });
+      const subDir = AbsoluteFilePathStub({ value: '/repo/packages/mcp/src/flows/architecture' });
+      proxy.returns({ dirPath: FLOWS_DIR, entries: [makeDirDirent({ name: 'architecture' })] });
+      proxy.returns({
+        dirPath: subDir,
+        entries: [makeFileDirent({ name: 'architecture-flow.ts' })],
+      });
 
       const result = listFlowFilesLayerBroker({ packageRoot: PACKAGE_ROOT });
 

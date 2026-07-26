@@ -2,6 +2,12 @@ import { HookSubagentStopResponder } from './hook-subagent-stop-responder';
 import { HookSubagentStopResponderProxy } from './hook-subagent-stop-responder.proxy';
 import { SubagentStopHookDataStub } from '../../../contracts/subagent-stop-hook-data/subagent-stop-hook-data.stub';
 import { subagentStopBlockMessageStatics } from '../../../statics/subagent-stop-block-message/subagent-stop-block-message-statics';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+
+// HookSubagentStopResponder reads whichever of agent_transcript_path / transcript_path the hook
+// input carries; every test below uses SubagentStopHookDataStub()'s default transcript_path, so
+// the read is addressed by that same fixed path.
+const TRANSCRIPT_PATH = FilePathStub({ value: '/tmp/transcript.jsonl' });
 
 const workItemAgentLine = JSON.stringify({
   message: {
@@ -48,7 +54,7 @@ const minionLine = JSON.stringify({
 describe('HookSubagentStopResponder', () => {
   it('VALID: {work-item agent transcript without signal-back} => returns a block decision', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ contents: workItemAgentLine });
+    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: workItemAgentLine });
 
     const result = await HookSubagentStopResponder({ hookInput: SubagentStopHookDataStub() });
 
@@ -64,7 +70,10 @@ describe('HookSubagentStopResponder', () => {
 
   it('VALID: {work-item agent that called signal-back} => allows the stop', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ contents: [workItemAgentLine, signalBackLine].join('\n') });
+    proxy.setupTranscript({
+      filePath: TRANSCRIPT_PATH,
+      contents: [workItemAgentLine, signalBackLine].join('\n'),
+    });
 
     const result = await HookSubagentStopResponder({ hookInput: SubagentStopHookDataStub() });
 
@@ -73,7 +82,7 @@ describe('HookSubagentStopResponder', () => {
 
   it('VALID: {minion transcript with no workItemId} => allows the stop', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ contents: minionLine });
+    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: minionLine });
 
     const result = await HookSubagentStopResponder({ hookInput: SubagentStopHookDataStub() });
 
@@ -82,7 +91,7 @@ describe('HookSubagentStopResponder', () => {
 
   it('VALID: {would-be block but stop_hook_active true} => allows the stop', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupTranscript({ contents: workItemAgentLine });
+    proxy.setupTranscript({ filePath: TRANSCRIPT_PATH, contents: workItemAgentLine });
 
     const result = await HookSubagentStopResponder({
       hookInput: SubagentStopHookDataStub({ stop_hook_active: true }),
@@ -93,7 +102,7 @@ describe('HookSubagentStopResponder', () => {
 
   it('ERROR: {transcript read fails} => allows the stop', async () => {
     const proxy = HookSubagentStopResponderProxy();
-    proxy.setupReadError();
+    proxy.setupReadError({ filePath: TRANSCRIPT_PATH });
 
     const result = await HookSubagentStopResponder({ hookInput: SubagentStopHookDataStub() });
 

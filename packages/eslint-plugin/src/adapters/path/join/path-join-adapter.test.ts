@@ -9,7 +9,7 @@ describe('pathJoinAdapter', () => {
       const paths = ['/project', 'eslint.config.js'];
       const expectedResult = FilePathStub({ value: '/project/eslint.config.js' });
 
-      proxy.returns({ result: expectedResult });
+      proxy.returns({ paths, result: expectedResult });
 
       const result = pathJoinAdapter({ paths });
 
@@ -21,7 +21,7 @@ describe('pathJoinAdapter', () => {
       const paths = ['/home', 'user', 'project'];
       const expectedResult = FilePathStub({ value: '/home/user/project' });
 
-      proxy.returns({ result: expectedResult });
+      proxy.returns({ paths, result: expectedResult });
 
       const result = pathJoinAdapter({ paths });
 

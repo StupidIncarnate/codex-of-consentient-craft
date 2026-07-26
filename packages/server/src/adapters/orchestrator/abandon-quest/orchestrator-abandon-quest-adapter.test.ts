@@ -6,8 +6,9 @@ import { orchestratorAbandonQuestAdapterProxy } from './orchestrator-abandon-que
 describe('orchestratorAbandonQuestAdapter', () => {
   describe('successful abandon', () => {
     it('VALID: {questId} => returns abandoned result', async () => {
-      orchestratorAbandonQuestAdapterProxy();
+      const proxy = orchestratorAbandonQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
+      proxy.returns({ questId, abandoned: true });
 
       const result = await orchestratorAbandonQuestAdapter({ questId });
 
@@ -20,7 +21,7 @@ describe('orchestratorAbandonQuestAdapter', () => {
       const proxy = orchestratorAbandonQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      proxy.throws({ error: new Error('Failed to abandon quest') });
+      proxy.throws({ questId, error: new Error('Failed to abandon quest') });
 
       await expect(orchestratorAbandonQuestAdapter({ questId })).rejects.toThrow(
         /Failed to abandon quest/u,

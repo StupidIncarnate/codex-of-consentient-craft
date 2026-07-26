@@ -8,7 +8,7 @@ describe('fsStatAdapter', () => {
     const proxy = fsStatAdapterProxy();
     const filePath = FilePathStub({ value: '/test/file.ts' });
     const mockStats = FileStatsStub({ size: 1024 });
-    proxy.returns({ stats: mockStats });
+    proxy.returns({ filePath, stats: mockStats });
 
     const result = await fsStatAdapter({ filePath });
 
@@ -19,7 +19,7 @@ describe('fsStatAdapter', () => {
     const proxy = fsStatAdapterProxy();
     const filePath = FilePathStub({ value: '/test/file.ts' });
     const mockError = new Error('File not found');
-    proxy.throws({ error: mockError });
+    proxy.throws({ filePath, error: mockError });
 
     await expect(fsStatAdapter({ filePath })).rejects.toThrow(/Failed to stat file at/u);
   });

@@ -1,15 +1,16 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 import { QuestFindBySessionResponderProxy } from './quest-find-by-session-responder.proxy';
 
 describe('QuestFindBySessionResponder', () => {
   describe('successful lookup', () => {
     it('VALID: {valid sessionId, quest found} => returns 200 with questId', async () => {
       const proxy = QuestFindBySessionResponderProxy();
+      const sessionId = SessionIdStub({ value: 'session-test-001' });
       const questId = QuestIdStub({ value: 'q-sess-found-1' });
-      proxy.setupFound({ questId });
+      proxy.setupFound({ sessionId, questId });
 
       const result = await proxy.callResponder({
-        params: { sessionId: 'session-test-001' },
+        params: { sessionId },
       });
 
       expect(result).toStrictEqual({
@@ -22,10 +23,11 @@ describe('QuestFindBySessionResponder', () => {
   describe('not found', () => {
     it('EMPTY: {valid sessionId, no quest found} => returns 404 with error', async () => {
       const proxy = QuestFindBySessionResponderProxy();
-      proxy.setupNotFound();
+      const sessionId = SessionIdStub({ value: 'session-test-002' });
+      proxy.setupNotFound({ sessionId });
 
       const result = await proxy.callResponder({
-        params: { sessionId: 'session-test-002' },
+        params: { sessionId },
       });
 
       expect(result).toStrictEqual({
@@ -84,10 +86,11 @@ describe('QuestFindBySessionResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestFindBySessionResponderProxy();
-      proxy.setupError({ message: 'orchestrator unavailable' });
+      const sessionId = SessionIdStub({ value: 'session-test-003' });
+      proxy.setupError({ sessionId, message: 'orchestrator unavailable' });
 
       const result = await proxy.callResponder({
-        params: { sessionId: 'session-test-003' },
+        params: { sessionId },
       });
 
       expect(result).toStrictEqual({

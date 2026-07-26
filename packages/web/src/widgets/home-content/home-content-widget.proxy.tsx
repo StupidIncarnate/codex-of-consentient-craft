@@ -15,6 +15,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type {
   GuildIdStub,
   GuildListItemStub,
+  QuestIdStub,
   QuestListItemStub,
   SessionListItemStub,
   SkippedQuestFileStub,
@@ -36,6 +37,7 @@ import { GuildSessionListWidgetProxy } from '../guild-session-list/guild-session
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+type QuestId = ReturnType<typeof QuestIdStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
 
@@ -70,13 +72,17 @@ export const HomeContentWidgetProxy = (): {
   setupCreateGuildError: () => void;
   clearStorage: () => void;
   setupDeleteQuest: () => void;
-  setupDeleteQuestRejectsWithMessage: (params: { message: string }) => void;
-  setupDeleteQuestRejectsWithoutMessage: () => void;
+  setupDeleteQuestRejectsWithMessage: (params: {
+    questId: QuestId;
+    guildId: GuildId;
+    message: string;
+  }) => void;
+  setupDeleteQuestRejectsWithoutMessage: (params: { questId: QuestId; guildId: GuildId }) => void;
   clickDeleteButton: (params: { testId: string }) => Promise<void>;
   clickBanish: () => Promise<void>;
   isPopoverVisible: (params: { testId: string }) => boolean;
   getShownToast: () => unknown;
-  getDeleteBrokerCalls: () => SpyOnHandle['mock']['calls'];
+  getDeleteBrokerCalls: () => unknown[][];
 } => {
   const sessionsProxy = useSessionListBindingProxy();
   const guildsProxy = useGuildsBindingProxy();
@@ -93,6 +99,18 @@ export const HomeContentWidgetProxy = (): {
   const sessionList = GuildSessionListWidgetProxy();
   const emptyState = GuildEmptyStateWidgetProxy();
   GuildAddModalWidgetProxy();
+  // Staged unconditionally (not just when a test calls setupConsoleErrorCapture): any test that
+  // exercises the guild-create-fails or navigate-fails catch handlers hits these regardless of
+  // whether that specific test cares about reading the logged call. passthrough: true — console.error
+  // is a shared sink; React's own internal warnings also flow through it and must keep printing
+  // normally, not throw for being unstaged.
+  const consoleErrorHandle = registerSpyOn({
+    object: globalThis.console,
+    method: 'error',
+    passthrough: true,
+  });
+  consoleErrorHandle.calledWith(['[home-content] guild create failed']).returns(undefined);
+  consoleErrorHandle.calledWith(['[home-content] navigation failed']).returns(undefined);
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -168,25 +186,35 @@ export const HomeContentWidgetProxy = (): {
     clickQueueLink: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('HOME_QUEUE_LINK'));
     },
-    setupConsoleErrorCapture: (): SpyOnHandle => {
-      const handle = registerSpyOn({ object: globalThis.console, method: 'error' });
-      handle.mockImplementation(() => undefined);
-      return handle;
-    },
+    setupConsoleErrorCapture: (): SpyOnHandle => consoleErrorHandle,
     setupCreateGuildError: (): void => {
       createGuildProxy.setupError();
     },
     setupDeleteQuest: (): void => {
       deleteQuestProxy.setupDelete();
     },
-    setupDeleteQuestRejectsWithMessage: ({ message }: { message: string }): void => {
-      deleteBrokerSpy.mockImplementation(async () => {
+    setupDeleteQuestRejectsWithMessage: ({
+      questId,
+      guildId,
+      message,
+    }: {
+      questId: QuestId;
+      guildId: GuildId;
+      message: string;
+    }): void => {
+      deleteBrokerSpy.calledWith([{ questId, guildId }]).implement(async () => {
         await Promise.resolve();
         throw new Error(message);
       });
     },
-    setupDeleteQuestRejectsWithoutMessage: (): void => {
-      deleteBrokerSpy.mockImplementation(async () => {
+    setupDeleteQuestRejectsWithoutMessage: ({
+      questId,
+      guildId,
+    }: {
+      questId: QuestId;
+      guildId: GuildId;
+    }): void => {
+      deleteBrokerSpy.calledWith([{ questId, guildId }]).implement(async () => {
         await Promise.resolve();
         throw new Error('');
       });
@@ -200,7 +228,7 @@ export const HomeContentWidgetProxy = (): {
     isPopoverVisible: ({ testId }: { testId: string }): boolean =>
       sessionList.isPopoverVisible({ testId }),
     getShownToast: (): unknown => notificationsProxy.getShownNotification(),
-    getDeleteBrokerCalls: (): SpyOnHandle['mock']['calls'] => deleteBrokerSpy.mock.calls,
+    getDeleteBrokerCalls: (): unknown[][] => deleteBrokerSpy.callsMatching([]),
     clearStorage: (): void => {
       localStorage.clear();
     },

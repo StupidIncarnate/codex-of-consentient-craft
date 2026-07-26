@@ -1,19 +1,32 @@
 import { readWidgetSourceLayerBrokerProxy } from './read-widget-source-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const extractWidgetEdgesLayerBrokerProxy = (): {
-  setupWidgetSource: ({ content }: { content: ContentText }) => void;
-  setupMissingWidget: () => void;
+  setupWidgetSource: ({
+    filePath,
+    content,
+  }: {
+    filePath: AbsoluteFilePath;
+    content: ContentText;
+  }) => void;
+  setupMissingWidget: ({ filePath }: { filePath: AbsoluteFilePath }) => void;
 } => {
   const readSourceProxy = readWidgetSourceLayerBrokerProxy();
 
   return {
-    setupWidgetSource: ({ content }: { content: ContentText }): void => {
-      readSourceProxy.setupReturns({ content });
+    setupWidgetSource: ({
+      filePath,
+      content,
+    }: {
+      filePath: AbsoluteFilePath;
+      content: ContentText;
+    }): void => {
+      readSourceProxy.setupReturns({ filePath, content });
     },
 
-    setupMissingWidget: (): void => {
-      readSourceProxy.setupMissing();
+    setupMissingWidget: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+      readSourceProxy.setupMissing({ filePath });
     },
   };
 };

@@ -26,6 +26,7 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
         homeDir: '/home/testuser',
       });
       proxy.setupMainSession({ content: '' });
@@ -93,6 +94,7 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
         homeDir: '/home/testuser',
       });
       proxy.setupMainSession({ content: '' });
@@ -154,6 +156,7 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
         homeDir: '/home/testuser',
       });
       proxy.setupMainSession({ content: '' });
@@ -220,6 +223,7 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
         homeDir: '/home/testuser',
       });
       proxy.setupMainSession({ content: '' });
@@ -266,6 +270,7 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
         homeDir: '/home/testuser',
       });
       // Non-empty main session JSONL so chatHistoryReplayBroker invokes onEntries and
@@ -301,6 +306,7 @@ describe('ChatReplayResponder', () => {
 
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
         homeDir: '/home/testuser',
       });
       proxy.setupMainSession({ content: '' });

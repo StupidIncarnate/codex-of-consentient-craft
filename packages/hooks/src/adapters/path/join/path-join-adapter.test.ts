@@ -9,7 +9,7 @@ describe('pathJoinAdapter', () => {
 
       const expectedPath = FilePathStub({ value: '/project/.claude/settings.json' });
 
-      proxy.returns({ result: expectedPath });
+      proxy.returns({ paths: ['/project', '.claude', 'settings.json'], result: expectedPath });
 
       const result = pathJoinAdapter({ paths: ['/project', '.claude', 'settings.json'] });
 
@@ -21,7 +21,7 @@ describe('pathJoinAdapter', () => {
 
       const expectedPath = FilePathStub({ value: '/project' });
 
-      proxy.returns({ result: expectedPath });
+      proxy.returns({ paths: ['/project'], result: expectedPath });
 
       const result = pathJoinAdapter({ paths: ['/project'] });
 

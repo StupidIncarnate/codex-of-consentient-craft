@@ -8,14 +8,13 @@ export const fsMkdirAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: mkdir });
 
-  handle.mockResolvedValue({ success: true as const });
-
   return {
-    succeeds: ({ filepath: _filepath }: { filepath: PathSegment }): void => {
-      handle.mockResolvedValueOnce({ success: true as const });
+    // mkdir's PATH (argument 0) is the address; the recursive option is unconstrained.
+    succeeds: ({ filepath }: { filepath: PathSegment }): void => {
+      handle.calledWith([filepath]).resolves({ success: true as const });
     },
-    throws: ({ filepath: _filepath, error }: { filepath: PathSegment; error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ filepath, error }: { filepath: PathSegment; error: Error }): void => {
+      handle.calledWith([filepath]).rejects(error);
     },
   };
 };

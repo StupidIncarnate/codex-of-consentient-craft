@@ -135,6 +135,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-require-in-source': 'error',
     '@dungeonmaster/ban-unknown-payload-in-discriminated-union': 'error',
     '@dungeonmaster/require-validation-on-untyped-property-access': 'error',
+    '@dungeonmaster/enforce-proxy-param-binding': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

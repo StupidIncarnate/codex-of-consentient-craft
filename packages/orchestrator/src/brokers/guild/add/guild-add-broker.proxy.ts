@@ -26,12 +26,14 @@ export const guildAddBrokerProxy = (): {
   const mkdirProxy = fsMkdirAdapterProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-  );
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-    '2024-01-15T10:00:00.000Z',
-  );
+  // crypto.randomUUID and Date.prototype.toISOString take no identifying argument — [] is
+  // the honest address for both.
+  registerSpyOn({ object: crypto, method: 'randomUUID' })
+    .calledWith([])
+    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns('2024-01-15T10:00:00.000Z');
 
   return {
     setupAddGuild: ({

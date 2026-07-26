@@ -11,12 +11,10 @@ export const cryptoRandomUuidAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: randomUUID });
 
-  // Default mock implementation - cast to satisfy randomUUID's template literal return type
-  handle.mockReturnValue('f47ac10b-58cc-4372-a567-0e02b2c3d479' as RandomUuidReturnType);
-
   return {
+    // randomUUID takes no arguments — [] is the only honest address.
     setupReturns: ({ uuid }: { uuid: Uuid }): void => {
-      handle.mockReturnValue(uuid as RandomUuidReturnType);
+      handle.calledWith([]).returns(uuid as RandomUuidReturnType);
     },
   };
 };

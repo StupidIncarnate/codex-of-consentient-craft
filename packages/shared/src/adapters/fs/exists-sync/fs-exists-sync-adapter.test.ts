@@ -6,12 +6,11 @@ describe('fsExistsSyncAdapter', () => {
   describe('file exists', () => {
     it('VALID: {filePath: existing file} => returns true', () => {
       const proxy = fsExistsSyncAdapterProxy();
+      const filePath = FilePathStub({ value: '/path/to/file.ts' });
 
-      proxy.returns({ result: true });
+      proxy.returns({ filePath, result: true });
 
-      const result = fsExistsSyncAdapter({
-        filePath: FilePathStub({ value: '/path/to/file.ts' }),
-      });
+      const result = fsExistsSyncAdapter({ filePath });
 
       expect(result).toBe(true);
     });
@@ -20,12 +19,11 @@ describe('fsExistsSyncAdapter', () => {
   describe('file does not exist', () => {
     it('VALID: {filePath: non-existing file} => returns false', () => {
       const proxy = fsExistsSyncAdapterProxy();
+      const filePath = FilePathStub({ value: '/path/to/missing.ts' });
 
-      proxy.returns({ result: false });
+      proxy.returns({ filePath, result: false });
 
-      const result = fsExistsSyncAdapter({
-        filePath: FilePathStub({ value: '/path/to/missing.ts' }),
-      });
+      const result = fsExistsSyncAdapter({ filePath });
 
       expect(result).toBe(false);
     });

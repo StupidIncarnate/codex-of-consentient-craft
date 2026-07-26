@@ -29,7 +29,7 @@ describe('sessionListBroker', () => {
       });
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Built login page"}' });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
       const setCacheMock = jest.fn();
@@ -59,7 +59,7 @@ describe('sessionListBroker', () => {
       proxy.setupGuild({ guild });
       proxy.setupHomeDir({ path: '/home/user' });
       proxy.setupGlobFiles({ files: [] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
       const setCacheMock = jest.fn();
@@ -88,7 +88,7 @@ describe('sessionListBroker', () => {
         files: ['/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl'],
       });
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: true, summary: cachedSummary });
       const setCacheMock = jest.fn();
@@ -125,7 +125,7 @@ describe('sessionListBroker', () => {
       });
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContentError({ error: new Error('read failed') });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
       const setCacheMock: jest.Mock<
@@ -163,7 +163,7 @@ describe('sessionListBroker', () => {
         files: ['/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl'],
       });
       proxy.setupFileStatError({ error: new Error('stat failed') });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
       const setCacheMock = jest.fn();
@@ -195,6 +195,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Built login page"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             activeSessionId: 'session-1',
@@ -241,6 +242,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Built login page"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             activeSessionId: 'session-1',
@@ -290,6 +292,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Smoketest run"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             activeSessionId: 'smoketest-session',
@@ -338,6 +341,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Sub-agent work"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             // No activeSessionId - this is a completed quest, but its work item still has the session
@@ -390,6 +394,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Shared session work"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             title: 'Quest With Duplicate Work-Item Sessions',
@@ -450,6 +455,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Cross-quest session"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             title: 'First Quest Sharing Session',
@@ -516,6 +522,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Built login page"}' });
       proxy.setupQuests({
+        guildId,
         quests: [
           QuestListItemStub({
             activeSessionId: 'different-session',
@@ -566,7 +573,7 @@ describe('sessionListBroker', () => {
       proxy.setupFileStat({ birthtime, mtimeMs: 1708560000000 });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Stale session"}' });
       proxy.setupFileContent({ content: '{"type":"summary","summary":"Fresh session"}' });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
       const setCacheMock = jest.fn();

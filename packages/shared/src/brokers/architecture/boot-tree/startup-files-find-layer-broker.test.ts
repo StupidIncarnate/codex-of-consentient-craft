@@ -7,7 +7,7 @@ describe('startupFilesFindLayerBroker', () => {
     it('VALID: {single start-*.ts file} => returns one startup file path', () => {
       const proxy = startupFilesFindLayerBrokerProxy();
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      proxy.setupFiles({ names: ['start-server.ts'] });
+      proxy.setupFiles({ packageSrcPath, names: ['start-server.ts'] });
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
@@ -19,7 +19,7 @@ describe('startupFilesFindLayerBroker', () => {
     it('VALID: {multiple start-*.ts files} => returns all startup file paths', () => {
       const proxy = startupFilesFindLayerBrokerProxy();
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      proxy.setupFiles({ names: ['start-server.ts', 'start-other.ts'] });
+      proxy.setupFiles({ packageSrcPath, names: ['start-server.ts', 'start-other.ts'] });
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
@@ -34,7 +34,7 @@ describe('startupFilesFindLayerBroker', () => {
     it('VALID: {test file in startup/} => filters out test files', () => {
       const proxy = startupFilesFindLayerBrokerProxy();
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      proxy.setupFiles({ names: ['start-server.ts', 'start-server.test.ts'] });
+      proxy.setupFiles({ packageSrcPath, names: ['start-server.ts', 'start-server.test.ts'] });
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
@@ -46,7 +46,7 @@ describe('startupFilesFindLayerBroker', () => {
     it('VALID: {non-startup file in startup/} => filters out non-matching files', () => {
       const proxy = startupFilesFindLayerBrokerProxy();
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      proxy.setupFiles({ names: ['start-server.ts', 'config.ts'] });
+      proxy.setupFiles({ packageSrcPath, names: ['start-server.ts', 'config.ts'] });
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
@@ -60,7 +60,7 @@ describe('startupFilesFindLayerBroker', () => {
     it('EMPTY: {missing startup directory} => returns empty array', () => {
       const proxy = startupFilesFindLayerBrokerProxy();
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      proxy.setupEmpty();
+      proxy.setupEmpty({ packageSrcPath });
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 

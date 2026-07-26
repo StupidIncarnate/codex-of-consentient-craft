@@ -7,7 +7,7 @@ describe('listDirEntriesLayerBroker', () => {
     it('VALID: {existing directory with files} => returns entries', () => {
       const proxy = listDirEntriesLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/startup' });
-      const setupEntries = proxy.setupFiles({ names: ['start-app.ts'] });
+      const setupEntries = proxy.setupFiles({ dirPath, names: ['start-app.ts'] });
       const result = listDirEntriesLayerBroker({ dirPath });
 
       expect(result).toStrictEqual(setupEntries);
@@ -16,7 +16,7 @@ describe('listDirEntriesLayerBroker', () => {
     it('VALID: {empty directory} => returns empty array', () => {
       const proxy = listDirEntriesLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/startup' });
-      proxy.setupEmpty();
+      proxy.setupEmpty({ dirPath });
       const result = listDirEntriesLayerBroker({ dirPath });
 
       expect(result).toStrictEqual([]);
@@ -27,7 +27,7 @@ describe('listDirEntriesLayerBroker', () => {
     it('ERROR: {missing directory} => returns empty array', () => {
       const proxy = listDirEntriesLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/nonexistent' });
-      proxy.setupError({ error: new Error('ENOENT') });
+      proxy.setupError({ dirPath, error: new Error('ENOENT') });
       const result = listDirEntriesLayerBroker({ dirPath });
 
       expect(result).toStrictEqual([]);

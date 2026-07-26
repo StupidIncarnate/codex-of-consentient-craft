@@ -1,6 +1,6 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 type DispatchState = ReturnType<typeof DispatchStateStub>;
 
@@ -10,14 +10,13 @@ export const orchestratorPauseDispatchAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.pauseDispatch });
 
-  mock.mockResolvedValue(DispatchStateStub());
-
   return {
+    // pauseDispatch takes no argument — [] is the honest, non-catch-all address.
     returns: ({ state }: { state: DispatchState }): void => {
-      mock.mockResolvedValueOnce(state);
+      mock.calledWith([]).resolves(state);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      mock.calledWith([]).rejects(error);
     },
   };
 };

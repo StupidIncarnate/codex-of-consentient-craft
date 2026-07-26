@@ -14,15 +14,17 @@ export const netKillPortAdapterProxy = (): {
   const mockExec = registerMock({ fn: exec });
 
   const setupImpl = ({ stdout }: { stdout: unknown }): void => {
-    mockExec.mockImplementation(
-      (
-        command: unknown,
-        callback: (error: Error | null, stdout: unknown, stderr: unknown) => void,
-      ) => {
-        calls.push({ command });
-        callback(null, stdout, '');
-      },
-    );
+    mockExec
+      .calledWith([])
+      .implement(
+        (
+          command: unknown,
+          callback: (error: Error | null, stdout: unknown, stderr: unknown) => void,
+        ) => {
+          calls.push({ command });
+          callback(null, stdout, '');
+        },
+      );
   };
 
   setupImpl({ stdout: '' });

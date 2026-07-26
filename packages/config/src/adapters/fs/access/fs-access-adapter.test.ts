@@ -9,7 +9,7 @@ describe('fsAccessAdapter', () => {
       const filePath = FilePathStub({ value: '/config.json' });
       const mode = 4;
 
-      proxy.resolves();
+      proxy.resolves({ filePath });
 
       await expect(fsAccessAdapter({ filePath, mode })).resolves.toStrictEqual({ success: true });
     });
@@ -19,7 +19,7 @@ describe('fsAccessAdapter', () => {
       const filePath = FilePathStub({ value: '/project/.dungeonmaster' });
       const mode = 4;
 
-      proxy.resolves();
+      proxy.resolves({ filePath });
 
       await expect(fsAccessAdapter({ filePath, mode })).resolves.toStrictEqual({ success: true });
     });
@@ -31,7 +31,7 @@ describe('fsAccessAdapter', () => {
       const filePath = FilePathStub({ value: '/nonexistent.json' });
       const mode = 4;
 
-      proxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      proxy.rejects({ filePath, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsAccessAdapter({ filePath, mode })).rejects.toThrow(/ENOENT/u);
     });
@@ -41,7 +41,7 @@ describe('fsAccessAdapter', () => {
       const filePath = FilePathStub({ value: '/restricted.json' });
       const mode = 4;
 
-      proxy.rejects({ error: new Error('EACCES: permission denied') });
+      proxy.rejects({ filePath, error: new Error('EACCES: permission denied') });
 
       await expect(fsAccessAdapter({ filePath, mode })).rejects.toThrow(/EACCES/u);
     });

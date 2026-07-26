@@ -16,6 +16,7 @@ describe('findRootWidgetImportsLayerBroker', () => {
       });
 
       proxy.setupRootSources({
+        packageSrcPath,
         responderFilePaths: [responderFilePath],
         responderContents: [
           ContentTextStub({
@@ -47,6 +48,7 @@ describe('findRootWidgetImportsLayerBroker', () => {
       });
 
       proxy.setupRootSources({
+        packageSrcPath,
         responderFilePaths: [responderFilePath],
         responderContents: [
           ContentTextStub({
@@ -67,9 +69,8 @@ describe('findRootWidgetImportsLayerBroker', () => {
 
     it('EMPTY: {no widget files} => returns empty array', () => {
       const proxy = findRootWidgetImportsLayerBrokerProxy();
-      proxy.setupEmpty();
-
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
+      proxy.setupEmpty({ packageSrcPath });
 
       const result = findRootWidgetImportsLayerBroker({
         packageSrcPath,
@@ -81,9 +82,9 @@ describe('findRootWidgetImportsLayerBroker', () => {
 
     it('EMPTY: {no responders or flows} => returns empty array', () => {
       const proxy = findRootWidgetImportsLayerBrokerProxy();
-      proxy.setupEmpty();
-
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
+      proxy.setupEmpty({ packageSrcPath });
+
       const widgetPath = AbsoluteFilePathStub({
         value: '/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx',
       });

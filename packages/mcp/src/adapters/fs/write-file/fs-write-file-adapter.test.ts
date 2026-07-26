@@ -10,7 +10,7 @@ describe('fsWriteFileAdapter', () => {
       value: '{"id": "test-quest", "title": "Test Quest"}',
     });
 
-    adapterProxy.succeeds({ filepath, contents });
+    adapterProxy.succeeds({ filepath });
 
     await expect(fsWriteFileAdapter({ filepath, contents })).resolves.toStrictEqual({
       success: true,

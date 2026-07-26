@@ -14,7 +14,7 @@ describe('architectureSourceReadBroker', () => {
         value: "import { questFetcher } from '../../brokers/quest/quest-broker';",
       });
 
-      proxy.setupReturns({ content });
+      proxy.setupReturns({ filePath, content });
 
       const result = architectureSourceReadBroker({ filePath });
 
@@ -29,7 +29,7 @@ describe('architectureSourceReadBroker', () => {
         value: '/repo/packages/web/src/bindings/missing/missing-binding.ts',
       });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ filePath });
 
       const result = architectureSourceReadBroker({ filePath });
 

@@ -17,23 +17,35 @@ const buildDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent 
   }) as Dirent;
 
 export const listSourceFilesLayerBrokerProxy = (): {
-  setupFlatDirectory: ({ filePaths }: { filePaths: AbsoluteFilePath[] }) => void;
-  setupEmpty: () => void;
+  setupFlatDirectory: ({
+    dirPath,
+    filePaths,
+  }: {
+    dirPath: AbsoluteFilePath;
+    filePaths: AbsoluteFilePath[];
+  }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
   return {
-    setupFlatDirectory: ({ filePaths }: { filePaths: AbsoluteFilePath[] }): void => {
+    setupFlatDirectory: ({
+      dirPath,
+      filePaths,
+    }: {
+      dirPath: AbsoluteFilePath;
+      filePaths: AbsoluteFilePath[];
+    }): void => {
       const entries = filePaths.map((fp) => {
         const name = String(fp).split('/').pop() ?? String(fp);
         return buildDirent({ name, isDir: false });
       });
-      readdirProxy.setupDirectory({ entries });
+      readdirProxy.setupDirectory({ dirPath, entries });
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+      readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
 
     setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {

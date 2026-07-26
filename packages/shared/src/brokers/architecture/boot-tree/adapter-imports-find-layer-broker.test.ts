@@ -13,6 +13,7 @@ describe('adapterImportsFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
         }),
@@ -40,6 +41,7 @@ describe('adapterImportsFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: `import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';`,
         }),
@@ -67,7 +69,7 @@ describe('adapterImportsFindLayerBroker', () => {
       });
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ sourceFile });
 
       const result = adapterImportsFindLayerBroker({ sourceFile, packageSrcPath });
 

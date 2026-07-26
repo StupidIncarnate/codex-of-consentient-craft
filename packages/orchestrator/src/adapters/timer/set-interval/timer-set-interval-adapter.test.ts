@@ -3,7 +3,7 @@ import { timerSetIntervalAdapterProxy } from './timer-set-interval-adapter.proxy
 
 describe('timerSetIntervalAdapter', () => {
   it('VALID: {callback, intervalMs} => registers callback and exposes stop handle', () => {
-    const proxy = timerSetIntervalAdapterProxy();
+    const proxy = timerSetIntervalAdapterProxy({ intervalMs: 5000 });
     const callback = jest.fn();
 
     const handle = timerSetIntervalAdapter({ callback, intervalMs: 5000 });
@@ -13,7 +13,7 @@ describe('timerSetIntervalAdapter', () => {
   });
 
   it('VALID: {triggerTick} => callback fires once on tick', () => {
-    const proxy = timerSetIntervalAdapterProxy();
+    const proxy = timerSetIntervalAdapterProxy({ intervalMs: 5000 });
     const callback = jest.fn();
 
     timerSetIntervalAdapter({ callback, intervalMs: 5000 });
@@ -23,7 +23,7 @@ describe('timerSetIntervalAdapter', () => {
   });
 
   it('VALID: {stop} => clears interval without throwing', () => {
-    timerSetIntervalAdapterProxy();
+    timerSetIntervalAdapterProxy({ intervalMs: 1000 });
     const callback = jest.fn();
 
     const handle = timerSetIntervalAdapter({ callback, intervalMs: 1000 });

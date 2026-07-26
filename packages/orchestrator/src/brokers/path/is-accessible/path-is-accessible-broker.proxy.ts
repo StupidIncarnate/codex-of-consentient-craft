@@ -14,11 +14,14 @@ export const pathIsAccessibleBrokerProxy = (): {
   const accessProxy = fsIsAccessibleAdapterProxy();
 
   return {
+    // No path parameter here to address: guildListBrokerProxy (this broker's only caller)
+    // does not carry the underlying guild's real path down to this call — only the boolean
+    // outcome. `defaultsToFound`/`defaultsToNotFound` are the genuinely-addressless fallback.
     setupResult: ({ result }: { result: boolean }): void => {
       if (result) {
-        accessProxy.resolves();
+        accessProxy.defaultsToFound();
       } else {
-        accessProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+        accessProxy.defaultsToNotFound();
       }
     },
   };

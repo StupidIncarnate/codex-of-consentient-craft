@@ -1,5 +1,4 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { pathJoinAdapterProxy, fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
@@ -16,47 +15,35 @@ export const packageDiscoverBrokerProxy = (): {
   setupEmptyPackagesDirectory: (params: { packagesPath: FilePath }) => void;
 } => {
   const fsReaddirProxy = fsReaddirAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // Unstaged: pathJoinAdapterProxy's default is a real path.join passthrough, and every
+  // packagesPath/standardPath/alternatePath supplied below is already the real join of
+  // dungeonmasterRoot + segments — there is nothing to fake, so fsExistsSync is the only mock
+  // keyed here, addressed by those real paths.
+  pathJoinAdapterProxy();
   const fsExistsSyncProxy = fsExistsSyncAdapterProxy();
 
   return {
     setupPackageDiscovery: ({ packagesPath, packages }) => {
-      // First pathJoin returns the packages directory
-      pathJoinProxy.returns({ result: packagesPath });
+      fsReaddirProxy.returns({ dirPath: packagesPath, files: packages.map((pkg) => pkg.name) });
 
-      // fsReaddir returns the list of package directory names
-      fsReaddirProxy.returns({ files: packages.map((pkg) => pkg.name) });
-
-      // For each package, set up the path checks
       for (const pkg of packages) {
-        // Standard path check
-        pathJoinProxy.returns({ result: pkg.standardPath });
-
         if (pkg.installerLocation === 'standard') {
-          // Found at standard path - no alternate check needed
-          fsExistsSyncProxy.returns({ result: true });
+          fsExistsSyncProxy.returns({ filePath: pkg.standardPath, result: true });
         } else {
-          // Not found at standard path
-          fsExistsSyncProxy.returns({ result: false });
+          fsExistsSyncProxy.returns({ filePath: pkg.standardPath, result: false });
 
-          // Alternate path check - caller must provide alternatePath if not 'standard'
           if (pkg.alternatePath) {
-            pathJoinProxy.returns({ result: pkg.alternatePath });
-          }
-
-          if (pkg.installerLocation === 'alternate') {
-            fsExistsSyncProxy.returns({ result: true });
-          } else {
-            // Not found at either path
-            fsExistsSyncProxy.returns({ result: false });
+            fsExistsSyncProxy.returns({
+              filePath: pkg.alternatePath,
+              result: pkg.installerLocation === 'alternate',
+            });
           }
         }
       }
     },
 
     setupEmptyPackagesDirectory: ({ packagesPath }) => {
-      pathJoinProxy.returns({ result: packagesPath });
-      fsReaddirProxy.returns({ files: [] });
+      fsReaddirProxy.returns({ dirPath: packagesPath, files: [] });
     },
   };
 };

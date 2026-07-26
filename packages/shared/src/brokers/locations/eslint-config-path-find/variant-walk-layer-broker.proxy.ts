@@ -13,7 +13,7 @@ export const variantWalkLayerBrokerProxy = (): {
   return {
     setupFirstVariantMatches: ({ configPath }: { configPath: FilePath }): void => {
       pathJoinProxy.returns({ result: configPath });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: configPath });
     },
 
     setupNthVariantMatches: ({
@@ -25,16 +25,16 @@ export const variantWalkLayerBrokerProxy = (): {
     }): void => {
       for (const missing of missingPaths) {
         pathJoinProxy.returns({ result: missing });
-        fsAccessProxy.rejects({ error: new Error('ENOENT') });
+        fsAccessProxy.rejects({ filePath: missing, error: new Error('ENOENT') });
       }
       pathJoinProxy.returns({ result: configPath });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: configPath });
     },
 
     setupAllVariantsMissing: ({ missingPaths }: { missingPaths: FilePath[] }): void => {
       for (const missing of missingPaths) {
         pathJoinProxy.returns({ result: missing });
-        fsAccessProxy.rejects({ error: new Error('ENOENT') });
+        fsAccessProxy.rejects({ filePath: missing, error: new Error('ENOENT') });
       }
     },
   };

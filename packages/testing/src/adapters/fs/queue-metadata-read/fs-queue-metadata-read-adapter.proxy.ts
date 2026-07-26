@@ -16,7 +16,7 @@ export const fsQueueMetadataReadAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: readFileSync });
 
-  mock.mockReturnValue(JSON.stringify({ counter: 0 }));
+  mock.calledWith([]).returns(JSON.stringify({ counter: 0 }));
 
   return {
     returns: ({

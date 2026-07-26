@@ -177,6 +177,9 @@ describe('questFindQuestPathBroker', () => {
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
         guildsDir: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
         guildDirName: FileNameStub({ value: guildId }),
+        questsDirPath: FilePathStub({
+          value: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
       });
 
       await expect(questFindQuestPathBroker({ questId })).rejects.toThrow(

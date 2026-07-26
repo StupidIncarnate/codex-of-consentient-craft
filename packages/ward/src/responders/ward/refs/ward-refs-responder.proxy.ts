@@ -15,9 +15,9 @@ export const WardRefsResponderProxy = (): {
   const syncProxy = projectReferencesSyncBrokerProxy();
 
   const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.mockImplementation(() => true);
+  stdoutSpy.calledWith([]).returns(true);
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.mockImplementation(() => true);
+  stderrSpy.calledWith([]).returns(true);
 
   return {
     callResponder: WardRefsResponder,
@@ -28,13 +28,15 @@ export const WardRefsResponderProxy = (): {
         dirs: ['shared'],
         packageNames: ['@dm/shared'],
       });
+      // "Already in sync" means the tsconfig read (shared by both the eligibility scan and the
+      // sync-pair comparison) already carries the references the broker would otherwise write.
       syncProxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/project/packages/shared',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/shared","dependencies":{}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
-      syncProxy.flushPairReads();
       syncProxy.setupRootTsconfig({
+        rootPath: '/project',
         tsconfigJson: '{"references":[{"path":"packages/shared"}]}',
       });
     },
@@ -43,7 +45,7 @@ export const WardRefsResponderProxy = (): {
       workspaceProxy.setupSinglePackage();
     },
 
-    getStdoutCalls: (): unknown[] => stdoutSpy.mock.calls.map((call) => call[0]),
-    getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
+    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
+    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
   };
 };

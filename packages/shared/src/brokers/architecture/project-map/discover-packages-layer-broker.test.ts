@@ -6,11 +6,10 @@ describe('discoverPackagesLayerBroker', () => {
   describe('monorepo detection', () => {
     it('VALID: existing packages directory => returns entries from adapter', () => {
       const proxy = discoverPackagesLayerBrokerProxy();
-      proxy.setupPackages({ entries: [] });
+      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages' });
+      proxy.setupPackages({ dirPath, entries: [] });
 
-      const result = discoverPackagesLayerBroker({
-        dirPath: AbsoluteFilePathStub({ value: '/repo/packages' }),
-      });
+      const result = discoverPackagesLayerBroker({ dirPath });
 
       expect(result).toStrictEqual([]);
     });
@@ -19,11 +18,10 @@ describe('discoverPackagesLayerBroker', () => {
   describe('single-package fallback', () => {
     it('ERROR: missing packages directory => returns empty array (single-root signal)', () => {
       const proxy = discoverPackagesLayerBrokerProxy();
-      proxy.setupMissingPackagesDir();
+      const dirPath = AbsoluteFilePathStub({ value: '/single-repo/packages' });
+      proxy.setupMissingPackagesDir({ dirPath });
 
-      const result = discoverPackagesLayerBroker({
-        dirPath: AbsoluteFilePathStub({ value: '/single-repo/packages' }),
-      });
+      const result = discoverPackagesLayerBroker({ dirPath });
 
       expect(result).toStrictEqual([]);
     });

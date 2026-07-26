@@ -62,6 +62,7 @@ import { ruleBanReflectOutsideGuardsBroker } from '../../../brokers/rule/ban-ref
 import { ruleBanRequireInSourceBroker } from '../../../brokers/rule/ban-require-in-source/rule-ban-require-in-source-broker';
 import { ruleBanUnknownPayloadInDiscriminatedUnionBroker } from '../../../brokers/rule/ban-unknown-payload-in-discriminated-union/rule-ban-unknown-payload-in-discriminated-union-broker';
 import { ruleRequireValidationOnUntypedPropertyAccessBroker } from '../../../brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker';
+import { ruleEnforceProxyParamBindingBroker } from '../../../brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -124,6 +125,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-require-in-source': EslintRule;
     readonly 'ban-unknown-payload-in-discriminated-union': EslintRule;
     readonly 'require-validation-on-untyped-property-access': EslintRule;
+    readonly 'enforce-proxy-param-binding': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -191,6 +193,7 @@ export const EslintPluginCreateResponder = (): {
         ruleBanUnknownPayloadInDiscriminatedUnionBroker(),
       'require-validation-on-untyped-property-access':
         ruleRequireValidationOnUntypedPropertyAccessBroker(),
+      'enforce-proxy-param-binding': ruleEnforceProxyParamBindingBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

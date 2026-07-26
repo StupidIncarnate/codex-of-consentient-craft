@@ -1,3 +1,5 @@
+import { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts';
+
 import { ToolingSmoketestRunResponder } from './tooling-smoketest-run-responder';
 import { ToolingSmoketestRunResponderProxy } from './tooling-smoketest-run-responder.proxy';
 
@@ -12,18 +14,20 @@ describe('ToolingSmoketestRunResponder', () => {
 
   it('ERROR: {orchestrator throws "Smoketest already running"} => returns 409', async () => {
     const proxy = ToolingSmoketestRunResponderProxy();
-    proxy.setupAlreadyRunning({ runId: 'run-123', suite: 'mcp' });
+    const suite = SmoketestSuiteStub({ value: 'signals' });
+    proxy.setupAlreadyRunning({ runId: 'run-123', suite });
 
-    const result = await ToolingSmoketestRunResponder({ body: { suite: 'signals' } });
+    const result = await ToolingSmoketestRunResponder({ body: { suite } });
 
     expect(result.status).toBe(409);
   });
 
   it('ERROR: {orchestrator throws other error} => returns 500 (not 409)', async () => {
     const proxy = ToolingSmoketestRunResponderProxy();
-    proxy.setupRejectsWith({ error: new Error('boom') });
+    const suite = SmoketestSuiteStub();
+    proxy.setupRejectsWith({ suite, error: new Error('boom') });
 
-    const result = await ToolingSmoketestRunResponder({ body: { suite: 'mcp' } });
+    const result = await ToolingSmoketestRunResponder({ body: { suite } });
 
     expect(result.status).toBe(500);
   });

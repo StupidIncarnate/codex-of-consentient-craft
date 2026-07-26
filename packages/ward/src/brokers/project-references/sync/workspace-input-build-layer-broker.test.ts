@@ -7,6 +7,7 @@ describe('workspaceInputBuildLayerBroker()', () => {
     it('VALID: {tsconfig present, no noEmit} => isCompositeEligible: true with dep names', async () => {
       const proxy = workspaceInputBuildLayerBrokerProxy();
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/hooks',
         tsconfigJson: '{"compilerOptions":{"composite":true}}',
         packageJson: '{"name":"@dm/hooks","dependencies":{"@dm/shared":"*"}}',
       });
@@ -28,6 +29,7 @@ describe('workspaceInputBuildLayerBroker()', () => {
     it('VALID: {tsconfig has noEmit: true} => isCompositeEligible: false', async () => {
       const proxy = workspaceInputBuildLayerBrokerProxy();
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/tools',
         tsconfigJson: '{"compilerOptions":{"noEmit":true}}',
         packageJson: '{"name":"@dm/tools"}',
       });
@@ -47,6 +49,7 @@ describe('workspaceInputBuildLayerBroker()', () => {
     it('VALID: {no tsconfig} => isCompositeEligible: false', async () => {
       const proxy = workspaceInputBuildLayerBrokerProxy();
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/scripts',
         tsconfigJson: null,
         packageJson: '{"name":"@dm/scripts"}',
       });
@@ -66,6 +69,7 @@ describe('workspaceInputBuildLayerBroker()', () => {
     it('VALID: {no package.json} => dependencyNames empty, packageName undefined', async () => {
       const proxy = workspaceInputBuildLayerBrokerProxy();
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/orphan',
         tsconfigJson: '{}',
         packageJson: null,
       });

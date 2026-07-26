@@ -1,6 +1,13 @@
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import type { FilePath, FileName, GuildId, QuestStub } from '@dungeonmaster/shared/contracts';
 import {
+  filePathContract,
+  type FilePath,
+  type FileName,
+  type GuildId,
+  type QuestStub,
+} from '@dungeonmaster/shared/contracts';
+import {
+  registerMock,
   registerModuleMock,
   registerSpyOn,
   requireActual,
@@ -32,14 +39,21 @@ export const questListBrokerProxy = (): {
   // The broker reports every skipped quest file on stderr. Capture it so test output stays
   // clean and tests can assert on `process.stderr.write` that a skip is never silent.
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.mockImplementation(() => true);
+  stderrSpy.calledWith([]).implement(() => true);
 
-  const mocked = questListBroker as jest.MockedFunction<typeof questListBroker>;
-  // Default: passthrough so existing consumers driving the fs chain keep working.
+  const mocked = registerMock({ fn: questListBroker });
+  // Default: passthrough so existing consumers driving the fs chain keep working. `guildId`
+  // varies per call and the real implementation handles any guildId correctly using the args
+  // it actually receives, so `[]` is the honest address for this generic fallback.
   const realMod = requireActual<{ questListBroker: typeof questListBroker }>({
     module: './quest-list-broker',
   });
-  mocked.mockImplementation(realMod.questListBroker);
+  mocked.calledWith([]).implement(realMod.questListBroker as never);
+
+  // setupQuestsPath is always called immediately before setupQuestDirectories* in every caller —
+  // captured here so the readdir mock can be addressed by the SAME questsPath the broker will
+  // actually list, instead of guessing at a directory the test never described.
+  const questsPathRef = { value: filePathContract.parse('/quest-list-broker-proxy/unset') };
 
   return {
     setupQuestsPath: ({
@@ -51,6 +65,7 @@ export const questListBrokerProxy = (): {
       homePath: FilePath;
       questsPath: FilePath;
     }): void => {
+      questsPathRef.value = questsPath;
       resolveQuestsPathProxy.setupQuestsPath({
         homeDir,
         homePath,
@@ -58,10 +73,10 @@ export const questListBrokerProxy = (): {
       });
     },
     setupQuestDirectories: ({ files }: { files: FileName[] }): void => {
-      fsReaddirProxy.returns({ files });
+      fsReaddirProxy.returns({ dirPath: String(questsPathRef.value), files });
     },
     setupQuestDirectoriesFailure: ({ error }: { error: Error }): void => {
-      fsReaddirProxy.throws({ error });
+      fsReaddirProxy.throws({ dirPath: String(questsPathRef.value), error });
     },
     setupQuestFilePath: ({ result }: { result: FilePath }): void => {
       pathJoinProxy.returns({ result });
@@ -69,22 +84,30 @@ export const questListBrokerProxy = (): {
     setupQuestFile: ({ questJson }: { questJson: string }): void => {
       questLoadProxy.setupQuestFile({ questJson });
     },
+    // Every real caller of this proxy loops over multiple guilds, staging one setupDirectList
+    // per guildId — keying on guildId is what makes each guild get back ITS OWN quest list
+    // regardless of what order questListBroker is actually invoked in (a queue would silently
+    // hand guild A's quests to guild B if the real iteration order ever differed from staging
+    // order).
     setupDirectList: ({
-      guildId: _guildId,
+      guildId,
       quests,
     }: {
       guildId: GuildId;
       quests: readonly Quest[];
     }): void => {
-      mocked.mockResolvedValueOnce(quests as Quest[]);
+      mocked.calledWith([{ guildId }]).resolves(quests as Quest[]);
     },
+    // No caller currently exercises this path with a specific guildId, so there is nothing to
+    // key on — `[]` describes that honestly.
     setupDirectListFailure: ({ error }: { error: Error }): void => {
-      mocked.mockRejectedValueOnce(error);
+      mocked.onceFor([]).rejects(error);
     },
     // Only the broker's own skip lines, in write order — so a test can assert HOW MANY times an
     // unchanged bad file was reported across repeated list calls, not just that it was reported.
     getSkipReports: (): readonly unknown[] =>
-      stderrSpy.mock.calls
+      stderrSpy
+        .callsMatching([])
         .map((call) => call[0])
         .filter((line) => String(line).startsWith('[quest-list] skipping unloadable quest')),
   };

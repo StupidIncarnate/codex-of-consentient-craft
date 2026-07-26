@@ -38,7 +38,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         jestMockedOnlyNpmPackages:
           'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
         adapterProxyMustSetupMocks:
-          'Adapter proxy must call mock.mockImplementation() or mock.mockResolvedValue() in constructor (before return statement). This sets up default mock behavior when proxy is created.',
+          'Adapter proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result. This sets up default mock behavior when proxy is created.',
         childProxyMustBeInConstructor:
           'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
         childProxyMustBeInsideFunction:
@@ -48,7 +48,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         proxyHelperNoMockInName:
           'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
         proxyConstructorNoSideEffects:
-          'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), jest.mocked(...), jest.spyOn(...)',
+          'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), handle.calledWith([...]), handle.onceFor([...]), handle.callsMatching([...]), jest.mocked(...), jest.spyOn(...)',
         proxyNotColocated:
           'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
         exposedChildProxy:

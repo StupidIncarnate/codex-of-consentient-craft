@@ -13,10 +13,9 @@ import { checkRunUnitBrokerProxy } from './check-run-unit-broker.proxy';
 describe('checkRunUnitBroker', () => {
   describe('passing tests', () => {
     it('VALID: {jest exits 0} => returns pass result with no test failures', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -43,7 +42,6 @@ describe('checkRunUnitBroker', () => {
 
   describe('failing tests', () => {
     it('VALID: {jest exits 1 with failures} => returns fail result with parsed test failures', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -59,9 +57,9 @@ describe('checkRunUnitBroker', () => {
         ],
         success: false,
       });
-      proxy.setupFail({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupFail({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -91,14 +89,14 @@ describe('checkRunUnitBroker', () => {
 
   describe('no related tests in file scope', () => {
     it('VALID: {fileList provided, jest finds no related unit tests} => returns skip not fail', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setupFailWithStderr({
+        projectFolder,
         stdout: '',
         stderr:
           'No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\n',
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -122,13 +120,13 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {no fileList, jest emits no-tests banner} => returns fail preserving full-run protection', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setupFailWithStderr({
+        projectFolder,
         stdout: '',
         stderr: 'No tests found, exiting with code 1\n',
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -155,10 +153,9 @@ describe('checkRunUnitBroker', () => {
 
   describe('unparseable output', () => {
     it('VALID: {jest exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupFailWithBadOutput();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupFailWithBadOutput({ projectFolder });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -185,7 +182,6 @@ describe('checkRunUnitBroker', () => {
 
   describe('filesCount', () => {
     it('VALID: {jest output with numTotalTestSuites} => returns filesCount from jest output', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const expectedSuiteCount = 3;
       const jestOutput = JSON.stringify({
         testResults: [
@@ -195,9 +191,9 @@ describe('checkRunUnitBroker', () => {
         numTotalTestSuites: expectedSuiteCount,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -210,20 +206,20 @@ describe('checkRunUnitBroker', () => {
 
   describe('stderr contamination', () => {
     it('VALID: {jest passes with ts-jest warnings on stderr} => returns pass with correct filesCount', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const expectedSuiteCount = 1;
       const jestOutput = JSON.stringify({
         testResults: [],
         numTotalTestSuites: expectedSuiteCount,
         success: true,
       });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
       proxy.setupPassWithStderr({
+        projectFolder,
         stdout: jestOutput,
         stderr:
           'ts-jest[ts-compiler] (WARN) Unable to process file, falling back to original content',
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -249,7 +245,6 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {jest fails with stderr warnings} => returns fail with parsed test failures', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const stderrText = 'ts-jest[ts-compiler] (WARN) Unable to process file';
       const jestOutput = JSON.stringify({
         numTotalTestSuites: 1,
@@ -267,12 +262,13 @@ describe('checkRunUnitBroker', () => {
         ],
         success: false,
       });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
       proxy.setupFailWithStderr({
+        projectFolder,
         stdout: jestOutput,
         stderr: stderrText,
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -307,10 +303,9 @@ describe('checkRunUnitBroker', () => {
 
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -335,13 +330,12 @@ describe('checkRunUnitBroker', () => {
 
   describe('directory path filtering', () => {
     it('VALID: {fileList with directory path} => uses --testPathPatterns instead of --findRelatedTests', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setDiscoveredFiles({
         files: ['src/brokers/quest/orchestration-loop/some-broker.test.ts', 'discovered.ts'],
       });
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -364,6 +358,7 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {fileList with multiple directory paths} => joins paths with pipe in --testPathPatterns', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setDiscoveredFiles({
         files: [
@@ -371,9 +366,7 @@ describe('checkRunUnitBroker', () => {
           'src/transformers/some-transformer.test.ts',
         ],
       });
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -401,10 +394,9 @@ describe('checkRunUnitBroker', () => {
 
   describe('file type filtering', () => {
     it('VALID: {fileList with only .integration.test.ts file} => skips without spawning jest', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -434,10 +426,9 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {fileList with mix of unit and integration files} => only passes unit files to --findRelatedTests', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -467,10 +458,9 @@ describe('checkRunUnitBroker', () => {
 
   describe('directory with no matching unit tests', () => {
     it('VALID: {fileList with directory that has no unit tests in discovered files} => skips without spawning jest', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -498,10 +488,9 @@ describe('checkRunUnitBroker', () => {
 
   describe('testNamePattern', () => {
     it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -525,13 +514,12 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {testNamePattern with directory path} => appends both --testPathPatterns and --testNamePattern', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.setDiscoveredFiles({
         files: ['src/brokers/quest/some-broker.test.ts', 'discovered.ts'],
       });
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -559,16 +547,15 @@ describe('checkRunUnitBroker', () => {
 
   describe('testNamePattern zero matches', () => {
     it('VALID: {testNamePattern matches no tests} => returns fail with error about zero matching tests', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 0,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -601,16 +588,15 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {testNamePattern matches some tests} => returns pass with no errors', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 3,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -634,16 +620,15 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {no testNamePattern with zero tests} => returns pass preserving existing behavior', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 0,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -696,13 +681,12 @@ describe('checkRunUnitBroker', () => {
 
   describe('unit test companion filtering', () => {
     it('VALID: {source file src/foo/foo.ts with .test.ts companion on disk} => keeps file and passes --findRelatedTests to jest', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.queueFsExists({ result: true }); // jest.config.js present
       proxy.queueFsExists({ result: true }); // src/foo/foo.test.ts present
       proxy.queueFsExists({ result: true }); // bin resolve found
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -758,10 +742,9 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {unit test file src/foo/foo.test.ts passed directly} => kept without companion check, passes to --findRelatedTests', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -784,6 +767,7 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {mix of source with companion and source without companion} => only the file with companion reaches --findRelatedTests', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.queueFsExists({ result: true }); // jest.config.js present
       proxy.queueFsExists({ result: true }); // src/a/a.test.ts present
@@ -792,9 +776,7 @@ describe('checkRunUnitBroker', () => {
       proxy.queueFsExists({ result: false }); // src/b/b.test.js missing
       proxy.queueFsExists({ result: false }); // src/b/b.test.jsx missing
       proxy.queueFsExists({ result: true }); // bin resolve found
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -820,14 +802,13 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('VALID: {source file src/widgets/app.tsx with .test.tsx companion on disk} => keeps file and passes to --findRelatedTests', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
       proxy.queueFsExists({ result: true }); // jest.config.js present
       proxy.queueFsExists({ result: false }); // src/widgets/app.test.ts missing
       proxy.queueFsExists({ result: true }); // src/widgets/app.test.tsx present
       proxy.queueFsExists({ result: true }); // bin resolve found
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -883,10 +864,9 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('EDGE: {orphan unit test src/orphan.test.ts passed with no src/orphan.ts source} => still kept because it is a test file', async () => {
-      const proxy = checkRunUnitBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
         projectFolder,
@@ -911,7 +891,6 @@ describe('checkRunUnitBroker', () => {
 
   describe('passingTests', () => {
     it('VALID: {jest output with passed assertionResults} => returns passingTests populated', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -926,9 +905,9 @@ describe('checkRunUnitBroker', () => {
         numPassedTests: 2,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -965,7 +944,6 @@ describe('checkRunUnitBroker', () => {
 
   describe('fileTimings', () => {
     it('VALID: {jest output with startTime/endTime} => returns fileTimings with per-file durations', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -985,9 +963,9 @@ describe('checkRunUnitBroker', () => {
         numPassedTests: 4,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -1014,16 +992,15 @@ describe('checkRunUnitBroker', () => {
     });
 
     it('EDGE: {jest output without startTime/endTime} => returns empty fileTimings', async () => {
-      const proxy = checkRunUnitBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/foo.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 2,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunUnitBroker({
         projectFolder,

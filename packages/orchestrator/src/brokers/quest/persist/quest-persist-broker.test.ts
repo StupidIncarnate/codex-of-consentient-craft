@@ -15,11 +15,11 @@ describe('questPersistBroker', () => {
         value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
       });
 
-      proxy.setupPersist({ homePath, outboxFilePath });
+      proxy.setupPersist({ questFilePath, homePath, outboxFilePath });
 
       await questPersistBroker({ questFilePath, contents, questId });
 
-      expect(proxy.getWrittenContent()).toBe('{"name":"add-auth"}');
+      expect(proxy.getWrittenContent({ questFilePath })).toBe('{"name":"add-auth"}');
     });
 
     it('VALID: {questFilePath, contents, questId} => writes to tmp path (atomic write pattern)', async () => {
@@ -32,11 +32,11 @@ describe('questPersistBroker', () => {
         value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
       });
 
-      proxy.setupPersist({ homePath, outboxFilePath });
+      proxy.setupPersist({ questFilePath, homePath, outboxFilePath });
 
       await questPersistBroker({ questFilePath, contents, questId });
 
-      expect(proxy.getWrittenPath()).toBe('/quests/fix-bug/quest.json.tmp');
+      expect(proxy.getWrittenPath({ questFilePath })).toBe('/quests/fix-bug/quest.json.tmp');
     });
 
     it('VALID: {questFilePath, contents, questId} => renames tmp to final after write', async () => {
@@ -49,7 +49,7 @@ describe('questPersistBroker', () => {
         value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
       });
 
-      proxy.setupPersist({ homePath, outboxFilePath });
+      proxy.setupPersist({ questFilePath, homePath, outboxFilePath });
 
       await questPersistBroker({ questFilePath, contents, questId });
 
@@ -69,7 +69,10 @@ describe('questPersistBroker', () => {
       const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupWriteFailure({ error: new Error('ENOENT: no such file or directory') });
+      proxy.setupWriteFailure({
+        questFilePath,
+        error: new Error('ENOENT: no such file or directory'),
+      });
 
       await expect(questPersistBroker({ questFilePath, contents, questId })).rejects.toThrow(
         /ENOENT: no such file or directory/u,
@@ -82,7 +85,10 @@ describe('questPersistBroker', () => {
       const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.setupRenameFailure({ error: new Error('EXDEV: cross-device link not permitted') });
+      proxy.setupRenameFailure({
+        questFilePath,
+        error: new Error('EXDEV: cross-device link not permitted'),
+      });
 
       await expect(questPersistBroker({ questFilePath, contents, questId })).rejects.toThrow(
         /EXDEV/u,
@@ -100,6 +106,7 @@ describe('questPersistBroker', () => {
       });
 
       proxy.setupOutboxFailure({
+        questFilePath,
         homePath,
         outboxFilePath,
         error: new Error('Permission denied'),

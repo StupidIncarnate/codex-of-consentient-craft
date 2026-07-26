@@ -6,11 +6,11 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 import {
-  GuildConfigStub,
   GuildStub,
   GuildIdStub,
   QuestStub,
   WorkItemStub,
+  filePathContract,
   repoRootCwdContract,
 } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
@@ -28,6 +28,12 @@ type ExitCode = ReturnType<typeof ExitCodeStub>;
 type Quest = ReturnType<typeof QuestStubType>;
 
 type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
+
+// guildGetBroker resolves at most twice per test: once directly in chatSpawnBroker, and
+// once more from the post-exit main-session tail whenever a spawn's stdout extracts a
+// sessionId. Three one-shot answers leaves headroom without meaning anything beyond "more
+// than the two real call sites this file exercises."
+const GUILD_LOOKUP_STAGING_COUNT = 3;
 
 export const chatSpawnBrokerProxy = (): {
   setupNewSession: (params: { exitCode: ExitCode; stdoutLines?: readonly string[] }) => void;
@@ -77,20 +83,40 @@ export const chatSpawnBrokerProxy = (): {
   const guildProxy = guildGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
 
-  // chat-spawn-broker walks up from the guild path to the repo root via cwdResolveBroker.
-  // Stub it directly so tests don't need to seed fs.access expectations for the walk-up.
-  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
-  cwdResolveMock.mockResolvedValue(repoRootCwdContract.parse('/home/user/my-guild'));
-
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-  );
-
   const defaultGuildId = GuildIdStub();
   const defaultGuild = GuildStub({ id: defaultGuildId });
+  // Every test in this file spawns against the same fixed default guild (refreshGuildConfig()
+  // re-seeds the SAME object, never a different path), so cwdResolveBroker's only ever-called
+  // address is this guild's own path — keyed once here and reused by every setup method below.
+  const guildStartPath = filePathContract.parse(defaultGuild.path);
+
+  // chat-spawn-broker walks up from the guild path to the repo root via cwdResolveBroker.
+  // Default answer mirrors the guild's own path, so tests that never call
+  // setupCwdResolveSuccess/Reject still see a resolved cwd matching guild.path.
+  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
+  cwdResolveMock
+    .calledWith([{ startPath: guildStartPath, kind: 'repo-root' }])
+    .resolves(repoRootCwdContract.parse(String(guildStartPath)));
+
+  registerSpyOn({ object: crypto, method: 'randomUUID' })
+    .calledWith([])
+    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
   const setupGuild = (): void => {
-    guildProxy.setupConfig({ config: GuildConfigStub({ guilds: [defaultGuild] }) });
+    // Resolve guildGetBroker directly to defaultGuild instead of routing through the real
+    // guildConfigReadBroker/guildConfigWriteBroker fs simulation. That simulation stages its
+    // own sticky, zero-argument mock of `dungeonmasterHomeFindBroker`
+    // (guild-config-read-broker.proxy.ts) — the SAME zero-arg function
+    // resolveChatQuestLayerBroker's quest lookup (questFindQuestPathBroker, via the shared
+    // `dungeonmasterHomeFindBrokerProxy`) expects to run for REAL, mocked only at its
+    // osHomedir/pathJoin leaves. `dungeonmasterHomeFindBroker` takes no identifying argument,
+    // so the two composers can't be told apart by address — whichever stages last wins for
+    // EVERY caller in the test, not just its own. Bypassing the guild fs simulation here
+    // sidesteps that collision entirely; see GUILD_LOOKUP_STAGING_COUNT for why this stages
+    // more than once.
+    Array.from({ length: GUILD_LOOKUP_STAGING_COUNT }).forEach(() => {
+      guildProxy.setupDirectGuild({ guild: defaultGuild });
+    });
   };
 
   setupGuild();
@@ -196,21 +222,23 @@ export const chatSpawnBrokerProxy = (): {
 
     setupStderrCapture: (): SpyOnHandle => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });
-      handle.mockImplementation(() => true);
+      // Every write must succeed regardless of content — this proxy silences + records
+      // stderr wholesale, it never discriminates by what was written.
+      handle.calledWith([]).returns(true);
       return handle;
     },
 
     setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
-      cwdResolveMock.mockResolvedValue(repoRootCwdContract.parse(cwd));
+      cwdResolveMock
+        .calledWith([{ startPath: guildStartPath, kind: 'repo-root' }])
+        .resolves(repoRootCwdContract.parse(cwd));
     },
 
     setupCwdResolveReject: ({ error }: { error: Error }): void => {
-      cwdResolveMock.mockImplementation(() => {
-        throw error;
-      });
+      cwdResolveMock.calledWith([{ startPath: guildStartPath, kind: 'repo-root' }]).throws(error);
     },
 
-    getSpawnedOptions: (): unknown => undefined,
+    getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),
 
     getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
 

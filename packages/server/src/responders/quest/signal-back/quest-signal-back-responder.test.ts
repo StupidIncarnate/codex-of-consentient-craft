@@ -1,4 +1,5 @@
 import {
+  AdapterResultStub,
   OperationItemIdStub,
   QuestIdStub,
   QuestWorkItemIdStub,
@@ -14,6 +15,7 @@ describe('QuestSignalBackResponder', () => {
   describe('successful signal', () => {
     it('VALID: {questId, workItemId, signal, operationItemId, operationStatus: done} => returns 200 { ok: true }', async () => {
       const proxy = QuestSignalBackResponderProxy();
+      proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -28,6 +30,7 @@ describe('QuestSignalBackResponder', () => {
 
     it('VALID: {questId, workItemId, signal} => returns 200 { ok: true } for minimal input', async () => {
       const proxy = QuestSignalBackResponderProxy();
+      proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -42,6 +45,7 @@ describe('QuestSignalBackResponder', () => {
 
     it('VALID: {questId, workItemId, signal, operationStatus: partial} => returns 200 { ok: true }', async () => {
       const proxy = QuestSignalBackResponderProxy();
+      proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -144,7 +148,7 @@ describe('QuestSignalBackResponder', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => returns 500 with error message', async () => {
       const proxy = QuestSignalBackResponderProxy();
-      proxy.setupSignalBackError({ message: 'ledger write failed' });
+      proxy.setupSignalBackError({ questId, workItemId, message: 'ledger write failed' });
 
       const result = await proxy.callResponder({
         params: { questId },

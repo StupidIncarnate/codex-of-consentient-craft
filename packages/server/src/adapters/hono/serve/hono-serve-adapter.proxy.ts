@@ -10,7 +10,10 @@ export const honoServeAdapterProxy = (): {
   const mock = registerMock({ fn: serve });
   const captured: { fetch?: (request: Request) => Response | Promise<Response> } = {};
 
-  mock.mockImplementation(((options: {
+  // honoServeAdapter is called exactly once per test (one server instance); the port/hostname
+  // it's called with varies across tests (default 3737, overridden via setServerPort) but does
+  // not change what's under test here — capturing the fetch handler regardless of port.
+  mock.calledWith([]).implement(((options: {
     fetch: (request: Request) => Response | Promise<Response>;
   }) => {
     captured.fetch = options.fetch;

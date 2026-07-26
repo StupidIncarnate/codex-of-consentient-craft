@@ -8,62 +8,32 @@ type CloseCallback = (code: number | null) => void;
 
 export const childProcessSpawnStreamLinesAdapterProxy = (): {
   setupSuccess: (params: {
+    command: string;
     exitCode: ExitCode;
     stdoutLines: string[];
     stderrChunks?: string[];
   }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: (params: { command: string; error: Error }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
 } => {
   const handle = registerMock({ fn: spawn });
 
-  handle.mockImplementation(() => {
-    const stdout = new PassThrough();
-    const stderr = new PassThrough();
-    const listeners = {
-      error: [] as ErrorCallback[],
-      close: [] as CloseCallback[],
-    };
-
-    const child = {
-      stdout,
-      stderr,
-      on: (event: string, callback: ErrorCallback | CloseCallback): unknown => {
-        if (event === 'error') {
-          listeners.error.push(callback as ErrorCallback);
-        }
-        if (event === 'close') {
-          listeners.close.push(callback as CloseCallback);
-        }
-        return undefined;
-      },
-    } as unknown as ChildProcess;
-
-    process.nextTick(() => {
-      stdout.end();
-      stderr.end();
-      for (const cb of listeners.close) {
-        cb(0);
-      }
-    });
-
-    return child;
-  });
-
   return {
     setupSuccess: ({
+      command,
       exitCode,
       stdoutLines,
       stderrChunks,
     }: {
+      command: string;
       exitCode: ExitCode;
       stdoutLines: string[];
       stderrChunks?: string[];
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      handle.mockImplementationOnce(() => {
+      handle.calledWith([command]).implement(() => {
         const stdout = new PassThrough();
         const stderr = new PassThrough();
         const listeners = {
@@ -107,8 +77,8 @@ export const childProcessSpawnStreamLinesAdapterProxy = (): {
       });
     },
 
-    setupError: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(() => {
+    setupError: ({ command, error }: { command: string; error: Error }): void => {
+      handle.calledWith([command]).implement(() => {
         const stdout = new PassThrough();
         const stderr = new PassThrough();
         const listeners = {
@@ -143,21 +113,21 @@ export const childProcessSpawnStreamLinesAdapterProxy = (): {
     },
 
     getSpawnedCommand: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[0];
     },
 
     getSpawnedArgs: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[1];
     },
 
     getSpawnedCwd: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];

@@ -30,7 +30,7 @@ export const questDeleteBrokerProxy = (): {
       endpoint.networkError();
     },
     getRequestUrl: (): unknown => {
-      const lastCall = fetchSpy.mock.calls.at(-1);
+      const lastCall = fetchSpy.callsMatching([]).at(-1);
       if (!lastCall) {
         return null;
       }
@@ -38,7 +38,7 @@ export const questDeleteBrokerProxy = (): {
       return typeof input === 'string' ? input : String(input);
     },
     getRequestMethod: (): unknown => {
-      const lastCall = fetchSpy.mock.calls.at(-1);
+      const lastCall = fetchSpy.callsMatching([]).at(-1);
       if (!lastCall) {
         return null;
       }

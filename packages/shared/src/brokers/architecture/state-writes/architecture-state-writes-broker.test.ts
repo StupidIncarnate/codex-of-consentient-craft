@@ -13,6 +13,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -39,6 +40,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -67,6 +69,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -93,6 +96,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -119,6 +123,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -145,6 +150,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -177,6 +183,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
@@ -206,6 +213,7 @@ describe('architectureStateWritesBroker', () => {
       });
 
       proxy.setupSourceFiles({
+        packageRoot,
         filePaths: [testFile],
         contents: [],
         stateDirNames: [],
@@ -226,7 +234,7 @@ describe('architectureStateWritesBroker', () => {
       const proxy = architectureStateWritesBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/empty' });
 
-      proxy.setupEmpty();
+      proxy.setupEmpty({ packageRoot });
 
       const result = architectureStateWritesBroker({ packageRoot });
 

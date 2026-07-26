@@ -1,21 +1,20 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { GetQuestResult } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorGetQuestAdapterProxy = (): {
-  returns: (params: { result: GetQuestResult }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { questId: QuestId; result: GetQuestResult }) => void;
+  throws: (params: { questId: QuestId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.getQuest });
 
-  mock.mockResolvedValue({ quest: {} } as never);
-
   return {
-    returns: ({ result }: { result: GetQuestResult }): void => {
-      mock.mockResolvedValueOnce(result);
+    returns: ({ questId, result }: { questId: QuestId; result: GetQuestResult }): void => {
+      mock.calledWith([{ questId }]).resolves(result);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      mock.calledWith([{ questId }]).rejects(error);
     },
   };
 };

@@ -18,12 +18,15 @@ describe('orchestratorGetGuildAdapter', () => {
     });
 
     it('VALID: {guildId} => returns guild with defaults', async () => {
-      orchestratorGetGuildAdapterProxy();
+      const proxy = orchestratorGetGuildAdapterProxy();
       const guildId = GuildIdStub();
+      const guild = GuildStub({ id: guildId });
+
+      proxy.returns({ guild });
 
       const result = await orchestratorGetGuildAdapter({ guildId });
 
-      expect(result).toStrictEqual(GuildStub());
+      expect(result).toStrictEqual(guild);
     });
   });
 
@@ -32,7 +35,7 @@ describe('orchestratorGetGuildAdapter', () => {
       const proxy = orchestratorGetGuildAdapterProxy();
       const guildId = GuildIdStub();
 
-      proxy.throws({ error: new Error('Guild not found') });
+      proxy.throws({ guildId, error: new Error('Guild not found') });
 
       await expect(orchestratorGetGuildAdapter({ guildId })).rejects.toThrow(/Guild not found/u);
     });

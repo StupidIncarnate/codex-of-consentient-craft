@@ -3,29 +3,42 @@
  *
  * USAGE:
  * const proxy = orchestratorGetAgentPromptAdapterProxy();
- * proxy.returns({ result: AgentPromptResultStub() });
+ * proxy.returns({ agent: 'codeweaver', questId, result: AgentPromptResultStub() });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { AgentPromptResult } from '@dungeonmaster/orchestrator';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { AgentPromptResultStub } from '@dungeonmaster/shared/contracts';
-
 export const orchestratorGetAgentPromptAdapterProxy = (): {
-  returns: (params: { result: AgentPromptResult }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { agent: string; questId: QuestId; result: AgentPromptResult }) => void;
+  throws: (params: { agent: string; questId: QuestId; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getAgentPrompt });
 
-  handle.mockResolvedValue(AgentPromptResultStub());
-
   return {
-    returns: ({ result }: { result: AgentPromptResult }): void => {
-      handle.mockResolvedValueOnce(result);
+    returns: ({
+      agent,
+      questId,
+      result,
+    }: {
+      agent: string;
+      questId: QuestId;
+      result: AgentPromptResult;
+    }): void => {
+      handle.calledWith([{ agent, questId }]).resolves(result);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(async () => Promise.reject(error));
+    throws: ({
+      agent,
+      questId,
+      error,
+    }: {
+      agent: string;
+      questId: QuestId;
+      error: Error;
+    }): void => {
+      handle.calledWith([{ agent, questId }]).rejects(error);
     },
   };
 };

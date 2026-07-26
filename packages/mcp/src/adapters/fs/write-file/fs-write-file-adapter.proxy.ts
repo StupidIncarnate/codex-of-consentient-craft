@@ -1,38 +1,29 @@
 import { writeFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const fsWriteFileAdapterProxy = (): {
-  succeeds: ({ filepath, contents }: { filepath: PathSegment; contents: FileContents }) => void;
+  succeeds: ({ filepath }: { filepath: PathSegment }) => void;
   throws: ({ filepath, error }: { filepath: PathSegment; error: Error }) => void;
-  getWrittenContent: () => unknown;
+  getWrittenFor: ({ filepath }: { filepath: PathSegment }) => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const handle = registerMock({ fn: writeFile });
 
-  handle.mockResolvedValue({ success: true as const });
-
   return {
-    succeeds: ({
-      filepath: _filepath,
-      contents: _contents,
-    }: {
-      filepath: PathSegment;
-      contents: FileContents;
-    }): void => {
-      handle.mockResolvedValueOnce({ success: true as const });
+    // writeFile's PATH (argument 0) is the address; the body (argument 1) is unconstrained,
+    // so any write to this path succeeds regardless of what it writes.
+    succeeds: ({ filepath }: { filepath: PathSegment }): void => {
+      handle.calledWith([filepath]).resolves({ success: true as const });
     },
-    throws: ({ filepath: _filepath, error }: { filepath: PathSegment; error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ filepath, error }: { filepath: PathSegment; error: Error }): void => {
+      handle.calledWith([filepath]).rejects(error);
     },
-    getWrittenContent: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
+    // Answers for this path only — never "whatever was written last".
+    getWrittenFor: ({ filepath }: { filepath: PathSegment }): unknown =>
+      handle.callsMatching([filepath]).at(-1)?.[1],
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      handle.mock.calls.map((call) => ({
+      handle.callsMatching([]).map((call) => ({
         path: call[0],
         content: call[1],
       })),

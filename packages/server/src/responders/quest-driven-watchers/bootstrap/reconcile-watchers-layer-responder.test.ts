@@ -32,11 +32,14 @@ describe('ReconcileWatchersLayerResponder', () => {
     const dispatcherSessionId = '44444444-4444-4444-4444-444444444444';
     const workerWorkItemId = '11111111-1111-1111-1111-111111111111';
 
-    proxy.guildsProxy.returns({ guilds: [GuildListItemStub()] });
+    const guild = GuildListItemStub();
+    proxy.guildsProxy.returns({ guilds: [guild] });
     proxy.questsProxy.returns({
+      guildId: guild.id,
       quests: [QuestListItemStub({ id: questId, status: 'in_progress' })],
     });
     proxy.loadQuestProxy.returns({
+      questId,
       quest: QuestStub({
         id: questId,
         workItems: [
@@ -56,6 +59,8 @@ describe('ReconcileWatchersLayerResponder', () => {
         ],
       }),
     });
+    proxy.startWatcherProxy.resolves({ parentSessionId: workerSessionId });
+    proxy.startWatcherProxy.resolves({ parentSessionId: dispatcherSessionId });
 
     const result = await ReconcileWatchersLayerResponder({
       watchers: new Map(),

@@ -1,7 +1,7 @@
 import { sessionListBrokerProxy } from '../../../brokers/session/list/session-list-broker.proxy';
 import { sessionSummaryCacheStateProxy } from '../../../state/session-summary-cache/session-summary-cache-state.proxy';
 import { SessionListResponder } from './session-list-responder';
-import type { GuildStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
@@ -12,9 +12,9 @@ export const SessionListResponderProxy = (): {
   setupGlobFiles: (params: { files: string[] }) => void;
   setupFileStat: (params: { birthtime: Date; mtimeMs: number }) => void;
   setupFileContent: (params: { content: string }) => void;
-  setupQuests: (params: { quests: QuestListItem[] }) => void;
+  setupQuests: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
   setupGuildError: () => void;
-  setupGuildNotFound: (params: { guildId: string }) => void;
+  setupGuildNotFound: (params: { guildId: GuildId }) => void;
   callResponder: typeof SessionListResponder;
 } => {
   const brokerProxy = sessionListBrokerProxy();
@@ -36,13 +36,13 @@ export const SessionListResponderProxy = (): {
     setupFileContent: ({ content }: { content: string }): void => {
       brokerProxy.setupFileContent({ content });
     },
-    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
-      brokerProxy.setupQuests({ quests });
+    setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
+      brokerProxy.setupQuests({ guildId, quests });
     },
     setupGuildError: (): void => {
       brokerProxy.setupGuild({ guild: {} as never });
     },
-    setupGuildNotFound: ({ guildId }: { guildId: string }): void => {
+    setupGuildNotFound: ({ guildId }: { guildId: GuildId }): void => {
       brokerProxy.setupGuildNotFound({ guildId });
     },
     callResponder: SessionListResponder,

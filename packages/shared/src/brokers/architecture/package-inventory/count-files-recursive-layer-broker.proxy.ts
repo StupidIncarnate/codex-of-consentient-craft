@@ -1,5 +1,7 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
@@ -16,30 +18,47 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
   }) as Dirent;
 
 export const countFilesRecursiveLayerBrokerProxy = (): {
-  setupFlatDirectory: ({ fileNames }: { fileNames: string[] }) => void;
+  setupFlatDirectory: ({
+    dirPath,
+    fileNames,
+  }: {
+    dirPath: AbsoluteFilePath;
+    fileNames: string[];
+  }) => void;
   setupNestedDirectory: ({
+    dirPath,
     files,
     subdirs,
   }: {
+    dirPath: AbsoluteFilePath;
     files: string[];
     subdirs: { name: string; files: string[] }[];
   }) => void;
-  setupEmpty: () => void;
-  setupError: ({ error }: { error: Error }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
+  setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }) => void;
 } => {
   const safeProxy = safeReaddirLayerBrokerProxy();
 
   return {
-    setupFlatDirectory: ({ fileNames }: { fileNames: string[] }): void => {
+    setupFlatDirectory: ({
+      dirPath,
+      fileNames,
+    }: {
+      dirPath: AbsoluteFilePath;
+      fileNames: string[];
+    }): void => {
       safeProxy.setupDirectory({
+        dirPath,
         entries: fileNames.map((name) => makeDirent({ name, isDir: false })),
       });
     },
 
     setupNestedDirectory: ({
+      dirPath,
       files,
       subdirs,
     }: {
+      dirPath: AbsoluteFilePath;
       files: string[];
       subdirs: { name: string; files: string[] }[];
     }): void => {
@@ -47,21 +66,22 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
         ...files.map((name) => makeDirent({ name, isDir: false })),
         ...subdirs.map((sub) => makeDirent({ name: sub.name, isDir: true })),
       ];
-      safeProxy.setupDirectory({ entries: rootEntries });
+      safeProxy.setupDirectory({ dirPath, entries: rootEntries });
 
       for (const sub of subdirs) {
         safeProxy.setupDirectory({
+          dirPath: AbsoluteFilePathStub({ value: `${String(dirPath)}/${sub.name}` }),
           entries: sub.files.map((name) => makeDirent({ name, isDir: false })),
         });
       }
     },
 
-    setupEmpty: (): void => {
-      safeProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+      safeProxy.setupDirectory({ dirPath, entries: [] });
     },
 
-    setupError: ({ error }: { error: Error }): void => {
-      safeProxy.setupError({ error });
+    setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }): void => {
+      safeProxy.setupError({ dirPath, error });
     },
   };
 };

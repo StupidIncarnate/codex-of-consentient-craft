@@ -1,9 +1,16 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const dirExistsInParentLayerBrokerProxy = (): {
-  setupWithDir: ({ dirName }: { dirName: string }) => void;
-  setupEmpty: () => void;
+  setupWithDir: ({
+    parentDirPath,
+    dirName,
+  }: {
+    parentDirPath: AbsoluteFilePath;
+    dirName: string;
+  }) => void;
+  setupEmpty: ({ parentDirPath }: { parentDirPath: AbsoluteFilePath }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
@@ -20,14 +27,21 @@ export const dirExistsInParentLayerBrokerProxy = (): {
     }) as Dirent;
 
   return {
-    setupWithDir: ({ dirName }: { dirName: string }): void => {
+    setupWithDir: ({
+      parentDirPath,
+      dirName,
+    }: {
+      parentDirPath: AbsoluteFilePath;
+      dirName: string;
+    }): void => {
       readdirProxy.setupDirectory({
+        dirPath: parentDirPath,
         entries: [makeDirDirent({ name: dirName }), makeDirDirent({ name: 'other' })],
       });
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ parentDirPath }: { parentDirPath: AbsoluteFilePath }): void => {
+      readdirProxy.setupDirectory({ dirPath: parentDirPath, entries: [] });
     },
   };
 };

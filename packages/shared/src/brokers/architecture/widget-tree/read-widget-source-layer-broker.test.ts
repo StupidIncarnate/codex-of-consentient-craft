@@ -13,7 +13,7 @@ describe('readWidgetSourceLayerBroker', () => {
       const content = ContentTextStub({
         value: "import { useQuestBinding } from './use-quest-binding';",
       });
-      proxy.setupReturns({ content });
+      proxy.setupReturns({ filePath, content });
 
       const result = readWidgetSourceLayerBroker({ filePath });
 
@@ -24,11 +24,11 @@ describe('readWidgetSourceLayerBroker', () => {
   describe('missing files', () => {
     it('EMPTY: {missing file} => returns undefined instead of throwing', () => {
       const proxy = readWidgetSourceLayerBrokerProxy();
-      proxy.setupMissing();
-
       const filePath = AbsoluteFilePathStub({
         value: '/repo/packages/web/src/widgets/missing/missing-widget.tsx',
       });
+      proxy.setupMissing({ filePath });
+
       const result = readWidgetSourceLayerBroker({ filePath });
 
       expect(result).toBe(undefined);

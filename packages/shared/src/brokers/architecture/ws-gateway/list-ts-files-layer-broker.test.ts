@@ -8,7 +8,7 @@ describe('listTsFilesLayerBroker', () => {
   describe('empty directory', () => {
     it('EMPTY: {no files} => returns empty array', () => {
       const proxy = listTsFilesLayerBrokerProxy();
-      proxy.setupEmpty();
+      proxy.setupEmpty({ dirPath: DIR });
 
       const result = listTsFilesLayerBroker({ dirPath: DIR });
 

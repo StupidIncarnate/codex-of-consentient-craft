@@ -24,29 +24,38 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
   const snapshotPathProxy = locationsRateLimitsSnapshotPathFindBrokerProxy();
   const tmpPathProxy = locationsRateLimitsSnapshotTmpPathFindBrokerProxy();
 
+  const snapshotPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json' });
+  const tmpPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json.tmp' });
+
   dirnameProxy.returns({
     result: FilePathStub({ value: '/home/test/.dungeonmaster' }),
   });
   snapshotPathProxy.setupSnapshotPath({
     homeDir: '/home/test',
     homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),
-    snapshotPath: FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json' }),
+    snapshotPath,
   });
   tmpPathProxy.setupTmpPath({
     homeDir: '/home/test',
     homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),
-    tmpPath: FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json.tmp' }),
+    tmpPath,
   });
 
   return {
     setupAcceptedWrite: (): void => {
-      statProxy.returnsNull();
-      mkdirProxy.succeeds();
-      writeProxy.succeeds();
-      renameProxy.succeeds();
+      statProxy.returnsNull({ filePath: snapshotPath });
+      mkdirProxy.succeeds({ filePath: FilePathStub({ value: '/home/test/.dungeonmaster' }) });
+      writeProxy.succeeds({ filePath: tmpPath });
+      renameProxy.succeeds({ from: tmpPath });
     },
     setupThrottledWrite: ({ mtimeMs }: { mtimeMs: number }): void => {
-      statProxy.returnsMtime({ mtimeMs });
+      // Stages the write path too: when mtimeMs is outside the throttle window, the broker falls
+      // through to mkdir/write/rename with these exact addresses. When mtimeMs is inside the
+      // window the broker returns early and these stages simply go unused.
+      statProxy.returnsMtime({ filePath: snapshotPath, mtimeMs });
+      mkdirProxy.succeeds({ filePath: FilePathStub({ value: '/home/test/.dungeonmaster' }) });
+      writeProxy.succeeds({ filePath: tmpPath });
+      renameProxy.succeeds({ from: tmpPath });
     },
     getWriteCalls: (): readonly { path: unknown; content: unknown }[] =>
       writeProxy.getAllWrittenFiles(),

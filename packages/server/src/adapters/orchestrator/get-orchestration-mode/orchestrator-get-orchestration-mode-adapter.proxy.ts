@@ -1,5 +1,5 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type OrchestrationMode = ReturnType<typeof OrchestrationModeStub>;
@@ -10,14 +10,13 @@ export const orchestratorGetOrchestrationModeAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.getOrchestrationMode });
 
-  mock.mockResolvedValue(OrchestrationModeStub());
-
   return {
+    // getOrchestrationMode takes no argument — [] is the honest, non-catch-all address.
     returns: ({ mode }: { mode: OrchestrationMode }): void => {
-      mock.mockResolvedValueOnce(mode);
+      mock.calledWith([]).resolves(mode);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      mock.calledWith([]).rejects(error);
     },
   };
 };

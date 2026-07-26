@@ -187,9 +187,7 @@ describe('useSessionListBinding', () => {
   describe('error logging', () => {
     it('ERROR: {useEffect fetch rejects past inner catch} => logs to console.error with [use-session-list] prefix', async () => {
       const proxy = useSessionListBindingProxy();
-      proxy.setupOuterCatchTrigger();
-
-      const consoleErrorCalls = proxy.getConsoleErrorCalls();
+      proxy.setupOuterCatchTrigger({ guildId });
 
       testingLibraryRenderHookAdapter({
         renderCallback: () => useSessionListBinding({ guildId }),
@@ -197,11 +195,11 @@ describe('useSessionListBinding', () => {
 
       await testingLibraryWaitForAdapter({
         callback: () => {
-          expect(consoleErrorCalls[0]?.[0]).toBe('[use-session-list]');
+          expect(proxy.getConsoleErrorCalls()[0]?.[0]).toBe('[use-session-list]');
         },
       });
 
-      expect(consoleErrorCalls[0]?.[1]).toBeInstanceOf(Error);
+      expect(proxy.getConsoleErrorCalls()[0]?.[1]).toBeInstanceOf(Error);
     });
   });
 });

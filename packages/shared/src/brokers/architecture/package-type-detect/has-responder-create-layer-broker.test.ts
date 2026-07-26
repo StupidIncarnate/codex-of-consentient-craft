@@ -27,11 +27,10 @@ describe('hasResponderCreateLayerBroker', () => {
 
   it('EMPTY: {no responders dir} => returns false', () => {
     const proxy = hasResponderCreateLayerBrokerProxy();
-    proxy.setupEmpty();
+    const respondersDirPath = AbsoluteFilePathStub({ value: '/project/src/responders' });
+    proxy.setupEmpty({ respondersDirPath });
 
-    const result = hasResponderCreateLayerBroker({
-      respondersDirPath: AbsoluteFilePathStub({ value: '/project/src/responders' }),
-    });
+    const result = hasResponderCreateLayerBroker({ respondersDirPath });
 
     expect(result).toBe(false);
   });

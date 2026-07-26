@@ -7,15 +7,18 @@ export const orchestratorReplayChatHistoryAdapterProxy = (): {
   getAllCalledArgs: () => unknown[];
 } => {
   const mock = registerMock({ fn: StartOrchestrator.replayChatHistory });
-  mock.mockResolvedValue({ success: true as const });
 
   return {
+    // No address: the adapter discards whatever replayChatHistory resolves to (it always
+    // returns `{ success: true }` itself), and the sole external caller
+    // (server-init-responder.proxy.ts) sets up a blanket success/failure without ever knowing
+    // which session the flow under test resolves to. `[]` matches every call honestly here.
     setupSuccess: (): void => {
-      mock.mockResolvedValue({ success: true as const });
+      mock.calledWith([]).resolves(undefined);
     },
     setupFailure: ({ error }: { error: Error }): void => {
-      mock.mockImplementation(async () => Promise.reject(error));
+      mock.calledWith([]).rejects(error);
     },
-    getAllCalledArgs: (): unknown[] => mock.mock.calls.map((call) => call[0]),
+    getAllCalledArgs: (): unknown[] => mock.callsMatching([]).map((call) => call[0]),
   };
 };

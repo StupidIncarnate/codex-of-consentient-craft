@@ -1,10 +1,17 @@
 import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const callChainLinesRenderLayerBrokerProxy = (): {
-  setupSource: ({ content }: { content: ContentText }) => void;
-  setupMissing: () => void;
+  setupSource: ({
+    sourceFile,
+    content,
+  }: {
+    sourceFile: AbsoluteFilePath;
+    content: ContentText;
+  }) => void;
+  setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
 } => {
   const importsProxy = importsInFolderTypeFindLayerBrokerProxy();
@@ -27,12 +34,18 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
     };
 
   return {
-    setupSource: ({ content }: { content: ContentText }): void => {
-      importsProxy.setupSource({ content });
+    setupSource: ({
+      sourceFile,
+      content,
+    }: {
+      sourceFile: AbsoluteFilePath;
+      content: ContentText;
+    }): void => {
+      importsProxy.setupSource({ sourceFile, content });
     },
 
-    setupMissing: (): void => {
-      importsProxy.setupMissing();
+    setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }): void => {
+      importsProxy.setupMissing({ sourceFile });
     },
 
     setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {

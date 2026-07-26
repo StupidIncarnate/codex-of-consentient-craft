@@ -1,20 +1,33 @@
 import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const readWidgetSourceLayerBrokerProxy = (): {
-  setupReturns: ({ content }: { content: ContentText }) => void;
-  setupMissing: () => void;
+  setupReturns: ({
+    filePath,
+    content,
+  }: {
+    filePath: AbsoluteFilePath;
+    content: ContentText;
+  }) => void;
+  setupMissing: ({ filePath }: { filePath: AbsoluteFilePath }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
 } => {
   const fsProxy = fsReadFileSyncAdapterProxy();
 
   return {
-    setupReturns: ({ content }: { content: ContentText }): void => {
-      fsProxy.returns({ content });
+    setupReturns: ({
+      filePath,
+      content,
+    }: {
+      filePath: AbsoluteFilePath;
+      content: ContentText;
+    }): void => {
+      fsProxy.returns({ filePath, content });
     },
 
-    setupMissing: (): void => {
-      fsProxy.throws({ error: new Error('ENOENT') });
+    setupMissing: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+      fsProxy.throws({ filePath, error: new Error('ENOENT') });
     },
 
     setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {

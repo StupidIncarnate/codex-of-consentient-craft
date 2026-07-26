@@ -24,10 +24,15 @@ export const createTerminalHandlerLayerBrokerProxy = (): {
     getProcessCallArgs: (): readonly unknown[][] => processProxy.getCallArgs(),
     silenceStderrAndCaptureLogs: (): { wroteRejectionLog: () => boolean } => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });
-      handle.mockImplementation(() => true);
+      // Every write must succeed regardless of content — this silences stderr wholesale
+      // and records every call for the content-addressed lookup below.
+      handle.calledWith([]).returns(true);
       return {
         wroteRejectionLog: (): boolean =>
-          handle.mock.calls.some((c) => String(c[0]).includes('handler failed for quest')),
+          handle.callsMatching([
+            (written: unknown): boolean =>
+              typeof written === 'string' && written.includes('handler failed for quest'),
+          ]).length > 0,
       };
     },
   };

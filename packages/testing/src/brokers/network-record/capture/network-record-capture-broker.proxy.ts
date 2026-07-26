@@ -11,13 +11,13 @@ export const networkRecordCaptureBrokerProxy = (): {
   return {
     setupBodyReadFailure: ({ error }: { error: Error }): void => {
       const handle = registerSpyOn({ object: Request.prototype, method: 'clone' });
-      handle.mockReturnValue({
+      handle.calledWith([]).returns({
         text: async () => Promise.reject(error),
       } as unknown as Request);
     },
     setupStderrCapture: (): SpyOnHandle => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });
-      handle.mockImplementation(() => true);
+      handle.calledWith([]).implement(() => true);
       return handle;
     },
   };

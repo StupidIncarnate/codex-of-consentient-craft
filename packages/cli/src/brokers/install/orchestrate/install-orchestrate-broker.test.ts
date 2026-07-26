@@ -45,7 +45,8 @@ describe('installOrchestrateBroker', () => {
       const module: Record<PropertyKey, unknown> = Object.create(null);
       module.StartInstall = mockFn;
 
-      proxy.setupImport({ module });
+      proxy.setupImport({ installPath: pkg1.installPath, module });
+      proxy.setupImport({ installPath: pkg2.installPath, module });
 
       const results = await installOrchestrateBroker({ packages, context });
 
@@ -86,7 +87,9 @@ describe('installOrchestrateBroker', () => {
       });
       const packages = [hooksPkg, mcpPkg];
 
-      proxy.setupOverlapRecordingInstalls();
+      proxy.setupOverlapRecordingInstalls({
+        installPaths: [hooksPkg.installPath, mcpPkg.installPath],
+      });
 
       await installOrchestrateBroker({ packages, context });
 
@@ -143,7 +146,8 @@ describe('installOrchestrateBroker', () => {
       const module: Record<PropertyKey, unknown> = Object.create(null);
       module.StartInstall = mockFn;
 
-      proxy.setupImport({ module });
+      proxy.setupImport({ installPath: pkg1.installPath, module });
+      proxy.setupImport({ installPath: pkg2.installPath, module });
 
       const results = await installOrchestrateBroker({ packages, context });
 

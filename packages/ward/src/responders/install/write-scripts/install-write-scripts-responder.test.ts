@@ -28,9 +28,10 @@ describe('InstallWriteScriptsResponder', () => {
   describe('invalid package.json', () => {
     it('VALID: {non-object JSON} => returns skipped with failure', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
+      const filePath = FilePathStub({ value: '/project/package.json' });
 
       proxy.setupFileExists();
-      proxy.setupReadFileContent({ content: '"not-an-object"' });
+      proxy.setupReadFileContent({ filePath, content: '"not-an-object"' });
 
       const result = await proxy.callResponder({
         context: {
@@ -51,9 +52,11 @@ describe('InstallWriteScriptsResponder', () => {
   describe('no ward scripts present', () => {
     it('VALID: {no scripts} => appends all ward scripts after existing keys', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
+      const filePath = FilePathStub({ value: '/project/package.json' });
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({
+        filePath,
         content: JSON.stringify({ name: 'proj', version: '1.0.0' }),
       });
 
@@ -73,7 +76,7 @@ describe('InstallWriteScriptsResponder', () => {
 
       expect(String(proxy.getWrittenPath())).toBe('/project/package.json');
       // String-exact: proves name/version stay first and scripts is appended (not hoisted).
-      expect(String(proxy.getWrittenContent())).toBe(
+      expect(String(proxy.getWrittenContent({ filePath }))).toBe(
         JSON.stringify(
           { name: 'proj', version: '1.0.0', scripts: installScriptsStatics.scripts },
           null,
@@ -86,9 +89,11 @@ describe('InstallWriteScriptsResponder', () => {
   describe('some ward scripts present', () => {
     it('VALID: {custom ward script} => preserves it and adds only the missing scripts', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
+      const filePath = FilePathStub({ value: '/project/package.json' });
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({
+        filePath,
         content: JSON.stringify({ name: 'proj', scripts: { ward: 'custom-ward' } }),
       });
 
@@ -106,7 +111,7 @@ describe('InstallWriteScriptsResponder', () => {
         message: 'Added ward scripts to package.json',
       });
 
-      expect(String(proxy.getWrittenContent())).toBe(
+      expect(String(proxy.getWrittenContent({ filePath }))).toBe(
         JSON.stringify(
           {
             name: 'proj',
@@ -127,9 +132,11 @@ describe('InstallWriteScriptsResponder', () => {
   describe('all ward scripts present', () => {
     it('VALID: {all scripts already defined} => skips installation', async () => {
       const proxy = InstallWriteScriptsResponderProxy();
+      const filePath = FilePathStub({ value: '/project/package.json' });
 
       proxy.setupFileExists();
       proxy.setupReadFileContent({
+        filePath,
         content: JSON.stringify({ name: 'proj', scripts: installScriptsStatics.scripts }),
       });
 

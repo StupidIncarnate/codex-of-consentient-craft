@@ -1,23 +1,30 @@
 import { procCheckAliveAdapterProxy } from '../../../adapters/proc/check-alive/proc-check-alive-adapter.proxy';
 import { timerSetIntervalAdapterProxy } from '../../../adapters/timer/set-interval/timer-set-interval-adapter.proxy';
+import type { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 
-export const processStaleWatchBrokerProxy = (): {
+type ProcessPid = ReturnType<typeof ProcessPidStub>;
+
+export const processStaleWatchBrokerProxy = ({
+  intervalMs,
+}: {
+  intervalMs: number;
+}): {
   triggerTick: () => void;
-  setupAlive: () => void;
-  setupDead: () => void;
+  setupAlive: (params: { pid: ProcessPid }) => void;
+  setupDead: (params: { pid: ProcessPid }) => void;
 } => {
-  const timerProxy = timerSetIntervalAdapterProxy();
+  const timerProxy = timerSetIntervalAdapterProxy({ intervalMs });
   const aliveProxy = procCheckAliveAdapterProxy();
 
   return {
     triggerTick: (): void => {
       timerProxy.triggerTick();
     },
-    setupAlive: (): void => {
-      aliveProxy.setupAlive();
+    setupAlive: ({ pid }: { pid: ProcessPid }): void => {
+      aliveProxy.setupAlive({ pid });
     },
-    setupDead: (): void => {
-      aliveProxy.setupDead();
+    setupDead: ({ pid }: { pid: ProcessPid }): void => {
+      aliveProxy.setupDead({ pid });
     },
   };
 };

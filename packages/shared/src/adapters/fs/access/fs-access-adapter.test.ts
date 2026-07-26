@@ -8,7 +8,7 @@ describe('fsAccessAdapter', () => {
       const proxy = fsAccessAdapterProxy();
       const filePath = FilePathStub({ value: '/config.json' });
 
-      proxy.resolves();
+      proxy.resolves({ filePath });
 
       await expect(fsAccessAdapter({ filePath, mode: 4 })).resolves.toStrictEqual({
         success: true,
@@ -22,7 +22,7 @@ describe('fsAccessAdapter', () => {
       const filePath = FilePathStub({ value: '/missing.json' });
       const error = new Error('ENOENT: no such file or directory');
 
-      proxy.rejects({ error });
+      proxy.rejects({ filePath, error });
 
       await expect(fsAccessAdapter({ filePath, mode: 4 })).rejects.toThrow(error);
     });

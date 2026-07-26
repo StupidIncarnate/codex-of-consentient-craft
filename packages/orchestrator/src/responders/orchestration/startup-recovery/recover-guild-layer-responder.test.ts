@@ -371,7 +371,7 @@ describe('RecoverGuildLayerResponder', () => {
       const enoentError = Object.assign(new Error('ENOENT: no such file or directory'), {
         code: 'ENOENT',
       });
-      proxy.setupGuildDirectoryReadFailure({ guildId, guildPath, error: enoentError });
+      proxy.setupGuildDirectoryReadFailure({ error: enoentError });
 
       const result = await RecoverGuildLayerResponder({ guildItem });
 
@@ -387,7 +387,7 @@ describe('RecoverGuildLayerResponder', () => {
       const permissionError = Object.assign(new Error('EACCES: permission denied'), {
         code: 'EACCES',
       });
-      proxy.setupGuildDirectoryReadFailure({ guildId, guildPath, error: permissionError });
+      proxy.setupGuildDirectoryReadFailure({ error: permissionError });
 
       await expect(RecoverGuildLayerResponder({ guildItem })).rejects.toThrow(
         'EACCES: permission denied',

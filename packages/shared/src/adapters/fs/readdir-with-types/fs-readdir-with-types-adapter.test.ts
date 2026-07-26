@@ -13,7 +13,7 @@ describe('fsReaddirWithTypesAdapter', () => {
         parentPath: '/home/user/.dungeonmaster',
       });
 
-      proxy.returns({ entries: [projectEntry] });
+      proxy.returns({ dirPath, entries: [projectEntry] });
 
       const result = fsReaddirWithTypesAdapter({ dirPath });
 
@@ -24,7 +24,7 @@ describe('fsReaddirWithTypesAdapter', () => {
       const proxy = fsReaddirWithTypesAdapterProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster' });
 
-      proxy.returns({ entries: [] });
+      proxy.returns({ dirPath, entries: [] });
 
       const result = fsReaddirWithTypesAdapter({ dirPath });
 
@@ -37,7 +37,7 @@ describe('fsReaddirWithTypesAdapter', () => {
       const proxy = fsReaddirWithTypesAdapterProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/nonexistent' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ dirPath, error: new Error('ENOENT: no such file or directory') });
 
       expect(() => fsReaddirWithTypesAdapter({ dirPath })).toThrow(/ENOENT/u);
     });

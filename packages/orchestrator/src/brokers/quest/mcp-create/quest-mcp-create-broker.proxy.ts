@@ -63,27 +63,30 @@ export const questMcpCreateBrokerProxy = (): {
   questUserAddBrokerProxy();
 
   const resolveMock: MockHandle = registerMock({ fn: cwdResolveBroker });
-  const listMock = guildListBroker as jest.MockedFunction<typeof guildListBroker>;
-  const addGuildMock = guildAddBroker as jest.MockedFunction<typeof guildAddBroker>;
-  const addQuestMock = questUserAddBroker as jest.MockedFunction<typeof questUserAddBroker>;
+  const listMock: MockHandle = registerMock({ fn: guildListBroker });
+  const addGuildMock: MockHandle = registerMock({ fn: guildAddBroker });
+  const addQuestMock: MockHandle = registerMock({ fn: questUserAddBroker });
 
-  // Defaults: ensure we never accidentally pick up the real implementations between tests.
-  listMock.mockResolvedValue([]);
+  // Default: ensure we never accidentally pick up the real implementation between tests.
+  // guildListBroker takes no arguments at all, so `[]` is the honest address.
+  listMock.calledWith([]).resolves([]);
 
   return {
     setupResolvedRepoRoot: ({ cwd, repoRoot }: { cwd: string; repoRoot: string }): void => {
       cwdProxy.returns({ path: cwd });
-      resolveMock.mockResolvedValueOnce(RepoRootCwdStub({ value: repoRoot }));
+      resolveMock.calledWith([{ startPath: cwd }]).resolves(RepoRootCwdStub({ value: repoRoot }));
     },
 
     setupResolveFallback: ({ cwd }: { cwd: string }): void => {
       cwdProxy.returns({ path: cwd });
-      resolveMock.mockRejectedValueOnce(new ProjectRootNotFoundError({ startPath: cwd }));
+      resolveMock
+        .calledWith([{ startPath: cwd }])
+        .rejects(new ProjectRootNotFoundError({ startPath: cwd }));
     },
 
     setupResolveError: ({ cwd, error }: { cwd: string; error: Error }): void => {
       cwdProxy.returns({ path: cwd });
-      resolveMock.mockRejectedValueOnce(error);
+      resolveMock.calledWith([{ startPath: cwd }]).rejects(error);
     },
 
     setupGuilds: ({ guilds }: { guilds: readonly GuildListItem[] }): void => {
@@ -91,7 +94,11 @@ export const questMcpCreateBrokerProxy = (): {
     },
 
     setupAutoCreatedGuild: ({ guild }: { guild: Guild }): void => {
-      addGuildMock.mockResolvedValueOnce(GuildStub({ ...guild }));
+      // guildAddBroker's own address — name + path — is exactly what the broker derives from
+      // the resolved repo root, so this keys on the same values the real call will carry.
+      addGuildMock
+        .calledWith([{ name: guild.name, path: guild.path }])
+        .resolves(GuildStub({ ...guild }));
     },
 
     setupSuccessfulAdd: ({
@@ -106,14 +113,17 @@ export const questMcpCreateBrokerProxy = (): {
         filePath: FilePathStub({ value: '/tmp/quest.json' }),
         chaoswhispererWorkItemId: questId,
       } as unknown as AddQuestResult;
-      addQuestMock.mockResolvedValueOnce(addResult);
+      // questUserAddBroker fires exactly once per broker invocation, and each test stages
+      // exactly one of setupSuccessfulAdd / setupAddSuccessWithoutQuestId / setupAddFailure —
+      // there is never a second call for `[]` to collide with, so it is the honest address.
+      addQuestMock.calledWith([]).resolves(addResult);
     },
 
     setupAddSuccessWithoutQuestId: (): void => {
       const addResult = {
         success: true,
       } as unknown as AddQuestResult;
-      addQuestMock.mockResolvedValueOnce(addResult);
+      addQuestMock.calledWith([]).resolves(addResult);
     },
 
     setupAddFailure: ({ error }: { error: string }): void => {
@@ -121,26 +131,26 @@ export const questMcpCreateBrokerProxy = (): {
         success: false,
         error,
       } as unknown as AddQuestResult;
-      addQuestMock.mockResolvedValueOnce(addResult);
+      addQuestMock.calledWith([]).resolves(addResult);
     },
 
     getGuildAddCalls: (): readonly { name: GuildName; path: GuildPath }[] =>
-      addGuildMock.mock.calls.map((call) => {
-        const [{ name, path }] = call;
-        return { name, path };
+      addGuildMock.callsMatching([]).map((call) => {
+        const [params] = call as [Parameters<typeof guildAddBroker>[0]];
+        return { name: params.name, path: params.path };
       }),
 
     getLastQuestAddCall: (): {
       questType: AddQuestInput['questType'];
       sessionId: SessionId | undefined;
     } => {
-      const { calls } = addQuestMock.mock;
-      const lastCall = calls[calls.length - 1];
+      const calls = addQuestMock.callsMatching([]);
+      const lastCall = calls.at(-1);
       if (lastCall === undefined) {
         throw new Error('questUserAddBroker was not called');
       }
-      const [{ input, sessionId }] = lastCall;
-      return { questType: input.questType, sessionId };
+      const [params] = lastCall as [Parameters<typeof questUserAddBroker>[0]];
+      return { questType: params.input.questType, sessionId: params.sessionId };
     },
   };
 };

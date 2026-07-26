@@ -8,7 +8,7 @@ describe('fsReadFileAdapter', () => {
     const proxy = fsReadFileAdapterProxy();
     const filePath = FilePathStub({ value: '/test/file.ts' });
     const contents = FileContentsStub({ value: 'test content' });
-    proxy.returns({ contents });
+    proxy.returns({ filePath, contents });
 
     const result = await fsReadFileAdapter({ filePath });
 

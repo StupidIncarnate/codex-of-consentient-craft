@@ -1,16 +1,19 @@
+import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+
 import { QuestUserAddResponderProxy } from './quest-user-add-responder.proxy';
 
 describe('QuestUserAddResponder', () => {
   describe('successful creation', () => {
     it('VALID: {title, userRequest, guildId} => returns 201 with result', async () => {
       const proxy = QuestUserAddResponderProxy();
-      const { expectedData } = proxy.setupAddQuest();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const { expectedData } = proxy.setupAddQuest({ guildId });
 
       const result = await proxy.callResponder({
         body: {
           title: 'My Quest',
           userRequest: 'Do something',
-          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          guildId,
         },
       });
 
@@ -96,13 +99,14 @@ describe('QuestUserAddResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestUserAddResponderProxy();
-      proxy.setupAddQuestError({ message: 'Failed to create' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupAddQuestError({ guildId, message: 'Failed to create' });
 
       const result = await proxy.callResponder({
         body: {
           title: 'Test',
           userRequest: 'Do X',
-          guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          guildId,
         },
       });
 

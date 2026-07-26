@@ -58,8 +58,10 @@ describe('createSyncHandlerLayerBroker', () => {
 
     it('VALID: {dispatched processSyncEventLayerBroker rejects} => handler swallows rejection, logs to stderr', async () => {
       const proxy = createSyncHandlerLayerBrokerProxy();
-      proxy.setupProcessRejects({ error: new Error('boom') });
-      const stderrCapture = proxy.silenceStderrAndCaptureLogs();
+      const error = new Error('boom');
+      proxy.setupProcessRejects({ error });
+      const questId = QuestIdStub({ value: 'q-rejects' });
+      const stderrCapture = proxy.silenceStderrAndCaptureLogs({ questId, error });
       const loadQuest = jest.fn();
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
@@ -72,7 +74,7 @@ describe('createSyncHandlerLayerBroker', () => {
         updateEntryActiveSession,
       });
 
-      handler({ questId: QuestIdStub({ value: 'q-rejects' }) });
+      handler({ questId });
 
       // Allow microtasks to flush so the .catch fires.
       await Promise.resolve();

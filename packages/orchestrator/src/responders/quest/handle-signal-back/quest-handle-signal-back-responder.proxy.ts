@@ -66,7 +66,9 @@ export const QuestHandleSignalBackResponderProxy = (): {
   // Pins completedAt (responder callback), createdAt (advance callback), and updatedAt (both
   // persists AND the block path's questModifyBroker persist, which the operations-update proxy's
   // own pin does not reach — its handle only matches operations-update frames).
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(FIXED_TIMESTAMP);
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns(FIXED_TIMESTAMP);
 
   return {
     callResponder: QuestHandleSignalBackResponder,
@@ -118,7 +120,7 @@ export const QuestHandleSignalBackResponderProxy = (): {
       ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
     }): void => {
       for (const id of ids) {
-        uuidSpy.mockReturnValueOnce(id);
+        uuidSpy.onceFor([]).returns(id);
       }
     },
 

@@ -14,12 +14,15 @@ export const locationsTsconfigPathFindBrokerProxy = (): {
   return {
     setupTsconfigFound: ({ searchPath }: { searchPath: string }): void => {
       pathJoinProxy.returns({ result: `${searchPath}/tsconfig.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${searchPath}/tsconfig.json` as never });
     },
 
     setupTsconfigNotFound: ({ searchPath }: { searchPath: string }): void => {
       pathJoinProxy.returns({ result: `${searchPath}/tsconfig.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${searchPath}/tsconfig.json` as never,
+        error: new Error('ENOENT'),
+      });
       pathDirnameProxy.returns({ result: searchPath as never });
     },
 
@@ -31,7 +34,10 @@ export const locationsTsconfigPathFindBrokerProxy = (): {
       parentPath: string;
     }): void => {
       pathJoinProxy.returns({ result: `${searchPath}/tsconfig.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${searchPath}/tsconfig.json` as never,
+        error: new Error('ENOENT'),
+      });
       pathDirnameProxy.returns({ result: parentPath as never });
     },
   };

@@ -1,10 +1,11 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const hasResponderCreateLayerBrokerProxy = (): {
   setupWithCreate: ({ domainName }: { domainName: string }) => void;
   setupWithoutCreate: ({ domainNames }: { domainNames: readonly string[] }) => void;
-  setupEmpty: () => void;
+  setupEmpty: ({ respondersDirPath }: { respondersDirPath: AbsoluteFilePath }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
@@ -57,8 +58,8 @@ export const hasResponderCreateLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ respondersDirPath }: { respondersDirPath: AbsoluteFilePath }): void => {
+      readdirProxy.setupDirectory({ dirPath: respondersDirPath, entries: [] });
     },
   };
 };

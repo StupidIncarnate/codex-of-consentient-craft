@@ -11,7 +11,7 @@ describe('cliBinToAnnotationsLayerBroker', () => {
   describe('package without package.json', () => {
     it('EMPTY: {package.json missing} => returns empty Map', () => {
       const proxy = cliBinToAnnotationsLayerBrokerProxy();
-      proxy.setupMissing();
+      proxy.setupMissing({ packageRoot: PACKAGE_ROOT });
 
       const result = cliBinToAnnotationsLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -22,7 +22,7 @@ describe('cliBinToAnnotationsLayerBroker', () => {
   describe('package without bin field', () => {
     it('EMPTY: {package.json without bin} => returns empty Map', () => {
       const proxy = cliBinToAnnotationsLayerBrokerProxy();
-      proxy.setupJson({ json: { name: '@dungeonmaster/ward' } });
+      proxy.setupJson({ packageRoot: PACKAGE_ROOT, json: { name: '@dungeonmaster/ward' } });
 
       const result = cliBinToAnnotationsLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -34,6 +34,7 @@ describe('cliBinToAnnotationsLayerBroker', () => {
     it('VALID: {single bin entry as record} => returns annotation keyed by startup file path', () => {
       const proxy = cliBinToAnnotationsLayerBrokerProxy();
       proxy.setupJson({
+        packageRoot: PACKAGE_ROOT,
         json: {
           name: '@dungeonmaster/ward',
           bin: {
@@ -54,6 +55,7 @@ describe('cliBinToAnnotationsLayerBroker', () => {
     it('VALID: {string bin form} => derives bin name from package name and keys by startup', () => {
       const proxy = cliBinToAnnotationsLayerBrokerProxy();
       proxy.setupJson({
+        packageRoot: PACKAGE_ROOT,
         json: {
           name: '@dungeonmaster/ward',
           bin: './dist/src/startup/start-ward.js',

@@ -67,12 +67,14 @@ describe('GuildGetResponder', () => {
   describe('error cases', () => {
     it('ERROR: {guild not found} => returns 404 with error message', async () => {
       const proxy = GuildGetResponderProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       proxy.setupGetGuildError({
+        guildId,
         message: 'Guild not found: f47ac10b-58cc-4372-a567-0e02b2c3d479',
       });
 
       const result = await proxy.callResponder({
-        params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+        params: { guildId },
       });
 
       expect(result).toStrictEqual({
@@ -83,10 +85,11 @@ describe('GuildGetResponder', () => {
 
     it('ERROR: {adapter throws unexpected error} => returns 500 with error message', async () => {
       const proxy = GuildGetResponderProxy();
-      proxy.setupGetGuildError({ message: 'Config file corrupted' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupGetGuildError({ guildId, message: 'Config file corrupted' });
 
       const result = await proxy.callResponder({
-        params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+        params: { guildId },
       });
 
       expect(result).toStrictEqual({

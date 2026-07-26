@@ -53,6 +53,9 @@ describe('questMonitorWatcherStartBroker', () => {
       const realAgentId = 'b9d4a2c8f7e6';
 
       proxy.setupSubagentDirFiles({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
         files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })],
       });
       proxy.setupActiveQuest({
@@ -112,7 +115,12 @@ describe('questMonitorWatcherStartBroker', () => {
 
       const parentSessionId = '66666666-6666-6666-6666-666666666666';
 
-      proxy.setupSubagentDirFiles({ files: [] });
+      proxy.setupSubagentDirFiles({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
+        files: [],
+      });
       proxy.setupLines({
         lines: [
           '{"type":"assistant","uuid":"main-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"main tail emit"}]}}',
@@ -160,7 +168,12 @@ describe('questMonitorWatcherStartBroker', () => {
       const parentSessionId = '77777777-7777-7777-7777-777777777777';
       const workerWorkItemId = String(WorkItemStub().id);
 
-      proxy.setupSubagentDirFiles({ files: [] });
+      proxy.setupSubagentDirFiles({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
+        files: [],
+      });
       proxy.setupLines({
         lines: [
           '{"type":"assistant","uuid":"worker-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"pathseeker work"}]}}',

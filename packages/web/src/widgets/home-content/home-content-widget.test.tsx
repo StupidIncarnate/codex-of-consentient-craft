@@ -630,14 +630,24 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(
-          consoleErrorSpy.mock.calls.some((c) => c[0] === '[home-content] guild create failed'),
-        ).toBe(true);
+        const loggedError = consoleErrorSpy.callsMatching([
+          '[home-content] guild create failed',
+        ])[0]?.[1];
+
+        expect(loggedError).toBeInstanceOf(Error);
+        expect(consoleErrorSpy.callsMatching(['[home-content] guild create failed'])).toStrictEqual(
+          [['[home-content] guild create failed', loggedError]],
+        );
       });
 
-      expect(
-        consoleErrorSpy.mock.calls.some((c) => c[0] === '[home-content] guild create failed'),
-      ).toBe(true);
+      const loggedError = consoleErrorSpy.callsMatching([
+        '[home-content] guild create failed',
+      ])[0]?.[1];
+
+      expect(loggedError).toBeInstanceOf(Error);
+      expect(consoleErrorSpy.callsMatching(['[home-content] guild create failed'])).toStrictEqual([
+        ['[home-content] guild create failed', loggedError],
+      ]);
     });
   });
 
@@ -718,7 +728,11 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
       proxy.setupQuests({ quests: [quest] });
-      proxy.setupDeleteQuestRejectsWithMessage({ message: 'Quest is currently running' });
+      proxy.setupDeleteQuestRejectsWithMessage({
+        questId,
+        guildId,
+        message: 'Quest is currently running',
+      });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -782,7 +796,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
       proxy.setupQuests({ quests: [quest] });
-      proxy.setupDeleteQuestRejectsWithoutMessage();
+      proxy.setupDeleteQuestRejectsWithoutMessage({ questId, guildId });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {

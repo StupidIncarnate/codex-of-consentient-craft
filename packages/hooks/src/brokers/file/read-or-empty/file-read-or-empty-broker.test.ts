@@ -9,7 +9,7 @@ describe('fileReadOrEmptyBroker', () => {
       const filePath = FilePathStub({ value: '/path/to/file.ts' });
       const content = 'const x = 1;';
 
-      proxy.setupFileExists({ content });
+      proxy.setupFileExists({ filePath, content });
 
       const result = await fileReadOrEmptyBroker({ filePath });
 
@@ -22,7 +22,7 @@ describe('fileReadOrEmptyBroker', () => {
       const proxy = fileReadOrEmptyBrokerProxy();
       const filePath = FilePathStub({ value: '/nonexistent/file.ts' });
 
-      proxy.setupFileNotFound();
+      proxy.setupFileNotFound({ filePath });
 
       const result = await fileReadOrEmptyBroker({ filePath });
 
@@ -35,7 +35,7 @@ describe('fileReadOrEmptyBroker', () => {
       const permissionError = new Error('EACCES: permission denied') as NodeJS.ErrnoException;
       permissionError.code = 'EACCES';
 
-      proxy.setupFileError({ error: permissionError });
+      proxy.setupFileError({ filePath, error: permissionError });
 
       await expect(fileReadOrEmptyBroker({ filePath })).rejects.toThrow(
         'EACCES: permission denied',

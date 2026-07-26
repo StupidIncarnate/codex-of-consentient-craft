@@ -9,9 +9,9 @@ describe('QuestListResponder', () => {
   describe('successful listing', () => {
     it('VALID: {valid guildId} => returns 200 with the quests and an empty skip list', async () => {
       const proxy = QuestListResponderProxy();
-      const quest = QuestListItemStub();
-      proxy.setupListQuests({ quests: [quest] });
       const guildId = GuildIdStub();
+      const quest = QuestListItemStub();
+      proxy.setupListQuests({ guildId, quests: [quest] });
 
       const result = await proxy.callResponder({ query: { guildId } });
 
@@ -23,8 +23,8 @@ describe('QuestListResponder', () => {
 
     it('EMPTY: {no quests} => returns 200 with empty quests and empty skips', async () => {
       const proxy = QuestListResponderProxy();
-      proxy.setupListQuests({ quests: [] });
       const guildId = GuildIdStub();
+      proxy.setupListQuests({ guildId, quests: [] });
 
       const result = await proxy.callResponder({ query: { guildId } });
 
@@ -36,10 +36,10 @@ describe('QuestListResponder', () => {
 
     it('VALID: {one quest file could not be read} => returns 200 naming it alongside the loadable quests', async () => {
       const proxy = QuestListResponderProxy();
+      const guildId = GuildIdStub();
       const quest = QuestListItemStub();
       const skipped = SkippedQuestFileStub();
-      proxy.setupListQuestsWithSkips({ quests: [quest], skipped: [skipped] });
-      const guildId = GuildIdStub();
+      proxy.setupListQuestsWithSkips({ guildId, quests: [quest], skipped: [skipped] });
 
       const result = await proxy.callResponder({ query: { guildId } });
 
@@ -99,11 +99,12 @@ describe('QuestListResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestListResponderProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      proxy.setupListQuestsError({ message: 'Connection failed' });
+      proxy.setupListQuestsError({ guildId, message: 'Connection failed' });
 
       const result = await proxy.callResponder({
-        query: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+        query: { guildId },
       });
 
       expect(result).toStrictEqual({

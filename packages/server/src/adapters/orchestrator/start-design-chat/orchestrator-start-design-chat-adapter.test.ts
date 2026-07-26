@@ -6,11 +6,12 @@ describe('orchestratorStartDesignChatAdapter', () => {
   describe('successful call', () => {
     it('VALID: {questId, guildId, message} => returns chatProcessId', async () => {
       const proxy = orchestratorStartDesignChatAdapterProxy();
+      const questId = QuestIdStub();
       const chatProcessId = ProcessIdStub();
-      proxy.returns({ chatProcessId });
+      proxy.returns({ questId, chatProcessId });
 
       const result = await orchestratorStartDesignChatAdapter({
-        questId: QuestIdStub(),
+        questId,
         guildId: GuildIdStub(),
         message: 'Update the button color',
       });
@@ -22,11 +23,12 @@ describe('orchestratorStartDesignChatAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorStartDesignChatAdapterProxy();
-      proxy.throws({ error: new Error('Design chat failed') });
+      const questId = QuestIdStub();
+      proxy.throws({ questId, error: new Error('Design chat failed') });
 
       await expect(
         orchestratorStartDesignChatAdapter({
-          questId: QuestIdStub(),
+          questId,
           guildId: GuildIdStub(),
           message: 'Update the button color',
         }),

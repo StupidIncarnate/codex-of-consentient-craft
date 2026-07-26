@@ -3,28 +3,47 @@
  *
  * USAGE:
  * const proxy = orchestratorRunWardAdapterProxy();
- * proxy.returns({ result: QuestRunWardResultStub() });
+ * proxy.returns({ questId, workItemId, result: QuestRunWardResultStub() });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { QuestRunWardResult } from '@dungeonmaster/orchestrator';
-import { QuestRunWardResultStub } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
+import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+
 export const orchestratorRunWardAdapterProxy = (): {
-  returns: (params: { result: QuestRunWardResult }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    result: QuestRunWardResult;
+  }) => void;
+  throws: (params: { questId: QuestId; workItemId: QuestWorkItemId; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.runWard });
 
-  handle.mockResolvedValue(QuestRunWardResultStub());
-
   return {
-    returns: ({ result }: { result: QuestRunWardResult }): void => {
-      handle.mockResolvedValueOnce(result);
+    returns: ({
+      questId,
+      workItemId,
+      result,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+      result: QuestRunWardResult;
+    }): void => {
+      handle.calledWith([{ questId, workItemId }]).resolves(result);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({
+      questId,
+      workItemId,
+      error,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+      error: Error;
+    }): void => {
+      handle.calledWith([{ questId, workItemId }]).rejects(error);
     },
   };
 };

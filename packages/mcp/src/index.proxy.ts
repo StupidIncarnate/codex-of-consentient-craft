@@ -27,12 +27,12 @@ export const indexProxy = (): {
   } => {
     const exitSpy = registerSpyOn({ object: process, method: 'exit', passthrough: true });
 
-    exitSpy.mockImplementation((() => {
+    exitSpy.calledWith([]).implement((() => {
       // Prevent actual process exit in tests
     }) as never);
     const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write', passthrough: true });
 
-    stderrSpy.mockImplementation((() => true) as never);
+    stderrSpy.calledWith([]).implement((() => true) as never);
 
     return { exitSpy, stderrSpy };
   };

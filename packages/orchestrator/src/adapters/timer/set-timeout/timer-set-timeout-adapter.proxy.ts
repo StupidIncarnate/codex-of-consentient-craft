@@ -10,10 +10,18 @@ export const timerSetTimeoutAdapterProxy = (): {
 } => {
   const captured: { delayMs: ElapsedMs | undefined } = { delayMs: undefined };
 
-  const setTimeoutSpy = registerSpyOn({ object: globalThis, method: 'setTimeout' });
-  setTimeoutSpy.mockImplementation(((cb: () => void, ms: number) => {
+  const setTimeoutSpy = registerSpyOn({
+    object: globalThis,
+    method: 'setTimeout',
+    passthrough: true,
+  });
+  // The requested delay varies per caller (a long-poll's default interval, or a test-supplied
+  // longPollIntervalMs) and this adapter's whole contract is "resolve immediately no matter
+  // what delay was requested" — there is no fixed delay to key the behavior on. calledWith([])
+  // still records whichever delay was actually passed, via the closure below.
+  setTimeoutSpy.calledWith([]).implement(((callback: () => void, ms: number) => {
     captured.delayMs = ElapsedMsStub({ value: ms });
-    cb();
+    callback();
     return 0 as never;
   }) as never);
 

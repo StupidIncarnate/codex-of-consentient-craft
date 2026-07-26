@@ -347,6 +347,48 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
       `,
       filename: '/project/src/brokers/user/user-broker.proxy.ts',
     },
+    // ✅ CORRECT - registerMock argument-addressed staging in constructor (new mocking API)
+    {
+      code: `
+        import { readFile } from 'fs/promises';
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+        export const fsAdapterProxy = () => {
+          const handle = registerMock({ fn: readFile });
+          handle.calledWith(['/a/f.json']).resolves('contents');
+          handle.onceFor(['/a/f.json']).rejects(new Error('boom'));
+          handle.calledWith([]).returns(undefined);
+
+          return {
+            returns: ({ filePath, contents }) => {
+              handle.calledWith([filePath]).resolves(contents);
+            }
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - registerMock bare callsMatching/onceFor and implement/throws result methods
+    {
+      code: `
+        import { writeFile } from 'fs/promises';
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+        export const fsWriteAdapterProxy = () => {
+          const handle = registerMock({ fn: writeFile });
+          handle.calledWith([]).implement(() => Promise.resolve());
+          handle.onceFor(['/a/f.json']).throws(new Error('denied'));
+          handle.callsMatching(['/a/f.json']);
+
+          return {
+            succeeds: ({ filePath }) => {
+              handle.calledWith([filePath]).resolves(undefined);
+            }
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+    },
     // ✅ CORRECT - Child proxy used inside method but not exposed directly
     {
       code: `
@@ -1040,6 +1082,33 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
         {
           messageId: 'proxyConstructorNoSideEffects',
           data: { type: 'db.query()' },
+        },
+      ],
+    },
+    // ❌ WRONG - registerMock staging is fine but a real side effect alongside it still fails
+    {
+      code: `
+        import { readFile } from 'fs/promises';
+        import fs from 'fs';
+        import { registerMock } from '@dungeonmaster/testing/register-mock';
+
+        export const fsAdapterProxy = () => {
+          const handle = registerMock({ fn: readFile });
+          handle.calledWith(['/a/f.json']).resolves('contents');
+          fs.mkdirSync('/tmp/x');
+
+          return {
+            returns: ({ filePath, contents }) => {
+              handle.calledWith([filePath]).resolves(contents);
+            }
+          };
+        };
+      `,
+      filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'proxyConstructorNoSideEffects',
+          data: { type: 'fs.mkdirSync()' },
         },
       ],
     },

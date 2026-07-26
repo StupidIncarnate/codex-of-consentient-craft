@@ -5,7 +5,7 @@ import { rateLimitsWatchBrokerProxy } from './rate-limits-watch-broker.proxy';
 
 describe('rateLimitsWatchBroker', () => {
   it('VALID: {tick fires, file changed} => onSnapshot called with parsed snapshot', async () => {
-    const proxy = rateLimitsWatchBrokerProxy();
+    const proxy = rateLimitsWatchBrokerProxy({ intervalMs: 5000 });
     const json = JSON.stringify(RateLimitsSnapshotStub());
     proxy.setupReadSucceeds({ contents: json });
 
@@ -26,7 +26,7 @@ describe('rateLimitsWatchBroker', () => {
   });
 
   it('VALID: {handle.stop} => stop is a no-arg function', () => {
-    rateLimitsWatchBrokerProxy();
+    rateLimitsWatchBrokerProxy({ intervalMs: 5000 });
     const onError = jest.fn();
 
     const handle = rateLimitsWatchBroker({

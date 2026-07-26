@@ -42,10 +42,10 @@ const user: ReturnType<typeof UserStub> = UserStub({id: userId});
 
 \`\`\`typescript
 // ✅ CORRECT - registerMock handle with branded type using stub
-handle.mockResolvedValue(FileContentsStub({value: 'content'}));
+handle.calledWith([]).resolves(FileContentsStub({value: 'content'}));
 
 // ❌ WRONG - Type error or escape hatch
-handle.mockResolvedValue('content' as FileContents);
+handle.calledWith([]).resolves('content' as FileContents);
 \`\`\`
 
 **Exception for testing invalid inputs:** Use \`as never\`:
@@ -411,14 +411,6 @@ it('VALID: {userId} => fetches user', async () => {
 const proxy = userFetchBrokerProxy(); // Outside test
 it('test 1', () => { /* ... */ });
 it('test 2', () => { /* ... */ }); // Stale mocks!
-
-// ❌ WRONG - Proxy created after calling implementation
-it('VALID: {userId} => fetches user', async () => {
-  const result = await userFetchBroker({userId}); // Called BEFORE proxy exists!
-  const proxy = userFetchBrokerProxy(); // Too late - mocks not set up
-  proxy.setupUserFetch({userId, user});
-  expect(result).toStrictEqual(user);
-});
 \`\`\`
 
 **Why:** Each test needs isolated mocks. Shared proxies create test interdependencies.
@@ -429,18 +421,16 @@ it('VALID: {userId} => fetches user', async () => {
 
 **Constructor setup:** Proxies set up all mocks in their constructor (function body). No beforeEach hooks, no bootstrap() methods.
 
+A constructor-level \`calledWith([])\` catch-all answers EVERY call you did not describe more specifically, which silences the throw. Stage one only when a parent proxy builds this adapter without describing any call of its own, or when a spy exists purely to record-and-swallow output the test asserts separately via \`callsMatching\`.
+
 \`\`\`typescript
 // ✅ CORRECT - Setup in constructor with registerMock
 export const httpAdapterProxy = () => {
   const handle = registerMock({ fn: axios }); // Setup here
-  handle.mockResolvedValue({data: {}}); // Default behavior
-  return { /* semantic methods */ };
+  return {
+    returns: ({ url, data }) => handle.calledWith([url]).resolves({ data }),
+  };
 };
-
-// ❌ WRONG - Manual setup outside proxy
-beforeEach(() => {
-  jest.clearAllMocks(); // Don't do this - @dungeonmaster/testing handles it
-});
 \`\`\`
 
 **No direct mock manipulation:** Tests use semantic proxy methods, never \`registerMock\` or \`jest.mocked()\` directly in test files.
@@ -456,7 +446,7 @@ mockAxios.mockResolvedValue({data: user});
 
 // ❌ WRONG - registerMock in test file (belongs in proxy)
 const handle = registerMock({ fn: readFile });
-handle.mockResolvedValue(Buffer.from(''));
+handle.calledWith([]).resolves(Buffer.from(''));
 \`\`\``;
 
   // Child Proxy Creation
@@ -479,8 +469,9 @@ export const userProfileBrokerProxy = () => {
     }
   };
 };
+\`\`\`
 
-\`\`\``;
+**Assign before you call setup on it:** \`const httpProxy = httpAdapterProxy(); httpProxy.returns(...)\` — not chained off the constructor call. \`enforce-proxy-patterns\` only recognises the Identifier form.`;
 
   // Global Function Mocking
   const globalMocking = `ANY proxy can mock globals if the code being tested uses them. Not just brokers!
@@ -493,9 +484,9 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const userCreateBrokerProxy = () => {
   const httpProxy = httpAdapterProxy();
-  // registerMock works for globals too — stack-based dispatch prevents collisions
+  // registerMock works for globals too — calls are matched on arguments, so no collisions
   const uuidHandle = registerMock({ fn: randomUUID });
-  uuidHandle.mockReturnValue('f47ac10b-...');
+  uuidHandle.calledWith([]).returns('f47ac10b-...'); // no args to key on — the honest catch-all
 
   return {
     setupUserCreate: ({user}) => httpProxy.returns({url: '/users', data: user}),
@@ -562,7 +553,7 @@ export const userStaticsProxy = () => ({
 
 // registerSpyOn for getters
 export const apiStaticsProxy = () => {
-  registerSpyOn({object: apiStatics, method: 'timeout'}).mockReturnValue(0);
+  registerSpyOn({object: apiStatics, method: 'timeout'}).calledWith([]).returns(0);
   return {};
 };
 \`\`\``;
@@ -698,10 +689,6 @@ await request.patch(\`/api/quests/\${questId}\`, {data: {status: 'approved'}});
 // ✅ CORRECT — click the real button so the test verifies the actual user path
 await page.getByTestId('PIXEL_BTN').filter({hasText: 'APPROVE'}).click();
 await expect(page.getByText('Begin Quest modal')).toBeVisible();
-
-// ✅ CORRECT — writes are OK to seed state outside this test's scope (a guild, a prior
-// phase) IF another test covers the bypassed control directly.
-await quests.writeQuestFile({questId, status: 'approved', /* ... */});
 \`\`\`
 
 **Rule of thumb:** OK to write state the test doesn't care about (seeded fixtures, upstream phases). NOT OK to write the mutation the test name is about — drive it through the UI unless it's a pure server-side effect with no user-facing control (cron, webhooks).
@@ -763,28 +750,6 @@ export const questHarness = () => {
 \`\`\`
 
 **Key properties:** Factory function, created at describe scope, semantic methods, owns its own lifecycle.
-
-### Directory Structure
-
-\`\`\`
-ui-package/                              # e.g. packages/web
-├── src/
-│   └── flows/
-│       └── <route>/
-│           ├── <route>-flow.tsx
-│           └── <feature>.e2e.ts         # Playwright e2e, colocated where the test starts
-├── test/
-│   └── harnesses/
-│       ├── e2e-fixtures.ts              # wrapped { test, expect, wireHarnessLifecycle }
-│       ├── claude-mock/
-│       │   ├── claude-mock.harness.ts
-│       │   └── bin-claude.js             # fake binary (non-TS artifact)
-│       ├── quest/
-│       │   └── quest.harness.ts
-│       └── environment/
-│           └── environment.harness.ts
-└── playwright.config.ts                 # testMatch: '**/*.e2e.ts'
-\`\`\`
 
 ### Import Boundaries
 
@@ -851,29 +816,27 @@ Scenario files are **scenario descriptions only** — test blocks and assertions
   // Mocking Mechanics - registerMock
   const mockingMechanics = `**Use \`registerMock\` for all mocking in proxy files.** It replaces \`jest.mock()\`/\`jest.mocked()\`/\`jest.spyOn()\`.
 
-**Why registerMock over jest.mock/jest.spyOn?** Answers are addressed by the ARGUMENTS a mocked function receives, and the staging is shared across every proxy that mocks it — one function, one behaviour, the way prod behaves. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in. With raw \`jest.mock()\`, the second proxy would overwrite the first.
+**Why registerMock over jest.mock/jest.spyOn?** What a mock gives back is decided by the ARGUMENTS it was called with, and that configuration is shared across every proxy mocking the same function — one function, one behaviour, the way prod behaves. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in. With raw \`jest.mock()\`, the second proxy would overwrite the first.
 
-**How it works:** stage answers with \`calledWith\`, keyed on the arguments the function will receive. Every proxy mocking that function shares the staging, so two proxies cannot disagree about one address. A call matching nothing THROWS, naming its own arguments and everything staged — unless the proxy declared a base default as an explicit catch-all.
+**How it works:** \`calledWith([args]).resolves(value)\` has two halves — \`[args]\` DESCRIBES a call you expect the code to make, \`value\` is what it gets back. All proxies mocking that function share these descriptions, so they cannot disagree. A call matching none THROWS unconditionally, naming what was asked for and what was configured.
 
 **MockHandle API:**
 
 | Method | Purpose |
 |--------|---------|
-| \`handle.calledWith([args])\` | Stage by argument — sticky, answers every matching call |
-| \`handle.onceFor([args])\` | Stage by argument — one-shot, when identical calls must differ |
-| \`handle.callsMatching([args])\` | Recorded calls for that address (use in assertion helpers) |
-| \`handle.mockImplementation(fn)\` / \`mockReturnValue\` / \`mockResolvedValue\` | Base value — the explicit catch-all |
-| \`handle.mockImplementationOnce(fn)\` / \`…ReturnValueOnce\` / \`…ResolvedValueOnce\` / \`…RejectedValueOnce\` | FIFO queue — only for calls with no address |
-| \`handle.mock.calls\` | Every recorded call, unfiltered |
-| \`handle.mockClear()\` | Clear calls, queue, and base impl |
+| \`handle.calledWith([args])\` | Describe a call + what it gets back; applies to EVERY matching call |
+| \`handle.onceFor([args])\` | Same, applies ONCE — when identical calls must get different results |
+| \`handle.callsMatching([args])\` | Which calls actually happened with these arguments (use in assertions) |
 
-\`calledWith\` / \`onceFor\` return \`{ returns, resolves, rejects, throws, implement }\`.
+\`calledWith\` / \`onceFor\` return \`{ returns, resolves, rejects, throws, implement }\` — \`.returns()\`/\`.throws()\` hand back the value/error as-is, \`.resolves()\`/\`.rejects()\` wrap it in a Promise (staging async with \`.returns()\` hands back a raw value the caller then calls \`.then()\` on). \`callsMatching([args])\` is a FRESH SNAPSHOT per call, not a live reference — capture it once and poll it and later calls never show up.
 
-**Matching rules:**
+**Staging is SHARED across every proxy mocking the same function** — one function, one behaviour. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere: seen with \`readline.createInterface\` (stdout reader vs file tailer), \`fs.readdirSync\` (filenames vs \`{withFileTypes:true}\`), \`path.join\` (sticky description vs one-shot queue), an argument-less broker composing three describers. Fix with a DISCRIMINATING address — a predicate, or just more arguments (an argument-count mismatch auto-fails to match) — never by reordering construction, which restores the order-dependency this removes. Two DIFFERENT results for the SAME address is what \`onceFor\` is for; staging both as \`calledWith\` means the later wins on the first call, silently disabling the sequence.
 
-Staging fewer arguments than the call passes is a PREFIX match (\`['/a/f.json']\` matches \`readFile('/a/f.json', 'utf8')\`). Objects match by SUBSET, so a test never spells out the full options bag. RegExp matches a string, Date by time, and a FUNCTION is a predicate — for values a test cannot reconstruct. Most specific wins; at equal specificity a one-shot beats a sticky, then the latest staging wins.
+**How arguments are compared:**
 
-**Verify the key reaches the function.** Confirm the value you stage is the argument the npm function receives — callers often transform it first (a broker joining a cwd onto a glob pattern).
+Describing fewer arguments than the call passes is a PREFIX match — \`['/a/f.json']\` matches \`readFile('/a/f.json', 'utf8')\`. Objects compare only on the keys you write. RegExp matches a string, Date by time, and a FUNCTION is a test you write yourself, for values you cannot know in advance. Most specific wins; when equally specific a live one-shot wins, then the most recent.
+
+**Check the arguments you describe are the ones the function really receives.** \`calledWith([X])\` only fires if X equals what the npm function is actually called with, and callers often change it on the way down — a broker joining a cwd onto a glob pattern. Read the adapter to confirm.
 
 **Adapter proxy example (I/O boundary):**
 
@@ -884,16 +847,14 @@ export const fsWriteFileAdapterProxy = () => {
   return {
     succeeds: ({ filePath }: { filePath: FilePath }): void =>
       handle.calledWith([filePath]).resolves(undefined),
-    // Addressed by path — a manifest read can never be handed another file's body
+    // Answers for this path only
     getWrittenFor: ({ filePath }: { filePath: FilePath }): unknown =>
       handle.callsMatching([filePath]).at(-1)?.[1],
-    // ❌ WRONG: getWrittenContent: () => handle.mock.calls.at(-1)?.[1] — returns whatever
-    //    was written LAST, which may be a completely different file
   };
 };
 \`\`\`
 
-For globals (\`randomUUID\`, \`Date.now\`, etc.), use \`registerMock\` the same way — see Global Function Mocking section above.
+For globals, use \`registerMock\` the same way — see Global Function Mocking above.
 
 \`\`\`typescript
 // ❌ WRONG - jest.mocked / jest.spyOn / jest.mock are all forbidden in proxies
@@ -908,21 +869,17 @@ const uuidHandle = registerMock({ fn: randomUUID });
 
 ### registerSpyOn — Spy on Global Object Methods
 
-Use \`registerSpyOn\` to spy on methods of global objects (process, Date, crypto, Math, etc.). Returns a \`SpyOnHandle\` with the same API as \`MockHandle\`.
+\`registerSpyOn\` spies on methods of global objects (process, Date, crypto, Math, etc.) and returns a \`SpyOnHandle\` — an alias of \`MockHandle\`, with the identical \`calledWith\`/\`onceFor\`/\`callsMatching\` API. Throw-on-unmatched is unconditional, EXCEPT \`registerSpyOn({ passthrough: true })\`, where the real implementation is the catch-all and never throws.
 
 \`\`\`typescript
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-// Spy on process.stdout.write
 const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+stdoutSpy.calledWith([]).returns(true); // record-and-swallow: assert text via callsMatching
 
-// Spy with passthrough — records calls but delegates to real implementation
+// passthrough: true — real implementation runs by default, still overridable per address
 const timerSpy = registerSpyOn({ object: globalThis, method: 'setTimeout', passthrough: true });
 \`\`\`
-
-**\`passthrough: true\`** — Spy records calls but delegates to the real implementation by default. Use for globals that must keep working (setTimeout, WebSocket). You can still override with \`.mockImplementation()\`.
-
-**SpyOnHandle API:** Same as MockHandle — \`.mockImplementation()\`, \`.mockReturnValue()\`, \`.mockReturnValueOnce()\`, \`.mockResolvedValue()\`, \`.mockRejectedValueOnce()\`, \`.mock.calls\`, \`.mockClear()\`.
 
 **Common targets:** \`process.stdout.write\`, \`Date.now\`, \`crypto.randomUUID\`, \`Math.random\`
 
@@ -949,7 +906,7 @@ Use \`requireActual\` to access real module exports when a module is mocked. Wra
 import { requireActual } from '@dungeonmaster/testing/register-mock';
 
 const realPath = requireActual({ module: 'path' });
-handle.mockImplementation((...args) => realPath.join(...args));
+handle.calledWith([]).implement((...args) => realPath.join(...args));
 \`\`\`
 
 **When to use:** A parent proxy needs the real implementation of something mocked by a child proxy.

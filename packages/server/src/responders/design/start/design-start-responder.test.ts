@@ -22,7 +22,7 @@ describe('DesignStartResponder', () => {
         const proxy = DesignStartResponderProxy();
         const questId = QuestIdStub();
         const guildId = GuildIdStub();
-        const quest = QuestStub({ status: status as never, needsDesign: true });
+        const quest = QuestStub({ id: questId, status: status as never, needsDesign: true });
         const guild = GuildStub({ id: guildId, path: '/home/user/project' as never });
 
         proxy.setupQuest({ quest });
@@ -45,7 +45,7 @@ describe('DesignStartResponder', () => {
         const proxy = DesignStartResponderProxy();
         const questId = QuestIdStub();
         const guildId = GuildIdStub();
-        const quest = QuestStub({ status: status as never, needsDesign: true });
+        const quest = QuestStub({ id: questId, status: status as never, needsDesign: true });
 
         proxy.setupQuest({ quest });
 
@@ -107,7 +107,7 @@ describe('DesignStartResponder', () => {
       const proxy = DesignStartResponderProxy();
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
-      const quest = QuestStub({ status: 'approved' as never, needsDesign: false });
+      const quest = QuestStub({ id: questId, status: 'approved' as never, needsDesign: false });
 
       proxy.setupQuest({ quest });
 
@@ -131,7 +131,7 @@ describe('DesignStartResponder', () => {
       const proxy = DesignStartResponderProxy();
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
-      proxy.setupQuestError({ error: new Error('Quest fetch failed') });
+      proxy.setupQuestError({ questId, error: new Error('Quest fetch failed') });
 
       const result = await proxy.callResponder({
         params: { questId },

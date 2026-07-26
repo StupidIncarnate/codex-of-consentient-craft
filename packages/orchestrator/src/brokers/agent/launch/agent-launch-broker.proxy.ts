@@ -58,8 +58,11 @@ export const agentLaunchBrokerProxy = (): {
 
   // Mock the launcher's own crypto.randomUUID call (mints the processId). registerSpyOn
   // is stack-based — this handle is independent of the handle-broker proxy's UUID mock
-  // (which seeds entry uuids), so tests can assert a deterministic processId.
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(LAUNCHER_PROCESS_UUID);
+  // (which seeds entry uuids), so tests can assert a deterministic processId. randomUUID
+  // takes no identifying argument — [] is the honest address.
+  registerSpyOn({ object: crypto, method: 'randomUUID' })
+    .calledWith([])
+    .returns(LAUNCHER_PROCESS_UUID);
 
   return {
     setupSpawnAndEmitLines: (params: SpawnEmitParams): void => {

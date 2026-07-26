@@ -1,21 +1,20 @@
 import { access } from 'fs/promises';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsAccessAdapterProxy = (): {
-  resolves: () => void;
-  rejects: (params: { error: Error }) => void;
+  resolves: (params: { filePath: FilePath }) => void;
+  rejects: (params: { filePath: FilePath; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: access });
 
-  mock.mockResolvedValue({ success: true as const });
-
   return {
-    resolves: () => {
-      mock.mockResolvedValueOnce({ success: true as const });
+    resolves: ({ filePath }: { filePath: FilePath }) => {
+      mock.calledWith([filePath]).resolves({ success: true as const });
     },
 
-    rejects: ({ error }: { error: Error }) => {
-      mock.mockRejectedValueOnce(error);
+    rejects: ({ filePath, error }: { filePath: FilePath; error: Error }) => {
+      mock.calledWith([filePath]).rejects(error);
     },
   };
 };

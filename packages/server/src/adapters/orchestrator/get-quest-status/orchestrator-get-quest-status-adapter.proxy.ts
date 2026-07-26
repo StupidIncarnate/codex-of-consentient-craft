@@ -1,25 +1,27 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationStatusStub, ProcessId } from '@dungeonmaster/shared/contracts';
 
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 
 export const orchestratorGetQuestStatusAdapterProxy = (): {
-  returns: (params: { status: OrchestrationStatus }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
+  throws: (params: { processId: ProcessId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.getQuestStatus });
 
-  mock.mockReturnValue(OrchestrationStatusStub());
-
   return {
-    returns: ({ status }: { status: OrchestrationStatus }): void => {
-      mock.mockReturnValueOnce(status);
+    returns: ({
+      processId,
+      status,
+    }: {
+      processId: ProcessId;
+      status: OrchestrationStatus;
+    }): void => {
+      mock.calledWith([{ processId }]).returns(status);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ processId, error }: { processId: ProcessId; error: Error }): void => {
+      mock.calledWith([{ processId }]).throws(error);
     },
   };
 };

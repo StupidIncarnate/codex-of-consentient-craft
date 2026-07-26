@@ -6,8 +6,9 @@ import { orchestratorPauseQuestAdapterProxy } from './orchestrator-pause-quest-a
 describe('orchestratorPauseQuestAdapter', () => {
   describe('successful pause', () => {
     it('VALID: {questId} => returns paused result', async () => {
-      orchestratorPauseQuestAdapterProxy();
+      const proxy = orchestratorPauseQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
+      proxy.returns({ questId, paused: true });
 
       const result = await orchestratorPauseQuestAdapter({ questId });
 
@@ -20,7 +21,7 @@ describe('orchestratorPauseQuestAdapter', () => {
       const proxy = orchestratorPauseQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      proxy.throws({ error: new Error('Failed to pause quest') });
+      proxy.throws({ questId, error: new Error('Failed to pause quest') });
 
       await expect(orchestratorPauseQuestAdapter({ questId })).rejects.toThrow(
         /Failed to pause quest/u,

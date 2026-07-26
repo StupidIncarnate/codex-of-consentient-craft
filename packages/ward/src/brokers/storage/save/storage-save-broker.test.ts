@@ -20,11 +20,11 @@ const failingWardResult = (): ReturnType<typeof WardResultStub> =>
 describe('storageSaveBroker', () => {
   describe('successful save', () => {
     it('VALID: {rootPath, wardResult with failures} => writes JSON file to .ward directory', async () => {
-      const proxy = storageSaveBrokerProxy();
-      proxy.setupSuccess();
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardResult = failingWardResult();
+
+      const proxy = storageSaveBrokerProxy();
+      proxy.setupSuccess({ rootPath, runId: wardResult.runId });
 
       await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
         success: true,
@@ -34,11 +34,11 @@ describe('storageSaveBroker', () => {
 
   describe('all checks pass', () => {
     it('VALID: {wardResult with no failures} => still writes file', async () => {
-      const proxy = storageSaveBrokerProxy();
-      proxy.setupSuccess();
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardResult = WardResultStub();
+
+      const proxy = storageSaveBrokerProxy();
+      proxy.setupSuccess({ rootPath, runId: wardResult.runId });
 
       await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
         success: true,
@@ -48,11 +48,11 @@ describe('storageSaveBroker', () => {
 
   describe('mkdir failure', () => {
     it('ERROR: {mkdir fails} => throws error', async () => {
-      const proxy = storageSaveBrokerProxy();
-      proxy.setupMkdirFail({ error: new Error('EACCES: permission denied') });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardResult = failingWardResult();
+
+      const proxy = storageSaveBrokerProxy();
+      proxy.setupMkdirFail({ rootPath, error: new Error('EACCES: permission denied') });
 
       await expect(storageSaveBroker({ rootPath, wardResult })).rejects.toThrow(
         /EACCES: permission denied/u,
@@ -62,11 +62,15 @@ describe('storageSaveBroker', () => {
 
   describe('write failure', () => {
     it('ERROR: {write fails} => throws error', async () => {
-      const proxy = storageSaveBrokerProxy();
-      proxy.setupWriteFail({ error: new Error('ENOSPC: no space left') });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardResult = failingWardResult();
+
+      const proxy = storageSaveBrokerProxy();
+      proxy.setupWriteFail({
+        rootPath,
+        runId: wardResult.runId,
+        error: new Error('ENOSPC: no space left'),
+      });
 
       await expect(storageSaveBroker({ rootPath, wardResult })).rejects.toThrow(
         /ENOSPC: no space left/u,

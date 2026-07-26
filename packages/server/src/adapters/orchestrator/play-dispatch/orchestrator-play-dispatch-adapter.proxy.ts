@@ -1,6 +1,6 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
+import type { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
 
 type DispatchPlayResponse = ReturnType<typeof DispatchPlayResponseStub>;
 
@@ -11,15 +11,16 @@ export const orchestratorPlayDispatchAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.playDispatch });
 
-  mock.mockResolvedValue(DispatchPlayResponseStub());
-
   return {
+    // playDispatch takes an optional { force } — but the response never varies by force in any
+    // caller, so [] (match every call) is the honest address for the return value. getCalls()
+    // below is what actually verifies which force value was forwarded per call.
     returns: ({ response }: { response: DispatchPlayResponse }): void => {
-      mock.mockResolvedValueOnce(response);
+      mock.calledWith([]).resolves(response);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      mock.calledWith([]).rejects(error);
     },
-    getCalls: (): readonly unknown[] => mock.mock.calls.map((call) => call[0]),
+    getCalls: (): readonly unknown[] => mock.callsMatching([]).map((call) => call[0]),
   };
 };

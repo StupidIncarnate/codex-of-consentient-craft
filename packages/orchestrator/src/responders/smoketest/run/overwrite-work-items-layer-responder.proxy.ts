@@ -101,6 +101,7 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
       pathJoinProxy.returns({ result: questFilePath });
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
       persistProxy.setupPersist({
+        questFilePath,
         homePath,
         outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
       });
@@ -142,7 +143,7 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
       pathJoinProxy.returns({ result: questFilePath });
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
       // Reject write without stubbing the success path — the write failure must propagate.
-      persistProxy.setupWriteFailure({ error });
+      persistProxy.setupWriteFailure({ questFilePath, error });
     },
     getAllPersistedContents: (): readonly unknown[] =>
       persistProxy

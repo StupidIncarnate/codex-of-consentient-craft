@@ -9,7 +9,7 @@ describe('settingsPermissionsAddBroker', () => {
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
 
-      proxy.setupNoExistingSettings({ settingsPath });
+      proxy.setupNoExistingSettings({ targetProjectRoot, settingsPath });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
@@ -68,7 +68,7 @@ describe('settingsPermissionsAddBroker', () => {
         value: JSON.stringify({ hooks: { PreToolUse: [] } }),
       });
 
-      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+      proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
@@ -132,7 +132,7 @@ describe('settingsPermissionsAddBroker', () => {
         }),
       });
 
-      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+      proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
@@ -196,7 +196,7 @@ describe('settingsPermissionsAddBroker', () => {
         }),
       });
 
-      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+      proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
@@ -263,7 +263,7 @@ describe('settingsPermissionsAddBroker', () => {
         }),
       });
 
-      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+      proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
@@ -325,7 +325,7 @@ describe('settingsPermissionsAddBroker', () => {
         }),
       });
 
-      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+      proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
@@ -394,7 +394,7 @@ describe('settingsPermissionsAddBroker', () => {
         }),
       });
 
-      proxy.setupExistingSettings({ settingsPath, contents: existingContents });
+      proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 

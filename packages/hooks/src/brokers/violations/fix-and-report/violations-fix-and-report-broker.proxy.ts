@@ -21,6 +21,7 @@ export const violationsFixAndReportBrokerProxy = (): {
       if (hasViolations) {
         // Configure lint to return error-level violations after auto-fix
         lintWithFixProxy.returnsLintResults({
+          filePath: '/test/file.ts',
           results: [
             {
               filePath: '/test/file.ts',
@@ -41,6 +42,7 @@ export const violationsFixAndReportBrokerProxy = (): {
       } else {
         // No violations remaining after auto-fix
         lintWithFixProxy.returnsLintResults({
+          filePath: '/test/file.ts',
           results: [
             {
               filePath: '/test/file.ts',

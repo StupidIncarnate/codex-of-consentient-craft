@@ -56,9 +56,9 @@ export const questOperationsUpdateBrokerProxy = (): {
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
 
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-    '2024-01-15T10:00:00.000Z',
-  );
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns('2024-01-15T10:00:00.000Z');
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -105,6 +105,7 @@ export const questOperationsUpdateBrokerProxy = (): {
 
       // Mock persist (write + rename + outbox)
       persistProxy.setupPersist({
+        questFilePath,
         homePath,
         outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
       });

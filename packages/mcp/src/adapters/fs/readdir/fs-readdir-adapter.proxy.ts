@@ -9,20 +9,13 @@ export const fsReaddirAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: readdir });
 
-  handle.mockResolvedValue([]);
-
   return {
-    returns: ({
-      filepath: _filepath,
-      entries,
-    }: {
-      filepath: PathSegment;
-      entries: FolderName[];
-    }): void => {
-      handle.mockResolvedValueOnce(entries);
+    // readdir's PATH (its only argument) is the address.
+    returns: ({ filepath, entries }: { filepath: PathSegment; entries: FolderName[] }): void => {
+      handle.calledWith([filepath]).resolves(entries);
     },
-    throws: ({ filepath: _filepath, error }: { filepath: PathSegment; error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ filepath, error }: { filepath: PathSegment; error: Error }): void => {
+      handle.calledWith([filepath]).rejects(error);
     },
   };
 };

@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { OrchestrationStatusStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorGetQuestStatusAdapter } from './orchestrator-get-quest-status-adapter';
 import { orchestratorGetQuestStatusAdapterProxy } from './orchestrator-get-quest-status-adapter.proxy';
@@ -6,8 +6,10 @@ import { orchestratorGetQuestStatusAdapterProxy } from './orchestrator-get-quest
 describe('orchestratorGetQuestStatusAdapter', () => {
   describe('successful get status', () => {
     it('VALID: {processId} => returns orchestration status', () => {
-      orchestratorGetQuestStatusAdapterProxy();
+      const proxy = orchestratorGetQuestStatusAdapterProxy();
       const processId = ProcessIdStub();
+      const status = OrchestrationStatusStub({ processId });
+      proxy.returns({ processId, status });
 
       const result = orchestratorGetQuestStatusAdapter({ processId });
 
@@ -20,7 +22,7 @@ describe('orchestratorGetQuestStatusAdapter', () => {
       const proxy = orchestratorGetQuestStatusAdapterProxy();
       const processId = ProcessIdStub();
 
-      proxy.throws({ error: new Error('Process not found') });
+      proxy.throws({ processId, error: new Error('Process not found') });
 
       expect(() => orchestratorGetQuestStatusAdapter({ processId })).toThrow(/Process not found/u);
     });

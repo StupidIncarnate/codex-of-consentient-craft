@@ -44,6 +44,7 @@ describe('EslintPluginFlow', () => {
         'enforce-optional-guard-params',
         'enforce-project-structure',
         'enforce-proxy-child-creation',
+        'enforce-proxy-param-binding',
         'enforce-proxy-patterns',
         'enforce-regex-usage',
         'enforce-stub-patterns',

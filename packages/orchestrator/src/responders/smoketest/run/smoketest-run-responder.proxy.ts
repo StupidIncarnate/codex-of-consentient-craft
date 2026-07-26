@@ -1,5 +1,5 @@
 import type { GuildIdStub, QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub, questSourceContract } from '@dungeonmaster/shared/contracts';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { smoketestClearPriorQuestsBrokerProxy } from '../../../brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.proxy';
@@ -56,10 +56,14 @@ export const SmoketestRunResponderProxy = (): {
       const guild = GuildStub({ id: guildId, urlSlug: guildSlug });
       guildGetProxy.setupConfig({ config: { guilds: [guild] } });
 
-      // Default: every clear call resolves with deletedCount=0.
-      clearProxy.setupSucceeds();
-      clearProxy.setupSucceeds();
-      clearProxy.setupSucceeds();
+      // Default: every clear call resolves with deletedCount=0. The responder calls this once
+      // per suite tag it dispatches (mcp / signals / orchestration, depending on `suite`), so
+      // all three are staged sticky — whichever ones the test's `suite` actually triggers match.
+      clearProxy.setupSucceeds({ questSource: questSourceContract.parse('smoketest-mcp') });
+      clearProxy.setupSucceeds({ questSource: questSourceContract.parse('smoketest-signals') });
+      clearProxy.setupSucceeds({
+        questSource: questSourceContract.parse('smoketest-orchestration'),
+      });
 
       const computeBundledList = (): readonly ({
         questId: QuestId;

@@ -1,33 +1,38 @@
 import { execSync } from 'child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
+// execSync backs TWO distinct commands the adapter issues: `lsof -ti :<port>` to list pids
+// listening on the port, and `kill -9 <pid>` for each pid it finds. The full command string
+// is the real, distinguishing address for both.
 export const processKillByPortAdapterProxy = (): {
-  portHasPids: (params: { pids: number[] }) => void;
-  portIsEmpty: () => void;
-  lsofThrows: (params: { error: Error }) => void;
-  wasCalledAtLeastTwice: () => boolean;
+  portHasPids: (params: { port: number; pids: number[] }) => void;
+  portIsEmpty: (params: { port: number }) => void;
+  lsofThrows: (params: { port: number; error: Error }) => void;
+  wasCalledForPort: (params: { port: number }) => boolean;
 } => {
   const handle = registerMock({ fn: execSync });
 
-  handle.mockReturnValue('');
-
   return {
-    portHasPids: ({ pids }: { pids: number[] }): void => {
+    portHasPids: ({ port, pids }: { port: number; pids: number[] }): void => {
       const lsofOutput = pids.join('\n');
-      handle.mockReturnValueOnce(lsofOutput);
-      handle.mockReturnValue(undefined as never);
+      handle.calledWith([`lsof -ti :${port}`, { encoding: 'utf8' }]).returns(lsofOutput);
+      // Each pid lsof reports is killed with its own `kill -9 <pid>` call.
+      for (const pid of pids) {
+        handle.calledWith([`kill -9 ${pid}`]).returns(undefined as never);
+      }
     },
 
-    portIsEmpty: (): void => {
-      handle.mockReturnValueOnce('');
+    portIsEmpty: ({ port }: { port: number }): void => {
+      handle.calledWith([`lsof -ti :${port}`, { encoding: 'utf8' }]).returns('');
     },
 
-    lsofThrows: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(() => {
+    lsofThrows: ({ port, error }: { port: number; error: Error }): void => {
+      handle.calledWith([`lsof -ti :${port}`, { encoding: 'utf8' }]).implement(() => {
         throw error;
       });
     },
 
-    wasCalledAtLeastTwice: (): boolean => handle.mock.calls.length > 1,
+    wasCalledForPort: ({ port }: { port: number }): boolean =>
+      handle.callsMatching([`lsof -ti :${port}`]).length > 0,
   };
 };

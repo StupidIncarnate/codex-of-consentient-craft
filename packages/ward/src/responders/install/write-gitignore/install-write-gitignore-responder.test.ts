@@ -5,8 +5,9 @@ describe('InstallWriteGitignoreResponder', () => {
   describe('no existing .gitignore', () => {
     it('VALID: {no .gitignore file} => creates .gitignore with .ward/', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
+      const filePath = FilePathStub({ value: '/project/.gitignore' });
 
-      proxy.setupReadFileThrows();
+      proxy.setupReadFileThrows({ filePath });
 
       const result = await proxy.callResponder({
         context: {
@@ -23,15 +24,16 @@ describe('InstallWriteGitignoreResponder', () => {
       });
 
       expect(String(proxy.getWrittenPath())).toBe('/project/.gitignore');
-      expect(proxy.getWrittenContent()).toBe('.ward/\n');
+      expect(proxy.getWrittenContent({ filePath })).toBe('.ward/\n');
     });
   });
 
   describe('existing .gitignore without .ward/', () => {
     it('VALID: {.gitignore exists without .ward/} => appends .ward/ to .gitignore', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
+      const filePath = FilePathStub({ value: '/project/.gitignore' });
 
-      proxy.setupReadFileContent({ content: 'node_modules/\ndist/\n' });
+      proxy.setupReadFileContent({ filePath, content: 'node_modules/\ndist/\n' });
 
       const result = await proxy.callResponder({
         context: {
@@ -48,15 +50,16 @@ describe('InstallWriteGitignoreResponder', () => {
       });
 
       expect(String(proxy.getWrittenPath())).toBe('/project/.gitignore');
-      expect(proxy.getWrittenContent()).toBe('node_modules/\ndist/\n.ward/\n');
+      expect(proxy.getWrittenContent({ filePath })).toBe('node_modules/\ndist/\n.ward/\n');
     });
   });
 
   describe('.gitignore already has .ward/', () => {
     it('VALID: {.gitignore already contains .ward/} => skips installation', async () => {
       const proxy = InstallWriteGitignoreResponderProxy();
+      const filePath = FilePathStub({ value: '/project/.gitignore' });
 
-      proxy.setupReadFileContent({ content: 'node_modules/\n.ward/\n' });
+      proxy.setupReadFileContent({ filePath, content: 'node_modules/\n.ward/\n' });
 
       const result = await proxy.callResponder({
         context: {

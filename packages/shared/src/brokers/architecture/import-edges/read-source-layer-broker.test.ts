@@ -12,7 +12,7 @@ describe('readSourceLayerBroker', () => {
       const content = ContentTextStub({
         value: "import { x } from '@dungeonmaster/shared/contracts';",
       });
-      proxy.returns({ content });
+      proxy.returns({ filePath: FILE_PATH, content });
 
       const result = readSourceLayerBroker({ filePath: FILE_PATH });
 
@@ -23,7 +23,7 @@ describe('readSourceLayerBroker', () => {
   describe('error handling', () => {
     it('ERROR: missing file => returns undefined', () => {
       const proxy = readSourceLayerBrokerProxy();
-      proxy.throws({ error: new Error('ENOENT') });
+      proxy.throws({ filePath: FILE_PATH, error: new Error('ENOENT') });
 
       const result = readSourceLayerBroker({ filePath: FILE_PATH });
 

@@ -1,42 +1,29 @@
 import { writeFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsWriteFileAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
-  getWrittenContent: () => unknown;
-  getWrittenPath: () => unknown;
+  succeeds: (params: { filePath: FilePath }) => void;
+  throws: (params: { filePath: FilePath; error: Error }) => void;
+  getWrittenFor: (params: { filePath: FilePath }) => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const handle = registerMock({ fn: writeFile });
 
-  handle.mockResolvedValue({ success: true as const });
-
   return {
-    succeeds: (): void => {
-      handle.mockResolvedValueOnce({ success: true as const });
+    succeeds: ({ filePath }: { filePath: FilePath }): void => {
+      handle.calledWith([filePath]).resolves({ success: true as const });
     },
 
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ filePath, error }: { filePath: FilePath; error: Error }): void => {
+      handle.calledWith([filePath]).rejects(error);
     },
 
-    getWrittenContent: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
-
-    getWrittenPath: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getWrittenFor: ({ filePath }: { filePath: FilePath }): unknown =>
+      handle.callsMatching([filePath]).at(-1)?.[1],
 
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      handle.mock.calls.map((call) => ({
+      handle.callsMatching([]).map((call) => ({
         path: call[0],
         content: call[1],
       })),

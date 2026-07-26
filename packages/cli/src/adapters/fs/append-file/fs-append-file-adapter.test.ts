@@ -5,10 +5,11 @@ import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts'
 describe('fsAppendFileAdapter', () => {
   it('VALID: {filePath, contents} => appends content', async () => {
     const proxy = fsAppendFileAdapterProxy();
-    proxy.succeeds();
+    const filePath = FilePathStub({ value: '/log.jsonl' });
+    proxy.succeeds({ filePath });
 
     const result = await fsAppendFileAdapter({
-      filePath: FilePathStub({ value: '/log.jsonl' }),
+      filePath,
       contents: FileContentsStub({ value: '{"a":1}\n' }),
     });
 
@@ -18,11 +19,12 @@ describe('fsAppendFileAdapter', () => {
 
   it('ERROR: {filePath: readonly} => rejects', async () => {
     const proxy = fsAppendFileAdapterProxy();
-    proxy.throws({ error: new Error('EACCES') });
+    const filePath = FilePathStub({ value: '/readonly' });
+    proxy.throws({ filePath, error: new Error('EACCES') });
 
     await expect(
       fsAppendFileAdapter({
-        filePath: FilePathStub({ value: '/readonly' }),
+        filePath,
         contents: FileContentsStub({ value: 'x' }),
       }),
     ).rejects.toThrow(/EACCES/u);

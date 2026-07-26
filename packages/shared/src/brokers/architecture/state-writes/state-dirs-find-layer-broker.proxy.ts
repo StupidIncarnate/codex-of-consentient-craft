@@ -1,5 +1,7 @@
 import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const buildDirDirent = ({ name }: { name: string }): Dirent =>
   ({
@@ -16,24 +18,39 @@ const buildDirDirent = ({ name }: { name: string }): Dirent =>
   }) as Dirent;
 
 export const stateDirsFindLayerBrokerProxy = (): {
-  setupStateDirs: ({ names }: { names: string[] }) => void;
-  setupEmpty: () => void;
-  setupMissing: () => void;
+  setupStateDirs: ({
+    packageRoot,
+    names,
+  }: {
+    packageRoot: AbsoluteFilePath;
+    names: string[];
+  }) => void;
+  setupEmpty: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
+  setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
   return {
-    setupStateDirs: ({ names }: { names: string[] }): void => {
+    setupStateDirs: ({
+      packageRoot,
+      names,
+    }: {
+      packageRoot: AbsoluteFilePath;
+      names: string[];
+    }): void => {
       const entries = names.map((name) => buildDirDirent({ name }));
-      readdirProxy.setupDirectory({ entries });
+      const dirPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src/state` });
+      readdirProxy.setupDirectory({ dirPath, entries });
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.setupDirectory({ entries: [] });
+    setupEmpty: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
+      const dirPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src/state` });
+      readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
 
-    setupMissing: (): void => {
-      readdirProxy.setupError({ error: new Error('ENOENT: no such file or directory') });
+    setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
+      const dirPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src/state` });
+      readdirProxy.setupError({ dirPath, error: new Error('ENOENT: no such file or directory') });
     },
   };
 };

@@ -4,6 +4,9 @@ import { packageSectionBuildLayerBrokerProxy } from './package-section-build-lay
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
@@ -29,10 +32,28 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
  * implementation is the last one set and governs the type-detection pass.
  */
 export const architectureProjectMapBrokerProxy = (): {
-  setupLibraryPackage: ({ packageName }: { packageName: string }) => void;
-  setupRenderablePackage: ({ packageName }: { packageName: string }) => void;
-  setupFrontendInkPackage: ({ packageName }: { packageName: string }) => void;
-  setupEmptyMonorepo: () => void;
+  setupLibraryPackage: ({
+    projectRoot,
+    packageName,
+  }: {
+    projectRoot: AbsoluteFilePath;
+    packageName: string;
+  }) => void;
+  setupRenderablePackage: ({
+    projectRoot,
+    packageName,
+  }: {
+    projectRoot: AbsoluteFilePath;
+    packageName: string;
+  }) => void;
+  setupFrontendInkPackage: ({
+    projectRoot,
+    packageName,
+  }: {
+    projectRoot: AbsoluteFilePath;
+    packageName: string;
+  }) => void;
+  setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }) => void;
 } => {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
   const typeDetectProxy = architecturePackageTypeDetectBrokerProxy();
@@ -40,10 +61,19 @@ export const architectureProjectMapBrokerProxy = (): {
   pointerFooterRenderLayerBrokerProxy();
 
   return {
-    setupLibraryPackage: ({ packageName }: { packageName: string }): void => {
+    setupLibraryPackage: ({
+      projectRoot,
+      packageName,
+    }: {
+      projectRoot: AbsoluteFilePath;
+      packageName: string;
+    }): void => {
       // Library packages are filtered out before reaching package-section-build, so this
       // setup just configures discovery + type-detection to identify the package as a library.
       discoverProxy.setupPackages({
+        dirPath: AbsoluteFilePathStub({
+          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        }),
         entries: [makeDirent({ name: packageName, isDir: true })],
       });
       typeDetectProxy.setupPackage({
@@ -54,11 +84,20 @@ export const architectureProjectMapBrokerProxy = (): {
       });
     },
 
-    setupRenderablePackage: ({ packageName }: { packageName: string }): void => {
+    setupRenderablePackage: ({
+      projectRoot,
+      packageName,
+    }: {
+      projectRoot: AbsoluteFilePath;
+      packageName: string;
+    }): void => {
       // Configures a package whose type-detect returns 'programmatic-service' so the package
       // section IS rendered (with a `# name [type]` header). Used by tests that consume the
       // header line (e.g. session-snippet-packages).
       discoverProxy.setupPackages({
+        dirPath: AbsoluteFilePathStub({
+          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        }),
         entries: [makeDirent({ name: packageName, isDir: true })],
       });
       typeDetectProxy.setupPackage({
@@ -73,7 +112,13 @@ export const architectureProjectMapBrokerProxy = (): {
       });
     },
 
-    setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
+    setupFrontendInkPackage: ({
+      projectRoot,
+      packageName,
+    }: {
+      projectRoot: AbsoluteFilePath;
+      packageName: string;
+    }): void => {
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
         packageJsonContent: '{}',
@@ -81,18 +126,25 @@ export const architectureProjectMapBrokerProxy = (): {
         adapterDirNames: ['ink'],
       });
       discoverProxy.setupPackages({
+        dirPath: AbsoluteFilePathStub({
+          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        }),
         entries: [makeDirent({ name: packageName, isDir: true })],
       });
     },
 
-    setupEmptyMonorepo: (): void => {
+    setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }): void => {
       typeDetectProxy.setupPackage({
         packageRoot: '/project',
         packageJsonContent: '{}',
         srcDirNames: [],
         adapterDirNames: [],
       });
-      discoverProxy.setupMissingPackagesDir();
+      discoverProxy.setupMissingPackagesDir({
+        dirPath: AbsoluteFilePathStub({
+          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        }),
+      });
     },
   };
 };

@@ -23,7 +23,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @dungeonmaster - PRE-EDIT (37 rules)
+  // @dungeonmaster - PRE-EDIT (38 rules)
   '@dungeonmaster/ban-adhoc-types': 'pre-edit',
   '@dungeonmaster/enforce-contract-usage-in-tests': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
@@ -77,6 +77,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-require-in-source': 'pre-edit',
   '@dungeonmaster/ban-unknown-payload-in-discriminated-union': 'pre-edit',
   '@dungeonmaster/require-validation-on-untyped-property-access': 'pre-edit',
+  '@dungeonmaster/enforce-proxy-param-binding': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT (4 rules)
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

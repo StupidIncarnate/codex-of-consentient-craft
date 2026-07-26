@@ -12,6 +12,7 @@ describe('questFolderFindBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
       proxy.setupQuestFolders({
+        questsPath,
         questFolders: [FileNameStub({ value: '001-add-auth' })],
         questFiles: [
           {
@@ -40,6 +41,7 @@ describe('questFolderFindBroker', () => {
       const quest2 = QuestStub({ id: 'fix-bug', folder: '002-fix-bug' });
 
       proxy.setupQuestFolders({
+        questsPath,
         questFolders: [
           FileNameStub({ value: '001-add-auth' }),
           FileNameStub({ value: '002-fix-bug' }),
@@ -79,6 +81,7 @@ describe('questFolderFindBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
       proxy.setupQuestFolders({
+        questsPath,
         questFolders: [FileNameStub({ value: '001-add-auth' })],
         questFiles: [
           {
@@ -107,7 +110,7 @@ describe('questFolderFindBroker', () => {
       const proxy = questFolderFindBrokerProxy();
       const questsPath = FilePathStub({ value: '/project/.dungeonmaster-quests' });
 
-      proxy.setupEmptyFolder();
+      proxy.setupEmptyFolder({ questsPath });
 
       const result = await questFolderFindBroker({ questId: 'any-quest' as never, questsPath });
 
@@ -126,6 +129,7 @@ describe('questFolderFindBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '002-add-auth' });
 
       proxy.setupQuestFoldersWithMissingFile({
+        questsPath,
         questFolders: [
           FileNameStub({ value: '001-invalid' }),
           FileNameStub({ value: '002-add-auth' }),

@@ -9,6 +9,7 @@ describe('listWidgetFilesLayerBroker', () => {
       const widgetsDirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
 
       proxy.setupFlatWidgetsDir({
+        widgetsDirPath,
         filePaths: [
           AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/quest-chat-widget.tsx' }),
           AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/user-card-widget.tsx' }),
@@ -28,6 +29,7 @@ describe('listWidgetFilesLayerBroker', () => {
       const widgetsDirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
 
       proxy.setupFlatWidgetsDir({
+        widgetsDirPath,
         filePaths: [
           AbsoluteFilePathStub({
             value: '/repo/packages/web/src/widgets/quest-chat-widget.test.tsx',
@@ -45,9 +47,9 @@ describe('listWidgetFilesLayerBroker', () => {
 
     it('EMPTY: {empty widgets directory} => returns empty array', () => {
       const proxy = listWidgetFilesLayerBrokerProxy();
-      proxy.setupEmpty();
-
       const widgetsDirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
+      proxy.setupEmpty({ widgetsDirPath });
+
       const result = listWidgetFilesLayerBroker({ widgetsDirPath });
 
       expect(result).toStrictEqual([]);

@@ -5,6 +5,7 @@ import {
   osUserHomedirAdapterProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 const createMockDirent = ({
@@ -35,8 +36,8 @@ export const directoryBrowseBrokerProxy = (): {
     homeDir: string;
     directories: { name: string; joinedPath: FilePath }[];
   }) => void;
-  setupEmpty: () => void;
-  setupThrows: (params: { error: Error }) => void;
+  setupEmpty: (params: { targetPath: string }) => void;
+  setupThrows: (params: { targetPath: string; error: Error }) => void;
 } => {
   const readdirProxy = fsReaddirWithTypesAdapterProxy();
   const homedirProxy = osUserHomedirAdapterProxy();
@@ -66,7 +67,10 @@ export const directoryBrowseBrokerProxy = (): {
         ),
       ];
 
-      readdirProxy.returns({ entries: allEntries });
+      readdirProxy.returns({
+        dirPath: absoluteFilePathContract.parse(targetPath),
+        entries: allEntries,
+      });
 
       for (const { joinedPath } of directories) {
         pathJoinProxy.returns({ result: joinedPath });
@@ -86,19 +90,22 @@ export const directoryBrowseBrokerProxy = (): {
         createMockDirent({ name, parentPath: homeDir, isDirectory: true }),
       );
 
-      readdirProxy.returns({ entries: allEntries });
+      readdirProxy.returns({
+        dirPath: absoluteFilePathContract.parse(homeDir),
+        entries: allEntries,
+      });
 
       for (const { joinedPath } of directories) {
         pathJoinProxy.returns({ result: joinedPath });
       }
     },
 
-    setupEmpty: (): void => {
-      readdirProxy.returns({ entries: [] });
+    setupEmpty: ({ targetPath }: { targetPath: string }): void => {
+      readdirProxy.returns({ dirPath: absoluteFilePathContract.parse(targetPath), entries: [] });
     },
 
-    setupThrows: ({ error }: { error: Error }): void => {
-      readdirProxy.throws({ error });
+    setupThrows: ({ targetPath, error }: { targetPath: string; error: Error }): void => {
+      readdirProxy.throws({ dirPath: absoluteFilePathContract.parse(targetPath), error });
     },
   };
 };

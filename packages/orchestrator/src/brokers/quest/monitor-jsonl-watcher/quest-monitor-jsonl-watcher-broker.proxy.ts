@@ -1,5 +1,7 @@
-import type { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
 type FileName = ReturnType<typeof FileNameStub>;
 
@@ -9,10 +11,32 @@ import { timerSetIntervalAdapterProxy } from '../../../adapters/timer/set-interv
 import { scanSubagentsDirLayerBrokerProxy } from './scan-subagents-dir-layer-broker.proxy';
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
 
+// The broker derives subagentsDir from sessionFilePath (strip '.jsonl', append '/subagents')
+// via the same real stripJsonlSuffixTransformer used here. Every test in this file's suite
+// but one uses this literal sessionFilePath, so it is the correct default subagentsDir for
+// setupSubagentDirEmpty/Files/FirstLineRead. The one test with a different sessionFilePath
+// (the ENOENT case) calls setupSubagentDirMissing directly with its own sessionFilePath.
+const resolveSubagentsDir = ({ sessionFilePath }: { sessionFilePath: string }): AbsoluteFilePath =>
+  absoluteFilePathContract.parse(
+    `${stripJsonlSuffixTransformer({ filePath: absoluteFilePathContract.parse(sessionFilePath) })}/subagents`,
+  );
+
+const DEFAULT_SUBAGENTS_DIR = resolveSubagentsDir({
+  sessionFilePath: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+});
+
 export const questMonitorJsonlWatcherBrokerProxy = (): {
   setupSubagentDirEmpty: () => void;
-  setupSubagentDirMissing: (params: { error: Error }) => void;
-  setupSubagentDirFiles: (params: { files: readonly FileName[] }) => void;
+  setupSubagentDirMissing: (params: { sessionFilePath: FilePath; error: Error }) => void;
+  setupSubagentDirFiles: (params: {
+    files: readonly FileName[];
+    // Overrides DEFAULT_SUBAGENTS_DIR for callers whose real sessionFilePath (hence
+    // derived subagentsDir) doesn't match this file's own hardcoded default — e.g. a
+    // composing proxy (questMonitorWatcherStartBrokerProxy) whose test drives a
+    // different projectDir/parentSessionId. Omit to use the default, matching every
+    // test in THIS file's own suite.
+    subagentsDir?: AbsoluteFilePath;
+  }) => void;
   setupFirstLineRead: (params: { content: string }) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerChange: () => void;
@@ -32,23 +56,53 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   startSubagentTailLayerBrokerProxy();
   const scanLayerProxy = scanSubagentsDirLayerBrokerProxy();
   const tailProxy = fsWatchTailAdapterProxy();
-  const intervalProxy = timerSetIntervalAdapterProxy();
+  // Mirrors the broker's own SUBAGENT_DIR_POLL_INTERVAL_MS constant (1000ms) — not exported,
+  // so this address is duplicated here rather than imported.
+  const intervalProxy = timerSetIntervalAdapterProxy({ intervalMs: 1000 });
+  // The single file most recently staged via setupSubagentDirFiles — every test that later
+  // calls setupFirstLineRead staged exactly one file immediately before it, so this is the
+  // real fileName the broker's prompt-pairing read targets.
+  const lastStagedFileNamesRef: { value: readonly FileName[] } = { value: [] };
 
   return {
     setupSubagentDirEmpty: (): void => {
-      scanLayerProxy.setupSubagentDirFiles({ files: [] });
+      scanLayerProxy.setupSubagentDirEmpty({ subagentsDir: DEFAULT_SUBAGENTS_DIR });
     },
-    setupSubagentDirMissing: ({ error }: { error: Error }): void => {
-      scanLayerProxy.setupSubagentDirMissing({ error });
+    setupSubagentDirMissing: ({
+      sessionFilePath,
+      error,
+    }: {
+      sessionFilePath: FilePath;
+      error: Error;
+    }): void => {
+      scanLayerProxy.setupSubagentDirMissing({
+        subagentsDir: resolveSubagentsDir({ sessionFilePath: String(sessionFilePath) }),
+        error,
+      });
     },
-    setupSubagentDirFiles: ({ files }: { files: readonly FileName[] }): void => {
-      scanLayerProxy.setupSubagentDirFiles({ files });
+    setupSubagentDirFiles: ({
+      files,
+      subagentsDir,
+    }: {
+      files: readonly FileName[];
+      subagentsDir?: AbsoluteFilePath;
+    }): void => {
+      lastStagedFileNamesRef.value = files;
+      scanLayerProxy.setupSubagentDirFiles({
+        subagentsDir: subagentsDir ?? DEFAULT_SUBAGENTS_DIR,
+        files,
+      });
     },
     // Queues the content the scan reads as a non-active sub-agent file's FIRST line. Claude
     // CLI writes the spawning Task's `input.prompt` verbatim there, so this is what the
     // prompt-pairing path matches against the processor's outstanding Tasks.
     setupFirstLineRead: ({ content }: { content: string }): void => {
-      scanLayerProxy.setupFirstLineRead({ content });
+      const [fileName] = lastStagedFileNamesRef.value;
+      scanLayerProxy.setupFirstLineRead({
+        subagentsDir: DEFAULT_SUBAGENTS_DIR,
+        fileName: fileName ?? FileNameStub({ value: 'agent-unset.jsonl' }),
+        content,
+      });
     },
     // Lines are dispensed FIFO across every watcher this broker creates. Watchers are
     // registered in this order: each pre-existing subagent JSONL (in `fsReaddirAdapter`

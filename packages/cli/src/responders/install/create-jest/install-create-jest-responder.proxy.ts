@@ -1,11 +1,12 @@
 import { pathJoinAdapterProxy, fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallCreateJestResponder } from './install-create-jest-responder';
 
 export const InstallCreateJestResponderProxy = (): {
   callResponder: typeof InstallCreateJestResponder;
-  setupFileExists: () => void;
-  setupFileNotExists: () => void;
+  setupFileExists: (params: { filePath: FilePath }) => void;
+  setupFileNotExists: (params: { filePath: FilePath }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   pathJoinAdapterProxy();
@@ -15,12 +16,13 @@ export const InstallCreateJestResponderProxy = (): {
   return {
     callResponder: InstallCreateJestResponder,
 
-    setupFileExists: (): void => {
-      existsProxy.returns({ result: true });
+    setupFileExists: ({ filePath }: { filePath: FilePath }): void => {
+      existsProxy.returns({ filePath, result: true });
     },
 
-    setupFileNotExists: (): void => {
-      existsProxy.returns({ result: false });
+    setupFileNotExists: ({ filePath }: { filePath: FilePath }): void => {
+      existsProxy.returns({ filePath, result: false });
+      writeProxy.succeeds({ filePath });
     },
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>

@@ -14,16 +14,16 @@ export const questOutboxAppendBrokerProxy = (): {
     outboxFilePath: FilePath;
     error: Error;
   }) => void;
-  getAppendedContent: () => unknown;
+  getAppendedContent: (params: { outboxFilePath: FilePath }) => unknown;
   getAppendedPath: () => unknown;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const appendFileProxy = fsAppendFileAdapterProxy();
 
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-    '2024-01-15T10:00:00.000Z',
-  );
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns('2024-01-15T10:00:00.000Z');
 
   return {
     setupOutboxAppend: ({
@@ -35,7 +35,7 @@ export const questOutboxAppendBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       pathJoinProxy.returns({ result: outboxFilePath });
-      appendFileProxy.succeeds();
+      appendFileProxy.succeeds({ filePath: outboxFilePath });
     },
 
     setupAppendFailure: ({
@@ -49,11 +49,15 @@ export const questOutboxAppendBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       pathJoinProxy.returns({ result: outboxFilePath });
-      appendFileProxy.throws({ error });
+      appendFileProxy.throws({ filePath: outboxFilePath, error });
     },
 
-    getAppendedContent: (): unknown => appendFileProxy.getAppendedContent(),
+    // Address-keyed: proves the append landed on the same outboxFilePath setupOutboxAppend used.
+    getAppendedContent: ({ outboxFilePath }: { outboxFilePath: FilePath }): unknown =>
+      appendFileProxy.getAppendedFor({ filePath: outboxFilePath }),
 
-    getAppendedPath: (): unknown => appendFileProxy.getAppendedPath(),
+    // questOutboxAppendBroker appends exactly once per call, so the last recorded call is
+    // unambiguous — there is no second address it could be confused with.
+    getAppendedPath: (): unknown => appendFileProxy.getAllAppendedFiles().at(-1)?.path,
   };
 };

@@ -72,7 +72,8 @@ describe('smoketestPostTerminalListenerBroker', () => {
 
   describe('handler relays getListenerEntry / getScenarioMeta lookups for matching events', () => {
     it('VALID: {handler invoked with a registered questId} => both lookup callbacks receive the questId', async () => {
-      smoketestPostTerminalListenerBrokerProxy();
+      const proxy = smoketestPostTerminalListenerBrokerProxy();
+      proxy.setupProcessSucceeds();
       const entry = SmoketestListenerEntryStub();
       const meta = SmoketestScenarioMetaStub();
       const getListenerEntry = jest.fn().mockReturnValue(entry);

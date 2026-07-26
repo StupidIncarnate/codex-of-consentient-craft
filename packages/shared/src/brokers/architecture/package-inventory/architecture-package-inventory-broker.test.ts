@@ -67,12 +67,16 @@ describe('architecturePackageInventoryBroker', () => {
   describe('empty src directory', () => {
     it('EMPTY: package with empty src => header plus empty label only', () => {
       const proxy = architecturePackageInventoryBrokerProxy();
-      proxy.setupEmpty();
+      const srcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
+      const packageJsonPath = AbsoluteFilePathStub({
+        value: '/repo/packages/web/package.json',
+      });
+      proxy.setupEmpty({ srcPath, packageJsonPath });
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'web' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/web/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/web/package.json' }),
+        srcPath,
+        packageJsonPath,
       });
 
       expect(result).toStrictEqual(

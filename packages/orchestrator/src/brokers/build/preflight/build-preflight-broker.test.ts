@@ -7,7 +7,7 @@ describe('buildPreflightBroker', () => {
   describe('successful build', () => {
     it('VALID: {build exits 0} => returns success true with exitCode 0', async () => {
       const proxy = buildPreflightBrokerProxy();
-      proxy.setupBuildSuccess();
+      proxy.setupBuildSuccess({ command: 'npm' });
 
       const result = await buildPreflightBroker({
         buildCommand: 'npm run build',
@@ -23,7 +23,7 @@ describe('buildPreflightBroker', () => {
 
     it('VALID: {build command has multiple args} => splits command and args correctly', async () => {
       const proxy = buildPreflightBrokerProxy();
-      proxy.setupBuildSuccess();
+      proxy.setupBuildSuccess({ command: 'npm' });
 
       await buildPreflightBroker({
         buildCommand: 'npm run build --workspace=@dungeonmaster/shared',
@@ -43,6 +43,7 @@ describe('buildPreflightBroker', () => {
     it('VALID: {build exits 1} => returns success false with exitCode 1', async () => {
       const proxy = buildPreflightBrokerProxy();
       proxy.setupBuildFailure({
+        command: 'npm',
         exitCode: ExitCodeStub({ value: 1 }),
         output: 'src/index.ts(5,3): error TS2345: Argument of type...',
       });
@@ -62,6 +63,7 @@ describe('buildPreflightBroker', () => {
     it('VALID: {build exits 2} => returns success false with exitCode 2', async () => {
       const proxy = buildPreflightBrokerProxy();
       proxy.setupBuildFailure({
+        command: 'npm',
         exitCode: ExitCodeStub({ value: 2 }),
         output: 'Compilation error',
       });
@@ -82,7 +84,7 @@ describe('buildPreflightBroker', () => {
   describe('process error', () => {
     it('ERROR: {spawn throws} => returns success false with exitCode 1', async () => {
       const proxy = buildPreflightBrokerProxy();
-      proxy.setupBuildError({ error: new Error('ENOENT: command not found') });
+      proxy.setupBuildError({ command: 'npm', error: new Error('ENOENT: command not found') });
 
       const result = await buildPreflightBroker({
         buildCommand: 'npm run build',

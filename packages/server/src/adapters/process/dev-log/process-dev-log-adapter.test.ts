@@ -11,9 +11,7 @@ describe('processDevLogAdapter', () => {
 
       proxy.disableVerbose();
 
-      const spy = proxy.getWrittenLines();
-
-      expect(spy.mock.calls).toStrictEqual([['[dev] WebSocket connected\n']]);
+      expect(proxy.getWrittenLines()).toStrictEqual([['[dev] WebSocket connected\n']]);
     });
   });
 
@@ -24,9 +22,7 @@ describe('processDevLogAdapter', () => {
 
       processDevLogAdapter({ message: 'WebSocket connected' });
 
-      const spy = proxy.getWrittenLines();
-
-      expect(spy.mock.calls).toStrictEqual([]);
+      expect(proxy.getWrittenLines()).toStrictEqual([]);
     });
   });
 });

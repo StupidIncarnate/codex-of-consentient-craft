@@ -26,10 +26,11 @@ describe('QuestClarifyResponder', () => {
 
       proxy.setupQuestLoad({ quest });
       proxy.setupFindQuestPath({
+        questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/q/path' }),
       });
-      proxy.setupClarify({ chatProcessId });
+      proxy.setupClarify({ questId, chatProcessId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -130,10 +131,11 @@ describe('QuestClarifyResponder', () => {
   describe('error cases', () => {
     it('ERROR: {load quest throws} => returns 500', async () => {
       const proxy = QuestClarifyResponderProxy();
-      proxy.setupQuestLoadError({ error: new Error('Quest not found') });
+      const questId = QuestIdStub();
+      proxy.setupQuestLoadError({ questId, error: new Error('Quest not found') });
 
       const result = await proxy.callResponder({
-        params: { questId: QuestIdStub() },
+        params: { questId },
         body: {
           answers: [{ header: 'q1', label: 'a1' }],
           questions: [],

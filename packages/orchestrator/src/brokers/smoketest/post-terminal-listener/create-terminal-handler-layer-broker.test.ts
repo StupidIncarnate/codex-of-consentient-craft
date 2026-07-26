@@ -164,6 +164,7 @@ describe('createTerminalHandlerLayerBroker', () => {
 
       handler({ questId });
 
+      // Allow microtasks to flush so the .catch fires.
       await Promise.resolve();
       await Promise.resolve();
 

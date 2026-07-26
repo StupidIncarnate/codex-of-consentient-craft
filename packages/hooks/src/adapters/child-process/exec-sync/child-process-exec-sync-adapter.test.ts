@@ -5,7 +5,7 @@ describe('childProcessExecSyncAdapter', () => {
   it('VALID: {command: "echo test"} => returns command output', () => {
     const proxy = childProcessExecSyncAdapterProxy();
     const mockOutput = 'command output';
-    proxy.returns({ output: mockOutput });
+    proxy.returns({ command: 'echo test', output: mockOutput });
 
     const result = childProcessExecSyncAdapter({
       command: 'echo test',
@@ -18,7 +18,7 @@ describe('childProcessExecSyncAdapter', () => {
   it('ERROR: {command: "invalid-command"} => throws execution error', () => {
     const proxy = childProcessExecSyncAdapterProxy();
     const mockError = new Error('Command failed');
-    proxy.throws({ error: mockError });
+    proxy.throws({ command: 'invalid-command', error: mockError });
 
     expect(() =>
       childProcessExecSyncAdapter({

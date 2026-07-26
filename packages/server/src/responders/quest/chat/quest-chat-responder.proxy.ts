@@ -3,6 +3,8 @@ import type {
   AbsoluteFilePathStub,
   GuildIdStub,
   ProcessIdStub,
+  QuestId,
+  QuestStatus,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
@@ -56,12 +58,21 @@ type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 
 export const QuestChatResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
-  setupQuestLoadError: (params: { error: Error }) => void;
-  setupFindQuestPath: (params: { guildId: GuildId; questPath: AbsoluteFilePath }) => void;
-  setupFindQuestPathError: (params: { error: Error }) => void;
-  setupStartChat: (params: { chatProcessId: ProcessId }) => void;
-  setupStartChatError: (params: { message: string }) => void;
-  setupResumeQuestError: (params: { message: string }) => void;
+  setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
+  setupFindQuestPath: (params: {
+    questId: QuestId;
+    guildId: GuildId;
+    questPath: AbsoluteFilePath;
+  }) => void;
+  setupFindQuestPathError: (params: { questId: QuestId; error: Error }) => void;
+  setupStartChat: (params: { guildId: GuildId; chatProcessId: ProcessId }) => void;
+  setupStartChatError: (params: { guildId: GuildId; message: string }) => void;
+  setupResumeQuest: (params: {
+    questId: QuestId;
+    resumed: boolean;
+    restoredStatus: QuestStatus;
+  }) => void;
+  setupResumeQuestError: (params: { questId: QuestId; message: string }) => void;
   getResumeQuestCalls: () => readonly unknown[];
   assertResumeCalledBeforeStartChat: () => boolean;
   callResponder: typeof QuestChatResponder;
@@ -73,31 +84,53 @@ export const QuestChatResponderProxy = (): {
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
-      loadProxy.returns({ quest });
+      loadProxy.returns({ questId: quest.id, quest });
     },
-    setupQuestLoadError: ({ error }: { error: Error }): void => {
-      loadProxy.throws({ error });
+    setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      loadProxy.throws({ questId, error });
     },
     setupFindQuestPath: ({
+      questId,
       guildId,
       questPath,
     }: {
+      questId: QuestId;
       guildId: GuildId;
       questPath: AbsoluteFilePath;
     }): void => {
-      findPathProxy.returns({ guildId, questPath });
+      findPathProxy.returns({ questId, guildId, questPath });
     },
-    setupFindQuestPathError: ({ error }: { error: Error }): void => {
-      findPathProxy.throws({ error });
+    setupFindQuestPathError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      findPathProxy.throws({ questId, error });
     },
-    setupStartChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
-      startChatProxy.returns({ chatProcessId });
+    setupStartChat: ({
+      guildId,
+      chatProcessId,
+    }: {
+      guildId: GuildId;
+      chatProcessId: ProcessId;
+    }): void => {
+      startChatProxy.returns({ guildId, chatProcessId });
     },
-    setupStartChatError: ({ message }: { message: string }): void => {
-      startChatProxy.throws({ error: new Error(message) });
+    setupStartChatError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
+      startChatProxy.throws({ guildId, error: new Error(message) });
     },
-    setupResumeQuestError: ({ message }: { message: string }): void => {
-      resumeProxy.throws({ error: new Error(message) });
+    // Explicit staging for the "quest was paused" path — resumeQuest genuinely gets called for
+    // that questId before start-chat, so the mock must be told what it resolves to instead of
+    // leaning on an implicit default.
+    setupResumeQuest: ({
+      questId,
+      resumed,
+      restoredStatus,
+    }: {
+      questId: QuestId;
+      resumed: boolean;
+      restoredStatus: QuestStatus;
+    }): void => {
+      resumeProxy.returns({ questId, resumed, restoredStatus });
+    },
+    setupResumeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+      resumeProxy.throws({ questId, error: new Error(message) });
     },
     getResumeQuestCalls: (): readonly unknown[] => {
       const resumeFn = StartOrchestrator.resumeQuest as jest.Mock;

@@ -1,22 +1,22 @@
 import { rm } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsRmAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
-  getCallArgs: () => readonly unknown[][];
+  succeeds: (params: { filePath: FilePath }) => void;
+  throws: (params: { filePath: FilePath; error: Error }) => void;
+  getCallsFor: (params: { filePath: FilePath }) => readonly unknown[][];
 } => {
   const mock = registerMock({ fn: rm });
 
-  mock.mockResolvedValue(undefined);
-
   return {
-    succeeds: (): void => {
-      mock.mockResolvedValueOnce(undefined);
+    succeeds: ({ filePath }: { filePath: FilePath }): void => {
+      mock.calledWith([filePath]).resolves(undefined);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ filePath, error }: { filePath: FilePath; error: Error }): void => {
+      mock.calledWith([filePath]).rejects(error);
     },
-    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
+    getCallsFor: ({ filePath }: { filePath: FilePath }): readonly unknown[][] =>
+      mock.callsMatching([filePath]),
   };
 };

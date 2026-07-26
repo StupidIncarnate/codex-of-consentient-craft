@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = QuestHandleResponderProxy();
- * proxy.setupGetQuestReturns({ result: GetQuestResultStub() });
+ * proxy.setupGetQuestReturns({ questId: 'abc', result: GetQuestResultStub() });
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
  */
 
@@ -22,11 +22,15 @@ import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrat
 import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 import type {
   GetQuestResultStub,
+  GuildIdStub,
   ModifyQuestResultStub,
   OrchestrationStatusStub,
   QuestIdStub,
+  QuestListItemStub,
+  QuestWorkItemIdStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 import {
@@ -44,41 +48,68 @@ type NextStep = ReturnType<typeof NextStepStub>;
 type QuestRunWardResult = ReturnType<typeof QuestRunWardResultStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
+type QuestWorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
 type UrlSlug = ReturnType<typeof UrlSlugStub>;
+type GuildId = ReturnType<typeof GuildIdStub>;
+type QuestListItem = ReturnType<typeof QuestListItemStub>;
+type ProcessId = ReturnType<typeof ProcessIdStub>;
 
 export const QuestHandleResponderProxy = (): {
   callResponder: typeof QuestHandleResponder;
-  setupGetQuestReturns: (params: { result: GetQuestResult }) => void;
-  setupGetQuestThrows: (params: { error: Error }) => void;
-  setupModifyQuestReturns: (params: { result: ModifyQuestResult }) => void;
-  setupModifyQuestThrows: (params: { error: Error }) => void;
-  setupStartQuestThrows: (params: { error: Error }) => void;
-  setupGetQuestStatusReturns: (params: { status: OrchestrationStatus }) => void;
-  setupGetQuestStatusThrows: (params: { error: Error }) => void;
-  setupListQuestsThrows: (params: { error: Error }) => void;
+  setupGetQuestReturns: (params: { questId: string; result: GetQuestResult }) => void;
+  setupGetQuestThrows: (params: { questId: string; error: Error }) => void;
+  setupModifyQuestReturns: (params: { questId: string; result: ModifyQuestResult }) => void;
+  setupModifyQuestThrows: (params: { questId: string; error: Error }) => void;
+  setupStartQuestReturns: (params: { questId: QuestId; processId: ProcessId }) => void;
+  setupStartQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  setupGetQuestStatusReturns: (params: { processId: string; status: OrchestrationStatus }) => void;
+  setupGetQuestStatusThrows: (params: { processId: string; error: Error }) => void;
+  setupListQuestsReturns: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
+  setupListQuestsThrows: (params: { guildId: GuildId; error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
-  setupGetPlanningNotesReturns: (params: { result: GetPlanningNotesResult }) => void;
-  setupGetPlanningNotesThrows: (params: { error: Error }) => void;
-  setupCreateQuestReturns: (params: { questId: QuestId; guildSlug: UrlSlug }) => void;
-  setupCreateQuestThrows: (params: { error: Error }) => void;
+  setupGetPlanningNotesReturns: (params: {
+    questId: string;
+    result: GetPlanningNotesResult;
+  }) => void;
+  setupGetPlanningNotesThrows: (params: { questId: string; error: Error }) => void;
+  setupCreateQuestReturns: (params: {
+    userRequest: string;
+    questId: QuestId;
+    guildSlug: UrlSlug;
+  }) => void;
+  setupCreateQuestThrows: (params: { userRequest: string; error: Error }) => void;
   setupGetNextStepReturns: (params: { step: NextStep }) => void;
   setupGetNextStepThrows: (params: { error: Error }) => void;
-  setupRunWardReturns: (params: { result: QuestRunWardResult }) => void;
-  setupRunWardThrows: (params: { error: Error }) => void;
+  setupRunWardReturns: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    result: QuestRunWardResult;
+  }) => void;
+  setupRunWardThrows: (params: {
+    questId: QuestId;
+    workItemId: QuestWorkItemId;
+    error: Error;
+  }) => void;
   setupGetServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
   setupGetServerConfigThrows: (params: { error: Error }) => void;
   buildIdleNextStep: () => NextStep;
   buildRunWardResult: () => QuestRunWardResult;
   buildServerConfig: () => QuestGetServerConfigResult;
-  getLastModifyInput: () => unknown;
-  getLastGetPlanningNotesInput: () => unknown;
+  getLastModifyInput: (params: { questId: string }) => unknown;
+  getLastGetPlanningNotesInput: (params: { questId: string }) => unknown;
 } => {
   // create-quest resolves sessionId using processCwdAdapter + claudeCodeSessionResolveBroker;
   // initialize these proxies so the mocks are registered for every test.
   processCwdAdapterProxy();
   const sessionResolveProxy = claudeCodeSessionResolveBrokerProxy();
-  // Default: session dir is missing so resolve returns undefined (session unstamped).
-  sessionResolveProxy.setupSessionsDirMissing();
+  // Default: session dir is missing so resolve returns undefined (session unstamped). Neither
+  // processCwdAdapterProxy nor the homedir adapter it composes is staged elsewhere in this
+  // proxy, so the broker's real calls land on their unstaged defaults ('/default/cwd',
+  // '/home/default') — this address must match those exactly.
+  sessionResolveProxy.setupSessionsDirMissing({
+    homedir: '/home/default',
+    projectDir: '/default/cwd',
+  });
 
   const getQuestProxy = orchestratorGetQuestAdapterProxy();
   const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
@@ -95,62 +126,122 @@ export const QuestHandleResponderProxy = (): {
   return {
     callResponder: QuestHandleResponder,
 
-    setupGetQuestReturns: ({ result }: { result: GetQuestResult }): void => {
-      getQuestProxy.returns({ result });
+    setupGetQuestReturns: ({
+      questId,
+      result,
+    }: {
+      questId: string;
+      result: GetQuestResult;
+    }): void => {
+      getQuestProxy.returns({ questId, result });
     },
 
-    setupGetQuestThrows: ({ error }: { error: Error }): void => {
-      getQuestProxy.throws({ error });
+    setupGetQuestThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+      getQuestProxy.throws({ questId, error });
     },
 
-    setupModifyQuestReturns: ({ result }: { result: ModifyQuestResult }): void => {
-      modifyQuestProxy.returns({ result });
+    setupModifyQuestReturns: ({
+      questId,
+      result,
+    }: {
+      questId: string;
+      result: ModifyQuestResult;
+    }): void => {
+      modifyQuestProxy.returns({ questId, result });
     },
 
-    setupModifyQuestThrows: ({ error }: { error: Error }): void => {
-      modifyQuestProxy.throws({ error });
+    setupModifyQuestThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+      modifyQuestProxy.throws({ questId, error });
     },
 
-    setupStartQuestThrows: ({ error }: { error: Error }): void => {
-      startQuestProxy.throws({ error });
+    setupStartQuestReturns: ({
+      questId,
+      processId,
+    }: {
+      questId: QuestId;
+      processId: ProcessId;
+    }): void => {
+      startQuestProxy.returns({ questId, processId });
     },
 
-    setupGetQuestStatusReturns: ({ status }: { status: OrchestrationStatus }): void => {
-      getQuestStatusProxy.returns({ status });
+    setupStartQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      startQuestProxy.throws({ questId, error });
     },
 
-    setupGetQuestStatusThrows: ({ error }: { error: Error }): void => {
-      getQuestStatusProxy.throws({ error });
+    // processId is plain string here (matching every sibling setup*'s questId/guildId), branded
+    // internally to the ProcessId the underlying broker proxy addresses its mock on.
+    setupGetQuestStatusReturns: ({
+      processId,
+      status,
+    }: {
+      processId: string;
+      status: OrchestrationStatus;
+    }): void => {
+      getQuestStatusProxy.returns({ processId: ProcessIdStub({ value: processId }), status });
     },
 
-    setupListQuestsThrows: ({ error }: { error: Error }): void => {
-      listQuestsProxy.throws({ error });
+    setupGetQuestStatusThrows: ({
+      processId,
+      error,
+    }: {
+      processId: string;
+      error: Error;
+    }): void => {
+      getQuestStatusProxy.throws({ processId: ProcessIdStub({ value: processId }), error });
+    },
+
+    setupListQuestsReturns: ({
+      guildId,
+      quests,
+    }: {
+      guildId: GuildId;
+      quests: QuestListItem[];
+    }): void => {
+      listQuestsProxy.returns({ guildId, quests });
+    },
+
+    setupListQuestsThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+      listQuestsProxy.throws({ guildId, error });
     },
 
     setupListGuildsThrows: ({ error }: { error: Error }): void => {
       listGuildsProxy.throws({ error });
     },
 
-    setupGetPlanningNotesReturns: ({ result }: { result: GetPlanningNotesResult }): void => {
-      getPlanningNotesProxy.returns({ result });
+    setupGetPlanningNotesReturns: ({
+      questId,
+      result,
+    }: {
+      questId: string;
+      result: GetPlanningNotesResult;
+    }): void => {
+      getPlanningNotesProxy.returns({ questId, result });
     },
 
-    setupGetPlanningNotesThrows: ({ error }: { error: Error }): void => {
-      getPlanningNotesProxy.throws({ error });
+    setupGetPlanningNotesThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+      getPlanningNotesProxy.throws({ questId, error });
     },
 
     setupCreateQuestReturns: ({
+      userRequest,
       questId,
       guildSlug,
     }: {
+      userRequest: string;
       questId: QuestId;
       guildSlug: UrlSlug;
     }): void => {
-      createQuestProxy.returns({ questId, guildSlug });
+      createQuestProxy.returns({ userRequest, questId, guildSlug });
     },
 
-    setupCreateQuestThrows: ({ error }: { error: Error }): void => {
-      createQuestProxy.throws({ error });
+    setupCreateQuestThrows: ({
+      userRequest,
+      error,
+    }: {
+      userRequest: string;
+      error: Error;
+    }): void => {
+      createQuestProxy.throws({ userRequest, error });
     },
 
     setupGetNextStepReturns: ({ step }: { step: NextStep }): void => {
@@ -161,12 +252,28 @@ export const QuestHandleResponderProxy = (): {
       getNextStepProxy.throws({ error });
     },
 
-    setupRunWardReturns: ({ result }: { result: QuestRunWardResult }): void => {
-      runWardProxy.returns({ result });
+    setupRunWardReturns: ({
+      questId,
+      workItemId,
+      result,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+      result: QuestRunWardResult;
+    }): void => {
+      runWardProxy.returns({ questId, workItemId, result });
     },
 
-    setupRunWardThrows: ({ error }: { error: Error }): void => {
-      runWardProxy.throws({ error });
+    setupRunWardThrows: ({
+      questId,
+      workItemId,
+      error,
+    }: {
+      questId: QuestId;
+      workItemId: QuestWorkItemId;
+      error: Error;
+    }): void => {
+      runWardProxy.throws({ questId, workItemId, error });
     },
 
     setupGetServerConfigReturns: ({ result }: { result: QuestGetServerConfigResult }): void => {
@@ -183,8 +290,10 @@ export const QuestHandleResponderProxy = (): {
 
     buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 
-    getLastModifyInput: (): unknown => modifyQuestProxy.getLastCalledInput(),
+    getLastModifyInput: ({ questId }: { questId: string }): unknown =>
+      modifyQuestProxy.getLastCalledInputFor({ questId }),
 
-    getLastGetPlanningNotesInput: (): unknown => getPlanningNotesProxy.getLastCalledInput(),
+    getLastGetPlanningNotesInput: ({ questId }: { questId: string }): unknown =>
+      getPlanningNotesProxy.getLastCalledInputFor({ questId }),
   };
 };

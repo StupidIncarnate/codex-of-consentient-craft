@@ -1,4 +1,4 @@
-import type { ProcessIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { ProcessIdStub, QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorStartDesignChatAdapterProxy } from '../../../adapters/orchestrator/start-design-chat/orchestrator-start-design-chat-adapter.proxy';
 import { DesignSessionResponder } from './design-session-responder';
@@ -8,8 +8,8 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const DesignSessionResponderProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
-  setupDesignChat: (params: { chatProcessId: ProcessId }) => void;
-  setupDesignChatError: (params: { error: Error }) => void;
+  setupDesignChat: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  setupDesignChatError: (params: { questId: QuestId; error: Error }) => void;
   callResponder: typeof DesignSessionResponder;
 } => {
   const questProxy = orchestratorGetQuestAdapterProxy();
@@ -17,13 +17,19 @@ export const DesignSessionResponderProxy = (): {
 
   return {
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      questProxy.returns({ result: { success: true, quest } as never });
+      questProxy.returns({ questId: quest.id, result: { success: true, quest } as never });
     },
-    setupDesignChat: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
-      adapterProxy.returns({ chatProcessId });
+    setupDesignChat: ({
+      questId,
+      chatProcessId,
+    }: {
+      questId: QuestId;
+      chatProcessId: ProcessId;
+    }): void => {
+      adapterProxy.returns({ questId, chatProcessId });
     },
-    setupDesignChatError: ({ error }: { error: Error }): void => {
-      adapterProxy.throws({ error });
+    setupDesignChatError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      adapterProxy.throws({ questId, error });
     },
     callResponder: DesignSessionResponder,
   };

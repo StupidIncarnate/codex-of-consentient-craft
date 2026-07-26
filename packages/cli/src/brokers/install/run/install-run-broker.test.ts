@@ -55,7 +55,14 @@ describe('installRunBroker', () => {
       const module: Record<PropertyKey, unknown> = Object.create(null);
       module.StartInstall = mockFn;
 
-      proxy.setupImport({ module });
+      proxy.setupImport({
+        installPath: FilePathStub({ value: '/dm/packages/cli/dist/startup/start-install.js' }),
+        module,
+      });
+      proxy.setupImport({
+        installPath: FilePathStub({ value: '/dm/packages/hooks/dist/startup/start-install.js' }),
+        module,
+      });
 
       const results = await installRunBroker({ context });
 

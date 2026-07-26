@@ -12,7 +12,7 @@ describe('readFileLayerBroker', () => {
     it('VALID: {readable file} => returns file content', () => {
       const proxy = readFileLayerBrokerProxy();
       const content = ContentTextStub({ value: 'export const foo = 1;' });
-      proxy.setupReturns({ content });
+      proxy.setupReturns({ filePath: FILE, content });
 
       const result = readFileLayerBroker({ filePath: FILE });
 
@@ -23,7 +23,7 @@ describe('readFileLayerBroker', () => {
   describe('file missing', () => {
     it('ERROR: {file throws ENOENT} => returns undefined', () => {
       const proxy = readFileLayerBrokerProxy();
-      proxy.setupMissing();
+      proxy.setupMissing({ filePath: FILE });
 
       const result = readFileLayerBroker({ filePath: FILE });
 

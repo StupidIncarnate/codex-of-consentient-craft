@@ -6,11 +6,19 @@ import { architectureWidgetTreeBrokerProxy } from '../widget-tree/architecture-w
 import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
 import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
 import { architectureEventBusBrokerProxy } from '../event-bus/architecture-event-bus-broker.proxy';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureBootTreeBrokerProxy = (): {
-  setupStartupFiles: ({ names }: { names: string[] }) => void;
-  setupNoStartupFiles: () => void;
+  setupStartupFiles: ({
+    packageRoot,
+    names,
+  }: {
+    packageRoot: AbsoluteFilePath;
+    names: string[];
+  }) => void;
+  setupNoStartupFiles: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
 } => {
   const startupProxy = startupFilesFindLayerBrokerProxy();
@@ -41,12 +49,20 @@ export const architectureBootTreeBrokerProxy = (): {
     };
 
   return {
-    setupStartupFiles: ({ names }: { names: string[] }): void => {
-      startupProxy.setupFiles({ names });
+    setupStartupFiles: ({
+      packageRoot,
+      names,
+    }: {
+      packageRoot: AbsoluteFilePath;
+      names: string[];
+    }): void => {
+      const packageSrcPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src` });
+      startupProxy.setupFiles({ packageSrcPath, names });
     },
 
-    setupNoStartupFiles: (): void => {
-      startupProxy.setupEmpty();
+    setupNoStartupFiles: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
+      const packageSrcPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src` });
+      startupProxy.setupEmpty({ packageSrcPath });
     },
 
     setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {

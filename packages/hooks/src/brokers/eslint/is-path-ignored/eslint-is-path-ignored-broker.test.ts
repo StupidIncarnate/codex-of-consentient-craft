@@ -4,7 +4,7 @@ import { eslintIsPathIgnoredBrokerProxy } from './eslint-is-path-ignored-broker.
 describe('eslintIsPathIgnoredBroker', () => {
   it('VALID: {cwd, filePath ignored by config} => returns true', async () => {
     const proxy = eslintIsPathIgnoredBrokerProxy();
-    proxy.setIgnored({ ignored: true });
+    proxy.setIgnored({ filePath: 'smoke-repo/fixture.ts', ignored: true });
 
     const result = await eslintIsPathIgnoredBroker({
       cwd: '/project',
@@ -16,7 +16,7 @@ describe('eslintIsPathIgnoredBroker', () => {
 
   it('VALID: {cwd, filePath not ignored} => returns false', async () => {
     const proxy = eslintIsPathIgnoredBrokerProxy();
-    proxy.setIgnored({ ignored: false });
+    proxy.setIgnored({ filePath: 'src/file.ts', ignored: false });
 
     const result = await eslintIsPathIgnoredBroker({
       cwd: '/project',

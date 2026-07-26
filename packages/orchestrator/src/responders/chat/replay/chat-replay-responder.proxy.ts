@@ -38,9 +38,9 @@ export const ChatReplayResponderProxy = (): {
   const questListProxy = questListBrokerProxy();
   orchestrationEventsStateProxy();
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-  );
+  registerSpyOn({ object: crypto, method: 'randomUUID' })
+    .calledWith([])
+    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
   return {
     callResponder: ChatReplayResponder,

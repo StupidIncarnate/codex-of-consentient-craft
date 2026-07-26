@@ -5,11 +5,10 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 describe('fsMkdirAdapter', () => {
   it('VALID: {filePath} => creates directory recursively', async () => {
     const proxy = fsMkdirAdapterProxy();
-    proxy.succeeds();
+    const filePath = FilePathStub({ value: '/home/x/.dungeonmaster' });
+    proxy.succeeds({ filePath });
 
-    const result = await fsMkdirAdapter({
-      filePath: FilePathStub({ value: '/home/x/.dungeonmaster' }),
-    });
+    const result = await fsMkdirAdapter({ filePath });
 
     expect(result).toStrictEqual({ success: true });
     expect(proxy.getMkdirCalls()).toStrictEqual([
@@ -19,10 +18,9 @@ describe('fsMkdirAdapter', () => {
 
   it('ERROR: {filePath: bad} => rejects', async () => {
     const proxy = fsMkdirAdapterProxy();
-    proxy.throws({ error: new Error('EACCES') });
+    const filePath = FilePathStub({ value: '/x' });
+    proxy.throws({ filePath, error: new Error('EACCES') });
 
-    await expect(fsMkdirAdapter({ filePath: FilePathStub({ value: '/x' }) })).rejects.toThrow(
-      /EACCES/u,
-    );
+    await expect(fsMkdirAdapter({ filePath })).rejects.toThrow(/EACCES/u);
   });
 });

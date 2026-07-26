@@ -30,11 +30,14 @@ export const projectRootFindBrokerProxy = (): {
     }) => {
       // First check: startPath itself (for directory paths) - reject since it's a file path
       pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/package.json` as never,
+        error: new Error('ENOENT'),
+      });
       // Second check: parent directory (project root)
       pathDirnameProxy.returns({ result: projectRootPath as never });
       pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${projectRootPath}/package.json` as never });
     },
 
     setupProjectRootNotFound: ({ startPath }: { startPath: string }) => {
@@ -42,11 +45,17 @@ export const projectRootFindBrokerProxy = (): {
       const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
       // First check: startPath itself - reject
       pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/package.json` as never,
+        error: new Error('ENOENT'),
+      });
       // Second check: parent directory - reject
       pathDirnameProxy.returns({ result: directory as never });
       pathJoinProxy.returns({ result: `${directory}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${directory}/package.json` as never,
+        error: new Error('ENOENT'),
+      });
       // Simulate reaching root
       pathDirnameProxy.returns({ result: directory as never });
     },
@@ -64,21 +73,27 @@ export const projectRootFindBrokerProxy = (): {
       const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
       // First check: startPath itself - reject
       pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/package.json` as never,
+        error: new Error('ENOENT'),
+      });
       // Second check: parent of startPath - reject
       pathDirnameProxy.returns({ result: directory as never });
       pathJoinProxy.returns({ result: `${directory}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${directory}/package.json` as never,
+        error: new Error('ENOENT'),
+      });
       // Third check: move to parent where package.json exists
       pathDirnameProxy.returns({ result: projectRootPath as never });
       pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${projectRootPath}/package.json` as never });
     },
 
     setupProjectRootFoundInDirectory: ({ directoryPath }: { directoryPath: string }) => {
       // When startPath is a directory, check the directory itself first
       pathJoinProxy.returns({ result: `${directoryPath}/package.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${directoryPath}/package.json` as never });
     },
 
     setupProjectRootFoundInDirectoryParent: ({
@@ -90,11 +105,14 @@ export const projectRootFindBrokerProxy = (): {
     }) => {
       // First check: startPath directory itself - no package.json
       pathJoinProxy.returns({ result: `${directoryPath}/package.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${directoryPath}/package.json` as never,
+        error: new Error('ENOENT'),
+      });
       // Then check parent directory
       pathDirnameProxy.returns({ result: projectRootPath as never });
       pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${projectRootPath}/package.json` as never });
     },
   };
 };

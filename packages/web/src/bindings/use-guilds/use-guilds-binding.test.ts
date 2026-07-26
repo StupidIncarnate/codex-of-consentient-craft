@@ -202,27 +202,23 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       proxy.setupOuterCatchTrigger();
 
-      const consoleErrorCalls = proxy.getConsoleErrorCalls();
-
       testingLibraryRenderHookAdapter({
         renderCallback: () => useGuildsBinding(),
       });
 
-      const getErrorCalls = (): unknown[][] => consoleErrorCalls;
-
       await testingLibraryWaitForAdapter({
         callback: () => {
-          const loggedError = getErrorCalls()[0]?.[1];
+          const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
 
           expect(loggedError).toBeInstanceOf(Error);
-          expect(getErrorCalls()).toStrictEqual([['[use-guilds]', loggedError]]);
+          expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guilds]', loggedError]]);
         },
       });
 
-      const loggedError = consoleErrorCalls[0]?.[1];
+      const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
 
       expect(loggedError).toBeInstanceOf(Error);
-      expect(consoleErrorCalls).toStrictEqual([['[use-guilds]', loggedError]]);
+      expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guilds]', loggedError]]);
     });
   });
 });

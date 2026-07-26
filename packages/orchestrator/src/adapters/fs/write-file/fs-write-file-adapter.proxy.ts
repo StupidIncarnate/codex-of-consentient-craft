@@ -1,43 +1,30 @@
 import { writeFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsWriteFileAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
-  getWrittenContent: () => unknown;
-  getWrittenPath: () => unknown;
+  succeeds: (params: { filePath: FilePath }) => void;
+  throws: (params: { filePath: FilePath; error: Error }) => void;
+  getWrittenFor: (params: { filePath: FilePath }) => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const mock: MockHandle = registerMock({ fn: writeFile });
 
-  mock.mockResolvedValue({ success: true as const });
-
   return {
-    succeeds: (): void => {
-      mock.mockResolvedValueOnce({ success: true as const });
+    succeeds: ({ filePath }: { filePath: FilePath }): void => {
+      mock.calledWith([filePath]).resolves({ success: true as const });
     },
 
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ filePath, error }: { filePath: FilePath; error: Error }): void => {
+      mock.calledWith([filePath]).rejects(error);
     },
 
-    getWrittenContent: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
-
-    getWrittenPath: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getWrittenFor: ({ filePath }: { filePath: FilePath }): unknown =>
+      mock.callsMatching([filePath]).at(-1)?.[1],
 
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      mock.mock.calls.map((call) => ({
+      mock.callsMatching([]).map((call) => ({
         path: call[0],
         content: call[1],
       })),

@@ -14,7 +14,9 @@ export const childProcessSpawnLongLivedAdapterProxy = (): {
   };
 
   const mock = registerMock({ fn: spawn });
-  mock.mockReturnValue(mockChild as never);
+  // The only long-lived process this package spawns is the design scaffold's `npx vite` dev
+  // server (see designStartBroker) — the adapter's own test exercises the same command.
+  mock.calledWith(['npx']).returns(mockChild as never);
 
   return {
     getKillFn: (): jest.Mock => mockKill,

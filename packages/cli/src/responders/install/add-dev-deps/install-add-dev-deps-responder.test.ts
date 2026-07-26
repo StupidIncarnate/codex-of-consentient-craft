@@ -7,7 +7,7 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {no package.json} => returns skipped with failure', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileNotExists();
+      proxy.setupFileNotExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
 
       const result = await proxy.callResponder({
         context: {
@@ -29,8 +29,11 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {invalid JSON object} => returns skipped with failure', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists();
-      proxy.setupReadFile({ content: '"not-an-object"' });
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupReadFile({
+        filePath: FilePathStub({ value: '/project/package.json' }),
+        content: '"not-an-object"',
+      });
 
       const result = await proxy.callResponder({
         context: {
@@ -50,8 +53,11 @@ describe('InstallAddDevDepsResponder', () => {
     it('EMPTY: {null package.json} => returns skipped with failure', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists();
-      proxy.setupReadFile({ content: 'null' });
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupReadFile({
+        filePath: FilePathStub({ value: '/project/package.json' }),
+        content: 'null',
+      });
 
       const result = await proxy.callResponder({
         context: {
@@ -73,8 +79,9 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {no devDependencies} => adds all required devDependencies', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists();
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
       proxy.setupReadFile({
+        filePath: FilePathStub({ value: '/project/package.json' }),
         content: JSON.stringify({ name: 'test-project', version: '1.0.0' }),
       });
 
@@ -114,8 +121,9 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {devDependencies present before nothing} => keeps name first, preserves + merges', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists();
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
       proxy.setupReadFile({
+        filePath: FilePathStub({ value: '/project/package.json' }),
         content: JSON.stringify({
           name: 'test-project',
           devDependencies: { typescript: '^5.0.0' },
@@ -157,8 +165,9 @@ describe('InstallAddDevDepsResponder', () => {
     it('VALID: {all devDependencies exist} => skips installation', async () => {
       const proxy = InstallAddDevDepsResponderProxy();
 
-      proxy.setupFileExists();
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
       proxy.setupReadFile({
+        filePath: FilePathStub({ value: '/project/package.json' }),
         content: JSON.stringify({
           name: 'test-project',
           devDependencies: { ...devDependenciesStatics.packages },

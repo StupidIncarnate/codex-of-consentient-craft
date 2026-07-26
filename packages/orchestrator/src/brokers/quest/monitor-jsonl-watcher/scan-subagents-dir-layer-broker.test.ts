@@ -30,6 +30,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const activeQuestId = QuestIdStub({ value: 'quest-scan' });
 
     proxy.setupSubagentDirFiles({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       files: [FileNameStub({ value: 'agent-zeta.jsonl' })],
     });
     proxy.setupLines({
@@ -90,7 +91,10 @@ describe('scanSubagentsDirLayerBroker', () => {
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-2' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-empty' });
 
-    proxy.setupSubagentDirMissing({ error: new Error('ENOENT: no such directory') });
+    proxy.setupSubagentDirMissing({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      error: new Error('ENOENT: no such directory'),
+    });
 
     const emitted: unknown[] = [];
 
@@ -123,6 +127,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const activeQuestId = QuestIdStub({ value: 'quest-scan-mixed' });
 
     proxy.setupSubagentDirFiles({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       files: [
         FileNameStub({ value: 'notes.txt' }),
         FileNameStub({ value: 'agent-omega.jsonl' }),
@@ -187,6 +192,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const activeAgentId = AgentIdStub({ value: 'live-agent' });
 
     proxy.setupSubagentDirFiles({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
       files: [
         FileNameStub({ value: 'agent-stale-from-prior-run.jsonl' }),
         FileNameStub({ value: 'agent-live-agent.jsonl' }),
@@ -277,10 +283,15 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     // The nested sub-agent's realAgentId is NOT a stamped work-item agentId, so the active-set
     // predicate returns false for it — the OLD gate would skip it entirely.
-    proxy.setupSubagentDirFiles({ files: [FileNameStub({ value: 'agent-realnestedb.jsonl' })] });
+    proxy.setupSubagentDirFiles({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      files: [FileNameStub({ value: 'agent-realnestedb.jsonl' })],
+    });
     // First-line read: Claude CLI writes the Task prompt verbatim as the sub-agent JSONL's
     // first user-text line.
     proxy.setupFirstLineRead({
+      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      fileName: FileNameStub({ value: 'agent-realnestedb.jsonl' }),
       content:
         '{"type":"user","uuid":"nested-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"nested slice prompt"}}',
     });

@@ -1,22 +1,17 @@
 import { resolve } from 'path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const pathResolveAdapterProxy = (): {
-  returns: ({ path }: { path: string }) => void;
+  returns: ({ paths, path }: { paths: string[]; path: FilePath }) => void;
   getHandle: () => MockHandle;
 } => {
   const mock = registerMock({ fn: resolve });
 
-  // Default: return the last path segment
-  mock.mockImplementation((...paths) => {
-    const segments = paths as unknown[];
-    return (segments[segments.length - 1] as undefined | typeof resolve) ?? '';
-  });
-
   return {
-    returns: ({ path }: { path: string }) => {
-      mock.mockReturnValueOnce(path);
+    returns: ({ paths, path }: { paths: string[]; path: FilePath }): void => {
+      mock.calledWith(paths).returns(path);
     },
     getHandle: () => mock,
   };

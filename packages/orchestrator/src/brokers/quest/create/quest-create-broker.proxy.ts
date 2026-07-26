@@ -12,7 +12,7 @@ export const questCreateBrokerProxy = (): {
     questFilePath: FilePath;
   }) => void;
   setupQuestCreationFailure: (params: { questsFolderPath: FilePath; error: Error }) => void;
-  getWrittenContent: () => unknown;
+  getWrittenContent: (params: { questFilePath: FilePath }) => unknown;
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
@@ -42,6 +42,7 @@ export const questCreateBrokerProxy = (): {
       mkdirProxy.succeeds({ filepath: questFolderPath });
 
       persistProxy.setupPersist({
+        questFilePath,
         homePath,
         outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
       });
@@ -64,6 +65,7 @@ export const questCreateBrokerProxy = (): {
       mkdirProxy.throws({ filepath: questsFolderPath, error });
     },
 
-    getWrittenContent: (): unknown => persistProxy.getWrittenContent(),
+    getWrittenContent: ({ questFilePath }: { questFilePath: FilePath }): unknown =>
+      persistProxy.getWrittenContent({ questFilePath }),
   };
 };

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
- * proxy.returns({ result: { success: true, data: { blightReports: [] } } });
+ * proxy.returns({ questId: 'add-auth', result: { success: true, data: { blightReports: [] } } });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -11,31 +11,23 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 
-const emptyPlanningNotes = (): GetPlanningNotesResult => ({
-  success: true,
-  data: { blightReports: [] },
-});
-
 export const orchestratorGetQuestPlanningNotesAdapterProxy = (): {
-  returns: (params: { result: GetPlanningNotesResult }) => void;
-  throws: (params: { error: Error }) => void;
-  getLastCalledInput: () => unknown;
+  returns: (params: { questId: string; result: GetPlanningNotesResult }) => void;
+  throws: (params: { questId: string; error: Error }) => void;
+  getLastCalledInputFor: (params: { questId: string }) => unknown;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getPlanningNotes });
 
-  handle.mockResolvedValue(emptyPlanningNotes());
-
   return {
-    returns: ({ result }: { result: GetPlanningNotesResult }): void => {
-      handle.mockResolvedValueOnce(result);
+    returns: ({ questId, result }: { questId: string; result: GetPlanningNotesResult }): void => {
+      handle.calledWith([{ questId }]).resolves(result);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ questId, error }: { questId: string; error: Error }): void => {
+      handle.calledWith([{ questId }]).rejects(error);
     },
-    getLastCalledInput: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      return lastCall?.[0];
+    getLastCalledInputFor: ({ questId }: { questId: string }): unknown => {
+      const calls = handle.callsMatching([{ questId }]);
+      return calls.at(-1)?.[0];
     },
   };
 };

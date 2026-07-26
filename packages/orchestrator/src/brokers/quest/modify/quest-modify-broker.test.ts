@@ -1185,7 +1185,9 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
       // Force fs.access to succeed once so the validator sees the new contract's
       // source as "already exists on disk" — which is the rejection path.
-      proxy.setupContractSourceResolvesOnce();
+      proxy.setupContractSourceResolvesOnce({
+        source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
+      });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -1295,7 +1297,9 @@ describe('questModifyBroker', () => {
       });
 
       proxy.setupQuestFound({ quest });
-      proxy.setupContractSourceResolvesOnce();
+      proxy.setupContractSourceResolvesOnce({
+        source: 'packages/shared/src/contracts/email-address/email-address-contract.ts',
+      });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',

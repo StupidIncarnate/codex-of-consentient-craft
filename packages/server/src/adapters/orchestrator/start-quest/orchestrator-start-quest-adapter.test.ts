@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorStartQuestAdapter } from './orchestrator-start-quest-adapter';
 import { orchestratorStartQuestAdapterProxy } from './orchestrator-start-quest-adapter.proxy';
@@ -6,8 +6,10 @@ import { orchestratorStartQuestAdapterProxy } from './orchestrator-start-quest-a
 describe('orchestratorStartQuestAdapter', () => {
   describe('successful start', () => {
     it('VALID: {questId} => returns process id', async () => {
-      orchestratorStartQuestAdapterProxy();
+      const proxy = orchestratorStartQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
+      const processId = ProcessIdStub({ value: 'proc-12345' });
+      proxy.returns({ questId, processId });
 
       const result = await orchestratorStartQuestAdapter({ questId });
 
@@ -20,7 +22,7 @@ describe('orchestratorStartQuestAdapter', () => {
       const proxy = orchestratorStartQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      proxy.throws({ error: new Error('Failed to start quest') });
+      proxy.throws({ questId, error: new Error('Failed to start quest') });
 
       await expect(orchestratorStartQuestAdapter({ questId })).rejects.toThrow(
         /Failed to start quest/u,

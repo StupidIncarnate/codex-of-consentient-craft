@@ -11,8 +11,8 @@ export const DumpsterCommandBannerWidgetProxy = (): {
   hasBanner: () => boolean;
   getCommandText: () => HTMLElement['textContent'];
   clickCopy: () => Promise<void>;
-  setupClipboardSucceeds: () => void;
-  setupClipboardThrows: (params: { error: Error }) => void;
+  setupClipboardSucceeds: (params: { text: string }) => void;
+  setupClipboardThrows: (params: { text: string; error: Error }) => void;
   setupConsoleErrorCapture: () => SpyOnHandle;
   getCopiedText: () => unknown;
   getCopyButtonLabel: () => HTMLElement['textContent'];
@@ -31,15 +31,21 @@ export const DumpsterCommandBannerWidgetProxy = (): {
       const button = within(banner).getByTestId('PIXEL_BTN');
       await userEvent.click(button);
     },
-    setupClipboardSucceeds: (): void => {
-      clipboard.succeeds();
+    setupClipboardSucceeds: ({ text }: { text: string }): void => {
+      clipboard.succeeds({ text });
     },
-    setupClipboardThrows: ({ error }: { error: Error }): void => {
-      clipboard.throws({ error });
+    setupClipboardThrows: ({ text, error }: { text: string; error: Error }): void => {
+      clipboard.throws({ text, error });
     },
     setupConsoleErrorCapture: (): SpyOnHandle => {
-      const handle = registerSpyOn({ object: globalThis.console, method: 'error' });
-      handle.mockImplementation(() => undefined);
+      // passthrough: true — console.error is a shared sink; React's own internal warnings also
+      // flow through it and must keep printing normally, not throw for being unstaged.
+      const handle = registerSpyOn({
+        object: globalThis.console,
+        method: 'error',
+        passthrough: true,
+      });
+      handle.calledWith(['[dumpster-command-banner] copy failed']).implement(() => undefined);
       return handle;
     },
     getCopiedText: (): unknown => clipboard.getWrittenText(),

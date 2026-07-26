@@ -1,5 +1,5 @@
 // PURPOSE: Proxy for fetch-patch-adapter that mocks Node's global fetch via registerSpyOn
-// USAGE: const proxy = fetchPatchAdapterProxy(); proxy.setupSuccess(); proxy.setupNetworkError({ error });
+// USAGE: const proxy = fetchPatchAdapterProxy(); proxy.setupSuccess({ url }); proxy.setupNetworkError({ url, error });
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -19,43 +19,31 @@ const buildResponse = ({
   }) as never;
 
 export const fetchPatchAdapterProxy = (): {
-  setupSuccess: () => void;
-  setupNotOk: (params: { status: number; bodyText: string }) => void;
-  setupNetworkError: (params: { error: Error }) => void;
-  getLastCallUrl: () => unknown;
-  getLastCallBody: () => unknown;
+  setupSuccess: (params: { url: string }) => void;
+  setupNotOk: (params: { url: string; status: number; bodyText: string }) => void;
+  setupNetworkError: (params: { url: string; error: Error }) => void;
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
-  handle.mockResolvedValue(buildResponse({ ok: true, status: 200, bodyText: '' }));
 
   return {
-    setupSuccess: (): void => {
-      handle.mockResolvedValueOnce(buildResponse({ ok: true, status: 200, bodyText: '' }));
+    // The URL is the address — two endpoints staged in one test must be told apart by URL, not
+    // by which setup call happened to run first.
+    setupSuccess: ({ url }: { url: string }): void => {
+      handle.calledWith([url]).resolves(buildResponse({ ok: true, status: 200, bodyText: '' }));
     },
-    setupNotOk: ({ status, bodyText }: { status: number; bodyText: string }): void => {
-      handle.mockResolvedValueOnce(buildResponse({ ok: false, status, bodyText }));
+    setupNotOk: ({
+      url,
+      status,
+      bodyText,
+    }: {
+      url: string;
+      status: number;
+      bodyText: string;
+    }): void => {
+      handle.calledWith([url]).resolves(buildResponse({ ok: false, status, bodyText }));
     },
-    setupNetworkError: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
-    },
-    getLastCallUrl: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      return lastCall?.[0];
-    },
-    getLastCallBody: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      const init = lastCall[1] as { body?: unknown } | undefined;
-      if (!init?.body) return undefined;
-      const rawBody = init.body;
-      if (typeof rawBody !== 'string') return rawBody;
-      try {
-        return JSON.parse(rawBody) as unknown;
-      } catch {
-        return rawBody;
-      }
+    setupNetworkError: ({ url, error }: { url: string; error: Error }): void => {
+      handle.calledWith([url]).rejects(error);
     },
   };
 };

@@ -11,7 +11,7 @@ describe('orchestratorModifyQuestAdapter', () => {
       const input = ModifyQuestInputStub({ questId: 'add-auth' });
       const expectedResult = ModifyQuestResultStub();
 
-      proxy.returns({ result: expectedResult });
+      proxy.returns({ questId: 'add-auth', result: expectedResult });
 
       const result = await orchestratorModifyQuestAdapter({
         questId: 'add-auth',
@@ -27,7 +27,7 @@ describe('orchestratorModifyQuestAdapter', () => {
       const proxy = orchestratorModifyQuestAdapterProxy();
       const input = ModifyQuestInputStub({ questId: 'non-existent' });
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId: 'non-existent', error: new Error('Quest not found') });
 
       await expect(
         orchestratorModifyQuestAdapter({

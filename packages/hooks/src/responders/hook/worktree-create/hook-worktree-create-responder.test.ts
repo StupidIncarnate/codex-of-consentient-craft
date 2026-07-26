@@ -8,7 +8,7 @@ describe('HookWorktreeCreateResponder', () => {
       const proxy = HookWorktreeCreateResponderProxy();
       const input = WorktreeCreateHookDataStub({ cwd: '/repo', name: 'my-wt' });
 
-      proxy.setupSuccess();
+      proxy.setupSuccess({ cwd: '/repo', name: 'my-wt' });
 
       const result = HookWorktreeCreateResponder({ input });
 
@@ -21,9 +21,16 @@ describe('HookWorktreeCreateResponder', () => {
   describe('git worktree add failure', () => {
     it('ERROR: {git worktree add fails} => throws error', () => {
       const proxy = HookWorktreeCreateResponderProxy();
-      const input = WorktreeCreateHookDataStub();
+      const input = WorktreeCreateHookDataStub({
+        cwd: '/home/user/project',
+        name: 'test-worktree',
+      });
 
-      proxy.setupGitFailure({ error: new Error('fatal: branch already exists') });
+      proxy.setupGitFailure({
+        cwd: '/home/user/project',
+        name: 'test-worktree',
+        error: new Error('fatal: branch already exists'),
+      });
 
       expect(() => HookWorktreeCreateResponder({ input })).toThrow(
         /Failed to execute command: git worktree add/u,
@@ -34,9 +41,16 @@ describe('HookWorktreeCreateResponder', () => {
   describe('npm build failure', () => {
     it('ERROR: {npm run build fails} => throws error', () => {
       const proxy = HookWorktreeCreateResponderProxy();
-      const input = WorktreeCreateHookDataStub();
+      const input = WorktreeCreateHookDataStub({
+        cwd: '/home/user/project',
+        name: 'test-worktree',
+      });
 
-      proxy.setupBuildFailure({ error: new Error('Build failed') });
+      proxy.setupBuildFailure({
+        cwd: '/home/user/project',
+        name: 'test-worktree',
+        error: new Error('Build failed'),
+      });
 
       expect(() => HookWorktreeCreateResponder({ input })).toThrow(
         /Failed to execute command: npm run build/u,

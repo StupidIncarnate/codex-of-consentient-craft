@@ -1,38 +1,36 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import type { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import type { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
+type GuildId = ReturnType<typeof GuildIdStub>;
 
 export const orchestratorStartChatAdapterProxy = (): {
-  returns: (params: { chatProcessId: ProcessId; questId?: QuestId }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { guildId: GuildId; chatProcessId: ProcessId; questId?: QuestId }) => void;
+  throws: (params: { guildId: GuildId; error: Error }) => void;
   getLastCalledArgs: () => unknown;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.startChat });
 
-  mock.mockResolvedValue({ chatProcessId: ProcessIdStub() });
-
   return {
     returns: ({
+      guildId,
       chatProcessId,
       questId,
     }: {
+      guildId: GuildId;
       chatProcessId: ProcessId;
       questId?: QuestId;
     }): void => {
-      mock.mockResolvedValueOnce({ chatProcessId, ...(questId === undefined ? {} : { questId }) });
+      mock
+        .calledWith([{ guildId }])
+        .resolves({ chatProcessId, ...(questId === undefined ? {} : { questId }) });
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
+      mock.calledWith([{ guildId }]).rejects(error);
     },
-    getLastCalledArgs: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getLastCalledArgs: (): unknown => mock.callsMatching([]).at(-1)?.[0],
   };
 };

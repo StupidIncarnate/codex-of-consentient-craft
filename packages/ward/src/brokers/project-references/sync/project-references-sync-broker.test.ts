@@ -10,8 +10,7 @@ describe('projectReferencesSyncBroker()', () => {
   describe('no workspaces', () => {
     it('VALID: {no projectFolders} => status in-sync, eligibleCount 0', async () => {
       const proxy = projectReferencesSyncBrokerProxy();
-      proxy.flushPairReads();
-      proxy.setupRootTsconfig({ tsconfigJson: '{}' });
+      proxy.setupRootTsconfig({ rootPath: '/repo', tsconfigJson: '{}' });
 
       const result = await projectReferencesSyncBroker({
         rootPath: ROOT_PATH,
@@ -34,18 +33,17 @@ describe('projectReferencesSyncBroker()', () => {
       const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/repo/packages/hooks' });
 
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/shared',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/shared","dependencies":{}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/hooks',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[{"path":"../shared"}]}',
         packageJson: '{"name":"@dm/hooks","dependencies":{"@dm/shared":"*"}}',
-        pairTsconfigJson:
-          '{"compilerOptions":{"composite":true},"references":[{"path":"../shared"}]}',
       });
-      proxy.flushPairReads();
       proxy.setupRootTsconfig({
+        rootPath: '/repo',
         tsconfigJson: '{"references":[{"path":"packages/shared"},{"path":"packages/hooks"}]}',
       });
 
@@ -71,17 +69,17 @@ describe('projectReferencesSyncBroker()', () => {
       const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/repo/packages/hooks' });
 
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/shared',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/shared","dependencies":{}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/hooks',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/hooks","dependencies":{"@dm/shared":"*"}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
-      proxy.flushPairReads();
       proxy.setupRootTsconfig({
+        rootPath: '/repo',
         tsconfigJson: '{"references":[{"path":"packages/shared"},{"path":"packages/hooks"}]}',
       });
 
@@ -111,12 +109,12 @@ describe('projectReferencesSyncBroker()', () => {
       const sharedFolder = ProjectFolderStub({ name: 'shared', path: '/repo/packages/shared' });
 
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/shared',
         tsconfigJson: '{}',
         packageJson: '{"name":"@dm/shared"}',
-        pairTsconfigJson: '{}',
       });
-      proxy.flushPairReads();
       proxy.setupRootTsconfig({
+        rootPath: '/repo',
         tsconfigJson: '{"references":[{"path":"packages/shared"}]}',
       });
 
@@ -147,10 +145,12 @@ describe('projectReferencesSyncBroker()', () => {
       const bFolder = ProjectFolderStub({ name: 'pkg-b', path: '/repo/packages/pkg-b' });
 
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/pkg-a',
         tsconfigJson: '{}',
         packageJson: '{"name":"@dm/pkg-a","dependencies":{"@dm/pkg-b":"*"}}',
       });
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/pkg-b',
         tsconfigJson: '{}',
         packageJson: '{"name":"@dm/pkg-b","dependencies":{"@dm/pkg-a":"*"}}',
       });
@@ -178,17 +178,17 @@ describe('projectReferencesSyncBroker()', () => {
       const hooksFolder = ProjectFolderStub({ name: 'hooks', path: '/repo/packages/hooks' });
 
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/shared',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/shared","dependencies":{}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/hooks',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/hooks","dependencies":{"@dm/shared":"*"}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
-      proxy.flushPairReads();
       proxy.setupRootTsconfig({
+        rootPath: '/repo',
         tsconfigJson: '{"references":[{"path":"packages/shared"},{"path":"packages/hooks"}]}',
       });
 
@@ -215,12 +215,12 @@ describe('projectReferencesSyncBroker()', () => {
       const sharedFolder = ProjectFolderStub({ name: 'shared', path: '/repo/packages/shared' });
 
       proxy.setupWorkspace({
-        tsconfigJson: '{"compilerOptions":{"composite":true}}',
+        folderPath: '/repo/packages/shared',
+        tsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
         packageJson: '{"name":"@dm/shared","dependencies":{}}',
-        pairTsconfigJson: '{"compilerOptions":{"composite":true},"references":[]}',
       });
-      proxy.flushPairReads();
       proxy.setupRootTsconfig({
+        rootPath: '/repo',
         tsconfigJson: '{"references":[{"path":"packages/shared"}]}',
       });
 
@@ -245,11 +245,11 @@ describe('projectReferencesSyncBroker()', () => {
       const noEmitFolder = ProjectFolderStub({ name: 'tools', path: '/repo/packages/tools' });
 
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/tools',
         tsconfigJson: '{"compilerOptions":{"noEmit":true}}',
         packageJson: '{"name":"@dm/tools","dependencies":{}}',
       });
-      proxy.flushPairReads();
-      proxy.setupRootTsconfig({ tsconfigJson: '{"references":[]}' });
+      proxy.setupRootTsconfig({ rootPath: '/repo', tsconfigJson: '{"references":[]}' });
 
       const result = await projectReferencesSyncBroker({
         rootPath: ROOT_PATH,
@@ -272,11 +272,11 @@ describe('projectReferencesSyncBroker()', () => {
       const noTscFolder = ProjectFolderStub({ name: 'scripts', path: '/repo/packages/scripts' });
 
       proxy.setupWorkspace({
+        folderPath: '/repo/packages/scripts',
         tsconfigJson: null,
         packageJson: '{"name":"@dm/scripts","dependencies":{}}',
       });
-      proxy.flushPairReads();
-      proxy.setupRootTsconfig({ tsconfigJson: '{"references":[]}' });
+      proxy.setupRootTsconfig({ rootPath: '/repo', tsconfigJson: '{"references":[]}' });
 
       const result = await projectReferencesSyncBroker({
         rootPath: ROOT_PATH,

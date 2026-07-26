@@ -16,21 +16,23 @@ export const rateLimitsHistoryAppendBrokerProxy = (): {
   const dirnameProxy = pathDirnameAdapterProxy();
   const historyPathProxy = locationsRateLimitsHistoryPathFindBrokerProxy();
 
+  const historyPath = FilePathStub({
+    value: '/home/test/.dungeonmaster/rate-limits-history.jsonl',
+  });
+
   dirnameProxy.returns({
     result: FilePathStub({ value: '/home/test/.dungeonmaster' }),
   });
   historyPathProxy.setupHistoryPath({
     homeDir: '/home/test',
     homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),
-    historyPath: FilePathStub({
-      value: '/home/test/.dungeonmaster/rate-limits-history.jsonl',
-    }),
+    historyPath,
   });
 
   return {
     setupAcceptedAppend: (): void => {
-      mkdirProxy.succeeds();
-      appendProxy.succeeds();
+      mkdirProxy.succeeds({ filePath: FilePathStub({ value: '/home/test/.dungeonmaster' }) });
+      appendProxy.succeeds({ filePath: historyPath });
     },
     getAppendCalls: (): readonly { path: unknown; content: unknown }[] =>
       appendProxy.getAppendCalls(),

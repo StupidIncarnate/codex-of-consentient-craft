@@ -8,10 +8,10 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 describe('wardLineToChatEntryTransformer', () => {
   describe('ward output lines', () => {
     it('VALID: {line: a ward status line} => returns an assistant-text ChatEntry carrying it verbatim', () => {
-      registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(FIXED_UUID);
-      registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-        FIXED_TIMESTAMP,
-      );
+      registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(FIXED_UUID);
+      registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+        .calledWith([])
+        .returns(FIXED_TIMESTAMP);
 
       const result = wardLineToChatEntryTransformer({
         line: 'lint  @dungeonmaster/web  PASS  878 files, 878 discovered (31.6s)',
@@ -27,10 +27,10 @@ describe('wardLineToChatEntryTransformer', () => {
     });
 
     it('EDGE: {line: ""} => still returns an entry, so a blank ward line is not silently dropped', () => {
-      registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(FIXED_UUID);
-      registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-        FIXED_TIMESTAMP,
-      );
+      registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(FIXED_UUID);
+      registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+        .calledWith([])
+        .returns(FIXED_TIMESTAMP);
 
       const result = wardLineToChatEntryTransformer({ line: '' });
 
@@ -44,10 +44,10 @@ describe('wardLineToChatEntryTransformer', () => {
     });
 
     it('VALID: {line: ANSI-coloured ward output} => preserves the escape codes for the renderer', () => {
-      registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(FIXED_UUID);
-      registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-        FIXED_TIMESTAMP,
-      );
+      registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(FIXED_UUID);
+      registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+        .calledWith([])
+        .returns(FIXED_TIMESTAMP);
 
       const result = wardLineToChatEntryTransformer({ line: '[32mPASS[0m' });
 

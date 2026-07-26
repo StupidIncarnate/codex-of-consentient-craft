@@ -6,13 +6,14 @@ describe('QuestNewResponder', () => {
   describe('successful new quest', () => {
     it('VALID: {guildId in params, message in body, adapter returns questId} => returns 200 with questId and chatProcessId', async () => {
       const proxy = QuestNewResponderProxy();
+      const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'proc-new-quest' });
       const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      proxy.setupQuestNew({ chatProcessId, questId });
+      proxy.setupQuestNew({ guildId, chatProcessId, questId });
 
       const result = await proxy.callResponder({
-        params: { guildId: GuildIdStub() },
+        params: { guildId },
         body: { message: 'help me build auth' },
       });
 
@@ -27,12 +28,13 @@ describe('QuestNewResponder', () => {
 
     it('VALID: {adapter omits questId} => returns 200 with chatProcessId only', async () => {
       const proxy = QuestNewResponderProxy();
+      const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'proc-no-quest' });
 
-      proxy.setupQuestNew({ chatProcessId });
+      proxy.setupQuestNew({ guildId, chatProcessId });
 
       const result = await proxy.callResponder({
-        params: { guildId: GuildIdStub() },
+        params: { guildId },
         body: { message: 'hello' },
       });
 
@@ -132,10 +134,11 @@ describe('QuestNewResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestNewResponderProxy();
-      proxy.setupError({ message: 'Guild not found' });
+      const guildId = GuildIdStub();
+      proxy.setupError({ guildId, message: 'Guild not found' });
 
       const result = await proxy.callResponder({
-        params: { guildId: GuildIdStub() },
+        params: { guildId },
         body: { message: 'hello' },
       });
 

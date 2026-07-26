@@ -12,7 +12,7 @@ describe('orchestratorFindQuestByWorkItemIdAdapter', () => {
         value: 'aaaaaaaa-aaaa-aaaa-aaaa-200000000001',
       });
 
-      proxy.returns({ questId });
+      proxy.returns({ workItemId, questId });
 
       const result = await orchestratorFindQuestByWorkItemIdAdapter({ workItemId });
 
@@ -25,7 +25,7 @@ describe('orchestratorFindQuestByWorkItemIdAdapter', () => {
         value: 'aaaaaaaa-aaaa-aaaa-aaaa-200000000002',
       });
 
-      proxy.returns({ questId: null });
+      proxy.returns({ workItemId, questId: null });
 
       const result = await orchestratorFindQuestByWorkItemIdAdapter({ workItemId });
 
@@ -40,7 +40,7 @@ describe('orchestratorFindQuestByWorkItemIdAdapter', () => {
         value: 'aaaaaaaa-aaaa-aaaa-aaaa-200000000003',
       });
 
-      proxy.throws({ error: new Error('lookup failed') });
+      proxy.throws({ workItemId, error: new Error('lookup failed') });
 
       await expect(orchestratorFindQuestByWorkItemIdAdapter({ workItemId })).rejects.toThrow(
         /^lookup failed$/u,

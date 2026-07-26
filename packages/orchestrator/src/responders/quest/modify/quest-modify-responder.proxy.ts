@@ -34,9 +34,9 @@ export const QuestModifyResponderProxy = (): {
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-  );
+  registerSpyOn({ object: crypto, method: 'randomUUID' })
+    .calledWith([])
+    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
   const setupPathResolution = ({ quest }: { quest: Quest }): void => {
     const guildId = GuildIdStub();

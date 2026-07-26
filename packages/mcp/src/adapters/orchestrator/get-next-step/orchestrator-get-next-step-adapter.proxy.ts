@@ -17,14 +17,15 @@ export const orchestratorGetNextStepAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getNextStep });
 
-  handle.mockResolvedValue(NextStepStub());
+  // getNextStep takes no arguments — [] is the only possible address.
+  handle.calledWith([]).resolves(NextStepStub());
 
   return {
     returns: ({ step }: { step: NextStep }): void => {
-      handle.mockResolvedValueOnce(step);
+      handle.calledWith([]).resolves(step);
     },
     throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+      handle.calledWith([]).rejects(error);
     },
   };
 };

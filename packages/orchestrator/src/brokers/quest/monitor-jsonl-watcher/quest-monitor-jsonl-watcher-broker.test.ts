@@ -248,7 +248,10 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-no-subdir' });
       const activeQuestId = QuestIdStub({ value: 'no-subdir-quest' });
 
-      proxy.setupSubagentDirMissing({ error: new Error('ENOENT: no such directory') });
+      proxy.setupSubagentDirMissing({
+        sessionFilePath,
+        error: new Error('ENOENT: no such directory'),
+      });
       proxy.setupLines({
         lines: [
           '{"type":"assistant","uuid":"line-3","timestamp":"2026-05-13T10:00:05.000Z","message":{"content":[{"type":"text","text":"only main"}]}}',

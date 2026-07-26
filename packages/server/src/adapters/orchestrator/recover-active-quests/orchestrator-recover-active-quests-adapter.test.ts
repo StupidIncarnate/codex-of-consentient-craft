@@ -16,7 +16,8 @@ describe('orchestratorRecoverActiveQuestsAdapter', () => {
     });
 
     it('EMPTY: {} => returns empty array when no quests to recover', async () => {
-      orchestratorRecoverActiveQuestsAdapterProxy();
+      const proxy = orchestratorRecoverActiveQuestsAdapterProxy();
+      proxy.returns({ questIds: [] });
 
       const result = await orchestratorRecoverActiveQuestsAdapter();
 

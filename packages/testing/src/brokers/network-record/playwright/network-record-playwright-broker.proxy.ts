@@ -68,12 +68,12 @@ export const networkRecordPlaywrightBrokerProxy = (): {
 
     setupStderrCapture: (): void => {
       const handle = registerSpyOn({ object: process.stderr, method: 'write' });
-      handle.mockImplementation(() => true);
+      handle.calledWith([]).implement(() => true);
       stderrSpy.current = handle;
     },
 
     getStderrWrites: (): readonly unknown[] =>
-      stderrSpy.current?.mock.calls.map((call: readonly unknown[]) => call[0]) ?? [],
+      stderrSpy.current?.callsMatching([]).map((call) => call[0]) ?? [],
 
     fireRequest: (args: OnRequestArgs): void => {
       const handler = capturedRequestHandler.current;

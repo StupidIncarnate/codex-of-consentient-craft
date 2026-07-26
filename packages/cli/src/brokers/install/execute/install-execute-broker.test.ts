@@ -37,7 +37,7 @@ describe('installExecuteBroker', () => {
       const mockModule: Record<PropertyKey, unknown> = Object.create(null);
       mockModule.StartInstall = mockStartInstall;
 
-      proxy.setupImport({ module: mockModule });
+      proxy.setupImport({ installPath, module: mockModule });
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
@@ -63,7 +63,7 @@ describe('installExecuteBroker', () => {
         },
       });
 
-      proxy.setupImport({ module: undefined });
+      proxy.setupImport({ installPath, module: undefined });
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
@@ -92,7 +92,7 @@ describe('installExecuteBroker', () => {
         },
       });
 
-      proxy.setupImport({ module: new Error('Module not found') });
+      proxy.setupImportFailure({ installPath, error: new Error('Module not found') });
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 
@@ -123,7 +123,7 @@ describe('installExecuteBroker', () => {
       const mockModule: Record<PropertyKey, unknown> = Object.create(null);
       mockModule.StartInstall = mockStartInstall;
 
-      proxy.setupImport({ module: mockModule });
+      proxy.setupImport({ installPath, module: mockModule });
 
       const result = await installExecuteBroker({ packageName, installPath, context });
 

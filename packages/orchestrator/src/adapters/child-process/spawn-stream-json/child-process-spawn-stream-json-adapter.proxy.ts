@@ -1,9 +1,11 @@
 import type { ExitCode, RepoRootCwd, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { spawn, type ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
+import { join } from 'path';
 import { EventEmitter, Readable } from 'stream';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 interface ProxyConfig {
@@ -29,8 +31,42 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   getSpawnedOptions: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
+  // readFileSync's argument varies with the caller's cwd (`<cwd>/.claude/settings.json`),
+  // which this proxy's zero-arg constructor never sees — cwd is a parameter of the SUT
+  // call, chosen per test. The predicate matches the real shape of every settings read
+  // the adapter performs regardless of cwd.
   const readFileMock: MockHandle = registerMock({ fn: readFileSync });
-  readFileMock.mockReturnValue('{"hooks":{}}');
+  const isSettingsFilePath = (filePath: unknown): boolean =>
+    String(filePath).endsWith('settings.json');
+  readFileMock.calledWith([isSettingsFilePath]).returns('{"hooks":{}}');
+
+  // The adapter builds the settings path via raw `path.join(cwd, '.claude', 'settings.json')`
+  // — the SAME npm `join` every `pathJoinAdapterProxy` in a composing test also mocks (e.g.
+  // cwdResolveBrokerProxy's descendants, wired only to satisfy enforce-proxy-child-creation).
+  // Those proxies queue their own `onceFor([])` entries for THEIR unrelated join calls; an
+  // unconsumed live one-shot outranks the sticky real-passthrough default at equal (zero)
+  // specificity, so this call can get answered with a stray path meant for something else,
+  // which then fails the settings-file predicate above and silently drops `--settings`.
+  // Address this exact 3-segment shape so it always wins on specificity over any `[]` staging,
+  // regardless of what else composes this test or in what order.
+  const isClaudeDirSegment = (segment: unknown): boolean =>
+    segment === locationsStatics.repoRoot.claude.dir;
+  const isSettingsFileSegment = (segment: unknown): boolean =>
+    segment === locationsStatics.repoRoot.claude.settings;
+  const realJoin = requireActual<{ join: typeof join }>({ module: 'path' });
+  const joinMock: MockHandle = registerMock({ fn: join });
+  joinMock
+    .calledWith([
+      (segment: unknown): boolean => typeof segment === 'string',
+      isClaudeDirSegment,
+      isSettingsFileSegment,
+    ])
+    .implement((...segments: never[]) => realJoin.join(...segments));
+
+  // childProcessSpawnStreamJsonAdapter resolves its command from
+  // `process.env.CLAUDE_CLI_PATH ?? 'claude'`; CLAUDE_CLI_PATH is never overridden in this
+  // package's tests, so 'claude' is the one real value spawn is ever called with here.
+  const CLI_COMMAND = 'claude';
 
   const mock: MockHandle = registerMock({ fn: spawn });
   const config: ProxyConfig = {
@@ -70,17 +106,17 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
     return mockChildProcess;
   };
 
-  mock.mockImplementation(() => createMockChildProcess());
+  mock.calledWith([CLI_COMMAND]).implement(() => createMockChildProcess());
 
   return {
     setupSpawn: (): ChildProcess => {
       const mockChildProcess = createMockChildProcess();
-      mock.mockReturnValueOnce(mockChildProcess);
+      mock.onceFor([CLI_COMMAND]).returns(mockChildProcess);
       return mockChildProcess;
     },
 
     setupSpawnLazy: (): void => {
-      mock.mockImplementationOnce(() => createMockChildProcess());
+      mock.onceFor([CLI_COMMAND]).implement(() => createMockChildProcess());
     },
 
     setupSuccess: ({
@@ -109,51 +145,35 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
     },
 
     setupSpawnThrow: ({ error }: { error: Error }): void => {
-      mock.mockImplementation(() => {
+      mock.calledWith([CLI_COMMAND]).implement(() => {
         throw error;
       });
     },
 
     setupSpawnThrowOnce: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(() => {
+      mock.onceFor([CLI_COMMAND]).implement(() => {
         throw error;
       });
     },
 
     setupSettingsNotFound: (): void => {
-      readFileMock.mockImplementation(() => {
+      readFileMock.calledWith([isSettingsFilePath]).implement(() => {
         throw new Error('ENOENT: no such file or directory');
       });
     },
 
     setupSettingsJson: ({ json }: { json: string }): void => {
-      readFileMock.mockReturnValue(json);
+      readFileMock.calledWith([isSettingsFilePath]).returns(json);
     },
 
-    getSpawnedCommand: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getSpawnedCommand: (): unknown => mock.callsMatching([CLI_COMMAND]).at(-1)?.[0],
 
-    getSpawnedArgs: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
+    getSpawnedArgs: (): unknown => mock.callsMatching([CLI_COMMAND]).at(-1)?.[1],
 
-    getSpawnedOptions: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[2];
-    },
+    getSpawnedOptions: (): unknown => mock.callsMatching([CLI_COMMAND]).at(-1)?.[2],
 
     getSpawnedCwd: (): RepoRootCwd | undefined => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
+      const lastCall = mock.callsMatching([CLI_COMMAND]).at(-1);
       if (!lastCall) return undefined;
       const [, , options] = lastCall;
       if (

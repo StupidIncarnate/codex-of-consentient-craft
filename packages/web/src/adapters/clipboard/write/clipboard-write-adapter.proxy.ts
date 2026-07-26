@@ -1,8 +1,9 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 export const clipboardWriteAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
+  succeeds: (params: { text: string }) => void;
+  throws: (params: { text: string; error: Error }) => void;
   getWrittenText: () => unknown;
 } => {
   // jsdom does not implement `navigator.clipboard` by default, so attach a real
@@ -19,21 +20,18 @@ export const clipboardWriteAdapterProxy = (): {
     });
   }
 
-  const handle = registerSpyOn({ object: globalThis.navigator.clipboard, method: 'writeText' });
-  handle.mockResolvedValue(undefined);
+  const handle: SpyOnHandle = registerSpyOn({
+    object: globalThis.navigator.clipboard,
+    method: 'writeText',
+  });
 
   return {
-    succeeds: (): void => {
-      handle.mockResolvedValueOnce(undefined);
+    succeeds: ({ text }: { text: string }): void => {
+      handle.calledWith([text]).resolves(undefined);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ text, error }: { text: string; error: Error }): void => {
+      handle.calledWith([text]).rejects(error);
     },
-    getWrittenText: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getWrittenText: (): unknown => handle.callsMatching([]).at(-1)?.[0],
   };
 };

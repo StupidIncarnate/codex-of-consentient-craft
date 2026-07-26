@@ -32,7 +32,7 @@ export const questBuildRelayGraphBrokerProxy = (): {
       ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
     }): void => {
       for (const id of ids) {
-        uuidSpy.mockReturnValueOnce(id);
+        uuidSpy.onceFor([]).returns(id);
       }
     },
 

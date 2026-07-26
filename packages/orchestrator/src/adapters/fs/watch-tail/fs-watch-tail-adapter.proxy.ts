@@ -25,11 +25,19 @@ export const fsWatchTailAdapterProxy = (): {
   const mockExistsSync: MockHandle = registerMock({ fn: existsSync });
   const mockCreateInterface: MockHandle = registerMock({ fn: createInterface });
 
+  // No call here can be addressed by filePath: this proxy composes into 6+ broker
+  // proxies that construct `fsWatchTailAdapterProxy()` with no arguments, before any
+  // test-specific path exists (the real path is computed deep inside the broker under
+  // test from guild config + homedir + sessionId). Every call is staged as `[]` and
+  // behavior is modeled as a simulated timeline of read cycles on a single fake file,
+  // not as per-path routing — see the "registerMock collision" comments in the broker
+  // proxies that compose this one for why several of them share one such timeline.
+
   // Default: file always exists. Tests opt into the missing-file path via setupFileMissing
   // (one-shot ENOENT at setup) or setupFileMissingUntilCreated + markFileCreated (the
   // awaitCreate path, where the file appears a beat after construction).
   const existsState = { exists: true };
-  mockExistsSync.mockImplementation(() => existsState.exists);
+  mockExistsSync.calledWith([]).implement(() => existsState.exists);
 
   const watchEmitter = Object.assign(new EventEmitter(), {
     close: jest.fn(),
@@ -40,20 +48,30 @@ export const fsWatchTailAdapterProxy = (): {
   const recordedStartPositions: unknown[] = [];
   const fileSizeState = { bytes: 0 };
 
-  mockStatSync.mockImplementation(
-    () => ({ size: fileSizeState.bytes }) as ReturnType<typeof statSync>,
-  );
+  mockStatSync
+    .calledWith([])
+    .implement(() => ({ size: fileSizeState.bytes }) as ReturnType<typeof statSync>);
 
-  mockWatch.mockImplementation((_path: unknown, listener: unknown) => {
+  mockWatch.calledWith([]).implement((_path: unknown, listener: unknown) => {
     watchCallbacks.push(listener as () => void);
     return watchEmitter as unknown as FSWatcher;
   });
 
-  mockCreateReadStream.mockImplementation((_path: unknown, options: unknown) => {
+  // createInterface is a SHARED npm function — readlineCreateInterfaceAdapterProxy also
+  // mocks it (for the live Claude CLI stdout stream). Each proxy keys its staging on the
+  // `input` stream's identity/type rather than leaving it an address-less catch-all, so the
+  // two calls route independently of construction order. This adapter's own createInterface
+  // call always receives the stream ITS OWN mocked createReadStream returned (a bare
+  // EventEmitter, never a real `stream.Readable`), so tracking those streams below gives
+  // this staging a real address — see isTrackedReadStream.
+  const trackedReadStreams = new WeakSet();
+
+  mockCreateReadStream.calledWith([]).implement((_path: unknown, options: unknown) => {
     const opts = options as { start?: unknown } | undefined;
     recordedStartPositions.push(opts?.start);
 
     const streamEmitter = new EventEmitter();
+    trackedReadStreams.add(streamEmitter);
 
     const errorToEmit = pendingStreamErrors.shift();
     if (errorToEmit) {
@@ -65,7 +83,10 @@ export const fsWatchTailAdapterProxy = (): {
     return streamEmitter as unknown as ReturnType<typeof createReadStream>;
   });
 
-  mockCreateInterface.mockImplementation(() => {
+  const isTrackedReadStream = (value: unknown): boolean =>
+    typeof value === 'object' && value !== null && trackedReadStreams.has(value);
+
+  mockCreateInterface.calledWith([{ input: isTrackedReadStream }]).implement(() => {
     const rlEmitter = Object.assign(new EventEmitter(), {
       close: jest.fn(),
     });
@@ -102,13 +123,13 @@ export const fsWatchTailAdapterProxy = (): {
     },
 
     setupStatError: ({ error }: { error: Error }): void => {
-      mockStatSync.mockImplementationOnce(() => {
+      mockStatSync.onceFor([]).implement(() => {
         throw error;
       });
     },
 
     setupFileMissing: (): void => {
-      mockExistsSync.mockReturnValueOnce(false);
+      mockExistsSync.onceFor([]).returns(false);
     },
 
     setupFileMissingUntilCreated: (): void => {

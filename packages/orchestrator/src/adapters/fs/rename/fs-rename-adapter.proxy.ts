@@ -1,43 +1,29 @@
 import { rename } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsRenameAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
-  getFromPath: () => unknown;
-  getToPath: () => unknown;
+  succeeds: (params: { from: FilePath }) => void;
+  throws: (params: { from: FilePath; error: Error }) => void;
+  getToPathFor: (params: { from: FilePath }) => unknown;
   getAllRenames: () => readonly { from: unknown; to: unknown }[];
 } => {
   const mock: MockHandle = registerMock({ fn: rename });
 
-  mock.mockResolvedValue({ success: true as const });
-
   return {
-    succeeds: (): void => {
-      mock.mockResolvedValueOnce({ success: true as const });
+    succeeds: ({ from }: { from: FilePath }): void => {
+      mock.calledWith([from]).resolves({ success: true as const });
     },
 
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ from, error }: { from: FilePath; error: Error }): void => {
+      mock.calledWith([from]).rejects(error);
     },
 
-    getFromPath: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
-
-    getToPath: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
+    getToPathFor: ({ from }: { from: FilePath }): unknown => mock.callsMatching([from]).at(-1)?.[1],
 
     getAllRenames: (): readonly { from: unknown; to: unknown }[] =>
-      mock.mock.calls.map((call) => ({
+      mock.callsMatching([]).map((call) => ({
         from: call[0],
         to: call[1],
       })),

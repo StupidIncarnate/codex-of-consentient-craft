@@ -11,6 +11,7 @@ describe('routeMetadataExtractLayerBroker', () => {
         value: '/repo/packages/web/src/flows/quest-chat/quest-chat-flow.tsx',
       });
       proxy.setupSource({
+        flowFile,
         content: ContentTextStub({
           value: `<Route path="/:guildSlug/quest" element={<AppQuestChatResponder />} />`,
         }),
@@ -32,7 +33,7 @@ describe('routeMetadataExtractLayerBroker', () => {
       const flowFile = AbsoluteFilePathStub({
         value: '/repo/packages/web/src/flows/missing/missing-flow.tsx',
       });
-      proxy.setupMissing();
+      proxy.setupMissing({ flowFile });
       const result = routeMetadataExtractLayerBroker({ flowFile });
 
       expect(result).toStrictEqual([]);
@@ -46,6 +47,7 @@ describe('routeMetadataExtractLayerBroker', () => {
         value: '/repo/packages/cli/src/flows/cli/cli-flow.ts',
       });
       proxy.setupSource({
+        flowFile,
         content: ContentTextStub({
           value: `export const CliFlow = () => CliInitResponder();`,
         }),

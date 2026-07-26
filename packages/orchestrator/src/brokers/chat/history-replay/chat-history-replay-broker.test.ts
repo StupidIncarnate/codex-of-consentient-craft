@@ -23,7 +23,7 @@ describe('chatHistoryReplayBroker', () => {
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
       const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content:
           '{"type":"user","uuid":"user-line-uuid","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello"}]}}\n{"type":"assistant","uuid":"assistant-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"hi"}]}}',
@@ -62,7 +62,7 @@ describe('chatHistoryReplayBroker', () => {
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
       const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: '{"type":"system","timestamp":"2025-01-01T00:00:00Z"}',
       });
@@ -93,7 +93,7 @@ describe('chatHistoryReplayBroker', () => {
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
       const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [
           '{"type":"queue-operation","operation":"enqueue","timestamp":"2025-01-01T00:00:00.000Z","sessionId":"test-session-queue-only","content":"Do exactly one thing"}',
@@ -128,7 +128,7 @@ describe('chatHistoryReplayBroker', () => {
 
       const toolUseId = 'toolu_01SignalBackToolUse1';
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [
           `{"type":"queue-operation","operation":"enqueue","timestamp":"2025-01-01T00:00:00.000Z","sessionId":"test-session-signal-back","content":"prompt"}`,
@@ -192,7 +192,7 @@ describe('chatHistoryReplayBroker', () => {
       const guild = GuildStub({ id: guildId, path: '/home/user/my-project' });
       const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [
           '{"type":"assistant","uuid":"first-line-uuid","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"first"}]}}',
@@ -255,7 +255,7 @@ describe('chatHistoryReplayBroker', () => {
       });
       const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       // Walk-up resolves the guild's `.dungeonmaster-dev` path to the parent repo root.
       proxy.setupCwdResolveSuccess({ cwd: '/home/user/repo' });
       proxy.setupMainSession({
@@ -304,7 +304,7 @@ describe('chatHistoryReplayBroker', () => {
       const guild = GuildStub({ id: guildId, path: '/tmp/dm-e2e/my-guild' });
       const config = GuildConfigStub({ guilds: [guild] });
 
-      proxy.setupGuild({ config, homeDir: '/tmp/dm-e2e' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/tmp/dm-e2e' });
       proxy.setupCwdResolveReject({ error: new Error('No .dungeonmaster.json found') });
       proxy.setupMainSession({
         content:
@@ -395,7 +395,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine, taskResultLine].join('\n'),
       });
@@ -524,7 +524,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:02.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine, taskResultLine].join('\n'),
       });
@@ -629,7 +629,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:02.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [userLine, mainReplyLine].join('\n'),
       });
@@ -766,7 +766,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine, mainTextEarly, mainTextLate, taskResultLine].join(
           '\n',
@@ -933,7 +933,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine].join('\n'),
       });
@@ -1096,7 +1096,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:05.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({ content: [userLine, cwTaskLine, cwResultLine].join('\n') });
       proxy.setupSubagentDir({
         files: [
@@ -1223,7 +1223,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:05.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({ content: [mainUserLine, aTaskLine, aResultLine].join('\n') });
       proxy.setupSubagentDir({
         files: [
@@ -1298,7 +1298,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({ content: mainUserLine });
       proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${aReal}.jsonl` })] });
       proxy.setupSubagentFile({ content: [bResultInA, aTextLine].join('\n') });
@@ -1356,7 +1356,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:03.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       // Main JSONL read is skipped when agentId is supplied — do NOT queue main content,
       // otherwise the first subagent read pops that off the shared FIFO mock instead of
       // its own content.
@@ -1452,7 +1452,7 @@ describe('chatHistoryReplayBroker', () => {
         timestamp: '2025-01-01T00:00:05.000Z',
       });
 
-      proxy.setupGuild({ config, homeDir: '/home/user' });
+      proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       // Main JSONL read is skipped when agentId is supplied — do not queue main content.
       proxy.setupSubagentDir({
         files: [

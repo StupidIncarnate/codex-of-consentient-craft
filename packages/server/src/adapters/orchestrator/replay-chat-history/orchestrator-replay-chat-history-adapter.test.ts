@@ -11,7 +11,8 @@ import { orchestratorReplayChatHistoryAdapterProxy } from './orchestrator-replay
 describe('orchestratorReplayChatHistoryAdapter', () => {
   describe('successful replay', () => {
     it('VALID: {sessionId, guildId, chatProcessId} => completes without error', async () => {
-      orchestratorReplayChatHistoryAdapterProxy();
+      const proxy = orchestratorReplayChatHistoryAdapterProxy();
+      proxy.setupSuccess();
 
       await expect(
         orchestratorReplayChatHistoryAdapter({
@@ -26,6 +27,7 @@ describe('orchestratorReplayChatHistoryAdapter', () => {
   describe('agentId forwarding', () => {
     it('VALID: {agentId param} => forwards agentId to StartOrchestrator.replayChatHistory', async () => {
       const proxy = orchestratorReplayChatHistoryAdapterProxy();
+      proxy.setupSuccess();
       const sessionId = SessionIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402' });
       const agentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
       const guildId = GuildIdStub();
@@ -45,6 +47,7 @@ describe('orchestratorReplayChatHistoryAdapter', () => {
 
     it('VALID: {no agentId} => omits agentId from orchestrator call', async () => {
       const proxy = orchestratorReplayChatHistoryAdapterProxy();
+      proxy.setupSuccess();
       const sessionId = SessionIdStub({ value: 'session-no-agent' });
       const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'replay-no-agent' });

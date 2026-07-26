@@ -20,12 +20,15 @@ export const configRootFindBrokerProxy = (): {
       configRootPath: string;
     }): void => {
       pathJoinProxy.returns({ result: `${startPath}/.dungeonmaster.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${startPath}/.dungeonmaster.json` as never });
     },
 
     setupConfigRootNotFound: ({ startPath }: { startPath: string }): void => {
       pathJoinProxy.returns({ result: `${startPath}/.dungeonmaster.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/.dungeonmaster.json` as never,
+        error: new Error('ENOENT'),
+      });
       pathDirnameProxy.returns({ result: startPath as never });
     },
 
@@ -37,10 +40,13 @@ export const configRootFindBrokerProxy = (): {
       configRootPath: string;
     }): void => {
       pathJoinProxy.returns({ result: `${startPath}/.dungeonmaster.json` as never });
-      fsAccessProxy.rejects({ error: new Error('ENOENT') });
+      fsAccessProxy.rejects({
+        filePath: `${startPath}/.dungeonmaster.json` as never,
+        error: new Error('ENOENT'),
+      });
       pathDirnameProxy.returns({ result: configRootPath as never });
       pathJoinProxy.returns({ result: `${configRootPath}/.dungeonmaster.json` as never });
-      fsAccessProxy.resolves();
+      fsAccessProxy.resolves({ filePath: `${configRootPath}/.dungeonmaster.json` as never });
     },
   };
 };

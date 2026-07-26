@@ -1,20 +1,19 @@
 import { mkdir } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsMkdirAdapterProxy = (): {
-  succeeds: () => void;
-  throws: (params: { error: Error }) => void;
+  succeeds: (params: { dirPath: FilePath }) => void;
+  throws: (params: { dirPath: FilePath; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: mkdir });
 
-  mock.mockResolvedValue({ success: true as const });
-
   return {
-    succeeds: (): void => {
-      mock.mockResolvedValueOnce({ success: true as const });
+    succeeds: ({ dirPath }: { dirPath: FilePath }): void => {
+      mock.calledWith([dirPath]).resolves({ success: true as const });
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ dirPath, error }: { dirPath: FilePath; error: Error }): void => {
+      mock.calledWith([dirPath]).rejects(error);
     },
   };
 };

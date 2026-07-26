@@ -1,17 +1,16 @@
 import { readdir } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsReaddirDirsAdapterProxy = (): {
-  returns: (params: { dirs: string[] }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { dirPath: FilePath; dirs: string[] }) => void;
+  throws: (params: { dirPath: FilePath; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: readdir });
 
-  mock.mockResolvedValue([] as never);
-
   return {
-    returns: ({ dirs }: { dirs: string[] }): void => {
-      mock.mockResolvedValueOnce(
+    returns: ({ dirPath, dirs }: { dirPath: FilePath; dirs: string[] }): void => {
+      mock.calledWith([dirPath]).resolves(
         dirs.map((name) => ({
           name,
           isDirectory: () => true,
@@ -24,8 +23,8 @@ export const fsReaddirDirsAdapterProxy = (): {
         })) as never,
       );
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ dirPath, error }: { dirPath: FilePath; error: Error }): void => {
+      mock.calledWith([dirPath]).rejects(error);
     },
   };
 };

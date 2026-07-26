@@ -7,15 +7,21 @@ type ErrorCallback = (error: Error) => void;
 type CloseCallback = (code: number | null) => void;
 
 export const childProcessSpawnStreamAdapterProxy = (): {
-  setupSuccess: (params: { exitCode: ExitCode; stdout: string; stderr: string }) => void;
+  setupSuccess: (params: {
+    command: string;
+    exitCode: ExitCode;
+    stdout: string;
+    stderr: string;
+  }) => void;
   setupSuccessMultiChunk: (params: {
+    command: string;
     exitCode: ExitCode;
     stdoutChunks: string[];
     stderr: string;
   }) => void;
-  setupError: (params: { error: Error; stdout?: string }) => void;
-  setupErrorWithCode: (params: { error: Error; exitCode: ExitCode }) => void;
-  setupCloseNull: (params: { stdout: string }) => void;
+  setupError: (params: { command: string; error: Error; stdout?: string }) => void;
+  setupErrorWithCode: (params: { command: string; error: Error; exitCode: ExitCode }) => void;
+  setupCloseNull: (params: { command: string; stdout: string }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getAllSpawnedArgs: () => unknown[];
@@ -66,30 +72,20 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     return { child, listeners };
   };
 
-  handle.mockImplementation(() => {
-    const { child, listeners } = createMockChild();
-
-    process.nextTick(() => {
-      for (const cb of listeners.close) {
-        cb(0);
-      }
-    });
-
-    return child;
-  });
-
   return {
     setupSuccess: ({
+      command,
       exitCode,
       stdout,
       stderr,
     }: {
+      command: string;
       exitCode: ExitCode;
       stdout: string;
       stderr: string;
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      handle.mockImplementationOnce(() => {
+      handle.calledWith([command]).implement(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -113,16 +109,18 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     },
 
     setupSuccessMultiChunk: ({
+      command,
       exitCode,
       stdoutChunks,
       stderr,
     }: {
+      command: string;
       exitCode: ExitCode;
       stdoutChunks: string[];
       stderr: string;
     }): void => {
       const successCode = ExitCodeStub({ value: 0 });
-      handle.mockImplementationOnce(() => {
+      handle.calledWith([command]).implement(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -145,8 +143,16 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       });
     },
 
-    setupError: ({ error, stdout }: { error: Error; stdout?: string }): void => {
-      handle.mockImplementationOnce(() => {
+    setupError: ({
+      command,
+      error,
+      stdout,
+    }: {
+      command: string;
+      error: Error;
+      stdout?: string;
+    }): void => {
+      handle.calledWith([command]).implement(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -164,9 +170,17 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       });
     },
 
-    setupErrorWithCode: ({ error, exitCode }: { error: Error; exitCode: ExitCode }): void => {
+    setupErrorWithCode: ({
+      command,
+      error,
+      exitCode,
+    }: {
+      command: string;
+      error: Error;
+      exitCode: ExitCode;
+    }): void => {
       const errorWithCode = Object.assign(error, { code: exitCode as unknown });
-      handle.mockImplementationOnce(() => {
+      handle.calledWith([command]).implement(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -179,8 +193,8 @@ export const childProcessSpawnStreamAdapterProxy = (): {
       });
     },
 
-    setupCloseNull: ({ stdout }: { stdout: string }): void => {
-      handle.mockImplementationOnce(() => {
+    setupCloseNull: ({ command, stdout }: { command: string; stdout: string }): void => {
+      handle.calledWith([command]).implement(() => {
         const { child, listeners } = createMockChild();
 
         process.nextTick(() => {
@@ -199,23 +213,23 @@ export const childProcessSpawnStreamAdapterProxy = (): {
     },
 
     getSpawnedCommand: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[0];
     },
 
     getSpawnedArgs: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[1];
     },
 
-    getAllSpawnedArgs: (): unknown[] => handle.mock.calls.map((call) => call[1]),
+    getAllSpawnedArgs: (): unknown[] => handle.callsMatching([]).map((call) => call[1]),
 
     getSpawnedCwd: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const [, , opts] = lastCall as unknown[];

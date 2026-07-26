@@ -11,15 +11,14 @@ describe('checkRunTypecheckBroker', () => {
   describe('passing typecheck', () => {
     it('VALID: {tsc exits 0 with listFiles output} => returns pass result with filesCount', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
       const listFilesOutput = [
         '/home/user/project/packages/ward/node_modules/typescript/lib/lib.es5.d.ts',
         '/home/user/project/packages/ward/src/index.ts',
         '/home/user/project/packages/ward/src/utils.ts',
         '/home/user/project/packages/ward/src/types.ts',
       ].join('\n');
-      proxy.setupPass({ stdout: listFilesOutput });
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder, stdout: listFilesOutput });
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
@@ -45,15 +44,14 @@ describe('checkRunTypecheckBroker', () => {
   describe('failing typecheck', () => {
     it('VALID: {tsc exits 1 with errors and listFiles} => returns fail result with parsed errors and filesCount', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
       const tscOutput = [
         '/home/user/project/packages/ward/node_modules/typescript/lib/lib.es5.d.ts',
         '/home/user/project/packages/ward/src/index.ts',
         '/home/user/project/packages/ward/src/utils.ts',
         'src/index.ts(10,5): error TS2345: Argument mismatch.',
       ].join('\n');
-      proxy.setupFail({ stdout: tscOutput });
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
@@ -91,10 +89,9 @@ describe('checkRunTypecheckBroker', () => {
   describe('crash handling', () => {
     it('VALID: {tsc exits 1 but parser finds 0 errors} => status stays fail', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
-      const tscOutput = 'error TS5058: The specified path does not exist';
-      proxy.setupFail({ stdout: tscOutput });
-
       const projectFolder = ProjectFolderStub();
+      const tscOutput = 'error TS5058: The specified path does not exist';
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
 
       const result = await checkRunTypecheckBroker({
         projectFolder,
@@ -144,13 +141,12 @@ describe('checkRunTypecheckBroker', () => {
   describe('filtered by file list', () => {
     it('VALID: {tsc fails but errors not in file list} => returns pass after filtering', async () => {
       const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
       const tscOutput = [
         '/home/user/project/packages/ward/src/index.ts',
         'src/other.ts(5,1): error TS2345: Type mismatch.',
       ].join('\n');
-      proxy.setupFail({ stdout: tscOutput });
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
 
       const result = await checkRunTypecheckBroker({
         projectFolder,

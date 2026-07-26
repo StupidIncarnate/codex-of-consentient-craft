@@ -20,7 +20,7 @@ describe('orchestratorRemoveGuildAdapter', () => {
       const proxy = orchestratorRemoveGuildAdapterProxy();
       const guildId = GuildIdStub();
 
-      proxy.throws({ error: new Error('Failed to remove guild') });
+      proxy.throws({ guildId, error: new Error('Failed to remove guild') });
 
       await expect(orchestratorRemoveGuildAdapter({ guildId })).rejects.toThrow(
         /Failed to remove guild/u,

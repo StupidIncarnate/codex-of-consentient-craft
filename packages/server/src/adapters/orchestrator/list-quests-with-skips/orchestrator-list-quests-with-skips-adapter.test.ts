@@ -11,19 +11,22 @@ describe('orchestratorListQuestsWithSkipsAdapter', () => {
   describe('successful listing', () => {
     it('VALID: {guildId} => returns the loadable quests and the skipped quest files', async () => {
       const proxy = orchestratorListQuestsWithSkipsAdapterProxy();
+      const guildId = GuildIdStub();
       const quest = QuestListItemStub();
       const skipped = SkippedQuestFileStub();
-      proxy.returns({ quests: [quest], skipped: [skipped] });
+      proxy.returns({ guildId, quests: [quest], skipped: [skipped] });
 
-      const result = await orchestratorListQuestsWithSkipsAdapter({ guildId: GuildIdStub() });
+      const result = await orchestratorListQuestsWithSkipsAdapter({ guildId });
 
       expect(result).toStrictEqual({ quests: [quest], skipped: [skipped] });
     });
 
     it('EMPTY: {guild with no quest folders} => returns empty quests and empty skips', async () => {
-      orchestratorListQuestsWithSkipsAdapterProxy();
+      const proxy = orchestratorListQuestsWithSkipsAdapterProxy();
+      const guildId = GuildIdStub();
+      proxy.returns({ guildId, quests: [], skipped: [] });
 
-      const result = await orchestratorListQuestsWithSkipsAdapter({ guildId: GuildIdStub() });
+      const result = await orchestratorListQuestsWithSkipsAdapter({ guildId });
 
       expect(result).toStrictEqual({ quests: [], skipped: [] });
     });
@@ -32,11 +35,12 @@ describe('orchestratorListQuestsWithSkipsAdapter', () => {
   describe('error handling', () => {
     it('ERROR: {orchestrator throws} => propagates the error', async () => {
       const proxy = orchestratorListQuestsWithSkipsAdapterProxy();
-      proxy.throws({ error: new Error('Connection failed') });
+      const guildId = GuildIdStub();
+      proxy.throws({ guildId, error: new Error('Connection failed') });
 
-      await expect(
-        orchestratorListQuestsWithSkipsAdapter({ guildId: GuildIdStub() }),
-      ).rejects.toThrow(/^Connection failed$/u);
+      await expect(orchestratorListQuestsWithSkipsAdapter({ guildId })).rejects.toThrow(
+        /^Connection failed$/u,
+      );
     });
   });
 });

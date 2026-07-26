@@ -11,7 +11,7 @@ describe('configFileLoadBroker', () => {
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
       const mockConfig = DungeonmasterConfigStub();
 
-      proxy.setupValidConfig({ config: mockConfig });
+      proxy.setupValidConfig({ configPath, config: mockConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
@@ -32,7 +32,7 @@ describe('configFileLoadBroker', () => {
         },
       });
 
-      proxy.setupValidConfig({ config: mockConfig });
+      proxy.setupValidConfig({ configPath, config: mockConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
@@ -45,7 +45,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -54,7 +54,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -63,7 +63,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -72,7 +72,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -81,7 +81,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -92,7 +92,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/nonexistent/.dungeonmaster' });
 
-      proxy.setupFileNotFound();
+      proxy.setupFileNotFound({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -101,7 +101,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/corrupted/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -110,7 +110,7 @@ describe('configFileLoadBroker', () => {
       const proxy = configFileLoadBrokerProxy();
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
 
-      proxy.setupInvalidJson();
+      proxy.setupInvalidJson({ configPath });
 
       await expect(configFileLoadBroker({ configPath })).rejects.toThrow(InvalidConfigError);
     });
@@ -122,7 +122,7 @@ describe('configFileLoadBroker', () => {
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
       const expectedConfig = DungeonmasterConfigStub();
 
-      proxy.setupValidConfig({ config: expectedConfig });
+      proxy.setupValidConfig({ configPath, config: expectedConfig });
 
       const result = await configFileLoadBroker({ configPath });
 
@@ -134,7 +134,7 @@ describe('configFileLoadBroker', () => {
       const configPath = FilePathStub({ value: '/project/.dungeonmaster' });
       const mockConfig = DungeonmasterConfigStub({ framework: 'node-library', schema: 'zod' });
 
-      proxy.setupValidConfig({ config: mockConfig });
+      proxy.setupValidConfig({ configPath, config: mockConfig });
 
       const result = await configFileLoadBroker({ configPath });
 

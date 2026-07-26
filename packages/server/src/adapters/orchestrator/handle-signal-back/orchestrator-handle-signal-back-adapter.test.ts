@@ -11,13 +11,15 @@ describe('orchestratorHandleSignalBackAdapter', () => {
   describe('successful invocation', () => {
     it('VALID: {questId, workItemId, signal: complete} => returns AdapterResult from StartOrchestrator', async () => {
       const proxy = orchestratorHandleSignalBackAdapterProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' });
       const expected = AdapterResultStub();
 
-      proxy.resolves({ result: expected });
+      proxy.resolves({ questId, workItemId, result: expected });
 
       const result = await orchestratorHandleSignalBackAdapter({
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-        workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+        questId,
+        workItemId,
         signal: 'complete',
       });
 
@@ -28,13 +30,15 @@ describe('orchestratorHandleSignalBackAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorHandleSignalBackAdapterProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' });
 
-      proxy.throws({ error: new Error('post-walk hook failed') });
+      proxy.throws({ questId, workItemId, error: new Error('post-walk hook failed') });
 
       await expect(
         orchestratorHandleSignalBackAdapter({
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-          workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
+          questId,
+          workItemId,
           signal: 'complete',
         }),
       ).rejects.toThrow(/post-walk hook failed/u);

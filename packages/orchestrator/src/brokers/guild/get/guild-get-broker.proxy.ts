@@ -26,7 +26,17 @@ export const guildGetBrokerProxy = (): {
   return {
     setupConfig: ({ config }: { config: GuildConfig }): void => {
       configReadProxy.setupConfig({ config });
-      configWriteProxy.setupSuccess();
+      // guildGetBroker only calls guildConfigWriteBroker when the matched guild lacks a
+      // urlSlug (the backfill branch). Staging the write mocks unconditionally leaves two
+      // never-consumed entries sitting in path.join's shared call-order queue (see
+      // tmp/sweep-guidance.md's join/dirname/basename trap) whenever every guild already
+      // carries a urlSlug — the common case. A later, unrelated real path.join call (e.g.
+      // questFindQuestPathBroker resolving a completely different quest lookup, composed
+      // into the same test alongside this proxy) then steals those stale values instead of
+      // its own. Only stage the write path when this config can actually reach it.
+      if (config.guilds.some((guild) => !guild.urlSlug)) {
+        configWriteProxy.setupSuccess();
+      }
     },
     setupDirectGuild: ({ guild }: { guild: Guild }): void => {
       mocked.mockResolvedValueOnce(guild);

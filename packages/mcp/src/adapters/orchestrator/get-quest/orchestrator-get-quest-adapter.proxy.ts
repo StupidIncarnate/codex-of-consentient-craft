@@ -3,29 +3,25 @@
  *
  * USAGE:
  * const proxy = orchestratorGetQuestAdapterProxy();
- * proxy.returns({ result: GetQuestResultStub() });
+ * proxy.returns({ questId: 'add-auth', result: GetQuestResultStub() });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { GetQuestResult } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
-
 export const orchestratorGetQuestAdapterProxy = (): {
-  returns: (params: { result: GetQuestResult }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { questId: string; result: GetQuestResult }) => void;
+  throws: (params: { questId: string; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getQuest });
 
-  handle.mockResolvedValue(GetQuestResultStub());
-
   return {
-    returns: ({ result }: { result: GetQuestResult }): void => {
-      handle.mockResolvedValueOnce(result);
+    returns: ({ questId, result }: { questId: string; result: GetQuestResult }): void => {
+      handle.calledWith([{ questId }]).resolves(result);
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ questId, error }: { questId: string; error: Error }): void => {
+      handle.calledWith([{ questId }]).rejects(error);
     },
   };
 };

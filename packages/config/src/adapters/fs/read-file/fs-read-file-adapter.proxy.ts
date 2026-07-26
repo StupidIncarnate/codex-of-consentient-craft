@@ -1,22 +1,27 @@
 import { readFile } from 'fs/promises';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsReadFileAdapterProxy = (): {
-  returns: (params: { contents: ReturnType<typeof FileContentsStub> }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { filePath: FilePath; contents: ReturnType<typeof FileContentsStub> }) => void;
+  throws: (params: { filePath: FilePath; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: readFile });
 
-  mock.mockResolvedValue('');
-
   return {
-    returns: ({ contents }: { contents: ReturnType<typeof FileContentsStub> }) => {
-      mock.mockResolvedValueOnce(contents);
+    returns: ({
+      filePath,
+      contents,
+    }: {
+      filePath: FilePath;
+      contents: ReturnType<typeof FileContentsStub>;
+    }) => {
+      mock.calledWith([filePath]).resolves(contents);
     },
 
-    throws: ({ error }: { error: Error }) => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ filePath, error }: { filePath: FilePath; error: Error }) => {
+      mock.calledWith([filePath]).rejects(error);
     },
   };
 };

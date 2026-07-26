@@ -9,7 +9,7 @@ describe('readFileContentsLayerBroker', () => {
       const proxy = readFileContentsLayerBrokerProxy();
       const filePath = AbsoluteFilePathStub({ value: '/project/src/startup/start-app.ts' });
       const content = ContentTextStub({ value: 'import { foo } from "./foo";' });
-      proxy.setupReturns({ content });
+      proxy.setupReturns({ filePath, content });
       const result = readFileContentsLayerBroker({ filePath });
 
       expect(result).toBe(content);
@@ -20,7 +20,7 @@ describe('readFileContentsLayerBroker', () => {
     it('ERROR: {missing file} => returns undefined', () => {
       const proxy = readFileContentsLayerBrokerProxy();
       const filePath = AbsoluteFilePathStub({ value: '/project/src/startup/start-missing.ts' });
-      proxy.setupMissing();
+      proxy.setupMissing({ filePath });
       const result = readFileContentsLayerBroker({ filePath });
 
       expect(result).toBe(undefined);

@@ -1,23 +1,27 @@
 import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 export const orchestratorFindQuestPathAdapterProxy = (): {
-  returns: (params: { questPath: AbsoluteFilePath; guildId: GuildId }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { questId: QuestId; questPath: AbsoluteFilePath; guildId: GuildId }) => void;
+  throws: (params: { questId: QuestId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: questFindQuestPathBroker });
-  mock.mockResolvedValue({
-    questPath: '/default/quest/path' as AbsoluteFilePath,
-    guildId: 'default-guild' as GuildId,
-  });
 
   return {
-    returns: ({ questPath, guildId }: { questPath: AbsoluteFilePath; guildId: GuildId }): void => {
-      mock.mockResolvedValueOnce({ questPath, guildId });
+    returns: ({
+      questId,
+      questPath,
+      guildId,
+    }: {
+      questId: QuestId;
+      questPath: AbsoluteFilePath;
+      guildId: GuildId;
+    }): void => {
+      mock.calledWith([{ questId }]).resolves({ questPath, guildId });
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      mock.calledWith([{ questId }]).rejects(error);
     },
   };
 };

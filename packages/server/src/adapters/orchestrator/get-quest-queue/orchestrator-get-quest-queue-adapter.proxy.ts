@@ -10,14 +10,13 @@ export const orchestratorGetQuestQueueAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: StartOrchestrator.getExecutionQueue });
 
-  mock.mockResolvedValue([]);
-
   return {
+    // getExecutionQueue takes no argument — [] is the honest, non-catch-all address.
     returns: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
-      mock.mockResolvedValueOnce(entries);
+      mock.calledWith([]).resolves(entries);
     },
     throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+      mock.calledWith([]).rejects(error);
     },
   };
 };

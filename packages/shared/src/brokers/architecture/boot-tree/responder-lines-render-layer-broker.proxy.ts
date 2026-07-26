@@ -4,11 +4,18 @@ import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-
 import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-layer-broker.proxy';
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
 import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const responderLinesRenderLayerBrokerProxy = (): {
-  setupFlowSource: ({ content }: { content: ContentText }) => void;
-  setupFlowMissing: () => void;
+  setupFlowSource: ({
+    sourceFile,
+    content,
+  }: {
+    sourceFile: AbsoluteFilePath;
+    content: ContentText;
+  }) => void;
+  setupFlowMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }) => void;
   setupFlowImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
 } => {
@@ -35,12 +42,18 @@ export const responderLinesRenderLayerBrokerProxy = (): {
     };
 
   return {
-    setupFlowSource: ({ content }: { content: ContentText }): void => {
-      flowImportsProxy.setupSource({ content });
+    setupFlowSource: ({
+      sourceFile,
+      content,
+    }: {
+      sourceFile: AbsoluteFilePath;
+      content: ContentText;
+    }): void => {
+      flowImportsProxy.setupSource({ sourceFile, content });
     },
 
-    setupFlowMissing: (): void => {
-      flowImportsProxy.setupMissing();
+    setupFlowMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }): void => {
+      flowImportsProxy.setupMissing({ sourceFile });
     },
 
     setupFlowImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {

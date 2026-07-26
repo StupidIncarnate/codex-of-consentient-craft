@@ -1,13 +1,14 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 export const processDevLogAdapterProxy = (): {
   enableVerbose: () => void;
   disableVerbose: () => void;
-  getWrittenLines: () => SpyOnHandle;
+  getWrittenLines: () => unknown[][];
 } => {
   const spy = registerSpyOn({ object: process.stdout, method: 'write', passthrough: true });
-  spy.mockImplementation((): boolean => true);
+  // Every write must resolve the same way (true, no real terminal output) no matter what was
+  // written — this suppresses the real write, it does not describe an expected call.
+  spy.calledWith([]).implement((): boolean => true);
 
   return {
     enableVerbose: (): void => {
@@ -16,6 +17,6 @@ export const processDevLogAdapterProxy = (): {
     disableVerbose: (): void => {
       Reflect.deleteProperty(process.env, 'VERBOSE');
     },
-    getWrittenLines: (): SpyOnHandle => spy,
+    getWrittenLines: (): unknown[][] => spy.callsMatching([]),
   };
 };

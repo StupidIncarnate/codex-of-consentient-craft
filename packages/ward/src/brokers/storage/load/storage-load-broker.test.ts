@@ -14,11 +14,10 @@ describe('storageLoadBroker', () => {
   describe('load by runId', () => {
     it('VALID: {runId provided, file exists} => returns parsed WardResult', async () => {
       const wardResult = WardResultStub();
-      const proxy = storageLoadBrokerProxy();
-      proxy.setupRunById({ content: JSON.stringify(wardResult) });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const runId = RunIdStub();
+      const proxy = storageLoadBrokerProxy();
+      proxy.setupRunById({ rootPath, runId, content: JSON.stringify(wardResult) });
 
       const result = await storageLoadBroker({ rootPath, runId });
 
@@ -26,11 +25,10 @@ describe('storageLoadBroker', () => {
     });
 
     it('ERROR: {runId provided, file not found} => returns null', async () => {
-      const proxy = storageLoadBrokerProxy();
-      proxy.setupReadFail({ error: new Error('ENOENT: no such file') });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const runId = RunIdStub();
+      const proxy = storageLoadBrokerProxy();
+      proxy.setupReadFail({ rootPath, runId, error: new Error('ENOENT: no such file') });
 
       const result = await storageLoadBroker({ rootPath, runId });
 
@@ -41,13 +39,14 @@ describe('storageLoadBroker', () => {
   describe('load most recent', () => {
     it('VALID: {no runId, files exist} => returns most recent WardResult', async () => {
       const wardResult = WardResultStub({ runId: '1739625700000-b4e2' });
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRun({
+        rootPath,
         entries: ['run-1739625600000-a3f1.json', 'run-1739625700000-b4e2.json'],
+        latestEntry: 'run-1739625700000-b4e2.json',
         content: JSON.stringify(wardResult),
       });
-
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
       const result = await storageLoadBroker({ rootPath });
 
@@ -56,8 +55,10 @@ describe('storageLoadBroker', () => {
 
     it('VALID: {no runId, run files with non-RunId names} => returns the latest RunId-named run', async () => {
       const wardResult = WardResultStub({ runId: '1739625700000-b4e2' });
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRunByPath({
+        rootPath,
         entries: [
           'run-1739625600000-a3f1.json',
           'run-1739625700000-b4e2.json',
@@ -71,16 +72,16 @@ describe('storageLoadBroker', () => {
         },
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-
       const result = await storageLoadBroker({ rootPath });
 
       expect(result).toStrictEqual(wardResult);
     });
 
     it('EMPTY: {no runId, only non-RunId-named run files} => returns null', async () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRunByPath({
+        rootPath,
         entries: ['run-e2e-dispatch-ward-5.json'],
         contents: {
           [FilePathStub({ value: '/home/user/project/.ward/run-e2e-dispatch-ward-5.json' })]:
@@ -88,18 +89,15 @@ describe('storageLoadBroker', () => {
         },
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-
       const result = await storageLoadBroker({ rootPath });
 
       expect(result).toBe(null);
     });
 
     it('EMPTY: {no runId, no files} => returns null', async () => {
-      const proxy = storageLoadBrokerProxy();
-      proxy.setupEmptyDir();
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const proxy = storageLoadBrokerProxy();
+      proxy.setupEmptyDir({ rootPath });
 
       const result = await storageLoadBroker({ rootPath });
 
@@ -107,10 +105,9 @@ describe('storageLoadBroker', () => {
     });
 
     it('ERROR: {no runId, readdir fails} => returns null', async () => {
-      const proxy = storageLoadBrokerProxy();
-      proxy.setupReaddirFail({ error: new Error('ENOENT: no such directory') });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const proxy = storageLoadBrokerProxy();
+      proxy.setupReaddirFail({ rootPath, error: new Error('ENOENT: no such directory') });
 
       const result = await storageLoadBroker({ rootPath });
 

@@ -1,7 +1,7 @@
 import * as guildListBrokerModule from '../../brokers/guild/list/guild-list-broker';
 
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { guildListBrokerProxy } from '../../brokers/guild/list/guild-list-broker.proxy';
@@ -29,10 +29,17 @@ export const useGuildsBindingProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupError: () => void;
   setupOuterCatchTrigger: () => void;
-  getConsoleErrorCalls: () => SpyOnHandle['mock']['calls'];
+  getConsoleErrorCalls: () => unknown[][];
 } => {
   const brokerProxy = guildListBrokerProxy();
-  const consoleErrorHandle = registerSpyOn({ object: globalThis.console, method: 'error' });
+  // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
+  // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
+  const consoleErrorHandle = registerSpyOn({
+    object: globalThis.console,
+    method: 'error',
+    passthrough: true,
+  });
+  consoleErrorHandle.calledWith(['[use-guilds]']).returns(undefined);
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -42,12 +49,13 @@ export const useGuildsBindingProxy = (): {
       brokerProxy.setupError();
     },
     setupOuterCatchTrigger: (): void => {
-      const brokerHandle = registerSpyOn({
+      const brokerHandle: MockHandle = registerSpyOn({
         object: guildListBrokerModule,
         method: 'guildListBroker',
       });
-      brokerHandle.mockImplementation(rejectWithPoisonToString as never);
+      // guildListBroker takes no arguments at all — there is no call shape beyond "any call."
+      brokerHandle.calledWith([]).implement(rejectWithPoisonToString as never);
     },
-    getConsoleErrorCalls: (): SpyOnHandle['mock']['calls'] => consoleErrorHandle.mock.calls,
+    getConsoleErrorCalls: (): unknown[][] => consoleErrorHandle.callsMatching([]),
   };
 };

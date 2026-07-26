@@ -22,6 +22,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
 
       proxy.setupSource({
+        sourceFile: responderFile,
         content: ContentTextStub({
           value: `import { HomeContentWidget } from '../../../widgets/home-content/home-content-widget';`,
         }),
@@ -76,6 +77,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
 
       proxy.setupSource({
+        sourceFile: responderFile,
         content: ContentTextStub({
           value: `import { OtherWidget } from '../../widgets/other/other-widget';`,
         }),
@@ -110,6 +112,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
 
       proxy.setupSource({
+        sourceFile: responderFile,
         content: ContentTextStub({ value: `export const x = () => null;` }),
       });
 

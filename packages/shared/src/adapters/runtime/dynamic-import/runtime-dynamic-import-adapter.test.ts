@@ -11,11 +11,12 @@ import { runtimeDynamicImportAdapterProxy } from './runtime-dynamic-import-adapt
 describe('runtimeDynamicImportAdapter', () => {
   describe('importing modules', () => {
     it('VALID: {path: module path} => returns module namespace object with named exports', async () => {
-      runtimeDynamicImportAdapterProxy({ module: { runtimeDynamicImportAdapter: 'test-value' } });
+      const proxy = runtimeDynamicImportAdapterProxy();
+      const path = './runtime-dynamic-import-adapter';
 
-      const result = await runtimeDynamicImportAdapter({
-        path: './runtime-dynamic-import-adapter',
-      });
+      proxy.succeeds({ path, module: { runtimeDynamicImportAdapter: 'test-value' } });
+
+      const result = await runtimeDynamicImportAdapter({ path });
 
       expect((result as { runtimeDynamicImportAdapter: unknown }).runtimeDynamicImportAdapter).toBe(
         runtimeDynamicImportAdapter,
@@ -23,11 +24,12 @@ describe('runtimeDynamicImportAdapter', () => {
     });
 
     it('ERROR: {path: nonexistent path} => rejects with module not found error', async () => {
-      runtimeDynamicImportAdapterProxy({ module: new Error('Cannot find module') });
+      const proxy = runtimeDynamicImportAdapterProxy();
+      const path = '/nonexistent';
 
-      await expect(runtimeDynamicImportAdapter({ path: '/nonexistent' })).rejects.toThrow(
-        /Cannot find module/u,
-      );
+      proxy.throws({ path, error: new Error('Cannot find module') });
+
+      await expect(runtimeDynamicImportAdapter({ path })).rejects.toThrow(/Cannot find module/u);
     });
   });
 });

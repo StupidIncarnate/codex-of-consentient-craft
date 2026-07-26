@@ -8,6 +8,7 @@ describe('safeReaddirLayerBroker', () => {
     const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/flows' });
 
     const dirents = proxy.setupDirectory({
+      dirPath,
       entries: [],
     });
 
@@ -20,7 +21,7 @@ describe('safeReaddirLayerBroker', () => {
     const proxy = safeReaddirLayerBrokerProxy();
     const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/flows/missing' });
 
-    proxy.setupError({ error: new Error('ENOENT: no such file or directory') });
+    proxy.setupError({ dirPath, error: new Error('ENOENT: no such file or directory') });
 
     const result = safeReaddirLayerBroker({ dirPath });
 

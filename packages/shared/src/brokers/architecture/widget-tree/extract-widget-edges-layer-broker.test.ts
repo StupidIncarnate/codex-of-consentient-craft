@@ -19,6 +19,7 @@ describe('extractWidgetEdgesLayerBroker', () => {
       const widgetFileSet = new Set<AbsoluteFilePath>([childWidgetPath]);
 
       proxy.setupWidgetSource({
+        filePath: widgetFilePath,
         content: ContentTextStub({
           value: `import { ChatWidget } from '../chat/chat-widget';`,
         }),
@@ -45,6 +46,7 @@ describe('extractWidgetEdgesLayerBroker', () => {
       const widgetFileSet = new Set<AbsoluteFilePath>();
 
       proxy.setupWidgetSource({
+        filePath: widgetFilePath,
         content: ContentTextStub({
           value: `import { useQuestBinding } from '../../bindings/quest/use-quest-binding';`,
         }),
@@ -64,12 +66,11 @@ describe('extractWidgetEdgesLayerBroker', () => {
 
     it('EMPTY: {missing widget file} => returns empty edges', () => {
       const proxy = extractWidgetEdgesLayerBrokerProxy();
-      proxy.setupMissingWidget();
-
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
       const widgetFilePath = AbsoluteFilePathStub({
         value: '/repo/packages/web/src/widgets/missing/missing-widget.tsx',
       });
+      proxy.setupMissingWidget({ filePath: widgetFilePath });
       const widgetFileSet = new Set<AbsoluteFilePath>();
 
       const result = extractWidgetEdgesLayerBroker({
@@ -95,6 +96,7 @@ describe('extractWidgetEdgesLayerBroker', () => {
       const widgetFileSet = new Set<AbsoluteFilePath>();
 
       proxy.setupWidgetSource({
+        filePath: widgetFilePath,
         content: ContentTextStub({
           value: `import React from 'react';`,
         }),

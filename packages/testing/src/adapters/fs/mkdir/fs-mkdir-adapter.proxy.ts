@@ -16,12 +16,12 @@ export const fsMkdirAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: mkdirSync });
 
-  mock.mockImplementation(() => undefined);
+  mock.calledWith([]).implement(() => undefined);
 
   return {
     throws: ({ dirPath, error }: { dirPath: string; error: Error }): void => {
       mock.calledWith([dirPath]).throws(error);
     },
-    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
+    getCallArgs: (): readonly unknown[][] => mock.callsMatching([]),
   };
 };

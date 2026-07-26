@@ -1,26 +1,21 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { SmoketestSuite } from '@dungeonmaster/shared/contracts';
 
 type RunSmoketestResult = Awaited<ReturnType<typeof StartOrchestrator.runSmoketest>>;
 
 export const orchestratorRunSmoketestAdapterProxy = (): {
-  returns: (params: { result: RunSmoketestResult }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { suite: SmoketestSuite; result: RunSmoketestResult }) => void;
+  throws: (params: { suite: SmoketestSuite; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.runSmoketest });
 
-  mock.mockResolvedValue({
-    runId: 'stub-run' as never,
-    enqueued: [],
-    results: [],
-  } as never);
-
   return {
-    returns: ({ result }: { result: RunSmoketestResult }): void => {
-      mock.mockResolvedValueOnce(result);
+    returns: ({ suite, result }: { suite: SmoketestSuite; result: RunSmoketestResult }): void => {
+      mock.calledWith([{ suite }]).resolves(result);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ suite, error }: { suite: SmoketestSuite; error: Error }): void => {
+      mock.calledWith([{ suite }]).rejects(error);
     },
   };
 };

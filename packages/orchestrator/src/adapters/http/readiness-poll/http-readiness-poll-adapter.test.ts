@@ -1,14 +1,16 @@
 import { httpReadinessPollAdapter } from './http-readiness-poll-adapter';
 import { httpReadinessPollAdapterProxy } from './http-readiness-poll-adapter.proxy';
 
+const POLL_URL = 'http://localhost:3000/';
+
 describe('httpReadinessPollAdapter', () => {
   describe('immediate success', () => {
     it('VALID: {url responds 200 immediately} => returns ready: true', async () => {
       const proxy = httpReadinessPollAdapterProxy();
-      proxy.respondsWithStatus({ status: 200, ok: true });
+      proxy.respondsWithStatus({ url: POLL_URL, status: 200, ok: true });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
       });
@@ -18,10 +20,10 @@ describe('httpReadinessPollAdapter', () => {
 
     it('VALID: {url responds 404} => returns ready: true (non-server-error)', async () => {
       const proxy = httpReadinessPollAdapterProxy();
-      proxy.respondsWithStatus({ status: 404, ok: false });
+      proxy.respondsWithStatus({ url: POLL_URL, status: 404, ok: false });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
       });
@@ -31,10 +33,10 @@ describe('httpReadinessPollAdapter', () => {
 
     it('VALID: {url responds 200} => elapsedMs is a non-negative number', async () => {
       const proxy = httpReadinessPollAdapterProxy();
-      proxy.respondsWithStatus({ status: 200, ok: true });
+      proxy.respondsWithStatus({ url: POLL_URL, status: 200, ok: true });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
       });
@@ -47,6 +49,7 @@ describe('httpReadinessPollAdapter', () => {
     it('VALID: {url responds 500 then 200} => retries and returns ready: true', async () => {
       const proxy = httpReadinessPollAdapterProxy();
       proxy.respondsWithStatuses({
+        url: POLL_URL,
         statuses: [
           { status: 500, ok: false },
           { status: 200, ok: true },
@@ -54,7 +57,7 @@ describe('httpReadinessPollAdapter', () => {
       });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
       });
@@ -65,6 +68,7 @@ describe('httpReadinessPollAdapter', () => {
     it('VALID: {url responds 503 then 200} => retries and returns ready: true', async () => {
       const proxy = httpReadinessPollAdapterProxy();
       proxy.respondsWithStatuses({
+        url: POLL_URL,
         statuses: [
           { status: 503, ok: false },
           { status: 200, ok: true },
@@ -72,7 +76,7 @@ describe('httpReadinessPollAdapter', () => {
       });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
       });
@@ -84,11 +88,11 @@ describe('httpReadinessPollAdapter', () => {
   describe('network errors', () => {
     it('VALID: {network error then 200} => retries after error and returns ready: true', async () => {
       const proxy = httpReadinessPollAdapterProxy();
-      proxy.throwsNetworkError({ error: new Error('ECONNREFUSED') });
-      proxy.respondsWithStatus({ status: 200, ok: true });
+      proxy.throwsNetworkError({ url: POLL_URL, error: new Error('ECONNREFUSED') });
+      proxy.respondsWithStatus({ url: POLL_URL, status: 200, ok: true });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
       });
@@ -100,10 +104,10 @@ describe('httpReadinessPollAdapter', () => {
   describe('timeout', () => {
     it('VALID: {timeout 0, server 500} => returns ready: false immediately', async () => {
       const proxy = httpReadinessPollAdapterProxy();
-      proxy.respondsWithStatus({ status: 500, ok: false });
+      proxy.respondsWithStatus({ url: POLL_URL, status: 500, ok: false });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 0,
         intervalMs: 0,
       });
@@ -113,10 +117,10 @@ describe('httpReadinessPollAdapter', () => {
 
     it('VALID: {timeout exceeded after retry} => returns ready: false with non-negative elapsedMs', async () => {
       const proxy = httpReadinessPollAdapterProxy();
-      proxy.respondsWithStatus({ status: 500, ok: false });
+      proxy.respondsWithStatus({ url: POLL_URL, status: 500, ok: false });
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 0,
         intervalMs: 0,
       });
@@ -135,7 +139,7 @@ describe('httpReadinessPollAdapter', () => {
       controller.abort();
 
       const result = await httpReadinessPollAdapter({
-        url: 'http://localhost:3000/',
+        url: POLL_URL,
         timeoutMs: 5000,
         intervalMs: 0,
         abortSignal: controller.signal,

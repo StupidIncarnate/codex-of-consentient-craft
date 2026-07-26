@@ -21,7 +21,7 @@ export const globFindAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: glob });
 
-  handle.mockResolvedValue([]);
+  handle.calledWith([]).resolves([]);
 
   // globFindAdapter calls glob(pattern, { cwd, absolute, nodir, ignore }), so a staged answer is
   // addressed by three things:

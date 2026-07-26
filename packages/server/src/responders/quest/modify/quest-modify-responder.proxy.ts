@@ -2,20 +2,20 @@ import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestra
 import { QuestModifyResponder } from './quest-modify-responder';
 
 export const QuestModifyResponderProxy = (): {
-  setupModifyQuest: () => { expectedData: { success: true } };
-  setupModifyQuestError: (params: { message: string }) => void;
+  setupModifyQuest: (params: { questId: string }) => { expectedData: { success: true } };
+  setupModifyQuestError: (params: { questId: string; message: string }) => void;
   callResponder: typeof QuestModifyResponder;
 } => {
   const adapterProxy = orchestratorModifyQuestAdapterProxy();
 
   return {
-    setupModifyQuest: (): { expectedData: { success: true } } => {
+    setupModifyQuest: ({ questId }: { questId: string }): { expectedData: { success: true } } => {
       const result = { success: true as const };
-      adapterProxy.returns({ result: result as never });
+      adapterProxy.returns({ questId, result: result as never });
       return { expectedData: result };
     },
-    setupModifyQuestError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+    setupModifyQuestError: ({ questId, message }: { questId: string; message: string }): void => {
+      adapterProxy.throws({ questId, error: new Error(message) });
     },
     callResponder: QuestModifyResponder,
   };

@@ -93,7 +93,9 @@ import {registerMock} from '@dungeonmaster/testing/register-mock';
 const mockFsExistsSync = registerMock({fn: fsExistsSyncAdapter});
 
 beforeEach(() => {
-    mockFsExistsSync.mockImplementation(({filePath}) => {
+    // No single path to key on: RuleTester's valid/invalid cases pass many different
+    // filenames, so [] is the honest catch-all and the predicate itself discriminates.
+    mockFsExistsSync.calledWith([]).implement(({filePath}) => {
         const existingFiles = ['/project/src/user.ts'];
         return existingFiles.includes(String(filePath));
     });

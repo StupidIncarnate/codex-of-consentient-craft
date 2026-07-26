@@ -19,7 +19,7 @@ export const eslintFallbackPathsBrokerProxy = (): Record<PropertyKey, never> => 
 
   // Restore real path.resolve behavior since this broker depends on actual path traversal
   const handle = resolveProxy.getHandle();
-  handle.mockImplementation((...segments) => {
+  handle.calledWith([]).implement((...segments) => {
     const parts = [] as never[];
     for (const segment of segments) {
       const [isAbsolute, value] = segmentToText(segment);

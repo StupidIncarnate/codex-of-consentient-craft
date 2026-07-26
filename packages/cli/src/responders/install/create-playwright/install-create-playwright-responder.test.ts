@@ -6,7 +6,9 @@ describe('InstallCreatePlaywrightResponder', () => {
     it('VALID: {playwright.config.ts exists} => returns skipped without writing', async () => {
       const proxy = InstallCreatePlaywrightResponderProxy();
 
-      proxy.setupFileExists();
+      proxy.setupFileExists({
+        filePath: FilePathStub({ value: '/project/playwright.config.ts' }),
+      });
 
       const result = await proxy.callResponder({
         context: {
@@ -30,7 +32,9 @@ describe('InstallCreatePlaywrightResponder', () => {
     it('VALID: {no playwright.config.ts} => creates config with e2e testMatch', async () => {
       const proxy = InstallCreatePlaywrightResponderProxy();
 
-      proxy.setupFileNotExists();
+      proxy.setupFileNotExists({
+        filePath: FilePathStub({ value: '/project/playwright.config.ts' }),
+      });
 
       const result = await proxy.callResponder({
         context: {

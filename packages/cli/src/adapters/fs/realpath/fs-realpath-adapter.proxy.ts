@@ -4,23 +4,24 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsRealpathAdapterProxy = (): {
-  resolves: (params: { resolvedPath: AbsoluteFilePath }) => void;
-  throws: (params: { error: Error }) => void;
+  resolves: (params: { filePath: AbsoluteFilePath; resolvedPath: AbsoluteFilePath }) => void;
+  throws: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: realpathSync });
 
-  // Default: return input unchanged (cast to satisfy mock return type)
-  handle.mockImplementation((path) => path);
-
   return {
-    resolves: ({ resolvedPath }: { resolvedPath: AbsoluteFilePath }): void => {
-      handle.mockReturnValueOnce(resolvedPath as never);
+    resolves: ({
+      filePath,
+      resolvedPath,
+    }: {
+      filePath: AbsoluteFilePath;
+      resolvedPath: AbsoluteFilePath;
+    }): void => {
+      handle.calledWith([filePath]).returns(resolvedPath as never);
     },
 
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ filePath, error }: { filePath: AbsoluteFilePath; error: Error }): void => {
+      handle.calledWith([filePath]).throws(error);
     },
   };
 };

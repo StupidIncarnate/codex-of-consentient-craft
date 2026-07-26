@@ -6,7 +6,7 @@ describe('childProcessSpawnAdapter', () => {
   describe('valid spawns', () => {
     it('VALID: {command: "claude", args: ["--help"], options: {stdio: "inherit"}} => spawns child process', () => {
       const proxy = childProcessSpawnAdapterProxy();
-      proxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSuccess({ command: 'claude', exitCode: ExitCodeStub({ value: 0 }) });
 
       const result = childProcessSpawnAdapter({
         command: 'claude',
@@ -19,7 +19,7 @@ describe('childProcessSpawnAdapter', () => {
 
     it('VALID: {command: "node", args: ["-v"]} => spawns child process without options', () => {
       const proxy = childProcessSpawnAdapterProxy();
-      proxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSuccess({ command: 'node', exitCode: ExitCodeStub({ value: 0 }) });
 
       const result = childProcessSpawnAdapter({
         command: 'node',
@@ -31,7 +31,7 @@ describe('childProcessSpawnAdapter', () => {
 
     it('VALID: {command: "npm", args: ["test", "--", "path/to/test.ts"], options: {cwd: "/project"}} => spawns with cwd', () => {
       const proxy = childProcessSpawnAdapterProxy();
-      proxy.setupSuccess({ exitCode: ExitCodeStub({ value: 0 }) });
+      proxy.setupSuccess({ command: 'npm', exitCode: ExitCodeStub({ value: 0 }) });
 
       const result = childProcessSpawnAdapter({
         command: 'npm',
@@ -47,7 +47,7 @@ describe('childProcessSpawnAdapter', () => {
     it('VALID: child process emits exit event with code 0 => resolves successfully', async () => {
       const proxy = childProcessSpawnAdapterProxy();
       const expectedExitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode: expectedExitCode });
+      proxy.setupSuccess({ command: 'claude', exitCode: expectedExitCode });
 
       const child = childProcessSpawnAdapter({
         command: 'claude',
@@ -66,7 +66,7 @@ describe('childProcessSpawnAdapter', () => {
     it('VALID: child process emits exit event with code 1 => resolves with error code', async () => {
       const proxy = childProcessSpawnAdapterProxy();
       const expectedExitCode = ExitCodeStub({ value: 1 });
-      proxy.setupSuccess({ exitCode: expectedExitCode });
+      proxy.setupSuccess({ command: 'claude', exitCode: expectedExitCode });
 
       const child = childProcessSpawnAdapter({
         command: 'claude',
@@ -87,7 +87,7 @@ describe('childProcessSpawnAdapter', () => {
     it('ERROR: child process emits error event => rejects with error', async () => {
       const proxy = childProcessSpawnAdapterProxy();
       const testError = new Error('ENOENT: command not found');
-      proxy.setupError({ error: testError });
+      proxy.setupError({ command: 'nonexistent-command', error: testError });
 
       const child = childProcessSpawnAdapter({
         command: 'nonexistent-command',

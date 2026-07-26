@@ -9,7 +9,7 @@ describe('fsMkdirAdapter', () => {
       const proxy = fsMkdirAdapterProxy();
       const dirPath = FilePathStub({ value: '/path/to/new/dir' });
 
-      proxy.succeeds();
+      proxy.succeeds({ dirPath });
 
       await expect(fsMkdirAdapter({ dirPath })).resolves.toStrictEqual({
         success: true,
@@ -22,7 +22,7 @@ describe('fsMkdirAdapter', () => {
       const proxy = fsMkdirAdapterProxy();
       const dirPath = FilePathStub({ value: '/readonly/dir' });
 
-      proxy.throws({ error: new Error('EACCES: permission denied') });
+      proxy.throws({ dirPath, error: new Error('EACCES: permission denied') });
 
       await expect(fsMkdirAdapter({ dirPath })).rejects.toThrow(/EACCES/u);
     });

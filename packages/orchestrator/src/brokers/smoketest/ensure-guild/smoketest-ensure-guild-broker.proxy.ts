@@ -44,23 +44,20 @@ export const smoketestEnsureGuildBrokerProxy = (): {
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
   cwdResolveBrokerProxy();
-  dungeonmasterHomeFindBrokerProxy();
+  const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const listProxy = guildListBrokerProxy();
 
   // smoketestEnsureGuildBroker resolves repo-root for the dungeonmaster home AND for every guild
-  // in the config. Stub cwdResolveBroker directly so passthrough tests don't have to seed a full
-  // walk-up chain per guild path. Default: every call returns '/repo-root' so the home and the
-  // first guild collapse to the same answer (matched).
+  // in the config. Stub cwdResolveBroker directly, keyed on the real { startPath, kind } each
+  // call carries, so passthrough tests don't have to worry about call order — the home walk-up
+  // and every per-guild walk-up address their own answer independently.
   const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
-  cwdResolveMock.mockResolvedValue(repoRootCwdContract.parse('/repo-root'));
 
-  const mocked = smoketestEnsureGuildBroker as jest.MockedFunction<
-    typeof smoketestEnsureGuildBroker
-  >;
+  const mocked = registerMock({ fn: smoketestEnsureGuildBroker });
 
   return {
     setupReturnsGuildId: ({ guildId }: { guildId: GuildId }): void => {
-      mocked.mockResolvedValueOnce({ guildId });
+      mocked.onceFor([]).resolves({ guildId });
     },
     setupPassthrough: (): void => {
       const realMod = requireActual<{
@@ -68,9 +65,9 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       }>({
         module: './smoketest-ensure-guild-broker',
       });
-      mocked.mockImplementation(realMod.smoketestEnsureGuildBroker);
+      mocked.calledWith([]).implement(realMod.smoketestEnsureGuildBroker);
     },
-    getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
+    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
     setupGuildPresent: ({
       config,
       homeDir,
@@ -90,6 +87,17 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       homeRepoRoot?: RepoRootCwd;
       guildRepoRoots?: readonly (RepoRootCwd | null)[];
     }): void => {
+      // dungeonmasterHomeFindBroker() is called an extra, EARLIER time here — directly by this
+      // broker itself — on top of the calls guildConfigReadBroker and guildListBroker each make
+      // internally once guildListBroker() runs below. pathJoinAdapter's mock answers from a
+      // single shared FIFO queue keyed only on `kind: []` (not on the real segments), so this
+      // stage exists purely to consume ONE MORE queue slot ahead of guildListBroker's own
+      // staging — the actual homePath value returned here is never observed: it only feeds
+      // cwdResolveBroker's startPath for the home walk-up, which is addressed by `kind` alone
+      // (see the comment below), and dungeonmasterHomeFindBroker's other real caller in this
+      // chain (guildConfigReadBroker) never inspects it either.
+      homeFindProxy.setupHomePath({ homeDir, homePath });
+
       listProxy.setupGuildList({
         config,
         homeDir,
@@ -97,9 +105,9 @@ export const smoketestEnsureGuildBrokerProxy = (): {
         guildEntries: guildEntries.slice(),
       });
 
-      // Default scenario: home and every guild resolve to '/repo-root', so the first guild matches.
-      // Tests that need a different layout pass `homeRepoRoot` + per-guild `guildRepoRoots` (null
-      // entries simulate cwdResolveBroker rejecting for that guild).
+      // Default scenario: home and every guild resolve to '/repo-root', so the first guild
+      // matches. Tests that need a different layout pass `homeRepoRoot` + per-guild
+      // `guildRepoRoots` (null entries simulate cwdResolveBroker rejecting for that guild).
       const homeAnchor = homeRepoRoot ?? repoRootCwdContract.parse('/repo-root');
       const perGuild =
         guildRepoRoots ??
@@ -107,15 +115,23 @@ export const smoketestEnsureGuildBrokerProxy = (): {
           repoRootCwdContract.parse('/repo-root'),
         ) as readonly RepoRootCwd[]);
 
-      cwdResolveMock.mockClear();
-      cwdResolveMock.mockResolvedValueOnce(homeAnchor);
-      for (const root of perGuild) {
+      // cwdResolveBroker's own call order (home first, then each guild in config order —
+      // nothing else in this broker's run touches cwdResolveBroker) is what the home answer
+      // is staged against: the first `kind: 'repo-root'` call.
+      cwdResolveMock.onceFor([{ kind: 'repo-root' }]).resolves(homeAnchor);
+
+      // Each guild's own startPath is guild.path itself, passed straight through from config
+      // by guildListBroker with no pathJoin/homedir involvement — unlike the home case, this
+      // value IS reliable, so guild calls stay addressed by their real argument.
+      config.guilds.forEach((guild, index) => {
+        const root = perGuild[index] ?? null;
+        const address = [{ startPath: guild.path, kind: 'repo-root' }];
         if (root === null) {
-          cwdResolveMock.mockRejectedValueOnce(new Error('repo-root not found'));
+          cwdResolveMock.calledWith(address).rejects(new Error('repo-root not found'));
         } else {
-          cwdResolveMock.mockResolvedValueOnce(root);
+          cwdResolveMock.calledWith(address).resolves(root);
         }
-      }
+      });
     },
   };
 };

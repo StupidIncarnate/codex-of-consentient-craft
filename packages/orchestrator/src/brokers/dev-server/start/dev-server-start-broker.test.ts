@@ -7,7 +7,7 @@ describe('devServerStartBroker', () => {
   describe('server becomes ready', () => {
     it('VALID: {server starts and responds 200} => returns expected url', async () => {
       const proxy = devServerStartBrokerProxy();
-      proxy.setupServerBecomesReady();
+      proxy.setupServerBecomesReady({ port: 3000, pollUrl: 'http://localhost:3000/' });
 
       const result = await devServerStartBroker({
         devCommand: 'npm run dev',
@@ -25,7 +25,7 @@ describe('devServerStartBroker', () => {
   describe('empty dev command', () => {
     it('ERROR: {empty devCommand} => throws dev command is empty', async () => {
       const proxy = devServerStartBrokerProxy();
-      proxy.setupServerBecomesReady();
+      proxy.setupServerBecomesReady({ port: 3000, pollUrl: 'http://localhost:3000/' });
 
       await expect(
         devServerStartBroker({
@@ -43,7 +43,11 @@ describe('devServerStartBroker', () => {
   describe('server exits before ready', () => {
     it('ERROR: {process exits with code 1 before ready} => throws process exited error', async () => {
       const proxy = devServerStartBrokerProxy();
-      proxy.setupServerExitsBeforeReady({ exitCode: 1 });
+      proxy.setupServerExitsBeforeReady({
+        port: 3000,
+        pollUrl: 'http://localhost:3000/',
+        exitCode: 1,
+      });
 
       await expect(
         devServerStartBroker({
@@ -61,7 +65,7 @@ describe('devServerStartBroker', () => {
   describe('server readiness timeout', () => {
     it('ERROR: {server never becomes ready, timeout 0ms} => throws timeout error', async () => {
       const proxy = devServerStartBrokerProxy();
-      proxy.setupServerReadinessTimeout();
+      proxy.setupServerReadinessTimeout({ port: 3000, pollUrl: 'http://localhost:3000/health' });
 
       await expect(
         devServerStartBroker({
@@ -79,7 +83,7 @@ describe('devServerStartBroker', () => {
   describe('port cleanup before start', () => {
     it('VALID: {server starts successfully} => kills stale processes on both server port and web port before spawning', async () => {
       const proxy = devServerStartBrokerProxy();
-      proxy.setupServerBecomesReady();
+      proxy.setupServerBecomesReady({ port: 3000, pollUrl: 'http://localhost:3000/' });
 
       await devServerStartBroker({
         devCommand: 'npm run dev',
@@ -90,7 +94,7 @@ describe('devServerStartBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.wasKillByPortCalledForBothPorts()).toBe(true);
+      expect(proxy.wasKillByPortCalledForBothPorts({ port: 3000 })).toBe(true);
     });
   });
 });

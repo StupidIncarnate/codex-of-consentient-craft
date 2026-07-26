@@ -36,8 +36,8 @@ const dirEntry = ({ name }: { name: string }): Dirent =>
 describe('findStartupFilesLayerBroker', () => {
   it('VALID: {startup dir has start-app.ts} => returns the absolute path', () => {
     const proxy = findStartupFilesLayerBrokerProxy();
-    proxy.setupReturns({ entries: [fileEntry({ name: 'start-app.ts' })] });
     const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    proxy.setupReturns({ packageSrcPath, entries: [fileEntry({ name: 'start-app.ts' })] });
 
     const result = findStartupFilesLayerBroker({ packageSrcPath });
 
@@ -46,8 +46,8 @@ describe('findStartupFilesLayerBroker', () => {
 
   it('VALID: {startup dir has start-app.tsx} => returns the absolute path', () => {
     const proxy = findStartupFilesLayerBrokerProxy();
-    proxy.setupReturns({ entries: [fileEntry({ name: 'start-app.tsx' })] });
     const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    proxy.setupReturns({ packageSrcPath, entries: [fileEntry({ name: 'start-app.tsx' })] });
 
     const result = findStartupFilesLayerBroker({ packageSrcPath });
 
@@ -56,10 +56,11 @@ describe('findStartupFilesLayerBroker', () => {
 
   it('VALID: {non-start file in startup dir} => excluded from results', () => {
     const proxy = findStartupFilesLayerBrokerProxy();
+    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
     proxy.setupReturns({
+      packageSrcPath,
       entries: [fileEntry({ name: 'helper.ts' }), fileEntry({ name: 'start-app.ts' })],
     });
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
 
     const result = findStartupFilesLayerBroker({ packageSrcPath });
 
@@ -68,10 +69,11 @@ describe('findStartupFilesLayerBroker', () => {
 
   it('VALID: {test file in startup dir} => excluded from results', () => {
     const proxy = findStartupFilesLayerBrokerProxy();
+    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
     proxy.setupReturns({
+      packageSrcPath,
       entries: [fileEntry({ name: 'start-app.ts' }), fileEntry({ name: 'start-app.test.ts' })],
     });
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
 
     const result = findStartupFilesLayerBroker({ packageSrcPath });
 
@@ -80,10 +82,11 @@ describe('findStartupFilesLayerBroker', () => {
 
   it('VALID: {directory inside startup dir} => excluded from results', () => {
     const proxy = findStartupFilesLayerBrokerProxy();
+    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
     proxy.setupReturns({
+      packageSrcPath,
       entries: [dirEntry({ name: 'sub' }), fileEntry({ name: 'start-app.ts' })],
     });
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
 
     const result = findStartupFilesLayerBroker({ packageSrcPath });
 
@@ -92,8 +95,8 @@ describe('findStartupFilesLayerBroker', () => {
 
   it('EMPTY: {startup dir missing} => returns empty array (no throw)', () => {
     const proxy = findStartupFilesLayerBrokerProxy();
-    proxy.setupReaddirThrows({ error: new Error('ENOENT') });
     const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    proxy.setupReaddirThrows({ packageSrcPath, error: new Error('ENOENT') });
 
     const result = findStartupFilesLayerBroker({ packageSrcPath });
 

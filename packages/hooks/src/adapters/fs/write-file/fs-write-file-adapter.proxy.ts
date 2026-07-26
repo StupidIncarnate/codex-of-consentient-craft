@@ -6,31 +6,26 @@ import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 export const fsWriteFileAdapterProxy = (): {
   succeeds: ({ filepath, contents }: { filepath: FilePath; contents: FileContents }) => void;
   throws: ({ filepath, error }: { filepath: FilePath; error: Error }) => void;
-  getWrittenContent: () => unknown;
+  getWrittenFor: ({ filepath }: { filepath: FilePath }) => unknown;
 } => {
   const mockWriteFile = registerMock({ fn: writeFile });
 
-  mockWriteFile.mockResolvedValue({ success: true as const });
-
   return {
     succeeds: ({
-      filepath: _filepath,
+      filepath,
       contents: _contents,
     }: {
       filepath: FilePath;
       contents: FileContents;
     }): void => {
-      mockWriteFile.mockResolvedValueOnce({ success: true as const });
+      mockWriteFile.calledWith([filepath]).resolves({ success: true as const });
     },
-    throws: ({ filepath: _filepath, error }: { filepath: FilePath; error: Error }): void => {
-      mockWriteFile.mockRejectedValueOnce(error);
+    throws: ({ filepath, error }: { filepath: FilePath; error: Error }): void => {
+      mockWriteFile.calledWith([filepath]).rejects(error);
     },
 
-    getWrittenContent: (): unknown => {
-      const { calls } = mockWriteFile.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
+    // Answers for THIS path only — a call to a different path never satisfies this lookup.
+    getWrittenFor: ({ filepath }: { filepath: FilePath }): unknown =>
+      mockWriteFile.callsMatching([filepath]).at(-1)?.[1],
   };
 };

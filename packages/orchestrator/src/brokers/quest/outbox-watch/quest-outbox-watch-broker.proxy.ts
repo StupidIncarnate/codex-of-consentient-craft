@@ -34,7 +34,7 @@ export const questOutboxWatchBrokerProxy = (): {
         guildsPath: homePath,
       });
       pathJoinProxy.returns({ result: outboxPath });
-      writeFileProxy.succeeds();
+      writeFileProxy.succeeds({ filePath: outboxPath });
     },
 
     triggerChange: (): void => {

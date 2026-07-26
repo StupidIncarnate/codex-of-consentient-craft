@@ -44,7 +44,7 @@ export const guildConfigWriteBrokerProxy = (): {
         homePath: DEFAULT_HOME_PATH,
       });
       pathJoinProxy.returns({ result: DEFAULT_CONFIG_FILE_PATH });
-      writeFileProxy.succeeds();
+      writeFileProxy.succeeds({ filePath: DEFAULT_CONFIG_FILE_PATH });
     },
 
     setupWriteSuccess: ({
@@ -58,7 +58,7 @@ export const guildConfigWriteBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: configFilePath });
-      writeFileProxy.succeeds();
+      writeFileProxy.succeeds({ filePath: configFilePath });
     },
 
     setupWriteFailure: ({
@@ -74,9 +74,12 @@ export const guildConfigWriteBrokerProxy = (): {
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
       pathJoinProxy.returns({ result: configFilePath });
-      writeFileProxy.throws({ error });
+      writeFileProxy.throws({ filePath: configFilePath, error });
     },
 
-    getWrittenContent: (): unknown => writeFileProxy.getWrittenContent(),
+    // Every caller of this proxy's setup methods (default and explicit) uses the same
+    // literal config.json path, so the write's address is this fixed constant.
+    getWrittenContent: (): unknown =>
+      writeFileProxy.getWrittenFor({ filePath: DEFAULT_CONFIG_FILE_PATH }),
   };
 };

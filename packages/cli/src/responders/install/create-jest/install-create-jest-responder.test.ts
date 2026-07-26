@@ -7,7 +7,7 @@ describe('InstallCreateJestResponder', () => {
     it('VALID: {no jest.config.js} => writes the base-spreading jest config', async () => {
       const proxy = InstallCreateJestResponderProxy();
 
-      proxy.setupFileNotExists();
+      proxy.setupFileNotExists({ filePath: FilePathStub({ value: '/project/jest.config.js' }) });
 
       const result = await proxy.callResponder({
         context: {
@@ -34,7 +34,7 @@ describe('InstallCreateJestResponder', () => {
     it('VALID: {jest.config.js present} => skips without writing', async () => {
       const proxy = InstallCreateJestResponderProxy();
 
-      proxy.setupFileExists();
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/jest.config.js' }) });
 
       const result = await proxy.callResponder({
         context: {

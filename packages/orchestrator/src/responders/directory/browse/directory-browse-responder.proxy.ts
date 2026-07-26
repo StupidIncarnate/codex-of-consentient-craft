@@ -15,7 +15,7 @@ export const DirectoryBrowseResponderProxy = (): {
     homeDir: string;
     directories: { name: string; joinedPath: FilePath }[];
   }) => void;
-  setupEmpty: () => void;
+  setupEmpty: (params: { targetPath: string }) => void;
 } => {
   const brokerProxy = directoryBrowseBrokerProxy();
 
@@ -38,8 +38,8 @@ export const DirectoryBrowseResponderProxy = (): {
       brokerProxy.setupDefaultHomedir(params);
     },
 
-    setupEmpty: (): void => {
-      brokerProxy.setupEmpty();
+    setupEmpty: (params: { targetPath: string }): void => {
+      brokerProxy.setupEmpty(params);
     },
   };
 };

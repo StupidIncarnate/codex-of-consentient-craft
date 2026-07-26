@@ -2,7 +2,7 @@ import { NextStepStub } from '../../../contracts/next-step/next-step.stub';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
 import { QuestRunWardResultStub } from '../../../contracts/quest-run-ward-result/quest-run-ward-result.stub';
 import { AdapterResultStub } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questGetNextStepBroker } from '../get-next-step/quest-get-next-step-broker';
 import { questGetNextStepBrokerProxy } from '../get-next-step/quest-get-next-step-broker.proxy';
@@ -54,25 +54,37 @@ export const questNodeDispatchLoopBrokerProxy = (): {
   questGetNextStepBrokerProxy();
   questRunWardBrokerProxy();
   spawnBatchLayerBrokerProxy();
-  const getNextStepMock = questGetNextStepBroker as jest.MockedFunction<
-    typeof questGetNextStepBroker
-  >;
-  const runWardMock = questRunWardBroker as jest.MockedFunction<typeof questRunWardBroker>;
-  const spawnBatchMock = spawnBatchLayerBroker as jest.MockedFunction<typeof spawnBatchLayerBroker>;
 
-  getNextStepMock.mockResolvedValue(NextStepStub());
-  runWardMock.mockResolvedValue(QuestRunWardResultStub());
-  spawnBatchMock.mockResolvedValue(AdapterResultStub());
+  const getNextStepMock = registerMock({ fn: questGetNextStepBroker });
+  const runWardMock = registerMock({ fn: questRunWardBroker });
+  const spawnBatchMock = registerMock({ fn: spawnBatchLayerBroker });
+
+  // None of the three real calls carry an argument this loop branches on: questGetNextStepBroker
+  // is called with the SAME static shape on every recursion, and the loop discards whatever
+  // questRunWardBroker/spawnBatchLayerBroker resolve to regardless of which queued step triggered
+  // the call — it just proceeds to the next recursion either way. `[]` is the honest address for
+  // all three defaults.
+  getNextStepMock.calledWith([]).resolves(NextStepStub());
+  runWardMock.calledWith([]).resolves(QuestRunWardResultStub());
+  spawnBatchMock.calledWith([]).resolves(AdapterResultStub());
 
   return {
+    // One queued step per recursion. questGetNextStepBroker's call carries no argument that
+    // distinguishes "which recursion" — the loop itself is what advances — so each queued step
+    // is a live one-shot at the same `[]` address, consumed in the order staged.
     queueStep: ({ step }: { step: NextStep }): void => {
-      getNextStepMock.mockResolvedValueOnce(step);
+      getNextStepMock.onceFor([]).resolves(step);
     },
 
-    getRunWardCalls: (): readonly unknown[] => runWardMock.mock.calls.map((call) => call[0]),
+    // Tests assert the FULL ordered sequence of calls across every recursion (e.g. two queued
+    // spawn-agents steps => two batches dispatched in order), so callsMatching([]) — every call,
+    // unfiltered — is what "the calls this loop made" actually means here, not a single address.
+    getRunWardCalls: (): readonly unknown[] => runWardMock.callsMatching([]).map((call) => call[0]),
 
-    getSpawnBatchCalls: (): readonly unknown[] => spawnBatchMock.mock.calls.map((call) => call[0]),
+    getSpawnBatchCalls: (): readonly unknown[] =>
+      spawnBatchMock.callsMatching([]).map((call) => call[0]),
 
-    getNextStepCalls: (): readonly unknown[] => getNextStepMock.mock.calls.map((call) => call[0]),
+    getNextStepCalls: (): readonly unknown[] =>
+      getNextStepMock.callsMatching([]).map((call) => call[0]),
   };
 };

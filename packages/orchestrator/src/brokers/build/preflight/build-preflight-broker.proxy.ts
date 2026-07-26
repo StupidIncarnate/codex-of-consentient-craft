@@ -3,33 +3,43 @@ import { ErrorMessageStub, ExitCodeStub, type ExitCode } from '@dungeonmaster/sh
 import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const buildPreflightBrokerProxy = (): {
-  setupBuildSuccess: () => void;
-  setupBuildFailure: (params: { exitCode: ExitCode; output: string }) => void;
-  setupBuildError: (params: { error: Error }) => void;
+  setupBuildSuccess: (params: { command: string }) => void;
+  setupBuildFailure: (params: { command: string; exitCode: ExitCode; output: string }) => void;
+  setupBuildError: (params: { command: string; error: Error }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
 } => {
   const captureProxy = childProcessSpawnCaptureAdapterProxy();
 
   return {
-    setupBuildSuccess: (): void => {
+    setupBuildSuccess: ({ command }: { command: string }): void => {
       captureProxy.setupSuccess({
+        command,
         exitCode: ExitCodeStub({ value: 0 }),
         stdout: ErrorMessageStub({ value: 'Build succeeded' }),
         stderr: ErrorMessageStub({ value: '' }),
       });
     },
 
-    setupBuildFailure: ({ exitCode, output }: { exitCode: ExitCode; output: string }): void => {
+    setupBuildFailure: ({
+      command,
+      exitCode,
+      output,
+    }: {
+      command: string;
+      exitCode: ExitCode;
+      output: string;
+    }): void => {
       captureProxy.setupSuccess({
+        command,
         exitCode,
         stdout: ErrorMessageStub({ value: output }),
         stderr: ErrorMessageStub({ value: '' }),
       });
     },
 
-    setupBuildError: ({ error }: { error: Error }): void => {
-      captureProxy.setupError({ error });
+    setupBuildError: ({ command, error }: { command: string; error: Error }): void => {
+      captureProxy.setupError({ command, error });
     },
 
     getSpawnedCommand: (): unknown => captureProxy.getSpawnedCommand(),

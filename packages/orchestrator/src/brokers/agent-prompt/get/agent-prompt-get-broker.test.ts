@@ -267,6 +267,7 @@ describe('agentPromptGetBroker', () => {
         workItems: [workItem],
       });
       proxy.setupQuestFound({ quest });
+      proxy.setupNoDevServerConfig();
 
       const result = await agentPromptGetBroker({
         agent: 'siegemaster',

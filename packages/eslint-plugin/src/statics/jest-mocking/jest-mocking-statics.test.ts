@@ -39,6 +39,18 @@ describe('jestMockingStatics', () => {
         'mockResolvedValueOnce',
         'mockRejectedValueOnce',
       ]),
+      chainedMockStagingMethods: ['calledWith', 'onceFor'],
+      chainedMockStagingMethodSet: new Set(['calledWith', 'onceFor']),
+      chainedMockResultMethods: ['returns', 'resolves', 'rejects', 'throws', 'implement'],
+      chainedMockResultMethodSet: new Set([
+        'returns',
+        'resolves',
+        'rejects',
+        'throws',
+        'implement',
+      ]),
+      chainedMockQueryMethods: ['callsMatching'],
+      chainedMockQueryMethodSet: new Set(['callsMatching']),
     });
   });
 });

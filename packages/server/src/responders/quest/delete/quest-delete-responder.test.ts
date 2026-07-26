@@ -29,9 +29,9 @@ describe('QuestDeleteResponder', () => {
         const proxy = QuestDeleteResponderProxy();
         const questId = QuestIdStub({ value: `delete-${status}` });
         const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-        const quest = QuestStub({ status: status as never });
+        const quest = QuestStub({ id: questId, status: status as never });
         proxy.setupQuest({ quest });
-        proxy.setupDeleteQuest({ deleted: true });
+        proxy.setupDeleteQuest({ questId, deleted: true });
 
         const result = await proxy.callResponder({
           params: { questId },
@@ -53,7 +53,7 @@ describe('QuestDeleteResponder', () => {
         const proxy = QuestDeleteResponderProxy();
         const questId = QuestIdStub({ value: `delete-reject-${status}` });
         const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-        const quest = QuestStub({ status: status as never });
+        const quest = QuestStub({ id: questId, status: status as never });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({
@@ -120,7 +120,7 @@ describe('QuestDeleteResponder', () => {
       const proxy = QuestDeleteResponderProxy();
       const questId = QuestIdStub({ value: 'missing' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      proxy.setupQuestNotFound();
+      proxy.setupQuestNotFound({ questId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -139,9 +139,9 @@ describe('QuestDeleteResponder', () => {
       const proxy = QuestDeleteResponderProxy();
       const questId = QuestIdStub({ value: 'fail-quest' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const quest = QuestStub({ status: 'complete' as never });
+      const quest = QuestStub({ id: questId, status: 'complete' as never });
       proxy.setupQuest({ quest });
-      proxy.setupDeleteQuestError({ message: 'Delete failed' });
+      proxy.setupDeleteQuestError({ questId, message: 'Delete failed' });
 
       const result = await proxy.callResponder({
         params: { questId },

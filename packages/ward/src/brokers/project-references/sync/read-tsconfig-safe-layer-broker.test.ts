@@ -7,11 +7,13 @@ describe('readTsconfigSafeLayerBroker()', () => {
   describe('valid tsconfig', () => {
     it('VALID: {valid tsconfig.json} => returns parsed TsconfigJsonWritable', () => {
       const proxy = readTsconfigSafeLayerBrokerProxy();
-      proxy.returns({ content: '{"compilerOptions":{"composite":true},"references":[]}' });
-
-      const result = readTsconfigSafeLayerBroker({
-        tsconfigPath: FilePathStub({ value: '/repo/packages/shared/tsconfig.json' }),
+      const tsconfigPath = FilePathStub({ value: '/repo/packages/shared/tsconfig.json' });
+      proxy.returns({
+        tsconfigPath,
+        content: '{"compilerOptions":{"composite":true},"references":[]}',
       });
+
+      const result = readTsconfigSafeLayerBroker({ tsconfigPath });
 
       expect(result).toStrictEqual({
         compilerOptions: { composite: true },
@@ -21,11 +23,10 @@ describe('readTsconfigSafeLayerBroker()', () => {
 
     it('VALID: {empty tsconfig.json} => returns empty object', () => {
       const proxy = readTsconfigSafeLayerBrokerProxy();
-      proxy.returns({ content: '{}' });
+      const tsconfigPath = FilePathStub({ value: '/repo/tsconfig.json' });
+      proxy.returns({ tsconfigPath, content: '{}' });
 
-      const result = readTsconfigSafeLayerBroker({
-        tsconfigPath: FilePathStub({ value: '/repo/tsconfig.json' }),
-      });
+      const result = readTsconfigSafeLayerBroker({ tsconfigPath });
 
       expect(result).toStrictEqual({});
     });
@@ -34,11 +35,10 @@ describe('readTsconfigSafeLayerBroker()', () => {
   describe('error handling', () => {
     it('ERROR: {file not found} => returns undefined', () => {
       const proxy = readTsconfigSafeLayerBrokerProxy();
-      proxy.throws({ error: new Error('ENOENT: no such file') });
+      const tsconfigPath = FilePathStub({ value: '/repo/packages/missing/tsconfig.json' });
+      proxy.throws({ tsconfigPath, error: new Error('ENOENT: no such file') });
 
-      const result = readTsconfigSafeLayerBroker({
-        tsconfigPath: FilePathStub({ value: '/repo/packages/missing/tsconfig.json' }),
-      });
+      const result = readTsconfigSafeLayerBroker({ tsconfigPath });
 
       expect(result).toBe(undefined);
     });

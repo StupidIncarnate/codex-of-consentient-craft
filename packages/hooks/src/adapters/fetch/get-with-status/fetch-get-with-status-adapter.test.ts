@@ -5,11 +5,10 @@ describe('fetchGetWithStatusAdapter', () => {
   describe('successful GET', () => {
     it('VALID: {200 OK with JSON body} => returns status 200, ok true, parsed body', async () => {
       const proxy = fetchGetWithStatusAdapterProxy();
-      proxy.setupOk({ body: { questId: 'q-1' } });
+      const url = 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1';
+      proxy.setupOk({ url, body: { questId: 'q-1' } });
 
-      const result = await fetchGetWithStatusAdapter({
-        url: 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1',
-      });
+      const result = await fetchGetWithStatusAdapter({ url });
 
       expect(result).toStrictEqual({
         status: 200,
@@ -22,11 +21,10 @@ describe('fetchGetWithStatusAdapter', () => {
   describe('not found', () => {
     it('VALID: {404 with JSON error body} => returns status 404, ok false, parsed body', async () => {
       const proxy = fetchGetWithStatusAdapterProxy();
-      proxy.setupStatus({ status: 404, body: { error: 'No quest found for session' } });
+      const url = 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-missing';
+      proxy.setupStatus({ url, status: 404, body: { error: 'No quest found for session' } });
 
-      const result = await fetchGetWithStatusAdapter({
-        url: 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-missing',
-      });
+      const result = await fetchGetWithStatusAdapter({ url });
 
       expect(result).toStrictEqual({
         status: 404,
@@ -39,11 +37,10 @@ describe('fetchGetWithStatusAdapter', () => {
   describe('server error', () => {
     it('VALID: {500 with JSON body} => returns status 500, ok false, parsed body', async () => {
       const proxy = fetchGetWithStatusAdapterProxy();
-      proxy.setupStatus({ status: 500, body: { error: 'Boom' } });
+      const url = 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1';
+      proxy.setupStatus({ url, status: 500, body: { error: 'Boom' } });
 
-      const result = await fetchGetWithStatusAdapter({
-        url: 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1',
-      });
+      const result = await fetchGetWithStatusAdapter({ url });
 
       expect(result).toStrictEqual({
         status: 500,
@@ -56,11 +53,10 @@ describe('fetchGetWithStatusAdapter', () => {
   describe('non-JSON body', () => {
     it('VALID: {200 with raw text body} => returns body as raw string', async () => {
       const proxy = fetchGetWithStatusAdapterProxy();
-      proxy.setupRawText({ status: 200, text: 'not json' });
+      const url = 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1';
+      proxy.setupRawText({ url, status: 200, text: 'not json' });
 
-      const result = await fetchGetWithStatusAdapter({
-        url: 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1',
-      });
+      const result = await fetchGetWithStatusAdapter({ url });
 
       expect(result).toStrictEqual({
         status: 200,
@@ -73,11 +69,10 @@ describe('fetchGetWithStatusAdapter', () => {
   describe('empty body', () => {
     it('EMPTY: {204 with empty body} => returns body as null', async () => {
       const proxy = fetchGetWithStatusAdapterProxy();
-      proxy.setupRawText({ status: 204, text: '' });
+      const url = 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1';
+      proxy.setupRawText({ url, status: 204, text: '' });
 
-      const result = await fetchGetWithStatusAdapter({
-        url: 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1',
-      });
+      const result = await fetchGetWithStatusAdapter({ url });
 
       expect(result).toStrictEqual({
         status: 204,
@@ -90,13 +85,10 @@ describe('fetchGetWithStatusAdapter', () => {
   describe('connection error', () => {
     it('ERROR: {fetch throws TypeError} => propagates the error to the caller', async () => {
       const proxy = fetchGetWithStatusAdapterProxy();
-      proxy.setupNetworkError({ error: new TypeError('fetch failed') });
+      const url = 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1';
+      proxy.setupNetworkError({ url, error: new TypeError('fetch failed') });
 
-      await expect(
-        fetchGetWithStatusAdapter({
-          url: 'http://dungeonmaster.localhost:3737/api/quests/by-session/s-1',
-        }),
-      ).rejects.toThrow('fetch failed');
+      await expect(fetchGetWithStatusAdapter({ url })).rejects.toThrow('fetch failed');
     });
   });
 });

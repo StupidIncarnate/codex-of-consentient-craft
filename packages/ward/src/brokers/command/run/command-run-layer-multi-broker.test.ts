@@ -30,12 +30,12 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoad({ packageCount: 1, subResultContent: subResult });
-
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const projectFolders = [ProjectFolderStub()];
       const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent: subResult });
 
       const result = await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
 
@@ -66,14 +66,18 @@ describe('commandRunLayerMultiBroker', () => {
 
   describe('null sub-result', () => {
     it('VALID: {one package, storage load returns null} => reports the package as crashed', async () => {
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnWithNullLoad();
-
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
-      const projectFolders = [ProjectFolderStub()];
+      const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['lint'] });
 
-      const result = await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnWithNullLoad({ rootPath, projectFolder });
+
+      const result = await commandRunLayerMultiBroker({
+        config,
+        projectFolders: [projectFolder],
+        rootPath,
+      });
 
       expect(result.checks).toStrictEqual([
         {
@@ -131,12 +135,12 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoad({ packageCount: 1, subResultContent: subResult });
-
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const projectFolders = [ProjectFolderStub()];
       const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent: subResult });
 
       await commandRunLayerMultiBroker({ config, projectFolders, rootPath });
 
@@ -170,9 +174,6 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoadSelective({ packages: [{ subResultContent: subResult }] });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardFolder = ProjectFolderStub({
         name: 'ward',
@@ -185,6 +186,12 @@ describe('commandRunLayerMultiBroker', () => {
       const config = WardConfigStub({
         only: ['lint'],
         passthrough: ['packages/ward/src/foo.test.ts'],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: subResult }],
       });
 
       await commandRunLayerMultiBroker({
@@ -246,11 +253,6 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoadSelective({
-        packages: [{ subResultContent: wardSubResult }, { subResultContent: hooksSubResult }],
-      });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardFolder = ProjectFolderStub({
         name: 'ward',
@@ -263,6 +265,15 @@ describe('commandRunLayerMultiBroker', () => {
       const config = WardConfigStub({
         only: ['lint'],
         passthrough: ['packages/ward/src/foo.test.ts', 'packages/hooks/src/bar.test.ts'],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
       });
 
       await commandRunLayerMultiBroker({
@@ -278,9 +289,6 @@ describe('commandRunLayerMultiBroker', () => {
     });
 
     it('EMPTY: {passthrough active but no files match any package} => no children spawned', async () => {
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupNoSpawns();
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardFolder = ProjectFolderStub({
         name: 'ward',
@@ -294,6 +302,9 @@ describe('commandRunLayerMultiBroker', () => {
         only: ['lint'],
         passthrough: ['packages/other/src/baz.test.ts'],
       });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupNoSpawns({ rootPath });
 
       const result = await commandRunLayerMultiBroker({
         config,
@@ -337,9 +348,6 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoadSelective({ packages: [{ subResultContent: subResult }] });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardFolder = ProjectFolderStub({
         name: 'ward',
@@ -352,6 +360,12 @@ describe('commandRunLayerMultiBroker', () => {
       const config = WardConfigStub({
         only: ['lint'],
         passthrough: ['packages/hooks'],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: hooksFolder, subResultContent: subResult }],
       });
 
       await commandRunLayerMultiBroker({
@@ -411,11 +425,6 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoadSelective({
-        packages: [{ subResultContent: hooksSubResult }, { subResultContent: wardSubResult }],
-      });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const hooksFolder = ProjectFolderStub({
         name: 'hooks',
@@ -428,6 +437,15 @@ describe('commandRunLayerMultiBroker', () => {
       const config = WardConfigStub({
         only: ['lint'],
         passthrough: ['packages/hooks', 'packages/ward/src/foo.test.ts'],
+      });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+        ],
       });
 
       await commandRunLayerMultiBroker({
@@ -490,11 +508,6 @@ describe('commandRunLayerMultiBroker', () => {
         ],
       });
 
-      const proxy = commandRunLayerMultiBrokerProxy();
-      proxy.setupSpawnAndLoadSelective({
-        packages: [{ subResultContent: wardSubResult }, { subResultContent: hooksSubResult }],
-      });
-
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const wardFolder = ProjectFolderStub({
         name: 'ward',
@@ -505,6 +518,15 @@ describe('commandRunLayerMultiBroker', () => {
         path: '/home/user/project/packages/hooks',
       });
       const config = WardConfigStub({ only: ['lint'] });
+
+      const proxy = commandRunLayerMultiBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [
+          { projectFolder: wardFolder, subResultContent: wardSubResult },
+          { projectFolder: hooksFolder, subResultContent: hooksSubResult },
+        ],
+      });
 
       await commandRunLayerMultiBroker({
         config,

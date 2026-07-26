@@ -3,33 +3,36 @@
  *
  * USAGE:
  * const proxy = orchestratorCreateQuestAdapterProxy();
- * proxy.returns({ questId, guildSlug });
+ * proxy.returns({ userRequest: 'Build the login flow', questId, guildSlug });
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
+import type { QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 type UrlSlug = ReturnType<typeof UrlSlugStub>;
 
 export const orchestratorCreateQuestAdapterProxy = (): {
-  returns: (params: { questId: QuestId; guildSlug: UrlSlug }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { userRequest: string; questId: QuestId; guildSlug: UrlSlug }) => void;
+  throws: (params: { userRequest: string; error: Error }) => void;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.createQuestForMcp });
 
-  handle.mockResolvedValue({
-    questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
-    guildSlug: UrlSlugStub({ value: 'default-guild' }),
-  });
-
   return {
-    returns: ({ questId, guildSlug }: { questId: QuestId; guildSlug: UrlSlug }): void => {
-      handle.mockResolvedValueOnce({ questId, guildSlug });
+    returns: ({
+      userRequest,
+      questId,
+      guildSlug,
+    }: {
+      userRequest: string;
+      questId: QuestId;
+      guildSlug: UrlSlug;
+    }): void => {
+      handle.calledWith([{ userRequest }]).resolves({ questId, guildSlug });
     },
-    throws: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
+    throws: ({ userRequest, error }: { userRequest: string; error: Error }): void => {
+      handle.calledWith([{ userRequest }]).rejects(error);
     },
   };
 };

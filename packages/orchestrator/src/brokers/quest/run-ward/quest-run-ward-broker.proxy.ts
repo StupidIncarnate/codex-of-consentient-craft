@@ -46,7 +46,11 @@ import {
   type QuestStub,
   type QuestWorkItemIdStub,
 } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -144,87 +148,116 @@ export const questRunWardBrokerProxy = (): {
   const detailRuns: { exitCode: ExitCode; output: ErrorMessage }[] = [];
   const questFilePathRef = { value: filePathContract.parse('/unset/quest.json') };
 
-  (pathJoinAdapter as jest.MockedFunction<typeof pathJoinAdapter>).mockImplementation(({ paths }) =>
-    filePathContract.parse(paths.join('/')),
-  );
+  // Every implementation below is staged with `calledWith([])` — none of these functions has a
+  // single call-identifying argument worth addressing: each one is a generic simulator that reads
+  // the REAL argument it was invoked with (path, dirPath, from/to, ...) straight out of the shared
+  // `files`/`dirs`/queue state above, exactly like the real filesystem would. There is only ever
+  // ONE behaviour registered per function; the discrimination between quest files, ward-result
+  // blobs, etc. happens inside each implementation, not in the staged address.
+  const pathJoinHandle = registerMock({ fn: pathJoinAdapter });
+  const pathJoinImpl = ({ paths }: Parameters<typeof pathJoinAdapter>[0]): FilePath =>
+    filePathContract.parse(paths.join('/'));
+  pathJoinHandle.calledWith([]).implement(pathJoinImpl as never);
 
-  (processCwdAdapter as jest.MockedFunction<typeof processCwdAdapter>).mockImplementation(() =>
-    filePathContract.parse('/project'),
-  );
+  const processCwdHandle = registerMock({ fn: processCwdAdapter });
+  const processCwdImpl = (): FilePath => filePathContract.parse('/project');
+  processCwdHandle.calledWith([]).implement(processCwdImpl as never);
 
-  (
-    dungeonmasterHomeFindBroker as jest.MockedFunction<typeof dungeonmasterHomeFindBroker>
-  ).mockImplementation(() => ({ homePath: filePathContract.parse(HOME_PATH) }));
+  const dungeonmasterHomeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
+  const dungeonmasterHomeFindImpl = (): { homePath: FilePath } => ({
+    homePath: filePathContract.parse(HOME_PATH),
+  });
+  dungeonmasterHomeFindHandle.calledWith([]).implement(dungeonmasterHomeFindImpl as never);
 
-  (
-    fsReaddirWithTypesAdapter as jest.MockedFunction<typeof fsReaddirWithTypesAdapter>
-  ).mockImplementation(({ dirPath }) =>
+  const fsReaddirWithTypesHandle = registerMock({ fn: fsReaddirWithTypesAdapter });
+  const fsReaddirWithTypesImpl = ({
+    dirPath,
+  }: Parameters<typeof fsReaddirWithTypesAdapter>[0]): Dirent[] =>
     (dirs.get(filePathContract.parse(String(dirPath))) ?? []).map((name) =>
       Object.assign(Object.create(Dirent.prototype) as Dirent, {
         name,
         isDirectory: (): boolean => true,
       }),
-    ),
-  );
+    );
+  fsReaddirWithTypesHandle.calledWith([]).implement(fsReaddirWithTypesImpl as never);
 
-  (fsReadFileAdapter as jest.MockedFunction<typeof fsReadFileAdapter>).mockImplementation(
-    async ({ filePath }) => {
-      const contents = files.get(filePathContract.parse(String(filePath)));
-      if (contents === undefined) {
-        return Promise.reject(new Error(`Failed to read file at ${String(filePath)}`));
-      }
-      return Promise.resolve(contents);
-    },
-  );
+  const fsReadFileHandle = registerMock({ fn: fsReadFileAdapter });
+  const fsReadFileImpl = async ({
+    filePath,
+  }: Parameters<typeof fsReadFileAdapter>[0]): Promise<FileContents> => {
+    const contents = files.get(filePathContract.parse(String(filePath)));
+    if (contents === undefined) {
+      return Promise.reject(new Error(`Failed to read file at ${String(filePath)}`));
+    }
+    return Promise.resolve(contents);
+  };
+  fsReadFileHandle.calledWith([]).implement(fsReadFileImpl as never);
 
   const questWrites: ReturnType<typeof fileContentsContract.parse>[] = [];
 
-  (fsWriteFileAdapter as jest.MockedFunction<typeof fsWriteFileAdapter>).mockImplementation(
-    async ({ filePath, contents }) => {
-      files.set(
-        filePathContract.parse(String(filePath)),
-        fileContentsContract.parse(String(contents)),
-      );
-      // Keep every quest persist, not just the last one: an intermediate status the final state
-      // has already moved past (ward stamped `in_progress` before the spawn) is invisible in
-      // `files`, which only holds the newest contents per path. Matched on CONTENT, not filename —
-      // the atomic persist writes a temp path and renames — so the ward-detail blob, which is not
-      // a quest, never enters the sequence.
-      questWrites.push(fileContentsContract.parse(String(contents)));
-      return Promise.resolve(adapterResultContract.parse({ success: true }));
-    },
-  );
+  const fsWriteFileHandle = registerMock({ fn: fsWriteFileAdapter });
+  const fsWriteFileImpl = async ({
+    filePath,
+    contents,
+  }: Parameters<typeof fsWriteFileAdapter>[0]): Promise<
+    ReturnType<typeof adapterResultContract.parse>
+  > => {
+    files.set(
+      filePathContract.parse(String(filePath)),
+      fileContentsContract.parse(String(contents)),
+    );
+    // Keep every quest persist, not just the last one: an intermediate status the final state
+    // has already moved past (ward stamped `in_progress` before the spawn) is invisible in
+    // `files`, which only holds the newest contents per path. Matched on CONTENT, not filename —
+    // the atomic persist writes a temp path and renames — so the ward-detail blob, which is not
+    // a quest, never enters the sequence.
+    questWrites.push(fileContentsContract.parse(String(contents)));
+    return Promise.resolve(adapterResultContract.parse({ success: true }));
+  };
+  fsWriteFileHandle.calledWith([]).implement(fsWriteFileImpl as never);
 
-  (fsRenameAdapter as jest.MockedFunction<typeof fsRenameAdapter>).mockImplementation(
-    async ({ from, to }) => {
-      const fromPath = filePathContract.parse(String(from));
-      const contents = files.get(fromPath);
-      files.delete(fromPath);
-      if (contents !== undefined) {
-        files.set(filePathContract.parse(String(to)), contents);
-      }
-      return Promise.resolve(adapterResultContract.parse({ success: true }));
-    },
-  );
+  const fsRenameHandle = registerMock({ fn: fsRenameAdapter });
+  const fsRenameImpl = async ({
+    from,
+    to,
+  }: Parameters<typeof fsRenameAdapter>[0]): Promise<
+    ReturnType<typeof adapterResultContract.parse>
+  > => {
+    const fromPath = filePathContract.parse(String(from));
+    const contents = files.get(fromPath);
+    files.delete(fromPath);
+    if (contents !== undefined) {
+      files.set(filePathContract.parse(String(to)), contents);
+    }
+    return Promise.resolve(adapterResultContract.parse({ success: true }));
+  };
+  fsRenameHandle.calledWith([]).implement(fsRenameImpl as never);
 
-  (fsAppendFileAdapter as jest.MockedFunction<typeof fsAppendFileAdapter>).mockImplementation(
-    async () => Promise.resolve(adapterResultContract.parse({ success: true })),
-  );
+  const fsAppendFileHandle = registerMock({ fn: fsAppendFileAdapter });
+  const fsAppendFileImpl = async (): Promise<ReturnType<typeof adapterResultContract.parse>> =>
+    Promise.resolve(adapterResultContract.parse({ success: true }));
+  fsAppendFileHandle.calledWith([]).implement(fsAppendFileImpl as never);
 
-  (fsMkdirAdapter as jest.MockedFunction<typeof fsMkdirAdapter>).mockImplementation(
-    async ({ filepath }) => {
-      mkdirPaths.push(String(filepath));
-      return Promise.resolve(adapterResultContract.parse({ success: true }));
-    },
-  );
+  const fsMkdirHandle = registerMock({ fn: fsMkdirAdapter });
+  const fsMkdirImpl = async ({
+    filepath,
+  }: Parameters<typeof fsMkdirAdapter>[0]): Promise<
+    ReturnType<typeof adapterResultContract.parse>
+  > => {
+    mkdirPaths.push(String(filepath));
+    return Promise.resolve(adapterResultContract.parse({ success: true }));
+  };
+  fsMkdirHandle.calledWith([]).implement(fsMkdirImpl as never);
 
   // Ward spawn (childProcessSpawnStreamLinesAdapter) and ward-detail fetch
   // (wardDetailBroker → childProcessSpawnCaptureAdapter) are queued per test via wardExits*.
-  (
-    childProcessSpawnStreamLinesAdapter as jest.MockedFunction<
-      typeof childProcessSpawnStreamLinesAdapter
-    >
-  ).mockImplementation(async ({ onLine }) => {
+  const spawnStreamLinesHandle = registerMock({ fn: childProcessSpawnStreamLinesAdapter });
+  const spawnStreamLinesImpl = async ({
+    onLine,
+  }: Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]): Promise<{
+    exitCode: ExitCode;
+    output: ErrorMessage;
+  }> => {
     const next = wardRuns.shift();
     if (next === undefined) {
       return Promise.reject(new Error('questRunWardBrokerProxy: no ward spawn result queued'));
@@ -237,11 +270,11 @@ export const questRunWardBrokerProxy = (): {
       onLine(line);
     }
     return Promise.resolve(next);
-  });
+  };
+  spawnStreamLinesHandle.calledWith([]).implement(spawnStreamLinesImpl as never);
 
-  (
-    childProcessSpawnCaptureAdapter as jest.MockedFunction<typeof childProcessSpawnCaptureAdapter>
-  ).mockImplementation(async () => {
+  const spawnCaptureHandle = registerMock({ fn: childProcessSpawnCaptureAdapter });
+  const spawnCaptureImpl = async (): Promise<{ exitCode: ExitCode; output: ErrorMessage }> => {
     const next = detailRuns.shift();
     if (next === undefined) {
       return Promise.resolve({
@@ -250,14 +283,16 @@ export const questRunWardBrokerProxy = (): {
       });
     }
     return Promise.resolve(next);
-  });
+  };
+  spawnCaptureHandle.calledWith([]).implement(spawnCaptureImpl as never);
 
   // Pin crypto.randomUUID + Date.prototype.toISOString so persisted ids and timestamps are
   // deterministic. Call #0 is always the wardResultId; every later call (spiritmender op id,
-  // ward-continuation op id, advance's new work-item id) gets a distinct sequenced UUID.
+  // ward-continuation op id, advance's new work-item id) gets a distinct sequenced UUID. Neither
+  // global takes an identifying argument, so `calledWith([])` is the honest address for both.
   const uuidCounter = { value: 0 };
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
-  uuidSpy.mockImplementation(((): ReturnType<typeof crypto.randomUUID> => {
+  const uuidImpl = (): ReturnType<typeof crypto.randomUUID> => {
     const index = uuidCounter.value;
     uuidCounter.value += 1;
     const value =
@@ -265,8 +300,11 @@ export const questRunWardBrokerProxy = (): {
         ? FIXED_WARD_RESULT_UUID
         : `f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0${String(index).padStart(UUID_SUFFIX_WIDTH, '0')}`;
     return value as ReturnType<typeof crypto.randomUUID>;
-  }) as typeof crypto.randomUUID);
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(FIXED_TIMESTAMP);
+  };
+  uuidSpy.calledWith([]).implement(uuidImpl as never);
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns(FIXED_TIMESTAMP);
 
   return {
     setupQuest: ({ quest }: { quest: QuestInput }): void => {
@@ -313,12 +351,16 @@ export const questRunWardBrokerProxy = (): {
       return questContract.parse(JSON.parse(String(contents)));
     },
 
-    getSpawnedWardArgs: (): unknown =>
-      (
-        childProcessSpawnStreamLinesAdapter as jest.MockedFunction<
-          typeof childProcessSpawnStreamLinesAdapter
-        >
-      ).mock.calls[0]?.[0]?.args,
+    getSpawnedWardArgs: (): unknown => {
+      const calls = spawnStreamLinesHandle.callsMatching([]);
+      const firstCall: unknown = calls[0];
+      if (!Array.isArray(firstCall)) return undefined;
+      const [params] = firstCall as unknown[];
+      const typedParams = params as
+        | Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]
+        | undefined;
+      return typedParams?.args;
+    },
 
     getDetailWrites: (): readonly { path: unknown; contents: unknown }[] =>
       [...files.entries()]

@@ -1,4 +1,5 @@
 import {
+  FilePathStub,
   questContract,
   type Quest,
   type QuestStub,
@@ -14,6 +15,11 @@ import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
 
 type QuestParam = ReturnType<typeof QuestStub>;
+
+// Every questOrchestrationLoopBroker.test.ts call site passes this same startPath, which is
+// what the broker forwards to dungeonmasterConfigResolveAdapter — the real, distinguishing
+// address every config-resolve call in this suite resolves.
+const START_PATH = FilePathStub({ value: '/project/src' });
 
 const parsePersistedQuests = ({
   modifyProxy,
@@ -41,7 +47,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const configProxy = dungeonmasterConfigResolveAdapterProxy();
-  configProxy.setupConfigResolved({ config: configProxy.makeRealConfig() });
+  configProxy.setupConfigResolved({ startPath: START_PATH, config: configProxy.makeRealConfig() });
   // Chat layer is the only remaining role-specific dispatch in the loop —
   // chaoswhisperer / glyphsmith still flow through the legacy spawn surface.
   // Every execution role (codeweaver, ward, flowrider, siegemaster, lawbringer,
@@ -49,14 +55,18 @@ export const questOrchestrationLoopBrokerProxy = (): {
   // via the MCP `get-next-step` tool now.
   runChatLayerBrokerProxy();
 
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-    '2024-01-15T10:00:00.000Z',
-  );
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns('2024-01-15T10:00:00.000Z');
 
   // Capture (and suppress) the loop's diagnostic stderr so tests can assert the snapshot +
-  // decision lines instead of leaking them into the jest reporter.
+  // decision lines instead of leaking them into the jest reporter. Every diagnostic line is
+  // built dynamically per branch, so there is no address to key on — this proxy answers every
+  // write() the SAME way (record + succeed) regardless of content, which is what `calledWith([])`
+  // (the lowest-specificity, always-matching address) honestly describes. The loop never reads
+  // write()'s return value, so the fixed `true` answer is inert.
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.mockReturnValue(true);
+  stderrSpy.calledWith([]).returns(true);
 
   return {
     setupQuestTerminal: ({ quest }: { quest: QuestParam }): void => {
@@ -86,7 +96,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
 
     getAllPersistedQuests: (): readonly Quest[] => parsePersistedQuests({ modifyProxy }),
 
-    getStderrWrites: (): readonly unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
+    getStderrWrites: (): readonly unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
 
     findPersistedWorkItem: ({
       workItemId,

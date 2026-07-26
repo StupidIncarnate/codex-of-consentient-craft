@@ -50,7 +50,10 @@ export const findParentConfigsLayerBrokerProxy = (): {
         startPath: currentPath,
         configPath: parentConfigPath,
       });
-      configFileLoadProxy.setupValidConfig({ config: parentConfig });
+      configFileLoadProxy.setupValidConfig({
+        configPath: parentConfigPath as never,
+        config: parentConfig,
+      });
     },
 
     setupNoParentFound: ({ currentPath }: { currentPath: string }) => {
@@ -75,7 +78,14 @@ export const findParentConfigsLayerBrokerProxy = (): {
         startPath: currentPath,
         configPath: parentConfigPath,
       });
-      configFileLoadProxy.setupValidConfig({ config: parentConfig });
+      configFileLoadProxy.setupValidConfig({
+        configPath: parentConfigPath as never,
+        config: parentConfig,
+      });
+      // dirname is called on parentConfigPath (the config file just loaded) to compute the
+      // next directory to search from. dirname is call-order-scoped (see THE
+      // JOIN/DIRNAME/BASENAME TRAP in path-dirname-adapter.proxy.ts), so this just answers
+      // "the next dirname() call".
       pathDirnameProxy.returns({ result: grandparentPath as never });
       // Recursive call finds same config (stops)
       configFileFindProxy.setupConfigFound({

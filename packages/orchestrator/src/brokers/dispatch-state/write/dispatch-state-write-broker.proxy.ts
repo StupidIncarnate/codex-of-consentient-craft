@@ -22,11 +22,16 @@ export const dispatchStateWriteBrokerProxy = (): {
   const writeFileProxy = fsWriteFileAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
 
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-    '2024-01-15T10:00:00.000Z',
-  );
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns('2024-01-15T10:00:00.000Z');
 
   const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
+  // Every test in this suite writes/renames the same fixed dispatch-state tmp path — hardcode it
+  // as the address instead of re-deriving it per call.
+  const tmpPath = FilePathStub({
+    value: '/home/user/.dungeonmaster/dispatch-state.json.tmp',
+  });
 
   // Queue the once-value chains in the broker's execution order: ensure-home first, then
   // the state-file path lookup, then the tmp-file path lookup.
@@ -44,28 +49,26 @@ export const dispatchStateWriteBrokerProxy = (): {
     tmpPathProxy.setupDispatchStateTmpPath({
       homeDir: '/home/user',
       homePath,
-      dispatchStateTmpPath: FilePathStub({
-        value: '/home/user/.dungeonmaster/dispatch-state.json.tmp',
-      }),
+      dispatchStateTmpPath: tmpPath,
     });
   };
 
   return {
     setupWriteSuccess: (): void => {
       queuePaths();
-      writeFileProxy.succeeds();
-      renameProxy.succeeds();
+      writeFileProxy.succeeds({ filePath: tmpPath });
+      renameProxy.succeeds({ from: tmpPath });
     },
 
     setupWriteFailure: ({ error }: { error: Error }): void => {
       queuePaths();
-      writeFileProxy.throws({ error });
+      writeFileProxy.throws({ filePath: tmpPath, error });
     },
 
-    getWrittenContent: (): unknown => writeFileProxy.getWrittenContent(),
+    getWrittenContent: (): unknown => writeFileProxy.getWrittenFor({ filePath: tmpPath }),
 
-    getWrittenPath: (): unknown => writeFileProxy.getWrittenPath(),
+    getWrittenPath: (): unknown => tmpPath,
 
-    getRenamedTo: (): unknown => renameProxy.getToPath(),
+    getRenamedTo: (): unknown => renameProxy.getToPathFor({ from: tmpPath }),
   };
 };

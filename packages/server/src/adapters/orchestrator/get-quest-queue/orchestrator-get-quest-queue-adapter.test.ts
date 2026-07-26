@@ -16,7 +16,8 @@ describe('orchestratorGetQuestQueueAdapter', () => {
     });
 
     it('EMPTY: {} => returns empty array when queue empty', async () => {
-      orchestratorGetQuestQueueAdapterProxy();
+      const proxy = orchestratorGetQuestQueueAdapterProxy();
+      proxy.returns({ entries: [] });
 
       const result = await orchestratorGetQuestQueueAdapter();
 

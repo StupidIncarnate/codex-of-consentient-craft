@@ -3,6 +3,7 @@ import {
   FileContentsStub,
   FilePathStub as SharedFilePathStub,
   GuildIdStub,
+  QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
 import {
   locationsWardResultsPathFindBrokerProxy,
@@ -16,6 +17,9 @@ import { QuestWardDetailResponder } from './quest-ward-detail-responder';
 
 const DETAIL_FILE_PATH_VALUE = '/home/testuser/quest/ward-results/result.json';
 const DETAIL_FILE_PATH = FilePathStub({ value: DETAIL_FILE_PATH_VALUE });
+// Matches the literal VALID_QUEST_ID used by every test in quest-ward-detail-responder.test.ts —
+// the responder passes params.questId straight through, so the mocked address must match it.
+const DETAIL_QUEST_ID = QuestIdStub({ value: '11111111-1111-4111-8111-111111111111' });
 
 const FIXED_DETAIL = {
   checks: [
@@ -42,6 +46,7 @@ export const QuestWardDetailResponderProxy = (): {
 
   const setupPaths = (): void => {
     findPathProxy.returns({
+      questId: DETAIL_QUEST_ID,
       questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
       guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
     });

@@ -8,8 +8,7 @@ describe('processStaleWatchBroker', () => {
   describe('silence threshold', () => {
     it('VALID: {process silent for exactly 90s, threshold 60s} => onStale fires with silentForMs=90_000', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
-      const proxy = processStaleWatchBrokerProxy();
-      proxy.setupAlive();
+      const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
       const processId = ProcessIdStub({ value: 'proc-stale' });
       const ninetySecondsAgo = new Date(Date.now() - 90_000);
       const onStale = jest.fn();
@@ -33,8 +32,7 @@ describe('processStaleWatchBroker', () => {
 
     it('VALID: {process active 5s ago, threshold 60s} => onStale fires 0 times', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
-      const proxy = processStaleWatchBrokerProxy();
-      proxy.setupAlive();
+      const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
       const fiveSecondsAgo = new Date(Date.now() - 5_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
@@ -54,9 +52,9 @@ describe('processStaleWatchBroker', () => {
   describe('liveness probe', () => {
     it('VALID: {stale process with osPid, alive} => onStale fires with alive=true, pid set, silentForMs=120_000', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
-      const proxy = processStaleWatchBrokerProxy();
-      proxy.setupAlive();
+      const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
       const pid = ProcessPidStub({ value: 812325 });
+      proxy.setupAlive({ pid });
       const longAgo = new Date(Date.now() - 120_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
@@ -79,9 +77,9 @@ describe('processStaleWatchBroker', () => {
 
     it('VALID: {stale process with osPid, dead} => onStale fires with alive=false', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
-      const proxy = processStaleWatchBrokerProxy();
-      proxy.setupDead();
+      const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
       const pid = ProcessPidStub({ value: 999999 });
+      proxy.setupDead({ pid });
       const longAgo = new Date(Date.now() - 120_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
@@ -105,8 +103,7 @@ describe('processStaleWatchBroker', () => {
 
   describe('missing activity', () => {
     it('EMPTY: {processId registered but no activity entry} => onStale fires 0 times', () => {
-      const proxy = processStaleWatchBrokerProxy();
-      proxy.setupAlive();
+      const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
       const onStale = jest.fn();
       processStaleWatchBroker({
         getProcessIds: () => [ProcessIdStub({ value: 'proc-ghost' })],

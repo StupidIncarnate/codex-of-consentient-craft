@@ -251,7 +251,7 @@ describe('architectureTestingPatternsBroker', () => {
         /^\*\*Use `registerMock` for all mocking in proxy files\.\*\* It replaces `jest\.mock\(\)`\/`jest\.mocked\(\)`\/`jest\.spyOn\(\)`\.$/mu,
       );
       expect(result).toMatch(
-        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* Answers are addressed by the ARGUMENTS a mocked function receives, and the staging is shared across every proxy that mocks it — one function, one behaviour, the way prod behaves\. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
+        /^\*\*Why registerMock over jest\.mock\/jest\.spyOn\?\*\* What a mock gives back is decided by the ARGUMENTS it was called with, and that configuration is shared across every proxy mocking the same function — one function, one behaviour, the way prod behaves\. Reading two different paths in one test gives two different results because the paths differ, not because of the order the reads happen in\. With raw `jest\.mock\(\)`, the second proxy would overwrite the first\.$/mu,
       );
       expect(result).toMatch(/^\*\*MockHandle API:\*\*$/mu);
     });
@@ -262,15 +262,46 @@ describe('architectureTestingPatternsBroker', () => {
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(
-        /^\| `handle\.calledWith\(\[args\]\)` \| Stage by argument — sticky, answers every matching call \|$/mu,
+        /^\| `handle\.calledWith\(\[args\]\)` \| Describe a call \+ what it gets back; applies to EVERY matching call \|$/mu,
       );
       expect(result).toMatch(
-        /^\| `handle\.onceFor\(\[args\]\)` \| Stage by argument — one-shot, when identical calls must differ \|$/mu,
+        /^\| `handle\.onceFor\(\[args\]\)` \| Same, applies ONCE — when identical calls must get different results \|$/mu,
       );
       expect(result).toMatch(
-        /^\| `handle\.callsMatching\(\[args\]\)` \| Recorded calls for that address \(use in assertion helpers\) \|$/mu,
+        /^\| `handle\.callsMatching\(\[args\]\)` \| Which calls actually happened with these arguments \(use in assertions\) \|$/mu,
       );
-      expect(result).toMatch(/^\*\*Matching rules:\*\*$/mu);
+      expect(result).toMatch(/^\*\*How arguments are compared:\*\*$/mu);
+    });
+
+    it('VALID: {} => documents callsMatching as a fresh snapshot and returns vs resolves', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^`calledWith` \/ `onceFor` return `\{ returns, resolves, rejects, throws, implement \}` — `\.returns\(\)`\/`\.throws\(\)` hand back the value\/error as-is, `\.resolves\(\)`\/`\.rejects\(\)` wrap it in a Promise \(staging async with `\.returns\(\)` hands back a raw value the caller then calls `\.then\(\)` on\)\. `callsMatching\(\[args\]\)` is a FRESH SNAPSHOT per call, not a live reference — capture it once and poll it and later calls never show up\.$/mu,
+      );
+    });
+
+    it('VALID: {} => documents shared staging collisions and the discriminating-address fix', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^\*\*Staging is SHARED across every proxy mocking the same function\*\* — one function, one behaviour\. Two proxies describing it at equally low specificity COLLIDE and the later registration silently wins everywhere: seen with `readline\.createInterface` \(stdout reader vs file tailer\), `fs\.readdirSync` \(filenames vs `\{withFileTypes:true\}`\), `path\.join` \(sticky description vs one-shot queue\), an argument-less broker composing three describers\. Fix with a DISCRIMINATING address — a predicate, or just more arguments \(an argument-count mismatch auto-fails to match\) — never by reordering construction, which restores the order-dependency this removes\. Two DIFFERENT results for the SAME address is what `onceFor` is for; staging both as `calledWith` means the later wins on the first call, silently disabling the sequence\.$/mu,
+      );
+    });
+
+    it('VALID: {} => documents registerSpyOn as a SpyOnHandle alias of MockHandle', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### registerSpyOn — Spy on Global Object Methods$/mu);
+      expect(result).toMatch(
+        /^`registerSpyOn` spies on methods of global objects \(process, Date, crypto, Math, etc\.\) and returns a `SpyOnHandle` — an alias of `MockHandle`, with the identical `calledWith`\/`onceFor`\/`callsMatching` API\. Throw-on-unmatched is unconditional, EXCEPT `registerSpyOn\(\{ passthrough: true \}\)`, where the real implementation is the catch-all and never throws\.$/mu,
+      );
     });
 
     it('VALID: {} => includes integration testing section', () => {

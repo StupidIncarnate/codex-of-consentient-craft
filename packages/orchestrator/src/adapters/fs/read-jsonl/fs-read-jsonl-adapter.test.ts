@@ -10,7 +10,7 @@ describe('fsReadJsonlAdapter', () => {
       const filePath = AbsoluteFilePathStub({ value: '/home/user/.claude/sessions/abc.jsonl' });
       const content = '{"type":"user","message":"hello"}\n{"type":"assistant","message":"hi"}\n';
 
-      proxy.returns({ content });
+      proxy.returns({ filePath, content });
 
       const result = await fsReadJsonlAdapter({ filePath });
 
@@ -25,7 +25,7 @@ describe('fsReadJsonlAdapter', () => {
       const filePath = AbsoluteFilePathStub({ value: '/home/user/.claude/sessions/single.jsonl' });
       const content = '{"type":"user","message":"only"}';
 
-      proxy.returns({ content });
+      proxy.returns({ filePath, content });
 
       const result = await fsReadJsonlAdapter({ filePath });
 
@@ -37,7 +37,7 @@ describe('fsReadJsonlAdapter', () => {
       const filePath = AbsoluteFilePathStub({ value: '/home/user/.claude/sessions/empty.jsonl' });
       const content = '';
 
-      proxy.returns({ content });
+      proxy.returns({ filePath, content });
 
       const result = await fsReadJsonlAdapter({ filePath });
 
@@ -49,7 +49,7 @@ describe('fsReadJsonlAdapter', () => {
       const filePath = AbsoluteFilePathStub({ value: '/home/user/.claude/sessions/gaps.jsonl' });
       const content = '{"a":1}\n\n{"b":2}\n  \n{"c":3}\n';
 
-      proxy.returns({ content });
+      proxy.returns({ filePath, content });
 
       const result = await fsReadJsonlAdapter({ filePath });
 
@@ -62,7 +62,7 @@ describe('fsReadJsonlAdapter', () => {
       const proxy = fsReadJsonlAdapterProxy();
       const filePath = AbsoluteFilePathStub({ value: '/nonexistent/path.jsonl' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ filePath, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsReadJsonlAdapter({ filePath })).rejects.toThrow(/ENOENT/u);
     });

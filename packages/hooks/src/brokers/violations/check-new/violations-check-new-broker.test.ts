@@ -27,7 +27,6 @@ describe('violationsCheckNewBroker', () => {
   describe('ESLint-ignored paths', () => {
     it('VALID: {file ignored by project config} => skips linting and returns no violations', async () => {
       const proxy = violationsCheckNewBrokerProxy();
-      proxy.setupViolationCheck({ hasViolations: true });
       proxy.setPathIgnored({ ignored: true });
 
       const toolInput = WriteToolInputStub({

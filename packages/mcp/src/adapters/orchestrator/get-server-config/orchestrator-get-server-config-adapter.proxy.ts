@@ -17,14 +17,15 @@ export const orchestratorGetServerConfigAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: StartOrchestrator.getServerConfig });
 
-  handle.mockReturnValue(QuestGetServerConfigResultStub());
+  // getServerConfig takes no arguments — [] is the only possible address.
+  handle.calledWith([]).returns(QuestGetServerConfigResultStub());
 
   return {
     returns: ({ result }: { result: QuestGetServerConfigResult }): void => {
-      handle.mockReturnValueOnce(result);
+      handle.calledWith([]).returns(result);
     },
     throws: ({ error }: { error: Error }): void => {
-      handle.mockImplementationOnce(() => {
+      handle.calledWith([]).implement(() => {
         throw error;
       });
     },

@@ -12,29 +12,37 @@ export const dispatchStateReadBrokerProxy = (): {
   const readFileProxy = fsReadFileAdapterProxy();
 
   // Each setup queues one path-resolution chain + one read, so multi-read flows (e.g. the
-  // heartbeat read-modify-write) stay aligned with the once-value mock queues.
+  // heartbeat read-modify-write) stay aligned with the once-value mock queues. The resolved
+  // path is always this same literal — dispatchStatePath below — so the read's filePath
+  // address is that same literal too.
+  const dispatchStatePath = FilePathStub({
+    value: '/home/user/.dungeonmaster/dispatch-state.json',
+  });
   const queuePath = (): void => {
     pathProxy.setupDispatchStatePath({
       homeDir: '/home/user',
       homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-      dispatchStatePath: FilePathStub({ value: '/home/user/.dungeonmaster/dispatch-state.json' }),
+      dispatchStatePath,
     });
   };
 
   return {
     setupStateFile: ({ json }: { json: string }): void => {
       queuePath();
-      readFileProxy.resolves({ content: json });
+      readFileProxy.resolves({ filePath: dispatchStatePath, content: json });
     },
 
     setupMissingFile: (): void => {
       queuePath();
-      readFileProxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      readFileProxy.rejects({
+        filePath: dispatchStatePath,
+        error: new Error('ENOENT: no such file or directory'),
+      });
     },
 
     setupCorruptFile: (): void => {
       queuePath();
-      readFileProxy.resolves({ content: 'not-valid-json{{{' });
+      readFileProxy.resolves({ filePath: dispatchStatePath, content: 'not-valid-json{{{' });
     },
   };
 };

@@ -12,12 +12,13 @@ describe('orchestratorGetAgentPromptAdapter', () => {
     it('VALID: {agent, questId, workItemId} => returns AgentPromptResult', async () => {
       const proxy = orchestratorGetAgentPromptAdapterProxy();
       const expectedResult = AgentPromptResultStub();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 
-      proxy.returns({ result: expectedResult });
+      proxy.returns({ agent: 'chaoswhisperer-gap-minion', questId, result: expectedResult });
 
       const result = await orchestratorGetAgentPromptAdapter({
         agent: 'chaoswhisperer-gap-minion',
-        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+        questId,
         workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
       });
 
@@ -28,13 +29,14 @@ describe('orchestratorGetAgentPromptAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => throws error', async () => {
       const proxy = orchestratorGetAgentPromptAdapterProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
 
-      proxy.throws({ error: new Error('Unknown agent') });
+      proxy.throws({ agent: 'non-existent', questId, error: new Error('Unknown agent') });
 
       await expect(
         orchestratorGetAgentPromptAdapter({
           agent: 'non-existent',
-          questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+          questId,
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
         }),
       ).rejects.toThrow(/Unknown agent/u);

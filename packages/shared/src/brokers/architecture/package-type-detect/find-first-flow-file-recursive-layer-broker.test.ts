@@ -5,11 +5,10 @@ import { findFirstFlowFileRecursiveLayerBroker } from './find-first-flow-file-re
 describe('findFirstFlowFileRecursiveLayerBroker', () => {
   it('VALID: {flows dir with quest-flow.ts at top level} => returns absolute path', () => {
     const proxy = findFirstFlowFileRecursiveLayerBrokerProxy();
-    proxy.setupFlat({ fileNames: ['quest-flow.ts', 'other.ts'] });
+    const dirPath = AbsoluteFilePathStub({ value: '/project/src/flows' });
+    proxy.setupFlat({ dirPath, fileNames: ['quest-flow.ts', 'other.ts'] });
 
-    const result = findFirstFlowFileRecursiveLayerBroker({
-      dirPath: AbsoluteFilePathStub({ value: '/project/src/flows' }),
-    });
+    const result = findFirstFlowFileRecursiveLayerBroker({ dirPath });
 
     expect(result).toBe(AbsoluteFilePathStub({ value: '/project/src/flows/quest-flow.ts' }));
   });
@@ -27,22 +26,20 @@ describe('findFirstFlowFileRecursiveLayerBroker', () => {
 
   it('EMPTY: {empty flows dir} => returns undefined', () => {
     const proxy = findFirstFlowFileRecursiveLayerBrokerProxy();
-    proxy.setupEmpty();
+    const dirPath = AbsoluteFilePathStub({ value: '/project/src/flows' });
+    proxy.setupEmpty({ dirPath });
 
-    const result = findFirstFlowFileRecursiveLayerBroker({
-      dirPath: AbsoluteFilePathStub({ value: '/project/src/flows' }),
-    });
+    const result = findFirstFlowFileRecursiveLayerBroker({ dirPath });
 
     expect(result).toBe(undefined);
   });
 
   it('INVALID: {flows dir with no flow files} => returns undefined', () => {
     const proxy = findFirstFlowFileRecursiveLayerBrokerProxy();
-    proxy.setupFlat({ fileNames: ['my-broker.ts', 'helper.ts'] });
+    const dirPath = AbsoluteFilePathStub({ value: '/project/src/flows' });
+    proxy.setupFlat({ dirPath, fileNames: ['my-broker.ts', 'helper.ts'] });
 
-    const result = findFirstFlowFileRecursiveLayerBroker({
-      dirPath: AbsoluteFilePathStub({ value: '/project/src/flows' }),
-    });
+    const result = findFirstFlowFileRecursiveLayerBroker({ dirPath });
 
     expect(result).toBe(undefined);
   });

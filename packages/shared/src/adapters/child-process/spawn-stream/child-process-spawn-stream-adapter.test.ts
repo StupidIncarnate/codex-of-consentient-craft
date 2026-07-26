@@ -8,7 +8,7 @@ describe('childProcessSpawnStreamAdapter', () => {
     it('VALID: {command exits with 0} => returns exit code 0 and empty output', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+      proxy.setupSuccess({ command: 'npm', exitCode, stdout: '', stderr: '' });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -25,7 +25,7 @@ describe('childProcessSpawnStreamAdapter', () => {
     it('VALID: {command exits with 0 and stdout} => returns exit code 0 and stdout content', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: 'All tests passed', stderr: '' });
+      proxy.setupSuccess({ command: 'npm', exitCode, stdout: 'All tests passed', stderr: '' });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -44,7 +44,12 @@ describe('childProcessSpawnStreamAdapter', () => {
     it('VALID: {command exits with non-zero} => returns exit code and stdout content', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 1 });
-      proxy.setupSuccess({ exitCode, stdout: 'run: 123-abc\n', stderr: 'Error in /src/file.ts' });
+      proxy.setupSuccess({
+        command: 'npm',
+        exitCode,
+        stdout: 'run: 123-abc\n',
+        stderr: 'Error in /src/file.ts',
+      });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -64,7 +69,7 @@ describe('childProcessSpawnStreamAdapter', () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       const stderrLines = [] as unknown[];
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: 'lint output line' });
+      proxy.setupSuccess({ command: 'npm', exitCode, stdout: '', stderr: 'lint output line' });
 
       await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -81,7 +86,7 @@ describe('childProcessSpawnStreamAdapter', () => {
     it('VALID: {stderr output without onStderr callback} => does not throw', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: 'some stderr' });
+      proxy.setupSuccess({ command: 'npm', exitCode, stdout: '', stderr: 'some stderr' });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -99,7 +104,7 @@ describe('childProcessSpawnStreamAdapter', () => {
   describe('error cases', () => {
     it('ERROR: {spawn error without code} => returns exit code 1 and collected stdout', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
-      proxy.setupError({ error: new Error('ENOENT: command not found') });
+      proxy.setupError({ command: 'nonexistent', error: new Error('ENOENT: command not found') });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'nonexistent',
@@ -116,7 +121,7 @@ describe('childProcessSpawnStreamAdapter', () => {
     it('ERROR: {spawn error with numeric code} => returns that exit code', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 127 });
-      proxy.setupErrorWithCode({ error: new Error('ENOENT'), exitCode });
+      proxy.setupErrorWithCode({ command: 'nonexistent', error: new Error('ENOENT'), exitCode });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'nonexistent',
@@ -132,7 +137,7 @@ describe('childProcessSpawnStreamAdapter', () => {
 
     it('ERROR: {spawn error with prior stdout} => returns collected stdout in output', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
-      proxy.setupError({ error: new Error('killed'), stdout: 'partial output' });
+      proxy.setupError({ command: 'npm', error: new Error('killed'), stdout: 'partial output' });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -150,7 +155,7 @@ describe('childProcessSpawnStreamAdapter', () => {
   describe('close with null code', () => {
     it('VALID: {process killed with null exit code} => returns null exit code and stdout', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
-      proxy.setupCloseNull({ stdout: 'some output' });
+      proxy.setupCloseNull({ command: 'npm', stdout: 'some output' });
 
       const result = await childProcessSpawnStreamAdapter({
         command: 'npm',
@@ -170,6 +175,7 @@ describe('childProcessSpawnStreamAdapter', () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
       proxy.setupSuccessMultiChunk({
+        command: 'npm',
         exitCode,
         stdoutChunks: ['chunk-one', '-chunk-two', '-chunk-three'],
         stderr: '',
@@ -192,7 +198,7 @@ describe('childProcessSpawnStreamAdapter', () => {
     it('VALID: {command, args, cwd} => passes correct arguments to spawn', async () => {
       const proxy = childProcessSpawnStreamAdapterProxy();
       const exitCode = ExitCodeStub({ value: 0 });
-      proxy.setupSuccess({ exitCode, stdout: '', stderr: '' });
+      proxy.setupSuccess({ command: 'npm', exitCode, stdout: '', stderr: '' });
 
       await childProcessSpawnStreamAdapter({
         command: 'npm',

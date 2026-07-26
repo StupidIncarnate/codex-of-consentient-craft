@@ -5,10 +5,11 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 describe('fsRenameAdapter', () => {
   it('VALID: {from, to} => renames file successfully', async () => {
     const proxy = fsRenameAdapterProxy();
-    proxy.succeeds();
+    const from = FilePathStub({ value: '/x.tmp' });
+    proxy.succeeds({ from });
 
     const result = await fsRenameAdapter({
-      from: FilePathStub({ value: '/x.tmp' }),
+      from,
       to: FilePathStub({ value: '/x.json' }),
     });
 
@@ -18,11 +19,12 @@ describe('fsRenameAdapter', () => {
 
   it('ERROR: {from: missing} => rejects with error', async () => {
     const proxy = fsRenameAdapterProxy();
-    proxy.throws({ error: new Error('ENOENT: no such file') });
+    const from = FilePathStub({ value: '/missing' });
+    proxy.throws({ from, error: new Error('ENOENT: no such file') });
 
     await expect(
       fsRenameAdapter({
-        from: FilePathStub({ value: '/missing' }),
+        from,
         to: FilePathStub({ value: '/x.json' }),
       }),
     ).rejects.toThrow(/ENOENT/u);

@@ -22,24 +22,18 @@ const buildResponse = ({
   }) as never;
 
 export const fetchGetWithStatusAdapterProxy = (): {
-  setupOk: (params: { body: unknown }) => void;
-  setupStatus: (params: { status: number; body: unknown }) => void;
-  setupRawText: (params: { status: number; text: string }) => void;
-  setupNetworkError: (params: { error: Error }) => void;
-  getLastCallUrl: () => unknown;
+  setupOk: (params: { url: string; body: unknown }) => void;
+  setupStatus: (params: { url: string; status: number; body: unknown }) => void;
+  setupRawText: (params: { url: string; status: number; text: string }) => void;
+  setupNetworkError: (params: { url: string; error: Error }) => void;
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
-  handle.mockResolvedValue(
-    buildResponse({
-      ok: true,
-      status: httpStatusStatics.successRange.minInclusive,
-      bodyText: 'null',
-    }),
-  );
 
   return {
-    setupOk: ({ body }: { body: unknown }): void => {
-      handle.mockResolvedValueOnce(
+    // The URL is the address — two endpoints staged in one test must be told apart by URL, not
+    // by which setup call happened to run first.
+    setupOk: ({ url, body }: { url: string; body: unknown }): void => {
+      handle.calledWith([url]).resolves(
         buildResponse({
           ok: true,
           status: httpStatusStatics.successRange.minInclusive,
@@ -47,23 +41,20 @@ export const fetchGetWithStatusAdapterProxy = (): {
         }),
       );
     },
-    setupStatus: ({ status, body }: { status: number; body: unknown }): void => {
-      handle.mockResolvedValueOnce(
-        buildResponse({ ok: isOkStatus({ status }), status, bodyText: JSON.stringify(body) }),
-      );
+    setupStatus: ({ url, status, body }: { url: string; status: number; body: unknown }): void => {
+      handle
+        .calledWith([url])
+        .resolves(
+          buildResponse({ ok: isOkStatus({ status }), status, bodyText: JSON.stringify(body) }),
+        );
     },
-    setupRawText: ({ status, text }: { status: number; text: string }): void => {
-      handle.mockResolvedValueOnce(
-        buildResponse({ ok: isOkStatus({ status }), status, bodyText: text }),
-      );
+    setupRawText: ({ url, status, text }: { url: string; status: number; text: string }): void => {
+      handle
+        .calledWith([url])
+        .resolves(buildResponse({ ok: isOkStatus({ status }), status, bodyText: text }));
     },
-    setupNetworkError: ({ error }: { error: Error }): void => {
-      handle.mockRejectedValueOnce(error);
-    },
-    getLastCallUrl: (): unknown => {
-      const { calls } = handle.mock;
-      const lastCall = calls[calls.length - 1];
-      return lastCall?.[0];
+    setupNetworkError: ({ url, error }: { url: string; error: Error }): void => {
+      handle.calledWith([url]).rejects(error);
     },
   };
 };

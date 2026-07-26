@@ -12,21 +12,24 @@ export const installCheckBrokerProxy = (): {
   return {
     setupValid: ({ projectRoot }: { projectRoot: string }) => {
       pathJoinProxy.returns({ result: `${projectRoot}/package.json` as never });
-      fsExistsSyncProxy.returns({ result: true });
+      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/package.json` as never, result: true });
       pathJoinProxy.returns({ result: `${projectRoot}/.claude` as never });
-      fsExistsSyncProxy.returns({ result: true });
+      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/.claude` as never, result: true });
     },
 
     setupMissingPackageJson: ({ projectRoot }: { projectRoot: string }) => {
       pathJoinProxy.returns({ result: `${projectRoot}/package.json` as never });
-      fsExistsSyncProxy.returns({ result: false });
+      fsExistsSyncProxy.returns({
+        filePath: `${projectRoot}/package.json` as never,
+        result: false,
+      });
     },
 
     setupMissingClaudeDir: ({ projectRoot }: { projectRoot: string }) => {
       pathJoinProxy.returns({ result: `${projectRoot}/package.json` as never });
-      fsExistsSyncProxy.returns({ result: true });
+      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/package.json` as never, result: true });
       pathJoinProxy.returns({ result: `${projectRoot}/.claude` as never });
-      fsExistsSyncProxy.returns({ result: false });
+      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/.claude` as never, result: false });
     },
   };
 };

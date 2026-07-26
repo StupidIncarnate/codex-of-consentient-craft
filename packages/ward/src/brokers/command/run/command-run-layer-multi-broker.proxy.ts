@@ -1,30 +1,50 @@
 import { childProcessSpawnStreamAdapterProxy } from '@dungeonmaster/shared/testing';
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import {
+  ExitCodeStub,
+  absoluteFilePathContract,
+  type AbsoluteFilePath,
+} from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
+import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
+import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
+import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
+import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
+import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { storageSaveBrokerProxy } from '../../storage/save/storage-save-broker.proxy';
 import { storagePruneBrokerProxy } from '../../storage/prune/storage-prune-broker.proxy';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 import { commandRunLayerChildCrashBrokerProxy } from './command-run-layer-child-crash-broker.proxy';
 
-const CHILD_RUN_ID = '1739625600000-a38e';
-// Matches what a child ward actually prints — id plus the trailing total-duration suffix.
-const CHILD_SUMMARY_LINE = `run: ${CHILD_RUN_ID}  (1.2s)\n`;
-
 export const commandRunLayerMultiBrokerProxy = (): {
-  setupSpawnAndLoad: (params: { packageCount: number; subResultContent: string }) => void;
-  setupSpawnAndLoadSelective: (params: { packages: { subResultContent: string }[] }) => void;
-  setupSpawnWithNullLoad: () => void;
-  setupNoSpawns: () => void;
+  setupSpawnAndLoad: (params: {
+    rootPath: AbsoluteFilePath;
+    projectFolders: ProjectFolder[];
+    subResultContent: string;
+  }) => void;
+  setupSpawnAndLoadSelective: (params: {
+    rootPath: AbsoluteFilePath;
+    packages: { projectFolder: ProjectFolder; subResultContent: string }[];
+  }) => void;
+  setupSpawnWithNullLoad: (params: {
+    rootPath: AbsoluteFilePath;
+    projectFolder: ProjectFolder;
+  }) => void;
+  setupNoSpawns: (params: { rootPath: AbsoluteFilePath }) => void;
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
 } => {
-  registerSpyOn({ object: Date, method: 'now' }).mockReturnValue(runIdMockStatics.timestamp);
-  registerSpyOn({ object: Math, method: 'random' }).mockReturnValue(runIdMockStatics.randomValue);
+  // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
+  registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(runIdMockStatics.timestamp);
+  registerSpyOn({ object: Math, method: 'random' })
+    .calledWith([])
+    .returns(runIdMockStatics.randomValue);
+  // write()'s return value never varies by content — what was written is read back via
+  // callsMatching below, so the catch-all stays unaddressed.
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.mockImplementation(() => true);
+  stderrSpy.calledWith([]).returns(true);
 
   const streamProxy = childProcessSpawnStreamAdapterProxy();
   const binProxy = binResolveBrokerProxy();
@@ -34,60 +54,103 @@ export const commandRunLayerMultiBrokerProxy = (): {
   commandRunLayerChildCrashBrokerProxy();
   const successCode = ExitCodeStub({ value: 0 });
 
+  // Every child ward process embeds its own runId in the printed summary line, and this level's
+  // own storageSaveBroker/storagePruneBroker calls generate a runId the same way — both read the
+  // Date.now/Math.random spies staged above, so calling the real transformer here produces the
+  // identical deterministic id both levels will actually use.
+  const runId = runIdGenerateTransformer();
+  // Matches what a child ward actually prints — id plus the trailing total-duration suffix.
+  const childSummaryLine = `run: ${runId}  (1.2s)\n`;
+
+  const resolveWardBin = ({ rootPath }: { rootPath: AbsoluteFilePath }): BinCommand =>
+    binProxy.setupFound({
+      cwd: rootPath,
+      binName: BinCommandStub({ value: wardSpawnCommandStatics.bin }),
+    });
+
   return {
     setupSpawnAndLoad: ({
-      packageCount,
+      rootPath,
+      projectFolders,
       subResultContent,
     }: {
-      packageCount: number;
+      rootPath: AbsoluteFilePath;
+      projectFolders: ProjectFolder[];
       subResultContent: string;
     }): void => {
-      binProxy.setupFound();
-      Array.from({ length: packageCount }).forEach(() => {
+      const command = String(resolveWardBin({ rootPath }));
+      for (const folder of projectFolders) {
         streamProxy.setupSuccess({
+          command,
           exitCode: successCode,
-          stdout: CHILD_SUMMARY_LINE,
+          stdout: childSummaryLine,
           stderr: '',
         });
-        loadProxy.setupRunById({ content: subResultContent });
-      });
-      saveProxy.setupSuccess();
-      pruneProxy.setupEmpty();
+        loadProxy.setupRunById({
+          rootPath: absoluteFilePathContract.parse(folder.path),
+          runId,
+          content: subResultContent,
+        });
+      }
+      saveProxy.setupSuccess({ rootPath, runId });
+      pruneProxy.setupEmpty({ rootPath });
     },
+
     setupSpawnAndLoadSelective: ({
+      rootPath,
       packages,
     }: {
-      packages: { subResultContent: string }[];
+      rootPath: AbsoluteFilePath;
+      packages: { projectFolder: ProjectFolder; subResultContent: string }[];
     }): void => {
-      binProxy.setupFound();
+      const command = String(resolveWardBin({ rootPath }));
       for (const pkg of packages) {
         streamProxy.setupSuccess({
+          command,
           exitCode: successCode,
-          stdout: CHILD_SUMMARY_LINE,
+          stdout: childSummaryLine,
           stderr: '',
         });
-        loadProxy.setupRunById({ content: pkg.subResultContent });
+        loadProxy.setupRunById({
+          rootPath: absoluteFilePathContract.parse(pkg.projectFolder.path),
+          runId,
+          content: pkg.subResultContent,
+        });
       }
-      saveProxy.setupSuccess();
-      pruneProxy.setupEmpty();
+      saveProxy.setupSuccess({ rootPath, runId });
+      pruneProxy.setupEmpty({ rootPath });
     },
-    setupSpawnWithNullLoad: (): void => {
-      binProxy.setupFound();
+
+    setupSpawnWithNullLoad: ({
+      rootPath,
+      projectFolder,
+    }: {
+      rootPath: AbsoluteFilePath;
+      projectFolder: ProjectFolder;
+    }): void => {
+      const command = String(resolveWardBin({ rootPath }));
       streamProxy.setupSuccess({
+        command,
         exitCode: ExitCodeStub({ value: 1 }),
-        stdout: CHILD_SUMMARY_LINE,
+        stdout: childSummaryLine,
         stderr: '',
       });
-      loadProxy.setupReadFail({ error: new Error('ENOENT') });
-      saveProxy.setupSuccess();
-      pruneProxy.setupEmpty();
+      loadProxy.setupReadFail({
+        rootPath: absoluteFilePathContract.parse(projectFolder.path),
+        runId,
+        error: new Error('ENOENT'),
+      });
+      saveProxy.setupSuccess({ rootPath, runId });
+      pruneProxy.setupEmpty({ rootPath });
     },
-    setupNoSpawns: (): void => {
-      binProxy.setupFound();
-      saveProxy.setupSuccess();
-      pruneProxy.setupEmpty();
+
+    setupNoSpawns: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
+      resolveWardBin({ rootPath });
+      saveProxy.setupSuccess({ rootPath, runId });
+      pruneProxy.setupEmpty({ rootPath });
     },
-    getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
+
+    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
     getAllSpawnedArgs: (): unknown[] => streamProxy.getAllSpawnedArgs(),
   };
 };

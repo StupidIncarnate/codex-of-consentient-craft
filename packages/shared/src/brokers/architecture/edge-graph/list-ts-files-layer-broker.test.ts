@@ -10,7 +10,7 @@ describe('listTsFilesLayerBroker', () => {
       value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
     });
 
-    proxy.setupFlatDirectory({ filePaths: [questFlowPath] });
+    proxy.setupFlatDirectory({ dirPath, filePaths: [questFlowPath] });
 
     const result = listTsFilesLayerBroker({ dirPath });
 
@@ -24,7 +24,7 @@ describe('listTsFilesLayerBroker', () => {
       value: '/repo/packages/server/src/flows/quest/quest-flow.test.ts',
     });
 
-    proxy.setupFlatDirectory({ filePaths: [testFilePath] });
+    proxy.setupFlatDirectory({ dirPath, filePaths: [testFilePath] });
 
     const result = listTsFilesLayerBroker({ dirPath });
 
@@ -35,7 +35,7 @@ describe('listTsFilesLayerBroker', () => {
     const proxy = listTsFilesLayerBrokerProxy();
     const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/flows' });
 
-    proxy.setupEmpty();
+    proxy.setupEmpty({ dirPath });
 
     const result = listTsFilesLayerBroker({ dirPath });
 

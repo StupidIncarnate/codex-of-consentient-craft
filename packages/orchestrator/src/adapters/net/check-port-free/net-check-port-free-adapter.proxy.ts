@@ -46,15 +46,14 @@ export const netCheckPortFreeAdapterProxy = (): {
   };
 
   return {
+    // createServer() takes no arguments — the port is only used later via the fake server's
+    // own `.listen(port)` call, not on this mocked function, so there is no real value here
+    // to key on.
     setupPortFree: (): void => {
-      handle.mockReturnValue(
-        createMockServer({ listeningFires: true, errorFires: false }) as never,
-      );
+      handle.calledWith([]).returns(createMockServer({ listeningFires: true, errorFires: false }));
     },
     setupPortInUse: (): void => {
-      handle.mockReturnValue(
-        createMockServer({ listeningFires: false, errorFires: true }) as never,
-      );
+      handle.calledWith([]).returns(createMockServer({ listeningFires: false, errorFires: true }));
     },
   };
 };

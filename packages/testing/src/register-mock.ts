@@ -7,7 +7,8 @@
  */
 
 export { jestRegisterMockAdapter as registerMock } from './adapters/jest/register-mock/jest-register-mock-adapter';
-export type { MockHandle } from './adapters/jest/register-mock/jest-register-mock-adapter';
+export type { MockHandle } from './contracts/mock-handle/mock-handle-contract';
+export type { MockStaging } from './contracts/mock-staging/mock-staging-contract';
 export { jestRegisterSpyOnAdapter as registerSpyOn } from './adapters/jest/register-spy-on/jest-register-spy-on-adapter';
 export type { SpyOnHandle } from './adapters/jest/register-spy-on/jest-register-spy-on-adapter';
 export { jestRegisterModuleMockAdapter as registerModuleMock } from './adapters/jest/register-module-mock/jest-register-module-mock-adapter';

@@ -84,7 +84,11 @@ describe('InteractionHandleResponder', () => {
         name: 'codeweaver',
         prompt: 'You are codeweaver.\n\n---\n\n## Work item context\n\n- questId: add-auth',
       });
-      proxy.setupAgentPromptReturns({ result: expectedResult });
+      proxy.setupAgentPromptReturns({
+        agent: 'codeweaver',
+        questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+        result: expectedResult,
+      });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-agent-prompt' }),
@@ -106,21 +110,33 @@ describe('InteractionHandleResponder', () => {
         name: 'pathseeker-dedup',
         prompt: 'You are pathseeker-dedup.',
       });
-      proxy.setupAgentPromptReturns({ result: expectedResult });
 
       const questId = QuestIdStub({ value: '3df2f4be-20b8-4517-8f08-69d570db7421' });
       const workItemId = QuestWorkItemIdStub({
         value: 'c6afab8f-ebdd-4e23-99cd-ea9aa67a5026',
       });
+      proxy.setupAgentPromptReturns({ agent: 'pathseeker-dedup', questId, result: expectedResult });
       const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
       const realAgentId = 'ad0775d7695b4d4eb';
       const toolUseId = 'toolu_011pw36EFwmLorR7MdaSDEQG';
 
       proxy.setupCwd({ path: '/home/user/proj' });
-      proxy.setupHomeDir({ path: '/home/user' });
-      proxy.enqueueSessionsDir({ entries: [`${parentSessionId}.jsonl`] });
-      proxy.enqueueSubagentsDir({ entries: [`agent-${realAgentId}.jsonl`] });
-      proxy.enqueueMetaFileContents({
+      proxy.setupSessionsDir({
+        homedir: '/home/user',
+        projectDir: '/home/user/proj',
+        sessionIds: [parentSessionId],
+      });
+      proxy.setupSubagentsDir({
+        homedir: '/home/user',
+        projectDir: '/home/user/proj',
+        sessionId: parentSessionId,
+        agentFilenames: [`agent-${realAgentId}.jsonl`],
+      });
+      proxy.setupAgentFile({
+        homedir: '/home/user',
+        projectDir: '/home/user/proj',
+        sessionId: parentSessionId,
+        agentFilename: `agent-${realAgentId}.jsonl`,
         contents: JSON.stringify({
           type: 'assistant',
           message: {
@@ -143,7 +159,7 @@ describe('InteractionHandleResponder', () => {
         meta: { 'claudecode/toolUseId': toolUseId, progressToken: 3 },
       });
 
-      expect(proxy.getLastModifyQuestInput()).toStrictEqual({
+      expect(proxy.getLastModifyQuestInput({ questId })).toStrictEqual({
         questId,
         workItems: [
           {
@@ -163,11 +179,14 @@ describe('InteractionHandleResponder', () => {
         name: 'pathseeker-surface',
         prompt: 'You are pathseeker-surface.',
       });
-      proxy.setupAgentPromptReturns({ result: expectedResult });
-
       const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
       const workItemId = QuestWorkItemIdStub({
         value: '875c3364-2d64-4606-b9e3-25dd365c7792',
+      });
+      proxy.setupAgentPromptReturns({
+        agent: 'pathseeker-surface',
+        questId,
+        result: expectedResult,
       });
 
       const result = await proxy.callResponder({
@@ -175,7 +194,7 @@ describe('InteractionHandleResponder', () => {
         args: { agent: 'pathseeker-surface', questId, workItemId },
       });
 
-      expect(proxy.getLastModifyQuestInput()).toBe(undefined);
+      expect(proxy.getLastModifyQuestInput({ questId })).toBe(undefined);
       expect(result).toStrictEqual({
         content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
       });
@@ -187,16 +206,18 @@ describe('InteractionHandleResponder', () => {
         name: 'pathseeker-surface',
         prompt: 'You are pathseeker-surface.',
       });
-      proxy.setupAgentPromptReturns({ result: expectedResult });
-
       const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
       const workItemId = QuestWorkItemIdStub({
         value: '875c3364-2d64-4606-b9e3-25dd365c7792',
       });
+      proxy.setupAgentPromptReturns({
+        agent: 'pathseeker-surface',
+        questId,
+        result: expectedResult,
+      });
 
       proxy.setupCwd({ path: '/home/user/proj' });
-      proxy.setupHomeDir({ path: '/home/user' });
-      proxy.enqueueSessionsDirMissing();
+      proxy.setupSessionsDirMissing({ homedir: '/home/user', projectDir: '/home/user/proj' });
       // (No setupDungeonmasterHome — no announce happens in this flow)
 
       const result = await proxy.callResponder({
@@ -205,7 +226,7 @@ describe('InteractionHandleResponder', () => {
         meta: { 'claudecode/toolUseId': 'toolu_01KfM8kWZATagwS33eTq5fZS' },
       });
 
-      expect(proxy.getLastModifyQuestInput()).toBe(undefined);
+      expect(proxy.getLastModifyQuestInput({ questId })).toBe(undefined);
       expect(result).toStrictEqual({
         content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
       });
@@ -217,16 +238,19 @@ describe('InteractionHandleResponder', () => {
         name: 'chaoswhisperer-gap-minion',
         prompt: 'You are chaoswhisperer-gap-minion.',
       });
-      proxy.setupAgentPromptReturns({ result: expectedResult });
-
       const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
+      proxy.setupAgentPromptReturns({
+        agent: 'chaoswhisperer-gap-minion',
+        questId,
+        result: expectedResult,
+      });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-agent-prompt' }),
         args: { agent: 'chaoswhisperer-gap-minion', questId },
       });
 
-      expect(proxy.getLastModifyQuestInput()).toBe(undefined);
+      expect(proxy.getLastModifyQuestInput({ questId })).toBe(undefined);
       expect(result).toStrictEqual({
         content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
       });

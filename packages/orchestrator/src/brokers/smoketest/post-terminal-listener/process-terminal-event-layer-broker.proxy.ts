@@ -15,7 +15,11 @@
 
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { processTerminalEventLayerBroker } from './process-terminal-event-layer-broker';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -43,21 +47,21 @@ export const processTerminalEventLayerBrokerProxy = (): {
   smoketestAssertFinalStateBrokerProxy();
   smoketestRunTeardownChecksBrokerProxy();
 
-  const mocked = processTerminalEventLayerBroker as jest.MockedFunction<
-    typeof processTerminalEventLayerBroker
-  >;
-  // Default: resolve success so dispatched fire-and-forget calls don't throw.
-  mocked.mockResolvedValue({ success: true });
+  const mocked = registerMock({ fn: processTerminalEventLayerBroker });
 
   return {
     reset: (): void => {
       // Child proxies self-reset via jest.clearAllMocks between tests.
     },
+    // processTerminalEventLayerBroker takes one call-specific { questId, entry, scenarioMeta,
+    // unregisterListener } argument that the caller (createTerminalHandlerLayerBroker's
+    // dispatched handler) only builds AFTER this setup runs, and every test drives exactly one
+    // dispatch — there is no real value available here to key on.
     setupSucceeds: (): void => {
-      mocked.mockResolvedValueOnce({ success: true });
+      mocked.onceFor([]).resolves({ success: true });
     },
     setupRejects: ({ error }: { error: Error }): void => {
-      mocked.mockRejectedValueOnce(error);
+      mocked.onceFor([]).rejects(error);
     },
     setupPassthrough: (): void => {
       const realMod = requireActual<{
@@ -65,7 +69,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
       }>({
         module: './process-terminal-event-layer-broker',
       });
-      mocked.mockImplementation(realMod.processTerminalEventLayerBroker);
+      mocked.calledWith([]).implement(realMod.processTerminalEventLayerBroker);
     },
     setupQuestDeleted: ({
       homeDir,
@@ -81,6 +85,6 @@ export const processTerminalEventLayerBrokerProxy = (): {
       // guild dirs exist on disk.
       findProxy.setupNoGuilds({ homeDir, homePath, guildsDir });
     },
-    getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
+    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
   };
 };

@@ -27,9 +27,9 @@ describe('QuestStartResponder', () => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
         const processId = ProcessIdStub();
-        const quest = QuestStub({ status: status as never });
+        const quest = QuestStub({ id: questId, status: status as never });
         proxy.setupQuest({ quest });
-        proxy.setupStartQuest({ processId });
+        proxy.setupStartQuest({ questId, processId });
 
         const result = await proxy.callResponder({ params: { questId } });
 
@@ -47,7 +47,7 @@ describe('QuestStartResponder', () => {
       async (status) => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ status: status as never });
+        const quest = QuestStub({ id: questId, status: status as never });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({ params: { questId } });
@@ -109,11 +109,12 @@ describe('QuestStartResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestStartResponderProxy();
-      const quest = QuestStub({ status: 'approved' as never });
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
       proxy.setupQuest({ quest });
-      proxy.setupStartQuestError({ message: 'Quest start failed' });
+      proxy.setupStartQuestError({ questId, message: 'Quest start failed' });
 
-      const result = await proxy.callResponder({ params: { questId: 'test-quest' } });
+      const result = await proxy.callResponder({ params: { questId } });
 
       expect(result).toStrictEqual({
         status: 500,

@@ -15,7 +15,9 @@ export const caseCatalogToBlueprintTransformerProxy = (): {
       uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
     }): void => {
       for (const uuid of uuids) {
-        uuidMock.mockReturnValueOnce(uuid);
+        // crypto.randomUUID takes no arguments, so [] is the only possible address. Successive
+        // calls within one transformer run need different results, which is what onceFor is for.
+        uuidMock.onceFor([]).returns(uuid);
       }
     },
   };

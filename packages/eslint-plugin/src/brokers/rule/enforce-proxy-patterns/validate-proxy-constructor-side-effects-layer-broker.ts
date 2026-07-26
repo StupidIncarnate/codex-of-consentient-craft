@@ -63,9 +63,33 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
               // Check if it's calling a mock method (allowed)
               const { property } = callee;
               const propertyName = property?.name;
-              const isMockMethod =
-                propertyName &&
+              const isLegacyMockMethod =
+                propertyName !== undefined &&
                 jestMockingStatics.mockMethods.some((method) => method === propertyName);
+
+              // Bare argument-addressed staging/query call: handle.calledWith([args]),
+              // handle.onceFor([args]), handle.callsMatching([args]) — allowed on their own.
+              const isBareChainedMockCall =
+                propertyName !== undefined &&
+                (jestMockingStatics.chainedMockStagingMethodSet.has(propertyName) ||
+                  jestMockingStatics.chainedMockQueryMethodSet.has(propertyName));
+
+              // Chained result call: handle.calledWith([args]).resolves(value) — the outer
+              // callee's object is itself a CallExpression whose own callee is a staging method
+              // (calledWith/onceFor). Only counts as mock setup when the chain actually bottoms
+              // out there; a call like foo.query().returns(1) does not qualify.
+              const stagingAntecedentName =
+                object?.type === 'CallExpression' && object.callee?.type === 'MemberExpression'
+                  ? object.callee.property?.name
+                  : undefined;
+              const isChainedResultCall =
+                propertyName !== undefined &&
+                jestMockingStatics.chainedMockResultMethodSet.has(propertyName) &&
+                stagingAntecedentName !== undefined &&
+                jestMockingStatics.chainedMockStagingMethodSet.has(stagingAntecedentName);
+
+              const isMockMethod =
+                isLegacyMockMethod || isBareChainedMockCall || isChainedResultCall;
 
               if (!isMockMethod) {
                 const objectName = object?.name ?? 'unknown';

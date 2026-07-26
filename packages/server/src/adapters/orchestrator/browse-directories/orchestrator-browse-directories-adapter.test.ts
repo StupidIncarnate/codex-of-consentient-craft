@@ -10,7 +10,7 @@ describe('orchestratorBrowseDirectoriesAdapter', () => {
       const path = GuildPathStub({ value: '/home/user' });
       const entries = [DirectoryEntryStub()];
 
-      proxy.returns({ entries });
+      proxy.returns({ path, entries });
 
       const result = orchestratorBrowseDirectoriesAdapter({ path });
 
@@ -18,7 +18,9 @@ describe('orchestratorBrowseDirectoriesAdapter', () => {
     });
 
     it('VALID: {no path} => returns directory entries for default path', () => {
-      orchestratorBrowseDirectoriesAdapterProxy();
+      const proxy = orchestratorBrowseDirectoriesAdapterProxy();
+
+      proxy.returns({ entries: [] });
 
       const result = orchestratorBrowseDirectoriesAdapter({});
 
@@ -31,7 +33,7 @@ describe('orchestratorBrowseDirectoriesAdapter', () => {
       const proxy = orchestratorBrowseDirectoriesAdapterProxy();
       const path = GuildPathStub({ value: '/nonexistent' });
 
-      proxy.throws({ error: new Error('Directory not found') });
+      proxy.throws({ path, error: new Error('Directory not found') });
 
       expect(() => orchestratorBrowseDirectoriesAdapter({ path })).toThrow(/Directory not found/u);
     });

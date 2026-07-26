@@ -18,7 +18,9 @@ export const honoCreateNodeWebSocketAdapterProxy = (): {
     };
   } = {};
 
-  mock.mockReturnValue({
+  // createNodeWebSocket is called once per test with a fresh `new Hono()` instance the proxy
+  // never sees ahead of time — nothing to key on beyond "the one call this test made".
+  mock.calledWith([]).returns({
     injectWebSocket: jest.fn(),
     upgradeWebSocket: (
       factory: () => {

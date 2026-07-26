@@ -38,7 +38,7 @@ describe('NetworkRecordLifecycleResponder', () => {
     it('VALID: {entries present after flush} => writes formatted output to stderr', async () => {
       NetworkRecordLifecycleResponderProxy();
       const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-      stderrSpy.mockReturnValue(true);
+      stderrSpy.calledWith([]).returns(true);
 
       const lifecycle = NetworkRecordLifecycleResponder();
       lifecycle.start();
@@ -48,13 +48,13 @@ describe('NetworkRecordLifecycleResponder', () => {
 
       // With no actual HTTP traffic captured by the mocked MSW server,
       // entries will be empty and stderr should not be written to
-      expect(stderrSpy.mock.calls).toStrictEqual([]);
+      expect(stderrSpy.callsMatching([])).toStrictEqual([]);
     });
 
     it('EMPTY: {no entries after flush} => does not write to stderr', async () => {
       NetworkRecordLifecycleResponderProxy();
       const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-      stderrSpy.mockReturnValue(true);
+      stderrSpy.calledWith([]).returns(true);
 
       const lifecycle = NetworkRecordLifecycleResponder();
       lifecycle.start();
@@ -62,7 +62,7 @@ describe('NetworkRecordLifecycleResponder', () => {
 
       lifecycle.stop();
 
-      expect(stderrSpy.mock.calls).toStrictEqual([]);
+      expect(stderrSpy.callsMatching([])).toStrictEqual([]);
     });
   });
 });

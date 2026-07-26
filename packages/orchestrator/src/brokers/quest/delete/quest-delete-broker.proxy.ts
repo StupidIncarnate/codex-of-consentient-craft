@@ -19,6 +19,11 @@ export const questDeleteBrokerProxy = (): {
   const rmProxy = fsRmAdapterProxy();
   const outboxAppendProxy = questOutboxAppendBrokerProxy();
 
+  const outboxFilePath = FilePathStub({
+    value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
+  });
+  const questFolderPathRef: { value: FilePath } = { value: FilePathStub({ value: '/unset' }) };
+
   return {
     setupQuestFolderPath: ({
       homePath,
@@ -27,20 +32,23 @@ export const questDeleteBrokerProxy = (): {
       homePath: FilePath;
       questFolderPath: FilePath;
     }): void => {
+      questFolderPathRef.value = questFolderPath;
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       pathJoinProxy.returns({ result: questFolderPath });
-      const outboxFilePath = FilePathStub({
-        value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
-      });
+      // fsRmAdapterProxy no longer has a constructor-level catch-all — this proxy silently
+      // leaned on that removed default for the success path. Stage it explicitly, keyed on
+      // the same questFolderPath the broker deletes.
+      rmProxy.succeeds({ filePath: questFolderPath });
       outboxAppendProxy.setupOutboxAppend({ homePath, outboxFilePath });
     },
 
     setupRmFailure: ({ error }: { error: Error }): void => {
-      rmProxy.throws({ error });
+      rmProxy.throws({ filePath: questFolderPathRef.value, error });
     },
 
-    getRmCallArgs: (): readonly unknown[][] => rmProxy.getCallArgs(),
+    getRmCallArgs: (): readonly unknown[][] =>
+      rmProxy.getCallsFor({ filePath: questFolderPathRef.value }),
 
-    getAppendedContent: (): unknown => outboxAppendProxy.getAppendedContent(),
+    getAppendedContent: (): unknown => outboxAppendProxy.getAppendedContent({ outboxFilePath }),
   };
 };

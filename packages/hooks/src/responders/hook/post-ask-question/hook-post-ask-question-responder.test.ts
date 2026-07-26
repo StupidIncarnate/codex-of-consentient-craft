@@ -20,7 +20,7 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, single answer, header present} => PATCHes design decision with header-derived id', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 999 });
-      proxy.setupHappyPath({ questId: 'quest-abc-123' });
+      proxy.setupHappyPath({ sessionId: 'session-xyz', questId: 'quest-abc-123' });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -66,7 +66,7 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, multi-select answers} => joins answers with ", "', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 42 });
-      proxy.setupHappyPath({ questId: 'quest-multi' });
+      proxy.setupHappyPath({ sessionId: 'session-multi', questId: 'quest-multi' });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -112,7 +112,7 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, empty header} => uses question text for id slug', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 7 });
-      proxy.setupHappyPath({ questId: 'quest-noheader' });
+      proxy.setupHappyPath({ sessionId: 'session-noheader', questId: 'quest-noheader' });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -155,7 +155,7 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, verbatim free-form answer} => persists literal answer in rationale', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 1 });
-      proxy.setupHappyPath({ questId: 'quest-other' });
+      proxy.setupHappyPath({ sessionId: 'session-other', questId: 'quest-other' });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -199,7 +199,7 @@ describe('HookPostAskQuestionResponder', () => {
   describe('not a Chaos session (404)', () => {
     it('VALID: {server returns 404 for session} => silent no-op exitCode 0 and no PATCH', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupQuestNotFound();
+      proxy.setupQuestNotFound({ sessionId: 'no-session' });
 
       const questionInput = AskUserQuestionStub();
 
@@ -223,7 +223,7 @@ describe('HookPostAskQuestionResponder', () => {
   describe('server unreachable (connection-level failure)', () => {
     it('VALID: {fetch throws TypeError} => silent no-op exitCode 0 and no PATCH', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupServerUnreachable();
+      proxy.setupServerUnreachable({ sessionId: 'session-down' });
 
       const questionInput = AskUserQuestionStub();
 
@@ -247,7 +247,11 @@ describe('HookPostAskQuestionResponder', () => {
   describe('server 5xx on lookup', () => {
     it('ERROR: {server returns 500} => returns exitCode 2 with status-based stderr and no PATCH', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupServer5xx({ status: 500, bodyText: '{"error":"Boom"}' });
+      proxy.setupServer5xx({
+        sessionId: 'session-broken-server',
+        status: 500,
+        bodyText: '{"error":"Boom"}',
+      });
 
       const questionInput = AskUserQuestionStub();
 
@@ -276,7 +280,7 @@ describe('HookPostAskQuestionResponder', () => {
   describe('lookup returns malformed JSON shape', () => {
     it('ERROR: {200 with missing questId field} => returns exitCode 2 with Zod-shape stderr', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupInvalidResponseShape();
+      proxy.setupInvalidResponseShape({ sessionId: 'session-bad-shape' });
 
       const questionInput = AskUserQuestionStub();
 
@@ -306,7 +310,11 @@ describe('HookPostAskQuestionResponder', () => {
   describe('PATCH fails', () => {
     it('ERROR: {PATCH network error} => returns exitCode 2 with PATCH failure message', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupPatchFails({ error: new Error('connection reset') });
+      proxy.setupPatchFails({
+        sessionId: 'session-patch-fail',
+        questId: 'q-1',
+        error: new Error('connection reset'),
+      });
 
       const questionInput = AskUserQuestionStub();
 

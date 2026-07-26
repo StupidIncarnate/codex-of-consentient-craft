@@ -2,18 +2,34 @@ import {
   childProcessSpawnCaptureAdapterProxy,
   fsExistsSyncAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import {
+  ErrorMessageStub,
+  ExitCodeStub,
+  absoluteFilePathContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
+import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
+import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
+import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 
 export const checkRunIntegrationBrokerProxy = (): {
-  setupPass: () => void;
-  setupPassWithOutput: (params: { stdout: string }) => void;
-  setupFail: (params: { stdout: string }) => void;
-  setupFailWithBadOutput: () => void;
-  setupPassWithStderr: (params: { stdout: string; stderr: string }) => void;
-  setupFailWithStderr: (params: { stdout: string; stderr: string }) => void;
+  setupPass: (params: { projectFolder: ProjectFolder }) => void;
+  setupPassWithOutput: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
+  setupFail: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
+  setupFailWithBadOutput: (params: { projectFolder: ProjectFolder }) => void;
+  setupPassWithStderr: (params: {
+    projectFolder: ProjectFolder;
+    stdout: string;
+    stderr: string;
+  }) => void;
+  setupFailWithStderr: (params: {
+    projectFolder: ProjectFolder;
+    stdout: string;
+    stderr: string;
+  }) => void;
   setupNoTestFiles: () => void;
   setDiscoveredFiles: (params: { files: string[] }) => void;
   getSpawnedArgs: () => unknown;
@@ -26,11 +42,23 @@ export const checkRunIntegrationBrokerProxy = (): {
   const failCode = ExitCodeStub({ value: 1 });
   const emptyMessage = ErrorMessageStub({ value: '' });
 
+  // The broker calls globSync once per integration discovery pattern (16 patterns from
+  // jestDiscoverPatternsTransformer). These tests assert on jest output parsing, not which
+  // pattern discovered which file, so the default describes every pattern with one predicate.
+  globProxy.returnsForAnyPattern({ files: ['discovered.ts'] });
+  // The broker only checks jest.config.js's existence — every scenario here wants it to exist.
+  existsProxy.implementation({ fn: () => true });
+
+  const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
+    binProxy.setupFound({
+      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      binName: BinCommandStub({ value: checkCommandsStatics.integration.bin }),
+    });
+
   return {
-    setupPass: (): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
+    setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
         exitCode: successCode,
         stdout: ErrorMessageStub({
           value: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
@@ -39,50 +67,73 @@ export const checkRunIntegrationBrokerProxy = (): {
       });
     },
 
-    setupPassWithOutput: ({ stdout }: { stdout: string }): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
+    setupPassWithOutput: ({
+      projectFolder,
+      stdout,
+    }: {
+      projectFolder: ProjectFolder;
+      stdout: string;
+    }): void => {
       captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
         exitCode: successCode,
         stdout: ErrorMessageStub({ value: stdout }),
         stderr: emptyMessage,
       });
     },
 
-    setupFail: ({ stdout }: { stdout: string }): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
+    setupFail: ({
+      projectFolder,
+      stdout,
+    }: {
+      projectFolder: ProjectFolder;
+      stdout: string;
+    }): void => {
       captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
         exitCode: failCode,
         stdout: ErrorMessageStub({ value: stdout }),
         stderr: emptyMessage,
       });
     },
 
-    setupFailWithBadOutput: (): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
+    setupFailWithBadOutput: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
         exitCode: failCode,
         stdout: ErrorMessageStub({ value: 'not valid json \x1b[31m' }),
         stderr: emptyMessage,
       });
     },
 
-    setupPassWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
+    setupPassWithStderr: ({
+      projectFolder,
+      stdout,
+      stderr,
+    }: {
+      projectFolder: ProjectFolder;
+      stdout: string;
+      stderr: string;
+    }): void => {
       captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
         exitCode: successCode,
         stdout: ErrorMessageStub({ value: stdout }),
         stderr: ErrorMessageStub({ value: stderr }),
       });
     },
 
-    setupFailWithStderr: ({ stdout, stderr }: { stdout: string; stderr: string }): void => {
-      existsProxy.returns({ result: true });
-      binProxy.setupFound();
+    setupFailWithStderr: ({
+      projectFolder,
+      stdout,
+      stderr,
+    }: {
+      projectFolder: ProjectFolder;
+      stdout: string;
+      stderr: string;
+    }): void => {
       captureProxy.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
         exitCode: failCode,
         stdout: ErrorMessageStub({ value: stdout }),
         stderr: ErrorMessageStub({ value: stderr }),
@@ -90,13 +141,11 @@ export const checkRunIntegrationBrokerProxy = (): {
     },
 
     setupNoTestFiles: (): void => {
-      existsProxy.returns({ result: true });
-      globProxy.returnsEmpty();
+      globProxy.returnsForAnyPattern({ files: [] });
     },
 
     setDiscoveredFiles: ({ files }: { files: string[] }): void => {
-      existsProxy.returns({ result: true });
-      globProxy.returnsFiles({ files });
+      globProxy.returnsForAnyPattern({ files });
     },
 
     getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs(),

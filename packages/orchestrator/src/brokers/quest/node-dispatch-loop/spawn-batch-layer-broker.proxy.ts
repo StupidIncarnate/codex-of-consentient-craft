@@ -1,7 +1,11 @@
 import { AbsoluteFilePathStub, GuildStub } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
 
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
@@ -34,15 +38,20 @@ export const spawnBatchLayerBrokerProxy = (): {
   // lint); the module mock above supplies the actual return values.
   questFindQuestPathBrokerProxy();
 
-  const findMock = questFindQuestPathBroker as jest.MockedFunction<typeof questFindQuestPathBroker>;
+  const findMock = registerMock({ fn: questFindQuestPathBroker });
 
-  // Deterministic processId for the stderr tag + registerProcess assertion.
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).mockReturnValue(PROCESS_UUID);
-  registerSpyOn({ object: Date.prototype, method: 'toISOString' }).mockReturnValue(
-    '2024-01-15T10:00:00.000Z',
-  );
+  // Deterministic processId for the stderr tag + registerProcess assertion. Neither global takes
+  // an identifying argument, so `[]` is the honest address for both.
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(PROCESS_UUID);
+  registerSpyOn({ object: Date.prototype, method: 'toISOString' })
+    .calledWith([])
+    .returns('2024-01-15T10:00:00.000Z');
 
   return {
+    // The batch layer resolves guild context ONCE PER UNIQUE questId (deduped across however
+    // many agents in the batch share it), so questId is the real, meaningful address — keying
+    // on it is what lets a multi-quest batch test stage a DIFFERENT guild per quest correctly,
+    // rather than trusting the resolution order to match staging order.
     setupQuestContext: ({
       questId,
       guildId,
@@ -52,7 +61,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       guildId: GuildId;
       guildPath: string;
     }): void => {
-      findMock.mockResolvedValueOnce({
+      findMock.calledWith([{ questId }]).resolves({
         questPath: AbsoluteFilePathStub({ value: `${guildPath}/quests/${questId}` }),
         guildId,
       });
@@ -89,7 +98,8 @@ export const spawnBatchLayerBrokerProxy = (): {
 
     getModifyCallInputs: (): readonly unknown[] => modifyProxy.getCallInputs(),
 
-    getFindQuestPathCalls: (): readonly unknown[] => findMock.mock.calls.map((call) => call[0]),
+    getFindQuestPathCalls: (): readonly unknown[] =>
+      findMock.callsMatching([]).map((call) => call[0]),
 
     getSpawnedCwd: (): unknown => spawnProxy.getSpawnedCwd(),
 

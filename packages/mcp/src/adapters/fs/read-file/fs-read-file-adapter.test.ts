@@ -10,7 +10,7 @@ describe('fsReadFileAdapter', () => {
       value: 'export const example = "test";',
     });
 
-    adapterProxy.returns({ filepath, contents: expectedContents });
+    adapterProxy.returnsFor({ filepath, contents: expectedContents });
 
     const result = await fsReadFileAdapter({ filepath });
 
@@ -22,7 +22,7 @@ describe('fsReadFileAdapter', () => {
     const filepath = FilePathStub({ value: '/nonexistent' });
     const expectedError = new Error('File not found');
 
-    adapterProxy.throws({ filepath, error: expectedError });
+    adapterProxy.throwsFor({ filepath, error: expectedError });
 
     await expect(fsReadFileAdapter({ filepath })).rejects.toThrow('File not found');
   });

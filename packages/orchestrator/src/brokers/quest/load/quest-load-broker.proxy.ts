@@ -7,11 +7,15 @@ export const questLoadBrokerProxy = (): {
   const fsReadFileProxy = fsReadFileAdapterProxy();
 
   return {
+    // No questFilePath is known here: every caller of this proxy composes it alongside a
+    // separate path-producing mock (a directory scan, questFindQuestPathBrokerProxy, ...) and
+    // stages the two in lockstep, one quest file at a time — this proxy's own public interface
+    // never carries a path. resolvesNext queues the NEXT read (any path) with this content.
     setupQuestFile: ({ questJson }: { questJson: string }): void => {
-      fsReadFileProxy.resolves({ content: questJson });
+      fsReadFileProxy.resolvesNext({ content: questJson });
     },
     setupQuestFileReadError: ({ error }: { error: Error }): void => {
-      fsReadFileProxy.rejects({ error });
+      fsReadFileProxy.rejectsNext({ error });
     },
   };
 };

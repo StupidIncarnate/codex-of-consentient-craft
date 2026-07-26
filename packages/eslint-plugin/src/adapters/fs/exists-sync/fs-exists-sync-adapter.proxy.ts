@@ -14,7 +14,10 @@ export const fsExistsSyncAdapterProxy = (): {
       mock.calledWith([filePath]).returns(exists);
     },
     setupFileSystem: (fn: (path: PathLike) => boolean): void => {
-      mock.mockImplementation(fn);
+      // No single path to key on: callers pass a general predicate that decides across many
+      // candidate paths (rule colocation checks walk arbitrary filenames), so [] is the honest
+      // address rather than inventing a per-path key the caller never gave us.
+      mock.calledWith([]).implement(fn);
     },
   };
 };

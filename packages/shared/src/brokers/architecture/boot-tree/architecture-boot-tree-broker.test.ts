@@ -9,7 +9,7 @@ describe('architectureBootTreeBroker', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
-      proxy.setupStartupFiles({ names: ['start-server.ts'] });
+      proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': ContentTextStub({
@@ -62,7 +62,7 @@ describe('architectureBootTreeBroker', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
-      proxy.setupStartupFiles({ names: ['start-server.ts'] });
+      proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': ContentTextStub({
@@ -107,7 +107,7 @@ describe('architectureBootTreeBroker', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
-      proxy.setupStartupFiles({ names: ['start-server.ts'] });
+      proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': ContentTextStub({
@@ -154,7 +154,7 @@ describe('architectureBootTreeBroker', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
-      proxy.setupStartupFiles({ names: ['start-server.ts'] });
+      proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': ContentTextStub({
@@ -207,7 +207,7 @@ describe('architectureBootTreeBroker', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/library' });
 
-      proxy.setupNoStartupFiles();
+      proxy.setupNoStartupFiles({ packageRoot });
 
       const result = architectureBootTreeBroker({ packageRoot });
 
@@ -224,7 +224,10 @@ describe('architectureBootTreeBroker', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
-      proxy.setupStartupFiles({ names: ['start-server.ts', 'start-server.proxy.ts'] });
+      proxy.setupStartupFiles({
+        packageRoot,
+        names: ['start-server.ts', 'start-server.proxy.ts'],
+      });
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': ContentTextStub({

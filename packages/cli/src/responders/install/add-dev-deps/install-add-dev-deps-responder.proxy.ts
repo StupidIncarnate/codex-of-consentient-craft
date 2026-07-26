@@ -1,13 +1,14 @@
 import { pathJoinAdapterProxy, fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallAddDevDepsResponder } from './install-add-dev-deps-responder';
 
 export const InstallAddDevDepsResponderProxy = (): {
   callResponder: typeof InstallAddDevDepsResponder;
-  setupFileExists: () => void;
-  setupFileNotExists: () => void;
-  setupReadFile: (params: { content: string }) => void;
+  setupFileExists: (params: { filePath: FilePath }) => void;
+  setupFileNotExists: (params: { filePath: FilePath }) => void;
+  setupReadFile: (params: { filePath: FilePath; content: string }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   pathJoinAdapterProxy();
@@ -18,16 +19,17 @@ export const InstallAddDevDepsResponderProxy = (): {
   return {
     callResponder: InstallAddDevDepsResponder,
 
-    setupFileExists: (): void => {
-      existsProxy.returns({ result: true });
+    setupFileExists: ({ filePath }: { filePath: FilePath }): void => {
+      existsProxy.returns({ filePath, result: true });
     },
 
-    setupFileNotExists: (): void => {
-      existsProxy.returns({ result: false });
+    setupFileNotExists: ({ filePath }: { filePath: FilePath }): void => {
+      existsProxy.returns({ filePath, result: false });
     },
 
-    setupReadFile: ({ content }: { content: string }): void => {
-      readProxy.resolves({ content });
+    setupReadFile: ({ filePath, content }: { filePath: FilePath; content: string }): void => {
+      readProxy.resolves({ filePath, content });
+      writeProxy.succeeds({ filePath });
     },
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>

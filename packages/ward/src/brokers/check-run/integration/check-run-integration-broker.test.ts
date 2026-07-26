@@ -12,10 +12,9 @@ import { checkRunIntegrationBrokerProxy } from './check-run-integration-broker.p
 describe('checkRunIntegrationBroker', () => {
   describe('passing tests', () => {
     it('VALID: {jest exits 0} => returns pass result with no test failures', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -42,7 +41,6 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('failing tests', () => {
     it('VALID: {jest exits 1 with failures} => returns fail result with parsed test failures', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -58,9 +56,9 @@ describe('checkRunIntegrationBroker', () => {
         ],
         success: false,
       });
-      proxy.setupFail({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupFail({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -90,10 +88,9 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('unparseable output', () => {
     it('VALID: {jest exits 1 with non-JSON output} => returns fail result with empty test failures', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupFailWithBadOutput();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupFailWithBadOutput({ projectFolder });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -120,10 +117,9 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('file list filtering', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunIntegrationBroker({
         projectFolder,
@@ -149,13 +145,12 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('directory path filtering', () => {
     it('VALID: {fileList with directory path} => combines directory with integration pattern in --testPathPatterns', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setDiscoveredFiles({
         files: ['src/flows/chat-replay/chat-replay.integration.test.ts', 'discovered.ts'],
       });
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunIntegrationBroker({
         projectFolder,
@@ -177,6 +172,7 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {fileList with multiple directory paths} => joins paths in combined pattern', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setDiscoveredFiles({
         files: [
@@ -184,9 +180,7 @@ describe('checkRunIntegrationBroker', () => {
           'src/flows/install/install.integration.test.ts',
         ],
       });
-      proxy.setupPass();
-
-      const projectFolder = ProjectFolderStub();
+      proxy.setupPass({ projectFolder });
 
       await checkRunIntegrationBroker({
         projectFolder,
@@ -211,10 +205,9 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {fileList with .integration.test.ts file} => uses --findRelatedTests with matching file', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunIntegrationBroker({
         projectFolder,
@@ -242,10 +235,9 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {fileList with non-integration .test.ts file} => skips without spawning jest', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -275,10 +267,9 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {fileList with mix of integration and unit test files} => only passes integration files to --findRelatedTests', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunIntegrationBroker({
         projectFolder,
@@ -311,10 +302,9 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('directory with no matching integration tests', () => {
     it('VALID: {fileList with directory that has no integration tests in discovered files} => skips without spawning jest', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -342,10 +332,9 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('testNamePattern', () => {
     it('VALID: {testNamePattern provided} => appends --testNamePattern to jest args', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       await checkRunIntegrationBroker({
         projectFolder,
@@ -372,16 +361,15 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('testNamePattern zero matches', () => {
     it('VALID: {testNamePattern matches no tests} => returns fail with error about zero matching tests', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 0,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -414,16 +402,15 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {testNamePattern matches some tests} => returns pass with no errors', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 3,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -447,16 +434,15 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {no testNamePattern with zero tests} => returns pass preserving existing behavior', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.integration.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
         numPassedTests: 0,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -509,14 +495,14 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('no related tests in file scope', () => {
     it('VALID: {fileList provided, jest finds no related integration tests} => returns skip not fail', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setupFailWithStderr({
+        projectFolder,
         stdout: '',
         stderr:
           'No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nPattern: testing.ts|\\.integration\\.test\\.(ts|tsx|js|jsx)$ - 0 matches',
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -540,13 +526,13 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('VALID: {no fileList, jest emits no-tests banner} => returns fail preserving full-run protection', async () => {
+      const projectFolder = ProjectFolderStub();
       const proxy = checkRunIntegrationBrokerProxy();
       proxy.setupFailWithStderr({
+        projectFolder,
         stdout: '',
         stderr: 'No tests found, exiting with code 1\n',
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -573,7 +559,6 @@ describe('checkRunIntegrationBroker', () => {
 
   describe('fileTimings', () => {
     it('VALID: {jest output with startTime/endTime} => returns fileTimings with per-file durations', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           {
@@ -593,9 +578,9 @@ describe('checkRunIntegrationBroker', () => {
         numPassedTests: 5,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
@@ -631,7 +616,6 @@ describe('checkRunIntegrationBroker', () => {
     });
 
     it('EDGE: {jest output without startTime/endTime} => returns empty fileTimings', async () => {
-      const proxy = checkRunIntegrationBrokerProxy();
       const jestOutput = JSON.stringify({
         testResults: [
           { name: 'src/flows/install/install.integration.test.ts', assertionResults: [] },
@@ -640,9 +624,9 @@ describe('checkRunIntegrationBroker', () => {
         numPassedTests: 2,
         success: true,
       });
-      proxy.setupPassWithOutput({ stdout: jestOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: jestOutput });
 
       const result = await checkRunIntegrationBroker({
         projectFolder,

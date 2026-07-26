@@ -73,10 +73,15 @@ export const useQuestChatBindingProxy = (): {
       resumeProxy.setupResume({ restoredStatus });
     },
     setupUuids: ({ uuids }) => {
-      for (const u of uuids) uuidMock.mockReturnValueOnce(u);
+      // randomUUID takes no arguments, so there is no address beyond "the next call" — onceFor
+      // staged in order is consumed FIFO, one entry per call, matching the original queued-value
+      // semantics.
+      for (const u of uuids) uuidMock.onceFor([]).returns(u);
     },
     setupTimestamps: ({ timestamps }) => {
-      for (const t of timestamps) dateProtoMock.mockReturnValueOnce(t);
+      // toISOString's address would be the receiver (`this`), which a spy cannot see — same
+      // "next call" queueing as setupUuids above.
+      for (const t of timestamps) dateProtoMock.onceFor([]).returns(t);
     },
     getChatRequestCount: () => chatProxy.getRequestCount(),
     getClarifyRequestCount: () => clarifyProxy.getRequestCount(),

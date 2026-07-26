@@ -1,4 +1,4 @@
-import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorPlayDispatchAdapterProxy } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter.proxy';
@@ -9,8 +9,12 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const QuestResumeResponderProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
-  setupResumeQuest: (params: { resumed: boolean; restoredStatus: QuestStatus }) => void;
-  setupResumeQuestError: (params: { message: string }) => void;
+  setupResumeQuest: (params: {
+    questId: QuestId;
+    resumed: boolean;
+    restoredStatus: QuestStatus;
+  }) => void;
+  setupResumeQuestError: (params: { questId: QuestId; message: string }) => void;
   setupDispatchPlays: () => void;
   setupDispatchRefused: (params: { reason: string }) => void;
   setupDispatchError: (params: { message: string }) => void;
@@ -23,19 +27,21 @@ export const QuestResumeResponderProxy = (): {
 
   return {
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      questProxy.returns({ result: { success: true, quest } as never });
+      questProxy.returns({ questId: quest.id, result: { success: true, quest } as never });
     },
     setupResumeQuest: ({
+      questId,
       resumed,
       restoredStatus,
     }: {
+      questId: QuestId;
       resumed: boolean;
       restoredStatus: QuestStatus;
     }): void => {
-      adapterProxy.returns({ resumed, restoredStatus });
+      adapterProxy.returns({ questId, resumed, restoredStatus });
     },
-    setupResumeQuestError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+    setupResumeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+      adapterProxy.throws({ questId, error: new Error(message) });
     },
 
     // The Node dispatcher accepts the play — the ordinary case, where nothing else owns the queue.

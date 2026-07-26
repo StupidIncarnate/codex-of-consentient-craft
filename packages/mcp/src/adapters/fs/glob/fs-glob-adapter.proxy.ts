@@ -7,8 +7,6 @@ export const fsGlobAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: glob });
 
-  handle.mockImplementation(async () => Promise.resolve([]));
-
   return {
     // fsGlobAdapter hands the pattern to glob(pattern, { cwd?, absolute }) untouched, so the
     // pattern IS the address. Staging it alone leaves the options bag unconstrained.

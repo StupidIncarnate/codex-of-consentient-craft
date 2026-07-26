@@ -38,13 +38,18 @@ export const chatStreamProcessHandleBrokerProxy = (): {
     }: {
       uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
     }): void => {
+      // crypto.randomUUID takes no arguments — [] is the honest address. Each call queues a
+      // one-shot answer consumed in registration order, same as the mockReturnValueOnce chain
+      // this replaces.
       for (const uuid of uuids) {
-        uuidMock.mockReturnValueOnce(uuid);
+        uuidMock.onceFor([]).returns(uuid);
       }
     },
     setupTimestamps: ({ timestamps }: { timestamps: readonly string[] }): void => {
+      // Date.prototype.toISOString's address would be the receiver `this`, which a spy cannot
+      // see — [] is the honest address.
       for (const timestamp of timestamps) {
-        dateMock.mockReturnValueOnce(timestamp);
+        dateMock.onceFor([]).returns(timestamp);
       }
     },
   };

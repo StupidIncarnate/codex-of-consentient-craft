@@ -6,7 +6,7 @@ describe('clipboardWriteAdapter', () => {
     it('VALID: {text: "/dumpster-launch"} => writes text to clipboard', async () => {
       const proxy = clipboardWriteAdapterProxy();
 
-      proxy.succeeds();
+      proxy.succeeds({ text: '/dumpster-launch' });
 
       await expect(clipboardWriteAdapter({ text: '/dumpster-launch' })).resolves.toStrictEqual({
         success: true,
@@ -19,7 +19,10 @@ describe('clipboardWriteAdapter', () => {
     it('ERROR: {text: anything, clipboard rejects} => propagates the rejection', async () => {
       const proxy = clipboardWriteAdapterProxy();
 
-      proxy.throws({ error: new Error('NotAllowedError: write blocked') });
+      proxy.throws({
+        text: '/dumpster-launch',
+        error: new Error('NotAllowedError: write blocked'),
+      });
 
       await expect(clipboardWriteAdapter({ text: '/dumpster-launch' })).rejects.toThrow(
         /NotAllowedError/u,

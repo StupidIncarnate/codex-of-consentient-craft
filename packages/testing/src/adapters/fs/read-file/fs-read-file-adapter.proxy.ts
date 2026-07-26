@@ -17,7 +17,7 @@ export const fsReadFileAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: readFileSync });
 
-  mock.mockReturnValue('');
+  mock.calledWith([]).returns('');
 
   return {
     returns: ({ filePath, content }: { filePath: string; content: FileContent }): void => {

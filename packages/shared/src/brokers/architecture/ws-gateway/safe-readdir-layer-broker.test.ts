@@ -8,7 +8,7 @@ describe('safeReaddirLayerBroker', () => {
   describe('directory exists', () => {
     it('VALID: {existing directory} => returns entries from adapter', () => {
       const proxy = safeReaddirLayerBrokerProxy();
-      proxy.setupDirectory({ entries: [] });
+      proxy.setupDirectory({ dirPath: DIR, entries: [] });
 
       const result = safeReaddirLayerBroker({ dirPath: DIR });
 
@@ -19,7 +19,7 @@ describe('safeReaddirLayerBroker', () => {
   describe('directory missing', () => {
     it('ERROR: {readdir throws} => returns empty array', () => {
       const proxy = safeReaddirLayerBrokerProxy();
-      proxy.setupError({ error: new Error('ENOENT') });
+      proxy.setupError({ dirPath: DIR, error: new Error('ENOENT') });
 
       const result = safeReaddirLayerBroker({ dirPath: DIR });
 

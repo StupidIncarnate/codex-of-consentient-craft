@@ -10,7 +10,7 @@ describe('fsWriteFileAdapter', () => {
       const filePath = FilePathStub({ value: '/path/to/file.ts' });
       const contents = FileContentsStub({ value: 'const x = 1;' });
 
-      proxy.succeeds();
+      proxy.succeeds({ filePath });
 
       await expect(fsWriteFileAdapter({ filePath, contents })).resolves.toStrictEqual({
         success: true,
@@ -24,7 +24,7 @@ describe('fsWriteFileAdapter', () => {
       const filePath = FilePathStub({ value: '/readonly/file.ts' });
       const contents = FileContentsStub({ value: 'content' });
 
-      proxy.throws({ error: new Error('EACCES: permission denied') });
+      proxy.throws({ filePath, error: new Error('EACCES: permission denied') });
 
       await expect(fsWriteFileAdapter({ filePath, contents })).rejects.toThrow(/EACCES/u);
     });

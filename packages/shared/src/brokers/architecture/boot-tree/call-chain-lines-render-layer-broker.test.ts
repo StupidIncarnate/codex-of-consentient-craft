@@ -136,7 +136,7 @@ describe('callChainLinesRenderLayerBroker', () => {
         value: '/repo/packages/server/src/startup/start-server.ts',
       });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ sourceFile });
 
       const result = callChainLinesRenderLayerBroker({
         sourceFile,

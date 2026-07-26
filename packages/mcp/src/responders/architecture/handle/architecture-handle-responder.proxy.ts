@@ -12,6 +12,7 @@ import {
   architectureProjectMapBrokerProxy,
   processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
   FileContents,
   FolderType,
@@ -27,6 +28,11 @@ import { folderConstraintsStateProxy } from '../../../state/folder-constraints/f
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import { ArchitectureHandleResponder } from './architecture-handle-responder';
 
+// The responder's get-project-map branch resolves projectRoot from processCwdAdapter(), which
+// this proxy leaves unstaged — the shared proxy's sticky default ('/default/cwd') is therefore
+// the real value every project-map call below is keyed on, not a placeholder.
+const DEFAULT_PROJECT_ROOT = AbsoluteFilePathStub({ value: '/default/cwd' });
+
 export const ArchitectureHandleResponderProxy = (): {
   callResponder: typeof ArchitectureHandleResponder;
   setupFileDiscovery: (params: {
@@ -35,11 +41,9 @@ export const ArchitectureHandleResponderProxy = (): {
     pattern: GlobPattern;
   }) => void;
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
-  setupLibraryPackage: ReturnType<typeof architectureProjectMapBrokerProxy>['setupLibraryPackage'];
-  setupFrontendInkPackage: ReturnType<
-    typeof architectureProjectMapBrokerProxy
-  >['setupFrontendInkPackage'];
-  setupEmptyMonorepo: ReturnType<typeof architectureProjectMapBrokerProxy>['setupEmptyMonorepo'];
+  setupLibraryPackage: (params: { packageName: string }) => void;
+  setupFrontendInkPackage: (params: { packageName: string }) => void;
+  setupEmptyMonorepo: () => void;
 } => {
   processCwdAdapterProxy();
   architectureOverviewBrokerProxy();
@@ -77,22 +81,14 @@ export const ArchitectureHandleResponderProxy = (): {
         content: ContentTextStub({ value: content }),
       });
     },
-    setupLibraryPackage: ({
-      packageName,
-    }: Parameters<
-      ReturnType<typeof architectureProjectMapBrokerProxy>['setupLibraryPackage']
-    >[0]): void => {
-      projectMapProxy.setupLibraryPackage({ packageName });
+    setupLibraryPackage: ({ packageName }: { packageName: string }): void => {
+      projectMapProxy.setupLibraryPackage({ projectRoot: DEFAULT_PROJECT_ROOT, packageName });
     },
-    setupFrontendInkPackage: ({
-      packageName,
-    }: Parameters<
-      ReturnType<typeof architectureProjectMapBrokerProxy>['setupFrontendInkPackage']
-    >[0]): void => {
-      projectMapProxy.setupFrontendInkPackage({ packageName });
+    setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
+      projectMapProxy.setupFrontendInkPackage({ projectRoot: DEFAULT_PROJECT_ROOT, packageName });
     },
     setupEmptyMonorepo: (): void => {
-      projectMapProxy.setupEmptyMonorepo();
+      projectMapProxy.setupEmptyMonorepo({ projectRoot: DEFAULT_PROJECT_ROOT });
     },
   };
 };

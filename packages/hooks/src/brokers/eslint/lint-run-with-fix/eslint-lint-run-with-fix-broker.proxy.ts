@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = eslintLintRunWithFixBrokerProxy();
- * proxy.returnsLintResults({ results: [...] });
+ * proxy.returnsLintResults({ filePath: 'test.ts', results: [...] });
  * const results = await eslintLintRunWithFixBroker({ filePath, config, cwd });
  */
 
@@ -14,21 +14,33 @@ import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-res
 import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 
 export const eslintLintRunWithFixBrokerProxy = (): {
-  returnsLintResults: (params: { results: unknown[] }) => void;
+  returnsLintResults: (params: { filePath: string; results: unknown[] }) => void;
 } => {
   processCwdAdapterProxy();
   const eslintProxy = eslintEslintAdapterProxy();
-  eslintOutputFixesAdapterProxy();
+  const outputFixesProxy = eslintOutputFixesAdapterProxy();
   fsReadFileAdapterProxy();
-  pathResolveAdapterProxy();
+  const resolveProxy = pathResolveAdapterProxy();
+
+  // pathResolveAdapterProxy no longer carries a global default (it's argument-addressed now), so
+  // this broker's own pathResolveAdapter call needs an explicit fallback. Restore "return the
+  // last segment" — i.e. resolve(cwd, filePath) => filePath — locally, scoped to this proxy, so
+  // the raw filePath the broker was called with is what lintFiles actually receives.
+  resolveProxy
+    .getHandle()
+    .calledWith([])
+    .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
+
+  const lintFilesHandle = eslintProxy.getLintFilesHandle();
 
   return {
-    returnsLintResults: ({ results }: { results: unknown[] }): void => {
-      const lintFilesHandler = eslintProxy.getLintFilesHandler();
-
-      // Set up to return specific results
-      lintFilesHandler.mockReset();
-      lintFilesHandler.mockResolvedValue(results);
+    // lintFiles receives a single argument: an array of the (resolved) paths to lint. This
+    // broker always lints exactly one file, so the address is that one-element array.
+    returnsLintResults: ({ filePath, results }): void => {
+      lintFilesHandle.calledWith([[filePath]]).resolves(results);
+      // The broker feeds the SAME results array straight into ESLint.outputFixes() next —
+      // address it by the exact array lintFiles just resolved so the write step succeeds too.
+      outputFixesProxy.writesSuccessfully({ results: results as never });
     },
   };
 };

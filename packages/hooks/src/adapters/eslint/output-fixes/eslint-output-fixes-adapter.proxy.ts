@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = eslintOutputFixesAdapterProxy();
- * proxy.writesSuccessfully();
+ * proxy.writesSuccessfully({ results });
  * await eslintOutputFixesAdapter({ results });
  */
 import { ESLint } from 'eslint';
@@ -11,24 +11,23 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 export const eslintOutputFixesAdapterProxy = (): {
-  writesSuccessfully: () => void;
-  throwsError: (params: { error: Error }) => void;
-  getOutputFixesHandler: () => SpyOnHandle;
+  writesSuccessfully: (params: { results: readonly ESLint.LintResult[] }) => void;
+  throwsError: (params: { results: readonly ESLint.LintResult[]; error: Error }) => void;
+  getCallsFor: (params: { results: readonly ESLint.LintResult[] }) => readonly unknown[][];
 } => {
-  const mockOutputFixes: SpyOnHandle = registerSpyOn({ object: ESLint, method: 'outputFixes' });
-
-  // Default behavior: successful write
-  mockOutputFixes.mockResolvedValue({ success: true as const });
+  const outputFixesHandle: SpyOnHandle = registerSpyOn({ object: ESLint, method: 'outputFixes' });
 
   return {
-    writesSuccessfully: (): void => {
-      mockOutputFixes.mockResolvedValueOnce({ success: true as const });
+    // The results array IS the address — outputFixes writes whatever fixes are on it, so a test
+    // staging one file's results must not answer for a call carrying a different file's results.
+    writesSuccessfully: ({ results }): void => {
+      outputFixesHandle.calledWith([results]).resolves({ success: true as const });
     },
 
-    throwsError: ({ error }: { error: Error }): void => {
-      mockOutputFixes.mockRejectedValueOnce(error);
+    throwsError: ({ results, error }): void => {
+      outputFixesHandle.calledWith([results]).rejects(error);
     },
 
-    getOutputFixesHandler: (): SpyOnHandle => mockOutputFixes,
+    getCallsFor: ({ results }): readonly unknown[][] => outputFixesHandle.callsMatching([results]),
   };
 };

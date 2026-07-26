@@ -5,7 +5,7 @@ describe('orchestratorStartMonitorWatcherAdapter', () => {
   describe('valid passthrough', () => {
     it('VALID: {parentSessionId, projectDir} => returns handle with stop()', async () => {
       const proxy = orchestratorStartMonitorWatcherAdapterProxy();
-      proxy.resolves();
+      proxy.resolves({ parentSessionId: 'sess-123' });
 
       const handle = await orchestratorStartMonitorWatcherAdapter({
         parentSessionId: 'sess-123',
@@ -23,7 +23,7 @@ describe('orchestratorStartMonitorWatcherAdapter', () => {
   describe('error passthrough', () => {
     it('ERROR: {orchestrator throws} => adapter rejects', async () => {
       const proxy = orchestratorStartMonitorWatcherAdapterProxy();
-      proxy.throws({ error: new Error('start failed') });
+      proxy.throws({ parentSessionId: 'sess-456', error: new Error('start failed') });
 
       await expect(
         orchestratorStartMonitorWatcherAdapter({

@@ -37,7 +37,7 @@ describe('shared websocket connection', () => {
     // Expose the OPEN constant so the adapter's readyState guard resolves.
     (globalThis.WebSocket as unknown as { OPEN: typeof WebSocket.OPEN }).OPEN = WebSocket.OPEN;
 
-    wsSpy.mockImplementation((() => {
+    wsSpy.calledWith([WsUrlStub({ value: 'ws://localhost/ws' })]).implement((() => {
       socketConstructions.push(true);
       // Return a minimal mock socket. The onopen setter fires the handler
       // synchronously so the binding's subscribe-quest handshake runs during

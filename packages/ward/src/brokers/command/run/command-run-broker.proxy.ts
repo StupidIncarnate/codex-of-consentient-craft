@@ -1,8 +1,10 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-broker.proxy';
 import { projectReferencesSyncBrokerProxy } from '../../project-references/sync/project-references-sync-broker.proxy';
 import { checkRunTypecheckRefsBrokerProxy } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker.proxy';
+import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
 import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
 import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
@@ -26,11 +28,15 @@ export const commandRunBrokerProxy = (): {
   getStdoutCalls: () => unknown[][];
   getExitCalls: () => unknown[][];
 } => {
+  // process.exit is never actually called by this broker (it sets process.exitCode instead) —
+  // the catch-all only guards against an accidental future call, so there is no exit code to key on.
   const exitSpy = registerSpyOn({ object: process, method: 'exit' });
-  exitSpy.mockImplementation(() => undefined as never);
+  exitSpy.calledWith([]).returns(undefined);
+  // write()'s return value never varies by content in these tests — only what was written matters,
+  // and that is read back through callsMatching below, so the catch-all stays unaddressed.
   const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.mockImplementation(() => true);
-  registerSpyOn({ object: process.stderr, method: 'write' }).mockImplementation(() => true);
+  stdoutSpy.calledWith([]).returns(true);
+  registerSpyOn({ object: process.stderr, method: 'write' }).calledWith([]).returns(true);
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   gitDiffFilesBrokerProxy();
@@ -40,21 +46,28 @@ export const commandRunBrokerProxy = (): {
   const singleProxy = commandRunLayerSingleBrokerProxy();
   const multiProxy = commandRunLayerMultiBrokerProxy();
 
+  // Matches what commandRunLayerFolderBroker actually returns for rootPath '/project' when
+  // folderProxy stages a package.json named 'test-pkg'.
+  const singlePackageProjectFolder = ProjectFolderStub({ name: 'test-pkg', path: '/project' });
+
   return {
     setupSinglePackagePass: (): void => {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
-      singleProxy.setupAllChecksPass();
+      singleProxy.setupAllChecksPass({ projectFolder: singlePackageProjectFolder });
     },
     setupSinglePackageFail: (): void => {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
-      singleProxy.setupLintOnlyFail({ stdout: LINT_ERROR_REPORT });
+      singleProxy.setupLintOnlyFail({
+        projectFolder: singlePackageProjectFolder,
+        stdout: LINT_ERROR_REPORT,
+      });
     },
     setupSinglePackageCrash: (): void => {
       workspaceProxy.setupSinglePackage();
       folderProxy.setupReturnsPackage({ name: 'test-pkg' });
-      singleProxy.setupLintOnlyFail({ stdout: '[]' });
+      singleProxy.setupLintOnlyFail({ projectFolder: singlePackageProjectFolder, stdout: '[]' });
     },
     setupMultiPackagePass: ({
       packageCount,
@@ -63,9 +76,11 @@ export const commandRunBrokerProxy = (): {
       packageCount: number;
       subResultContent: string;
     }): void => {
-      multiProxy.setupSpawnAndLoad({ packageCount, subResultContent });
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const projectFolders = Array.from({ length: packageCount }, () => ProjectFolderStub());
+      multiProxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent });
     },
-    getStdoutCalls: (): unknown[][] => stdoutSpy.mock.calls,
-    getExitCalls: (): unknown[][] => exitSpy.mock.calls,
+    getStdoutCalls: (): unknown[][] => stdoutSpy.callsMatching([]),
+    getExitCalls: (): unknown[][] => exitSpy.callsMatching([]),
   };
 };

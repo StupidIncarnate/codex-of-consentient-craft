@@ -11,7 +11,7 @@ describe('SessionListResponder', () => {
       proxy.setupGuild({ guild });
       proxy.setupHomeDir({ path: '/home/testuser' });
       proxy.setupGlobFiles({ files: [] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const result = await proxy.callResponder({ params: { guildId } });
 
@@ -91,7 +91,7 @@ describe('SessionListResponder', () => {
       proxy.setupGuild({ guild });
       proxy.setupHomeDir({ path: '/home/user' });
       proxy.setupGlobFiles({ files: [] });
-      proxy.setupQuests({ quests: [] });
+      proxy.setupQuests({ guildId, quests: [] });
 
       const result = await proxy.callResponder({
         params: { guildId },

@@ -28,7 +28,7 @@ describe('DumpsterCommandBannerWidget', () => {
   describe('copy interaction', () => {
     it('VALID: {click COPY} => writes the command to the clipboard and flips the label to COPIED', async () => {
       const proxy = DumpsterCommandBannerWidgetProxy();
-      proxy.setupClipboardSucceeds();
+      proxy.setupClipboardSucceeds({ text: '/dumpster-launch' });
 
       mantineRenderAdapter({
         ui: (
@@ -51,7 +51,8 @@ describe('DumpsterCommandBannerWidget', () => {
     it('ERROR: {clipboard rejects} => label stays COPY and console.error logs the failure tag', async () => {
       const proxy = DumpsterCommandBannerWidgetProxy();
       const consoleErrorSpy = proxy.setupConsoleErrorCapture();
-      proxy.setupClipboardThrows({ error: new Error('NotAllowedError') });
+      const clipboardError = new Error('NotAllowedError');
+      proxy.setupClipboardThrows({ text: '/dumpster-launch', error: clipboardError });
 
       mantineRenderAdapter({
         ui: (
@@ -66,8 +67,8 @@ describe('DumpsterCommandBannerWidget', () => {
 
       await waitFor(() => {
         expect(
-          consoleErrorSpy.mock.calls.some((c) => c[0] === '[dumpster-command-banner] copy failed'),
-        ).toBe(true);
+          consoleErrorSpy.callsMatching(['[dumpster-command-banner] copy failed']),
+        ).toStrictEqual([['[dumpster-command-banner] copy failed', clipboardError]]);
       });
 
       expect(proxy.getCopyButtonLabel()).toBe('COPY');

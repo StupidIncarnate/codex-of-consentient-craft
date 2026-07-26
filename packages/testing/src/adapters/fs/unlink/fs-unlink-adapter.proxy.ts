@@ -7,12 +7,12 @@ export const fsUnlinkAdapterProxy = (): {
 } => {
   const mock = registerMock({ fn: unlinkSync });
 
-  mock.mockImplementation(() => undefined);
+  mock.calledWith([]).implement(() => undefined);
 
   return {
     throws: ({ filePath, error }: { filePath: string; error: Error }): void => {
       mock.onceFor([filePath]).throws(error);
     },
-    getCallArgs: (): readonly unknown[][] => mock.mock.calls,
+    getCallArgs: (): readonly unknown[][] => mock.callsMatching([]),
   };
 };

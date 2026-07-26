@@ -8,6 +8,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
 
       proxy.returnsLintResults({
+        content: 'const x = 1;',
         results: [
           {
             filePath: '/home/test/test.ts',
@@ -55,6 +56,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
 
       proxy.returnsLintResults({
+        content: 'const x = 1;',
         results: [
           {
             filePath: '/custom/test.ts',
@@ -127,6 +129,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
 
       proxy.returnsLintResults({
+        content: 'const x = 1',
         results: [
           {
             filePath: '/test/file.ts',
@@ -174,6 +177,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
 
       proxy.returnsLintResults({
+        content: 'any x; let y = 1; function f() {}',
         results: [
           {
             filePath: '/test/multi.ts',
@@ -249,6 +253,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
 
       proxy.returnsLintResults({
+        content: 'syntax error code',
         results: [
           {
             filePath: '/test/norule.ts',
@@ -298,6 +303,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       // First call returns TSConfig error, second call after retry returns actual lint results
       proxy.returnsLintResults({
+        content: 'const x = 1',
         results: [
           {
             filePath: '/test/project.ts',
@@ -348,7 +354,8 @@ describe('eslintLintRunTargetedBroker()', () => {
 
   describe('error handling', () => {
     it('ERROR: {ESLint constructor throws} => logs error and returns empty array', async () => {
-      eslintLintRunTargetedBrokerProxy();
+      const proxy = eslintLintRunTargetedBrokerProxy();
+      proxy.throwsOnConstruction({ error: new Error('ESLint config invalid') });
 
       const config = LinterConfigStub();
       const results = await eslintLintRunTargetedBroker({

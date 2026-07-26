@@ -1,20 +1,30 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const orchestratorFindQuestByWorkItemIdAdapterProxy = (): {
-  returns: (params: { questId: QuestId | null }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { workItemId: QuestWorkItemId; questId: QuestId | null }) => void;
+  throws: (params: { workItemId: QuestWorkItemId; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.findQuestByWorkItemId });
-  mock.mockResolvedValue(null);
+  // server-init-responder.proxy.ts constructs this adapter only to satisfy
+  // enforce-proxy-child-creation and never stages a call of its own — its other tests never
+  // exercise the lookup at all. Keep the fallback so an unrelated workItemId still resolves to
+  // null instead of throwing "nothing set up for this call".
+  mock.calledWith([]).resolves(null);
 
   return {
-    returns: ({ questId }: { questId: QuestId | null }): void => {
-      mock.mockResolvedValueOnce(questId);
+    returns: ({
+      workItemId,
+      questId,
+    }: {
+      workItemId: QuestWorkItemId;
+      questId: QuestId | null;
+    }): void => {
+      mock.calledWith([{ workItemId }]).resolves(questId);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ workItemId, error }: { workItemId: QuestWorkItemId; error: Error }): void => {
+      mock.calledWith([{ workItemId }]).rejects(error);
     },
   };
 };

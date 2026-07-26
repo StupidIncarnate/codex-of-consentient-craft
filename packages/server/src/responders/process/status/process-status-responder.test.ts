@@ -67,9 +67,10 @@ describe('ProcessStatusResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', () => {
       const proxy = ProcessStatusResponderProxy();
-      proxy.setupGetStatusError({ message: 'Process not found' });
+      const processId = ProcessIdStub({ value: 'proc-123' });
+      proxy.setupGetStatusError({ processId, message: 'Process not found' });
 
-      const result = proxy.callResponder({ params: { processId: 'proc-123' } });
+      const result = proxy.callResponder({ params: { processId } });
 
       expect(result).toStrictEqual({
         status: 500,

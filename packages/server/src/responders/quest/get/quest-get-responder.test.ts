@@ -1,14 +1,15 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { QuestGetResponderProxy } from './quest-get-responder.proxy';
 
 describe('QuestGetResponder', () => {
   describe('successful retrieval', () => {
     it('VALID: {valid questId} => returns 200 with quest', async () => {
       const proxy = QuestGetResponderProxy();
-      const quest = QuestStub();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId });
       const { expectedData } = proxy.setupGetQuest({ quest });
 
-      const result = await proxy.callResponder({ params: { questId: 'test-quest' }, query: {} });
+      const result = await proxy.callResponder({ params: { questId }, query: {} });
 
       expect(result).toStrictEqual({
         status: 200,
@@ -18,11 +19,12 @@ describe('QuestGetResponder', () => {
 
     it('VALID: {questId with stage} => returns 200 with quest', async () => {
       const proxy = QuestGetResponderProxy();
-      const quest = QuestStub();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId });
       const { expectedData } = proxy.setupGetQuest({ quest });
 
       const result = await proxy.callResponder({
-        params: { questId: 'test-quest' },
+        params: { questId },
         query: { stage: 'spec' },
       });
 
@@ -34,10 +36,11 @@ describe('QuestGetResponder', () => {
 
     it('EDGE: {null query} => returns 200 (stage ignored)', async () => {
       const proxy = QuestGetResponderProxy();
-      const quest = QuestStub();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const quest = QuestStub({ id: questId });
       const { expectedData } = proxy.setupGetQuest({ quest });
 
-      const result = await proxy.callResponder({ params: { questId: 'test-quest' }, query: null });
+      const result = await proxy.callResponder({ params: { questId }, query: null });
 
       expect(result).toStrictEqual({
         status: 200,
@@ -95,9 +98,10 @@ describe('QuestGetResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestGetResponderProxy();
-      proxy.setupGetQuestError({ message: 'Quest not found' });
+      const questId = QuestIdStub({ value: 'nonexistent' });
+      proxy.setupGetQuestError({ questId, message: 'Quest not found' });
 
-      const result = await proxy.callResponder({ params: { questId: 'nonexistent' }, query: {} });
+      const result = await proxy.callResponder({ params: { questId }, query: {} });
 
       expect(result).toStrictEqual({
         status: 500,

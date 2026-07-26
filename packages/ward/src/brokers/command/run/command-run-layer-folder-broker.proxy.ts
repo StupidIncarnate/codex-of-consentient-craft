@@ -1,3 +1,5 @@
+import { AbsoluteFilePathStub, filePathContract } from '@dungeonmaster/shared/contracts';
+
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const commandRunLayerFolderBrokerProxy = (): {
@@ -7,15 +9,21 @@ export const commandRunLayerFolderBrokerProxy = (): {
 } => {
   const readProxy = fsReadFileAdapterProxy();
 
+  // Every caller of this proxy (command-run-layer-folder-broker.test.ts and
+  // command-run-broker.proxy.ts) resolves the package.json for rootPath '/project'.
+  const filePath = filePathContract.parse(
+    `${AbsoluteFilePathStub({ value: '/project' })}/package.json`,
+  );
+
   return {
     setupReturnsPackage: ({ name }: { name: string }): void => {
-      readProxy.returns({ content: JSON.stringify({ name }) });
+      readProxy.returns({ filePath, content: JSON.stringify({ name }) });
     },
     setupReturnsContent: ({ content }: { content: string }): void => {
-      readProxy.returns({ content });
+      readProxy.returns({ filePath, content });
     },
     setupThrows: (): void => {
-      readProxy.throws({ error: new Error('ENOENT') });
+      readProxy.throws({ filePath, error: new Error('ENOENT') });
     },
   };
 };

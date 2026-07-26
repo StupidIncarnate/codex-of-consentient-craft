@@ -10,10 +10,9 @@ import { checkRunLintBrokerProxy } from './check-run-lint-broker.proxy';
 describe('checkRunLintBroker', () => {
   describe('passing lint', () => {
     it('VALID: {eslint exits 0} => returns pass result with no errors', async () => {
-      const proxy = checkRunLintBrokerProxy();
-      proxy.setupPass();
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPass({ projectFolder });
 
       const result = await checkRunLintBroker({
         projectFolder,
@@ -34,11 +33,10 @@ describe('checkRunLintBroker', () => {
 
   describe('non-json eslint output', () => {
     it('EDGE: {eslint outputs non-JSON text} => returns fail result with empty errors and raw output preserved', async () => {
-      const proxy = checkRunLintBrokerProxy();
       const nonJsonOutput = 'Oops! Something went wrong! See above for details.';
-      proxy.setupNonJsonFailure({ stdout: nonJsonOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupNonJsonFailure({ projectFolder, stdout: nonJsonOutput });
 
       const result = await checkRunLintBroker({
         projectFolder,
@@ -59,7 +57,6 @@ describe('checkRunLintBroker', () => {
 
   describe('failing lint', () => {
     it('VALID: {eslint exits 1 with errors} => returns fail result with parsed errors', async () => {
-      const proxy = checkRunLintBrokerProxy();
       const eslintOutput = JSON.stringify([
         {
           filePath: 'src/index.ts',
@@ -68,9 +65,9 @@ describe('checkRunLintBroker', () => {
           ],
         },
       ]);
-      proxy.setupFail({ stdout: eslintOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupFail({ projectFolder, stdout: eslintOutput });
 
       const result = await checkRunLintBroker({
         projectFolder,
@@ -102,15 +99,14 @@ describe('checkRunLintBroker', () => {
 
   describe('filesCount', () => {
     it('VALID: {eslint passes with 3 files} => returns filesCount from JSON array length', async () => {
-      const proxy = checkRunLintBrokerProxy();
       const eslintOutput = JSON.stringify([
         { filePath: 'a.ts', messages: [] },
         { filePath: 'b.ts', messages: [] },
         { filePath: 'c.ts', messages: [] },
       ]);
-      proxy.setupPassWithOutput({ stdout: eslintOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: eslintOutput });
 
       const result = await checkRunLintBroker({
         projectFolder,
@@ -123,17 +119,17 @@ describe('checkRunLintBroker', () => {
 
   describe('stderr contamination', () => {
     it('VALID: {eslint passes with stderr warnings} => returns correct filesCount', async () => {
-      const proxy = checkRunLintBrokerProxy();
       const eslintOutput = JSON.stringify([
         { filePath: 'a.ts', messages: [] },
         { filePath: 'b.ts', messages: [] },
       ]);
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
       proxy.setupPassWithStderr({
+        projectFolder,
         stdout: eslintOutput,
         stderr: 'Warning: some deprecation notice from eslint plugin',
       });
-
-      const projectFolder = ProjectFolderStub();
 
       const result = await checkRunLintBroker({
         projectFolder,
@@ -160,7 +156,6 @@ describe('checkRunLintBroker', () => {
 
   describe('fileTimings', () => {
     it('VALID: {eslint output with stats} => returns fileTimings with per-file durations', async () => {
-      const proxy = checkRunLintBrokerProxy();
       const eslintOutput = JSON.stringify([
         {
           filePath: 'src/index.ts',
@@ -181,9 +176,9 @@ describe('checkRunLintBroker', () => {
           },
         },
       ]);
-      proxy.setupPassWithOutput({ stdout: eslintOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: eslintOutput });
 
       const result = await checkRunLintBroker({
         projectFolder,
@@ -208,11 +203,10 @@ describe('checkRunLintBroker', () => {
     });
 
     it('EDGE: {eslint output without stats} => returns empty fileTimings', async () => {
-      const proxy = checkRunLintBrokerProxy();
       const eslintOutput = JSON.stringify([{ filePath: 'src/index.ts', messages: [] }]);
-      proxy.setupPassWithOutput({ stdout: eslintOutput });
-
       const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupPassWithOutput({ projectFolder, stdout: eslintOutput });
 
       const result = await checkRunLintBroker({
         projectFolder,

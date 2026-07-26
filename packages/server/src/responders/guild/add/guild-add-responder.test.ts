@@ -1,12 +1,14 @@
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildNameStub, GuildPathStub, GuildStub } from '@dungeonmaster/shared/contracts';
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
 
 describe('GuildAddResponder', () => {
   describe('successful creation', () => {
     it('VALID: {name, path} => returns 201 with guild', async () => {
       const proxy = GuildAddResponderProxy();
-      const guild = GuildStub({ name: 'Test Guild' as never, path: '/tmp/test' as never });
-      proxy.setupAddGuild({ guild });
+      const name = GuildNameStub({ value: 'Test Guild' });
+      const path = GuildPathStub({ value: '/tmp/test' });
+      const guild = GuildStub({ name, path });
+      proxy.setupAddGuild({ name, path, guild });
 
       const result = await proxy.callResponder({ body: { name: 'Test Guild', path: '/tmp/test' } });
 
@@ -66,7 +68,9 @@ describe('GuildAddResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = GuildAddResponderProxy();
-      proxy.setupAddGuildError({ message: 'Duplicate guild' });
+      const name = GuildNameStub({ value: 'Test' });
+      const path = GuildPathStub({ value: '/tmp/test' });
+      proxy.setupAddGuildError({ name, path, message: 'Duplicate guild' });
 
       const result = await proxy.callResponder({ body: { name: 'Test', path: '/tmp/test' } });
 

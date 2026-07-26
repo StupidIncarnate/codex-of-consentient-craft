@@ -9,7 +9,7 @@ describe('fsIsAccessibleAdapter', () => {
       const proxy = fsIsAccessibleAdapterProxy();
       const filePath = FilePathStub({ value: '/home/user/config.json' });
 
-      proxy.resolves();
+      proxy.resolves({ filePath });
 
       const result = await fsIsAccessibleAdapter({ filePath });
 
@@ -22,7 +22,7 @@ describe('fsIsAccessibleAdapter', () => {
       const proxy = fsIsAccessibleAdapterProxy();
       const filePath = FilePathStub({ value: '/missing/config.json' });
 
-      proxy.rejects({ error: new Error('ENOENT: no such file or directory') });
+      proxy.rejects({ filePath, error: new Error('ENOENT: no such file or directory') });
 
       const result = await fsIsAccessibleAdapter({ filePath });
 
@@ -33,7 +33,7 @@ describe('fsIsAccessibleAdapter', () => {
       const proxy = fsIsAccessibleAdapterProxy();
       const filePath = FilePathStub({ value: '/restricted/config.json' });
 
-      proxy.rejects({ error: new Error('EACCES: permission denied') });
+      proxy.rejects({ filePath, error: new Error('EACCES: permission denied') });
 
       const result = await fsIsAccessibleAdapter({ filePath });
 

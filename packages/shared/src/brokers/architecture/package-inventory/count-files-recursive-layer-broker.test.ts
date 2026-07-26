@@ -8,7 +8,7 @@ describe('countFilesRecursiveLayerBroker', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/contracts' });
 
-      proxy.setupFlatDirectory({ fileNames: ['a.ts', 'b.ts', 'c.ts'] });
+      proxy.setupFlatDirectory({ dirPath, fileNames: ['a.ts', 'b.ts', 'c.ts'] });
 
       const result = countFilesRecursiveLayerBroker({ dirPath });
 
@@ -22,6 +22,7 @@ describe('countFilesRecursiveLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/brokers' });
 
       proxy.setupNestedDirectory({
+        dirPath,
         files: ['file.ts'],
         subdirs: [{ name: 'sub', files: ['a.ts', 'b.ts'] }],
       });
@@ -37,7 +38,7 @@ describe('countFilesRecursiveLayerBroker', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/empty' });
 
-      proxy.setupEmpty();
+      proxy.setupEmpty({ dirPath });
 
       const result = countFilesRecursiveLayerBroker({ dirPath });
 
@@ -50,7 +51,7 @@ describe('countFilesRecursiveLayerBroker', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/nonexistent' });
 
-      proxy.setupError({ error: new Error('ENOENT') });
+      proxy.setupError({ dirPath, error: new Error('ENOENT') });
 
       const result = countFilesRecursiveLayerBroker({ dirPath });
 

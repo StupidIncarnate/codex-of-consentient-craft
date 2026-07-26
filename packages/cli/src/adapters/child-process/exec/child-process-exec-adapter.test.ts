@@ -5,6 +5,7 @@ describe('childProcessExecAdapter', () => {
   describe('command execution', () => {
     it('VALID: {command: "open http://localhost"} => executes the command', () => {
       const proxy = childProcessExecAdapterProxy();
+      proxy.succeeds({ command: 'open http://localhost' });
 
       childProcessExecAdapter({ command: 'open http://localhost' });
 

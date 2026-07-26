@@ -2,12 +2,15 @@ import { exec } from 'child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessExecAdapterProxy = (): {
+  succeeds: ({ command }: { command: string }) => void;
   getExecCalls: () => readonly unknown[];
 } => {
   const handle = registerMock({ fn: exec });
-  handle.mockImplementation((() => ({ success: true as const })) as never);
 
   return {
-    getExecCalls: (): readonly unknown[] => handle.mock.calls.map((call) => call[0]),
+    succeeds: ({ command }: { command: string }): void => {
+      handle.calledWith([command]).returns(undefined);
+    },
+    getExecCalls: (): readonly unknown[] => handle.callsMatching([]).map((call) => call[0]),
   };
 };

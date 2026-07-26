@@ -38,8 +38,10 @@ export const runChatLayerBrokerProxy = (): {
 
   // run-chat-layer-broker walks up from startPath to repo root via cwdResolveBroker.
   // Stub it directly so tests don't need to seed fs.access expectations for the walk-up.
+  // startPath varies per call but setupCwdResolveSuccess/setupCwdResolveReject below carry no
+  // startPath of their own to key on, so `[]` is the honest address.
   const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
-  cwdResolveMock.mockResolvedValue(RepoRootCwdStub({ value: '/project' }));
+  cwdResolveMock.calledWith([]).resolves(RepoRootCwdStub({ value: '/project' }));
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -67,11 +69,11 @@ export const runChatLayerBrokerProxy = (): {
     }: {
       repoRoot: ReturnType<typeof RepoRootCwdStub>;
     }): void => {
-      cwdResolveMock.mockResolvedValueOnce(repoRoot);
+      cwdResolveMock.onceFor([]).resolves(repoRoot);
     },
 
     setupCwdResolveReject: ({ error }: { error: Error }): void => {
-      cwdResolveMock.mockRejectedValueOnce(error);
+      cwdResolveMock.onceFor([]).rejects(error);
     },
 
     getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),

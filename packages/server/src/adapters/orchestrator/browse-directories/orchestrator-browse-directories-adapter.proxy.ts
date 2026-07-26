@@ -1,25 +1,21 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntryStub, GuildPath } from '@dungeonmaster/shared/contracts';
 
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 
 export const orchestratorBrowseDirectoriesAdapterProxy = (): {
-  returns: (params: { entries: DirectoryEntry[] }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { path?: GuildPath; entries: DirectoryEntry[] }) => void;
+  throws: (params: { path?: GuildPath; error: Error }) => void;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.browseDirectories });
 
-  mock.mockReturnValue([]);
-
   return {
-    returns: ({ entries }: { entries: DirectoryEntry[] }): void => {
-      mock.mockReturnValueOnce(entries);
+    returns: ({ path, entries }: { path?: GuildPath; entries: DirectoryEntry[] }): void => {
+      mock.calledWith(path === undefined ? [{}] : [{ path }]).returns(entries);
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockImplementationOnce(() => {
-        throw error;
-      });
+    throws: ({ path, error }: { path?: GuildPath; error: Error }): void => {
+      mock.calledWith(path === undefined ? [{}] : [{ path }]).throws(error);
     },
   };
 };

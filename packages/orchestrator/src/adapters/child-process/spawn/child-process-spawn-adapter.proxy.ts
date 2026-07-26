@@ -5,11 +5,10 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessSpawnAdapterProxy = (): {
-  setupSuccess: (params: { exitCode: ExitCode }) => ChildProcess;
-  setupSuccessWithNullExitCode: () => ChildProcess;
-  setupError: (params: { error: Error }) => ChildProcess;
-  getSpawnedCommand: () => unknown;
-  getSpawnedArgs: () => unknown;
+  setupSuccess: (params: { command: string; exitCode: ExitCode }) => ChildProcess;
+  setupSuccessWithNullExitCode: (params: { command: string }) => ChildProcess;
+  setupError: (params: { command: string; error: Error }) => ChildProcess;
+  getArgsFor: (params: { command: string }) => unknown;
 } => {
   // Mock the npm package, not the adapter
   const mock: MockHandle = registerMock({ fn: spawn });
@@ -21,14 +20,17 @@ export const childProcessSpawnAdapterProxy = (): {
     return mockChildProcess;
   };
 
-  // Default mock behavior - return mock child process
-  mock.mockImplementation(() => createMockChildProcess());
-
   return {
     // Semantic method for setting successful spawn with exit code
-    setupSuccess: ({ exitCode }: { exitCode: ExitCode }): ChildProcess => {
+    setupSuccess: ({
+      command,
+      exitCode,
+    }: {
+      command: string;
+      exitCode: ExitCode;
+    }): ChildProcess => {
       const mockChildProcess = createMockChildProcess();
-      mock.mockReturnValueOnce(mockChildProcess);
+      mock.calledWith([command]).returns(mockChildProcess);
       // Emit exit event asynchronously
       setImmediate(() => {
         mockChildProcess.emit('exit', exitCode);
@@ -37,9 +39,9 @@ export const childProcessSpawnAdapterProxy = (): {
     },
 
     // Semantic method for setting successful spawn with null exit code (process killed by signal)
-    setupSuccessWithNullExitCode: (): ChildProcess => {
+    setupSuccessWithNullExitCode: ({ command }: { command: string }): ChildProcess => {
       const mockChildProcess = createMockChildProcess();
-      mock.mockReturnValueOnce(mockChildProcess);
+      mock.calledWith([command]).returns(mockChildProcess);
       // Emit exit event with null exit code (process killed by signal)
       setImmediate(() => {
         mockChildProcess.emit('exit', null);
@@ -48,9 +50,9 @@ export const childProcessSpawnAdapterProxy = (): {
     },
 
     // Semantic method for setting spawn error
-    setupError: ({ error }: { error: Error }): ChildProcess => {
+    setupError: ({ command, error }: { command: string; error: Error }): ChildProcess => {
       const mockChildProcess = createMockChildProcess();
-      mock.mockReturnValueOnce(mockChildProcess);
+      mock.calledWith([command]).returns(mockChildProcess);
       // Emit error event asynchronously
       setImmediate(() => {
         mockChildProcess.emit('error', error);
@@ -58,20 +60,8 @@ export const childProcessSpawnAdapterProxy = (): {
       return mockChildProcess;
     },
 
-    // Get the command that was passed to spawn (returns unknown since from external mock)
-    getSpawnedCommand: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
-
-    // Get the args that were passed to spawn (returns unknown since from external mock)
-    getSpawnedArgs: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[1];
-    },
+    // Get the args spawn was called with for this command (returns unknown since from external mock)
+    getArgsFor: ({ command }: { command: string }): unknown =>
+      mock.callsMatching([command]).at(-1)?.[1],
   };
 };

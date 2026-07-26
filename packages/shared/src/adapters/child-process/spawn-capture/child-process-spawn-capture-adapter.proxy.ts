@@ -54,16 +54,18 @@ const createMockChildFromConfig = ({ snapshot }: { snapshot: ProxyConfig }): Chi
 
 export const childProcessSpawnCaptureAdapterProxy = (): {
   setupSuccess: (params: {
+    command: string;
     exitCode: ExitCode;
     stdout: ErrorMessage;
     stderr: ErrorMessage;
   }) => void;
   setupSignalKill: (params: {
+    command: string;
     signal: NodeJS.Signals;
     stdout: ErrorMessage;
     stderr: ErrorMessage;
   }) => void;
-  setupError: (params: { error: Error }) => void;
+  setupError: (params: { command: string; error: Error }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
@@ -71,64 +73,64 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
 } => {
   const handle = registerMock({ fn: spawn });
 
-  const defaultConfig: ProxyConfig = {
-    exitCode: ExitCodeStub({ value: 0 }),
-    signal: null,
-    stdout: '' as ErrorMessage,
-    stderr: '' as ErrorMessage,
-    error: null,
-  };
-
-  handle.mockImplementation(() => createMockChildFromConfig({ snapshot: defaultConfig }));
-
   return {
     setupSuccess: ({
+      command,
       exitCode,
       stdout,
       stderr,
     }: {
+      command: string;
       exitCode: ExitCode;
       stdout: ErrorMessage;
       stderr: ErrorMessage;
     }): void => {
       const snapshot: ProxyConfig = { exitCode, signal: null, stdout, stderr, error: null };
-      handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
+      handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },
 
     setupSignalKill: ({
+      command,
       signal,
       stdout,
       stderr,
     }: {
+      command: string;
       signal: NodeJS.Signals;
       stdout: ErrorMessage;
       stderr: ErrorMessage;
     }): void => {
       const snapshot: ProxyConfig = { exitCode: null, signal, stdout, stderr, error: null };
-      handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
+      handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },
 
-    setupError: ({ error }: { error: Error }): void => {
-      const snapshot: ProxyConfig = { ...defaultConfig, error };
-      handle.mockImplementationOnce(() => createMockChildFromConfig({ snapshot }));
+    setupError: ({ command, error }: { command: string; error: Error }): void => {
+      const snapshot: ProxyConfig = {
+        exitCode: ExitCodeStub({ value: 0 }),
+        signal: null,
+        stdout: '' as ErrorMessage,
+        stderr: '' as ErrorMessage,
+        error,
+      };
+      handle.calledWith([command]).implement(() => createMockChildFromConfig({ snapshot }));
     },
 
     getSpawnedCommand: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[0];
     },
 
     getSpawnedArgs: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[1];
     },
 
     getSpawnedCwd: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       const opts: unknown = lastCall[2];
@@ -138,7 +140,7 @@ export const childProcessSpawnCaptureAdapterProxy = (): {
     },
 
     getSpawnedOptions: (): unknown => {
-      const { calls } = handle.mock;
+      const calls = handle.callsMatching([]);
       const lastCall: unknown = calls[calls.length - 1];
       if (!Array.isArray(lastCall)) return undefined;
       return lastCall[2];

@@ -8,7 +8,7 @@ describe('safeReaddirLayerBroker', () => {
       const proxy = safeReaddirLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
-      proxy.setupDirectory({ entries: [] });
+      proxy.setupDirectory({ dirPath, entries: [] });
 
       const result = safeReaddirLayerBroker({ dirPath });
 
@@ -21,7 +21,7 @@ describe('safeReaddirLayerBroker', () => {
       const proxy = safeReaddirLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/nonexistent/src' });
 
-      proxy.setupError({ error: new Error('ENOENT') });
+      proxy.setupError({ dirPath, error: new Error('ENOENT') });
 
       const result = safeReaddirLayerBroker({ dirPath });
 

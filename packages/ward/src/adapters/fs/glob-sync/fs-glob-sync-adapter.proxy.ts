@@ -2,23 +2,22 @@ import { globSync } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const fsGlobSyncAdapterProxy = (): {
-  returnsCount: (params: { count: number }) => void;
-  returnsFiles: (params: { files: string[] }) => void;
-  returnsEmpty: () => void;
+  returnsForPattern: (params: { pattern: string; files: string[] }) => void;
+  // The broker calls globSync once PER discovery pattern — often a dozen calls per check
+  // type (one per extension x root combination from checkCommandsStatics). Callers that only
+  // assert on the aggregated discoveredFiles union, not which specific pattern produced which
+  // file, describe every pattern with one predicate instead of enumerating each static pattern
+  // string by hand.
+  returnsForAnyPattern: (params: { files: string[] }) => void;
 } => {
   const mock = registerMock({ fn: globSync });
 
-  mock.mockReturnValue(['discovered.ts']);
-
   return {
-    returnsCount: ({ count }: { count: number }): void => {
-      mock.mockReturnValueOnce(Array.from({ length: count }, (_, i) => `file-${String(i)}.ts`));
+    returnsForPattern: ({ pattern, files }: { pattern: string; files: string[] }): void => {
+      mock.calledWith([pattern]).returns(files);
     },
-    returnsFiles: ({ files }: { files: string[] }): void => {
-      mock.mockReturnValueOnce(files);
-    },
-    returnsEmpty: (): void => {
-      mock.mockReturnValue([]);
+    returnsForAnyPattern: ({ files }: { files: string[] }): void => {
+      mock.calledWith([(pattern: unknown) => typeof pattern === 'string']).returns(files);
     },
   };
 };

@@ -6,7 +6,7 @@ describe('childProcessSpawnAdapter', () => {
   it('VALID: {command: "npm", args: ["test"]} => returns child process', () => {
     const proxy = childProcessSpawnAdapterProxy();
     const mockChildProcess = ChildProcessStub({ pid: 1234 });
-    proxy.returns({ childProcess: mockChildProcess });
+    proxy.returns({ command: 'npm', childProcess: mockChildProcess });
 
     const result = childProcessSpawnAdapter({
       command: 'npm',
@@ -20,7 +20,7 @@ describe('childProcessSpawnAdapter', () => {
   it('VALID: {command: "echo"} => spawns process with default args and options', () => {
     const proxy = childProcessSpawnAdapterProxy();
     const mockChildProcess = ChildProcessStub({ pid: 5678 });
-    proxy.returns({ childProcess: mockChildProcess });
+    proxy.returns({ command: 'echo', childProcess: mockChildProcess });
 
     const result = childProcessSpawnAdapter({
       command: 'echo',

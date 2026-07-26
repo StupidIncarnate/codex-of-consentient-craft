@@ -227,7 +227,7 @@ import {HttpResponseStub} from '../../../contracts/http-response/http-response.s
 import {UrlStub} from '../../../contracts/url/url.stub';
 
 export const axiosGetAdapterProxy = () => {
-    // registerMock stages answers by the arguments the npm function receives
+    // registerMock decides what to give back from the arguments the call was made with
     const handle = registerMock({ fn: axios.get });
 
     return {
@@ -294,28 +294,33 @@ const module = await runtimeDynamicImportAdapter<{ SomeExport: string }>({
 // module = { SomeExport: '...' }
 ```
 
-**The Adapter's Own Proxy (constructor-based pattern):**
+**The Adapter's Own Proxy (single-operation pattern):**
 
-The adapter proxy takes the mock module in the constructor and sets up the mock immediately.
-This is simpler than method-based proxies because there's only one operation to mock.
+The adapter proxy sets up the mock in the constructor and exposes semantic methods keyed on the
+path being imported — there's only one operation to mock, but a real call still needs a real
+address.
 
 ```typescript
 // adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts
 import {runtimeDynamicImportAdapter} from '@dungeonmaster/shared/adapters';
 import {registerMock} from '@dungeonmaster/testing/register-mock';
 
-export const runtimeDynamicImportAdapterProxy = ({
-                                                   module,
-                                                 }: {
-  module: unknown;
-}): Record<PropertyKey, never> => {
+export const runtimeDynamicImportAdapterProxy = (): {
+  succeeds: ({path, module}: {path: string; module: unknown}) => void;
+  throws: ({path, error}: {path: string; error: Error}) => void;
+} => {
   const handle = registerMock({ fn: runtimeDynamicImportAdapter });
-  if (module instanceof Error) {
-    handle.mockRejectedValueOnce(module);
-  } else {
-    handle.mockResolvedValue(module);
-  }
-  return {};
+
+  // The real adapter's signature is `({ path }: { path: string })` — one object argument — so
+  // the staged call must describe that same object shape to match a real caller's invocation.
+  return {
+    succeeds: ({path, module}: {path: string; module: unknown}): void => {
+      handle.calledWith([{path}]).resolves(module);
+    },
+    throws: ({path, error}: {path: string; error: Error}): void => {
+      handle.calledWith([{path}]).rejects(error);
+    },
+  };
 };
 ```
 
@@ -330,14 +335,15 @@ broker proxies delegate to it, they don't mock directly.
 import {runtimeDynamicImportAdapterProxy} from '@dungeonmaster/shared/testing';
 
 export const configLoadBrokerProxy = () => {
+  const importProxy = runtimeDynamicImportAdapterProxy();
+
   return {
-    // Semantic method wrapping adapter proxy
-    loadsConfig: ({config}: { config: unknown }) => {
-      runtimeDynamicImportAdapterProxy({module: config});
+    // Keyed on configPath — the module specifier the broker actually imports
+    loadsConfig: ({configPath, config}: { configPath: string; config: unknown }) => {
+      importProxy.succeeds({path: configPath, module: config});
     },
-    // Semantic method for module not found
-    configNotFound: () => {
-      runtimeDynamicImportAdapterProxy({module: new Error('Cannot find module')});
+    configNotFound: ({configPath}: { configPath: string }) => {
+      importProxy.throws({path: configPath, error: new Error('Cannot find module')});
     },
   };
 };

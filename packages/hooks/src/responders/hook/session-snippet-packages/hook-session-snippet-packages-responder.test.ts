@@ -8,6 +8,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupPackages({
+        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
         packages: [{ name: 'cli' }],
       });
 
@@ -21,7 +22,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
     it('VALID: {projectRoot with no packages dir} => returns root package entry', async () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
-      proxy.setupEmptyMonorepo();
+      proxy.setupEmptyMonorepo({ projectRoot: AbsoluteFilePathStub({ value: '/project' }) });
 
       const result = await HookSessionSnippetPackagesResponder({
         projectRoot: AbsoluteFilePathStub({ value: '/project' }),

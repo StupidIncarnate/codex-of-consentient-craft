@@ -9,6 +9,7 @@ describe('readPackageJsonLayerBroker', () => {
     it('VALID: {package.json with multiple bin entries} => returns parsed object with all bins', () => {
       const proxy = readPackageJsonLayerBrokerProxy();
       proxy.setupJson({
+        packageRoot: PACKAGE_ROOT,
         json: {
           name: '@dungeonmaster/hooks',
           bin: {
@@ -28,7 +29,7 @@ describe('readPackageJsonLayerBroker', () => {
 
     it('VALID: {package.json without bin} => returns parsed object with bin undefined', () => {
       const proxy = readPackageJsonLayerBrokerProxy();
-      proxy.setupJson({ json: { name: '@dungeonmaster/shared' } });
+      proxy.setupJson({ packageRoot: PACKAGE_ROOT, json: { name: '@dungeonmaster/shared' } });
 
       const result = readPackageJsonLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -39,7 +40,7 @@ describe('readPackageJsonLayerBroker', () => {
   describe('missing package.json', () => {
     it('EMPTY: {no package.json} => returns undefined', () => {
       const proxy = readPackageJsonLayerBrokerProxy();
-      proxy.setupMissing();
+      proxy.setupMissing({ packageRoot: PACKAGE_ROOT });
 
       const result = readPackageJsonLayerBroker({ packageRoot: PACKAGE_ROOT });
 

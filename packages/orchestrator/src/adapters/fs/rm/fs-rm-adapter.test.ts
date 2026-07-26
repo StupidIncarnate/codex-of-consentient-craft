@@ -9,7 +9,7 @@ describe('fsRmAdapter', () => {
       const proxy = fsRmAdapterProxy();
       const filePath = FilePathStub({ value: '/tmp/smoketest-quest' });
 
-      proxy.succeeds();
+      proxy.succeeds({ filePath });
 
       await expect(fsRmAdapter({ filePath, recursive: true, force: true })).resolves.toStrictEqual({
         success: true,
@@ -20,7 +20,7 @@ describe('fsRmAdapter', () => {
       const proxy = fsRmAdapterProxy();
       const filePath = FilePathStub({ value: '/tmp/file.json' });
 
-      proxy.succeeds();
+      proxy.succeeds({ filePath });
 
       await expect(fsRmAdapter({ filePath })).resolves.toStrictEqual({ success: true });
     });
@@ -31,7 +31,7 @@ describe('fsRmAdapter', () => {
       const proxy = fsRmAdapterProxy();
       const filePath = FilePathStub({ value: '/nonexistent' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ filePath, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsRmAdapter({ filePath })).rejects.toThrow(/ENOENT/u);
     });

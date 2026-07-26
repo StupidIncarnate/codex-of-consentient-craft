@@ -1,4 +1,5 @@
 import { createInterface } from 'readline';
+import { Readable } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -14,7 +15,24 @@ export const readlineCreateInterfaceAdapterProxy = (): {
   >[0][];
   const skipAutoEmitQueue: boolean[] = [];
 
-  mock.mockImplementation(
+  // createInterface is a SHARED npm function — fsWatchTailAdapterProxy also mocks it (for
+  // tailing a file via createReadStream) with its own address. A bare calledWith([]) here
+  // would collide: whichever proxy registers last wins the tie for EVERY call, silently
+  // routing the file-tailer's stdout reads (or vice versa) — see the sibling proxy's
+  // comment for the incident this caused.
+  //
+  // childProcessSpawnStreamJsonAdapterProxy hands this adapter the mocked child process's
+  // `stdout`, built via `Readable.from(...)` (a real `stream.Readable` instance).
+  // fsWatchTailAdapterProxy's own createInterface call instead passes a bare `EventEmitter`
+  // it fabricates for its mocked `createReadStream` result — never a real `Readable`. That
+  // makes `input instanceof Readable` a genuine, self-contained discriminator: true only for
+  // the stdout-reader call this proxy answers, false for the file-tailer's call.
+  const isChildProcessStdoutInput = (arg: unknown): boolean => {
+    const options = arg as { input?: unknown } | undefined;
+    return options?.input instanceof Readable;
+  };
+
+  mock.calledWith([isChildProcessStdoutInput]).implement(
     () =>
       ({
         on: jest.fn().mockImplementation((event: string, callback: (line: string) => void) => {

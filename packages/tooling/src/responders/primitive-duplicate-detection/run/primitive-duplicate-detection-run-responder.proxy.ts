@@ -15,14 +15,14 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
 } => {
   const brokerProxy = duplicateDetectionDetectBrokerProxy();
   processCwdAdapterProxy();
-  const writes: unknown[] = [];
 
-  registerSpyOn({ object: process.stdout, method: 'write' }).mockImplementation(
-    (chunk: unknown) => {
-      writes.push(chunk);
-      return true;
-    },
-  );
+  // A record-and-swallow spy: the report text is computed at runtime from whatever duplicates the
+  // broker returns, so there is no address to key on, and the responder never reads write()'s
+  // return value. The `[]` description suppresses the real stdout write; correctness comes from
+  // each test asserting the captured calls via getStdoutOutput, not from this description.
+  const stdoutWrite = registerSpyOn({ object: process.stdout, method: 'write' });
+
+  stdoutWrite.calledWith([]).returns(true);
 
   return {
     callResponder: PrimitiveDuplicateDetectionRunResponder,
@@ -44,6 +44,6 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
       });
     },
 
-    getStdoutOutput: (): readonly unknown[] => writes,
+    getStdoutOutput: (): readonly unknown[] => stdoutWrite.callsMatching([]).map((call) => call[0]),
   };
 };

@@ -1,30 +1,23 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import type { ProcessIdStub, QuestId } from '@dungeonmaster/shared/contracts';
 
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 
 export const orchestratorClarifyAdapterProxy = (): {
-  returns: (params: { chatProcessId: ProcessId }) => void;
-  throws: (params: { error: Error }) => void;
+  returns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  throws: (params: { questId: QuestId; error: Error }) => void;
   getLastCalledArgs: () => unknown;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.clarifyAnswer });
 
-  mock.mockResolvedValue({ chatProcessId: ProcessIdStub() });
-
   return {
-    returns: ({ chatProcessId }: { chatProcessId: ProcessId }): void => {
-      mock.mockResolvedValueOnce({ chatProcessId });
+    returns: ({ questId, chatProcessId }: { questId: QuestId; chatProcessId: ProcessId }): void => {
+      mock.calledWith([{ questId }]).resolves({ chatProcessId });
     },
-    throws: ({ error }: { error: Error }): void => {
-      mock.mockRejectedValueOnce(error);
+    throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+      mock.calledWith([{ questId }]).rejects(error);
     },
-    getLastCalledArgs: (): unknown => {
-      const { calls } = mock.mock;
-      const lastCall = calls[calls.length - 1];
-      if (!lastCall) return undefined;
-      return lastCall[0];
-    },
+    getLastCalledArgs: (): unknown => mock.callsMatching([]).at(-1)?.[0],
   };
 };

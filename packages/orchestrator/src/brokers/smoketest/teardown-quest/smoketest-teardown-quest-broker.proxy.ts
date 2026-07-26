@@ -4,7 +4,7 @@ import {
   FilePathStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -23,6 +23,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
 } => {
   const findProxy = questFindQuestPathBrokerProxy();
   const rmProxy = fsRmAdapterProxy();
+  const questFolderPathRef: { value: FilePath } = { value: FilePathStub({ value: '/unset' }) };
 
   return {
     setupQuestFound: ({
@@ -43,6 +44,8 @@ export const smoketestTeardownQuestBrokerProxy = (): {
       const questFilePath = FilePathStub({ value: `${questPath}/quest.json` });
       const quest: Quest = QuestStub({ id: questId });
 
+      questFolderPathRef.value = questFolderPath;
+
       findProxy.setupQuestFound({
         homeDir: '/home/testuser',
         homePath,
@@ -62,6 +65,11 @@ export const smoketestTeardownQuestBrokerProxy = (): {
           },
         ],
       });
+
+      // fsRmAdapterProxy no longer has a constructor-level catch-all — this proxy silently
+      // leaned on that removed default for the success path. Stage it explicitly, keyed on
+      // the same path questFindQuestPathBroker resolves to.
+      rmProxy.succeeds({ filePath: questFolderPath });
     },
 
     setupQuestNotFound: (): void => {
@@ -75,9 +83,10 @@ export const smoketestTeardownQuestBrokerProxy = (): {
     },
 
     setupRmFailure: ({ error }: { error: Error }): void => {
-      rmProxy.throws({ error });
+      rmProxy.throws({ filePath: questFolderPathRef.value, error });
     },
 
-    getRmCallArgs: (): readonly unknown[][] => rmProxy.getCallArgs(),
+    getRmCallArgs: (): readonly unknown[][] =>
+      rmProxy.getCallsFor({ filePath: questFolderPathRef.value }),
   };
 };

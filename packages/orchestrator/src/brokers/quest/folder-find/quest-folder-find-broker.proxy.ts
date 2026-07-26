@@ -14,6 +14,7 @@ import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-f
 
 export const questFolderFindBrokerProxy = (): {
   setupQuestFolders: (params: {
+    questsPath: FilePath;
     questFolders: FileName[];
     questFiles: {
       folderPath: FilePath;
@@ -21,8 +22,9 @@ export const questFolderFindBrokerProxy = (): {
       contents: FileContents;
     }[];
   }) => void;
-  setupEmptyFolder: () => void;
+  setupEmptyFolder: (params: { questsPath: FilePath }) => void;
   setupQuestFoldersWithMissingFile: (params: {
+    questsPath: FilePath;
     questFolders: FileName[];
     missingFileFolder: FilePath;
     validQuestFile: {
@@ -38,9 +40,11 @@ export const questFolderFindBrokerProxy = (): {
 
   return {
     setupQuestFolders: ({
+      questsPath,
       questFolders,
       questFiles,
     }: {
+      questsPath: FilePath;
       questFolders: FileName[];
       questFiles: {
         folderPath: FilePath;
@@ -48,7 +52,7 @@ export const questFolderFindBrokerProxy = (): {
         contents: FileContents;
       }[];
     }): void => {
-      readdirProxy.returns({ files: questFolders });
+      readdirProxy.returns({ dirPath: questsPath, files: questFolders });
 
       // First: all folder paths
       for (const questFile of questFiles) {
@@ -58,19 +62,24 @@ export const questFolderFindBrokerProxy = (): {
       // Second: all quest file paths and their file reads
       for (const questFile of questFiles) {
         pathJoinProxy.returns({ result: questFile.questFilePath });
-        readFileProxy.resolves({ content: questFile.contents });
+        readFileProxy.resolves({
+          filePath: questFile.questFilePath,
+          content: questFile.contents,
+        });
       }
     },
 
-    setupEmptyFolder: (): void => {
-      readdirProxy.returns({ files: [] });
+    setupEmptyFolder: ({ questsPath }: { questsPath: FilePath }): void => {
+      readdirProxy.returns({ dirPath: questsPath, files: [] });
     },
 
     setupQuestFoldersWithMissingFile: ({
+      questsPath,
       questFolders,
       missingFileFolder,
       validQuestFile,
     }: {
+      questsPath: FilePath;
       questFolders: FileName[];
       missingFileFolder: FilePath;
       validQuestFile: {
@@ -79,7 +88,7 @@ export const questFolderFindBrokerProxy = (): {
         contents: FileContents;
       };
     }): void => {
-      readdirProxy.returns({ files: questFolders });
+      readdirProxy.returns({ dirPath: questsPath, files: questFolders });
 
       // First: all folder paths (invalid folder, then valid folder)
       pathJoinProxy.returns({
@@ -90,11 +99,15 @@ export const questFolderFindBrokerProxy = (): {
       // Second: all quest file paths (invalid first, then valid)
       pathJoinProxy.returns({ result: missingFileFolder });
       readFileProxy.rejects({
+        filePath: missingFileFolder,
         error: new Error('ENOENT: no such file or directory'),
       });
 
       pathJoinProxy.returns({ result: validQuestFile.questFilePath });
-      readFileProxy.resolves({ content: validQuestFile.contents });
+      readFileProxy.resolves({
+        filePath: validQuestFile.questFilePath,
+        content: validQuestFile.contents,
+      });
     },
   };
 };

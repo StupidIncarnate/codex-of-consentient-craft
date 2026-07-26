@@ -9,6 +9,7 @@ describe('collectFolderFilesLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders' });
 
       proxy.setupFlatDirectory({
+        dirPath,
         filePaths: [
           AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/app-responder.ts' }),
           AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/another-responder.ts' }),
@@ -28,6 +29,7 @@ describe('collectFolderFilesLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders' });
 
       proxy.setupFlatDirectory({
+        dirPath,
         filePaths: [
           AbsoluteFilePathStub({
             value: '/repo/packages/web/src/responders/app-responder.test.ts',
@@ -42,9 +44,9 @@ describe('collectFolderFilesLayerBroker', () => {
 
     it('EMPTY: {missing directory} => returns empty array', () => {
       const proxy = collectFolderFilesLayerBrokerProxy();
-      proxy.setupEmpty();
-
       const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/flows' });
+      proxy.setupEmpty({ dirPath });
+
       const result = collectFolderFilesLayerBroker({ dirPath });
 
       expect(result).toStrictEqual([]);

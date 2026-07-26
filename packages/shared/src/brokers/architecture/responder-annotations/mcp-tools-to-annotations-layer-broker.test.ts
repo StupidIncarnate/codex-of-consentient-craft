@@ -30,7 +30,7 @@ describe('mcpToolsToAnnotationsLayerBroker', () => {
   describe('empty package', () => {
     it('EMPTY: {no flow files} => returns empty Map', () => {
       const proxy = mcpToolsToAnnotationsLayerBrokerProxy();
-      proxy.setup({ flowEntries: [], flowFiles: [] });
+      proxy.setup({ packageRoot: PACKAGE_ROOT, flowEntries: [], flowFiles: [] });
 
       const result = mcpToolsToAnnotationsLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -42,6 +42,7 @@ describe('mcpToolsToAnnotationsLayerBroker', () => {
     it('VALID: {flow with 3 tools all → QuestHandleResponder} => annotation has [tools: a, b, c]', () => {
       const proxy = mcpToolsToAnnotationsLayerBrokerProxy();
       proxy.setup({
+        packageRoot: PACKAGE_ROOT,
         flowEntries: [makeFileDirent({ name: 'quest-flow.ts' })],
         flowFiles: [
           {

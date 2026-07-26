@@ -13,7 +13,7 @@ describe('readFileLayerBroker', () => {
       value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
     });
 
-    proxy.setupReturns({ content });
+    proxy.setupReturns({ filePath, content });
 
     const result = readFileLayerBroker({ filePath });
 
@@ -26,7 +26,7 @@ describe('readFileLayerBroker', () => {
       value: '/repo/packages/server/src/flows/missing/missing-flow.ts',
     });
 
-    proxy.setupMissing();
+    proxy.setupMissing({ filePath });
 
     const result = readFileLayerBroker({ filePath });
 

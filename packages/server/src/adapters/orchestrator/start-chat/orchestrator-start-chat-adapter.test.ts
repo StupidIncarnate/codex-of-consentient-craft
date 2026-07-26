@@ -11,8 +11,10 @@ import { orchestratorStartChatAdapterProxy } from './orchestrator-start-chat-ada
 describe('orchestratorStartChatAdapter', () => {
   describe('successful start', () => {
     it('VALID: {guildId, message} => returns chatProcessId', async () => {
-      orchestratorStartChatAdapterProxy();
+      const proxy = orchestratorStartChatAdapterProxy();
       const guildId = GuildIdStub();
+
+      proxy.returns({ guildId, chatProcessId: ProcessIdStub() });
 
       const result = await orchestratorStartChatAdapter({ guildId, message: 'hello' });
 
@@ -25,7 +27,7 @@ describe('orchestratorStartChatAdapter', () => {
       const chatProcessId = ProcessIdStub({ value: 'proc-with-quest' });
       const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      proxy.returns({ chatProcessId, questId });
+      proxy.returns({ guildId, chatProcessId, questId });
 
       const result = await orchestratorStartChatAdapter({ guildId, message: 'hello' });
 
@@ -39,6 +41,8 @@ describe('orchestratorStartChatAdapter', () => {
       const proxy = orchestratorStartChatAdapterProxy();
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-resume-123' });
+
+      proxy.returns({ guildId, chatProcessId: ProcessIdStub() });
 
       await orchestratorStartChatAdapter({ guildId, message: 'continue', sessionId });
 
@@ -55,7 +59,7 @@ describe('orchestratorStartChatAdapter', () => {
       const proxy = orchestratorStartChatAdapterProxy();
       const guildId = GuildIdStub();
 
-      proxy.throws({ error: new Error('Failed to start chat') });
+      proxy.throws({ guildId, error: new Error('Failed to start chat') });
 
       await expect(orchestratorStartChatAdapter({ guildId, message: 'hello' })).rejects.toThrow(
         /Failed to start chat/u,

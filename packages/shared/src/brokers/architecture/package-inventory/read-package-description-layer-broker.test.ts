@@ -10,7 +10,7 @@ describe('readPackageDescriptionLayerBroker', () => {
       const packageJsonPath = AbsoluteFilePathStub({ value: '/project/packages/web/package.json' });
       const description = ContentTextStub({ value: 'A web package' });
 
-      proxy.setupDescription({ description });
+      proxy.setupDescription({ packageJsonPath, description });
 
       const result = readPackageDescriptionLayerBroker({ packageJsonPath });
 
@@ -23,7 +23,7 @@ describe('readPackageDescriptionLayerBroker', () => {
       const proxy = readPackageDescriptionLayerBrokerProxy();
       const packageJsonPath = AbsoluteFilePathStub({ value: '/nonexistent/package.json' });
 
-      proxy.setupNoPackageJson();
+      proxy.setupNoPackageJson({ packageJsonPath });
 
       const result = readPackageDescriptionLayerBroker({ packageJsonPath });
 

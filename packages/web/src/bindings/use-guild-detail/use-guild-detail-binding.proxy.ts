@@ -1,7 +1,7 @@
 import * as guildDetailBrokerModule from '../../brokers/guild/detail/guild-detail-broker';
 
 import type { GuildStub } from '@dungeonmaster/shared/contracts';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { guildDetailBrokerProxy } from '../../brokers/guild/detail/guild-detail-broker.proxy';
@@ -28,12 +28,19 @@ const rejectWithPoisonToString = async (): Promise<never> => {
 export const useGuildDetailBindingProxy = (): {
   setupGuild: (params: { guild: Guild }) => void;
   setupError: () => void;
-  setupOuterCatchTrigger: () => void;
-  getConsoleErrorCalls: () => SpyOnHandle['mock']['calls'];
+  setupOuterCatchTrigger: (params: { guildId: string }) => void;
+  getConsoleErrorCalls: () => unknown[][];
   getConsoleErrorHandle: () => SpyOnHandle;
 } => {
   const brokerProxy = guildDetailBrokerProxy();
-  const consoleErrorHandle = registerSpyOn({ object: globalThis.console, method: 'error' });
+  // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
+  // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
+  const consoleErrorHandle = registerSpyOn({
+    object: globalThis.console,
+    method: 'error',
+    passthrough: true,
+  });
+  consoleErrorHandle.calledWith(['[use-guild-detail]']).returns(undefined);
 
   return {
     setupGuild: ({ guild }: { guild: Guild }): void => {
@@ -42,14 +49,14 @@ export const useGuildDetailBindingProxy = (): {
     setupError: (): void => {
       brokerProxy.setupError();
     },
-    setupOuterCatchTrigger: (): void => {
-      const brokerHandle = registerSpyOn({
+    setupOuterCatchTrigger: ({ guildId }: { guildId: string }): void => {
+      const brokerHandle: MockHandle = registerSpyOn({
         object: guildDetailBrokerModule,
         method: 'guildDetailBroker',
       });
-      brokerHandle.mockImplementation(rejectWithPoisonToString as never);
+      brokerHandle.calledWith([{ guildId }]).implement(rejectWithPoisonToString as never);
     },
-    getConsoleErrorCalls: (): SpyOnHandle['mock']['calls'] => consoleErrorHandle.mock.calls,
+    getConsoleErrorCalls: (): unknown[][] => consoleErrorHandle.callsMatching([]),
     getConsoleErrorHandle: (): SpyOnHandle => consoleErrorHandle,
   };
 };

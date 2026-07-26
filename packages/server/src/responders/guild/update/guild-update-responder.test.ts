@@ -91,10 +91,11 @@ describe('GuildUpdateResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = GuildUpdateResponderProxy();
-      proxy.setupUpdateGuildError({ message: 'Update failed' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupUpdateGuildError({ guildId, message: 'Update failed' });
 
       const result = await proxy.callResponder({
-        params: { guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' },
+        params: { guildId },
         body: { name: 'Test' },
       });
 

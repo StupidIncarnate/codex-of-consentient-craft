@@ -9,14 +9,17 @@ export const pathBasenameAdapterProxy = (): {
   const handle = registerMock({ fn: basename });
 
   // Default mock behavior - delegate to the real node:path basename so tests
-  // verify actual basename semantics (e.g. trailing-slash stripping)
+  // verify actual basename semantics (e.g. trailing-slash stripping). No shared broker
+  // composes this adapter today (only its own colocated test), so this stays call-order
+  // scoped (`onceFor([])`) rather than segment-keyed — consistent with join/dirname, its
+  // siblings in the same trap (see tmp/sweep-guidance.md).
   const realPath = requireActual<{ basename: typeof basename }>({ module: 'path' });
-  handle.mockImplementation((inputPath: string) => realPath.basename(inputPath));
+  handle.calledWith([]).implement((inputPath: never) => realPath.basename(inputPath));
 
   return {
     // Semantic method for overriding the return value
-    returns: ({ result }: { result: PathSegment }) => {
-      handle.mockReturnValueOnce(result);
+    returns: ({ result }: { result: PathSegment }): void => {
+      handle.onceFor([]).returns(result);
     },
   };
 };

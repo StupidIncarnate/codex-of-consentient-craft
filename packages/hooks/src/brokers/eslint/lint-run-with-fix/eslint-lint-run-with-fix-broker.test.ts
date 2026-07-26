@@ -9,6 +9,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        filePath: 'test.ts',
         results: [
           {
             filePath: '/home/test/test.ts',
@@ -63,6 +64,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        filePath: 'test.ts',
         results: [
           {
             filePath: '/home/test/test.ts',
@@ -104,6 +106,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        filePath: 'test.ts',
         results: [
           {
             filePath: '/home/test/test.ts',
@@ -136,6 +139,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        filePath: 'test.ts',
         results: [
           {
             filePath: '/home/test/test.ts',

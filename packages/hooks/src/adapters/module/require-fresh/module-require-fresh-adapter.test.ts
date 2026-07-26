@@ -6,7 +6,7 @@ describe('moduleRequireFreshAdapter', () => {
   it('VALID: {filePath} => returns loaded module value', () => {
     const proxy = moduleRequireFreshAdapterProxy();
     const filePath = FilePathStub({ value: '/path/to/config.js' });
-    proxy.returns({ value: undefined });
+    proxy.returns({ filePath, value: undefined });
 
     const result = moduleRequireFreshAdapter({ filePath });
 

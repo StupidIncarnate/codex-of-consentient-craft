@@ -10,7 +10,7 @@ describe('formatFolderContentLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/startup' });
       const { folderDepth } = FolderConfigStub({ folderDepth: 0 });
 
-      proxy.setupDepth0Files({ fileNames: ['start-app.ts', 'start-server.ts'] });
+      proxy.setupDepth0Files({ dirPath, fileNames: ['start-app.ts', 'start-server.ts'] });
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 
@@ -209,7 +209,7 @@ describe('formatFolderContentLayerBroker', () => {
       const dirPath = AbsoluteFilePathStub({ value: '/project/src/empty' });
       const { folderDepth } = FolderConfigStub({ folderDepth: 1 });
 
-      proxy.setupEmpty();
+      proxy.setupEmpty({ dirPath });
 
       const result = formatFolderContentLayerBroker({ dirPath, folderDepth });
 

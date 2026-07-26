@@ -14,7 +14,7 @@ describe('hookBinsToAnnotationsLayerBroker', () => {
   describe('package without package.json', () => {
     it('EMPTY: {package.json missing} => returns empty Map', () => {
       const proxy = hookBinsToAnnotationsLayerBrokerProxy();
-      proxy.setupMissing();
+      proxy.setupMissing({ packageRoot: PACKAGE_ROOT });
 
       const result = hookBinsToAnnotationsLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -25,7 +25,7 @@ describe('hookBinsToAnnotationsLayerBroker', () => {
   describe('package without bin field', () => {
     it('EMPTY: {package.json without bin} => returns empty Map', () => {
       const proxy = hookBinsToAnnotationsLayerBrokerProxy();
-      proxy.setupJson({ json: { name: '@dungeonmaster/hooks' } });
+      proxy.setupJson({ packageRoot: PACKAGE_ROOT, json: { name: '@dungeonmaster/hooks' } });
 
       const result = hookBinsToAnnotationsLayerBroker({ packageRoot: PACKAGE_ROOT });
 
@@ -37,6 +37,7 @@ describe('hookBinsToAnnotationsLayerBroker', () => {
     it('VALID: {two bin entries} => returns annotations keyed by startup file paths', () => {
       const proxy = hookBinsToAnnotationsLayerBrokerProxy();
       proxy.setupJson({
+        packageRoot: PACKAGE_ROOT,
         json: {
           name: '@dungeonmaster/hooks',
           bin: {

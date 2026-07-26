@@ -31,10 +31,11 @@ describe('QuestChatResponder', () => {
 
       proxy.setupQuestLoad({ quest });
       proxy.setupFindQuestPath({
+        questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/quests/abc' }),
       });
-      proxy.setupStartChat({ chatProcessId });
+      proxy.setupStartChat({ guildId, chatProcessId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -66,10 +67,12 @@ describe('QuestChatResponder', () => {
 
       proxy.setupQuestLoad({ quest });
       proxy.setupFindQuestPath({
+        questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/quests/paused' }),
       });
-      proxy.setupStartChat({ chatProcessId });
+      proxy.setupResumeQuest({ questId, resumed: true, restoredStatus: 'in_progress' });
+      proxy.setupStartChat({ guildId, chatProcessId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -102,10 +105,11 @@ describe('QuestChatResponder', () => {
 
       proxy.setupQuestLoad({ quest });
       proxy.setupFindQuestPath({
+        questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/quests/no-session' }),
       });
-      proxy.setupStartChat({ chatProcessId });
+      proxy.setupStartChat({ guildId, chatProcessId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -177,10 +181,11 @@ describe('QuestChatResponder', () => {
   describe('orchestrator failures', () => {
     it('ERROR: {questId not found — load adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestChatResponderProxy();
-      proxy.setupQuestLoadError({ error: new Error('Quest not found') });
+      const questId = QuestIdStub({ value: 'missing-quest' });
+      proxy.setupQuestLoadError({ questId, error: new Error('Quest not found') });
 
       const result = await proxy.callResponder({
-        params: { questId: QuestIdStub({ value: 'missing-quest' }) },
+        params: { questId },
         body: { message: 'hi' },
       });
 
@@ -207,10 +212,11 @@ describe('QuestChatResponder', () => {
 
       proxy.setupQuestLoad({ quest });
       proxy.setupFindQuestPath({
+        questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/quests/throws' }),
       });
-      proxy.setupStartChatError({ message: 'orchestrator startChat exploded' });
+      proxy.setupStartChatError({ guildId, message: 'orchestrator startChat exploded' });
 
       const result = await proxy.callResponder({
         params: { questId },

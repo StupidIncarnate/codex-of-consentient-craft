@@ -12,6 +12,7 @@ describe('architectureExportNameResolveBroker', () => {
       });
 
       proxy.setupReturns({
+        filePath,
         content: ContentTextStub({
           value: `export const questLoadBroker = () => {};`,
         }),
@@ -31,6 +32,7 @@ describe('architectureExportNameResolveBroker', () => {
       });
 
       proxy.setupReturns({
+        filePath,
         content: ContentTextStub({
           value: `export const HomeContentWidget = () => null;`,
         }),
@@ -49,7 +51,7 @@ describe('architectureExportNameResolveBroker', () => {
         value: '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts',
       });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ filePath });
 
       const result = architectureExportNameResolveBroker({ filePath });
 
@@ -65,6 +67,7 @@ describe('architectureExportNameResolveBroker', () => {
       });
 
       proxy.setupReturns({
+        filePath,
         content: ContentTextStub({
           value: `// no export here\nimport { foo } from './foo';`,
         }),

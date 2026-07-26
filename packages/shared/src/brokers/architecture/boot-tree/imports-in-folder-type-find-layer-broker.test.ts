@@ -13,6 +13,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: `import { questFlow } from '../flows/quest/quest-flow';`,
         }),
@@ -42,6 +43,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: [
             `import { questFlow } from '../flows/quest/quest-flow';`,
@@ -79,6 +81,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: [
             `import { questFlow } from '../flows/quest/quest-flow';`,
@@ -111,6 +114,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: `import { questFlow } from '../flows/quest/quest-flow.test';`,
         }),
@@ -136,6 +140,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
         }),
@@ -167,6 +172,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
 
       proxy.setupSource({
+        sourceFile,
         content: ContentTextStub({
           value: [
             `import { questGetBroker } from '../get/quest-get-broker';`,
@@ -205,7 +211,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       });
       const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
 
-      proxy.setupMissing();
+      proxy.setupMissing({ sourceFile });
 
       const result = importsInFolderTypeFindLayerBroker({
         sourceFile,

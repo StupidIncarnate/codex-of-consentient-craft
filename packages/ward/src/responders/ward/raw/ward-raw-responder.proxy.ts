@@ -12,9 +12,9 @@ export const WardRawResponderProxy = (): {
   const rawProxy = commandRawBrokerProxy();
 
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.mockImplementation(() => true);
+  stderrSpy.calledWith([]).implement(() => true);
   const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.mockImplementation(() => true);
+  stdoutSpy.calledWith([]).implement(() => true);
 
   return {
     callResponder: WardRawResponder,
@@ -27,8 +27,8 @@ export const WardRawResponderProxy = (): {
       rawProxy.setupNoResult();
     },
 
-    getStderrCalls: (): unknown[] => stderrSpy.mock.calls.map((call) => call[0]),
+    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
 
-    getStdoutCalls: (): unknown[] => stdoutSpy.mock.calls.map((call) => call[0]),
+    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
   };
 };

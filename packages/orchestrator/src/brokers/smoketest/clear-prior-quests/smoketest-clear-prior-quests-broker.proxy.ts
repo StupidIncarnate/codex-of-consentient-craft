@@ -1,6 +1,11 @@
-import type { FileName, FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import { appendFile, rm } from 'fs/promises';
+import type { FileName, FilePath, GuildConfig, QuestSource } from '@dungeonmaster/shared/contracts';
 import type { Dirent } from 'fs';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { DeletedCountStub } from '../../../contracts/deleted-count/deleted-count.stub';
 import { questDeleteBrokerProxy } from '../../quest/delete/quest-delete-broker.proxy';
@@ -26,23 +31,40 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   setupQuestFolderListing: (params: { files: readonly FileName[] }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
   getRmCallArgs: () => readonly unknown[][];
-  setupSucceeds: () => void;
+  setupSucceeds: (params: { questSource: QuestSource }) => void;
   setupPassthrough: () => void;
   getCallArgs: () => readonly unknown[][];
 } => {
   const ensureGuild = smoketestEnsureGuildBrokerProxy();
   const list = questListBrokerProxy();
-  const deleteBroker = questDeleteBrokerProxy();
+  // Wired to satisfy enforce-proxy-child-creation; questDeleteBroker's own real chain runs
+  // through the direct rm/appendFile staging below instead of this child's setupQuestFolderPath
+  // (see the comment there for why a per-questId address isn't available to this proxy).
+  questDeleteBrokerProxy();
 
-  const mocked = smoketestClearPriorQuestsBroker as jest.MockedFunction<
-    typeof smoketestClearPriorQuestsBroker
-  >;
-  const noopResult = { deletedCount: DeletedCountStub({ value: 0 }) };
-  mocked.mockResolvedValue(noopResult);
+  // Which quests actually get deleted is decided by questSource filtering inside
+  // smoketestClearPriorQuestsBroker's real run — this proxy only knows the FULL quest list
+  // (via setupQuestFile below), not which subset will match, so it has no per-questId
+  // questFolderPath to hand questDeleteBrokerProxy.setupQuestFolderPath ahead of time. Key on
+  // the real path SHAPE each call carries instead: a quest deletion always sits under a
+  // `/quests/` directory, and the outbox append always targets the fixed outbox filename.
+  const rmMock = registerMock({ fn: rm });
+  rmMock
+    .calledWith([(filePath: unknown) => String(filePath).includes('/quests/')])
+    .resolves(undefined);
+
+  const appendMock = registerMock({ fn: appendFile });
+  appendMock
+    .calledWith([(filePath: unknown) => String(filePath).endsWith('event-outbox.jsonl')])
+    .resolves({ success: true as const });
+
+  const mocked = registerMock({ fn: smoketestClearPriorQuestsBroker });
 
   return {
-    setupSucceeds: (): void => {
-      mocked.mockResolvedValueOnce(noopResult);
+    setupSucceeds: ({ questSource }: { questSource: QuestSource }): void => {
+      mocked
+        .calledWith([{ questSource }])
+        .resolves({ deletedCount: DeletedCountStub({ value: 0 }) });
     },
     setupPassthrough: (): void => {
       const realMod = requireActual<{
@@ -50,13 +72,13 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       }>({
         module: './smoketest-clear-prior-quests-broker',
       });
-      mocked.mockImplementation(realMod.smoketestClearPriorQuestsBroker);
+      mocked.calledWith([]).implement(realMod.smoketestClearPriorQuestsBroker);
       // Cascading passthrough: smoketestClearPriorQuestsBroker calls smoketestEnsureGuildBroker
       // internally, which is also module-mocked. The downstream test still primes the guild list
       // chain via setupSmoketestGuildPresent, so ensure-guild must run real here too.
       ensureGuild.setupPassthrough();
     },
-    getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
+    getCallArgs: (): readonly unknown[][] => mocked.callsMatching([]),
     setupSmoketestGuildPresent: ({
       config,
       homeDir,
@@ -99,6 +121,9 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       list.setupQuestFile({ questJson });
     },
 
-    getRmCallArgs: (): readonly unknown[][] => deleteBroker.getRmCallArgs(),
+    // deleteBroker.getRmCallArgs() filters by a questFolderPath this proxy never addresses
+    // (see the comment above questDeleteBrokerProxy() for why); read straight off rmMock,
+    // which every real questDeleteBroker call in this test actually dispatches through.
+    getRmCallArgs: (): readonly unknown[][] => rmMock.callsMatching([]),
   };
 };

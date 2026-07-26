@@ -11,7 +11,7 @@ describe('wardPersistResultBroker', () => {
       const wardResultId = 'run-1773805659495';
       const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
 
-      proxy.setupSuccess();
+      proxy.setupSuccess({ questFolderPath, wardResultId });
 
       await expect(
         wardPersistResultBroker({ questFolderPath, wardResultId, detailJson }),
@@ -24,13 +24,15 @@ describe('wardPersistResultBroker', () => {
       const wardResultId = 'run-abc';
       const detailJson = ErrorMessageStub({ value: '{"checks":[{"checkType":"lint"}]}' });
 
-      proxy.setupSuccess();
+      proxy.setupSuccess({ questFolderPath, wardResultId });
 
       await expect(
         wardPersistResultBroker({ questFolderPath, wardResultId, detailJson }),
       ).resolves.toStrictEqual({ success: true });
 
-      expect(proxy.getWrittenContent()).toBe('{"checks":[{"checkType":"lint"}]}');
+      expect(proxy.getWrittenContent({ questFolderPath, wardResultId })).toBe(
+        '{"checks":[{"checkType":"lint"}]}',
+      );
     });
   });
 
@@ -41,11 +43,13 @@ describe('wardPersistResultBroker', () => {
       const wardResultId = 'result-xyz';
       const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
 
-      proxy.setupSuccess();
+      proxy.setupSuccess({ questFolderPath, wardResultId });
 
       await wardPersistResultBroker({ questFolderPath, wardResultId, detailJson });
 
-      expect(proxy.getWrittenPath()).toBe('/quests/quest-003/ward-results/result-xyz.json');
+      expect(proxy.getWrittenPath({ questFolderPath, wardResultId })).toBe(
+        '/quests/quest-003/ward-results/result-xyz.json',
+      );
     });
   });
 
@@ -56,7 +60,11 @@ describe('wardPersistResultBroker', () => {
       const wardResultId = 'run-fail';
       const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
 
-      proxy.setupWriteFailure({ error: new Error('EACCES: permission denied') });
+      proxy.setupWriteFailure({
+        questFolderPath,
+        wardResultId,
+        error: new Error('EACCES: permission denied'),
+      });
 
       await expect(
         wardPersistResultBroker({ questFolderPath, wardResultId, detailJson }),

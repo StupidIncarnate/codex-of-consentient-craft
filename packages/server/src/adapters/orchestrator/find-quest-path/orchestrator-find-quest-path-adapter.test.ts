@@ -13,7 +13,7 @@ describe('orchestratorFindQuestPathAdapter', () => {
       });
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
 
-      proxy.returns({ questPath, guildId });
+      proxy.returns({ questId, questPath, guildId });
 
       const result = await orchestratorFindQuestPathAdapter({ questId });
 
@@ -26,7 +26,7 @@ describe('orchestratorFindQuestPathAdapter', () => {
       const proxy = orchestratorFindQuestPathAdapterProxy();
       const questId = QuestIdStub({ value: 'missing-quest' });
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId, error: new Error('Quest not found') });
 
       await expect(orchestratorFindQuestPathAdapter({ questId })).rejects.toThrow(
         /^Quest not found$/u,

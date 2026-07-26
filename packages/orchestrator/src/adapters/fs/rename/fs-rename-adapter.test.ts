@@ -9,7 +9,7 @@ describe('fsRenameAdapter', () => {
       const from = FilePathStub({ value: '/tmp/file.tmp' });
       const to = FilePathStub({ value: '/tmp/file.json' });
 
-      proxy.succeeds();
+      proxy.succeeds({ from });
 
       await expect(fsRenameAdapter({ from, to })).resolves.toStrictEqual({
         success: true,
@@ -21,12 +21,11 @@ describe('fsRenameAdapter', () => {
       const from = FilePathStub({ value: '/quests/a/quest.json.tmp' });
       const to = FilePathStub({ value: '/quests/a/quest.json' });
 
-      proxy.succeeds();
+      proxy.succeeds({ from });
 
       await fsRenameAdapter({ from, to });
 
-      expect(proxy.getFromPath()).toBe(from);
-      expect(proxy.getToPath()).toBe(to);
+      expect(proxy.getToPathFor({ from })).toBe(to);
     });
   });
 
@@ -36,7 +35,7 @@ describe('fsRenameAdapter', () => {
       const from = FilePathStub({ value: '/nonexistent/file.tmp' });
       const to = FilePathStub({ value: '/nonexistent/file.json' });
 
-      proxy.throws({ error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ from, error: new Error('ENOENT: no such file or directory') });
 
       await expect(fsRenameAdapter({ from, to })).rejects.toThrow(/ENOENT/u);
     });

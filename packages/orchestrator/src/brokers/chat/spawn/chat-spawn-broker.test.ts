@@ -568,15 +568,11 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      const linkFailureWrite = stderrSpy.mock.calls
-        .map((call) => String(call[0]))
-        .find((line) =>
-          /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u.test(line),
-        );
+      const linkFailurePattern =
+        /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u;
+      const linkFailureWrites = stderrSpy.callsMatching([linkFailurePattern]);
 
-      expect(linkFailureWrite).toMatch(
-        /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u,
-      );
+      expect(linkFailureWrites.at(-1)?.[0]).toMatch(linkFailurePattern);
     });
   });
 
@@ -839,9 +835,7 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      const traceCalls = stderrSpy.mock.calls.filter((call) =>
-        String(call[0]).includes('[SUBAGENT-TRACE]'),
-      );
+      const traceCalls = stderrSpy.callsMatching([/\[SUBAGENT-TRACE\]/u]);
 
       expect(traceCalls).toStrictEqual([]);
     });

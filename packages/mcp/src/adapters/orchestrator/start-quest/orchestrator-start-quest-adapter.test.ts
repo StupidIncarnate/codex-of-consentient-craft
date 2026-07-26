@@ -10,7 +10,7 @@ describe('orchestratorStartQuestAdapter', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const processId = ProcessIdStub({ value: 'proc-123' });
 
-      proxy.returns({ processId });
+      proxy.returns({ questId, processId });
 
       const result = await orchestratorStartQuestAdapter({ questId });
 
@@ -23,7 +23,7 @@ describe('orchestratorStartQuestAdapter', () => {
       const proxy = orchestratorStartQuestAdapterProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
-      proxy.throws({ error: new Error('Quest not found') });
+      proxy.throws({ questId, error: new Error('Quest not found') });
 
       await expect(orchestratorStartQuestAdapter({ questId })).rejects.toThrow(/Quest not found/u);
     });

@@ -36,7 +36,7 @@ describe('questCreateBroker', () => {
 
     expect(result).toStrictEqual({ questFilePath, questFolderPath });
 
-    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent() as never);
+    const writtenQuest = JSON.parse(brokerProxy.getWrittenContent({ questFilePath }) as never);
     const { createdAt, operations, ...rest } = writtenQuest;
     // The plan operation item's id is a generated UUID — assert its shape separately.
     const [planOp] = operations;
@@ -92,7 +92,7 @@ describe('questCreateBroker', () => {
     await questCreateBroker({ questId, guildId, input });
 
     const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
-      brokerProxy.getWrittenContent() as never,
+      brokerProxy.getWrittenContent({ questFilePath }) as never,
     );
     const { questSource } = writtenQuest;
 
@@ -122,7 +122,7 @@ describe('questCreateBroker', () => {
     await questCreateBroker({ questId, guildId, input });
 
     const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
-      brokerProxy.getWrittenContent() as never,
+      brokerProxy.getWrittenContent({ questFilePath }) as never,
     );
     const { questType } = writtenQuest;
 
@@ -148,7 +148,7 @@ describe('questCreateBroker', () => {
     await questCreateBroker({ questId, guildId, input });
 
     const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
-      brokerProxy.getWrittenContent() as never,
+      brokerProxy.getWrittenContent({ questFilePath }) as never,
     );
     const { questType } = writtenQuest;
 
@@ -177,7 +177,7 @@ describe('questCreateBroker', () => {
     await questCreateBroker({ questId, guildId, input });
 
     const writtenQuest: ReturnType<typeof QuestStub> = JSON.parse(
-      brokerProxy.getWrittenContent() as never,
+      brokerProxy.getWrittenContent({ questFilePath }) as never,
     );
     const { questSource } = writtenQuest;
 

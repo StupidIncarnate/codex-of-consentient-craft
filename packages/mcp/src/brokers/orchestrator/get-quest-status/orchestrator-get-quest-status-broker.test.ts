@@ -14,7 +14,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
         phase: 'codeweaver',
       });
 
-      proxy.returns({ status });
+      proxy.returns({ processId, status });
 
       const result = await orchestratorGetQuestStatusBroker({ processId });
 
@@ -27,7 +27,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
       const processId = ProcessIdStub({ value: 'proc-missing' });
 
-      proxy.throws({ error: new Error('Process not found: proc-missing') });
+      proxy.throws({ processId, error: new Error('Process not found: proc-missing') });
 
       await expect(orchestratorGetQuestStatusBroker({ processId })).rejects.toThrow(
         /Process not found: proc-missing/u,
@@ -38,7 +38,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
       const processId = ProcessIdStub({ value: 'proc-456' });
 
-      proxy.throws({ error: new Error('Internal server error') });
+      proxy.throws({ processId, error: new Error('Internal server error') });
 
       await expect(orchestratorGetQuestStatusBroker({ processId })).rejects.toThrow(
         /Internal server error/u,
