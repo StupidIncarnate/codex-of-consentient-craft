@@ -39,6 +39,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     });
 
     const emitted: unknown[] = [];
+    const workItemBackedAgentIds = new Set<ReturnType<typeof AgentIdStub>>();
 
     await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
@@ -52,6 +53,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
       isAgentIdActive: () => true,
       subagentHandles: new Map(),
+      workItemBackedAgentIds,
     });
 
     proxy.triggerChange();
@@ -75,6 +77,8 @@ describe('scanSubagentsDirLayerBroker', () => {
         sessionId: parentSessionId,
       },
     ]);
+    // Tailed because it is ACTIVE — so the caller's pruneStaleTails may reclaim it later.
+    expect(workItemBackedAgentIds).toStrictEqual(new Set(['zeta']));
   });
 
   it('EMPTY: {readdir throws ENOENT} => returns success without throwing, emit never called', async () => {
@@ -102,6 +106,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
       isAgentIdActive: () => true,
       subagentHandles: new Map(),
+      workItemBackedAgentIds: new Set(),
     });
 
     expect(result).toStrictEqual({ success: true });
@@ -145,6 +150,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
       isAgentIdActive: () => true,
       subagentHandles: new Map(),
+      workItemBackedAgentIds: new Set(),
     });
 
     proxy.triggerChange();
@@ -195,6 +201,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
     const handles = new Map();
+    const workItemBackedAgentIds = new Set<ReturnType<typeof AgentIdStub>>();
 
     await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
@@ -208,6 +215,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
       isAgentIdActive: ({ agentId }) => String(agentId) === String(activeAgentId),
       subagentHandles: handles,
+      workItemBackedAgentIds,
     });
 
     proxy.triggerChange();
@@ -232,6 +240,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
     ]);
     expect(handles.size).toBe(1);
+    expect(workItemBackedAgentIds).toStrictEqual(new Set(['live-agent']));
   });
 
   it('VALID: {non-active file whose first-line prompt matches an outstanding Task} => paired and tailed even though isAgentIdActive is false', async () => {
@@ -284,6 +293,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
     const handles = new Map();
+    const workItemBackedAgentIds = new Set<ReturnType<typeof AgentIdStub>>();
 
     await scanSubagentsDirLayerBroker({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
@@ -297,6 +307,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
       isAgentIdActive: () => false,
       subagentHandles: handles,
+      workItemBackedAgentIds,
     });
 
     proxy.triggerChange();
@@ -323,5 +334,9 @@ describe('scanSubagentsDirLayerBroker', () => {
         sessionId: parentSessionId,
       },
     ]);
+    // Tailed via prompt-pairing, NOT because it is active — it owns no work item, so it must
+    // stay out of the prunable set. Pruning it would stop the tail on the next refresh tick,
+    // and the next scan would re-tail the file from byte 0 and replay its whole transcript.
+    expect(workItemBackedAgentIds).toStrictEqual(new Set());
   });
 });

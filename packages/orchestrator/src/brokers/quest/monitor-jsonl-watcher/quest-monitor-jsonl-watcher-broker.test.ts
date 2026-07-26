@@ -759,6 +759,220 @@ describe('questMonitorJsonlWatcherBroker', () => {
       ]);
     });
 
+    it('VALID: {prompt-paired minion tail, agentId never work-item-backed} => prune leaves it running so its later lines still emit', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-prune-minion' });
+      const activeQuestId = QuestIdStub({ value: 'prune-minion-quest' });
+
+      // A parent-summoned minion (blightwarden-*-minion, codeweaver-minion, …) owns no work
+      // item, so `isAgentIdActive` is false for its realAgentId for the whole run. Its tail
+      // exists only because the scan prompt-paired it, and prune must leave it alone.
+      const TASK_LINE =
+        '{"type":"assistant","uuid":"task-line","timestamp":"2026-05-13T10:03:00.000Z","message":{"content":[{"type":"tool_use","id":"toolu_minion","name":"Agent","input":{"prompt":"audit the diff for dead code"}}]}}';
+      // Claude CLI writes the Task's `input.prompt` verbatim as the minion JSONL's first line.
+      const MINION_FIRST_LINE =
+        '{"type":"user","uuid":"minion-first","message":{"role":"user","content":"audit the diff for dead code"}}';
+      const MINION_LINE_1 =
+        '{"type":"assistant","uuid":"minion-1","timestamp":"2026-05-13T10:03:10.000Z","message":{"content":[{"type":"text","text":"minion before prune"}]}}';
+      const MINION_LINE_2 =
+        '{"type":"assistant","uuid":"minion-2","timestamp":"2026-05-13T10:03:20.000Z","message":{"content":[{"type":"text","text":"minion after prune"}]}}';
+
+      // subagents/ is empty at construction; the minion file appears on the first poll tick.
+      proxy.setupSubagentDirEmpty();
+      proxy.setupLines({ lines: [TASK_LINE] }); // main initial drain
+
+      const emitted: unknown[] = [];
+
+      const handle = questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => false,
+      });
+
+      // Round 1 — [main]: the Task line registers `toolu_minion` as an outstanding Task.
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // Poll tick: the minion file is now on disk. It is not active, so the scan falls to the
+      // prompt-pairing path, matches the first line against the outstanding Task, and tails it.
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-minion-1.jsonl' })],
+      });
+      proxy.setupFirstLineRead({ content: MINION_FIRST_LINE });
+      proxy.triggerPollTick();
+      await flushImmediate();
+
+      // Round 2 — [main, minion]: the minion streams its first line.
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [MINION_LINE_1] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      handle.pruneStaleTails();
+
+      // Round 3 — the minion tail must have survived the prune, so its next batch still
+      // drains and emits. A stopped tail consumes no batch and emits nothing.
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [MINION_LINE_2] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_use',
+              toolName: 'Agent',
+              toolInput: '{"prompt":"audit the diff for dead code"}',
+              toolUseId: 'toolu_minion',
+              source: 'session',
+              agentId: 'toolu_minion',
+              uuid: 'task-line:0',
+              timestamp: '2026-05-13T10:03:00.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'minion before prune',
+              source: 'subagent',
+              agentId: 'toolu_minion',
+              uuid: 'minion-1:0',
+              timestamp: '2026-05-13T10:03:10.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'minion after prune',
+              source: 'subagent',
+              agentId: 'toolu_minion',
+              uuid: 'minion-2:0',
+              timestamp: '2026-05-13T10:03:20.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+      ]);
+    });
+
+    it('VALID: {work-item-backed tail pruned, its JSONL still on disk} => later poll re-scan does not restart the tail and replay its transcript', async () => {
+      const proxy = questMonitorJsonlWatcherBrokerProxy();
+      const sessionFilePath = FilePathStub({
+        value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+      });
+      const chatProcessId = ProcessIdStub({ value: 'monitor-proc-prune-no-restart' });
+      const activeQuestId = QuestIdStub({ value: 'prune-no-restart-quest' });
+
+      let agentActive = true;
+
+      const TASK_LINE =
+        '{"type":"assistant","uuid":"restart-task","timestamp":"2026-05-13T10:04:00.000Z","message":{"content":[{"type":"tool_use","id":"toolu_restart","name":"Agent","input":{"prompt":"implement the auth slice"}}]}}';
+      const AGENT_FIRST_LINE =
+        '{"type":"user","uuid":"restart-first","message":{"role":"user","content":"implement the auth slice"}}';
+      const AGENT_LINE =
+        '{"type":"assistant","uuid":"restart-line","timestamp":"2026-05-13T10:04:10.000Z","message":{"content":[{"type":"text","text":"work item output"}]}}';
+
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-restart-1.jsonl' })],
+      });
+      proxy.setupLines({ lines: [AGENT_LINE] }); // sub-agent initial drain
+      proxy.setupLines({ lines: [TASK_LINE] }); // main initial drain
+
+      const emitted: unknown[] = [];
+
+      const handle = questMonitorJsonlWatcherBroker({
+        sessionFilePath,
+        activeQuestIdGetter: () => activeQuestId,
+        chatProcessId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        isAgentIdActive: () => agentActive,
+      });
+
+      proxy.triggerChange();
+      await flushImmediate();
+
+      // The work item reaches a terminal status: the agentId leaves the active set and the
+      // next refresh prunes its tail. The `agent-restart-1.jsonl` file stays on disk.
+      agentActive = false;
+      handle.pruneStaleTails();
+
+      // Poll tick: the scan sees the same file again. It is no longer active, so it reaches
+      // the prompt-pairing path — and a paired agentId pairs again. Restarting the tail here
+      // would re-read the JSONL from byte 0 and replay the whole transcript to the web.
+      proxy.setupSubagentDirFiles({
+        files: [FileNameStub({ value: 'agent-restart-1.jsonl' })],
+      });
+      proxy.setupFirstLineRead({ content: AGENT_FIRST_LINE });
+      proxy.triggerPollTick();
+      await flushImmediate();
+
+      // A restarted tail would consume this batch and re-emit the line a second time.
+      proxy.setupLines({ lines: [] });
+      proxy.setupLines({ lines: [AGENT_LINE] });
+      proxy.triggerChange();
+      await flushImmediate();
+
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'text',
+              content: 'work item output',
+              source: 'subagent',
+              agentId: 'restart-1',
+              uuid: 'restart-line:0',
+              timestamp: '2026-05-13T10:04:10.000Z',
+            },
+          ],
+          questId: activeQuestId,
+          sessionId: SessionIdStub({ value: 'abc-123' }),
+        },
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_use',
+              toolName: 'Agent',
+              toolInput: '{"prompt":"implement the auth slice"}',
+              toolUseId: 'toolu_restart',
+              source: 'session',
+              agentId: 'toolu_restart',
+              uuid: 'restart-task:0',
+              timestamp: '2026-05-13T10:04:00.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+      ]);
+    });
+
     it('VALID: {all agents remain active} => no handles stopped, subsequent emissions continue', async () => {
       const proxy = questMonitorJsonlWatcherBrokerProxy();
       const sessionFilePath = FilePathStub({

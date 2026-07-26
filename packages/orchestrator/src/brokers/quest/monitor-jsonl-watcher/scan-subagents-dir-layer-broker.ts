@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory and starts a tail for every `agent-*.jsonl` file that belongs to the live run. ACTIVE files (whose agentId is stamped on an in-progress work item per `isAgentIdActive`) tail directly. NON-active files are either a nested sub-agent (spawned by a sub-agent, so it never gets its own work item) or a stale leftover from a prior run; the broker reads the file's first line — Claude CLI writes the spawning Task's prompt there verbatim — and pairs it against the processor's outstanding Tasks. A match registers the correlation and tails the nested sub-agent live (so it streams BEFORE finishing); a stale file matches nothing and stays skipped. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). Idempotent: re-invoking on every poll tick is safe (already-tailed files are skipped).
+ * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory and starts a tail for every `agent-*.jsonl` file that belongs to the live run. ACTIVE files (whose agentId is stamped on an in-progress work item per `isAgentIdActive`) tail directly. NON-active files are either a nested sub-agent (spawned by a sub-agent, so it never gets its own work item) or a stale leftover from a prior run; the broker reads the file's first line — Claude CLI writes the spawning Task's prompt there verbatim — and pairs it against the processor's outstanding Tasks. A match registers the correlation and tails the nested sub-agent live (so it streams BEFORE finishing); a stale file matches nothing and stays skipped. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). Idempotent: re-invoking on every poll tick is safe — a file this watcher already tailed is skipped, including one whose tail has since been stopped, because a fresh tail reads from byte 0 and would replay the whole transcript.
  *
  * USAGE:
  * await scanSubagentsDirLayerBroker({
@@ -53,6 +53,7 @@ export const scanSubagentsDirLayerBroker = async ({
   emit,
   isAgentIdActive,
   subagentHandles,
+  workItemBackedAgentIds,
 }: {
   subagentsDir: string;
   sessionFilePath: FilePath;
@@ -75,6 +76,10 @@ export const scanSubagentsDirLayerBroker = async ({
   // prompt-pairing path so a nested sub-agent (no work item of its own) is still tailed.
   isAgentIdActive: (params: { agentId: AgentId }) => boolean;
   subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
+  // Records which tails this scan started because the agentId was ACTIVE. The caller's
+  // `pruneStaleTails` prunes only those — a prompt-paired file has no work item, so it would
+  // otherwise be stopped on the next refresh tick and re-tailed (from byte 0) on the next scan.
+  workItemBackedAgentIds: Set<AgentId>;
 }): Promise<AdapterResult> => {
   const tailArgs = {
     sessionFilePath,
@@ -100,6 +105,7 @@ export const scanSubagentsDirLayerBroker = async ({
       const agentId = stripAgentFilenamePrefixTransformer({ fileName });
       if (subagentHandles.has(agentId)) continue;
       if (isAgentIdActive({ agentId })) {
+        workItemBackedAgentIds.add(agentId);
         startSubagentTailLayerBroker({ agentId, ...tailArgs });
         continue;
       }

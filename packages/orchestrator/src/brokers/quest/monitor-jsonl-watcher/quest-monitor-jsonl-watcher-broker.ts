@@ -121,6 +121,13 @@ export const questMonitorJsonlWatcherBroker = ({
 
   const subagentHandles = new Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>();
 
+  // Sub-agents whose tail exists because their realAgentId is stamped on an in-progress work
+  // item. ONLY these are eligible for pruning. A parent-summoned minion (blightwarden-*-minion,
+  // codeweaver-minion, lawbringer-minion) and any nested sub-agent own no work item, so
+  // `isAgentIdActive` is false for them from the moment their tail starts — pruning on that
+  // predicate alone would stop them on the very next refresh tick.
+  const workItemBackedAgentIds = new Set<AgentId>();
+
   // Initial scan of existing sub-agent JSONL files under
   // `<sessionFilePath without .jsonl>/subagents/`. This is the same layout the replay
   // broker reads — Claude CLI keys sub-agent files by the parent session's path. Files
@@ -153,6 +160,7 @@ export const questMonitorJsonlWatcherBroker = ({
     emit,
     isAgentIdActive,
     subagentHandles,
+    workItemBackedAgentIds,
   };
 
   // Fire-and-forget: the scan tails active sub-agents synchronously (before its first await)
@@ -218,6 +226,7 @@ export const questMonitorJsonlWatcherBroker = ({
         if (!isAgentIdActive({ agentId: output.agentId })) {
           continue;
         }
+        workItemBackedAgentIds.add(output.agentId);
         startSubagentTailLayerBroker({
           agentId: output.agentId,
           sessionFilePath,
@@ -246,17 +255,25 @@ export const questMonitorJsonlWatcherBroker = ({
         handle.stop();
       }
       subagentHandles.clear();
+      workItemBackedAgentIds.clear();
     },
-    // Stops any tail whose agentId is no longer in the active set. Caller invokes
-    // this after refreshing the active-agentId state in response to a quest-modified
-    // outbox event — when a work item transitions to a terminal status, the
-    // corresponding tail can release its fs handle.
+    // Stops any WORK-ITEM-BACKED tail whose agentId is no longer in the active set. Caller
+    // invokes this after refreshing the active-agentId state in response to a quest-modified
+    // outbox event — when a work item transitions to a terminal status, the corresponding
+    // tail can release its fs handle. Tails with no work item behind them (parent-summoned
+    // minions, nested sub-agents) are never pruned; they live until `stop()`.
     pruneStaleTails: (): void => {
       for (const [agentId, handle] of subagentHandles) {
-        if (!isAgentIdActive({ agentId })) {
-          handle.stop();
-          subagentHandles.delete(agentId);
-        }
+        if (!workItemBackedAgentIds.has(agentId)) continue;
+        if (isAgentIdActive({ agentId })) continue;
+        handle.stop();
+        // Dropping it here also makes this a one-shot: the next tick skips the stopped tail
+        // instead of re-calling stop() on it every second.
+        workItemBackedAgentIds.delete(agentId);
+        // The handle deliberately STAYS in `subagentHandles`. That map is what stops the 1s
+        // dir re-scan from starting a SECOND tail on the same file — and a fresh tail reads
+        // from byte 0, so restarting one replays the whole transcript through the processor
+        // and re-emits every entry to the web.
       }
     },
   };

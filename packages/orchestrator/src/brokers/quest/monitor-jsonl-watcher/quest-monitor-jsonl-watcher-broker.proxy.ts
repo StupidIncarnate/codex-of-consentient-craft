@@ -13,6 +13,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   setupSubagentDirEmpty: () => void;
   setupSubagentDirMissing: (params: { error: Error }) => void;
   setupSubagentDirFiles: (params: { files: readonly FileName[] }) => void;
+  setupFirstLineRead: (params: { content: string }) => void;
   setupLines: (params: { lines: readonly string[] }) => void;
   triggerChange: () => void;
   triggerPollTick: () => void;
@@ -42,6 +43,12 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
     },
     setupSubagentDirFiles: ({ files }: { files: readonly FileName[] }): void => {
       scanLayerProxy.setupSubagentDirFiles({ files });
+    },
+    // Queues the content the scan reads as a non-active sub-agent file's FIRST line. Claude
+    // CLI writes the spawning Task's `input.prompt` verbatim there, so this is what the
+    // prompt-pairing path matches against the processor's outstanding Tasks.
+    setupFirstLineRead: ({ content }: { content: string }): void => {
+      scanLayerProxy.setupFirstLineRead({ content });
     },
     // Lines are dispensed FIFO across every watcher this broker creates. Watchers are
     // registered in this order: each pre-existing subagent JSONL (in `fsReaddirAdapter`
