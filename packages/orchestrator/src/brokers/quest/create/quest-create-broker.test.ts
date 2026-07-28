@@ -55,6 +55,7 @@ describe('questCreateBroker', () => {
       packagesAffected: [],
       contracts: [],
       flows: [],
+      comments: [],
       needsDesign: false,
       workItems: [],
       wardResults: [],

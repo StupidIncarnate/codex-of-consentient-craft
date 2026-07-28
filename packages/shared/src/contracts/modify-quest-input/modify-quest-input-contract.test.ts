@@ -216,6 +216,97 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  it('VALID: {comments full shape} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      comments: [
+        {
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'This assertion looks wrong',
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      comments: [
+        {
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'This assertion looks wrong',
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ],
+    });
+  });
+
+  it('VALID: {comments partial patch} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      comments: [{ id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479', text: 'Updated wording' }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      comments: [{ id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479', text: 'Updated wording' }],
+    });
+  });
+
+  it('VALID: {comments delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      comments: [{ id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      comments: [{ id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+    });
+  });
+
+  it('VALID: {comments with observableId} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      comments: [
+        {
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          observableId: 'login-redirects-to-dashboard',
+          text: 'This assertion looks wrong',
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      comments: [
+        {
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          observableId: 'login-redirects-to-dashboard',
+          text: 'This assertion looks wrong',
+          createdAt: '2024-01-15T10:00:00.000Z',
+        },
+      ],
+    });
+  });
+
+  it('INVALID: {comments entry missing id and required full fields} => throws validation error', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        comments: [{ text: 'orphaned comment' } as never],
+      });
+    }).toThrow(/Invalid input/u);
+  });
+
   it('INVALID: {operations partial-patch missing id} => throws validation error', () => {
     expect(() => {
       return modifyQuestInputContract.parse({

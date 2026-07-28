@@ -58,6 +58,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [
           FlowStub({
@@ -100,6 +101,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });
@@ -133,6 +135,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });
@@ -170,6 +173,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [flow],
       });
@@ -203,6 +207,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });
@@ -243,6 +248,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [FlowStub()],
       });
@@ -293,6 +299,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });
@@ -324,6 +331,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: quest.flows,
       });
@@ -359,6 +367,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });
@@ -390,6 +399,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });
@@ -421,6 +431,7 @@ describe('questSectionFilterTransformer', () => {
         packagesAffected: [],
         workItems: [],
         wardResults: [],
+        comments: [],
         planningNotes: { blightReports: [] },
         flows: [],
       });

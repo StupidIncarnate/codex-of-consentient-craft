@@ -1,6 +1,7 @@
 import { FlowStub } from '../flow/flow.stub';
 import { OperationItemStub } from '../operation-item/operation-item.stub';
 import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
+import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
@@ -29,6 +30,7 @@ describe('questContract', () => {
         packagesAffected: [],
         contracts: [],
         flows: [FlowStub()],
+        comments: [],
         needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
@@ -59,6 +61,7 @@ describe('questContract', () => {
         packagesAffected: [],
         contracts: [],
         flows: [FlowStub()],
+        comments: [],
         needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
@@ -89,6 +92,7 @@ describe('questContract', () => {
         packagesAffected: [],
         contracts: [],
         flows: [FlowStub()],
+        comments: [],
         needsDesign: false,
         userRequest: 'Add authentication to the application',
         workItems: [],
@@ -141,6 +145,31 @@ describe('questContract', () => {
       expect(result.flows).toStrictEqual([flow]);
     });
 
+    it('VALID: quest with comments => parses successfully', () => {
+      const quest = QuestStub({
+        comments: [QuestCommentStub()],
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.comments).toStrictEqual([QuestCommentStub()]);
+    });
+
+    it('VALID: quest without comments field => backward compat defaults to empty array', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.comments).toStrictEqual([]);
+    });
+
     it('VALID: needsDesign defaults to false => parses successfully', () => {
       const quest = QuestStub();
 
@@ -177,6 +206,7 @@ describe('questContract', () => {
         packagesAffected: [],
         contracts: [],
         flows: [FlowStub()],
+        comments: [],
         needsDesign: true,
         designPort: 5173,
         questType: 'feature',

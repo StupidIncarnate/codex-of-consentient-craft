@@ -13,6 +13,7 @@ import { flowContract } from '../flow/flow-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
+import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
@@ -65,6 +66,12 @@ export const questContract = z.object({
     .array(flowContract)
     .default([])
     .describe('User journey sequences with nodes, edges, and embedded observables'),
+  comments: z
+    .array(questCommentContract)
+    .default([])
+    .describe(
+      'User comments queued against flow-diagram nodes and delivered to the LLM chat as a batch',
+    ),
   needsDesign: z
     .boolean()
     .default(false)

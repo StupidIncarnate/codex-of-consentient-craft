@@ -28,6 +28,8 @@ import { operationItemContract } from '../operation-item/operation-item-contract
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
+import { questCommentContract } from '../quest-comment/quest-comment-contract';
+import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
@@ -84,6 +86,11 @@ const fullQuestContractEntry = questContractEntryContract.extend({
 const fullPlanningBlightReport = planningBlightReportContract.extend({
   _delete: z.boolean().optional(),
 });
+// This field exists even though agents rarely write comments directly: the comment-batch route's
+// own server-side write persists queued comments by going through this contract. The MCP layer
+// (not this contract) is what blocks agent writes, by stripping `comments` from the modify-quest
+// payload before validation. Removing this field would break the route's own persist.
+const fullQuestComment = questCommentContract.extend({ _delete: z.boolean().optional() });
 
 export const modifyQuestInputContract = z
   .object({
@@ -146,6 +153,18 @@ export const modifyQuestInputContract = z
       .array(deletableFlowContract)
       .describe(
         'Flows to upsert. Send full shape for new flows; send { id, nodes: [...] } or similar partial shapes to edit nested structure without restating the whole flow',
+      )
+      .optional(),
+    comments: z
+      .array(
+        z.union([
+          fullQuestComment,
+          fullQuestComment.partial().required({ id: true }),
+          z.object({ id: questCommentIdContract, _delete: deleteMarker }),
+        ]),
+      )
+      .describe(
+        'Comments to upsert onto quest.comments. Send full shape for new entries; send { id, ...fields-you-changed } to patch an existing entry; { id, _delete: true } to remove one. The comment-batch route writes through this contract to persist queued comments; the MCP layer strips this field before validation to block agent writes, not this contract, so keep this field even though agents rarely populate it directly',
       )
       .optional(),
     status: questStatusContract.describe('Lifecycle gate transition status').optional(),

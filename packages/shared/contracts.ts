@@ -161,6 +161,15 @@ export * from './src/contracts/flow-node-type/flow-node-type.stub';
 export * from './src/contracts/flow-observable/flow-observable-contract';
 export * from './src/contracts/flow-observable/flow-observable.stub';
 
+export * from './src/contracts/quest-comment-id/quest-comment-id-contract';
+export * from './src/contracts/quest-comment-id/quest-comment-id.stub';
+
+export * from './src/contracts/comment-text/comment-text-contract';
+export * from './src/contracts/comment-text/comment-text.stub';
+
+export * from './src/contracts/quest-comment/quest-comment-contract';
+export * from './src/contracts/quest-comment/quest-comment.stub';
+
 export * from './src/contracts/flow-node/flow-node-contract';
 export * from './src/contracts/flow-node/flow-node.stub';
 
