@@ -78,8 +78,38 @@ describe('codeweaverMinionStatics', () => {
     ).toBe(testing);
   });
 
-  it('VALID: template => mandates writing the failing test first (TDD)', () => {
-    const needle = '**Write the failing test first.**';
+  it('VALID: template => mandates writing the failing test first, driven by MUST SATISFY', () => {
+    const needle = '**Write the failing test first**, driven by `MUST SATISFY`';
+    const { template } = codeweaverMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(
+      template.indexOf('needs an assertion that would fail if the behavior were absent'),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => the briefing carries the flow frame, not just the file paths', () => {
+    const needle =
+      "Codeweaver's spawn message is your briefing, and it is the ONLY quest context you get.";
+    const { template } = codeweaverMinionStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('FLOW: <flow-id>')).toBeGreaterThan(-1);
+    expect(template.indexOf('WHERE THIS SITS:')).toBeGreaterThan(-1);
+    expect(template.indexOf('MUST SATISFY:')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => tells the minion to flag a brief missing its frame rather than guessing', () => {
+    const needle =
+      'If the brief is missing `FLOW`, `WHERE THIS SITS`, or `MUST SATISFY`, say so in your return';
     const { template } = codeweaverMinionStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

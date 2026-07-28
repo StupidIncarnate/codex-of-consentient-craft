@@ -3,6 +3,83 @@ import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-opera
 import { flowriderPromptStatics } from './flowrider-prompt-statics';
 
 describe('flowriderPromptStatics', () => {
+  it('VALID: template => traces each flow across every layer before picking a modality', () => {
+    const needle = '## Phase 3: Trace Each Flow Through Every Layer, Then Pick Modalities';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('**A flow is not one technology.**')).toBeGreaterThan(-1);
+    expect(template.indexOf('**Then pick a modality PER LAYER, not per flow.**')).toBeGreaterThan(
+      -1,
+    );
+  });
+
+  it('VALID: template => forbids stopping at Playwright when a flow reaches the server', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
+    expect(
+      template.indexOf('**Playwright can only prove what the browser can observe.**'),
+    ).toBeGreaterThan(-1);
+    expect(template.indexOf('do NOT stop at Playwright when a flow goes deeper')).toBeGreaterThan(
+      -1,
+    );
+    expect(
+      template.indexOf('**This is required even when the flow also has a UI**'),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => operational flows are verified, never given a test suite', () => {
+    const needle = '**You author no test suite here.**';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('**Modality: VERIFICATION, not a test suite.**')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => the coverage gate audits per-layer coverage, not just per-flow', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
+    expect(template.indexOf('2. **Layers** —')).toBeGreaterThan(-1);
+    expect(
+      template.indexOf(
+        'whose browser walk is green but whose server layer has no assertion is NOT covered',
+      ),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => extends the tests Codeweaver already wrote instead of starting from empty', () => {
+    const needle = '**You are not starting from an empty test tree.**';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('prefer EXTENDING it over replacing it')).toBeGreaterThan(-1);
+    expect(template.indexOf('Playwright `.e2e.ts` — no other role writes it')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => reads observables as they stand now, including ones a session added', () => {
+    const needle = '**Read the observables as they stand NOW, not as they were authored.**';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('an added one is exactly the coverage a prior')).toBeGreaterThan(-1);
+  });
+
   it('VALID: exported value => has expected keys with string values', () => {
     expect(flowriderPromptStatics).toStrictEqual({
       prompt: {
@@ -71,9 +148,9 @@ describe('flowriderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => self-scopes across every flow on the immutable spine', () => {
+  it('VALID: template => self-scopes across every flow on the user-approved flow graph', () => {
     const needle =
-      '3. Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\n   contracts, and design decisions. The spine is immutable — it is your acceptance target.\n   Enumerate EVERY flow; that list is your scope.';
+      '3. Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\n   contracts, and design decisions. The FLOW GRAPH is the user-approved acceptance target and does\n   not move. Enumerate EVERY flow; that list is your scope.';
     const { template } = flowriderPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -83,16 +160,25 @@ describe('flowriderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => declares Flowrider as the suite author, not a reviewer', () => {
-    expect(flowriderPromptStatics.prompt.template).toMatch(
-      /^You are NOT a reviewer\. You stand up the primary suite\. Siegemaster runs after you — it manually$/mu,
+  it('VALID: template => declares Flowrider a test writer that writes no implementation', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
+    expect(template).toMatch(
+      /^\*\*You are a TEST WRITER\. You write no implementation\.\*\* Codeweaver builds every implementation file$/mu,
     );
+    expect(template.indexOf('**Integration review.**')).toBeGreaterThan(-1);
+    expect(template.indexOf('**E2E authoring.**')).toBeGreaterThan(-1);
   });
 
-  it('VALID: template => follows TDD red-test-first discipline', () => {
-    expect(flowriderPromptStatics.prompt.template).toMatch(
-      /^## Phase 4: Write the Implementation \+ Test \(TDD\)$/mu,
+  it('VALID: template => follows TDD red-test-first discipline without authoring implementation', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
+    expect(template).toMatch(
+      /^## Phase 4: Extend the Integration Coverage, Author the E2E \(TDD\)$/mu,
     );
+    expect(
+      template.indexOf('**You do not write implementation to make a test pass.**'),
+    ).toBeGreaterThan(-1);
   });
 
   it('VALID: template => carries the Playwright webServer block fed by the Operation Context dev-server lines', () => {
@@ -226,10 +312,16 @@ describe('flowriderPromptStatics', () => {
     expect(flowriderPromptStatics.prompt.template.indexOf('packages/web')).toBe(-1);
   });
 
-  it('VALID: template => licenses forward-fixing genuine non-flow integration gaps', () => {
-    expect(flowriderPromptStatics.prompt.template).toMatch(
-      /^## Forward-Fixing Non-Flow Implementation Gaps$/mu,
+  it('VALID: template => reports an exposed implementation gap instead of fixing or hiding it', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
+    expect(template).toMatch(/^## When a Test Exposes an Implementation Gap$/mu);
+    expect(template.indexOf('**Never weaken or skip the test to make it pass.**')).toBeGreaterThan(
+      -1,
     );
+    expect(template.indexOf('**Never write the implementation yourself.**')).toBeGreaterThan(-1);
+    // The old doctrine made Flowrider forward-fix implementation; Codeweaver owns that now.
+    expect(template.indexOf('## Forward-Fixing Non-Flow Implementation Gaps')).toBe(-1);
   });
 
   it('VALID: template => carries no legacy signal or planning-model references', () => {

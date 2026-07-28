@@ -172,7 +172,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
   });
 
-  describe('flowsRule: observable-wording-only', () => {
+  describe('flowsRule: additive-only', () => {
     it('VALID: {in_progress + replace existing observable wording} => returns empty array', () => {
       const existingObservable = FlowObservableStub({ id: 'redirects' as never });
       const existingNode = FlowNodeStub({
@@ -229,11 +229,11 @@ describe('questInputForbiddenFieldsTransformer', () => {
       });
 
       expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Flow add not allowed in status 'in_progress' (attempted to add flow 'brand-new-flow')",
+        "Flow add not allowed in status 'in_progress' (attempted to add flow 'brand-new-flow') — you may add nodes, edges, and observables to an EXISTING flow, but not a new flow",
       ]);
     });
 
-    it('INVALID: {in_progress + add new node and edge to existing flow} => rejects node add and edge add', () => {
+    it('VALID: {in_progress + add new node and edge to existing flow} => allowed, a session may record a branch it discovered', () => {
       const existingNode = FlowNodeStub({ id: 'login' as never });
       const existingEdge = FlowEdgeStub({
         id: 'self' as never,
@@ -269,10 +269,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Node add not allowed in status 'in_progress' (attempted to add node 'new-node' to flow 'login-flow')",
-        "Edge add not allowed in status 'in_progress' (attempted to add edge 'new-edge' to flow 'login-flow')",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
 
     it('INVALID: {in_progress + delete existing observable} => rejects observable delete', () => {
@@ -314,11 +311,11 @@ describe('questInputForbiddenFieldsTransformer', () => {
       });
 
       expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Observable delete not allowed in status 'in_progress' (attempted to delete observable 'redirects' from node 'login' in flow 'login-flow') — only wording replacement on existing observables",
+        "Observable delete not allowed in status 'in_progress' (attempted to delete observable 'redirects' from node 'login' in flow 'login-flow') — you may add observables, never remove one",
       ]);
     });
 
-    it('INVALID: {in_progress + add new observable to existing node} => rejects observable add', () => {
+    it('VALID: {in_progress + add new observable to existing node} => allowed, adding only tightens the target', () => {
       const existingNode = FlowNodeStub({ id: 'login' as never, observables: [] });
       const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
       const currentQuest = QuestStub({
@@ -340,9 +337,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Observable add not allowed in status 'in_progress' (attempted to add observable 'brand-new-obs' to node 'login' in flow 'login-flow') — only wording replacement on existing observables",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
   });
 
@@ -503,7 +498,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
       expect(offenders).toStrictEqual([]);
     });
 
-    it('INVALID: {in_progress + packagesAffected} => rejects packagesAffected (spec-phase only)', () => {
+    it('VALID: {in_progress + packagesAffected} => allowed, a repair can pull in a package the spec never listed', () => {
       const input = ModifyQuestInputStub({
         packagesAffected: ['orchestrator'] as never,
       });
@@ -515,9 +510,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
-        "Field 'packagesAffected' not allowed in status 'in_progress'",
-      ]);
+      expect(offenders).toStrictEqual([]);
     });
   });
 });

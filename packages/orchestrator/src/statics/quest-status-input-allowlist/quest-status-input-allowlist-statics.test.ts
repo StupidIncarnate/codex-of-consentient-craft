@@ -94,8 +94,8 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedPlanningNotesFields: [],
       },
       in_progress: {
-        allowedFields: ['contracts', 'toolingRequirements', 'flows', 'status'],
-        flowsRule: 'observable-wording-only',
+        allowedFields: ['contracts', 'toolingRequirements', 'flows', 'packagesAffected', 'status'],
+        flowsRule: 'additive-only',
         allowedPlanningNotesFields: 'all',
       },
       paused: {
@@ -177,8 +177,13 @@ describe('questStatusInputAllowlistStatics', () => {
       'contracts',
       'toolingRequirements',
       'flows',
+      'packagesAffected',
       'status',
     ]);
+  });
+
+  it('VALID: in_progress => flowsRule is additive-only, so a session can record a branch it found but never shrink the spine', () => {
+    expect(questStatusInputAllowlistStatics.in_progress.flowsRule).toBe('additive-only');
   });
 
   it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports)", () => {

@@ -35,3 +35,4 @@ export * from './src/statics/quest-type-registry/quest-type-registry-statics';
 // view and the orchestrator dispatcher.
 export * from './src/statics/execution-floor-config/execution-floor-config-statics';
 export * from './src/statics/ward-exit-code/ward-exit-code-statics';
+export * from './src/statics/quest-stage-mapping/quest-stage-mapping-statics';

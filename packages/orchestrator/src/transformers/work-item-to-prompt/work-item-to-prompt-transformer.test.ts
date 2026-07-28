@@ -221,10 +221,147 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
         codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+      );
+    });
+
+    it('VALID: {operation text containing $` and $& sequences} => substitutes them verbatim instead of expanding them against the match', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-9999-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-9999-4222-9333-444444444444' });
+      // A `$` sequence is ordinary prose in an operation scope (shell vars, quoting rules). Under a
+      // string replacement `` $` `` expands to everything before the match — splicing the entire
+      // preceding prompt in — and `$&` expands to the matched `$ARGUMENTS` token itself.
+      const dollarText = "cli: handle $`backtick`, $& and $' quoting in the arg parser";
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: dollarText,
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        `Your operation item: [codeweaver] ${dollarText}`,
+        '',
+        'Operations ledger (in order):',
+        `1. [ ] [codeweaver] ${dollarText}  <-- YOUR OPERATION ITEM`,
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      // split/join, never String.replace(string, string) — building the expectation with the very
+      // bug under test would corrupt it identically and pass vacuously.
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('VALID: {operation with flowIds} => renders the flows the item lands on, flagged as a starting point not a boundary', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8888-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8888-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'web: the queue bar and send',
+        status: 'pending',
+        flowIds: ['send-queued-comment-batch', 'view-persisted-comments'],
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] web: the queue bar and send',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] web: the queue bar and send  <-- YOUR OPERATION ITEM',
+        '',
+        'Flows your operation item lands on: #send-queued-comment-batch, #view-persisted-comments',
+        '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('EDGE: {operation with empty flowIds} => omits the flows block entirely rather than printing an empty one', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8881-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8881-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'shared: the comment data model',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      // No flows block between the ledger and the trailing user request.
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(operationId)}`,
+        'Your operation item: [codeweaver] shared: the comment data model',
+        '',
+        'Operations ledger (in order):',
+        '1. [ ] [codeweaver] shared: the comment data model  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
       );
     });
 
@@ -259,6 +396,9 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [blightwarden] judge minion reports and clean up  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -318,6 +458,9 @@ describe('workItemToPromptTransformer', () => {
         '1. [x] [codeweaver] implement broker',
         '2. [>] [ward full] run full ward',
         '3. [ ] [lawbringer] review changes  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -377,6 +520,9 @@ describe('workItemToPromptTransformer', () => {
             '',
             'Dev Server Command: npm run dev',
             'Dev Server URL: http://localhost:3000',
+            '',
+            'Original user request (the intent behind the flows):',
+            'Add authentication to the application',
           ].join('\n');
 
           expect(result.prompt).toBe(statics.prompt.template.replace('$ARGUMENTS', expectedArgs));
@@ -415,6 +561,9 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [>] [flowrider] own flows/ + startup/ files  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -467,6 +616,9 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Failed ward result: cccccccc-8888-4222-9333-444444444444 (mode: changed, runId: run-123)',
         'Ward detail blob: <questFolder>/ward-results/cccccccc-8888-4222-9333-444444444444.json',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -528,6 +680,9 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Failed ward result: ffffffff-9999-4222-9333-444444444444 (mode: full)',
         'Ward detail blob: <questFolder>/ward-results/ffffffff-9999-4222-9333-444444444444.json',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -571,6 +726,9 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [>] [spiritmender] fix ward failures  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -618,6 +776,9 @@ describe('workItemToPromptTransformer', () => {
         '',
         'Operations ledger (in order):',
         '1. [>] [spiritmender] fix ward failures  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(

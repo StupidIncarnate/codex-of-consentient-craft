@@ -72,7 +72,7 @@ export const agentPromptGetBroker = async ({
     return agentPromptResultContract.parse({
       name: base.name,
       model: base.model,
-      prompt: base.prompt.replace('$ARGUMENTS', `Quest ID: ${String(questId)}`),
+      prompt: base.prompt.replace('$ARGUMENTS', () => `Quest ID: ${String(questId)}`),
     });
   }
 

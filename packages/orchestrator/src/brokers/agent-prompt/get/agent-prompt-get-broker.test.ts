@@ -135,6 +135,9 @@ describe('agentPromptGetBroker', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result).toStrictEqual({
@@ -201,6 +204,9 @@ describe('agentPromptGetBroker', () => {
         '',
         'Dev Server Command: npm run dev',
         `Dev Server URL: http://${environmentStatics.hostname}:4400`,
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -283,6 +289,9 @@ describe('agentPromptGetBroker', () => {
         '',
         'Operations ledger (in order):',
         '1. [>] [siegemaster] manual QA + review flowrider suite  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(
@@ -332,6 +341,9 @@ describe('agentPromptGetBroker', () => {
         '',
         'Dev Server Command: npm run dev',
         `Dev Server URL: http://${environmentStatics.hostname}:4400`,
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result.prompt).toBe(

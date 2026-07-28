@@ -3,6 +3,69 @@ import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-opera
 import { codeweaverPromptStatics } from './codeweaver-prompt-statics';
 
 describe('codeweaverPromptStatics', () => {
+  it('VALID: prompt template => closes with a terminal gate that sequences spec, commit, signal', () => {
+    const needle =
+      '### Gate 9: Reconcile the Spec, Commit, and Signal (BLOCKING — do not end your turn before this)';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    // Spec writes must land BEFORE the commit so the message can cite real observable ids.
+    expect(template.indexOf('**Push what you learned back into the spec.**')).toBeGreaterThan(-1);
+    expect(template.indexOf('BEFORE you commit')).toBeGreaterThan(-1);
+    expect(template.indexOf('**Signal exactly once.**')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => Gate 9 is the last gate and precedes the reference sections', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+
+    expect(template.indexOf('### Gate 9: Reconcile the Spec')).toBeGreaterThan(
+      template.indexOf('### Gate 8: Verify with Ward'),
+    );
+    expect(template.indexOf('## Codeweaver-Minion Delegation Protocol')).toBeGreaterThan(
+      template.indexOf('### Gate 9: Reconcile the Spec'),
+    );
+    expect(template.indexOf('### Gate 10')).toBe(-1);
+  });
+
+  it('VALID: prompt template => turn-discipline and framing precede the gates', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+
+    // The shared block opens with "READ FIRST" and its rules strand a work item when broken, so it
+    // must precede both the doctrine and the gates.
+    expect(template.indexOf('## Operating Rules — READ FIRST')).toBeGreaterThan(-1);
+    expect(template.indexOf('## What Is Authoritative')).toBeGreaterThan(
+      template.indexOf('## Operating Rules — READ FIRST'),
+    );
+    expect(template.indexOf('### Gate 1: Load Project Standards')).toBeGreaterThan(
+      template.indexOf('## What Is Authoritative'),
+    );
+    expect(template.indexOf('## Scope')).toBeGreaterThan(
+      template.indexOf('### Gate 1: Load Project Standards'),
+    );
+  });
+
+  it('VALID: prompt template => the spec-adjustment sections sit in Scope beside the rule that permits them', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+
+    // Mid-work decisions, not startup framing — they belong next to the additive-only mechanics.
+    expect(
+      template.indexOf('**You may write the spec itself, in one direction only.**'),
+    ).toBeGreaterThan(template.indexOf('## Scope'));
+    expect(template.indexOf('### When an observable cannot be met as written')).toBeGreaterThan(
+      template.indexOf('**You may write the spec itself, in one direction only.**'),
+    );
+    expect(
+      template.indexOf('### When the flow implies an outcome nobody wrote down'),
+    ).toBeGreaterThan(template.indexOf('### When an observable cannot be met as written'));
+    expect(template.indexOf('## Committing & Signaling')).toBeGreaterThan(
+      template.indexOf('### When the flow implies an outcome nobody wrote down'),
+    );
+  });
+
   it('VALID: exported value => has expected keys with string values', () => {
     expect(codeweaverPromptStatics).toStrictEqual({
       prompt: {
@@ -14,8 +77,8 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
-  it('VALID: prompt template => declares unit-tests-only scope for the files it builds', () => {
-    const needle = '**Unit tests only** for the files you';
+  it('VALID: prompt template => scopes tests by folder type, reserving only Playwright e2e for Flowrider', () => {
+    const needle = '**You test what you build, at whatever level the folder type demands.**';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -23,6 +86,14 @@ describe('codeweaverPromptStatics', () => {
     );
 
     expect(found).toBe(needle);
+    expect(
+      template.indexOf(
+        '**The one boundary: Playwright `.e2e.ts` suites belong to Flowrider, not you.**',
+      ),
+    ).toBeGreaterThan(-1);
+    // Flowrider is a test writer only, so nobody downstream builds flow wiring — Codeweaver owns it.
+    expect(template.indexOf('**You own `flows/` and `startup/`.**')).toBeGreaterThan(-1);
+    expect(template.indexOf('No later role writes implementation')).toBeGreaterThan(-1);
   });
 
   it('VALID: prompt template => has the commit-before-signal section', () => {
@@ -187,8 +258,8 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: prompt template => forbids rewriting unrelated areas of the codebase', () => {
-    const needle = 'Do not rewrite unrelated areas of the';
+  it('VALID: prompt template => bounds scope by flow relevance rather than package or bucket boundary', () => {
+    const needle = 'The limit is **relevance, not package or bucket boundary.**';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -196,6 +267,162 @@ describe('codeweaverPromptStatics', () => {
     );
 
     expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => forbids work no flow asks for, without forbidding upstream seam repair', () => {
+    const needle = 'What is out of scope is work no flow asks for';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    // The prior blanket guardrail read as forbidding the cross-package seam repair the relay needs.
+    expect(template.indexOf('Do not rewrite unrelated areas of the')).toBe(-1);
+  });
+
+  it('VALID: prompt template => ranks the user-approved flow above the observables that express it', () => {
+    const needle = '**The flow graph is the north star.** The USER approved it.';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(
+      template.indexOf(
+        '**The observables are the best available expression of that intent — not gospel.**',
+      ),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => allows the nearest achievable outcome only after genuine effort', () => {
+    const needle = '### When an observable cannot be met as written';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(
+      template.indexOf('**The bar is genuine effort, not first resistance.**'),
+    ).toBeGreaterThan(-1);
+    expect(template.indexOf('**Never silently drop it.**')).toBeGreaterThan(-1);
+    expect(
+      template.indexOf(
+        'Do not retreat to something trivially true; retreat the\n   minimum distance.',
+      ),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => requires adding outcomes the flow implies but no observable covers', () => {
+    const needle = '### When the flow implies an outcome nobody wrote down';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('**Building the feature is what reveals the rest.**')).toBeGreaterThan(
+      -1,
+    );
+    expect(
+      template.indexOf('an observable you add is a constraint you\nput on YOURSELF'),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => carries distinct ADJUSTED and ADDED commit markers', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+
+    expect(template.indexOf('ADJUSTED: <observable-id>')).toBeGreaterThan(-1);
+    expect(template.indexOf('ADDED: <observable-id> on node <node-id>')).toBeGreaterThan(-1);
+    expect(template.indexOf('"could not" and "chose not to" are different')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => grants additive-only spec writes and still forbids ledger writes', () => {
+    const needle = '**You may write the spec itself, in one direction only.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('You may NOT write `operations`.')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => ranks flows over git over the ledger', () => {
+    const needle = '## What Is Authoritative (read this before you trust anything)';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('**The flow graph is the north star.**')).toBeGreaterThan(-1);
+    expect(template.indexOf('**Git is the authority log.**')).toBeGreaterThan(-1);
+    expect(
+      template.indexOf('The operations ledger is a bucket tracker, and it is approximate.'),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => treats an imperfect bucket partition as expected, not an error', () => {
+    const needle = '**This is expected, not an error state.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => sanctions repairing a gap an earlier bucket never built, not just a bug', () => {
+    const needle = '**Repair is expected work, not scope creep.**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('it was never there')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => requires declaring an out-of-bucket repair in the commit message', () => {
+    const needle = '**If you repaired a gap another bucket left, say so explicitly**';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('REPAIR: item 4')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => names consumed-by-repair as a third legitimate reason to signal partial', () => {
+    const needle =
+      'you found a gap so large that repairing\nit consumed the session and your own scope still remains';
+    const { template } = codeweaverPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: prompt template => never instructs the nonexistent partially_complete signal value', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+
+    // partially_complete is a web-side execution DISPLAY status, not a signal-back value.
+    expect(template.indexOf('partially_complete')).toBe(-1);
   });
 
   it('VALID: prompt template => declares there is no failure, only moving forward', () => {

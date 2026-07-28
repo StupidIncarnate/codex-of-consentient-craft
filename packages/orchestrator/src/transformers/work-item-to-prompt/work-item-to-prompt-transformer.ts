@@ -57,7 +57,7 @@ export const workItemToPromptTransformer = ({
   if (!isWorkItemRole) {
     const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
     return {
-      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', minionArguments)),
+      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
     };
   }
 
@@ -67,7 +67,7 @@ export const workItemToPromptTransformer = ({
   if (isBlightwardenMinionRoleGuard({ role: workItem.role }) || workItem.role === 'pesteater') {
     const { prompt: template } = agentNameToPromptTransformer({ agent: parsedAgent });
     return {
-      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', minionArguments)),
+      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
     };
   }
 
@@ -121,6 +121,21 @@ export const workItemToPromptTransformer = ({
     ...ledgerLines,
   ];
 
+  // Non-binding pointer at the flows this item lands on. Rendered with the caveat inline because
+  // the agent reads this block, not the contract's describe(): an item that serves the whole spec
+  // carries none, and treating a listed flow as a boundary is the failure mode to avoid.
+  if (linkedOperation.flowIds.length > 0) {
+    parts.push(
+      contentTextContract.parse(''),
+      contentTextContract.parse(
+        `Flows your operation item lands on: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
+      ),
+      contentTextContract.parse(
+        '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
+      ),
+    );
+  }
+
   if (
     (workItem.role === 'flowrider' || workItem.role === 'siegemaster') &&
     devServer !== undefined
@@ -149,9 +164,30 @@ export const workItemToPromptTransformer = ({
     }
   }
 
+  // Quest-level background, appended last so the role's own operating context (item, ledger, dev
+  // server, failed ward) stays at the top. Both fields live on the quest but in NO get-quest stage,
+  // so without this they reach zero execution sessions. The request is the intent BEHIND the flows
+  // — an agent repairing a gap the bucket partition missed needs to know what the flows are for.
+  if (quest.packagesAffected.length > 0) {
+    parts.push(
+      contentTextContract.parse(''),
+      contentTextContract.parse(
+        `Packages affected (whole quest): ${quest.packagesAffected.map((name) => String(name)).join(', ')}`,
+      ),
+    );
+  }
+  parts.push(
+    contentTextContract.parse(''),
+    contentTextContract.parse('Original user request (the intent behind the flows):'),
+    contentTextContract.parse(String(quest.userRequest)),
+  );
+
   const template = roleToPromptTemplateTransformer({ role: workItem.role });
 
+  // Function replacement, not a string one: operation text is authored prose that can contain a
+  // `$` sequence (`$&`, `` $` ``, `$'`), which a string replacement would expand against the match
+  // — `` $` `` splices the whole preceding prompt in. A function replacement is taken verbatim.
   return {
-    prompt: contentTextContract.parse(template.replace('$ARGUMENTS', parts.join('\n'))),
+    prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => parts.join('\n'))),
   };
 };

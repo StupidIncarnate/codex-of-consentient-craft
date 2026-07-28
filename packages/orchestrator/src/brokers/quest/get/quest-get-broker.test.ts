@@ -90,7 +90,7 @@ describe('questGetBroker', () => {
         designDecisions: [designDecision],
         toolingRequirements: [tooling],
         contracts: [contractEntry],
-        operations: [],
+        operations: [operation],
         planningNotes: { blightReports: [] },
       });
     });
@@ -138,7 +138,7 @@ describe('questGetBroker', () => {
       });
     });
 
-    it('VALID: {stage: "implementation"} => returns quest with planningNotes, operations, contracts, toolingRequirements populated', async () => {
+    it('VALID: {stage: "implementation"} => returns the full picture, flows included, so plan-vs-reality is diagnosable', async () => {
       const proxy = questGetBrokerProxy();
       const flow = FlowStub();
       const tooling = ToolingRequirementStub();
@@ -173,7 +173,7 @@ describe('questGetBroker', () => {
         operations: [operation],
         contracts: [contractEntry],
         toolingRequirements: [tooling],
-        flows: [],
+        flows: [flow],
       });
     });
 

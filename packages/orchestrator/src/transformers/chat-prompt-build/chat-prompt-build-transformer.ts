@@ -30,7 +30,13 @@ export const chatPromptBuildTransformer = ({
 
   const statics = role === 'chaoswhisperer' ? dumpsterCreatePromptStatics : glyphsmithPromptStatics;
 
-  let promptText = statics.prompt.template.replace(statics.prompt.placeholders.arguments, message);
+  // Function replacement, not a string one: `message` is the user's raw text and can contain a `$`
+  // sequence (`$&`, `` $` ``, `$'`) that a string replacement expands against the match — `` $` ``
+  // splices the whole preceding template in. A function replacement is taken verbatim.
+  let promptText = statics.prompt.template.replace(
+    statics.prompt.placeholders.arguments,
+    () => message,
+  );
 
   if (role === 'chaoswhisperer') {
     // Splice the quest-bootstrap block BEFORE filling $QUEST_ID — the preCreated variant embeds
@@ -42,7 +48,7 @@ export const chatPromptBuildTransformer = ({
       : dumpsterCreatePromptStatics.questBootstrap.mint;
     promptText = promptText.replace(
       dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
-      bootstrap,
+      () => bootstrap,
     );
   }
 
@@ -58,7 +64,7 @@ export const chatPromptBuildTransformer = ({
     // unavailable). The /dumpster-create slash-command build substitutes the native variant instead.
     promptText = promptText.replace(
       dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
-      dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+      () => dumpsterCreatePromptStatics.clarifyInstructions.mcp,
     );
   }
 

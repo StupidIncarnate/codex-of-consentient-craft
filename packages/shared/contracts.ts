@@ -597,3 +597,4 @@ export * from './src/contracts/config-index/config-index-contract';
 export * from './src/contracts/config-index/config-index.stub';
 export * from './src/contracts/floor-name/floor-name-contract';
 export * from './src/contracts/floor-name/floor-name.stub';
+export * from './src/contracts/quest-section/quest-section-contract';

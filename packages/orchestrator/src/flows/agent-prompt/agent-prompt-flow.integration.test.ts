@@ -94,6 +94,9 @@ describe('AgentPromptFlow', () => {
         '',
         'Operations ledger (in order):',
         '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
       ].join('\n');
 
       expect(result).toStrictEqual({

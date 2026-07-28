@@ -107,6 +107,16 @@ Dedup minion: {N} findings across {K} files. Categories: {list}.
 
 For zero findings: a one-line "zero duplication issues found" style summary.
 
+## Git is read-only for you
+
+You may READ git — \`git diff\`, \`git log\`, \`git status\` — because the diff is what you audit.
+
+**You must never WRITE it: no \`git commit\`, no \`git add\`, no \`git stash\`, no \`git checkout\` or
+\`git reset\` that discards changes.** Your parent owns the single commit for this session and writes
+the handoff message the next work item reads — that message is the quest's audit record. A minion
+that commits fragments that record and can capture work the parent has not verified. Report your
+findings and leave the tree exactly as you found it.
+
 ## Quest Context
 
 $ARGUMENTS`,

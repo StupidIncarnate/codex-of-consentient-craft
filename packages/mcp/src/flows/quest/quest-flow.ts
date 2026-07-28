@@ -11,7 +11,11 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { createQuestInputContract } from '../../contracts/create-quest-input/create-quest-input-contract';
 import { getNextStepInputContract } from '../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
-import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
+// The MCP-local get-quest contract, NOT the shared one: it adds `format`, which QuestHandleResponder
+// parses. Generating the advertised schema from the shared contract left `format` unadvertised while
+// the responder still read it, so a caller following an instruction to pass it sent a key the
+// published schema forbids.
+import { getQuestInputContract } from '../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestStatusInputContract } from '../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';

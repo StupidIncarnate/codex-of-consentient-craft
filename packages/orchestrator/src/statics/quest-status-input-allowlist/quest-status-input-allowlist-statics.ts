@@ -17,9 +17,13 @@
  *     'forbidden'                -> flows input is never allowed (rejected by field-level check)
  *     'full'                     -> any flow mutation (add/delete/restructure) allowed
  *     'no-observables'           -> flows allowed but every flows[].nodes[].observables must be empty (length 0)
- *     'observable-wording-only'  -> only in-place replacement on EXISTING flow/node/observable IDs:
- *                                   no flow add/delete, no node add/delete, no edge add/delete,
- *                                   no observable add/delete — only wording/type updates on existing observables
+ *     'additive-only'            -> an execution agent may only ADD to the spine, never shrink it:
+ *                                   node/edge/observable ADD allowed on an EXISTING flow, plus
+ *                                   wording/type updates on existing observables; every DELETE is
+ *                                   refused, and a whole new flow is refused. Adding constrains the
+ *                                   agent further (a branch it discovered, an assertion it owes),
+ *                                   so it cannot be used to slip past a gate; deleting or replacing
+ *                                   a flow could erase the acceptance target the agent is judged on.
  * - allowedPlanningNotesFields: per-status rule for `planningNotes.*` sub-field writes
  *     readonly Field[]  -> sub-field allowlist: when `planningNotes` is written, every sub-field present must
  *                          appear in this array, otherwise the write is rejected BY NAME (`Sub-field
@@ -30,11 +34,7 @@
  *                          payload is accepted even though `planningNotes` is NOT in allowedFields.
  */
 
-export type QuestStatusFlowsRule =
-  | 'forbidden'
-  | 'full'
-  | 'no-observables'
-  | 'observable-wording-only';
+export type QuestStatusFlowsRule = 'forbidden' | 'full' | 'no-observables' | 'additive-only';
 
 export type QuestStatusPlanningNotesField = 'blightReports';
 
@@ -130,8 +130,10 @@ export const questStatusInputAllowlistStatics = {
     allowedPlanningNotesFields: [],
   },
   in_progress: {
-    allowedFields: ['contracts', 'toolingRequirements', 'flows', 'status'],
-    flowsRule: 'observable-wording-only',
+    // packagesAffected is writable here because a session repairing a gap the bucket partition
+    // missed can pull in a package the spec never listed, and every later session reads that field.
+    allowedFields: ['contracts', 'toolingRequirements', 'flows', 'packagesAffected', 'status'],
+    flowsRule: 'additive-only',
     // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields —
     // blightwarden minions write blightReports (the only sub-field on the contract) mid-run.
     allowedPlanningNotesFields: 'all',

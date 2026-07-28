@@ -34,22 +34,6 @@ describe('getQuestInputContract', () => {
       });
     });
 
-    it('VALID: {questId with spec-flows stage} => parses successfully', () => {
-      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-flows' });
-
-      const result = getQuestInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-flows', format: 'text' });
-    });
-
-    it('VALID: {questId with spec-obs stage} => parses successfully', () => {
-      const input = GetQuestInputStub({ questId: 'add-auth', stage: 'spec-obs' });
-
-      const result = getQuestInputContract.parse(input);
-
-      expect(result).toStrictEqual({ questId: 'add-auth', stage: 'spec-obs', format: 'text' });
-    });
-
     it('VALID: {questId with implementation stage} => parses successfully', () => {
       const input = GetQuestInputStub({ questId: 'add-auth', stage: 'implementation' });
 

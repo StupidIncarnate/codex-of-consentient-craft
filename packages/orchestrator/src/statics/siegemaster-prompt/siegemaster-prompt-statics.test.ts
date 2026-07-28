@@ -3,6 +3,71 @@ import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-opera
 import { siegemasterPromptStatics } from './siegemaster-prompt-statics';
 
 describe('siegemasterPromptStatics', () => {
+  it('VALID: prompt template => names Siegemaster the last role that fixes behavior', () => {
+    const needle = '**you are the last role that fixes\nBEHAVIOR at all.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(
+      template.indexOf('If a behavior is broken and you do not fix it, it ships.'),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => picks up the GAP: findings Flowrider is forbidden to fix', () => {
+    const { template } = siegemasterPromptStatics.prompt;
+
+    expect(
+      template.indexOf(
+        '**Also grep your `git log` read for `GAP:` — those are addressed to YOU.**',
+      ),
+    ).toBeGreaterThan(-1);
+    expect(template.indexOf('Put every one straight into your Gate 7 fix list')).toBeGreaterThan(
+      -1,
+    );
+  });
+
+  it('VALID: prompt template => records off-map behavior it fixed back into the spec', () => {
+    const needle = '**Put an off-map finding back into the spec.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('ADDITIVE-ONLY')).toBeGreaterThan(-1);
+    expect(
+      template.indexOf('A fix whose behavior lives only in a test is a fix the next quest'),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => describes Codeweaver and Flowrider ownership as it stands now', () => {
+    const { template } = siegemasterPromptStatics.prompt;
+
+    expect(template.indexOf('Flowrider is a TEST WRITER only')).toBeGreaterThan(-1);
+    expect(template.indexOf('it writes NO implementation')).toBeGreaterThan(-1);
+    // Codeweaver's tests are unit AND seam-integration now, not "the unit layer beneath it".
+    expect(template.indexOf('Codeweaver wrote the unit layer beneath it')).toBe(-1);
+  });
+
+  it('VALID: prompt template => makes ADJUSTED observables a review target rather than a given', () => {
+    const needle =
+      '**The observables can have moved, and you are the one who judges whether they should have.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('treat every hit as a REVIEW TARGET, not a given')).toBeGreaterThan(-1);
+    expect(template.indexOf('"Could\n  not" and "chose not to" are different')).toBeGreaterThan(-1);
+  });
+
   it('VALID: exported value => has expected keys with string values', () => {
     expect(siegemasterPromptStatics).toStrictEqual({
       prompt: {
@@ -149,7 +214,7 @@ describe('siegemasterPromptStatics', () => {
   it('VALID: template => Gate 1 trusts git over the ledger and loads the immutable spine', () => {
     const gitOverLedger = '**Trust git\nover the ledger.**';
     const spine =
-      'Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\ncontracts, and design decisions. The spine is immutable — it is your acceptance target.';
+      'Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\ncontracts, and design decisions. The FLOW GRAPH is the user-approved acceptance target and does not\nmove.';
     const { template } = siegemasterPromptStatics.prompt;
     const foundGit = template.slice(
       template.indexOf(gitOverLedger),

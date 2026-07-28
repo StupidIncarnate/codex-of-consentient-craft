@@ -167,6 +167,11 @@ Only add a callout when the deletion pattern is reusable. Do NOT add a callout f
 ## Committing & Signaling
 
 **The commit message is the ONLY handoff channel — git carries the context, not the ledger.**
+**You commit for your minions too.** They are forbidden from running \`git\` — no commit, no add, no
+stash — precisely so this session produces ONE commit with ONE handoff message. Their output is
+sitting uncommitted in the working tree; \`git add\` it alongside your own and describe it in your
+message. Nothing they built enters the record unless you put it there.
+
 Before you signal, commit your fixes with a prose handoff + verification state:
 
 \`\`\`bash

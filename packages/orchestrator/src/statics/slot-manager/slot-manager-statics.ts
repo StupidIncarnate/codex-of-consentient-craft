@@ -7,8 +7,10 @@
  */
 
 // `maxAttempts` on a role = the pt-continuation chain budget for its LOCKED (verify-tail)
-// operation items: each `partially_complete` signal completes the current item and appends a
-// "pt N" continuation; once the chain reaches maxAttempts the quest blocks instead of looping.
+// operation items: each `operationStatus: 'partial'` outcome completes the current item and
+// appends a "pt N" continuation; once the chain reaches maxAttempts the quest blocks instead of
+// looping. It gates LOCKED items only — a Chaos-authored (unlocked) codeweaver item's chain is
+// deliberately unbounded, because the flows are the acceptance target and the work has to land.
 export const slotManagerStatics = {
   codeweaver: {
     maxAttempts: 3,

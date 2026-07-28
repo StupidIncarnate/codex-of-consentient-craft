@@ -130,6 +130,7 @@ describe('modifyQuestInputContract', () => {
           text: 'core: config load+validate adapter',
           status: 'pending',
           locked: false,
+          flowIds: [],
         },
       ],
     });

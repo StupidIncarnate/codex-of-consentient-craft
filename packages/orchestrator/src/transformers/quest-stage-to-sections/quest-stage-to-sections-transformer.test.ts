@@ -1,45 +1,23 @@
 import { QuestStageStub } from '@dungeonmaster/shared/contracts';
 import { questStageToSectionsTransformer } from './quest-stage-to-sections-transformer';
 
+const SPEC_SECTIONS = [
+  'flows',
+  'designDecisions',
+  'contracts',
+  'toolingRequirements',
+  'operations',
+  'workItems',
+];
+
 describe('questStageToSectionsTransformer', () => {
   describe('valid stages', () => {
-    it('VALID: {stage: "spec"} => returns spec sections', () => {
+    it('VALID: {stage: "spec"} => returns every section except planningNotes', () => {
       const result = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'spec' }),
       });
 
-      expect(result).toStrictEqual([
-        'flows',
-        'designDecisions',
-        'contracts',
-        'toolingRequirements',
-      ]);
-    });
-
-    it('VALID: {stage: "spec-flows"} => returns flow-focused sections', () => {
-      const result = questStageToSectionsTransformer({
-        stage: QuestStageStub({ value: 'spec-flows' }),
-      });
-
-      expect(result).toStrictEqual([
-        'flows',
-        'designDecisions',
-        'contracts',
-        'toolingRequirements',
-      ]);
-    });
-
-    it('VALID: {stage: "spec-obs"} => returns observable sections', () => {
-      const result = questStageToSectionsTransformer({
-        stage: QuestStageStub({ value: 'spec-obs' }),
-      });
-
-      expect(result).toStrictEqual([
-        'flows',
-        'designDecisions',
-        'contracts',
-        'toolingRequirements',
-      ]);
+      expect(result).toStrictEqual(SPEC_SECTIONS);
     });
 
     it('VALID: {stage: "planning"} => returns planningNotes, operations, contracts', () => {
@@ -50,16 +28,19 @@ describe('questStageToSectionsTransformer', () => {
       expect(result).toStrictEqual(['planningNotes', 'operations', 'contracts']);
     });
 
-    it('VALID: {stage: "implementation"} => returns planningNotes, operations, contracts, toolingRequirements', () => {
+    it('VALID: {stage: "implementation"} => returns every section, so plan-vs-reality is diagnosable', () => {
       const result = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'implementation' }),
       });
 
       expect(result).toStrictEqual([
-        'planningNotes',
-        'operations',
+        'flows',
+        'designDecisions',
         'contracts',
         'toolingRequirements',
+        'operations',
+        'workItems',
+        'planningNotes',
       ]);
     });
   });
@@ -69,18 +50,13 @@ describe('questStageToSectionsTransformer', () => {
       const result1 = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'spec' }),
       });
-      result1.push('steps' as never);
+      result1.push('planningNotes' as never);
 
       const result2 = questStageToSectionsTransformer({
         stage: QuestStageStub({ value: 'spec' }),
       });
 
-      expect(result2).toStrictEqual([
-        'flows',
-        'designDecisions',
-        'contracts',
-        'toolingRequirements',
-      ]);
+      expect(result2).toStrictEqual(SPEC_SECTIONS);
     });
   });
 });

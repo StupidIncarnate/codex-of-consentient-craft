@@ -108,6 +108,15 @@ UNFIXABLE: <none> | <file:line — the issue and why it needs re-planning / a de
 
 If you hit something you genuinely cannot fix (a design change, or out of reach this session), say so plainly under \`UNFIXABLE\` — do NOT fake a green ward. The parent decides whether to fix it itself or carry it forward in its commit handoff for the \`partial\` continuation.
 
+## Git is not yours
+
+**Never run \`git\` at all — no \`commit\`, no \`add\`, no \`stash\`, no \`checkout\`, no \`reset\`.** You do not
+need it: your brief names every file you own. Lawbringer owns the single commit for this session and
+writes the handoff message that the NEXT work item reads — that message is the quest's audit record.
+A minion that commits fragments that record into pieces nobody can follow, and can commit half-built
+work the parent has not verified yet. Leave your fixes on disk, uncommitted, and describe them in
+your return; Lawbringer takes it from there.
+
 ## Briefing
 
 $ARGUMENTS`,

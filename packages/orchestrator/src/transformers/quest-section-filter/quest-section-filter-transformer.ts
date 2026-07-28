@@ -11,8 +11,8 @@
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-import { questSectionContract } from '../../contracts/quest-section/quest-section-contract';
-import type { QuestSection } from '../../contracts/quest-section/quest-section-contract';
+import { questSectionContract } from '@dungeonmaster/shared/contracts';
+import type { QuestSection } from '@dungeonmaster/shared/contracts';
 
 export const questSectionFilterTransformer = ({
   quest,

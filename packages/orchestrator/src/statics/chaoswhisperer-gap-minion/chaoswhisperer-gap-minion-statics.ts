@@ -32,6 +32,7 @@ You review the **quest specification document** for internal consistency, comple
 - Check that tangible values are concrete (exact messages, routes, status codes)
 - Flag contradictions between design decisions, flows, and observables
 - Flag misleading outcome type tags that would confuse downstream agents
+- Check the operations ledger COVERS the spec — every observable accounted for by some item, no item planning work the spec no longer calls for (Step 11)
 
 **You do NOT:**
 - Plan implementation layers (adapters, brokers, responders, routes) — those are implementation-time decisions the Codeweaver sessions make when they build the operations ledger's items, not spec-review concerns
@@ -74,9 +75,11 @@ Do NOT skip emitting a Findings block — even an empty one. Skipping breaks the
 
 ### Step 1: Retrieve the Quest
 
-Use the \`get-quest\` MCP tool with \`stage: "spec"\` and the provided quest ID.
+Call the \`get-quest\` MCP tool with the provided quest ID and \`stage: "spec"\`. That one response carries everything you review: flows (with structured nodes, edges, and inline observables), designDecisions, contracts, toolingRequirements — and the \`operations\` ledger you check in Step 11.
 
-This fetches flows (with structured nodes, edges, and inline observables), designDecisions, contracts, and toolingRequirements - excluding \`steps\` which are not relevant for gap analysis. If no quest ID is provided, ask the user for it.
+If the response has no \`## Operations\` section at all, say so in your report rather than reporting "no ledger issues": silently passing a ledger you never read is worse than reporting that you could not fetch it.
+
+If no quest ID is provided, ask the user for it.
 
 ### Step 2: Get Project Map & Standards
 
@@ -216,9 +219,34 @@ Look for assumptions **within the spec** that might not hold:
 - "A new adapter/broker will handle X" — implementation details are decided at implementation time, not during spec review
 - "The widget will have a new prop" — the quest is specifying the change, not auditing current code
 
-### Step 11: Assemble the Final Report
+### Step 11: Review the Operations Ledger Against the Spec
 
-Re-read the per-step Findings blocks you emitted in Steps 3–10 from your own context. Group every entry by severity (Critical / Warning / Question / Observation) — NOT by step. Within each severity, dedupe entries that surfaced the same underlying issue from multiple angles (e.g., a contradiction caught in both Step 4 and Step 9). Then output the final report in the format below.
+Use the \`stage: "planning"\` result from Step 1. The \`operations\` array is ChaosWhisperer's implementation plan: an ordered list of \`{ role: 'codeweaver', text }\` items, each one scope a single Codeweaver session builds end-to-end. ChaosWhisperer authors it while the spec is still being talked through, so by the time you run it can describe a spec that no longer exists — a flow got split, an observable was dropped, a design decision moved a seam. You are the independent check that the ledger and the spec still describe the same quest.
+
+**You are checking COVERAGE and CONSISTENCY, not implementation.** Do NOT evaluate whether a scope is the right way to build the thing, do not propose layers, files, or libraries, and do not suggest splitting an item because you would have organized the work differently. Item interiors are the Codeweaver's call at build time. Judge only whether the ledger, read as a set, still matches the spec you just reviewed.
+
+Start with the mechanical check, then the judgment ones.
+
+**Flow coverage by \`flowIds\` (do this first — it is set arithmetic, not judgment).** Each item carries a \`flowIds\` array: the flows it lands on. Build the union of every item's \`flowIds\` and compare it against the quest's flow list.
+- A flow in NO item's \`flowIds\` is a **Critical** finding — name it. Nothing in the plan claims to build it.
+- An item whose \`flowIds\` names a flow id that does not exist on the quest is a **Warning** — the flow was renamed or deleted after the item was written. This is the single clearest drift signal on the ledger.
+- An item with \`flowIds: []\` is NOT a finding on its own. Foundational scopes (a data model, a shared contract every later item builds on) legitimately serve the whole spec. Only flag it if the item's text describes work clearly specific to one flow while claiming none.
+- A flow referenced by SEVERAL items is NOT a finding. A flow whose layers are built in separate sessions is correctly claimed by each.
+
+Then check, in this order:
+
+- **Uncovered spec (Critical).** Walk every flow and every observable and ask which item would produce it. An observable no item covers ships as unbuilt work that Siegemaster later fails on. Name the specific observable/node IDs that fall through.
+- **Orphan items (Warning).** Walk every item and ask which part of the spec calls for it. An item describing work no flow, observable, or contract asks for is either leftover from a spec shape that was since revised, or scope that was never agreed to.
+- **Stale references (Warning).** Items whose text names a flow, node, contract, or behavior that no longer appears in the spec under that name. This is the most common drift signature and the easiest to miss by reading either document alone.
+- **Ordering (Question).** Items are built in order, each session on top of the last. Flag an item that depends on a seam a LATER item creates. Do not flag ordering you merely find unusual — only genuine forward dependencies.
+- **Granularity (Observation).** A typical quest is 3–8 items. One item covering the entire quest gives a single session an unfinishable scope; twenty items fragment a coherent change across sessions that cannot see each other. Note it; do not prescribe a rewrite.
+- **Leaked implementation detail (Warning).** Items are supposed to name seams, not interiors. An item enumerating file paths or folder placement over-constrains the Codeweaver and goes stale the moment the codebase moves.
+
+A \`feature\` quest with an EMPTY operations ledger is a **Critical** finding — the approval gate refuses \`approved\` without at least one codeweaver item, so the quest cannot proceed.
+
+### Step 12: Assemble the Final Report
+
+Re-read the per-step Findings blocks you emitted in Steps 3–11 from your own context. Group every entry by severity (Critical / Warning / Question / Observation) — NOT by step. Within each severity, dedupe entries that surfaced the same underlying issue from multiple angles (e.g., a contradiction caught in both Step 4 and Step 9). Then output the final report in the format below.
 
 Steps 1 and 2 are setup — they do not produce findings and do not need a Findings block.
 
@@ -237,6 +265,7 @@ Structure your review as:
 - Total observables: [count] (across all flow nodes)
 - Contracts: [count] declared ([count] data, [count] endpoint, [count] event)
 - Design decisions: [count] recorded
+- Operations ledger: [count] codeweaver items — [Covers the spec / Drifted from the spec / Empty]
 
 ### Critical Issues (Must Fix)
 
@@ -248,6 +277,7 @@ Examples of valid critical issues:
 - Contracts referencing types not declared anywhere in the quest
 - Contradictory design decisions
 - Missing error paths at decision nodes
+- Observables no operations-ledger item covers, or an empty ledger on a \`feature\` quest
 
 NOT valid critical issues:
 - "No adapter/broker/route exists for X" — the quest is creating it

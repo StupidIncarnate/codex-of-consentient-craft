@@ -12,6 +12,29 @@ describe('operationItemContract', () => {
         text: 'core: config load+validate adapter',
         status: 'pending',
         locked: false,
+        flowIds: [],
+      });
+    });
+
+    it('VALID: {flowIds omitted} => defaults to empty, so a foundational item serving the whole spec is representable', () => {
+      const item = OperationItemStub();
+
+      expect(item.flowIds).toStrictEqual([]);
+    });
+
+    it('VALID: {flowIds: two flows} => parses the non-binding pointer at the flows the item lands on', () => {
+      const item = OperationItemStub({
+        text: 'web: the queue bar, the send, and comment display',
+        flowIds: ['send-queued-comment-batch', 'view-persisted-comments'],
+      });
+
+      expect(item).toStrictEqual({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        text: 'web: the queue bar, the send, and comment display',
+        status: 'pending',
+        locked: false,
+        flowIds: ['send-queued-comment-batch', 'view-persisted-comments'],
       });
     });
 
@@ -21,6 +44,7 @@ describe('operationItemContract', () => {
         text: 'ward (changed)',
         status: 'in_progress',
         locked: true,
+        flowIds: [],
         wardMode: 'changed',
       });
 
@@ -30,6 +54,7 @@ describe('operationItemContract', () => {
         text: 'ward (changed)',
         status: 'in_progress',
         locked: true,
+        flowIds: [],
         wardMode: 'changed',
       });
     });
@@ -46,6 +71,7 @@ describe('operationItemContract', () => {
         text: 'pt 2: core: config load+validate adapter',
         status: 'complete',
         locked: false,
+        flowIds: [],
       });
     });
   });

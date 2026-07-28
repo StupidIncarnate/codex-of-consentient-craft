@@ -128,6 +128,11 @@ If ward fails, read details with \`npm run ward -- detail <runId> <filePath>\` a
 ## Committing & Signaling
 
 **The commit message is the ONLY handoff channel — git carries the context, not the ledger.**
+**You commit for your minions too.** They are forbidden from running \`git\` — no commit, no add, no
+stash — precisely so this session produces ONE commit with ONE handoff message. Their output is
+sitting uncommitted in the working tree; \`git add\` it alongside your own and describe it in your
+message. Nothing they built enters the record unless you put it there.
+
 Before you signal, commit the fixes (yours and the minions') with a prose handoff + verification
 state:
 

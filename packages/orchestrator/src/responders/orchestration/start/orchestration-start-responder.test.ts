@@ -54,6 +54,7 @@ const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail.map((se
   text: seed.text,
   status: 'pending',
   locked: true,
+  flowIds: [],
   ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
 }));
 const FEATURE_WORK_ITEM_UUID = SEEDED_UUIDS[questTypeRegistryStatics.feature.relayTail.length + 1];
@@ -69,6 +70,7 @@ const BUG_HUNT_OPS_EXPECTED = [
     text: seed.text,
     status: index === 0 ? 'in_progress' : 'pending',
     locked: true,
+    flowIds: [],
   })),
   ...questTypeRegistryStatics['bug-hunt'].relayTail.map((seed, index) => ({
     id: SEEDED_UUIDS[index + 1 + BUG_HUNT_IMPLEMENTATION_COUNT],
@@ -76,6 +78,7 @@ const BUG_HUNT_OPS_EXPECTED = [
     text: seed.text,
     status: 'pending',
     locked: true,
+    flowIds: [],
     ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
   })),
 ];
@@ -154,6 +157,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Plan the quest',
         status: 'complete',
         locked: true,
+        flowIds: [],
       });
       const cwOpOne = OperationItemStub({
         id: CW_OP_ONE_UUID,
@@ -202,6 +206,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Plan the quest',
         status: 'complete',
         locked: true,
+        flowIds: [],
       });
       const cwOpOne = OperationItemStub({
         id: CW_OP_ONE_UUID,
@@ -341,6 +346,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Plan the quest',
         status: 'pending',
         locked: true,
+        flowIds: [],
       });
       const cwOp = OperationItemStub({
         id: CW_OP_ONE_UUID,
@@ -373,6 +379,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Plan the quest',
         status: 'complete',
         locked: true,
+        flowIds: [],
       });
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
@@ -380,6 +387,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Ward gate (changed files)',
         status: 'pending',
         locked: true,
+        flowIds: [],
         wardMode: 'changed',
       });
       const chatItem = WorkItemStub({
@@ -413,6 +421,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Plan the quest',
         status: 'complete',
         locked: true,
+        flowIds: [],
       });
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
@@ -420,6 +429,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Ward gate (changed files)',
         status: 'pending',
         locked: true,
+        flowIds: [],
         wardMode: 'changed',
       });
       const chatItem = WorkItemStub({
@@ -451,6 +461,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Plan the quest',
         status: 'complete',
         locked: true,
+        flowIds: [],
       });
       const wardOp = OperationItemStub({
         id: WARD_OP_UUID,
@@ -458,6 +469,7 @@ describe('OrchestrationStartResponder', () => {
         text: 'Ward gate (changed files)',
         status: 'pending',
         locked: true,
+        flowIds: [],
         wardMode: 'changed',
       });
       const chatItem = WorkItemStub({

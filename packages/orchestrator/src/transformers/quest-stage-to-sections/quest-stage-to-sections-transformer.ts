@@ -3,12 +3,12 @@
  *
  * USAGE:
  * questStageToSectionsTransformer({ stage: 'spec' });
- * // Returns ['requirements', 'designDecisions', 'contracts', 'contexts', 'observables', 'toolingRequirements']
+ * // Returns ['flows', 'designDecisions', 'contracts', 'toolingRequirements']
  */
 
-import type { QuestSection } from '../../contracts/quest-section/quest-section-contract';
+import type { QuestSection } from '@dungeonmaster/shared/contracts';
 import type { QuestStage } from '@dungeonmaster/shared/contracts';
-import { questStageMappingStatics } from '../../statics/quest-stage-mapping/quest-stage-mapping-statics';
+import { questStageMappingStatics } from '@dungeonmaster/shared/statics';
 
 export const questStageToSectionsTransformer = ({ stage }: { stage: QuestStage }): QuestSection[] =>
   [...questStageMappingStatics.stages[stage]] as QuestSection[];

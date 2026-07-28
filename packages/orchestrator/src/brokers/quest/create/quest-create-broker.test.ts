@@ -66,6 +66,7 @@ describe('questCreateBroker', () => {
       text: 'Author spec + implementation plan',
       status: 'in_progress',
       locked: true,
+      flowIds: [],
     });
   });
 

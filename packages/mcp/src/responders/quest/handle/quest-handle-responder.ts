@@ -58,7 +58,12 @@ export const QuestHandleResponder = async ({
           content: [
             {
               type: 'text',
-              text: questToTextDisplayTransformer({ quest: result.quest }),
+              // Thread the stage through: it is what lets the renderer omit sections this stage
+              // filtered out instead of printing them as an empty "(none)" section.
+              text: questToTextDisplayTransformer({
+                quest: result.quest,
+                ...(stage && { stage }),
+              }),
             },
           ],
         };

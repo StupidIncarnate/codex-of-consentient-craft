@@ -32,8 +32,8 @@ export type {
   QuestStage,
   VerifyQuestCheck,
 } from '@dungeonmaster/shared/contracts';
-export { questSectionContract } from './contracts/quest-section/quest-section-contract';
-export type { QuestSection } from './contracts/quest-section/quest-section-contract';
+export { questSectionContract } from '@dungeonmaster/shared/contracts';
+export type { QuestSection } from '@dungeonmaster/shared/contracts';
 
 // Agent prompt contracts - exported for MCP package
 export { agentPromptResultContract } from '@dungeonmaster/shared/contracts';

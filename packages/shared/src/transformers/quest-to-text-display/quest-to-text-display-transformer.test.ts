@@ -255,4 +255,60 @@ describe('questToTextDisplayTransformer', () => {
       );
     });
   });
+
+  describe('stage filtering (a filtered-out section is omitted, not rendered as empty)', () => {
+    it('VALID: {stage: spec} => renders the spec sections including Operations, and omits planningNotes', () => {
+      // A staged get-quest response empties the excluded sections, so the renderer cannot tell
+      // "filtered out" from "genuinely empty" without the stage — and would print "(none)".
+      const quest = QuestStub({ operations: [] });
+
+      const result = questToTextDisplayTransformer({ quest, stage: 'spec' });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual([
+        '## Design Decisions',
+        '## Contracts',
+        '## Tooling',
+        '## Operations',
+      ]);
+    });
+
+    it('VALID: {stage: planning} => renders exactly the planning sections', () => {
+      const quest = QuestStub();
+
+      const result = questToTextDisplayTransformer({ quest, stage: 'planning' });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual(['## Contracts', '## Operations']);
+    });
+
+    it('VALID: {stage: implementation} => renders exactly the implementation sections', () => {
+      const quest = QuestStub();
+
+      const result = questToTextDisplayTransformer({ quest, stage: 'implementation' });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual([
+        '## Design Decisions',
+        '## Contracts',
+        '## Tooling',
+        '## Operations',
+      ]);
+    });
+
+    it('EDGE: {no stage} => every section renders, including a genuinely empty operations ledger', () => {
+      const quest = QuestStub({ operations: [] });
+
+      const result = questToTextDisplayTransformer({ quest });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual([
+        '## Design Decisions',
+        '## Contracts',
+        '## Tooling',
+        '## Operations',
+      ]);
+      expect(result).toMatch(/^## Operations\n\n\(none\)$/mu);
+    });
+  });
 });

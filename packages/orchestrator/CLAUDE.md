@@ -469,7 +469,7 @@ execution starts, quest status is DERIVED from work-item + operation state by `w
 | `explore_design`      | Glyphsmith starts design work                   | Create prototypes, iterate on designs                                   |
 | `review_design`       | Glyphsmith ready for design review              | User reviews designs, APPROVE button visible                            |
 | `design_approved`     | User approves designs                           | Design locked. `start-quest` allowed                                    |
-| `in_progress`         | `start-quest` (Web UI "Start Quest")            | Relay dispatches operation items; agents may write only `contracts`/`tooling`/`flows` (observable-wording-only) |
+| `in_progress`         | `start-quest` (Web UI "Start Quest")            | Relay dispatches operation items; agents may write `contracts`/`tooling`/`packagesAffected`/`flows` (additive-only: add nodes/edges/observables to an existing flow, never delete, never a new flow) |
 | `blocked`             | `quest-block-on-failure-broker`                 | Execution halted; user resumes to `in_progress`                         |
 | `complete`            | Derived when the ledger drains                  | Terminal (re-openable by appended work)                                 |
 | `abandoned`           | User abandons                                   | Terminal                                                                |
@@ -514,13 +514,11 @@ Consumers read different parts:
 
 | Stage            | Sections Included                                                             |
 |------------------|-------------------------------------------------------------------------------|
-| `spec`           | flows (with observables), designDecisions, contracts, tooling                 |
-| `spec-flows`     | flows (nodes/edges only, no observables), designDecisions, contracts, tooling |
-| `spec-obs`       | flows (observables only), designDecisions, contracts, tooling                 |
-| `planning`       | planningNotes, operations, contracts                                          |
-| `implementation` | planningNotes, operations, contracts, tooling                                 |
+| `spec`           | flows (with observables), designDecisions, contracts, tooling, operations, workItems |
+| `planning`       | planningNotes, operations, contracts                                                 |
+| `implementation` | every section — flows, designDecisions, contracts, tooling, operations, workItems, planningNotes |
 
-Use `?stage=spec-flows` to get flow structure without observables. Use `?stage=spec-obs` to get observables without flow structure.
+`spec` carries the ledger alongside the flows so one read can reconcile plan against spine; `implementation` withholds nothing, because a plan handed over without the flows it targets is not diagnosable. The text renderer OMITS a section a stage excludes rather than printing it as `(none)` — an empty header reads to an agent as "this quest has none of these".
 
 ## Quest Types
 

@@ -19,7 +19,7 @@
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
  *     'no-observables'           -> flows OK, but flows[].nodes[].observables must not contain entries (length 0)
- *     'observable-wording-only'  -> delegates to questFlowWordingOnlyViolationsTransformer
+ *     'additive-only'            -> delegates to questFlowAdditiveOnlyViolationsTransformer
  */
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
@@ -31,7 +31,7 @@ import {
   questStatusInputAllowlistStatics,
   type QuestStatusFlowsRule,
 } from '../../statics/quest-status-input-allowlist/quest-status-input-allowlist-statics';
-import { questFlowWordingOnlyViolationsTransformer } from '../quest-flow-wording-only-violations/quest-flow-wording-only-violations-transformer';
+import { questFlowAdditiveOnlyViolationsTransformer } from '../quest-flow-additive-only-violations/quest-flow-additive-only-violations-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -153,11 +153,11 @@ export const questInputForbiddenFieldsTransformer = ({
     return offenders;
   }
 
-  // flowsRule === 'observable-wording-only'
-  const wordingViolations = questFlowWordingOnlyViolationsTransformer({
+  // flowsRule === 'additive-only'
+  const additiveViolations = questFlowAdditiveOnlyViolationsTransformer({
     inputFlows,
     currentQuest,
     currentStatus,
   });
-  return [...offenders, ...wordingViolations];
+  return [...offenders, ...additiveViolations];
 };
