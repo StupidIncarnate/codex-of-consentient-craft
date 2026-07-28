@@ -10,8 +10,9 @@ import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
 type Flow = ReturnType<typeof FlowStub>;
 
-// Empty name is a valid in-memory state during editing (before the user types). FlowStub calls
-// flowContract.parse() which enforces min(1), so we override after the stub call via Object.assign.
+// A flow an agent wrote with no name yet still reaches the panel, and the tab bar falls back to a
+// positional label for it. FlowStub calls flowContract.parse() which enforces min(1), so the empty
+// name is applied after the stub call via Object.assign.
 const EmptyNameFlowStub = ({ id }: { id: string }): Flow =>
   Object.assign(FlowStub({ id: id as never }), { name: '' }) as Flow;
 
@@ -22,7 +23,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ name: 'Login Flow' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.getByTestId('FLOW_NAME').textContent).toBe('Login Flow');
@@ -33,7 +34,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ entryPoint: '/login' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.getByTestId('FLOW_ENTRY_POINT').textContent).toBe('entry: /login');
@@ -44,7 +45,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ exitPoints: ['/dashboard', '/settings'] });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.getByTestId('FLOW_EXIT_POINTS').textContent).toBe(
@@ -57,7 +58,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ scope: 'packages/web' as never });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.getByTestId('FLOW_SCOPE').textContent).toBe('packages/web');
@@ -68,7 +69,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub();
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.queryByTestId('FLOW_SCOPE')).toBe(null);
@@ -79,7 +80,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ flowType: 'runtime' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('runtime');
@@ -90,7 +91,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ flowType: 'operational' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
@@ -111,13 +112,7 @@ describe('FlowsLayerWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: (
-          <FlowsLayerWidget
-            flows={[runtimeFlow, operationalFlow]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
+        ui: <FlowsLayerWidget flows={[runtimeFlow, operationalFlow]} />,
       });
 
       // One tab per flow; only the active flow's content (badge) is shown.
@@ -138,7 +133,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ name: 'Solo Flow' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.queryByTestId('FLOW_TABS')).toBe(null);
@@ -151,7 +146,7 @@ describe('FlowsLayerWidget', () => {
       const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} />,
       });
 
       expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
@@ -167,7 +162,7 @@ describe('FlowsLayerWidget', () => {
       const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flowA, flowB]} />,
       });
 
       expect(screen.getAllByTestId('FLOW_TAB').map((tab) => tab.textContent)).toStrictEqual([
@@ -181,7 +176,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ flowType: 'runtime' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
@@ -195,7 +190,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ flowType: 'operational' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
@@ -209,7 +204,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ name: 'Login Flow', flowType: 'runtime' });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       const nameParent = screen.getByTestId('FLOW_NAME').parentElement;
@@ -228,7 +223,7 @@ describe('FlowsLayerWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       await waitFor(() => {
@@ -253,14 +248,7 @@ describe('FlowsLayerWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: (
-          <FlowsLayerWidget
-            flows={[flow]}
-            contracts={[contract]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
+        ui: <FlowsLayerWidget flows={[flow]} contracts={[contract]} />,
       });
 
       await waitFor(() => {
@@ -280,7 +268,7 @@ describe('FlowsLayerWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       await waitFor(() => {
@@ -295,7 +283,7 @@ describe('FlowsLayerWidget', () => {
       const flow = FlowStub({ nodes: [], edges: [] });
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={[flow]} />,
       });
 
       expect(screen.queryByTestId('FLOW_DIAGRAM')).toBe(null);
@@ -306,161 +294,10 @@ describe('FlowsLayerWidget', () => {
       const flows: Flow[] = [];
 
       mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={flows} editing={false} onChange={jest.fn()} />,
+        ui: <FlowsLayerWidget flows={flows} />,
       });
 
       expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('FLOWS');
-    });
-  });
-
-  describe('edit mode', () => {
-    it('VALID: {editing: true, flows: [flow]} => renders FormInputWidget for name', () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ name: 'Login Flow' });
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
-      });
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const nameInput = inputs.find((input) => input.getAttribute('value') === 'Login Flow');
-
-      expect(nameInput).toBeInTheDocument();
-    });
-
-    it('VALID: {editing: true, flows: [runtime flow]} => renders FLOW_TYPE_BADGE with "runtime" text', () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ flowType: 'runtime' });
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
-      });
-
-      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('runtime');
-    });
-
-    it('VALID: {editing: true, flows: [operational flow]} => renders FLOW_TYPE_BADGE with "operational" text', () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ flowType: 'operational' });
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
-      });
-
-      expect(screen.getByTestId('FLOW_TYPE_BADGE').textContent).toBe('operational');
-    });
-
-    it('VALID: {runtime flow in edit mode} => badge text color matches primary theme color', () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ flowType: 'runtime' });
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
-      });
-
-      const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
-
-      expect(badgeTextColor).toBe('rgb(255, 107, 53)');
-      expect(emberDepthsThemeStatics.colors.primary).toBe('#ff6b35');
-    });
-
-    it('VALID: {operational flow in edit mode} => badge text color matches loot-rare theme color', () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ flowType: 'operational' });
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={jest.fn()} />,
-      });
-
-      const badgeTextColor = screen.getByTestId('FLOW_TYPE_BADGE').style.color;
-
-      expect(badgeTextColor).toBe('rgb(232, 121, 249)');
-      expect(emberDepthsThemeStatics.colors['loot-rare']).toBe('#e879f9');
-    });
-
-    it('VALID: {editing: true, flows: [], click add} => calls onChange with new flow carrying flowType "runtime"', async () => {
-      const proxy = FlowsLayerWidgetProxy();
-      const flows: Flow[] = [];
-      const onChange = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={flows} editing={true} onChange={onChange} />,
-      });
-
-      await proxy.clickAdd();
-
-      expect(onChange).toHaveBeenCalledTimes(1);
-
-      const nextFlows = onChange.mock.calls[0]![0] as Flow[];
-      const { id: _createdId, ...createdWithoutId } = nextFlows[0]!;
-
-      expect(createdWithoutId).toStrictEqual({
-        name: '',
-        flowType: 'runtime',
-        entryPoint: '',
-        exitPoints: [],
-        nodes: [],
-        edges: [],
-      });
-    });
-
-    it('VALID: {editing: true, flows: [flowA, flowB], remove index 0} => calls onChange with [flowB]', async () => {
-      const proxy = FlowsLayerWidgetProxy();
-      const flowA = FlowStub({ id: 'flow-a' as never, name: 'Flow A' });
-      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Flow B' });
-      const onChange = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flowA, flowB]} editing={true} onChange={onChange} />,
-      });
-
-      await proxy.clickRemove({ index: 0 });
-
-      expect(onChange).toHaveBeenCalledTimes(1);
-      expect(onChange.mock.calls[0]![0] as Flow[]).toStrictEqual([flowB]);
-    });
-
-    it('VALID: {editing: true, flows: [flow], name change} => calls onChange with updated name', async () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ name: 'Old Name', entryPoint: '/entry' });
-      const onChange = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={onChange} />,
-      });
-
-      // Type one character into the name input — fires exactly one onChange call
-      const inputs = screen.getAllByTestId<HTMLInputElement>('FORM_INPUT');
-      const nameInput = inputs.find((el) => el.getAttribute('value') === 'Old Name')!;
-      await userEvent.type(nameInput, 'X');
-
-      expect(onChange).toHaveBeenCalledTimes(1);
-
-      const [updatedFlows] = onChange.mock.calls[0]! as [Flow[]];
-
-      expect(updatedFlows[0]!.name).toBe('Old NameX');
-    });
-
-    it('VALID: {editing: true, flows: [flow], entryPoint change} => calls onChange with updated entryPoint', async () => {
-      FlowsLayerWidgetProxy();
-      const flow = FlowStub({ name: 'Flow', entryPoint: '/entry' });
-      const onChange = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <FlowsLayerWidget flows={[flow]} editing={true} onChange={onChange} />,
-      });
-
-      // Type one character into the entryPoint input — fires exactly one onChange call
-      const inputs = screen.getAllByTestId<HTMLInputElement>('FORM_INPUT');
-      // Second input is entryPoint (name is first, entryPoint is second in DOM order)
-      const entryInput = inputs[1]!;
-      await userEvent.type(entryInput, 'X');
-
-      expect(onChange).toHaveBeenCalledTimes(1);
-
-      const [updatedFlows] = onChange.mock.calls[0]! as [Flow[]];
-
-      expect(updatedFlows[0]!.entryPoint).toBe('/entryX');
     });
   });
 });

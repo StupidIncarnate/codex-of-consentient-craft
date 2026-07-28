@@ -1,12 +1,10 @@
 /**
- * PURPOSE: Renders the quest spec panel with title bar, scrollable content area, and action bar for editing/approving quest specs
+ * PURPOSE: Renders the quest spec panel with title bar, scrollable content area, and an action bar for approving quest specs
  *
  * USAGE:
  * <QuestSpecPanelWidget quest={quest} onModify={handleModify} />
- * // Renders panel with gated sections, user request display, and edit/approve controls
+ * // Renders panel with gated sections, user request display, and approve control
  */
-
-import { useEffect, useState } from 'react';
 
 import { Box, Group, Stack, Text } from '@mantine/core';
 
@@ -19,7 +17,6 @@ import {
 
 import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import type { GateSectionKey } from '../../contracts/gate-section-key/gate-section-key-contract';
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -33,10 +30,6 @@ import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { FlowsLayerWidget } from './flows-layer-widget';
 
 const APPROVE_LABEL = 'APPROVE' as ButtonLabel;
-const MODIFY_LABEL = 'MODIFY' as ButtonLabel;
-const SUBMIT_LABEL = 'SUBMIT' as ButtonLabel;
-const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
-const GHOST_VARIANT = 'ghost' as ButtonVariant;
 const SCROLLABLE_STYLE = { flex: 1, overflowY: 'auto' as const, padding: 16 };
 const ACTION_BAR_STYLE_BASE = { padding: 12, flexShrink: 0 };
 const HEADER_FONT_SIZE = 'xs' as const;
@@ -47,11 +40,9 @@ export interface QuestSpecPanelWidgetProps {
   quest: Quest;
   onModify?: (params: {
     modifications: Record<string, unknown>;
-    action: 'submit' | 'approve';
+    action: 'approve';
     nextStatus?: string;
   }) => void;
-  externalUpdatePending?: boolean;
-  onDismissUpdate?: () => void;
   readOnly?: boolean;
   pendingQuestion?: {
     questions: AskUserQuestionItem[];
@@ -69,79 +60,17 @@ export interface QuestSpecPanelWidgetProps {
 export const QuestSpecPanelWidget = ({
   quest,
   onModify,
-  externalUpdatePending,
-  onDismissUpdate,
   readOnly,
   pendingQuestion,
   onSubmitAnswers,
   onAbandon,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
-  const [editing, setEditing] = useState(false);
-  const [draftModifications, setDraftModifications] = useState<Partial<Quest>>({});
   const { colors } = emberDepthsThemeStatics;
-
-  useEffect(() => {
-    if (externalUpdatePending && !editing && onDismissUpdate) {
-      onDismissUpdate();
-    }
-  }, [externalUpdatePending, editing, onDismissUpdate]);
-
-  const draftTitle = draftModifications.title ?? quest.title;
-  const draftDesignDecisions = draftModifications.designDecisions ?? quest.designDecisions;
-  const draftFlows = draftModifications.flows ?? quest.flows;
-  const draftContracts = draftModifications.contracts ?? quest.contracts;
-  const draftTooling = draftModifications.toolingRequirements ?? quest.toolingRequirements;
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
-      <QuestTitleBarWidget
-        title={draftTitle}
-        editing={editing}
-        onTitleChange={(value) => {
-          setDraftModifications((prev) => ({
-            ...prev,
-            title: value,
-          }));
-        }}
-        {...(onAbandon ? { onAbandon } : {})}
-      />
+      <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
       <Box style={SCROLLABLE_STYLE}>
-        {editing && externalUpdatePending ? (
-          <Box
-            data-testid="EXTERNAL_UPDATE_BANNER"
-            style={{
-              border: `1px solid ${colors.border}`,
-              padding: 8,
-              marginBottom: 12,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], flex: 1 }}>
-              Quest updated externally
-            </Text>
-            <PixelBtnWidget
-              label={'RELOAD' as ButtonLabel}
-              onClick={() => {
-                setDraftModifications({});
-                setEditing(false);
-                if (onDismissUpdate) {
-                  onDismissUpdate();
-                }
-              }}
-            />
-            <PixelBtnWidget
-              label={'KEEP EDITING' as ButtonLabel}
-              variant={GHOST_VARIANT}
-              onClick={() => {
-                if (onDismissUpdate) {
-                  onDismissUpdate();
-                }
-              }}
-            />
-          </Box>
-        ) : null}
         <Text
           ff="monospace"
           size={HEADER_FONT_SIZE}
@@ -150,7 +79,7 @@ export const QuestSpecPanelWidget = ({
           style={{ color: colors.primary }}
           data-testid="PANEL_HEADER"
         >
-          {editing ? 'EDITING SPEC' : displayHeaderQuestStatusTransformer({ status: quest.status })}
+          {displayHeaderQuestStatusTransformer({ status: quest.status })}
         </Text>
 
         {quest.userRequest ? (
@@ -175,28 +104,9 @@ export const QuestSpecPanelWidget = ({
           </Box>
         ) : null}
 
-        <DesignDecisionsLayerWidget
-          designDecisions={draftDesignDecisions}
-          editing={editing}
-          onChange={(designDecisions) => {
-            setDraftModifications((prev) => ({
-              ...prev,
-              designDecisions,
-            }));
-          }}
-        />
+        <DesignDecisionsLayerWidget designDecisions={quest.designDecisions} />
 
-        <FlowsLayerWidget
-          flows={draftFlows}
-          contracts={draftContracts}
-          editing={editing}
-          onChange={(flows) => {
-            setDraftModifications((prev) => ({
-              ...prev,
-              flows,
-            }));
-          }}
-        />
+        <FlowsLayerWidget flows={quest.flows} contracts={quest.contracts} />
 
         {quest.operations.length > 0 ? (
           <Box mb="md" data-testid="OPERATIONS_SECTION">
@@ -214,18 +124,7 @@ export const QuestSpecPanelWidget = ({
         ) : null}
 
         {isGateSectionVisibleGuard({ status: quest.status, section: CONTRACTS_SECTION }) ? (
-          <ContractsLayerWidget
-            contracts={draftContracts}
-            tooling={draftTooling}
-            editing={editing}
-            onChange={(payload) => {
-              setDraftModifications((prev) => ({
-                ...prev,
-                contracts: payload.contracts,
-                toolingRequirements: payload.toolingRequirements,
-              }));
-            }}
-          />
+          <ContractsLayerWidget tooling={quest.toolingRequirements} />
         ) : null}
       </Box>
       {readOnly ? null : (
@@ -244,61 +143,29 @@ export const QuestSpecPanelWidget = ({
             />
           ) : (
             <Group gap="xs">
-              {editing ? (
-                <>
+              {(() => {
+                const nextApproval = nextApprovalQuestStatusTransformer({
+                  status: quest.status,
+                });
+                if (!nextApproval) {
+                  return null;
+                }
+                return (
                   <PixelBtnWidget
-                    label={SUBMIT_LABEL}
+                    label={APPROVE_LABEL}
+                    disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
                     onClick={() => {
-                      setEditing(false);
                       if (onModify) {
-                        onModify({ modifications: draftModifications, action: 'submit' });
+                        onModify({
+                          modifications: { status: nextApproval },
+                          action: 'approve',
+                          nextStatus: nextApproval,
+                        });
                       }
                     }}
                   />
-                  <PixelBtnWidget
-                    label={CANCEL_LABEL}
-                    variant={GHOST_VARIANT}
-                    onClick={() => {
-                      setEditing(false);
-                      setDraftModifications({});
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  {(() => {
-                    const nextApproval = nextApprovalQuestStatusTransformer({
-                      status: quest.status,
-                    });
-                    if (!nextApproval) {
-                      return null;
-                    }
-                    return (
-                      <PixelBtnWidget
-                        label={APPROVE_LABEL}
-                        disabled={!hasQuestGateContentGuard({ quest, nextStatus: nextApproval })}
-                        onClick={() => {
-                          if (onModify) {
-                            onModify({
-                              modifications: { status: nextApproval },
-                              action: 'approve',
-                              nextStatus: nextApproval,
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  })()}
-                  <PixelBtnWidget
-                    label={MODIFY_LABEL}
-                    variant={GHOST_VARIANT}
-                    onClick={() => {
-                      setDraftModifications({});
-                      setEditing(true);
-                    }}
-                  />
-                </>
-              )}
+                );
+              })()}
             </Group>
           )}
         </Box>

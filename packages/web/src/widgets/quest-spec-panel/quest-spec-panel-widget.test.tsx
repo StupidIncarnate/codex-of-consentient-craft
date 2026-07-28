@@ -1,5 +1,4 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
 import {
   QuestStub,
@@ -7,6 +6,7 @@ import {
   FlowStub,
   OperationItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -14,6 +14,7 @@ import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
 import { QuestSpecPanelWidgetProxy } from './quest-spec-panel-widget.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
 
 describe('QuestSpecPanelWidget', () => {
   describe('read mode', () => {
@@ -28,8 +29,8 @@ describe('QuestSpecPanelWidget', () => {
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Add Authentication');
     });
 
-    it('VALID: {quest with approvable status} => renders APPROVE and MODIFY buttons', () => {
-      QuestSpecPanelWidgetProxy();
+    it('VALID: {quest with approvable status} => renders APPROVE button only', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_flows',
         flows: [FlowStub()],
@@ -39,24 +40,18 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const buttonTexts = buttons.map((button) => button.textContent);
-
-      expect(buttonTexts).toStrictEqual(['APPROVE', 'MODIFY']);
+      expect(proxy.getActionBarButtonLabels()).toStrictEqual(['APPROVE']);
     });
 
-    it('VALID: {quest with terminal status} => renders only MODIFY button', () => {
-      QuestSpecPanelWidgetProxy();
+    it('VALID: {quest with terminal status} => renders no action bar buttons', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
 
       mantineRenderAdapter({
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const buttonTexts = buttons.map((button) => button.textContent);
-
-      expect(buttonTexts).toStrictEqual(['MODIFY']);
+      expect(proxy.getActionBarButtonLabels()).toStrictEqual([]);
     });
 
     it('VALID: {click APPROVE, status: review_flows, has flows} => calls onModify with flows_approved status', async () => {
@@ -92,7 +87,7 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const buttons = screen.queryAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
       expect(approveButton).toBe(undefined);
@@ -129,7 +124,7 @@ describe('QuestSpecPanelWidget', () => {
         ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
       });
 
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
+      const buttons = screen.queryAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
 
       expect(approveButton).toBe(undefined);
@@ -318,19 +313,6 @@ describe('QuestSpecPanelWidget', () => {
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('SPEC APPROVED');
     });
-
-    it('VALID: {click MODIFY} => switches to EDITING SPEC header', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      await proxy.clickModify();
-
-      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EDITING SPEC');
-    });
   });
 
   describe('user request', () => {
@@ -515,141 +497,6 @@ describe('QuestSpecPanelWidget', () => {
     });
   });
 
-  describe('edit mode', () => {
-    it('VALID: {click MODIFY} => renders SUBMIT and CANCEL buttons', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      await proxy.clickModify();
-
-      const actionBar = screen.getByTestId('ACTION_BAR');
-      const buttons = actionBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
-      const buttonTexts = Array.from(buttons).map((button) => button.textContent);
-
-      expect(buttonTexts).toStrictEqual(['SUBMIT', 'CANCEL']);
-    });
-
-    it('VALID: {click MODIFY then CANCEL} => returns to read mode', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'flows_approved' });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      await proxy.clickModify();
-      await proxy.clickCancel();
-
-      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOWS APPROVED');
-    });
-
-    it('VALID: {click MODIFY then SUBMIT without edits} => calls onModify with empty modifications', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-      const onModify = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
-      });
-
-      await proxy.clickModify();
-      await proxy.clickSubmit();
-
-      expect(onModify).toHaveBeenCalledTimes(1);
-      expect(onModify).toHaveBeenCalledWith({ modifications: {}, action: 'submit' });
-    });
-
-    it('VALID: {edit title then SUBMIT} => calls onModify with title modification', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ title: 'Old Title' });
-      const onModify = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
-      });
-
-      await proxy.clickModify();
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const titleInput = inputs[0] as HTMLInputElement;
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'New Title');
-
-      await proxy.clickSubmit();
-
-      expect(onModify).toHaveBeenCalledTimes(1);
-
-      expect(onModify).toHaveBeenCalledWith({
-        modifications: { title: 'New Title' },
-        action: 'submit',
-      });
-    });
-
-    it('VALID: {edit title then CANCEL} => discards title change', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ title: 'Original Title' });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      await proxy.clickModify();
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const titleInput = inputs[0] as HTMLInputElement;
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'Changed Title');
-
-      await proxy.clickCancel();
-
-      expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Original Title');
-    });
-
-    it('VALID: {edit title then CANCEL then MODIFY again} => shows original quest title', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ title: 'Original Title' });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      await proxy.clickModify();
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const titleInput = inputs[0] as HTMLInputElement;
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'Changed Title');
-
-      await proxy.clickCancel();
-      await proxy.clickModify();
-
-      const inputsAfterReopen = screen.getAllByTestId('FORM_INPUT');
-      const titleInputAfterReopen = inputsAfterReopen[0] as HTMLInputElement;
-
-      expect(titleInputAfterReopen.getAttribute('value')).toBe('Original Title');
-    });
-
-    it('VALID: {click MODIFY} => shows FormInputWidget for quest title', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ title: 'My Quest' });
-
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
-      });
-
-      await proxy.clickModify();
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const firstInput = inputs[0] as HTMLInputElement | undefined;
-
-      expect(firstInput?.getAttribute('value')).toBe('My Quest');
-    });
-  });
-
   describe('design decisions layer', () => {
     it('VALID: {quest with design decisions} => renders design decisions', () => {
       QuestSpecPanelWidgetProxy();
@@ -813,101 +660,6 @@ describe('QuestSpecPanelWidget', () => {
     });
   });
 
-  describe('external update banner', () => {
-    it('VALID: {editing + externalUpdatePending} => shows update banner', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestSpecPanelWidget
-            quest={quest}
-            onModify={jest.fn()}
-            externalUpdatePending={true}
-            onDismissUpdate={jest.fn()}
-          />
-        ),
-      });
-
-      await proxy.clickModify();
-
-      expect(proxy.hasBanner()).toBe(true);
-    });
-
-    it('VALID: {RELOAD clicked} => clears draft and dismisses', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub({ title: 'Original Title' });
-      const onDismissUpdate = jest.fn();
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestSpecPanelWidget
-            quest={quest}
-            onModify={jest.fn()}
-            externalUpdatePending={true}
-            onDismissUpdate={onDismissUpdate}
-          />
-        ),
-      });
-
-      await proxy.clickModify();
-
-      expect(proxy.hasBanner()).toBe(true);
-
-      await proxy.clickReload();
-
-      expect(proxy.hasBanner()).toBe(false);
-      expect(onDismissUpdate).toHaveBeenCalledWith();
-    });
-
-    it('VALID: {KEEP EDITING clicked} => dismisses without clearing draft', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-      const onDismissUpdate = jest.fn();
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestSpecPanelWidget
-            quest={quest}
-            onModify={jest.fn()}
-            externalUpdatePending={true}
-            onDismissUpdate={onDismissUpdate}
-          />
-        ),
-      });
-
-      await proxy.clickModify();
-
-      expect(proxy.hasBanner()).toBe(true);
-
-      await proxy.clickKeepEditing();
-
-      expect(onDismissUpdate).toHaveBeenCalledWith();
-      expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EDITING SPEC');
-    });
-
-    it('VALID: {not editing + externalUpdatePending} => auto-dismisses', () => {
-      QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
-      const onDismissUpdate = jest.fn();
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestSpecPanelWidget
-            quest={quest}
-            onModify={jest.fn()}
-            externalUpdatePending={true}
-            onDismissUpdate={onDismissUpdate}
-          />
-        ),
-      });
-
-      expect(onDismissUpdate).toHaveBeenCalledTimes(1);
-      expect(onDismissUpdate).toHaveBeenCalledWith();
-      expect(screen.queryByTestId('EXTERNAL_UPDATE_BANNER')).toBe(null);
-    });
-  });
-
   describe('abandon button', () => {
     it('VALID: {onAbandon provided} => renders ABANDON QUEST button in title bar', () => {
       const proxy = QuestSpecPanelWidgetProxy();
@@ -981,18 +733,27 @@ describe('QuestSpecPanelWidget', () => {
       expect(proxy.hasAbandonButton()).toBe(true);
       expect(onAbandon).toHaveBeenCalledTimes(0);
     });
+  });
 
-    it('VALID: {editing mode + onAbandon} => does not render ABANDON QUEST button', async () => {
-      const proxy = QuestSpecPanelWidgetProxy();
-      const quest: Quest = QuestStub();
+  describe('edit mode absent', () => {
+    const ALL_STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
 
-      mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={jest.fn()} />,
-      });
+    it.each(ALL_STATUSES)(
+      'VALID: {status: %s} => ACTION_BAR renders no MODIFY, SUBMIT or CANCEL button',
+      (status) => {
+        const proxy = QuestSpecPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status, flows: [FlowStub()] });
 
-      await proxy.clickModify();
+        mantineRenderAdapter({
+          ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        });
 
-      expect(proxy.hasAbandonButton()).toBe(false);
-    });
+        const labels = proxy.getActionBarButtonLabels().map((label) => String(label));
+
+        expect(
+          labels.filter((label) => ['MODIFY', 'SUBMIT', 'CANCEL'].includes(label)),
+        ).toStrictEqual([]);
+      },
+    );
   });
 });

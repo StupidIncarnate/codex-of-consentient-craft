@@ -15,13 +15,7 @@ describe('DesignDecisionsLayerWidget', () => {
       const decision = DesignDecisionStub({ title: 'Use JWT' });
 
       mantineRenderAdapter({
-        ui: (
-          <DesignDecisionsLayerWidget
-            designDecisions={[decision]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
+        ui: <DesignDecisionsLayerWidget designDecisions={[decision]} />,
       });
 
       expect(screen.getByTestId('DECISION_TITLE').textContent).toBe('Use JWT');
@@ -32,13 +26,7 @@ describe('DesignDecisionsLayerWidget', () => {
       const decision = DesignDecisionStub({ rationale: 'Stateless auth' });
 
       mantineRenderAdapter({
-        ui: (
-          <DesignDecisionsLayerWidget
-            designDecisions={[decision]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
+        ui: <DesignDecisionsLayerWidget designDecisions={[decision]} />,
       });
 
       expect(screen.getByTestId('DECISION_RATIONALE').textContent).toBe('Stateless auth');
@@ -51,13 +39,7 @@ describe('DesignDecisionsLayerWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: (
-          <DesignDecisionsLayerWidget
-            designDecisions={[decision]}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
+        ui: <DesignDecisionsLayerWidget designDecisions={[decision]} />,
       });
 
       expect(screen.getByTestId('FORM_TAG_LIST')).toBeInTheDocument();
@@ -68,38 +50,10 @@ describe('DesignDecisionsLayerWidget', () => {
       const decisions: DesignDecision[] = [];
 
       mantineRenderAdapter({
-        ui: (
-          <DesignDecisionsLayerWidget
-            designDecisions={decisions}
-            editing={false}
-            onChange={jest.fn()}
-          />
-        ),
+        ui: <DesignDecisionsLayerWidget designDecisions={decisions} />,
       });
 
       expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('DESIGN DECISIONS');
-    });
-  });
-
-  describe('edit mode', () => {
-    it('VALID: {editing: true, designDecisions: [dec]} => renders FormInputWidget for title', () => {
-      DesignDecisionsLayerWidgetProxy();
-      const decision = DesignDecisionStub({ title: 'Use JWT' });
-
-      mantineRenderAdapter({
-        ui: (
-          <DesignDecisionsLayerWidget
-            designDecisions={[decision]}
-            editing={true}
-            onChange={jest.fn()}
-          />
-        ),
-      });
-
-      const inputs = screen.getAllByTestId('FORM_INPUT');
-      const titleInput = inputs.find((input) => input.getAttribute('value') === 'Use JWT');
-
-      expect(titleInput).toBeInTheDocument();
     });
   });
 });

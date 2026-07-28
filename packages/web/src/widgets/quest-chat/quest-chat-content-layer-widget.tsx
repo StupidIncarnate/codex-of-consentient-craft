@@ -15,7 +15,6 @@ import { Box, Stack, Text } from '@mantine/core';
 import type {
   ChatEntry,
   GuildId,
-  Quest,
   QuestId,
   QuestStatus,
   UrlSlug,
@@ -54,8 +53,6 @@ const NO_QUEST_BANNER_MESSAGE = displayLabelContract.parse(
 );
 const DUMPSTER_CREATE_COMMAND = displayLabelContract.parse('/dumpster-create');
 
-const SUBMIT_FOLLOWUP_MESSAGE =
-  "I've modified the quest spec. Please review my changes." as UserInput;
 const FLOWS_APPROVED_FOLLOWUP_MESSAGE =
   'Flows approved. Proceed to observables and contracts.' as UserInput;
 
@@ -172,20 +169,8 @@ export const QuestChatContentLayerWidget = ({
     [questId, sendMessage, submitting, guildId, guildSlug, navigate],
   );
 
-  const [externalUpdatePending, setExternalUpdatePending] = useState(false);
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
-  const prevQuestRef = useRef<Quest | null>(null);
   const prevQuestStatusRef = useRef<QuestStatus | null>(null);
-
-  // Detect agent-side quest mutations after the user has loaded the editor —
-  // QuestSpecPanelWidget surfaces this via an EXTERNAL_UPDATE_BANNER so the
-  // user can RELOAD or KEEP EDITING.
-  useEffect(() => {
-    if (quest !== prevQuestRef.current && prevQuestRef.current !== null) {
-      setExternalUpdatePending(true);
-    }
-    prevQuestRef.current = quest;
-  }, [quest]);
 
   // Open the Begin-Quest modal only on the rising edge into 'approved' so
   // it's dismissable; once status changes the modal can re-arm.
@@ -352,14 +337,9 @@ export const QuestChatContentLayerWidget = ({
   const specPanel = (
     <QuestSpecPanelWidget
       quest={quest}
-      onModify={({ modifications, action, nextStatus }): void => {
+      onModify={({ modifications, nextStatus }): void => {
         questModifyBroker({ questId: quest.id, modifications })
           .then(() => {
-            setExternalUpdatePending(false);
-            if (action === 'submit') {
-              sendMessage({ message: SUBMIT_FOLLOWUP_MESSAGE });
-              return;
-            }
             if (nextStatus === 'flows_approved') {
               sendMessage({ message: FLOWS_APPROVED_FOLLOWUP_MESSAGE });
             }
@@ -373,10 +353,6 @@ export const QuestChatContentLayerWidget = ({
           .catch((modifyError: unknown) => {
             globalThis.console.error('[quest-chat] modify failed', modifyError);
           });
-      }}
-      externalUpdatePending={externalUpdatePending}
-      onDismissUpdate={(): void => {
-        setExternalUpdatePending(false);
       }}
       pendingQuestion={pendingClarification}
       onSubmitAnswers={({ answers }): void => {

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Renders a quest title bar with title text (or editable input) and an optional ABANDON QUEST button with confirmation flow
+ * PURPOSE: Renders a quest title bar with title text and an optional ABANDON QUEST button with confirmation flow
  *
  * USAGE:
  * <QuestTitleBarWidget title={quest.title} onAbandon={handleAbandon} />
@@ -14,12 +14,8 @@ import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
-import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
-import type { FormInputValue } from '../../contracts/form-input-value/form-input-value-contract';
-import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
-import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
 const ABANDON_LABEL = 'ABANDON QUEST' as ButtonLabel;
@@ -27,24 +23,18 @@ const CONFIRM_ABANDON_LABEL = 'CONFIRM ABANDON' as ButtonLabel;
 const CANCEL_LABEL = 'CANCEL' as ButtonLabel;
 const GHOST_VARIANT = 'ghost' as ButtonVariant;
 const DANGER_VARIANT = 'danger' as ButtonVariant;
-const TITLE_PLACEHOLDER = 'Quest title' as FormPlaceholder;
 
 export interface QuestTitleBarWidgetProps {
   title: Quest['title'];
-  editing?: boolean;
-  onTitleChange?: (title: Quest['title']) => void;
   onAbandon?: () => void;
 }
 
 export const QuestTitleBarWidget = ({
   title,
-  editing = false,
-  onTitleChange,
   onAbandon,
 }: QuestTitleBarWidgetProps): React.JSX.Element => {
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const { colors } = emberDepthsThemeStatics;
-  const titleColor = colors['loot-gold'] as CssColorOverride;
 
   return (
     <Box
@@ -59,28 +49,17 @@ export const QuestTitleBarWidget = ({
       }}
     >
       <Box style={{ flex: 1, minWidth: 0 }}>
-        {editing && onTitleChange ? (
-          <FormInputWidget
-            value={title as unknown as FormInputValue}
-            onChange={(value) => {
-              onTitleChange(value as unknown as Quest['title']);
-            }}
-            placeholder={TITLE_PLACEHOLDER}
-            color={titleColor}
-          />
-        ) : (
-          <Text
-            ff="monospace"
-            size="xs"
-            fw={600}
-            style={{ color: colors['loot-gold'] }}
-            data-testid="QUEST_TITLE"
-          >
-            {title}
-          </Text>
-        )}
+        <Text
+          ff="monospace"
+          size="xs"
+          fw={600}
+          style={{ color: colors['loot-gold'] }}
+          data-testid="QUEST_TITLE"
+        >
+          {title}
+        </Text>
       </Box>
-      {onAbandon && !editing ? (
+      {onAbandon ? (
         <Group gap="xs" data-testid="ABANDON_BAR">
           {confirmingAbandon ? (
             <>

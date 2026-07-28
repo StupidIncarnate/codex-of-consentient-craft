@@ -1,5 +1,4 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
 import { QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -19,43 +18,6 @@ describe('QuestTitleBarWidget', () => {
       expect(proxy.hasTitleText()).toBe(true);
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Add Authentication');
     });
-
-    it('VALID: {editing: true with onTitleChange} => renders FormInput instead of title text', () => {
-      const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
-
-      mantineRenderAdapter({
-        ui: <QuestTitleBarWidget title={title} editing={true} onTitleChange={jest.fn()} />,
-      });
-
-      expect(proxy.hasTitleInput()).toBe(true);
-      expect(proxy.hasTitleText()).toBe(false);
-    });
-
-    it('VALID: {editing: true without onTitleChange} => falls back to title text', () => {
-      const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
-
-      mantineRenderAdapter({ ui: <QuestTitleBarWidget title={title} editing={true} /> });
-
-      expect(proxy.hasTitleInput()).toBe(false);
-      expect(proxy.hasTitleText()).toBe(true);
-    });
-
-    it('VALID: {editing typing} => calls onTitleChange with new value', async () => {
-      QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Old' as never });
-      const onTitleChange = jest.fn();
-
-      mantineRenderAdapter({
-        ui: <QuestTitleBarWidget title={title} editing={true} onTitleChange={onTitleChange} />,
-      });
-
-      const input = screen.getByTestId('FORM_INPUT');
-      await userEvent.type(input, '!');
-
-      expect(onTitleChange).toHaveBeenCalledWith('Old!');
-    });
   });
 
   describe('abandon button', () => {
@@ -73,24 +35,6 @@ describe('QuestTitleBarWidget', () => {
       const { title } = QuestStub({ title: 'Add Authentication' as never });
 
       mantineRenderAdapter({ ui: <QuestTitleBarWidget title={title} /> });
-
-      expect(proxy.hasAbandonButton()).toBe(false);
-    });
-
-    it('VALID: {editing: true + onAbandon} => does not render ABANDON QUEST button', () => {
-      const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
-
-      mantineRenderAdapter({
-        ui: (
-          <QuestTitleBarWidget
-            title={title}
-            editing={true}
-            onTitleChange={jest.fn()}
-            onAbandon={jest.fn()}
-          />
-        ),
-      });
 
       expect(proxy.hasAbandonButton()).toBe(false);
     });
