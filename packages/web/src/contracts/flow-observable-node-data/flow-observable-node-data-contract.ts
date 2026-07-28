@@ -11,12 +11,25 @@
 
 import { z } from 'zod';
 
-import { observableIdContract, outcomeTypeContract } from '@dungeonmaster/shared/contracts';
+import {
+  flowIdContract,
+  flowNodeIdContract,
+  observableIdContract,
+  outcomeTypeContract,
+  questIdContract,
+} from '@dungeonmaster/shared/contracts';
 
 export const flowObservableNodeDataContract = z.object({
   observableId: observableIdContract,
   outcomeType: outcomeTypeContract,
   description: z.string().brand<'FlowObservableNodeDescription'>(),
+  // Anchor context for the comment affordance on this assertion card. `nodeId` is the parent flow
+  // node this observable branches off, carried so an observable comment resolves through its parent.
+  // questId and flowId are present only when the comment compose controls are allowed for this
+  // quest; their absence is what makes the card render no comment button.
+  nodeId: flowNodeIdContract.optional(),
+  questId: questIdContract.optional(),
+  flowId: flowIdContract.optional(),
 });
 
 export type FlowObservableNodeData = z.infer<typeof flowObservableNodeDataContract>;

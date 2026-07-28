@@ -5,6 +5,7 @@ import { xyflowNodeHandlesAdapterProxy } from '../../adapters/xyflow/node-handle
 interface FlowPortalNodeLayerWidgetProxyResult {
   getNode: () => HTMLElement | null;
   getLabel: () => HTMLElement | null;
+  countCommentButtons: () => HTMLElement['childElementCount'];
 }
 
 export const FlowPortalNodeLayerWidgetProxy = (): FlowPortalNodeLayerWidgetProxyResult => {
@@ -13,5 +14,7 @@ export const FlowPortalNodeLayerWidgetProxy = (): FlowPortalNodeLayerWidgetProxy
   return {
     getNode: (): HTMLElement | null => screen.queryByTestId('FLOW_PORTAL_NODE'),
     getLabel: (): HTMLElement | null => screen.queryByTestId('FLOW_PORTAL_NODE_LABEL'),
+    countCommentButtons: (): HTMLElement['childElementCount'] =>
+      screen.queryAllByTestId('COMMENT_BUTTON').length,
   };
 };

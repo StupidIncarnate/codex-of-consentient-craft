@@ -32,4 +32,40 @@ describe('FlowObservableNodeLayerWidget', () => {
       expect(proxy.getDescription()?.textContent).toBe('POSTs credentials to /auth/login');
     });
   });
+
+  describe('comment button', () => {
+    it('VALID: {data carries questId, flowId and nodeId} => renders one COMMENT_BUTTON', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = FlowObservableNodeDataStub({
+        questId: 'quest-a',
+        flowId: 'login-flow',
+        nodeId: 'login-page',
+      });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.countCommentButtons()).toBe(1);
+    });
+
+    it('EMPTY: {data omits the anchor fields} => renders zero COMMENT_BUTTON elements', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = FlowObservableNodeDataStub({});
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+
+    it('EMPTY: {data carries questId and flowId but no nodeId} => renders zero COMMENT_BUTTON elements', () => {
+      const proxy = FlowObservableNodeLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = FlowObservableNodeDataStub({ questId: 'quest-a', flowId: 'login-flow' });
+
+      mantineRenderAdapter({ ui: <FlowObservableNodeLayerWidget data={data} /> });
+
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+  });
 });

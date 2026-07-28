@@ -44,4 +44,51 @@ describe('flowObservableNodeDataContract', () => {
       );
     });
   });
+
+  describe('comment anchor fields', () => {
+    it('VALID: {no nodeId, questId, or flowId} => parses successfully without anchor fields', () => {
+      const result = flowObservableNodeDataContract.parse({
+        observableId: 'login-redirects-to-dashboard',
+        outcomeType: 'ui-state',
+        description: 'redirects to dashboard',
+      });
+
+      expect(result).toStrictEqual({
+        observableId: 'login-redirects-to-dashboard',
+        outcomeType: 'ui-state',
+        description: 'redirects to dashboard',
+      });
+    });
+
+    it('VALID: {nodeId, questId, flowId} => parses successfully with anchor fields', () => {
+      const result = FlowObservableNodeDataStub({
+        nodeId: 'login-page',
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        flowId: 'login-flow',
+      });
+
+      expect(result).toStrictEqual({
+        observableId: 'login-redirects-to-dashboard',
+        outcomeType: 'ui-state',
+        description: 'redirects to dashboard',
+        nodeId: 'login-page',
+        questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        flowId: 'login-flow',
+      });
+    });
+
+    it('INVALID: {questId: ""} => throws for empty questId', () => {
+      expect(() => FlowObservableNodeDataStub({ questId: '' as never })).toThrow(
+        /String must contain at least 1 character/u,
+      );
+    });
+
+    it('INVALID: {flowId: "Bad Flow"} => throws for non-kebab-case flowId', () => {
+      expect(() => FlowObservableNodeDataStub({ flowId: 'Bad Flow' as never })).toThrow(/Invalid/u);
+    });
+
+    it('INVALID: {nodeId: "Bad Node"} => throws for non-kebab-case nodeId', () => {
+      expect(() => FlowObservableNodeDataStub({ nodeId: 'Bad Node' as never })).toThrow(/Invalid/u);
+    });
+  });
 });

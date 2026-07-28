@@ -8,7 +8,12 @@
 
 import { z } from 'zod';
 
-import { flowNodeIdContract, flowNodeTypeContract } from '@dungeonmaster/shared/contracts';
+import {
+  flowIdContract,
+  flowNodeIdContract,
+  flowNodeTypeContract,
+  questIdContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { contractCountContract } from '../contract-count/contract-count-contract';
 
@@ -17,6 +22,11 @@ export const reactFlowNodeDataContract = z.object({
   label: z.string().min(1).brand<'FlowNodeLabel'>(),
   nodeType: flowNodeTypeContract,
   contractCount: contractCountContract,
+  // Anchor context for the comment affordance on this card. Both are present only when the
+  // comment compose controls are allowed for this quest (status precedes approved AND the quest
+  // has a resumable chat session); their absence is what makes the card render no comment button.
+  questId: questIdContract.optional(),
+  flowId: flowIdContract.optional(),
 });
 
 export type ReactFlowNodeData = z.infer<typeof reactFlowNodeDataContract>;

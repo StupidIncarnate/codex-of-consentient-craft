@@ -15,6 +15,7 @@ import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyf
 import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
+import { CommentPopoverWidget } from '../comment-popover/comment-popover-widget';
 
 export interface FlowNodeCardLayerWidgetProps {
   /** Node id from @xyflow/react — external API signature */
@@ -37,7 +38,7 @@ export const FlowNodeCardLayerWidget = ({
   data,
   selected,
 }: FlowNodeCardLayerWidgetProps): React.JSX.Element => {
-  const { nodeType, label, contractCount } = data;
+  const { nodeType, label, contractCount, nodeId, questId, flowId } = data;
   const accentColor = flowNodeStyleStatics.accent[nodeType];
   const TypeIcon = NODE_TYPE_ICONS[nodeType];
 
@@ -98,6 +99,11 @@ export const FlowNodeCardLayerWidget = ({
           {String(contractCount)}
         </div>
       ) : null}
+      {/* questId and flowId ride in on the node data only while the comment compose controls are
+          allowed for this quest, so their absence is what leaves the card with no comment button. */}
+      {questId === undefined || flowId === undefined ? null : (
+        <CommentPopoverWidget questId={questId} flowId={flowId} nodeId={nodeId} />
+      )}
     </div>
   );
 };

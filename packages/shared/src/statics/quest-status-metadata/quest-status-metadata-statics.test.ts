@@ -1,5 +1,7 @@
 import { questStatusMetadataStatics } from './quest-status-metadata-statics';
 
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+
 describe('questStatusMetadataStatics', () => {
   describe('coverage', () => {
     it('VALID: statuses => covers all 16 quest statuses', () => {
@@ -43,6 +45,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: true,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -67,6 +70,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: true,
+        isBeforeSpecApproved: false,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -91,6 +95,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -115,6 +120,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -139,6 +145,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: true,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -163,6 +170,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -187,6 +195,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: false,
         isAbandonable: false,
         isCompletedSuccessfully: true,
@@ -211,6 +220,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: false,
         isAbandonable: false,
         isCompletedSuccessfully: false,
@@ -235,6 +245,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -260,6 +271,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -284,6 +296,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -308,6 +321,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -332,6 +346,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: false,
         isGateApproved: true,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -356,6 +371,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: true,
         isDesignPhase: false,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -380,6 +396,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: true,
         isAutoResumable: false,
         isGateApproved: false,
+        isBeforeSpecApproved: false,
         isDesignPhase: true,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -404,6 +421,7 @@ describe('questStatusMetadataStatics', () => {
         isRecoverable: false,
         isAutoResumable: false,
         isGateApproved: true,
+        isBeforeSpecApproved: false,
         isDesignPhase: true,
         isAbandonable: true,
         isCompletedSuccessfully: false,
@@ -413,5 +431,28 @@ describe('questStatusMetadataStatics', () => {
         displayHeader: 'DESIGN APPROVED',
       });
     });
+  });
+
+  describe('isBeforeSpecApproved matrix', () => {
+    const STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
+
+    const BEFORE_SPEC_APPROVED_STATUSES: ReadonlySet<StatusKey> = new Set([
+      'created',
+      'pending',
+      'explore_flows',
+      'review_flows',
+      'flows_approved',
+      'explore_observables',
+      'review_observables',
+    ]);
+
+    it.each(STATUSES)(
+      'VALID: {status: %s} => isBeforeSpecApproved matches expected flag',
+      (status) => {
+        const expected = BEFORE_SPEC_APPROVED_STATUSES.has(status);
+
+        expect(questStatusMetadataStatics.statuses[status].isBeforeSpecApproved).toBe(expected);
+      },
+    );
   });
 });

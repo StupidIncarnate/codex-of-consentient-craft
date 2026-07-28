@@ -9,7 +9,11 @@ import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
+type FlowsProxy = ReturnType<typeof FlowsLayerWidgetProxy>;
+type SetupPositionsArgs = Parameters<FlowsProxy['setupPositions']>[0];
+
 export const QuestSpecPanelWidgetProxy = (): {
+  setupPositions: (args: SetupPositionsArgs) => void;
   clickApprove: () => Promise<void>;
   clickAbandon: () => Promise<void>;
   clickConfirmAbandon: () => Promise<void>;
@@ -20,17 +24,21 @@ export const QuestSpecPanelWidgetProxy = (): {
   hasOperationsSection: () => boolean;
   getOperationsLedgerRows: () => HTMLElement[];
   getActionBarButtonLabels: () => HTMLElement['textContent'][];
+  countCommentButtons: () => HTMLElement['childElementCount'];
 } => {
   PixelBtnWidgetProxy();
   QuestClarifyPanelWidgetProxy();
   QuestTitleBarWidgetProxy();
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
-  FlowsLayerWidgetProxy();
+  const flowsProxy = FlowsLayerWidgetProxy();
 
   const ledgerProxy = OperationsLedgerWidgetProxy();
 
   return {
+    setupPositions: (args: SetupPositionsArgs): void => {
+      flowsProxy.setupPositions(args);
+    },
     clickApprove: async (): Promise<void> => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');
@@ -84,6 +92,8 @@ export const QuestSpecPanelWidgetProxy = (): {
       const buttons = abandonBar.querySelectorAll('[data-testid="PIXEL_BTN"]');
       return Array.from(buttons).some((button) => button.textContent === 'ABANDON QUEST');
     },
+    countCommentButtons: (): HTMLElement['childElementCount'] =>
+      screen.queryAllByTestId('COMMENT_BUTTON').length,
     hasOperationsSection: (): boolean => screen.queryByTestId('OPERATIONS_SECTION') !== null,
     getOperationsLedgerRows: (): HTMLElement[] => ledgerProxy.getLedgerRows(),
     getActionBarButtonLabels: (): HTMLElement['textContent'][] => {

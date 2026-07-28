@@ -12,6 +12,7 @@ import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyf
 import type { FlowObservableNodeData } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { CommentPopoverWidget } from '../comment-popover/comment-popover-widget';
 
 export interface FlowObservableNodeLayerWidgetProps {
   /** Assertion node data supplied by @xyflow/react via the nodeTypes registry */
@@ -23,7 +24,7 @@ const { colors } = emberDepthsThemeStatics;
 export const FlowObservableNodeLayerWidget = ({
   data,
 }: FlowObservableNodeLayerWidgetProps): React.JSX.Element => {
-  const { outcomeType, description } = data;
+  const { outcomeType, description, observableId, nodeId, questId, flowId } = data;
 
   return (
     <div
@@ -64,6 +65,16 @@ export const FlowObservableNodeLayerWidget = ({
       >
         {description}
       </div>
+      {/* An assertion card anchors its own comment: observableId identifies the card, nodeId keeps
+          it findable from the parent node. Both ids are absent unless composing is allowed. */}
+      {questId === undefined || flowId === undefined || nodeId === undefined ? null : (
+        <CommentPopoverWidget
+          questId={questId}
+          flowId={flowId}
+          nodeId={nodeId}
+          observableId={observableId}
+        />
+      )}
     </div>
   );
 };

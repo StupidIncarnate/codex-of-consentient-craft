@@ -29,6 +29,7 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 
+import { useCommentQueueSweepBinding } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding';
 import { useOrchestrationModeBinding } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
@@ -72,6 +73,11 @@ export const QuestChatContentLayerWidget = ({
   // /dumpster-create (placeholder banner + ?chat=hidden honored).
   const { mode, isLoading: modeLoading } = useOrchestrationModeBinding();
   const isNodeMode = mode === 'node';
+
+  // Quest-route mount purge. Called unconditionally above every early return so it runs on every
+  // mount of this route, and it sweeps EVERY quest's comment-queue key — not just this one's — so
+  // abandoned reviews on quests the user never reopens cannot pile up in localStorage forever.
+  useCommentQueueSweepBinding();
 
   // `?chat=hidden` suppresses the ChatPanel sub-tree while leaving the chat binding subscribed (it's
   // called below at this layer, above the panel). Honored by default so the /dumpster-create flow's

@@ -175,4 +175,60 @@ describe('FlowNodeCardLayerWidget', () => {
       expect(screen.getByTestId('FLOW_NODE').getAttribute('data-selected')).toBe(null);
     });
   });
+
+  describe('comment button', () => {
+    it('VALID: {data carries questId and flowId} => renders one COMMENT_BUTTON', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+        questId: 'quest-a',
+        flowId: 'login-flow',
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.countCommentButtons()).toBe(1);
+    });
+
+    it('EMPTY: {data omits questId and flowId} => renders zero COMMENT_BUTTON elements', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+
+    it('EMPTY: {data carries questId but no flowId} => renders zero COMMENT_BUTTON elements', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+        questId: 'quest-a',
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+  });
 });

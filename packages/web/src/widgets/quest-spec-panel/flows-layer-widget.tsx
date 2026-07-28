@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 import { Box, Group, Text } from '@mantine/core';
 
-import type { Flow, QuestContractEntry } from '@dungeonmaster/shared/contracts';
+import type { Flow, QuestContractEntry, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
@@ -63,11 +63,14 @@ const TAB_STYLE_ACTIVE = {
 export interface FlowsLayerWidgetProps {
   flows: Flow[];
   contracts?: readonly QuestContractEntry[];
+  /** Set only when the comment compose controls are allowed; absence hides every comment button. */
+  commentQuestId?: QuestId;
 }
 
 export const FlowsLayerWidget = ({
   flows,
   contracts,
+  commentQuestId,
 }: FlowsLayerWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -168,6 +171,7 @@ export const FlowsLayerWidget = ({
                 key={String(activeFlow.id)}
                 flow={activeFlow}
                 {...(contracts === undefined ? {} : { contracts })}
+                {...(commentQuestId === undefined ? {} : { commentQuestId })}
               />
             </Box>
           ) : null}

@@ -28,19 +28,36 @@ interface ReactFlowDiagramWidgetProxyResult {
   hasError: () => boolean;
   hasDetailPanel: () => boolean;
   isExpanded: () => boolean;
+  setupEmptyQueue: () => void;
+  countCommentButtons: () => HTMLElement['childElementCount'];
+  countCommentButtonsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
   const elkProxy = elkLayoutAdapterProxy();
   xyflowReactFlowAdapterProxy();
   xyflowEdgeAdapterProxy();
-  FlowNodeCardLayerWidgetProxy();
+  const nodeCardProxy = FlowNodeCardLayerWidgetProxy();
   FlowNodeDetailPanelLayerWidgetProxy();
   FlowObservableNodeLayerWidgetProxy();
   FlowPortalNodeLayerWidgetProxy();
   const user = userEvent.setup();
 
   return {
+    setupEmptyQueue: (): void => {
+      nodeCardProxy.setupEmptyQueue();
+    },
+    countCommentButtons: (): HTMLElement['childElementCount'] =>
+      screen.queryAllByTestId('COMMENT_BUTTON').length,
+    // Scoped by card type: the portal stand-in must never carry a comment button, and asserting
+    // that from the whole-canvas count alone would pass even if the portal grew one.
+    countCommentButtonsOn: ({ testId }: { testId: string }): HTMLElement['childElementCount'] =>
+      screen
+        .queryAllByTestId(testId)
+        .reduce(
+          (total, card) => total + card.querySelectorAll('[data-testid="COMMENT_BUTTON"]').length,
+          0,
+        ),
     setupPositions: (args: ReturnsPositionsArgs): void => {
       elkProxy.returnsPositions(args);
     },

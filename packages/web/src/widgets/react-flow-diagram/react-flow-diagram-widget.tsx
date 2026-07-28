@@ -23,6 +23,7 @@ import type {
   FlowNode,
   FlowNodeId,
   QuestContractEntry,
+  QuestId,
 } from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutAdapter } from '../../adapters/elk/layout/elk-layout-adapter';
@@ -45,6 +46,11 @@ import { FlowPortalNodeLayerWidget } from './flow-portal-node-layer-widget';
 export interface ReactFlowDiagramWidgetProps {
   flow: Flow;
   contracts?: readonly QuestContractEntry[];
+  /**
+   * Set only when the comment compose controls are allowed for this quest. Presence is the gate:
+   * when it is absent every card renders without a comment button.
+   */
+  commentQuestId?: QuestId;
 }
 
 const MAX_HEIGHT = 800;
@@ -78,6 +84,7 @@ const controlStyles = {
 export const ReactFlowDiagramWidget = ({
   flow,
   contracts = [],
+  commentQuestId,
 }: ReactFlowDiagramWidgetProps): React.JSX.Element | null => {
   const [positions, setPositions] = useState<ElkPositionMap | null>(null);
   const [routes, setRoutes] = useState<FlowEdgeRouteMap | null>(null);
@@ -141,12 +148,18 @@ export const ReactFlowDiagramWidget = ({
     return null;
   }
 
+  // Anchor context for the comment affordance. Spread into each card's data only when composing is
+  // allowed, so the cards themselves need no separate visibility flag to check.
+  const commentAnchorData =
+    commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: flow.id };
+
   const flowNodes = flow.nodes.map((n) => ({
     id: String(n.id),
     type: n.type,
     position: positions[String(n.id)] ?? { x: 0, y: 0 },
     selected: n.id === selectedNodeId,
     data: reactFlowNodeDataContract.parse({
+      ...commentAnchorData,
       nodeId: n.id,
       label: n.label,
       nodeType: n.type,
@@ -182,7 +195,10 @@ export const ReactFlowDiagramWidget = ({
         type: 'observable',
         position: { x: columnX, y },
         data: flowObservableNodeDataContract.parse({
+          ...commentAnchorData,
           observableId: obs.id,
+          // The parent node, so an observable comment stays findable from the node it branches off.
+          nodeId: n.id,
           outcomeType: obs.type,
           description: obs.description,
         }),

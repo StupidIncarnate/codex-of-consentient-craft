@@ -1,10 +1,13 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import {
   QuestStub,
   DesignDecisionStub,
+  FlowNodeStub,
   FlowStub,
   OperationItemStub,
+  SessionIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
@@ -755,5 +758,79 @@ describe('QuestSpecPanelWidget', () => {
         ).toStrictEqual([]);
       },
     );
+  });
+
+  describe('comment compose controls', () => {
+    it('VALID: {status review_flows with a resumable chaoswhisperer session} => the diagram card renders a COMMENT_BUTTON', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtons()).toBe(1);
+    });
+
+    it('EMPTY: {status approved with a resumable session} => renders zero COMMENT_BUTTON elements', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'approved',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+
+    it('EMPTY: {status review_flows with no work item carrying a sessionId} => renders zero COMMENT_BUTTON elements', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
   });
 });

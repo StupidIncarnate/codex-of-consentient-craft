@@ -8,6 +8,7 @@ import {
   FlowObservableStub,
   FlowStub,
   QuestContractEntryStub,
+  QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -801,6 +802,77 @@ describe('ReactFlowDiagramWidget', () => {
       // Diagram remains visible; no error shown means the layout mock was not called again.
       expect(screen.queryByTestId('FLOW_DIAGRAM_ERROR')).toBe(null);
       expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+    });
+  });
+
+  describe('comment buttons', () => {
+    it('VALID: {commentQuestId set} => every flow card and assertion card carries a COMMENT_BUTTON while the portal carries none', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      proxy.setupEmptyQueue();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({
+        id: 'login-flow',
+        nodes: [node],
+        edges: [FlowEdgeStub({ id: 'to-compile', from: 'login-page', to: 'compile-flow:entry' })],
+      });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'compile-flow:entry', x: 0, y: 200 },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget flow={flow} commentQuestId={QuestIdStub({ value: 'quest-a' })} />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtonsOn({ testId: 'FLOW_NODE' })).toBe(1);
+      expect(proxy.countCommentButtonsOn({ testId: 'FLOW_OBSERVABLE_NODE' })).toBe(1);
+      expect(proxy.countCommentButtonsOn({ testId: 'FLOW_PORTAL_NODE' })).toBe(0);
+    });
+
+    it('EMPTY: {commentQuestId absent} => the whole diagram renders zero COMMENT_BUTTON elements', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      proxy.setupEmptyQueue();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtons()).toBe(0);
     });
   });
 });

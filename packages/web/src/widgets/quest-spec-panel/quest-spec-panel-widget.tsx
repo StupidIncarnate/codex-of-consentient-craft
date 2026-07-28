@@ -18,6 +18,7 @@ import {
 import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { GateSectionKey } from '../../contracts/gate-section-key/gate-section-key-contract';
+import { isCommentComposeAllowedGuard } from '../../guards/is-comment-compose-allowed/is-comment-compose-allowed-guard';
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -67,6 +68,10 @@ export const QuestSpecPanelWidget = ({
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
+  // One gate, evaluated once and threaded down as the presence of an id. Queueing and sending are
+  // spec-review tools, and a quest with no resumable chat session could never deliver the batch.
+  const commentQuestId = isCommentComposeAllowedGuard({ quest }) ? quest.id : undefined;
+
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
       <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
@@ -106,7 +111,11 @@ export const QuestSpecPanelWidget = ({
 
         <DesignDecisionsLayerWidget designDecisions={quest.designDecisions} />
 
-        <FlowsLayerWidget flows={quest.flows} contracts={quest.contracts} />
+        <FlowsLayerWidget
+          flows={quest.flows}
+          contracts={quest.contracts}
+          {...(commentQuestId === undefined ? {} : { commentQuestId })}
+        />
 
         {quest.operations.length > 0 ? (
           <Box mb="md" data-testid="OPERATIONS_SECTION">

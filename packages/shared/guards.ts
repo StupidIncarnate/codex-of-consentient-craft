@@ -31,6 +31,10 @@ export * from './src/guards/is-gate-approved-quest-status/is-gate-approved-quest
 export * from './src/guards/is-design-phase-quest-status/is-design-phase-quest-status-guard';
 export * from './src/guards/should-render-execution-panel-quest-status/should-render-execution-panel-quest-status-guard';
 export * from './src/guards/should-show-begin-quest-modal-quest-status/should-show-begin-quest-modal-quest-status-guard';
+export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-approved-quest-status-guard';
+
+// Quest Chat Session Guards
+export * from './src/guards/has-resumable-chat-session/has-resumable-chat-session-guard';
 
 // Work Item Dependency Graph Guards
 export * from './src/guards/has-lawbringer-in-deps/has-lawbringer-in-deps-guard';
