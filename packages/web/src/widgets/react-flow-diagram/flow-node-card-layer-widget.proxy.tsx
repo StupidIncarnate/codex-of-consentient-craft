@@ -7,6 +7,7 @@ interface FlowNodeCardLayerWidgetProxyResult {
   getNodeCard: () => HTMLElement | null;
   getTypeIcon: () => HTMLElement | null;
   getBadge: () => HTMLElement | null;
+  getCommentBadge: () => HTMLElement | null;
   getAccentStyle: () => HTMLElement['style'] | null;
   isSelected: () => boolean;
   setupEmptyQueue: () => void;
@@ -24,7 +25,10 @@ export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResu
     countCommentButtons: (): HTMLElement['childElementCount'] => commentProxy.countCommentButtons(),
     getNodeCard: (): HTMLElement | null => screen.queryByTestId('FLOW_NODE'),
     getTypeIcon: (): HTMLElement | null => screen.queryByTestId('FLOW_NODE_TYPE_ICON'),
+    // The contracts badge — kept meaning ONLY the contracts count so a test can never confuse it
+    // with the comment count badge below.
     getBadge: (): HTMLElement | null => screen.queryByTestId('FLOW_NODE_BADGE'),
+    getCommentBadge: (): HTMLElement | null => screen.queryByTestId('COMMENT_COUNT_BADGE'),
     getAccentStyle: (): HTMLElement['style'] | null => {
       const card = screen.queryByTestId('FLOW_NODE');
       return card ? card.style : null;

@@ -7,6 +7,7 @@ interface FlowObservableNodeLayerWidgetProxyResult {
   getNode: () => HTMLElement | null;
   getType: () => HTMLElement | null;
   getDescription: () => HTMLElement | null;
+  getCommentBadge: () => HTMLElement | null;
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
 }
@@ -19,6 +20,7 @@ export const FlowObservableNodeLayerWidgetProxy = (): FlowObservableNodeLayerWid
     getNode: (): HTMLElement | null => screen.queryByTestId('FLOW_OBSERVABLE_NODE'),
     getType: (): HTMLElement | null => screen.queryByTestId('FLOW_OBSERVABLE_NODE_TYPE'),
     getDescription: (): HTMLElement | null => screen.queryByTestId('FLOW_OBSERVABLE_NODE_DESC'),
+    getCommentBadge: (): HTMLElement | null => screen.queryByTestId('COMMENT_COUNT_BADGE'),
     setupEmptyQueue: (): void => {
       commentProxy.setupEmptyQueue();
     },

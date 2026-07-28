@@ -24,7 +24,7 @@ const { colors } = emberDepthsThemeStatics;
 export const FlowObservableNodeLayerWidget = ({
   data,
 }: FlowObservableNodeLayerWidgetProps): React.JSX.Element => {
-  const { outcomeType, description, observableId, nodeId, questId, flowId } = data;
+  const { outcomeType, description, observableId, nodeId, questId, flowId, commentCount } = data;
 
   return (
     <div
@@ -65,9 +65,27 @@ export const FlowObservableNodeLayerWidget = ({
       >
         {description}
       </div>
+      {commentCount > 0 ? (
+        <div
+          data-testid="COMMENT_COUNT_BADGE"
+          title="comments"
+          style={{
+            background: colors.primary,
+            color: colors['bg-deep'],
+            borderRadius: 10,
+            fontSize: 10,
+            padding: '1px 6px',
+            display: 'inline-block',
+            marginTop: 4,
+          }}
+        >
+          {String(commentCount)}
+        </div>
+      ) : null}
       {/* An assertion card anchors its own comment: observableId identifies the card, nodeId keeps
-          it findable from the parent node. Both ids are absent unless composing is allowed. */}
-      {questId === undefined || flowId === undefined || nodeId === undefined ? null : (
+          it findable from the parent node. questId/flowId are absent unless composing is allowed;
+          nodeId is always present (it is not part of the compose gate). */}
+      {questId === undefined || flowId === undefined ? null : (
         <CommentPopoverWidget
           questId={questId}
           flowId={flowId}

@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
 import { ContractCountStub } from '../../contracts/contract-count/contract-count.stub';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
@@ -229,6 +230,100 @@ describe('FlowNodeCardLayerWidget', () => {
       });
 
       expect(proxy.countCommentButtons()).toBe(0);
+    });
+  });
+
+  describe('comment count badge', () => {
+    it('VALID: {commentCount: 2} => COMMENT_COUNT_BADGE reads 2 on a box carrying two persisted comments (#check-badge-count-text)', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+        commentCount: CommentCountStub({ value: 2 }),
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getCommentBadge()?.textContent).toBe('2');
+    });
+
+    it('VALID: {commentCount: 2, contractCount: 3} => COMMENT_COUNT_BADGE and the contracts FLOW_NODE_BADGE both render on the same FLOW_NODE card (#check-badge-beside-contract-badge)', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 3 }),
+        commentCount: CommentCountStub({ value: 2 }),
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getBadge()?.textContent).toBe('3');
+      expect(proxy.getCommentBadge()?.textContent).toBe('2');
+    });
+
+    it('EMPTY: {commentCount: 0} => a box with zero persisted comments renders no COMMENT_COUNT_BADGE (#check-no-badge-zero-comments)', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+        commentCount: CommentCountStub({ value: 0 }),
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getCommentBadge()).toBe(null);
+    });
+
+    it('VALID: {commentCount: 2, no questId or flowId} => a quest with status approved renders COMMENT_COUNT_BADGE on a commented box while rendering zero COMMENT_BUTTON elements on that same box (#check-badge-without-button-when-approved)', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+        commentCount: CommentCountStub({ value: 2 }),
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getCommentBadge()?.textContent).toBe('2');
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+
+    it('VALID: {commentCount: 2, questId and flowId present} => a quest with status review_flows and a resumable session renders both COMMENT_COUNT_BADGE and COMMENT_BUTTON on the same commented box (#check-badge-and-button-coexist)', () => {
+      const proxy = FlowNodeCardLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const data = ReactFlowNodeDataStub({
+        nodeId: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        nodeType: 'state',
+        contractCount: ContractCountStub({ value: 0 }),
+        commentCount: CommentCountStub({ value: 2 }),
+        questId: 'quest-a',
+        flowId: 'login-flow',
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowNodeCardLayerWidget id={data.nodeId} data={data} selected={false} type="state" />,
+      });
+
+      expect(proxy.getCommentBadge()?.textContent).toBe('2');
+      expect(proxy.countCommentButtons()).toBe(1);
     });
   });
 });

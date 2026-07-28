@@ -12,6 +12,8 @@ describe('flowObservableNodeDataContract', () => {
           observableId: 'login-redirects-to-dashboard',
           outcomeType,
           description: 'redirects to dashboard',
+          commentCount: 0,
+          nodeId: 'login-page',
         });
       },
     );
@@ -21,12 +23,16 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'shows-error-banner',
         outcomeType: 'ui-state',
         description: 'shows an error banner when credentials are invalid',
+        commentCount: 3,
+        nodeId: 'login-page',
       });
 
       expect(result).toStrictEqual({
         observableId: 'shows-error-banner',
         outcomeType: 'ui-state',
         description: 'shows an error banner when credentials are invalid',
+        commentCount: 3,
+        nodeId: 'login-page',
       });
     });
   });
@@ -43,20 +49,41 @@ describe('flowObservableNodeDataContract', () => {
         /Invalid enum value/u,
       );
     });
+
+    it('INVALID: {commentCount: -1} => throws for negative commentCount', () => {
+      expect(() => FlowObservableNodeDataStub({ commentCount: -1 as never })).toThrow(
+        /Number must be greater than or equal to 0/u,
+      );
+    });
+
+    it('EMPTY: {no nodeId} => throws for missing required nodeId', () => {
+      expect(() =>
+        flowObservableNodeDataContract.parse({
+          observableId: 'login-redirects-to-dashboard',
+          outcomeType: 'ui-state',
+          description: 'redirects to dashboard',
+          commentCount: 0,
+        }),
+      ).toThrow(/Required/u);
+    });
   });
 
   describe('comment anchor fields', () => {
-    it('VALID: {no nodeId, questId, or flowId} => parses successfully without anchor fields', () => {
+    it('VALID: {no questId or flowId} => parses successfully without compose anchor fields', () => {
       const result = flowObservableNodeDataContract.parse({
         observableId: 'login-redirects-to-dashboard',
         outcomeType: 'ui-state',
         description: 'redirects to dashboard',
+        commentCount: 0,
+        nodeId: 'login-page',
       });
 
       expect(result).toStrictEqual({
         observableId: 'login-redirects-to-dashboard',
         outcomeType: 'ui-state',
         description: 'redirects to dashboard',
+        commentCount: 0,
+        nodeId: 'login-page',
       });
     });
 
@@ -71,6 +98,7 @@ describe('flowObservableNodeDataContract', () => {
         observableId: 'login-redirects-to-dashboard',
         outcomeType: 'ui-state',
         description: 'redirects to dashboard',
+        commentCount: 0,
         nodeId: 'login-page',
         questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         flowId: 'login-flow',

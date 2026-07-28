@@ -11,5 +11,6 @@ export const ReactFlowNodeDataStub = ({
     label: 'Login Page',
     nodeType: 'state',
     contractCount: 0,
+    commentCount: 0,
     ...props,
   });

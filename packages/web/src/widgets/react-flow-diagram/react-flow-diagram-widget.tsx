@@ -21,7 +21,8 @@ import {
 import type {
   Flow,
   FlowNode,
-  FlowNodeId,
+  FlowObservable,
+  QuestComment,
   QuestContractEntry,
   QuestId,
 } from '@dungeonmaster/shared/contracts';
@@ -29,6 +30,8 @@ import type {
 import { elkLayoutAdapter } from '../../adapters/elk/layout/elk-layout-adapter';
 import { xyflowEdgeAdapter } from '../../adapters/xyflow/edge/xyflow-edge-adapter';
 import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter';
+import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
+import { commentCountContract } from '../../contracts/comment-count/comment-count-contract';
 import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
@@ -37,6 +40,7 @@ import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
+import { boxCommentsTransformer } from '../../transformers/box-comments/box-comments-transformer';
 import { flowCrossFlowPortalsTransformer } from '../../transformers/flow-cross-flow-portals/flow-cross-flow-portals-transformer';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
@@ -51,6 +55,13 @@ export interface ReactFlowDiagramWidgetProps {
    * when it is absent every card renders without a comment button.
    */
   commentQuestId?: QuestId;
+  /**
+   * Every persisted comment on the quest, across all flows. Gated INDEPENDENTLY of commentQuestId:
+   * the count badge and the detail panel's comment list render in every quest status, including the
+   * approved and session-less ones where composing is disallowed, because that is exactly when the
+   * review this record captures is most worth reading.
+   */
+  comments?: readonly QuestComment[];
 }
 
 const MAX_HEIGHT = 800;
@@ -85,11 +96,16 @@ export const ReactFlowDiagramWidget = ({
   flow,
   contracts = [],
   commentQuestId,
+  comments = [],
 }: ReactFlowDiagramWidgetProps): React.JSX.Element | null => {
   const [positions, setPositions] = useState<ElkPositionMap | null>(null);
   const [routes, setRoutes] = useState<FlowEdgeRouteMap | null>(null);
   const [error, setError] = useState<boolean>(false);
-  const [selectedNodeId, setSelectedNodeId] = useState<FlowNodeId | null>(null);
+  // One selection for both kinds of clickable box. An anchor without an observableId is the node
+  // card itself; one with an observableId is an assertion card branching off it. Keeping both in a
+  // single value is what makes them mutually exclusive by construction, so the detail panel can
+  // never open for a node and an assertion at once.
+  const [selectedAnchor, setSelectedAnchor] = useState<CommentAnchor | null>(null);
   const [expanded, setExpanded] = useState<boolean>(false);
   const hasRun = useRef(false);
   const diagramRef = useRef<HTMLDivElement>(null);
@@ -118,7 +134,7 @@ export const ReactFlowDiagramWidget = ({
 
   const handleKeydown = useCallback((e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
-      setSelectedNodeId(null);
+      setSelectedAnchor(null);
     }
   }, []);
 
@@ -153,11 +169,18 @@ export const ReactFlowDiagramWidget = ({
   const commentAnchorData =
     commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: flow.id };
 
+  // The node card is the selected box only when the selection names no observable — an assertion
+  // card's selection leaves its parent card unringed, because the panel is showing the assertion.
+  const selectedCardNodeId =
+    selectedAnchor !== null && selectedAnchor.observableId === undefined
+      ? selectedAnchor.nodeId
+      : undefined;
+
   const flowNodes = flow.nodes.map((n) => ({
     id: String(n.id),
     type: n.type,
     position: positions[String(n.id)] ?? { x: 0, y: 0 },
-    selected: n.id === selectedNodeId,
+    selected: selectedCardNodeId !== undefined && String(selectedCardNodeId) === String(n.id),
     data: reactFlowNodeDataContract.parse({
       ...commentAnchorData,
       nodeId: n.id,
@@ -167,6 +190,11 @@ export const ReactFlowDiagramWidget = ({
       // uses. Contract arrays are small, so a per-node filter is fine.
       contractCount: contractCountContract.parse(
         contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
+      ),
+      // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong to
+      // those cards' own badges, so the badge here always agrees with the list the panel shows.
+      commentCount: commentCountContract.parse(
+        boxCommentsTransformer({ comments, flowId: flow.id, nodeId: n.id }).length,
       ),
     }),
   }));
@@ -201,6 +229,14 @@ export const ReactFlowDiagramWidget = ({
           nodeId: n.id,
           outcomeType: obs.type,
           description: obs.description,
+          commentCount: commentCountContract.parse(
+            boxCommentsTransformer({
+              comments,
+              flowId: flow.id,
+              nodeId: n.id,
+              observableId: obs.id,
+            }).length,
+          ),
         }),
       };
     });
@@ -256,9 +292,38 @@ export const ReactFlowDiagramWidget = ({
 
   const edges = [...flowEdges, ...observableEdges];
 
-  const selectedNode: FlowNode | undefined = selectedNodeId
-    ? flow.nodes.find((n) => String(n.id) === String(selectedNodeId))
-    : undefined;
+  // Resolve the selection against the LIVE flow every render, so a selected box that disappears
+  // from the spec (an agent turn deleting a node) closes its panel instead of stranding it.
+  const selectedNode: FlowNode | undefined =
+    selectedAnchor === null
+      ? undefined
+      : flow.nodes.find((n) => String(n.id) === String(selectedAnchor.nodeId));
+
+  const selectedObservable: FlowObservable | undefined =
+    selectedAnchor?.observableId === undefined
+      ? undefined
+      : selectedNode?.observables.find(
+          (obs) => String(obs.id) === String(selectedAnchor.observableId),
+        );
+
+  // An assertion selection whose observable no longer resolves opens nothing, rather than falling
+  // back to its parent node's panel — that fallback would silently show another box's comments.
+  const panelNode: FlowNode | undefined =
+    selectedAnchor?.observableId !== undefined && selectedObservable === undefined
+      ? undefined
+      : selectedNode;
+
+  const selectedBoxComments =
+    selectedAnchor === null || panelNode === undefined
+      ? []
+      : boxCommentsTransformer({
+          comments,
+          flowId: flow.id,
+          nodeId: panelNode.id,
+          ...(selectedAnchor.observableId === undefined
+            ? {}
+            : { observableId: selectedAnchor.observableId }),
+        });
 
   return (
     <div
@@ -294,26 +359,41 @@ export const ReactFlowDiagramWidget = ({
             // zoomed-in. Fullscreen: fit the whole graph as an overview.
             topAlign: !expanded,
             onNodeClick: (node: (typeof nodes)[0]) => {
-              // Resolve the clicked node by its id against the flow nodes only — clicking an
-              // assertion (observable) node finds nothing and leaves the selection unchanged.
+              // A flow card resolves by id. An assertion card does not — its React Flow id is a
+              // composite (`obs:node:observable`), so its anchor is read off the node DATA, which
+              // is the only place both ids survive independently of that string's shape.
               const clicked = flow.nodes.find((fn) => String(fn.id) === node.id);
               if (clicked !== undefined) {
-                setSelectedNodeId(clicked.id);
+                setSelectedAnchor({ flowId: flow.id, nodeId: clicked.id });
+                return;
               }
+              const observableData = flowObservableNodeDataContract.safeParse(node.data);
+              // Neither a flow card nor an assertion card — a portal stand-in. Clicking one is a
+              // no-op: it renders a node that lives in ANOTHER flow, so it has no box of its own.
+              if (!observableData.success) {
+                return;
+              }
+              setSelectedAnchor({
+                flowId: flow.id,
+                nodeId: observableData.data.nodeId,
+                observableId: observableData.data.observableId,
+              });
             },
             onPaneClick: () => {
-              setSelectedNodeId(null);
+              setSelectedAnchor(null);
             },
           },
         )}
       </div>
 
-      {selectedNode === undefined ? null : (
+      {panelNode === undefined ? null : (
         <FlowNodeDetailPanelLayerWidget
-          node={selectedNode}
+          node={panelNode}
           contracts={contracts}
+          comments={selectedBoxComments}
+          {...(selectedObservable === undefined ? {} : { observable: selectedObservable })}
           onClose={() => {
-            setSelectedNodeId(null);
+            setSelectedAnchor(null);
           }}
         />
       )}

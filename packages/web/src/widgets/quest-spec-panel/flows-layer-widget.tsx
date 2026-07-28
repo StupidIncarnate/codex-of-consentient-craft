@@ -11,7 +11,12 @@ import { useState } from 'react';
 
 import { Box, Group, Text } from '@mantine/core';
 
-import type { Flow, QuestContractEntry, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  Flow,
+  QuestComment,
+  QuestContractEntry,
+  QuestId,
+} from '@dungeonmaster/shared/contracts';
 
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
@@ -65,12 +70,19 @@ export interface FlowsLayerWidgetProps {
   contracts?: readonly QuestContractEntry[];
   /** Set only when the comment compose controls are allowed; absence hides every comment button. */
   commentQuestId?: QuestId;
+  /**
+   * Every persisted comment on the quest. Passed in every status, independently of commentQuestId,
+   * because the count badge and the detail panel's comment list are read affordances rather than
+   * compose ones.
+   */
+  comments?: readonly QuestComment[];
 }
 
 export const FlowsLayerWidget = ({
   flows,
   contracts,
   commentQuestId,
+  comments,
 }: FlowsLayerWidgetProps): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -172,6 +184,7 @@ export const FlowsLayerWidget = ({
                 flow={activeFlow}
                 {...(contracts === undefined ? {} : { contracts })}
                 {...(commentQuestId === undefined ? {} : { commentQuestId })}
+                {...(comments === undefined ? {} : { comments })}
               />
             </Box>
           ) : null}

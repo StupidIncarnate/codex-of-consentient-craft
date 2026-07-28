@@ -31,6 +31,10 @@ interface ReactFlowDiagramWidgetProxyResult {
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
   countCommentButtonsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
+  clickObservableNode: (params: { nodeId: string; observableId: string }) => Promise<void>;
+  getCommentBadgeTextsOn: (params: { testId: string }) => HTMLElement['textContent'][];
+  hasCommentsSection: () => boolean;
+  getPanelCommentTexts: () => HTMLElement['textContent'][];
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
@@ -71,6 +75,35 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
       if (!wrapper) throw new Error(`Node wrapper not found for id: ${nodeId}`);
       await user.click(wrapper as HTMLElement);
     },
+    // An assertion card's React Flow id is the composite the diagram widget mints for it, so the
+    // test names the box the way a reader does — its node and its assertion — not by that string.
+    clickObservableNode: async ({
+      nodeId,
+      observableId,
+    }: {
+      nodeId: string;
+      observableId: string;
+    }): Promise<void> => {
+      const wrapper = screen
+        .getByTestId('REACT_FLOW_PANE')
+        .querySelector(`[data-node-id="obs:${nodeId}:${observableId}"]`);
+      if (!wrapper) throw new Error(`Observable wrapper not found: ${nodeId}/${observableId}`);
+      await user.click(wrapper as HTMLElement);
+    },
+    // Scoped by card type so a node badge can never stand in for an assertion badge.
+    getCommentBadgeTextsOn: ({ testId }: { testId: string }): HTMLElement['textContent'][] =>
+      screen
+        .queryAllByTestId(testId)
+        .flatMap((card) =>
+          Array.from(card.querySelectorAll('[data-testid="COMMENT_COUNT_BADGE"]')).map(
+            (badge) => badge.textContent,
+          ),
+        ),
+    hasCommentsSection: (): boolean => screen.queryByTestId('FLOW_DETAIL_PANEL_COMMENTS') !== null,
+    getPanelCommentTexts: (): HTMLElement['textContent'][] =>
+      screen
+        .queryAllByTestId('FLOW_DETAIL_PANEL_COMMENT_TEXT')
+        .map((element) => element.textContent),
     clickPane: async (): Promise<void> => {
       await user.click(screen.getByTestId('REACT_FLOW_PANE'));
     },

@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { CommentQueueBarWidgetProxy } from '../comment-queue-bar/comment-queue-bar-widget.proxy';
 import { OperationsLedgerWidgetProxy } from '../operations-ledger/operations-ledger-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestClarifyPanelWidgetProxy } from '../quest-clarify-panel/quest-clarify-panel-widget.proxy';
@@ -11,9 +12,21 @@ import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
 type FlowsProxy = ReturnType<typeof FlowsLayerWidgetProxy>;
 type SetupPositionsArgs = Parameters<FlowsProxy['setupPositions']>[0];
+type QueueBarProxy = ReturnType<typeof CommentQueueBarWidgetProxy>;
+type SetupQueuedCommentsArgs = Parameters<QueueBarProxy['setupQueuedComments']>[0];
 
 export const QuestSpecPanelWidgetProxy = (): {
   setupPositions: (args: SetupPositionsArgs) => void;
+  setupEmptyQueue: () => void;
+  setupQueuedComments: (args: SetupQueuedCommentsArgs) => void;
+  hasQueueBar: () => boolean;
+  getQueueBarCountText: () => HTMLElement['textContent'];
+  isQueueBarPreviousSiblingOfActionBar: () => boolean;
+  clickNode: FlowsProxy['clickNode'];
+  clickObservableNode: FlowsProxy['clickObservableNode'];
+  getCommentBadgeTextsOn: FlowsProxy['getCommentBadgeTextsOn'];
+  hasCommentsSection: () => boolean;
+  getPanelCommentTexts: () => HTMLElement['textContent'][];
   clickApprove: () => Promise<void>;
   clickAbandon: () => Promise<void>;
   clickConfirmAbandon: () => Promise<void>;
@@ -32,6 +45,7 @@ export const QuestSpecPanelWidgetProxy = (): {
   ContractsLayerWidgetProxy();
   DesignDecisionsLayerWidgetProxy();
   const flowsProxy = FlowsLayerWidgetProxy();
+  const queueBarProxy = CommentQueueBarWidgetProxy();
 
   const ledgerProxy = OperationsLedgerWidgetProxy();
 
@@ -39,6 +53,24 @@ export const QuestSpecPanelWidgetProxy = (): {
     setupPositions: (args: SetupPositionsArgs): void => {
       flowsProxy.setupPositions(args);
     },
+    setupEmptyQueue: (): void => {
+      queueBarProxy.setupEmptyQueue();
+    },
+    setupQueuedComments: (args: SetupQueuedCommentsArgs): void => {
+      queueBarProxy.setupQueuedComments(args);
+    },
+    hasQueueBar: (): boolean => queueBarProxy.hasBar(),
+    getQueueBarCountText: (): HTMLElement['textContent'] => queueBarProxy.getCountText(),
+    // The bar must be the ACTION_BAR's IMMEDIATE previous sibling: anywhere inside the scrollable
+    // content box it would scroll away, which is the one thing the pinning requirement rules out.
+    isQueueBarPreviousSiblingOfActionBar: (): boolean =>
+      screen.queryByTestId('ACTION_BAR')?.previousElementSibling?.getAttribute('data-testid') ===
+      'COMMENT_QUEUE_BAR',
+    clickNode: flowsProxy.clickNode,
+    clickObservableNode: flowsProxy.clickObservableNode,
+    getCommentBadgeTextsOn: flowsProxy.getCommentBadgeTextsOn,
+    hasCommentsSection: (): boolean => flowsProxy.hasCommentsSection(),
+    getPanelCommentTexts: (): HTMLElement['textContent'][] => flowsProxy.getPanelCommentTexts(),
     clickApprove: async (): Promise<void> => {
       const buttons = screen.getAllByTestId('PIXEL_BTN');
       const approveButton = buttons.find((button) => button.textContent === 'APPROVE');

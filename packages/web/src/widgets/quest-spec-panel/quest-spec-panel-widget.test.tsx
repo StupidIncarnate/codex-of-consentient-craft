@@ -6,6 +6,7 @@ import {
   FlowNodeStub,
   FlowStub,
   OperationItemStub,
+  QuestCommentStub,
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -13,6 +14,7 @@ import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
 import { QuestSpecPanelWidgetProxy } from './quest-spec-panel-widget.proxy';
 
@@ -831,6 +833,147 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(proxy.countCommentButtons()).toBe(0);
+    });
+  });
+
+  describe('comment queue bar', () => {
+    it('EMPTY: {composable quest with an empty queue} => COMMENT_QUEUE_BAR is absent', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      proxy.setupEmptyQueue();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      expect(proxy.hasQueueBar()).toBe(false);
+    });
+
+    it('VALID: {composable quest with three queued comments} => COMMENT_QUEUE_BAR reads 3 COMMENTS QUEUED', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      proxy.setupQueuedComments({
+        questId: quest.id,
+        entries: [
+          CommentQueueEntryStub({ flowId: 'flow-a', nodeId: 'node-a' }),
+          CommentQueueEntryStub({ flowId: 'flow-b', nodeId: 'node-b' }),
+          CommentQueueEntryStub({ flowId: 'flow-c', nodeId: 'node-c' }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      expect(proxy.getQueueBarCountText()).toBe('3 COMMENTS QUEUED');
+    });
+
+    it('VALID: {queued comments} => COMMENT_QUEUE_BAR is the immediate previous sibling of ACTION_BAR', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      proxy.setupQueuedComments({
+        questId: quest.id,
+        entries: [CommentQueueEntryStub()],
+      });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      expect(proxy.isQueueBarPreviousSiblingOfActionBar()).toBe(true);
+    });
+
+    it('EMPTY: {session-less quest whose localStorage already holds queued comments} => COMMENT_QUEUE_BAR is absent', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+      });
+      proxy.setupQueuedComments({
+        questId: quest.id,
+        entries: [CommentQueueEntryStub()],
+      });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      expect(proxy.hasQueueBar()).toBe(false);
+    });
+
+    it('EMPTY: {approved quest with queued comments} => COMMENT_QUEUE_BAR is absent', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'approved',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      proxy.setupQueuedComments({
+        questId: quest.id,
+        entries: [CommentQueueEntryStub()],
+      });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      expect(proxy.hasQueueBar()).toBe(false);
+    });
+  });
+
+  describe('persisted comment display', () => {
+    it('VALID: {approved quest with a commented box} => the badge renders while zero COMMENT_BUTTON elements do', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'approved',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+        comments: [
+          QuestCommentStub({ flowId: 'login-flow', nodeId: 'login-page', text: 'a sent note' }),
+        ],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['1']);
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+
+    it('VALID: {read-only panel on a complete quest} => the clicked box still lists its comment rows', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'complete',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        comments: [
+          QuestCommentStub({ flowId: 'login-flow', nodeId: 'login-page', text: 'a sent note' }),
+        ],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} readOnly={true} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['a sent note']);
     });
   });
 });

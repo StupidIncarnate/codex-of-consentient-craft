@@ -22,6 +22,7 @@ import { isCommentComposeAllowedGuard } from '../../guards/is-comment-compose-al
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
+import { CommentQueueBarWidget } from '../comment-queue-bar/comment-queue-bar-widget';
 import { OperationsLedgerWidget } from '../operations-ledger/operations-ledger-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestClarifyPanelWidget } from '../quest-clarify-panel/quest-clarify-panel-widget';
@@ -114,6 +115,7 @@ export const QuestSpecPanelWidget = ({
         <FlowsLayerWidget
           flows={quest.flows}
           contracts={quest.contracts}
+          comments={quest.comments}
           {...(commentQuestId === undefined ? {} : { commentQuestId })}
         />
 
@@ -136,6 +138,12 @@ export const QuestSpecPanelWidget = ({
           <ContractsLayerWidget tooling={quest.toolingRequirements} />
         ) : null}
       </Box>
+      {readOnly || commentQuestId === undefined ? null : (
+        // Sibling directly above ACTION_BAR inside the panel's flex column, OUTSIDE the scrollable
+        // content box — that placement plus the bar's own flexShrink:0 is what keeps the queued
+        // count on screen no matter how far the spec is scrolled.
+        <CommentQueueBarWidget questId={commentQuestId} />
+      )}
       {readOnly ? null : (
         <Box
           style={{

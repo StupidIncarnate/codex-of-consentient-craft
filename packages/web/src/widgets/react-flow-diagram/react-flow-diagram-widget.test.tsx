@@ -7,6 +7,7 @@ import {
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  QuestCommentStub,
   QuestContractEntryStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
@@ -481,7 +482,7 @@ describe('ReactFlowDiagramWidget', () => {
       await proxy.clickNode({ nodeId: 'login-page' });
 
       expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY').textContent).toBe(
-        'No contracts for this node',
+        'No contracts or comments for this box',
       );
     });
   });
@@ -531,7 +532,7 @@ describe('ReactFlowDiagramWidget', () => {
       ]);
     });
 
-    it('VALID: {assertion node clicked} => detail panel does not open', async () => {
+    it('VALID: {assertion node clicked} => detail panel opens headed by that assertion description', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -554,9 +555,315 @@ describe('ReactFlowDiagramWidget', () => {
         expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
       });
 
-      await proxy.clickNode({ nodeId: 'obs:login-page:redirects' });
+      await proxy.clickObservableNode({ nodeId: 'login-page', observableId: 'redirects' });
 
-      expect(proxy.hasDetailPanel()).toBe(false);
+      expect(proxy.getDetailPanelHeading()?.textContent).toBe('redirects to dashboard');
+    });
+
+    it('VALID: {assertion node clicked} => its parent FLOW_NODE card is left unselected', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickObservableNode({ nodeId: 'login-page', observableId: 'redirects' });
+
+      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-selected')).toBe(null);
+    });
+  });
+
+  describe('persisted comments', () => {
+    it('VALID: {node carrying two comments} => COMMENT_COUNT_BADGE on the FLOW_NODE card reads 2', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                text: 'older note',
+                createdAt: '2026-01-01T00:00:00.000Z',
+              }),
+              QuestCommentStub({
+                id: 'bbbbbbbb-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                text: 'newer note',
+                createdAt: '2026-02-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['2']);
+    });
+
+    it('EMPTY: {node carrying no comments} => no COMMENT_COUNT_BADGE on the FLOW_NODE card', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} comments={[]} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual([]);
+    });
+
+    it('VALID: {observable carrying one comment} => COMMENT_COUNT_BADGE on the FLOW_OBSERVABLE_NODE card reads 1 and the node card carries none', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                observableId: 'redirects',
+                text: 'this assertion is wrong',
+                createdAt: '2026-01-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_OBSERVABLE_NODE' })).toStrictEqual(['1']);
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual([]);
+    });
+
+    it('VALID: {node clicked} => FLOW_DETAIL_PANEL_COMMENTS lists its comments newest first', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                text: 'older note',
+                createdAt: '2026-01-01T00:00:00.000Z',
+              }),
+              QuestCommentStub({
+                id: 'bbbbbbbb-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                text: 'newer note',
+                createdAt: '2026-02-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['newer note', 'older note']);
+    });
+
+    it('VALID: {node clicked} => its observables comments are absent from the node panel', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                text: 'note on the node',
+                createdAt: '2026-01-01T00:00:00.000Z',
+              }),
+              QuestCommentStub({
+                id: 'bbbbbbbb-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                observableId: 'redirects',
+                text: 'note on the assertion',
+                createdAt: '2026-02-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the node']);
+    });
+
+    it('VALID: {assertion card clicked} => the panel lists that assertion own comments only', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                text: 'note on the node',
+                createdAt: '2026-01-01T00:00:00.000Z',
+              }),
+              QuestCommentStub({
+                id: 'bbbbbbbb-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                observableId: 'redirects',
+                text: 'note on the assertion',
+                createdAt: '2026-02-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickObservableNode({ nodeId: 'login-page', observableId: 'redirects' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the assertion']);
+    });
+
+    it('EMPTY: {node with contracts but no comments clicked} => FLOW_DETAIL_PANEL_COMMENTS absent while contract rows still render', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+      const contracts = [QuestContractEntryStub({ nodeId: 'login-page' })];
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: <ReactFlowDiagramWidget flow={flow} contracts={contracts} comments={[]} />,
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.hasCommentsSection()).toBe(false);
+      expect(screen.queryByTestId('FLOW_DETAIL_PANEL_CONTRACTS')).toBeInTheDocument();
     });
   });
 
@@ -771,7 +1078,7 @@ describe('ReactFlowDiagramWidget', () => {
 
       // Panel renders the empty-state message (not a contract error) confirming contracts defaulted to [].
       expect(screen.getByTestId('FLOW_DETAIL_PANEL_EMPTY').textContent).toBe(
-        'No contracts for this node',
+        'No contracts or comments for this box',
       );
     });
   });

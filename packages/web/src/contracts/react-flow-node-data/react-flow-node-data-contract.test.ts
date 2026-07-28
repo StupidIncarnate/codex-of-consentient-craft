@@ -13,6 +13,7 @@ describe('reactFlowNodeDataContract', () => {
           label: 'Login Page',
           nodeType,
           contractCount: 0,
+          commentCount: 0,
         });
       },
     );
@@ -23,6 +24,7 @@ describe('reactFlowNodeDataContract', () => {
         label: 'Checkout Page',
         nodeType: 'state',
         contractCount: 5,
+        commentCount: 2,
       });
 
       expect(result).toStrictEqual({
@@ -30,6 +32,7 @@ describe('reactFlowNodeDataContract', () => {
         label: 'Checkout Page',
         nodeType: 'state',
         contractCount: 5,
+        commentCount: 2,
       });
     });
   });
@@ -46,6 +49,12 @@ describe('reactFlowNodeDataContract', () => {
         /Invalid enum value/u,
       );
     });
+
+    it('INVALID: {commentCount: -1} => throws for negative commentCount', () => {
+      expect(() => ReactFlowNodeDataStub({ commentCount: -1 as never })).toThrow(
+        /Number must be greater than or equal to 0/u,
+      );
+    });
   });
 
   describe('comment anchor fields', () => {
@@ -55,6 +64,7 @@ describe('reactFlowNodeDataContract', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
+        commentCount: 0,
       });
 
       expect(result).toStrictEqual({
@@ -62,6 +72,7 @@ describe('reactFlowNodeDataContract', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
+        commentCount: 0,
       });
     });
 
@@ -76,6 +87,7 @@ describe('reactFlowNodeDataContract', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
+        commentCount: 0,
         questId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         flowId: 'login-flow',
       });

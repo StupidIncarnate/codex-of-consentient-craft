@@ -14,6 +14,7 @@ import type { FlowNodeType } from '@dungeonmaster/shared/contracts';
 import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
 import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
+import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { CommentPopoverWidget } from '../comment-popover/comment-popover-widget';
 
@@ -34,11 +35,13 @@ const NODE_TYPE_ICONS: Record<FlowNodeType, typeof IconDiamond> = {
   terminal: IconCircle,
 };
 
+const { colors } = emberDepthsThemeStatics;
+
 export const FlowNodeCardLayerWidget = ({
   data,
   selected,
 }: FlowNodeCardLayerWidgetProps): React.JSX.Element => {
-  const { nodeType, label, contractCount, nodeId, questId, flowId } = data;
+  const { nodeType, label, contractCount, commentCount, nodeId, questId, flowId } = data;
   const accentColor = flowNodeStyleStatics.accent[nodeType];
   const TypeIcon = NODE_TYPE_ICONS[nodeType];
 
@@ -97,6 +100,24 @@ export const FlowNodeCardLayerWidget = ({
           }}
         >
           {String(contractCount)}
+        </div>
+      ) : null}
+      {commentCount > 0 ? (
+        <div
+          data-testid="COMMENT_COUNT_BADGE"
+          title="comments"
+          style={{
+            background: colors.primary,
+            color: colors['bg-deep'],
+            borderRadius: 10,
+            fontSize: 10,
+            padding: '1px 6px',
+            display: 'inline-block',
+            marginTop: 4,
+            marginLeft: 4,
+          }}
+        >
+          {String(commentCount)}
         </div>
       ) : null}
       {/* questId and flowId ride in on the node data only while the comment compose controls are
