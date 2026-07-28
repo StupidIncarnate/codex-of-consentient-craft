@@ -20,6 +20,7 @@ import type {
   AgentId,
   AgentPromptResult,
   BlockedReason,
+  CommentBatchEntry,
   DirectoryEntry,
   DispatchState,
   GetQuestResult,
@@ -57,6 +58,7 @@ import { AgentPromptFlow } from '../flows/agent-prompt/agent-prompt-flow';
 import { ChatReplayFlow } from '../flows/chat-replay/chat-replay-flow';
 import { ChatStartFlow } from '../flows/chat-start/chat-start-flow';
 import { ClarifyAnswerFlow } from '../flows/clarify-answer/clarify-answer-flow';
+import { CommentBatchFlow } from '../flows/comment-batch/comment-batch-flow';
 import { ChatStopFlow } from '../flows/chat-stop/chat-stop-flow';
 import { ChatStopAllFlow } from '../flows/chat-stop-all/chat-stop-all-flow';
 import { DesignChatStartFlow } from '../flows/design-chat-start/design-chat-start-flow';
@@ -225,6 +227,19 @@ export const StartOrchestrator = {
     questions: ClarificationQuestion[];
   }): Promise<{ chatProcessId: ProcessId }> =>
     ClarifyAnswerFlow({ guildId, sessionId, questId, answers, questions }),
+
+  commentBatch: async ({
+    guildId,
+    sessionId,
+    questId,
+    comments,
+  }: {
+    guildId: GuildId;
+    sessionId: SessionId;
+    questId: QuestId;
+    comments: CommentBatchEntry[];
+  }): Promise<{ chatProcessId: ProcessId }> =>
+    CommentBatchFlow({ guildId, sessionId, questId, comments }),
 
   stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>
     ChatStopFlow({ chatProcessId }),

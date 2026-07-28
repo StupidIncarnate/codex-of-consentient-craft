@@ -14,6 +14,7 @@ describe('apiRoutesStatics', () => {
         new: '/api/guilds/:guildId/quests',
         chat: '/api/quests/:questId/chat',
         clarify: '/api/quests/:questId/clarify',
+        comments: '/api/quests/:questId/comments',
         start: '/api/quests/:questId/start',
         pause: '/api/quests/:questId/pause',
         resume: '/api/quests/:questId/resume',

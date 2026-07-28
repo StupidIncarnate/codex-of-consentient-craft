@@ -12,6 +12,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 import { QuestChatResponder } from '../../responders/quest/chat/quest-chat-responder';
 import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clarify-responder';
+import { QuestCommentBatchResponder } from '../../responders/quest/comment-batch/quest-comment-batch-responder';
 import { QuestFindBySessionResponder } from '../../responders/quest/find-by-session/quest-find-by-session-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
@@ -127,6 +128,17 @@ export const QuestFlow = (): Hono => {
     const result = await QuestClarifyResponder({
       params: { questId: c.req.param('questId') },
       body: await c.req.json(),
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.comments, async (c) => {
+    // A body that is not JSON at all still has to reach the responder's own 400, so the parse
+    // failure degrades to an empty object rather than throwing out of the route handler.
+    const body: unknown = await c.req.json().catch(() => ({}));
+    const result = await QuestCommentBatchResponder({
+      params: { questId: c.req.param('questId') },
+      body,
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

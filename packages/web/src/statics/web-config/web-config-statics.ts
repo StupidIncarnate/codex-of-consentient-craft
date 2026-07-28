@@ -21,6 +21,7 @@ export const webConfigStatics = {
       questNew: '/api/guilds/:guildId/quests',
       questChat: '/api/quests/:questId/chat',
       questClarify: '/api/quests/:questId/clarify',
+      questComments: '/api/quests/:questId/comments',
       processStatus: '/api/process/:processId',
       questStart: '/api/quests/:questId/start',
       questPause: '/api/quests/:questId/pause',

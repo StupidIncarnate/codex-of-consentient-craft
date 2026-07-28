@@ -170,6 +170,9 @@ export * from './src/contracts/comment-text/comment-text.stub';
 export * from './src/contracts/quest-comment/quest-comment-contract';
 export * from './src/contracts/quest-comment/quest-comment.stub';
 
+export * from './src/contracts/comment-batch-entry/comment-batch-entry-contract';
+export * from './src/contracts/comment-batch-entry/comment-batch-entry.stub';
+
 export * from './src/contracts/flow-node/flow-node-contract';
 export * from './src/contracts/flow-node/flow-node.stub';
 

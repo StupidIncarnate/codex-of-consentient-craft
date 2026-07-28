@@ -144,4 +144,40 @@ describe('QuestFlow', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('POST /api/quests/:questId/comments', () => {
+    it('EMPTY: {comments: []} => delegates to QuestCommentBatchResponder and returns 400 empty-batch', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments: [] }),
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'comments array is required and must not be empty',
+      });
+    });
+
+    it('INVALID: {non-JSON body} => reaches the responder 400 rather than throwing out of the route', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'not json at all',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'comments array is required and must not be empty',
+      });
+    });
+  });
 });
