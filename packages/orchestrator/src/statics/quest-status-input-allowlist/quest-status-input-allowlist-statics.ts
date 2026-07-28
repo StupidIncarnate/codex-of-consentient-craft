@@ -3,7 +3,7 @@
  *
  * USAGE:
  * questStatusInputAllowlistStatics.explore_flows.allowedFields;
- * // Returns: ['title', 'flows', 'designDecisions', 'status']
+ * // Returns: ['title', 'flows', 'designDecisions', 'comments', 'status']
  * questStatusInputAllowlistStatics.explore_observables.allowedFields;
  * // Includes 'operations' — ChaosWhisperer authors the implementation plan items there. No other
  * // status allows `operations`, so an execution agent's modify-quest{operations} at in_progress is
@@ -39,23 +39,30 @@ export type QuestStatusFlowsRule = 'forbidden' | 'full' | 'no-observables' | 'ad
 export type QuestStatusPlanningNotesField = 'blightReports';
 
 export const questStatusInputAllowlistStatics = {
+  // `comments` joins `allowedFields` ONLY at the statuses that precede `approved` — pending,
+  // created, explore_flows, review_flows, flows_approved, explore_observables, review_observables.
+  // The comment icon button and queue toolbar (the compose affordances) render only while quest
+  // status precedes `approved` (#dd-comment-controls-before-approved), so a comment write arriving
+  // at `approved` or later means the browser sent something it should never have offered. This is a
+  // per-status decision, which is why it lives here rather than being unconditionally stripped like
+  // `workItems`/`wardResults`/`designPort` (see inspectable-modify-quest-input-fields-statics).
   pending: {
-    allowedFields: ['title', 'status'],
+    allowedFields: ['title', 'comments', 'status'],
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   created: {
-    allowedFields: ['title', 'status'],
+    allowedFields: ['title', 'comments', 'status'],
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
   explore_flows: {
-    allowedFields: ['title', 'flows', 'designDecisions', 'status'],
+    allowedFields: ['title', 'flows', 'designDecisions', 'comments', 'status'],
     flowsRule: 'no-observables',
     allowedPlanningNotesFields: [],
   },
   review_flows: {
-    allowedFields: ['status'],
+    allowedFields: ['comments', 'status'],
     backTransitionFields: {
       toStatus: 'explore_flows',
       fields: ['flows', 'designDecisions'],
@@ -71,6 +78,7 @@ export const questStatusInputAllowlistStatics = {
       'toolingRequirements',
       'packagesAffected',
       'operations',
+      'comments',
       'status',
     ],
     flowsRule: 'full',
@@ -84,13 +92,14 @@ export const questStatusInputAllowlistStatics = {
       'toolingRequirements',
       'packagesAffected',
       'operations',
+      'comments',
       'status',
     ],
     flowsRule: 'full',
     allowedPlanningNotesFields: [],
   },
   review_observables: {
-    allowedFields: ['status'],
+    allowedFields: ['comments', 'status'],
     backTransitionFields: {
       toStatus: 'explore_observables',
       fields: [

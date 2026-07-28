@@ -9,6 +9,7 @@
 import { absoluteFilePathContract, questIdContract } from '@dungeonmaster/shared/contracts';
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
+import { questStripCommentsTransformer } from '../../../transformers/quest-strip-comments/quest-strip-comments-transformer';
 import { claudeCodeSessionResolveBroker } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker';
 import { orchestratorCreateQuestAdapter } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter';
 import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter';
@@ -54,6 +55,9 @@ export const QuestHandleResponder = async ({
       });
 
       if (format === 'text' && result.success && result.quest) {
+        // questToTextDisplayTransformer never reads quest.comments — no section renders them —
+        // so the text branch does not need the strip below. It also takes a full Quest, which
+        // the stripped payload the JSON branch builds deliberately is not.
         return {
           content: [
             {
@@ -69,11 +73,15 @@ export const QuestHandleResponder = async ({
         };
       }
 
+      // Strip comments before this reaches an agent: a comment is a record for the user, meant
+      // to be seen exactly once as the markdown turn the comment-batch route delivers, never
+      // again via get-quest.
+      const agentPayload = questStripCommentsTransformer({ result });
       return {
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
+            text: contentTextContract.parse(JSON.stringify(agentPayload, null, JSON_INDENT_SPACES)),
           },
         ],
         ...(!result.success && { isError: true }),
@@ -97,12 +105,20 @@ export const QuestHandleResponder = async ({
   if (tool === 'modify-quest') {
     const questId = questIdContract.parse(args.questId);
 
-    // Sanitize: strip server-only fields that agents must not set via MCP
+    // Sanitize: strip fields agents must not set via MCP. workItems/wardResults/designPort/
+    // pausedAtStatus are server-only fields the orchestrator owns end to end. comments is
+    // different: it is USER-owned, not server-only — an agent may not author, edit, or delete a
+    // comment via MCP, but the comment-batch route legitimately writes this same field through
+    // the very same orchestrator broker; only the MCP path is closed. The strip happens BEFORE
+    // validation runs, so a modify-quest call carrying comments still succeeds with no error and
+    // no failedChecks entry naming comments — an agent handed a validation failure about a field
+    // it has no permission to write would burn turns trying to fix something it cannot fix.
     const sanitized = { ...args };
     Reflect.deleteProperty(sanitized, 'workItems');
     Reflect.deleteProperty(sanitized, 'wardResults');
     Reflect.deleteProperty(sanitized, 'designPort');
     Reflect.deleteProperty(sanitized, 'pausedAtStatus');
+    Reflect.deleteProperty(sanitized, 'comments');
 
     try {
       const result = await orchestratorModifyQuestAdapter({

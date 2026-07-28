@@ -6,20 +6,38 @@ import {
   ModifyQuestResultStub,
   OrchestrationStatusStub,
   ProcessIdStub,
+  QuestCommentStub,
   QuestIdStub,
   QuestListItemStub,
+  QuestStub,
   QuestWorkItemIdStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
+import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 
 const JSON_INDENT_SPACES = 2;
+// Named list, not a hardcoded it.each array in isolation — every value questStageContract
+// currently accepts (spec/planning/implementation), used to prove the comment strip applies
+// under every stage filter, not just the default unfiltered read.
+const GET_QUEST_STAGE_FILTERS = ['spec', 'planning', 'implementation'] as const;
+const COMMENT_TEXT_ONE = 'First reviewer note about the login node';
+const COMMENT_TEXT_TWO = 'Second reviewer note about the auth check';
+const COMMENT_TEXT_THREE = 'Third reviewer note about the dashboard redirect';
+const COMMENT_ID_ONE = 'a1a2a3a4-58cc-4372-a567-0e02b2c3d479';
+const COMMENT_ID_TWO = 'b1b2b3b4-58cc-4372-a567-0e02b2c3d479';
+const COMMENT_ID_THREE = 'c1c2c3c4-58cc-4372-a567-0e02b2c3d479';
+const TEXT_FORMAT_SENTINEL_COMMENT = 'SENTINEL_TEXT_MUST_NOT_APPEAR_IN_RENDERED_QUEST_TEXT';
 
 describe('QuestHandleResponder', () => {
   describe('get-quest', () => {
-    it('VALID: {questId} => returns quest data', async () => {
+    it('VALID: {questId} => returns quest data with comments key stripped', async () => {
       const proxy = QuestHandleResponderProxy();
-      const questResult = GetQuestResultStub();
+      const quest = QuestStub();
+      const questResult = GetQuestResultStub({ quest });
+      // quest.comments defaults to [] via QuestStub — delete it AFTER building questResult above,
+      // so the deletion only shapes what we expect back, never what fed the mock.
+      Reflect.deleteProperty(quest, 'comments');
       proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
 
       const result = await proxy.callResponder({
@@ -31,15 +49,17 @@ describe('QuestHandleResponder', () => {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(questResult, null, JSON_INDENT_SPACES),
+            text: JSON.stringify({ success: true, quest }, null, JSON_INDENT_SPACES),
           },
         ],
       });
     });
 
-    it('VALID: {questId, stage} => returns filtered quest data', async () => {
+    it('VALID: {questId, stage} => returns filtered quest data with comments key stripped', async () => {
       const proxy = QuestHandleResponderProxy();
-      const questResult = GetQuestResultStub();
+      const quest = QuestStub();
+      const questResult = GetQuestResultStub({ quest });
+      Reflect.deleteProperty(quest, 'comments');
       proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
 
       const result = await proxy.callResponder({
@@ -51,15 +71,17 @@ describe('QuestHandleResponder', () => {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(questResult, null, JSON_INDENT_SPACES),
+            text: JSON.stringify({ success: true, quest }, null, JSON_INDENT_SPACES),
           },
         ],
       });
     });
 
-    it('VALID: {unsuccessful result} => returns isError true', async () => {
+    it('VALID: {unsuccessful result} => returns isError true with comments key stripped', async () => {
       const proxy = QuestHandleResponderProxy();
-      const questResult = GetQuestResultStub({ success: false });
+      const quest = QuestStub();
+      const questResult = GetQuestResultStub({ success: false, quest });
+      Reflect.deleteProperty(quest, 'comments');
       proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
 
       const result = await proxy.callResponder({
@@ -71,10 +93,123 @@ describe('QuestHandleResponder', () => {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(questResult, null, JSON_INDENT_SPACES),
+            text: JSON.stringify({ success: false, quest }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
+      });
+    });
+
+    it('VALID: {format: json, quest with 3 comments} => strips the comments key and leaks none of the comment text', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const quest = QuestStub({
+        comments: [
+          QuestCommentStub({ id: COMMENT_ID_ONE, text: COMMENT_TEXT_ONE }),
+          QuestCommentStub({ id: COMMENT_ID_TWO, text: COMMENT_TEXT_TWO }),
+          QuestCommentStub({ id: COMMENT_ID_THREE, text: COMMENT_TEXT_THREE }),
+        ],
+      });
+      const questResult = GetQuestResultStub({ quest });
+      Reflect.deleteProperty(quest, 'comments');
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', format: 'json' },
+      });
+
+      // The exact-string match below is the proof of absence: if any of the three comment
+      // strings (or the "comments" key itself) leaked into the response, this string would be
+      // longer than the expected text and the assertion would fail — there is no expected
+      // substring left for a leak to hide behind.
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, quest }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it.each(GET_QUEST_STAGE_FILTERS)(
+      'VALID: {format: json, stage: %s, quest with 3 comments} => strips comments under every stage filter',
+      async (stage) => {
+        const proxy = QuestHandleResponderProxy();
+        const quest = QuestStub({
+          comments: [
+            QuestCommentStub({ id: COMMENT_ID_ONE, text: COMMENT_TEXT_ONE }),
+            QuestCommentStub({ id: COMMENT_ID_TWO, text: COMMENT_TEXT_TWO }),
+            QuestCommentStub({ id: COMMENT_ID_THREE, text: COMMENT_TEXT_THREE }),
+          ],
+        });
+        const questResult = GetQuestResultStub({ quest });
+        Reflect.deleteProperty(quest, 'comments');
+        proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+        const result = await proxy.callResponder({
+          tool: ToolNameStub({ value: 'get-quest' }),
+          args: { questId: 'test-quest-id', format: 'json', stage },
+        });
+
+        expect(result).toStrictEqual({
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true, quest }, null, JSON_INDENT_SPACES),
+            },
+          ],
+        });
+      },
+    );
+
+    it('VALID: {format: text, quest with a sentinel comment} => rendered text never contains the comment text', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const quest = QuestStub({
+        comments: [QuestCommentStub({ text: TEXT_FORMAT_SENTINEL_COMMENT })],
+      });
+      const questResult = GetQuestResultStub({ quest });
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', format: 'text' },
+      });
+
+      // questToTextDisplayTransformer has no comments section, so the real renderer's own output
+      // (computed directly here, not mocked) is already proof the sentinel never appears — an
+      // exact match against it leaves no room for the sentinel to have leaked in anywhere.
+      const expectedText = questToTextDisplayTransformer({ quest });
+
+      expect(result).toStrictEqual({
+        content: [{ type: 'text', text: expectedText }],
+      });
+    });
+
+    it('VALID: {format: json, quest with comments} => flows, designDecisions, contracts, toolingRequirements and operations pass through unchanged', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const quest = QuestStub({
+        comments: [QuestCommentStub()],
+      });
+      const questResult = GetQuestResultStub({ quest });
+      Reflect.deleteProperty(quest, 'comments');
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', format: 'json' },
+      });
+
+      // quest here (comments already deleted above) still carries its original flows,
+      // designDecisions, contracts, toolingRequirements and operations untouched — the exact
+      // match proves the strip cost the agent nothing beyond the comments key.
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, quest }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
@@ -224,6 +359,45 @@ describe('QuestHandleResponder', () => {
 
       expect(passedInput).toStrictEqual({
         questId: 'test-quest-id',
+      });
+    });
+
+    it('EDGE: {comments in args} => strips comments before passing to adapter, and still succeeds', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          comments: [
+            {
+              id: 'sneaky-comment-id',
+              flowId: 'login-flow',
+              nodeId: 'start',
+              text: 'An agent should not be able to write this',
+              createdAt: '2024-01-15T10:00:00.000Z',
+            },
+          ],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+      // The strip happens before validation runs: an agent that tries to write comments gets the
+      // ordinary success payload back, never a validation error or a failedChecks entry naming
+      // comments — there is nothing here for it to chase.
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(modifyResult, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 

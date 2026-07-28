@@ -1,9 +1,11 @@
 import {
   FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
   ModifyQuestInputStub,
   OperationItemStub,
   PlanningBlightReportStub,
+  QuestCommentStub,
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -1454,6 +1456,429 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('comment persistence and orphan cleanup', () => {
+    it('VALID: {comments: [new comment anchored to existing node], status: review_flows} => comment reaches persisted quest.comments', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'submit-form' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'review_flows',
+        flows: [flow],
+        comments: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const comment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        comments: [comment],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([comment]);
+    });
+
+    it('VALID: {comments: [second comment]} on a node that already carries one => persisted comments are first then second, both intact', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'submit-form' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const firstComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+        text: 'First comment',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'review_flows',
+        flows: [flow],
+        comments: [firstComment],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const secondComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+        text: 'Second comment',
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        comments: [secondComment],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([firstComment, secondComment]);
+    });
+
+    it('VALID: {title only} on a quest carrying comments => persisted.comments unchanged and persisted.title updated', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'submit-form' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const existingComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [flow],
+        comments: [existingComment],
+        title: 'Old Title',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        title: 'New Title',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect({
+        title: persisted.title,
+        comments: persisted.comments,
+      }).toStrictEqual({
+        title: 'New Title',
+        comments: [existingComment],
+      });
+    });
+
+    it('VALID: {flows: [delete a node]} => every comment anchored to that node is dropped from persisted.comments', async () => {
+      const proxy = questModifyBrokerProxy();
+      const deleteNode = FlowNodeStub({ id: 'delete-node' as never });
+      const keepNode = FlowNodeStub({ id: 'keep-node' as never, label: 'Keep Node' as never });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [deleteNode, keepNode],
+        edges: [],
+      });
+      const deletedComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'delete-node' as never,
+      });
+      const keptComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'keep-node' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        comments: [deletedComment, keptComment],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow' as never,
+            nodes: [{ id: 'delete-node' as never, _delete: true }],
+          } as never,
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([keptComment]);
+    });
+
+    it('VALID: {flows: [delete one observable from a node]} carrying both an observable comment and a node comment => observable-anchored comment dropped, node-anchored comment survives', async () => {
+      const proxy = questModifyBrokerProxy();
+      const obsOne = FlowObservableStub({ id: 'obs-one' as never });
+      const obsTwo = FlowObservableStub({ id: 'obs-two' as never });
+      const node = FlowNodeStub({
+        id: 'submit-form' as never,
+        observables: [obsOne, obsTwo],
+      });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const observableComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+        observableId: 'obs-one' as never,
+      });
+      const nodeComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        comments: [observableComment, nodeComment],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow' as never,
+            nodes: [
+              {
+                id: 'submit-form' as never,
+                observables: [{ id: 'obs-one' as never, _delete: true }],
+              },
+            ],
+          } as never,
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([nodeComment]);
+    });
+
+    it('VALID: {flows: [delete a whole flow]} on a quest with two commented flows => every comment on the deleted flow is dropped, the surviving flow keeps its comments', async () => {
+      const proxy = questModifyBrokerProxy();
+      const flowANode = FlowNodeStub({ id: 'node-a' as never });
+      const flowA = FlowStub({ id: 'flow-a' as never, nodes: [flowANode], edges: [] });
+      const flowBNode = FlowNodeStub({ id: 'node-b' as never, label: 'Node B' as never });
+      const flowB = FlowStub({
+        id: 'flow-b' as never,
+        name: 'Second Flow' as never,
+        nodes: [flowBNode],
+        edges: [],
+      });
+      const commentA = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'flow-a' as never,
+        nodeId: 'node-a' as never,
+      });
+      const commentB = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
+        flowId: 'flow-b' as never,
+        nodeId: 'node-b' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flowA, flowB],
+        comments: [commentA, commentB],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [{ id: 'flow-a' as never, _delete: true } as never],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([commentB]);
+    });
+
+    it('VALID: {flows: [rename a node label]} => that node comments survive with byte-identical text and createdAt', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'submit-form' as never, label: 'Submit Form' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const comment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'submit-form' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        comments: [comment],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow' as never,
+            nodes: [{ id: 'submit-form' as never, label: 'Renamed Label' as never }],
+          } as never,
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([comment]);
+    });
+
+    it('VALID: {flows: [delete one node from a two-node flow]} => the sibling node comments are untouched', async () => {
+      const proxy = questModifyBrokerProxy();
+      const deleteNode = FlowNodeStub({ id: 'delete-me' as never });
+      const siblingNode = FlowNodeStub({ id: 'keep-me' as never, label: 'Keep Me' as never });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [deleteNode, siblingNode],
+        edges: [],
+      });
+      const deletedComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'delete-me' as never,
+      });
+      const siblingCommentOne = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'keep-me' as never,
+        text: 'First sibling comment',
+      });
+      const siblingCommentTwo = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d003' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'keep-me' as never,
+        text: 'Second sibling comment',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        comments: [deletedComment, siblingCommentOne, siblingCommentTwo],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow' as never,
+            nodes: [{ id: 'delete-me' as never, _delete: true }],
+          } as never,
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([siblingCommentOne, siblingCommentTwo]);
+    });
+
+    it('VALID: {title only} on a quest already carrying an orphan comment => success true, no failedChecks, orphan comment still persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'submit-form' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const orphanComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d011' as never,
+        flowId: 'ghost-flow' as never,
+        nodeId: 'ghost-node' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_flows',
+        flows: [flow],
+        comments: [orphanComment],
+        title: 'Old Title',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        title: 'New Title',
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.comments).toStrictEqual([orphanComment]);
+    });
+
+    it('INVALID: {comments write at status approved} => rejected by Input Allowlist; nothing persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'approved',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const comment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        comments: [comment],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Field(s) not allowed in status approved',
+        failedChecks: [
+          {
+            name: 'Input Allowlist',
+            passed: false,
+            details: "Field 'comments' not allowed in status 'approved'",
+          },
+        ],
+      });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
 });

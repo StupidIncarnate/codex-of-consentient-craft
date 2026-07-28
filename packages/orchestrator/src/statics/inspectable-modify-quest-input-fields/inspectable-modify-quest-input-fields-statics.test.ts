@@ -8,6 +8,7 @@ describe('inspectableModifyQuestInputFieldsStatics', () => {
       'toolingRequirements',
       'contracts',
       'flows',
+      'comments',
       'status',
       'title',
       'planningNotes',

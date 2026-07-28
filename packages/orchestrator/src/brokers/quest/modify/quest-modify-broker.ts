@@ -43,6 +43,7 @@ import { questContractSourceResolutionTransformer } from '../../../transformers/
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
 import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard';
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
+import { questResolvedCommentsTransformer } from '../../../transformers/quest-resolved-comments/quest-resolved-comments-transformer';
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -176,6 +177,16 @@ export const questModifyBroker = async ({
           });
         }
 
+        // This is the comment-batch route's own server-side persist path — the MCP layer strips
+        // `comments` from an agent's modify-quest payload before it ever reaches here, so this
+        // branch serves the user's write (queued flow-diagram comments), never an agent's.
+        if (validated.comments) {
+          quest.comments = questArrayUpsertTransformer({
+            existing: quest.comments,
+            updates: validated.comments as typeof quest.comments,
+          });
+        }
+
         if (validated.planningNotes) {
           const incoming = validated.planningNotes;
           const current = quest.planningNotes;
@@ -247,6 +258,30 @@ export const questModifyBroker = async ({
         // transformers such as questDuplicateObservableIdsInNodeTransformer and
         // questTerminalNodesMissingObservablesTransformer.
         Object.assign(quest, questContract.parse(quest));
+
+        // Orphan comment cleanup — drops any comment whose flow/node/observable anchor no longer
+        // resolves after this write's flow upserts, inside the same lock and before persist, so a
+        // deletion from the web UI and from an agent's modify-quest{flows} write are cleaned
+        // identically (#dd-orphan-cleanup-server-side). Must run AFTER the re-parse above: the
+        // re-parse is what applies the `observables: []` default to a node the input upserted
+        // without an `observables` key, and cleaning up before it would read `undefined`
+        // observables and wrongly orphan every observable-anchored comment on a freshly written
+        // node. Guarded on `validated.flows !== undefined` because only a write that touches
+        // flows/nodes/observables can remove an anchor — a title-only write leaves quest.comments
+        // byte-identical and runs no anchor resolution at all.
+        //
+        // This cleanup is BEST EFFORT (#dd-no-orphan-validation-gate): a stray orphaned comment
+        // that survives is tolerated and harmless, and must NEVER be promoted to a save-time
+        // validation gate — it must never fail a save, block a status transition, or appear as a
+        // failedCheck. A quest carrying a dangling comment is cosmetically imperfect and
+        // functionally harmless, whereas an invariant that rejects one would wedge a quest on a
+        // record the user owns and no agent is allowed to delete.
+        if (validated.flows !== undefined) {
+          quest.comments = questResolvedCommentsTransformer({
+            comments: quest.comments,
+            flows: quest.flows,
+          });
+        }
 
         // Resolve contract source paths against disk and reject status-vs-disk mismatches.
         // Scoped to the contracts being WRITTEN in this call (validated.contracts) — running

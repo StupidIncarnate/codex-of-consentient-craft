@@ -1,25 +1,35 @@
 import { questStatusInputAllowlistStatics } from './quest-status-input-allowlist-statics';
 
+const COMMENTS_WRITABLE_STATUSES = [
+  'pending',
+  'created',
+  'explore_flows',
+  'review_flows',
+  'flows_approved',
+  'explore_observables',
+  'review_observables',
+] as const;
+
 describe('questStatusInputAllowlistStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(questStatusInputAllowlistStatics).toStrictEqual({
       pending: {
-        allowedFields: ['title', 'status'],
+        allowedFields: ['title', 'comments', 'status'],
         flowsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       created: {
-        allowedFields: ['title', 'status'],
+        allowedFields: ['title', 'comments', 'status'],
         flowsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
       explore_flows: {
-        allowedFields: ['title', 'flows', 'designDecisions', 'status'],
+        allowedFields: ['title', 'flows', 'designDecisions', 'comments', 'status'],
         flowsRule: 'no-observables',
         allowedPlanningNotesFields: [],
       },
       review_flows: {
-        allowedFields: ['status'],
+        allowedFields: ['comments', 'status'],
         backTransitionFields: {
           toStatus: 'explore_flows',
           fields: ['flows', 'designDecisions'],
@@ -35,6 +45,7 @@ describe('questStatusInputAllowlistStatics', () => {
           'toolingRequirements',
           'packagesAffected',
           'operations',
+          'comments',
           'status',
         ],
         flowsRule: 'full',
@@ -48,13 +59,14 @@ describe('questStatusInputAllowlistStatics', () => {
           'toolingRequirements',
           'packagesAffected',
           'operations',
+          'comments',
           'status',
         ],
         flowsRule: 'full',
         allowedPlanningNotesFields: [],
       },
       review_observables: {
-        allowedFields: ['status'],
+        allowedFields: ['comments', 'status'],
         backTransitionFields: {
           toStatus: 'explore_observables',
           fields: [
@@ -154,6 +166,7 @@ describe('questStatusInputAllowlistStatics', () => {
       'toolingRequirements',
       'packagesAffected',
       'operations',
+      'comments',
       'status',
     ]);
   });
@@ -188,5 +201,34 @@ describe('questStatusInputAllowlistStatics', () => {
 
   it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
+  });
+
+  describe("'comments' allowlist (compose controls render only before approved)", () => {
+    it.each(COMMENTS_WRITABLE_STATUSES)(
+      "VALID: {status: %s} => allowedFields includes 'comments'",
+      (status) => {
+        const hasComments = new Set<unknown>(
+          questStatusInputAllowlistStatics[status].allowedFields,
+        ).has('comments');
+
+        expect(hasComments).toBe(true);
+      },
+    );
+
+    it("INVALID: {status: approved} => allowedFields does not include 'comments' (compose controls no longer render)", () => {
+      const hasComments = new Set<unknown>(
+        questStatusInputAllowlistStatics.approved.allowedFields,
+      ).has('comments');
+
+      expect(hasComments).toBe(false);
+    });
+
+    it("INVALID: {status: in_progress} => allowedFields does not include 'comments' (compose controls no longer render)", () => {
+      const hasComments = new Set<unknown>(
+        questStatusInputAllowlistStatics.in_progress.allowedFields,
+      ).has('comments');
+
+      expect(hasComments).toBe(false);
+    });
   });
 });
