@@ -209,7 +209,7 @@ export const QuestSpecPanelWidget = ({
             >
               OPERATIONS
             </Text>
-            <OperationsLedgerWidget operations={quest.operations} />
+            <OperationsLedgerWidget operations={quest.operations} flows={quest.flows} />
           </Box>
         ) : null}
 

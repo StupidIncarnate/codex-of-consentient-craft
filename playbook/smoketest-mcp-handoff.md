@@ -13,7 +13,9 @@ process: `playbook/smoketest-orchastrator.md`.
 The operations relay end to end, one agent session at a time:
 
 ```
-codeweaver ×N (Chaos-authored) → ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)
+codeweaver ×N (Chaos-authored) → ward(changed)
+  → (flowrider → siegemaster) per quest flow, in declaration order
+  → lawbringer → blightwarden → ward(full)
   → quest derives complete
 ```
 

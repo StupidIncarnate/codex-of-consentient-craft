@@ -468,6 +468,61 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
+    describe('per-flow scoping for flowrider/siegemaster', () => {
+      const perFlowCases = [
+        ['flowrider', flowriderPromptStatics] as const,
+        ['siegemaster', siegemasterPromptStatics] as const,
+      ];
+
+      it.each(perFlowCases)(
+        'VALID: {role: %s, operation with one flowId} => names it as the unit of accountability, not a starting point',
+        (role, statics) => {
+          const questId = QuestIdStub({ value: 'my-quest' });
+          const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-9999-4222-9333-444444444444' });
+          const operationId = OperationItemIdStub({
+            value: 'dddddddd-9999-4222-9333-444444444444',
+          });
+          const operation = OperationItemStub({
+            id: operationId,
+            role,
+            text: 'verify the flow — flow: send-queued-comment-batch',
+            status: 'in_progress',
+            flowIds: ['send-queued-comment-batch'],
+          });
+          const workItem = WorkItemStub({
+            id: workItemId,
+            role,
+            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          });
+          const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+          const result = workItemToPromptTransformer({
+            quest,
+            workItem,
+            agentName: AgentPromptNameStub({ value: role }),
+          });
+
+          const expectedArgs = [
+            `Quest ID: ${String(questId)}`,
+            `Work Item ID: ${String(workItemId)}`,
+            `Operation Item ID: ${String(operationId)}`,
+            `Your operation item: [${role}] verify the flow — flow: send-queued-comment-batch`,
+            '',
+            'Operations ledger (in order):',
+            `1. [>] [${role}] verify the flow — flow: send-queued-comment-batch  <-- YOUR OPERATION ITEM`,
+            '',
+            'Your flow: #send-queued-comment-batch',
+            '(YOUR unit of accountability — this dispatch is per flow. Read the other flows for context; the one named here is the one you verify.)',
+            '',
+            'Original user request (the intent behind the flows):',
+            'Add authentication to the application',
+          ].join('\n');
+
+          expect(result.prompt).toBe(statics.prompt.template.replace('$ARGUMENTS', expectedArgs));
+        },
+      );
+    });
+
     describe('dev-server pass-through for flowrider/siegemaster', () => {
       const cases = [
         ['flowrider', flowriderPromptStatics] as const,

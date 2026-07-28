@@ -158,8 +158,32 @@ describe('siegemasterPromptStatics', () => {
     });
   });
 
-  it('VALID: template => frames every spine flow as a map to walk', () => {
-    const needle = '**Each flow on the spine is a map.**';
+  it('VALID: template => frames its one flow as the map to walk', () => {
+    const needle = '**Your flow is a map.**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => scopes the session to the ONE flow its operation item names', () => {
+    const needle = 'that item names **ONE flow**';
+    const { template } = siegemasterPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('**Read the other flows; walk yours.**')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => pairs the session with the Flowrider session that ran on the same flow', () => {
+    const needle =
+      'The Flowrider\nsession immediately before you authored the test suite for this SAME flow';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -205,9 +229,9 @@ describe('siegemasterPromptStatics', () => {
     expect(exitCriteriaCount).toBe(8);
   });
 
-  it('VALID: template => Gate 1 loads standards, verifies against git, and maps every flow', () => {
+  it('VALID: template => Gate 1 loads standards, verifies against git, and maps its own flow', () => {
     expect(siegemasterPromptStatics.prompt.template).toMatch(
-      /^### Gate 1: Load Standards, Verify Against Git & Map Every Flow \(MCP — BLOCKING, do this FIRST\)$/mu,
+      /^### Gate 1: Load Standards, Verify Against Git & Map Your Flow \(MCP — BLOCKING, do this FIRST\)$/mu,
     );
   });
 
@@ -294,7 +318,7 @@ describe('siegemasterPromptStatics', () => {
       /^### Gate 4: Walk the Sad Paths \(every drawn error\/skip branch\)$/mu,
     );
 
-    const needle = 'Every terminal on every map, success or error, must be reached for real.';
+    const needle = 'Every terminal on your map, success or error, must be reached for real.';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -402,7 +426,7 @@ describe('siegemasterPromptStatics', () => {
 
   it('VALID: template => states convergence is the verdict (fresh pass that changes nothing)', () => {
     const needle =
-      '**Convergence IS the verdict: only a fresh pass that changes nothing proves the flows hold.**';
+      '**Convergence IS the verdict: only a fresh pass that changes nothing proves your flow holds.**';
     const { template } = siegemasterPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

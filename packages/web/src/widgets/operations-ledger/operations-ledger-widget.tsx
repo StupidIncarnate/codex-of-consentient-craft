@@ -3,18 +3,21 @@
  * as a pixel-art monospace checklist shared by the execution panel and the quest spec panel
  *
  * USAGE:
- * <OperationsLedgerWidget operations={quest.operations} />
- * // Renders one [x]/[>]/[ ] row per operation item; renders nothing when operations is empty
+ * <OperationsLedgerWidget operations={quest.operations} flows={quest.flows} />
+ * // Renders one [x]/[>]/[ ] row per operation item — the flows it lands on first, its text
+ * // underneath; renders nothing when operations is empty
  */
 
 import { Box, Text } from '@mantine/core';
 
-import type { OperationItem } from '@dungeonmaster/shared/contracts';
+import type { Flow, OperationItem } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { operationFlowLabelsTransformer } from '../../transformers/operation-flow-labels/operation-flow-labels-transformer';
 
 export interface OperationsLedgerWidgetProps {
   operations: readonly OperationItem[];
+  flows: readonly Flow[];
 }
 
 const ROW_FONT_SIZE = 10;
@@ -37,6 +40,7 @@ const STATUS_COLOR_KEYS = {
 
 export const OperationsLedgerWidget = ({
   operations,
+  flows,
 }: OperationsLedgerWidgetProps): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;
 
@@ -90,13 +94,30 @@ export const OperationsLedgerWidget = ({
           >
             [{op.role.toUpperCase()}]
           </Text>
-          <Text
-            ff="monospace"
-            data-testid="OPERATIONS_LEDGER_ROW_TEXT"
-            style={{ fontSize: ROW_FONT_SIZE, color: colors.text, flex: 1 }}
-          >
-            {op.text}
-          </Text>
+          {/* Flow first, description underneath — the flow is what the row is FOR, and the text
+              is the scope within it. */}
+          <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+            {op.flowIds.length > 0 ? (
+              <Text
+                ff="monospace"
+                data-testid="OPERATIONS_LEDGER_ROW_FLOWS"
+                style={{ fontSize: ROW_FONT_SIZE, color: colors['loot-rare'], fontWeight: 600 }}
+              >
+                [
+                {operationFlowLabelsTransformer({ flowIds: op.flowIds, flows })
+                  .map((label) => String(label))
+                  .join(', ')}
+                ]
+              </Text>
+            ) : null}
+            <Text
+              ff="monospace"
+              data-testid="OPERATIONS_LEDGER_ROW_TEXT"
+              style={{ fontSize: ROW_FONT_SIZE, color: colors.text }}
+            >
+              {op.text}
+            </Text>
+          </Box>
           {op.wardMode ? (
             <Text
               ff="monospace"

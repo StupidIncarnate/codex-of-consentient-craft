@@ -1,4 +1,5 @@
 import {
+  FlowStub,
   OperationItemStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -64,16 +65,18 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000002',
             role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suite over every quest flow',
+            text: 'Flowrider: author the flow-perspective test suite — flow: login-flow',
             status: 'pending',
             locked: true,
+            flowIds: ['login-flow'],
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
             role: 'siegemaster',
-            text: 'Siegemaster: manual-QA every quest flow and review the flow test suite',
+            text: 'Siegemaster: manual-QA the flow and review its test suite — flow: login-flow',
             status: 'pending',
             locked: true,
+            flowIds: ['login-flow'],
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000004',
@@ -161,6 +164,144 @@ describe('questBuildRelayGraphBroker', () => {
           wardMode: 'changed',
           createdAt: '2024-01-15T10:00:00.000Z',
         }),
+      ]);
+    });
+
+    it('VALID: {feature quest with two flows} => flowrider+siegemaster fan out per flow in declaration order, one flow id each', () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
+          '00000000-0000-4000-8000-000000000007',
+          '00000000-0000-4000-8000-000000000008',
+          '00000000-0000-4000-8000-000000000009',
+        ],
+      });
+
+      const codeweaverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [codeweaverOp],
+        flows: [
+          FlowStub({ id: 'send-comment', name: 'Send comment' }),
+          FlowStub({ id: 'view-comments', name: 'View comments' }),
+        ],
+      });
+
+      const result = questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
+      ).toStrictEqual([
+        {
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suite — flow: send-comment',
+          flowIds: ['send-comment'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA the flow and review its test suite — flow: send-comment',
+          flowIds: ['send-comment'],
+        },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suite — flow: view-comments',
+          flowIds: ['view-comments'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA the flow and review its test suite — flow: view-comments',
+          flowIds: ['view-comments'],
+        },
+        {
+          role: 'lawbringer',
+          text: 'Lawbringer: standards review across the whole quest diff',
+          flowIds: [],
+        },
+        {
+          role: 'blightwarden',
+          text: 'Blightwarden: cross-cutting audit across the whole diff',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
+      ]);
+    });
+
+    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster fall back to one flow-less item each', () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
+          '00000000-0000-4000-8000-000000000007',
+        ],
+      });
+
+      const codeweaverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        status: 'pending',
+      });
+      const quest = QuestStub({ operations: [codeweaverOp], flows: [] });
+
+      const result = questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
+      ).toStrictEqual([
+        {
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suite',
+          flowIds: [],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA the flow and review its test suite',
+          flowIds: [],
+        },
+        {
+          role: 'lawbringer',
+          text: 'Lawbringer: standards review across the whole quest diff',
+          flowIds: [],
+        },
+        {
+          role: 'blightwarden',
+          text: 'Blightwarden: cross-cutting audit across the whole diff',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
       ]);
     });
   });

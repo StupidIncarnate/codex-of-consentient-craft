@@ -191,12 +191,15 @@ export const QuestHandleSignalBackResponder = async ({
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
+      // `flowIds` rides along with the role and lock: a per-flow item (flowrider/siegemaster) whose
+      // continuation lost its flow would hand the fresh session no scope at all.
       const continuation = operationItemContract.parse({
         id: crypto.randomUUID(),
         role: linkedOperation.role,
         text: `pt ${String(chainLength + 1)}: ${base}`,
         status: 'pending',
         locked: linkedOperation.locked,
+        flowIds: linkedOperation.flowIds,
         ...(linkedOperation.wardMode === undefined ? {} : { wardMode: linkedOperation.wardMode }),
       });
 

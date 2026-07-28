@@ -1,5 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
+import { FlowStub } from '../flow/flow.stub';
 import { questContract } from './quest-contract';
 import type { Quest } from './quest-contract';
 
@@ -14,7 +15,7 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     operations: [],
     toolingRequirements: [],
     contracts: [],
-    flows: [],
+    flows: [FlowStub()],
     needsDesign: false,
     userRequest: 'Add authentication to the application',
     workItems: [],

@@ -4,6 +4,9 @@
  * items) plus the fixed verify tail to the operations ledger, and creates ONE work item for the
  * first actionable (pending) operation item so the dispatch loop has something to pick up.
  *
+ * A verify-tail `forEachFlow` group (flowrider + siegemaster) fans out into one operation item per
+ * quest flow, so each of those sessions owns exactly ONE flow.
+ *
  * USAGE:
  * const { operations, workItems } = questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
  * // operations = FULL replacement ledger (plan items completed + tail appended, first actionable
@@ -20,6 +23,7 @@ import {
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
 import type {
+  Flow,
   OperationItem,
   Quest,
   QuestWorkItemId,
@@ -60,15 +64,43 @@ export const questBuildRelayGraphBroker = ({
     }),
   );
 
-  const tailOps = registry.relayTail.map((seed) =>
-    operationItemContract.parse({
-      id: crypto.randomUUID(),
-      role: seed.role,
-      text: seed.text,
-      status: 'pending',
-      locked: true,
-      ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
-    }),
+  // What a `forEachFlow` group repeats over. A flow-less quest gets ONE flow-less pass per group
+  // member rather than losing the role entirely: the approval gate only guarantees flows on a real
+  // feature quest, while hydrate and the smoketest blueprints start with none.
+  const groupFlows: (Flow | undefined)[] =
+    quest.flows.length === 0 ? [undefined] : [...quest.flows];
+
+  // A `forEachFlow` group repeats once per quest flow in DECLARATION order, keeping its own internal
+  // order — so flow A's authoring and its QA both land before flow B starts, because the flows have
+  // an order of operation between them.
+  //
+  // The flow id rides in the TEXT as well as `flowIds`, because operationPtChainTransformer keys a
+  // pt-continuation chain on role + base text: identical texts would pool every flow's retries into
+  // one budget. The id (not the name) is the key, so renaming a flow cannot split a live chain.
+  const tailOps = registry.relayTail.flatMap((entry) =>
+    'forEachFlow' in entry
+      ? groupFlows.flatMap((flow) =>
+          entry.forEachFlow.map((seed) =>
+            operationItemContract.parse({
+              id: crypto.randomUUID(),
+              role: seed.role,
+              text: flow === undefined ? seed.text : `${seed.text} — flow: ${String(flow.id)}`,
+              status: 'pending',
+              locked: true,
+              ...(flow === undefined ? {} : { flowIds: [flow.id] }),
+            }),
+          ),
+        )
+      : [
+          operationItemContract.parse({
+            id: crypto.randomUUID(),
+            role: entry.role,
+            text: entry.text,
+            status: 'pending',
+            locked: true,
+            ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
+          }),
+        ],
   );
 
   const operations = [...settledExisting, ...implementationOps, ...tailOps];

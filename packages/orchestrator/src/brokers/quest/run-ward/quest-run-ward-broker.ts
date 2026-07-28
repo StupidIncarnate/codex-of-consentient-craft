@@ -253,6 +253,7 @@ export const questRunWardBroker = async ({
         text: `pt ${String(chainLength + 1)}: ${base}`,
         status: 'pending',
         locked: true,
+        flowIds: linkedOperation.flowIds,
         wardMode: mode,
       });
 

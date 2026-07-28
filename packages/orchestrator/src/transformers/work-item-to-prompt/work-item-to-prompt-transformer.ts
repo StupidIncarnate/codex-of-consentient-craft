@@ -121,17 +121,22 @@ export const workItemToPromptTransformer = ({
     ...ledgerLines,
   ];
 
-  // Non-binding pointer at the flows this item lands on. Rendered with the caveat inline because
-  // the agent reads this block, not the contract's describe(): an item that serves the whole spec
-  // carries none, and treating a listed flow as a boundary is the failure mode to avoid.
+  // The flows this item lands on, with the caveat inline because the agent reads this block, not
+  // the contract's describe(). What the pointer MEANS differs by role: flowrider and siegemaster
+  // are dispatched one item per flow, so their flow is the unit they are accountable for; every
+  // other role gets a non-binding starting point, and treating it as a boundary is the failure
+  // mode to avoid (an item serving the whole spec carries no flows at all).
+  const isPerFlowRole = workItem.role === 'flowrider' || workItem.role === 'siegemaster';
   if (linkedOperation.flowIds.length > 0) {
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
-        `Flows your operation item lands on: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
+        `${isPerFlowRole ? 'Your flow' : 'Flows your operation item lands on'}: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
       ),
       contentTextContract.parse(
-        '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
+        isPerFlowRole
+          ? '(YOUR unit of accountability — this dispatch is per flow. Read the other flows for context; the one named here is the one you verify.)'
+          : '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
       ),
     );
   }

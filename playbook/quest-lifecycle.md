@@ -106,7 +106,8 @@ The Web UI "Start Quest" button → `orchestration-start-responder`. It seeds th
 
 1. Force-completes any non-complete intake (`chaoswhisperer` / `glyphsmith`) operation item.
 2. Appends the type's `startImplementationOps` + the fixed verify tail (`relayTail`) as **locked, pending** operation
-   items.
+   items. A `{ forEachFlow: [...] }` tail entry expands once per quest flow, in `quest.flows` declaration order, each
+   item carrying that single flow in `flowIds` and its id appended to the text.
 3. Creates ONE work item for the first actionable (`pending`) operation item, linked `operations/<id>`, depending on
    the completed chat work items.
 
@@ -114,8 +115,9 @@ The seed is idempotent — a re-Start detects the already-appended locked ward t
 
 The two quest types differ only in their ledger shape:
 
-- **feature** (`/dumpster-create`): `startImplementationOps` is empty (ChaosWhisperer authored the `codeweaver` items
-  at spec time). Verify tail = `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)`.
+- **feature** (`/dumpster-create`): `startImplementationOps` is empty (ChaosWhisperer authored the `codeweaver` items at
+  spec time). Verify tail = `ward(changed) → (flowrider → siegemaster) per flow → lawbringer → blightwarden →
+  ward(full)`.
 - **bug-hunt** (`/dumpster-hunt`): `startImplementationOps` = a single orchestrator-seeded `pesteater` item. Verify
   tail = `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
 
@@ -123,7 +125,9 @@ So the full feature relay is:
 
 ```
 codeweaver ×N (Chaos-authored)
-  → ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)
+  → ward(changed)
+  → [ flowrider(flow A) → siegemaster(flow A) → flowrider(flow B) → siegemaster(flow B) → … ]
+  → lawbringer → blightwarden → ward(full)
 ```
 
 ---
@@ -212,11 +216,14 @@ session of the same role re-run against the new state. The role converges when a
 `done` — convergence IS the verdict. A locked role's `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`
 (ward by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest. An unlocked `codeweaver` item's `pt N`
 chain is unbounded — codeweavers pivot in place freely. A `blocked` signal appends its `pt N` regardless of budget — the
-halt is the bound, and dropping the append would make a resume skip the scope.
+halt is the bound, and dropping the append would make a resume skip the scope. A chain is keyed on role + base text, so
+a per-flow flowrider/siegemaster item — whose text carries its flow id — gets its OWN budget per flow, and the
+continuation copies its `flowIds`.
 
-Trace a feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → siegemaster → lawbringer → blightwarden
-→ ward(full)`. After `ward(full)` is green, no `pending` operation item remains and the operation-aware status
-transformer derives `complete`. The dispatcher's next `get-next-step` picks up the next FIFO quest.
+Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider(A) → siegemaster(A) →
+flowrider(B) → siegemaster(B) → lawbringer → blightwarden → ward(full)`. After `ward(full)` is green, no `pending`
+operation item remains and the operation-aware status transformer derives `complete`. The dispatcher's next
+`get-next-step` picks up the next FIFO quest.
 
 ---
 

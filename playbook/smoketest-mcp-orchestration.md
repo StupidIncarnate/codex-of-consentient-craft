@@ -93,8 +93,9 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
 ### The two ledger shapes
 
 - **feature** (`questType: feature`): ChaosWhisperer authors the `{ role: 'codeweaver', text }` implementation items at
-  spec time; Start Quest appends the verify tail `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden →
-  ward(full)` (all `locked`).
+  spec time; Start Quest appends the verify tail `ward(changed) → (flowrider → siegemaster) per quest flow →
+  lawbringer → blightwarden → ward(full)` (all `locked`). The flowrider/siegemaster pair repeats once per flow, in
+  `quest.flows` declaration order, each item carrying that one flow in `flowIds`.
 - **bug-hunt** (`questType: bug-hunt`): Start Quest seeds a single `pesteater` implementation item + the tail
   `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
 
@@ -357,8 +358,10 @@ expand.
 ## B2b. Operations ledger (rendered in BOTH the execution panel AND the QUEST SPEC tab)
 
 `data-testid="OPERATIONS_LEDGER"`, rows `OPERATIONS_LEDGER_ROW` — each row is `OPERATIONS_LEDGER_ROW_MARKER` (status
-marker) + `OPERATIONS_LEDGER_ROW_ROLE` (role) + `OPERATIONS_LEDGER_ROW_TEXT` (text) + `OPERATIONS_LEDGER_ROW_WARD_MODE`
-(`(changed)`/`(full)` on ward rows). The ledger grows live as advance appends a `pt N` / spiritmender / fresh ward.
+marker) + `OPERATIONS_LEDGER_ROW_ROLE` (role) + `OPERATIONS_LEDGER_ROW_TEXT` (text) + `OPERATIONS_LEDGER_ROW_FLOWS`
+(`[Flow Name, Other Flow]` — present iff the item carries `flowIds`; an id that no longer resolves to a quest flow
+renders as the raw id) + `OPERATIONS_LEDGER_ROW_WARD_MODE` (`(changed)`/`(full)` on ward rows). The ledger grows live as
+advance appends a `pt N` / spiritmender / fresh ward.
 
 Status bar: `execution-status-bar-layer-widget` → `EXECUTION — {completedOps}/{totalOps} OPERATIONS`, or `EXECUTION —
 AWAITING PLAN` when the ledger is empty (pre-seed). Pause/Resume: `EXECUTION_PAUSE_BUTTON` (visible iff
@@ -555,11 +558,11 @@ Repeat `partial` several times to confirm the codeweaver `pt N` chain is **unbou
 
 Seed so a locked verify role (e.g. `flowrider`) is next. Dispatch `partial` repeatedly.
 
-| # | get-next-step                  | dispatch       | assert                                                                                                            |
-|---|--------------------------------|----------------|------------------------------------------------------------------------------------------------------------------|
-| 1 | `spawn-agents`, 1× `flowrider` | stub `partial` | `op-flow` complete; a `pt 2` flowrider item appended; a fresh flowrider work item runs (the fixpoint)             |
-| … | repeat `partial`               | stub `partial` | the `pt N` chain grows until it reaches `slotManagerStatics.flowrider.maxAttempts` → **`blocked`** (no more append) |
-| — | (or) `done` on any pass        | stub `done`    | convergence — advance moves to `siegemaster`. Convergence IS the verdict                                          |
+| # | get-next-step                  | dispatch       | assert                                                                                                                                                                                              |
+|---|--------------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | `spawn-agents`, 1× `flowrider` | stub `partial` | `op-flow` complete; a `pt 2` flowrider item appended **carrying the same `flowIds`**; a fresh flowrider work item runs (the fixpoint)                                                               |
+| … | repeat `partial`               | stub `partial` | the `pt N` chain grows until it reaches `slotManagerStatics.flowrider.maxAttempts` → **`blocked`** (no more append). The chain is keyed on role + base text, so a per-flow item's budget is its own |
+| — | (or) `done` on any pass        | stub `done`    | convergence — advance moves to the `siegemaster` item for the SAME flow. Convergence IS the verdict                                                                                                 |
 
 **Critical:** confirm the redelivery no-op (G/A5) — call `signal-back` twice for the same terminal work item; the second
 must NOT mint a second `pt N` or a second work item.

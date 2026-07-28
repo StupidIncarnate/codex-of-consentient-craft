@@ -10,12 +10,16 @@ describe('questTypeRegistryStatics', () => {
         relayTail: [
           { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
           {
-            role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suite over every quest flow',
-          },
-          {
-            role: 'siegemaster',
-            text: 'Siegemaster: manual-QA every quest flow and review the flow test suite',
+            forEachFlow: [
+              {
+                role: 'flowrider',
+                text: 'Flowrider: author the flow-perspective test suite',
+              },
+              {
+                role: 'siegemaster',
+                text: 'Siegemaster: manual-QA the flow and review its test suite',
+              },
+            ],
           },
           { role: 'lawbringer', text: 'Lawbringer: standards review across the whole quest diff' },
           { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },

@@ -537,12 +537,13 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
        "EXECUTION" | `execution-panel-tab-spec` "QUEST SPEC", `data-testid="execution-panel-widget"` visible).
        Screenshot to confirm.
     2. **The operations ledger renders in the execution panel** (`data-testid="OPERATIONS_LEDGER"`, rows
-       `OPERATIONS_LEDGER_ROW` — role badge + text + status; ward rows show a `(changed)`/`(full)` mode tag). The status
+       `OPERATIONS_LEDGER_ROW` — role badge + text + status; ward rows show a `(changed)`/`(full)` mode tag, and any row
+       whose item carries `flowIds` shows the flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS`). The status
        bar (`execution-status-bar-layer-widget`) reads `EXECUTION — 0/M OPERATIONS` once the relay is seeded (or
        `AWAITING PLAN` before Start Quest seeds it).
-    3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items
-       (`ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)`, all `locked`, `pending`) and
-       created ONE work item for the FIRST `codeweaver` operation item, marking that operation `in_progress`.
+    3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items (`ward(changed) → (flowrider → siegemaster) per quest flow in declaration order → lawbringer → blightwarden →
+       ward(full)`, all `locked`, `pending`) and created ONE work item for the FIRST `codeweaver` operation item,
+       marking that operation `in_progress`.
     4. Once a dispatcher is running, the first codeweaver work item flips to `in_progress` (a flat
        `execution-row-layer-widget` row, `RUNNING` badge) and gets a `sessionId`.
 
@@ -600,30 +601,33 @@ alone.
 spiritmender path is Phase 2.3).
 **→ PASS:** continue.
 
-### 1.5 — Flowrider (one session over ALL flows)
+### 1.5 — Flowrider (one session PER quest flow)
 
 - **Assert:**
     - Dispatched only after `ward(changed)` is green (its operation item is next `pending`).
-    - ONE flowrider work item, self-scoping over EVERY quest flow — no per-flow chaining. It authors the
-      flow-perspective test suite and owns `flows/` + `startup/` files inline.
+  - ONE flowrider work item per quest flow, seeded in `quest.flows` declaration order. Its operation item carries
+    exactly that one flow in `flowIds` and names the flow id in its text; the ledger row shows the flow NAME. The
+    session authors that flow's test suite and owns `flows/` + `startup/` files inline.
     - For a **runtime** flow it controls its own dev server (Playwright `webServer` config from `.dungeonmaster.json`).
       Confirm the prod server on 4800/4801 stays LISTEN throughout; a dev server (4750/4751) comes up and goes down
       within the session. For an **operational** flow, no dev server is needed.
-    - `done` (a pass that changed nothing) → advance to `siegemaster`. `partial` (a pass that changed code) → the
-      orchestrator appends a `pt N` flowrider continuation and a FRESH flowrider session re-runs (the verify fixpoint,
-      bounded by `slotManagerStatics.flowrider.maxAttempts`). Convergence IS the verdict.
+  - `done` (a pass that changed nothing) → advance to the `siegemaster` item for the SAME flow. `partial` (a pass that
+    changed code) → the orchestrator appends a `pt N` flowrider continuation carrying the same `flowIds`, and a FRESH
+    flowrider session re-runs on that flow (the verify fixpoint, bounded per flow by
+    `slotManagerStatics.flowrider.maxAttempts`). Convergence IS the verdict.
 
 **→ FAIL (dev server leaks / clobbers prod):** check the flowrider agent's Playwright `webServer` config + port
 resolution. Restart 1.5.
 **→ PASS:** continue.
 
-### 1.6 — Siegemaster (one session over ALL flows)
+### 1.6 — Siegemaster (one session PER quest flow)
 
 - **Assert:**
-    - Dispatched only after flowrider converges (`done`).
-    - ONE siegemaster work item over all flows — manual QA + reviews the flow suite + TDD-fixes what it breaks, editing
-      inline. Same dev-server ownership as flowrider for runtime flows.
-    - `done` → advance to `lawbringer`; `partial` → `pt N` fresh siegemaster pass (bounded fixpoint).
+    - Dispatched only after the flowrider for the SAME flow converges (`done`).
+    - ONE siegemaster work item for that flow — manual QA of that flow + reviews its suite + TDD-fixes what it breaks,
+      editing inline. Same dev-server ownership as flowrider for runtime flows.
+    - `done` → advance to the NEXT flow's `flowrider`, or to `lawbringer` once every flow is done; `partial` → `pt N`
+      fresh siegemaster pass on that flow (bounded fixpoint).
 
 **→ PASS:** continue.
 
@@ -693,8 +697,8 @@ duplicate-on-partial + the strict-1:1 guard.
 - **Seed / drive:** a flowrider (or siegemaster / lawbringer / blightwarden) session signals `operationStatus:
   'partial'` (its pass changed code).
 - **Assert:**
-    - Its operation item is marked `complete` and a `pt N` continuation (same **locked** role) is appended; a fresh
-      session of the same role re-runs against the new state.
+    - Its operation item is marked `complete` and a `pt N` continuation (same **locked** role, same `flowIds`) is
+      appended; a fresh session of the same role re-runs against the new state, on the same flow for a per-flow role.
     - The role converges when a pass changes nothing and signals `done` → advance moves on. Convergence IS the verdict.
     - The `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`; a spent chain blocks the quest via
       `quest-block-on-failure-broker` (see 2.4).

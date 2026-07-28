@@ -269,6 +269,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
     });
@@ -292,6 +293,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
     });
@@ -306,6 +308,7 @@ describe('questToTextDisplayTransformer', () => {
         '## Design Decisions',
         '## Contracts',
         '## Tooling',
+        '## Flow: #login-flow — "Login Flow"',
         '## Operations',
       ]);
       expect(result).toMatch(/^## Operations\n\n\(none\)$/mu);

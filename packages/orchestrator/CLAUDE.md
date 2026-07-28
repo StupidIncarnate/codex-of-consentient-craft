@@ -369,8 +369,9 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │   The operations ledger drives the order. For a feature quest the sequence is:
   ├─ codeweaver ──── one session per codeweaver op item ChaosWhisperer authored; implementation + unit tests
   ├─ ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
-  ├─ flowrider ───── one session; authors the flow-perspective test suite over ALL quest flows; owns flows/ + startup/ files
-  ├─ siegemaster ─── one session; manual QA + reviews the flow suite + TDD-fixes what it breaks
+  ├─ PER FLOW, in quest.flows declaration order:
+  │   ├─ flowrider ─── one session for THAT flow; authors its flow-perspective test suite
+  │   └─ siegemaster ─ one session for THAT flow; manual QA + reviews its suite + TDD-fixes what it breaks
   ├─ lawbringer ──── one session; standards review across the whole quest diff (fixes inline)
   ├─ blightwarden ── one session; cross-cutting whole-diff audit
   ├─ ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
@@ -410,8 +411,11 @@ one work item over its life.
 - **Seed** (`questBuildRelayGraphBroker`, at Start): appends the quest type's `startImplementationOps` + `relayTail`
   (from `questTypeRegistryStatics`) as pending locked operation items, force-completes any leftover
   chaoswhisperer/glyphsmith intake items, and creates the first work item — all in one `questOperationsUpdateBroker`
-  persist. Idempotent: a re-Start detects the already-seeded verify tail (a locked `role: ward` item) and skips
-  straight to the status transition.
+  persist. A `relayTail` entry shaped `{ forEachFlow: [...] }` (the flowrider + siegemaster pair) expands to one
+  operation item per quest flow, in `quest.flows` declaration order, each carrying that single flow in `flowIds` and its
+  id appended to the text — so one session owns one flow and each flow's pt-continuation chain stays its own. A quest
+  with no flows falls back to one flow-less item per group member. Idempotent: a re-Start detects the already-seeded
+  verify tail (a locked `role: ward` item) and skips straight to the status transition.
 - **Dispatch** (`quest-get-next-step-broker`): FIFO-scans active quests, picks the oldest with incomplete work, and
   returns a `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which Task()s the agent or calls
   the `run-ward` MCP tool.
@@ -529,8 +533,9 @@ role (`initialWorkItemRole`), Start-Quest relay seed (`startImplementationOps` +
 reads the registry entry for `quest.questType`:
 
 - **`feature`** (`/dumpster-create`): `startImplementationOps` is empty — ChaosWhisperer authors the `codeweaver`
-  operation items at spec time. `relayTail` = `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden →
-  ward(full)`.
+  operation items at spec time. `relayTail` = `ward(changed) → {forEachFlow: flowrider → siegemaster} → lawbringer →
+  blightwarden → ward(full)`, where the `forEachFlow` group repeats per quest flow in declaration order — a two-flow
+  quest runs `flowrider(A) → siegemaster(A) → flowrider(B) → siegemaster(B)`.
 - **`bug-hunt`** (`/dumpster-hunt`): `startImplementationOps` = a single `pesteater` item (orchestrator-seeded, no
   intake authoring); `relayTail` = `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
   Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows (the actual-state reproduction
@@ -561,8 +566,8 @@ Claude-dispatched agent roles (codeweaver, spiritmender, lawbringer, flowrider, 
 | Glyphsmith     | startDesignChat (interactive)                                      | N/A (design)                        | status                                          |
 | codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)         | complete (done / partial / blocked) | none                                            |
 | ward           | `/dumpster-launch` via `run-ward` MCP tool (command)               | exit code (green / red)             | none (broker writes wardResults + item status)  |
-| flowrider      | `/dumpster-launch` via Task() (one session over ALL flows)         | complete (done / partial / blocked) | none (owns flows/ + startup/ files inline)      |
-| siegemaster    | `/dumpster-launch` via Task() (one session over ALL flows)         | complete (done / partial / blocked) | none (edits inline)                             |
+| flowrider      | `/dumpster-launch` via Task() (one session per quest flow)         | complete (done / partial / blocked) | none (owns flows/ + startup/ files inline)      |
+| siegemaster    | `/dumpster-launch` via Task() (one session per quest flow)         | complete (done / partial / blocked) | none (edits inline)                             |
 | lawbringer     | `/dumpster-launch` via Task() (whole-diff review)                  | complete (done / partial / blocked) | none (fixes findings inline)                    |
 | blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                   | complete (done / partial / blocked) | planningNotes.blightReports (via its minions)   |
 | spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)               | complete (done / partial / blocked) | none                                            |
@@ -573,8 +578,10 @@ Claude-dispatched agent roles (codeweaver, spiritmender, lawbringer, flowrider, 
 `flowrider`, `siegemaster`, `lawbringer`, `blightwarden` (and `ward`) are **fixpoint roles**: a session signals
 `partial` when its pass changed code, and the orchestrator appends a `"pt N: {text}"` continuation operation item so a
 FRESH session of the same role re-runs against the new state. The role converges when a pass changes nothing and it
-signals `done`. Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts` (ward
-by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest instead of looping. See "Signal System" +
+signals `done`. Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts` (ward by
+`slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest instead of looping. A chain is keyed on role +
+base text, so a per-flow flowrider/siegemaster item — whose text carries its flow id — gets its OWN budget per flow; the
+continuation copies the item's `flowIds` so the fresh session keeps that scope. See "Signal System" +
 "Failure handling".
 
 ### Minions (parent-summoned sub-agents)

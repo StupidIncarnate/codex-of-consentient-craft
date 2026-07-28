@@ -3,8 +3,8 @@ import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-opera
 import { flowriderPromptStatics } from './flowrider-prompt-statics';
 
 describe('flowriderPromptStatics', () => {
-  it('VALID: template => traces each flow across every layer before picking a modality', () => {
-    const needle = '## Phase 3: Trace Each Flow Through Every Layer, Then Pick Modalities';
+  it('VALID: template => traces its flow across every layer before picking a modality', () => {
+    const needle = '## Phase 3: Trace Your Flow Through Every Layer, Then Pick Modalities';
     const { template } = flowriderPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -148,9 +148,32 @@ describe('flowriderPromptStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => self-scopes across every flow on the user-approved flow graph', () => {
+  it('VALID: template => scopes to the ONE flow its operation item names on the user-approved flow graph', () => {
     const needle =
-      '3. Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\n   contracts, and design decisions. The FLOW GRAPH is the user-approved acceptance target and does\n   not move. Enumerate EVERY flow; that list is your scope.';
+      '3. Load the quest spine: `get-quest` (stage `spec`) for the flows (nodes, edges, observables),\n   contracts, and design decisions. The FLOW GRAPH is the user-approved acceptance target and does\n   not move. **Find the flow your operation item names — that ONE flow graph is your scope.**';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+  });
+
+  it('VALID: template => reads the other flows for context but authors only for its own', () => {
+    const needle = '**Read the other flows; author for yours.**';
+    const { template } = flowriderPromptStatics.prompt;
+    const found = template.slice(
+      template.indexOf(needle),
+      template.indexOf(needle) + needle.length,
+    );
+
+    expect(found).toBe(needle);
+    expect(template.indexOf('each has its\nown flowrider session')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: template => hands its flow to the Siegemaster session that runs next on the same flow', () => {
+    const needle = 'Siegemaster runs immediately after you on the SAME flow';
     const { template } = flowriderPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -276,9 +299,9 @@ describe('flowriderPromptStatics', () => {
     expect(flowriderPromptStatics.prompt.template.indexOf('.spec.ts')).toBe(-1);
   });
 
-  it('VALID: template => scopes accountability to every flow graph, fully walked', () => {
+  it('VALID: template => scopes accountability to its own flow graph, fully walked', () => {
     expect(flowriderPromptStatics.prompt.template).toMatch(
-      /^## Your Unit of Accountability: EVERY Flow Graph, Fully Walked$/mu,
+      /^## Your Unit of Accountability: YOUR Flow Graph, Fully Walked$/mu,
     );
   });
 

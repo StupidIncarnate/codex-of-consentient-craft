@@ -207,7 +207,7 @@ export const ExecutionPanelWidget = ({
             testId={FLOOR_CONTENT_TEST_ID}
             style={{ flex: 1, padding: '0 12px 12px' }}
           >
-            <OperationsLedgerWidget operations={quest.operations} />
+            <OperationsLedgerWidget operations={quest.operations} flows={quest.flows} />
             {visibleWorkItems.map((wi, wiIndex) => {
               const wiOwnEntries =
                 workItemEntries.get(wi.id) ??

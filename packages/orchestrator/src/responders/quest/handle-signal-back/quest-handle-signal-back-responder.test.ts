@@ -403,6 +403,77 @@ describe('QuestHandleSignalBackResponder', () => {
       ]);
     });
 
+    it("VALID: {per-flow flowrider item, 'partial'} => continuation carries the same single flowId so the fresh session keeps its flow", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const flowText = 'Flowrider: author the flow-perspective test suite — flow: send-comment';
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'flowrider',
+            text: flowText,
+            status: 'in_progress',
+            locked: true,
+            flowIds: ['send-comment'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const completedItem = WorkItemStub({
+        id: itemId,
+        role: 'flowrider',
+        status: 'complete',
+        relatedDataItems: [`operations/${OP1_ID}`],
+        completedAt: FIXED_TIMESTAMP,
+        actualSignal: 'complete',
+      });
+      const op1Complete = OperationItemStub({
+        id: OP1_ID,
+        role: 'flowrider',
+        text: flowText,
+        status: 'complete',
+        locked: true,
+        flowIds: ['send-comment'],
+      });
+      const continuation = OperationItemStub({
+        id: CONTINUATION_UUID,
+        role: 'flowrider',
+        text: `pt 2: ${flowText}`,
+        status: 'pending',
+        locked: true,
+        flowIds: ['send-comment'],
+      });
+      const questAfterOutcome = QuestStub({
+        operations: [op1Complete, continuation],
+        workItems: [completedItem],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getPersistedQuestAt({ index: 0 }).operations).toStrictEqual([
+        op1Complete,
+        continuation,
+      ]);
+    });
+
     it("VALID: {'partial' on a 'pt 2: <base>' item} => continuation is 'pt 3: <base>' inserted right after it", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });

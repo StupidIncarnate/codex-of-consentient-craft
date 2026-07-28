@@ -48,16 +48,33 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
 // Feature quests seed NO implementation ops at Start (Chaos authored the codeweaver items at spec
 // time), so the verify tail consumes uuids 1..6 and the first work item consumes the next one.
-const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail.map((seed, index) => ({
-  id: SEEDED_UUIDS[index + 1],
-  role: seed.role,
-  text: seed.text,
-  status: 'pending',
-  locked: true,
-  flowIds: [],
-  ...('wardMode' in seed ? { wardMode: seed.wardMode } : {}),
-}));
-const FEATURE_WORK_ITEM_UUID = SEEDED_UUIDS[questTypeRegistryStatics.feature.relayTail.length + 1];
+// QuestStub carries exactly one flow, so the `forEachFlow` group (flowrider + siegemaster) expands
+// once — each of those items carrying that flow and naming it in its text.
+const QUEST_STUB_FLOW_ID = 'login-flow';
+const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail
+  .map((entry) =>
+    'forEachFlow' in entry
+      ? entry.forEachFlow.map((seed) => ({
+          role: seed.role,
+          text: `${seed.text} — flow: ${QUEST_STUB_FLOW_ID}`,
+          status: 'pending',
+          locked: true,
+          flowIds: [QUEST_STUB_FLOW_ID],
+        }))
+      : [
+          {
+            role: entry.role,
+            text: entry.text,
+            status: 'pending',
+            locked: true,
+            flowIds: [],
+            ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
+          },
+        ],
+  )
+  .flat()
+  .map((item, index) => ({ id: SEEDED_UUIDS[index + 1], ...item }));
+const FEATURE_WORK_ITEM_UUID = SEEDED_UUIDS[FEATURE_TAIL_EXPECTED.length + 1];
 
 // Bug-hunt quests seed the registry's implementation ops first (uuids 1..N), then the tail. The
 // first implementation op is the overall-first pending op, so the relay flips it in_progress.

@@ -244,7 +244,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         planningNotes: { blightReports: [] },
-        flows: [],
+        flows: [FlowStub()],
       });
     });
   });
