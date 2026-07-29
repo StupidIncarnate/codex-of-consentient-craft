@@ -11,10 +11,24 @@
 #      completely untouched.
 #
 # Strategy:
-#   1. Port sweep — kill anything bound to our dev/prod ports (always ours).
-#   2. cwd sweep — for every node/tsx/vite candidate, read /proc/<pid>/cwd. If it
-#      is inside REPO_ROOT, kill it. Other repos' processes have a cwd outside
-#      REPO_ROOT, so they are skipped.
+#   1. Port sweep — kill whatever LISTENS on our mode's ports (always ours). Matching
+#      listeners only keeps processes that merely hold a connection to the port out of
+#      the blast radius: `lsof -ti :PORT` also reports clients, so an open browser tab
+#      pointed at the dev server makes Chrome's network process a match.
+#   2. cwd sweep — for every node/tsx/vite candidate, read /proc/<pid>/cwd. If it is
+#      inside REPO_ROOT, classify it by mode and kill it only when it belongs to the
+#      mode being restarted. Other repos' processes have a cwd outside REPO_ROOT, so
+#      they are skipped.
+#
+# Mode scoping: dev and prod run from the same cwd, so cwd alone cannot tell them
+# apart. Two signals do, in this order — argv for launcher shells (they name the
+# script they run), then DUNGEONMASTER_HOME for the leaf servers (`npm run dev`
+# exports <repo>/.dungeonmaster-dev, `npm run prod` exports <repo>/.dungeonmaster,
+# and every tsx/vite/esbuild child inherits it). This matters during a dogfood siege:
+# the quest's siegemaster runs `npm run dev` as a child of the prod server, so an
+# unscoped sweep takes down the prod stack that is driving the quest, and an
+# env-only sweep misreads the siege's dev launchers as prod. A process carrying some
+# other home — a Playwright e2e server on /tmp/dm-e2e-* — is left alone.
 #
 # Self-protection: this script is a child of `npm run dev` (or `npm run prod`).
 # Killing its own pid or any ancestor would suicide the launcher. We walk up the
@@ -47,8 +61,10 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 
 if [ "$MODE" = "dev" ]; then
   PORT="$(node -e 'process.stdout.write(String(require("./.dungeonmaster.json").devServer.port))')"
+  EXPECTED_HOME="$REPO_ROOT/.dungeonmaster-dev"
 else
   PORT="$(node -e 'const c = require("./.dungeonmaster.json"); process.stdout.write(String(c.dungeonmaster && c.dungeonmaster.port ? c.dungeonmaster.port : 3737))')"
+  EXPECTED_HOME="$REPO_ROOT/.dungeonmaster"
 fi
 
 PORTS="$PORT $((PORT + 1))"
@@ -68,9 +84,51 @@ is_safe() {
   return 1
 }
 
+# Classify a pid against MODE. Echoes one of:
+#   match   — belongs to the mode being restarted; kill it
+#   other   — belongs to the other mode, or to an unrelated DUNGEONMASTER_HOME; spare it
+#   unknown — not attributable; spare it
+#
+# DUNGEONMASTER_HOME is compared with `=`, never a prefix test: ".dungeonmaster" is a
+# prefix of ".dungeonmaster-dev", so a prefix match would fold dev into prod.
+pid_mode() {
+  pm_dir="/proc/$1"
+  pm_cmdline="$2"
+
+  # argv wins for the launcher npm/sh shells, which name the script they run. A shell
+  # running `npm run dev` is a dev process even when it inherited prod's
+  # DUNGEONMASTER_HOME from whatever spawned it — exactly the case during a dogfood
+  # siege, where the siegemaster starts a dev server from inside the prod stack.
+  case "$pm_cmdline" in
+    *"npm run dev"*|*".dungeonmaster-dev"*)
+      if [ "$MODE" = "dev" ]; then echo match; else echo other; fi
+      return 0
+      ;;
+    *"npm run prod"*|*"npm run preview"*)
+      if [ "$MODE" = "prod" ]; then echo match; else echo other; fi
+      return 0
+      ;;
+  esac
+
+  # Leaf processes — tsx, vite, esbuild, server-entry — carry no mode marker in argv.
+  # They do inherit DUNGEONMASTER_HOME from the launcher that exported it.
+  pm_home=""
+  if [ -r "$pm_dir/environ" ]; then
+    pm_home="$(tr '\0' '\n' < "$pm_dir/environ" 2>/dev/null |
+      awk '/^DUNGEONMASTER_HOME=/ { print substr($0, index($0, "=") + 1); exit }')"
+  fi
+
+  if [ -n "$pm_home" ]; then
+    if [ "$pm_home" = "$EXPECTED_HOME" ]; then echo match; else echo other; fi
+    return 0
+  fi
+
+  echo unknown
+}
+
 PORT_KILLED=""
 for p in $PORTS; do
-  pids="$(lsof -ti ":$p" 2>/dev/null || true)"
+  pids="$(lsof -ti "tcp:$p" -sTCP:LISTEN 2>/dev/null || true)"
   for pid in $pids; do
     if is_safe "$pid"; then continue; fi
     if do_kill "$pid"; then
@@ -108,6 +166,8 @@ if [ -d /proc ]; then
       "$REPO_ROOT"|"$REPO_ROOT"/*) ;;
       *) continue ;;
     esac
+
+    [ "$(pid_mode "$pid" "$cmdline")" = "match" ] || continue
 
     if do_kill "$pid"; then
       CWD_KILLED="$CWD_KILLED $pid"

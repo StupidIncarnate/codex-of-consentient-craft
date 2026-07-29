@@ -470,7 +470,10 @@ session id or quest id in the message if it helps trace later.
   `dev:kill` (`scripts/scoped-kill.sh`) does a port sweep AND a cwd-scoped
   sweep over `/proc/<pid>/cwd`, reaping every stale tsx-watch / vite /
   parent shell whose cwd is inside this repo while leaving other repos
-  alone. Just run `npm run dev` — it self-cleans. Use `bash
+  alone. It is mode-scoped too: `dev:kill` spares the prod stack (and a
+  Playwright e2e server on its own `DUNGEONMASTER_HOME`), so a siege that
+  starts a dev server does not take down the prod server driving the
+  quest. Just run `npm run dev` — it self-cleans. Use `bash
   scripts/scoped-kill.sh dev --dry-run` if you want to preview the kill
   set first (memory: `feedback_kill_dev_before_fix.md`).
 - ❌ Declaring a bug "secondary" or "out of scope" because it surfaces
