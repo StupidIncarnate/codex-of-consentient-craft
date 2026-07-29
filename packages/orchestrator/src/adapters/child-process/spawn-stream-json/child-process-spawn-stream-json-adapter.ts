@@ -60,7 +60,24 @@ export const childProcessSpawnStreamJsonAdapter = ({
     }
   }
 
-  const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', model];
+  // `--chrome` is what wires the Claude-in-Chrome MCP into the spawned session. Claude Code
+  // only attaches the browser bridge when this flag is passed (or the interactive `/chrome`
+  // flow ran), so without it every dispatched agent starts with zero
+  // `mcp__claude-in-chrome__*` tools — Siegemaster's prompt tells it to QA `ui-state`
+  // observables in a real browser, and it would find no browser to drive. When the Chrome
+  // extension is not installed the flag is inert: the tools are still listed and each call
+  // returns "extension is not connected", which is the degraded path the prompts already
+  // handle.
+  const args = [
+    '-p',
+    prompt,
+    '--output-format',
+    'stream-json',
+    '--verbose',
+    '--model',
+    model,
+    '--chrome',
+  ];
 
   // Smoketest probe spawns (disableToolSearch === true) only call one MCP tool
   // then signal back — they don't need the SessionStart hook guidance bundle

@@ -73,6 +73,7 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         'opus',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -99,6 +100,7 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         'haiku',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -181,6 +183,7 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         'opus',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
         '--resume',
@@ -211,6 +214,7 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         'opus',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -239,6 +243,7 @@ describe('spawnBatchLayerBroker', () => {
         '--verbose',
         '--model',
         'opus',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);

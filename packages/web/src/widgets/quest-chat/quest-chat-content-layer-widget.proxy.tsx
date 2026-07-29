@@ -1,6 +1,7 @@
 import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
+import { useCommentQueueSweepBindingProxy } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.proxy';
 import { useOrchestrationModeBindingProxy } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding.proxy';
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
 import { questAbandonBrokerProxy } from '../../brokers/quest/abandon/quest-abandon-broker.proxy';
@@ -50,6 +51,9 @@ export const QuestChatContentLayerWidgetProxy = (): {
   const mode = useOrchestrationModeBindingProxy();
   const questNew = questNewBrokerProxy();
   const chatPanel = ChatPanelWidgetProxy();
+  // QuestChatContentLayerWidget runs the sweep binding on mount; its state proxy stubs the
+  // localStorage the sweep reads, so every render test gets a clean queue by default.
+  useCommentQueueSweepBindingProxy();
   questAbandonBrokerProxy();
   questModifyBrokerProxy();
   questPauseBrokerProxy();

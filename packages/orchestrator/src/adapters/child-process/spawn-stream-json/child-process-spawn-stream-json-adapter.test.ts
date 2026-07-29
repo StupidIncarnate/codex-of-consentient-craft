@@ -30,6 +30,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'sonnet',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
       ]);
@@ -60,6 +61,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'opus',
+        '--chrome',
         '--settings',
         '{"hooks":{}}',
         '--resume',
@@ -88,6 +90,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'haiku',
+        '--chrome',
       ]);
     });
 
@@ -108,6 +111,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'haiku',
+        '--chrome',
       ]);
     });
   });
@@ -215,6 +219,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'haiku',
+        '--chrome',
         '--settings',
         '{"permissions":{"allow":["Bash"]}}',
       ]);
@@ -242,6 +247,7 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'sonnet',
+        '--chrome',
         '--settings',
         '{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo hi"}]}]},"permissions":{"allow":["Bash"]}}',
       ]);
@@ -267,8 +273,32 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
         '--verbose',
         '--model',
         'haiku',
+        '--chrome',
         '--settings',
         '{not valid json',
+      ]);
+    });
+  });
+
+  describe('chrome browser integration', () => {
+    it('VALID: {prompt: "Hello", model: sonnet} => spawns with --chrome so the session attaches the Claude-in-Chrome MCP', () => {
+      const proxy = childProcessSpawnStreamJsonAdapterProxy();
+      proxy.setupSpawn();
+
+      childProcessSpawnStreamJsonAdapter({
+        prompt: PromptTextStub({ value: 'Hello' }),
+        model: ClaudeModelStub({ value: 'sonnet' }),
+      });
+
+      expect(proxy.getSpawnedArgs()).toStrictEqual([
+        '-p',
+        'Hello',
+        '--output-format',
+        'stream-json',
+        '--verbose',
+        '--model',
+        'sonnet',
+        '--chrome',
       ]);
     });
   });
