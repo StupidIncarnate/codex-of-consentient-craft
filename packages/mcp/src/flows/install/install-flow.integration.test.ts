@@ -93,6 +93,7 @@ describe('InstallFlow', () => {
                 'Bash(git rm:*)',
                 'Bash(git mv:*)',
                 'Bash(git commit:*)',
+                'mcp__claude-in-chrome',
               ],
             },
           },

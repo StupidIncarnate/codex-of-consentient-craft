@@ -24,6 +24,7 @@ import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-fil
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
 import {
+  agentBrowserPermissionsStatics,
   agentGitPermissionsStatics,
   locationsStatics,
   mcpToolsStatics,
@@ -65,13 +66,17 @@ export const settingsPermissionsAddBroker = async ({
   }
 
   // Every permission dungeonmaster manages: the MCP tool grants, then the git grants that let a
-  // dispatched relay agent read history and land its handoff commit (a headless child has no
-  // interactive approver, so an ungranted command is denied outright rather than prompted).
+  // dispatched relay agent read history and land its handoff commit, then the Claude-in-Chrome
+  // grant Siegemaster needs to drive a real browser (a headless child has no interactive
+  // approver, so an ungranted command is denied outright rather than prompted).
   const managedPermissions: ClaudePermission[] = [
     ...mcpPermissionsCreatorTransformer().map((permission) =>
       claudePermissionContract.parse(permission),
     ),
     ...agentGitPermissionsStatics.allow.map((permission) =>
+      claudePermissionContract.parse(permission),
+    ),
+    ...agentBrowserPermissionsStatics.allow.map((permission) =>
       claudePermissionContract.parse(permission),
     ),
   ];

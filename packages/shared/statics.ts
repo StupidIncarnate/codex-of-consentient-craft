@@ -23,6 +23,7 @@ export * from './src/statics/quest-status-transitions/quest-status-transitions-s
 export * from './src/statics/work-item-status-metadata/work-item-status-metadata-statics';
 export * from './src/statics/mcp-tools/mcp-tools-statics';
 export * from './src/statics/agent-git-permissions/agent-git-permissions-statics';
+export * from './src/statics/agent-browser-permissions/agent-browser-permissions-statics';
 export * from './src/statics/locations/locations-statics';
 export * from './src/statics/widget-tree/widget-tree-statics';
 export * from './src/statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';
