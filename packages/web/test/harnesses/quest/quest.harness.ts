@@ -25,6 +25,13 @@ const CREATED_AT_INTERVAL_MS = 1000;
 
 type PlanningNotesInput = Record<PropertyKey, unknown>;
 type FlowInput = Record<PropertyKey, unknown>;
+// One quest.contracts entry, written verbatim. Its `nodeId` is the anchor the flow-diagram detail
+// panel filters on, so a seeded contract only reaches a panel when nodeId names a node in the flow.
+type ContractEntryInput = Record<PropertyKey, unknown>;
+// One quest.comments entry, written verbatim — the shape the comment batch route persists. Omitting
+// `observableId` anchors the comment to the node card itself; setting it anchors the comment to one
+// of that node's assertion cards.
+type CommentInput = Record<PropertyKey, unknown>;
 
 const DEFAULT_FLOWS: FlowInput[] = [
   {
@@ -77,6 +84,8 @@ export const questHarness = ({
     userRequest?: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
+    contracts?: ContractEntryInput[];
+    comments?: CommentInput[];
     wardResults?: {
       id: string;
       exitCode: number;
@@ -178,6 +187,8 @@ export const questHarness = ({
     userRequest = 'Build the feature',
     planningNotes,
     flows,
+    contracts = [],
+    comments,
     wardResults = [],
     operations = [],
   }: {
@@ -206,6 +217,8 @@ export const questHarness = ({
     userRequest?: string;
     planningNotes?: PlanningNotesInput;
     flows?: FlowInput[];
+    contracts?: ContractEntryInput[];
+    comments?: CommentInput[];
     wardResults?: {
       id: string;
       exitCode: number;
@@ -286,7 +299,11 @@ export const questHarness = ({
         };
       }),
       toolingRequirements: [],
-      contracts: [],
+      contracts,
+      // The key is OMITTED unless the caller seeds comments, so every quest this harness writes is
+      // by default shaped exactly like a quest.json authored before the comments field existed —
+      // which is what proves questContract still parses one and defaults comments to [].
+      ...(comments === undefined ? {} : { comments }),
       planningNotes: seededPlanningNotes,
       flows: seededFlows,
       wardResults: wardResults.map((wr) => ({

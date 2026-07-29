@@ -948,6 +948,37 @@ describe('QuestSpecPanelWidget', () => {
       expect(proxy.countCommentButtons()).toBe(0);
     });
 
+    it('VALID: {session-less review_flows quest with a commented box} => the badge renders while zero COMMENT_BUTTON elements do (#check-badge-without-button-when-sessionless)', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        // The chaoswhisperer role stays; only its sessionId is missing, so the ONLY thing closing
+        // the compose gate here is the absent session — not the status, which still precedes
+        // approval.
+        workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
+        comments: [
+          QuestCommentStub({ flowId: 'login-flow', nodeId: 'login-page', text: 'a sent note' }),
+        ],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['1']);
+      expect(proxy.countCommentButtons()).toBe(0);
+    });
+
     it('VALID: {read-only panel on a complete quest} => the clicked box still lists its comment rows', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
