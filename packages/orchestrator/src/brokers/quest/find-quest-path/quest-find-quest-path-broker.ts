@@ -4,6 +4,15 @@
  * USAGE:
  * const { questPath, guildId } = await questFindQuestPathBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
  * // Returns: { questPath: AbsoluteFilePath, guildId: GuildId } or throws if not found
+ *
+ * IDENTITY MATCH IS NARROW: a candidate is matched on `id` alone (questIdentityContract), never on
+ * the whole questContract. This broker fronts EVERY single-quest read and write — questGetBroker,
+ * questModifyBroker, signal-back, advance, ward-result application — so validating the full
+ * contract here turns any one bad field into `QuestNotFoundError` for all of them. That reads as
+ * "the quest was deleted", strands the file with no in-product repair path, and throws away the
+ * field-level message questLoadBroker exists to produce. Matching narrowly hands the path back so
+ * the caller's own load names the offending field. A file that is not valid JSON has no id to
+ * match and is still reported as not found.
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
@@ -21,6 +30,9 @@ import type {
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
+
+// Derived from questContract so the id's own brand and validation stay in one place.
+const questIdentityContract = questContract.pick({ id: true });
 
 export const questFindQuestPathBroker = async ({
   questId,
@@ -75,9 +87,9 @@ export const questFindQuestPathBroker = async ({
       try {
         const contents = await fsReadFileAdapter({ filePath: candidate.questFilePath });
         const parsed: unknown = JSON.parse(contents);
-        const quest = questContract.parse(parsed);
+        const identity = questIdentityContract.safeParse(parsed);
 
-        if (quest.id === questId) {
+        if (identity.success && identity.data.id === questId) {
           return {
             questPath: candidate.questFolderPath as AbsoluteFilePath,
             guildId: guildIdContract.parse(candidate.guildDirName),
