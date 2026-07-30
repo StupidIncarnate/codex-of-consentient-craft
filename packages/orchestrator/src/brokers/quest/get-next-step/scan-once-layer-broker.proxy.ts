@@ -19,6 +19,7 @@ export const scanOnceLayerBrokerProxy = (): {
   setupSelfHeal: (params: { staleQuest: Quest; refreshedQuest: Quest }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Quest;
+  getBlockCalls: () => readonly unknown[];
 } => {
   const activeQuestsProxy = questActiveQuestsBrokerProxy();
   computeNextStepFromQuestLayerBrokerProxy();
@@ -46,5 +47,8 @@ export const scanOnceLayerBrokerProxy = (): {
     },
     getAllPersistedContents: advanceProxy.getAllPersistedContents,
     getLastPersistedQuest: advanceProxy.getLastPersistedQuest,
+    // Lets a test prove that an escalated (budget-exhausted) orphan blocked the quest AND that
+    // the scan stopped there instead of advancing the ledger and dispatching.
+    getBlockCalls: recoverProxy.getBlockCalls,
   };
 };

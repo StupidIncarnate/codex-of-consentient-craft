@@ -39,6 +39,7 @@ const INERT_ACTIVE_QUEST_FACADE: ActiveQuestFacade = {
 export const questNodeDispatchLoopBroker = async ({
   isPlaying,
   registerProcess,
+  unregisterProcess,
   onWardLine,
 }: {
   isPlaying: () => boolean;
@@ -49,6 +50,7 @@ export const questNodeDispatchLoopBroker = async ({
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;
+  unregisterProcess?: (params: { processId: ProcessId }) => void;
 }): Promise<AdapterResult> => {
   const ok = adapterResultContract.parse({ success: true });
 
@@ -82,7 +84,11 @@ export const questNodeDispatchLoopBroker = async ({
   } else {
     await spawnBatchLayerBroker({
       agents: step.agents,
+      // Threaded so an API-overload backoff inside the spawn layer — which can sleep for minutes
+      // waiting out an Anthropic 529 — sees a pause and abandons its retry instead of respawning.
+      isPlaying,
       ...(registerProcess === undefined ? {} : { registerProcess }),
+      ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
     });
   }
 
@@ -90,5 +96,6 @@ export const questNodeDispatchLoopBroker = async ({
     isPlaying,
     onWardLine,
     ...(registerProcess === undefined ? {} : { registerProcess }),
+    ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
   });
 };

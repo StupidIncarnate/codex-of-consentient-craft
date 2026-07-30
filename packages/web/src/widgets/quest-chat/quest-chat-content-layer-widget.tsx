@@ -23,6 +23,7 @@ import type {
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
+  isQuestResumableQuestStatusGuard,
   isUserPausedQuestStatusGuard,
   shouldRenderExecutionPanelQuestStatusGuard,
   shouldShowBeginQuestModalQuestStatusGuard,
@@ -390,7 +391,11 @@ export const QuestChatContentLayerWidget = ({
             workItemEntries={entriesByWorkItem}
             guildSlug={guildSlug}
             onStatusChange={({ status }): void => {
-              if (isUserPausedQuestStatusGuard({ status: quest.status })) {
+              // Both halts — a user pause and a `blocked` quest — go through the resume endpoint,
+              // never a bare status PATCH. Resume is what rearms the work items a block left as
+              // wreckage (failed-at-budget, drained-to-skipped) and starts the dispatcher; a PATCH
+              // would flip the status back and let the next scan re-block on the same item.
+              if (isQuestResumableQuestStatusGuard({ status: quest.status })) {
                 questResumeBroker({ questId: quest.id }).catch((resumeError: unknown) => {
                   globalThis.console.error('[quest-chat] resume failed', resumeError);
                 });

@@ -1,6 +1,1 @@
-import { buildTaskPromptLayerBrokerProxy } from './build-task-prompt-layer-broker.proxy';
-
-export const buildSpawnInstructionLayerBrokerProxy = (): Record<PropertyKey, never> => {
-  buildTaskPromptLayerBrokerProxy();
-  return {};
-};
+export const buildSpawnInstructionLayerBrokerProxy = (): Record<PropertyKey, never> => ({});

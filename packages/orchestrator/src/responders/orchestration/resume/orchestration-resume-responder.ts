@@ -1,9 +1,20 @@
 /**
- * PURPOSE: Resumes a paused quest by restoring the status stored in pausedAtStatus and re-launching the orchestration loop
+ * PURPOSE: Resumes a halted quest and re-launches the orchestration loop. Two halts reach here:
+ *   a user PAUSE, which restores the status snapshotted in `pausedAtStatus`; and a `blocked` quest,
+ *   which has no snapshot (the block is not a pause) and restores to `in_progress`.
+ *
+ *   A blocked quest also needs its work items REARMED, not just its status flipped. It halted with
+ *   the blocking item `failed` at the orphan-recovery budget and everything queued behind it
+ *   drained to `skipped`; re-entering the scan with that intact makes the very next recovery pass
+ *   re-escalate the same exhausted item and block again, so the user's RESUME visibly does
+ *   nothing. `questResumeRearmWorkItemsTransformer` puts every item whose operation item is still
+ *   unfinished back to `pending` with a cleared `retryCount`, keeping `sessionId` + the `resume`
+ *   marker so dispatch resumes those Claude sessions instead of discarding their work.
  *
  * USAGE:
  * const result = await OrchestrationResumeResponder({ questId });
- * // Returns { resumed: true, restoredStatus: 'in_progress' } when the paused quest transitions back to its pre-pause status and the loop is relaunched
+ * // Returns { resumed: true, restoredStatus: 'in_progress' } when the halted quest transitions
+ * //   back to its pre-halt status, its work items are rearmed, and the loop is relaunched
  */
 
 import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
@@ -18,9 +29,11 @@ import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
+import { questResumeRearmWorkItemsTransformer } from '../../../transformers/quest-resume-rearm-work-items/quest-resume-rearm-work-items-transformer';
 import {
   isActiveWorkItemStatusGuard,
-  isUserPausedQuestStatusGuard,
+  isQuestBlockedQuestStatusGuard,
+  isQuestResumableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
@@ -49,13 +62,32 @@ export const OrchestrationResumeResponder = async ({
 
   const { quest } = getResult;
 
-  if (!isUserPausedQuestStatusGuard({ status: quest.status })) {
-    throw new Error(`Quest is not paused: ${quest.status}`);
+  if (!isQuestResumableQuestStatusGuard({ status: quest.status })) {
+    throw new Error(`Quest is not resumable: ${quest.status}`);
   }
 
-  const restoredStatus = quest.pausedAtStatus;
+  // A block is not a pause, so it leaves no `pausedAtStatus` snapshot — execution is the only
+  // status it can return to. A pause restores whatever it interrupted, spec phases included.
+  const isBlocked = isQuestBlockedQuestStatusGuard({ status: quest.status });
+  const restoredStatus: QuestStatus | null | undefined = isBlocked
+    ? 'in_progress'
+    : quest.pausedAtStatus;
   if (restoredStatus === undefined || restoredStatus === null) {
     throw new Error(`Quest has no pausedAtStatus snapshot: ${questId}`);
+  }
+
+  // Rearm BEFORE the status flip: the moment the quest reads `in_progress` the dispatch scan can
+  // pick it up, and a scan that sees the un-rearmed wreckage re-escalates and blocks it again.
+  const rearmedWorkItems = isBlocked
+    ? questResumeRearmWorkItemsTransformer({
+        workItems: quest.workItems,
+        operations: quest.operations,
+      })
+    : [];
+  if (rearmedWorkItems.length > 0) {
+    await questModifyBroker({
+      input: modifyQuestInputContract.parse({ questId, workItems: rearmedWorkItems }),
+    });
   }
 
   const modifyResult = await questModifyBroker({
@@ -102,7 +134,8 @@ export const OrchestrationResumeResponder = async ({
   // Reset orphaned active work items back to pending, keeping sessionId + the resume marker so
   // Node dispatch resumes the interrupted session (work preserved) instead of fresh-spawning.
   // A missing next work item is NOT repaired here — the dispatch scan's operations-aware
-  // advance self-heal creates it from the ledger.
+  // advance self-heal creates it from the ledger. On the blocked path the rearm above already
+  // covered these (and cleared their retryCount too), so this finds nothing left to reset.
   const orphanedItems = reloaded.workItems
     .filter((wi) => isActiveWorkItemStatusGuard({ status: wi.status }))
     .map((wi) => ({

@@ -1,20 +1,20 @@
 /**
  * PURPOSE: Dispatches one spawn-agents batch by spawning headless Claude CLI children — one per
- * SpawnInstruction, all in parallel. Pre-stamps each work item `in_progress` BEFORE spawning (the
- * MCP-side identity stamp is skipped for top-level sessions, and the stamp is what keeps a
- * concurrently-polling /dumpster-launch from double-dispatching the item), stamps `sessionId` from
- * the child's stream-json init line (which activates the quest-driven watcher tail for live chat),
- * and awaits every child's exit. Terminal work-item status is owned by the child's own signal-back
- * MCP call; a child that dies silently is reclaimed by orphan recovery on a later scan.
+ * SpawnInstruction, all in parallel. Resolves each quest's guild cwd once, pre-stamps each work
+ * item `in_progress` BEFORE spawning (the MCP-side identity stamp is skipped for top-level
+ * sessions, and the stamp is what keeps a concurrently-polling /dumpster-launch from
+ * double-dispatching the item), then hands each instruction to `spawnOneAgentLayerBroker`, which
+ * owns the spawn, the sessionId stamp, and the API-overload retry. Terminal work-item status is
+ * owned by the child's own signal-back MCP call; a child that dies silently is reclaimed by orphan
+ * recovery on a later scan.
  *
  * USAGE:
  * await spawnBatchLayerBroker({ agents: step.agents, registerProcess });
- * // Resolves once every spawned child has exited
+ * // Resolves once every spawned child has exited for good (including any overload retries)
  */
 
 import type {
   AdapterResult,
-  ExitCode,
   GuildId,
   ModifyQuestInput,
   ProcessId,
@@ -25,23 +25,21 @@ import type {
 import {
   adapterResultContract,
   filePathContract,
-  processIdContract,
   repoRootCwdContract,
-  sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
-import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
-import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
-import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
+import { spawnOneAgentLayerBroker } from './spawn-one-agent-layer-broker';
 
 export const spawnBatchLayerBroker = async ({
   agents,
   registerProcess,
+  unregisterProcess,
+  isPlaying,
 }: {
   agents: readonly SpawnInstruction[];
   registerProcess?: (params: {
@@ -50,6 +48,10 @@ export const spawnBatchLayerBroker = async ({
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;
+  unregisterProcess?: (params: { processId: ProcessId }) => void;
+  // Forwarded to the per-agent layer so an API-overload backoff — which can sleep for minutes —
+  // abandons its retry when the user pauses dispatch instead of waking up and spawning anyway.
+  isPlaying?: () => boolean;
 }): Promise<AdapterResult> => {
   const ok = adapterResultContract.parse({ success: true });
 
@@ -96,78 +98,13 @@ export const spawnBatchLayerBroker = async ({
           } as ModifyQuestInput,
         });
 
-        const model = instruction.model ?? roleToModelTransformer({ role: instruction.role });
-        const processId = processIdContract.parse(
-          `${orchestrationDispatchStatics.processIdPrefix}-${crypto.randomUUID()}`,
-        );
-
-        // Resume path: orphan recovery retained the crashed session's id and marked the item —
-        // resume that Claude session (work preserved) with the resume prompt. Fresh path
-        // otherwise. The MCP/Task dispatcher never sees this branch (it re-dispatches fresh
-        // from taskPrompt by construction).
-        const resumeSessionId =
-          instruction.resumePrompt === undefined ? undefined : instruction.resumeSessionId;
-        const resumePrompt = resumeSessionId === undefined ? undefined : instruction.resumePrompt;
-
-        const sessionStamps: Promise<void>[] = [];
-        const { exitCode } = await new Promise<{ exitCode: ExitCode | null }>((resolve) => {
-          const { kill, sessionId$ } = agentSpawnUnifiedBroker({
-            prompt: resumePrompt ?? instruction.taskPrompt,
-            ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
-            cwd: context.cwd,
-            model,
-            onLine: (): void => {
-              // Live chat renders from the quest-driven watcher's JSONL tail (keyed on the
-              // sessionId stamped below) — feeding stdout into the chat pipeline as well
-              // would double-emit every line.
-            },
-            onStderrLine: ({ line }): void => {
-              process.stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
-            },
-            onComplete: ({ exitCode: code }): void => {
-              resolve({ exitCode: code });
-            },
-          });
-
-          registerProcess?.({
-            processId,
-            questId: instruction.questId,
-            questWorkItemId: instruction.workItemId,
-            kill,
-          });
-
-          sessionStamps.push(
-            sessionId$
-              .then(async (sessionId) => {
-                if (sessionId === null) {
-                  return;
-                }
-                await questModifyBroker({
-                  input: {
-                    questId: instruction.questId,
-                    workItems: [
-                      {
-                        id: instruction.workItemId,
-                        sessionId: sessionIdContract.parse(sessionId),
-                      },
-                    ],
-                  } as ModifyQuestInput,
-                });
-              })
-              .catch((error: unknown) => {
-                process.stderr.write(
-                  `[node-dispatch] sessionId stamp failed for work item ${instruction.workItemId}: ${String(error)}\n`,
-                );
-              }),
-          );
+        await spawnOneAgentLayerBroker({
+          instruction,
+          cwd: context.cwd,
+          ...(registerProcess === undefined ? {} : { registerProcess }),
+          ...(unregisterProcess === undefined ? {} : { unregisterProcess }),
+          ...(isPlaying === undefined ? {} : { isPlaying }),
         });
-        await Promise.all(sessionStamps);
-
-        if (exitCode !== null && exitCode !== 0) {
-          process.stderr.write(
-            `[node-dispatch] ${instruction.role} child for work item ${instruction.workItemId} exited with code ${String(exitCode)} — terminal status is owned by signal-back / orphan recovery\n`,
-          );
-        }
       } catch (error: unknown) {
         // One failed spawn must not abort the rest of the batch; the un-dispatched item is
         // reclaimed by orphan recovery on a later scan.

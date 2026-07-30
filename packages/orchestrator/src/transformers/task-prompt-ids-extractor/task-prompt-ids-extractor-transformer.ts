@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Extracts {questId, workItemId} from a sub-agent's first user-text line, whose
  * content is Claude CLI's verbatim copy of the `Task.input.prompt` the orchestrator
- * dispatched. The taskPrompt is built by `build-task-prompt-layer-broker.ts` and always
+ * dispatched. The taskPrompt is built by `agent-task-prompt-transformer.ts` and always
  * embeds `workItemId: "<uuid>"` and `questId: "<uuid>"` as plain text — the watcher can
  * recover both ids by regex once that line lands in the sub-agent JSONL.
  *

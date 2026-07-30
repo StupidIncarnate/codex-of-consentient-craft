@@ -23,9 +23,12 @@
  *   so it re-dispatches and re-signals.
  *
  * USAGE:
- * const recovered = await recoverOrphanedWorkItemsLayerBroker({ quest });
- * // Returns: Quest — identical to the input when nothing needed recovery; otherwise a copy whose
- * //   recovered items read pending (persisted through questModifyBroker).
+ * const { quest: recovered, blocked } = await recoverOrphanedWorkItemsLayerBroker({ quest });
+ * // Returns: { quest, blocked } — `quest` is identical to the input when nothing needed recovery,
+ * //   otherwise a copy whose recovered items read pending (persisted through questModifyBroker).
+ * //   `blocked` is true when an exhausted orphan escalated and the quest is now `blocked`; the
+ * //   caller must stop scanning, because the returned copy still shows items the block just
+ * //   drained to `skipped` and dispatching from it would run agents against a halted quest.
  */
 
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
@@ -43,7 +46,7 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
   quest,
 }: {
   quest: Quest;
-}): Promise<Quest> => {
+}): Promise<{ quest: Quest; blocked: boolean }> => {
   const orphanedItems = quest.workItems.filter((item) =>
     isActiveWorkItemStatusGuard({ status: item.status }),
   );
@@ -68,7 +71,7 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
 
   const toRecover: WorkItem[] = [...orphanedItems, ...unappliedSignalItems];
   if (toRecover.length === 0) {
-    return quest;
+    return { quest, blocked: false };
   }
 
   // A persistently-crashing session (retryCount at the budget) will not converge by resuming
@@ -100,19 +103,22 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
 
   const resetIds = new Set(toReset.map((item) => item.id));
   return {
-    ...quest,
-    workItems: quest.workItems.map((item) => {
-      if (resetIds.has(item.id)) {
-        return {
-          ...item,
-          status: 'pending',
-          ...(item.sessionId === undefined ? {} : { resume: true }),
-        };
-      }
-      if (escalated !== undefined && item.id === escalated.id) {
-        return { ...item, status: 'failed' };
-      }
-      return item;
-    }),
+    blocked: escalated !== undefined,
+    quest: {
+      ...quest,
+      workItems: quest.workItems.map((item) => {
+        if (resetIds.has(item.id)) {
+          return {
+            ...item,
+            status: 'pending',
+            ...(item.sessionId === undefined ? {} : { resume: true }),
+          };
+        }
+        if (escalated !== undefined && item.id === escalated.id) {
+          return { ...item, status: 'failed' };
+        }
+        return item;
+      }),
+    },
   };
 };

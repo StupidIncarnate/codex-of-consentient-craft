@@ -81,6 +81,12 @@ export const OrchestrationDispatchBootstrapResponder = (): AdapterResult => {
             orchestrationProcess: { processId, questId, questWorkItemId, kill },
           });
         },
+        // Every spawned child gets removed from the registry when it exits. Leaving entries behind
+        // makes the stale-process watchdog warn about dead children forever, and an API-overload
+        // retry can spawn a work item's child dozens of times over one outage.
+        unregisterProcess: ({ processId }): void => {
+          orchestrationProcessesState.remove({ processId });
+        },
       }),
   });
 

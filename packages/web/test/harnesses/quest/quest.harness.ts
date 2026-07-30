@@ -148,6 +148,7 @@ export const questHarness = ({
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
+    firstWorkItemSessionId?: string;
   }) => void;
 } => {
   const createQuest = async ({
@@ -502,6 +503,7 @@ export const questHarness = ({
     operations,
     firstWorkItemId,
     firstWorkItemStatus = 'pending',
+    firstWorkItemSessionId,
   }: {
     questId: string;
     questFolder: string;
@@ -517,6 +519,10 @@ export const questHarness = ({
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
+    // Seeds a RETAINED session on the first work item — the shape a quest is left in when its
+    // agent died mid-flight. Deliberately seeded WITHOUT a `resume` marker, because that is the
+    // state that used to fresh-spawn and overwrite the session.
+    firstWorkItemSessionId?: string;
   }): void => {
     const [firstOp] = operations;
     if (firstOp === undefined) {
@@ -537,6 +543,7 @@ export const questHarness = ({
           status: firstWorkItemStatus,
           spawnerType: firstOp.role === 'ward' ? 'command' : 'agent',
           relatedDataItems: [`operations/${firstOp.id}`],
+          ...(firstWorkItemSessionId === undefined ? {} : { sessionId: firstWorkItemSessionId }),
           ...(firstOp.wardMode === undefined ? {} : { wardMode: firstOp.wardMode }),
         },
       ],

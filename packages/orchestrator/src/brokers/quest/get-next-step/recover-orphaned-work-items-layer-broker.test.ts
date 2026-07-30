@@ -37,7 +37,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      expect(result).toStrictEqual(quest);
+      expect(result).toStrictEqual({ quest, blocked: false });
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
       expect(proxy.getBlockCalls()).toStrictEqual([]);
     });
@@ -63,7 +63,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      expect(result).toStrictEqual(quest);
+      expect(result).toStrictEqual({ quest, blocked: false });
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
 
@@ -85,7 +85,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      expect(result).toStrictEqual(quest);
+      expect(result).toStrictEqual({ quest, blocked: false });
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
@@ -103,7 +103,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      expect(result.workItems).toStrictEqual([
+      expect(result.quest.workItems).toStrictEqual([
         WorkItemStub({ id: orphanId, role: 'pesteater', status: 'pending' }),
       ]);
     });
@@ -195,7 +195,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      expect(result.workItems).toStrictEqual([
+      expect(result.quest.workItems).toStrictEqual([
         WorkItemStub({
           id: orphanId,
           role: 'codeweaver',
@@ -227,7 +227,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
-      expect(result.workItems).toStrictEqual([
+      expect(result.quest.workItems).toStrictEqual([
         WorkItemStub({ id: firstId, role: 'codeweaver', status: 'pending' }),
         WorkItemStub({ id: secondId, role: 'lawbringer', status: 'pending', dependsOn: [firstId] }),
       ]);
@@ -264,7 +264,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
       const persistedItem = persisted.workItems.find((item) => item.id === itemId);
 
       expect({
-        localWorkItems: result.workItems,
+        localWorkItems: result.quest.workItems,
         persistedStatus: persistedItem?.status,
         persistedResume: persistedItem?.resume,
         persistedRetryCount: persistedItem?.retryCount,
@@ -310,11 +310,13 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
       expect({
-        localStatus: result.workItems.find((item) => item.id === orphanId)?.status,
+        localStatus: result.quest.workItems.find((item) => item.id === orphanId)?.status,
+        blocked: result.blocked,
         blockCalls: proxy.getBlockCalls(),
         resetPersistCount: proxy.getAllPersistedContents().length,
       }).toStrictEqual({
         localStatus: 'failed',
+        blocked: true,
         blockCalls: [{ questId, failedWorkItemId: orphanId }],
         resetPersistCount: 0,
       });
@@ -348,10 +350,12 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
       const result = await recoverOrphanedWorkItemsLayerBroker({ quest });
 
       expect({
+        blocked: result.blocked,
         blockCalls: proxy.getBlockCalls(),
-        localFirstStatus: result.workItems.find((item) => item.id === firstId)?.status,
-        localSecondStatus: result.workItems.find((item) => item.id === secondId)?.status,
+        localFirstStatus: result.quest.workItems.find((item) => item.id === firstId)?.status,
+        localSecondStatus: result.quest.workItems.find((item) => item.id === secondId)?.status,
       }).toStrictEqual({
+        blocked: true,
         blockCalls: [{ questId, failedWorkItemId: firstId }],
         localFirstStatus: 'failed',
         localSecondStatus: 'pending',

@@ -13,10 +13,24 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { z } from 'zod';
 
 import type { ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 
 import { fsQueueMetadataReadAdapter } from '@dungeonmaster/testing/adapters/fs/queue-metadata-read';
+
+// One record per fake-CLI spawn, written by `bin/claude`. `resumeSessionId` is the value the
+// orchestrator passed after `--resume` (null on a fresh spawn) — the only observable proof of
+// whether a dispatch resumed a retained session or clobbered it, since a fresh child stamps a new
+// sessionId over the old one and quest.json ends up looking the same either way.
+const claudeInvocationContract = z.object({
+  resumeSessionId: z.string().brand<'SessionId'>().nullable(),
+  prompt: z.string().brand<'PromptText'>().nullable(),
+});
+
+type ClaudeInvocation = z.infer<typeof claudeInvocationContract>;
+
+const INVOCATIONS_FILE = 'invocations.jsonl';
 
 export {
   ClaudeQueueResponseStub,
@@ -108,6 +122,7 @@ export const claudeMockHarness = ({
   beforeEach: () => void;
   queueResponse: (params: { response: ClaudeQueueResponse }) => void;
   clearQueue: () => void;
+  readInvocations: () => readonly ClaudeInvocation[];
 } => ({
   beforeEach: (): void => {
     // Clear both the root queue (legacy unscoped responses) and this test's cwd-scoped subdir.
@@ -121,5 +136,16 @@ export const claudeMockHarness = ({
   clearQueue: (): void => {
     clearClaudeQueue({ queueDir: getRootQueueDir() });
     clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath }) });
+  },
+  readInvocations: (): readonly ClaudeInvocation[] => {
+    const invocationsPath = path.join(getScopedQueueDir({ guildPath }), INVOCATIONS_FILE);
+    if (!fs.existsSync(invocationsPath)) {
+      return [];
+    }
+    return fs
+      .readFileSync(invocationsPath, 'utf8')
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => claudeInvocationContract.parse(JSON.parse(line)));
   },
 });

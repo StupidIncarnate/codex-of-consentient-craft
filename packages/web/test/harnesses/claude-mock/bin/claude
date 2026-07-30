@@ -20,6 +20,30 @@ if (!queueDir) {
 const encodeCwd = (cwd) => cwd.replace(/[^A-Za-z0-9._-]/g, '_');
 const scopedQueueDir = path.join(queueDir, '__by_cwd__', encodeCwd(process.cwd()));
 
+// Invocation ledger: one JSON line per spawn, appended BEFORE any queue work so it records even
+// the runs that then fail on an empty queue. This is how an e2e proves HOW the orchestrator
+// dispatched a work item — whether it passed `--resume <sessionId>` (resuming a retained session)
+// or fresh-spawned it (clobbering that session), which is invisible from quest.json alone because
+// a fresh child stamps a brand-new sessionId over the old one.
+const recordInvocation = () => {
+    try {
+        const resumeIndex = process.argv.indexOf('--resume');
+        const promptIndex = process.argv.indexOf('-p');
+        fs.mkdirSync(scopedQueueDir, { recursive: true });
+        fs.appendFileSync(
+            path.join(scopedQueueDir, 'invocations.jsonl'),
+            `${JSON.stringify({
+                resumeSessionId: resumeIndex === -1 ? null : process.argv[resumeIndex + 1],
+                prompt: promptIndex === -1 ? null : process.argv[promptIndex + 1],
+            })}\n`,
+        );
+    } catch {
+        // Recording is diagnostic only — never fail a spawn over it.
+    }
+};
+
+recordInvocation();
+
 // Prefer the cwd-scoped queue when it has files; fall back to the root queue for callers
 // that don't scope (e.g. legacy harness calls without a guild path).
 const readQueueFiles = (dir) => {
@@ -108,7 +132,7 @@ const userMessage = pFlagIndex !== -1 && pFlagIndex + 1 < process.argv.length
     : null;
 
 // The Node dispatcher hands each child a task prompt containing questId + workItemId literally
-// (build-task-prompt-layer-broker). Parse the first `<key>: "<value>"` occurrence — both the
+// (agent-task-prompt-transformer). Parse the first `<key>: "<value>"` occurrence — both the
 // get-agent-prompt block and the signal-back block repeat the same values, so the first match wins.
 const parsePromptId = (key) => {
     if (!userMessage) return null;

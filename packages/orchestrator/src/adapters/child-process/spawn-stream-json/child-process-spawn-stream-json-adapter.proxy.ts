@@ -28,6 +28,7 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
   setupSettingsJson: (params: { json: string }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
+  getAllSpawnedArgs: () => readonly unknown[];
   getSpawnedOptions: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
@@ -169,6 +170,12 @@ export const childProcessSpawnStreamJsonAdapterProxy = (): {
     getSpawnedCommand: (): unknown => mock.callsMatching([CLI_COMMAND]).at(-1)?.[0],
 
     getSpawnedArgs: (): unknown => mock.callsMatching([CLI_COMMAND]).at(-1)?.[1],
+
+    // Every spawn's argv, oldest first — what a caller that re-spawns the same work item (the
+    // API-overload retry) needs in order to assert the SEQUENCE of prompts and --resume flags,
+    // which `getSpawnedArgs` (last call only) cannot show.
+    getAllSpawnedArgs: (): readonly unknown[] =>
+      mock.callsMatching([CLI_COMMAND]).map((call) => call[1]),
 
     getSpawnedOptions: (): unknown => mock.callsMatching([CLI_COMMAND]).at(-1)?.[2],
 

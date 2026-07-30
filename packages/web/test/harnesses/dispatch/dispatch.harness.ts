@@ -71,6 +71,7 @@ export const dispatchHarness = ({
     }[];
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
+    firstWorkItemSessionId?: string;
   }) => Promise<{ questId: QuestId; questFolder: QuestId; questFilePath: FilePath }>;
   queueScript: (params: {
     script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
@@ -80,6 +81,9 @@ export const dispatchHarness = ({
     script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
   }) => Promise<void>;
   isDispatchPlaying: () => Promise<boolean>;
+  // Every fake-CLI spawn this spec caused, oldest first — carries the `--resume <sessionId>` the
+  // orchestrator passed (null on a fresh spawn) and the verbatim prompt it dispatched.
+  readClaudeInvocations: () => ReturnType<ReturnType<typeof claudeMockHarness>['readInvocations']>;
   waitForQuest: (params: {
     questId: string;
     predicate: (params: { quest: Quest }) => boolean;
@@ -140,6 +144,7 @@ export const dispatchHarness = ({
       operations,
       firstWorkItemId,
       firstWorkItemStatus,
+      firstWorkItemSessionId,
     }) => {
       const created = await quests.createQuest({ guildId, title, userRequest });
       quests.seedInProgressWithOperations({
@@ -150,6 +155,7 @@ export const dispatchHarness = ({
         operations,
         firstWorkItemId,
         ...(firstWorkItemStatus === undefined ? {} : { firstWorkItemStatus }),
+        ...(firstWorkItemSessionId === undefined ? {} : { firstWorkItemSessionId }),
       });
       return {
         questId: created.questId,
@@ -161,6 +167,7 @@ export const dispatchHarness = ({
     // play starts the dispatcher (resuming a quest does), so the agent it spawns still finds a
     // queued outcome instead of exiting red-on-empty and churning orphan recovery.
     queueScript,
+    readClaudeInvocations: claudeMock.readInvocations,
     playAndDrive: async ({ script }) => {
       queueScript({ script });
 

@@ -57,11 +57,25 @@ export const scanOnceLayerBroker = async ({
   //      ledger has an actionable operation item: a server stop between the signal handler's
   //      atomic persist and questAdvanceBroker left the relay without its next work item.
   //      Advance creates it (idempotent, strict-1:1 guarded), then recompute from a fresh read.
-  let step =
-    computeNextStepFromQuestLayerBroker({ quest }) ??
-    computeNextStepFromQuestLayerBroker({
-      quest: await recoverOrphanedWorkItemsLayerBroker({ quest }),
-    });
+  const direct = computeNextStepFromQuestLayerBroker({ quest });
+  if (direct !== null) {
+    activeQuest.setActive({ questId: quest.id });
+    return direct;
+  }
+
+  const recovery = await recoverOrphanedWorkItemsLayerBroker({ quest });
+
+  // Recovery escalated an exhausted orphan and the quest is now `blocked`. The status filter that
+  // admitted this quest ran BEFORE that write, so nothing below would notice — and both remaining
+  // steps would act on a halted quest: advance would mint (and this scan would dispatch) the next
+  // operation item's work item, and the recovered copy still reads `pending` for items the block
+  // just drained to `skipped`. Stop here; the user's resume is what restarts dispatch.
+  if (recovery.blocked) {
+    activeQuest.clear();
+    return null;
+  }
+
+  let step = computeNextStepFromQuestLayerBroker({ quest: recovery.quest });
 
   if (step === null) {
     await questAdvanceBroker({ questId: quest.id });

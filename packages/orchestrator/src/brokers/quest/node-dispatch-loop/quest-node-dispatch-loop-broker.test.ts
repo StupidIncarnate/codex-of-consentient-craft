@@ -31,7 +31,7 @@ describe('questNodeDispatchLoopBroker', () => {
       const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
 
       expect(result).toStrictEqual(AdapterResultStub());
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents }]);
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying }]);
       expect(proxy.getNextStepCalls()).toStrictEqual([
         {
           activeQuest: { setActive: expect.any(Function), clear: expect.any(Function) },
@@ -96,14 +96,15 @@ describe('questNodeDispatchLoopBroker', () => {
       const agents = [SpawnInstructionStub(), SpawnInstructionStub({ role: 'lawbringer' })];
       const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
       proxy.queueStep({ step: spawnStep });
+      const isPlaying = jest.fn().mockReturnValue(true);
 
       const result = await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
+        isPlaying,
         onWardLine: () => undefined,
       });
 
       expect(result).toStrictEqual(AdapterResultStub());
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents }]);
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying }]);
       expect(proxy.getRunWardCalls()).toStrictEqual([]);
     });
 
@@ -113,14 +114,32 @@ describe('questNodeDispatchLoopBroker', () => {
       const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
       proxy.queueStep({ step: spawnStep });
       const registerProcess = jest.fn();
+      const isPlaying = jest.fn().mockReturnValue(true);
 
       await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
+        isPlaying,
         onWardLine: () => undefined,
         registerProcess,
       });
 
-      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, registerProcess }]);
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying, registerProcess }]);
+    });
+
+    it('VALID: {unregisterProcess provided with spawn step} => threads unregisterProcess to the batch layer', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      const agents = [SpawnInstructionStub()];
+      const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
+      proxy.queueStep({ step: spawnStep });
+      const unregisterProcess = jest.fn();
+      const isPlaying = jest.fn().mockReturnValue(true);
+
+      await questNodeDispatchLoopBroker({
+        isPlaying,
+        onWardLine: () => undefined,
+        unregisterProcess,
+      });
+
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying, unregisterProcess }]);
     });
 
     it('VALID: {two spawn steps queued} => dispatches both batches before idling', async () => {
@@ -129,15 +148,16 @@ describe('questNodeDispatchLoopBroker', () => {
       const secondAgents = [SpawnInstructionStub({ role: 'blightwarden' })];
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents: firstAgents }) });
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents: secondAgents }) });
+      const isPlaying = jest.fn().mockReturnValue(true);
 
       await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
+        isPlaying,
         onWardLine: () => undefined,
       });
 
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([
-        { agents: firstAgents },
-        { agents: secondAgents },
+        { agents: firstAgents, isPlaying },
+        { agents: secondAgents, isPlaying },
       ]);
     });
   });

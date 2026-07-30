@@ -25,11 +25,12 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const OrchestrationResumeResponderProxy = (): {
   callResponder: typeof OrchestrationResumeResponder;
-  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestFound: (params: { quest: Quest; rearmWrites?: number }) => void;
   setupQuestNotFound: () => void;
   setupModifyReject: (params: { error: Error }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
+  getPersistedQuestAt: (params: { index: number }) => ReturnType<typeof questContract.parse>;
   getRegisteredProcessIds: () => readonly ProcessId[];
   getEmittedResumeEvents: () => readonly CapturedOrchestrationEmit[];
 } => {
@@ -50,9 +51,17 @@ export const OrchestrationResumeResponderProxy = (): {
   return {
     callResponder: OrchestrationResumeResponder,
 
-    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+    // The whole chain is FIFO-queued file I/O, so slots must be staged in the order the responder
+    // calls them. `rearmWrites` is how many work-item rearm modifies the blocked path performs
+    // BEFORE the status flip (1 when the quest has resumable wreckage, 0 otherwise) — a paused
+    // quest never rearms, so it defaults to none.
+    setupQuestFound: ({ quest, rearmWrites = 0 }: { quest: Quest; rearmWrites?: number }): void => {
       // Initial questGetBroker load.
       getProxy.setupQuestFound({ quest });
+      // questModifyBroker work-item rearm (blocked path only).
+      Array.from({ length: rearmWrites }).forEach(() => {
+        modifyProxy.setupQuestFound({ quest });
+      });
       // questModifyBroker flip-status + clear pausedAtStatus.
       modifyProxy.setupQuestFound({ quest });
       // Re-fetch after modify.
@@ -109,9 +118,10 @@ export const OrchestrationResumeResponderProxy = (): {
         }),
       });
 
-      // Two modify slots queued for the inline orphan reset: it fires at most one more
-      // modifyQuestBroker call (only when orphaned active work items exist), so the second
-      // slot is spare headroom in the mock queue.
+      // Spare modify slots. Beyond the status flip, a resume fires up to two more
+      // modifyQuestBroker calls — the blocked-path work-item rearm and the inline orphan reset —
+      // each conditional on there being something to write, so unused slots are just headroom.
+      modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
     },
@@ -130,6 +140,13 @@ export const OrchestrationResumeResponderProxy = (): {
       const persisted = modifyProxy.getAllPersistedContents();
       const lastWrite = persisted[persisted.length - 1];
       return questContract.parse(JSON.parse(String(lastWrite)));
+    },
+
+    // A resume writes in a fixed order — rearm (blocked path only), then the status flip — so the
+    // index is what lets a test assert the rearm landed BEFORE the quest became dispatchable.
+    getPersistedQuestAt: ({ index }: { index: number }): ReturnType<typeof questContract.parse> => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      return questContract.parse(JSON.parse(String(persisted[index])));
     },
 
     getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),

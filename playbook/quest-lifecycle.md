@@ -307,12 +307,28 @@ There is **no PathSeeker, no replan, no `failed` agent signal.** The three non-f
   Node/UI dispatch then **resumes** the retained Claude session (`claude --resume`) so partial work survives. Fallbacks
   fresh-spawn: an early-crash orphan with no captured `sessionId`, and the MCP `/dumpster-launch` Task path (its
   `sessionId` is the parent loop session).
+- **API overload → wait it out** — a child that exits non-zero after emitting a 529 / `overloaded_error` marker did not
+  fail; the upstream Anthropic API did. `spawn-one-agent-layer-broker` re-dispatches the SAME work item on
+  `apiOverloadRetryStatics`' schedule (10 retries a minute apart, then 20 five minutes apart — a ~110 minute window),
+  resuming the captured session so any work already done survives. This sits BELOW orphan recovery deliberately: a 529
+  death takes seconds, so without it three of them inside a few minutes spend the whole `orphanRecovery.maxResets`
+  budget and block the quest over an outage that would have cleared on its own.
 
 The **sole** path to `blocked` (needs-human) is `quest-block-on-failure-broker`, reached only from a spent bounded loop:
 ward-retry exhaustion, a locked role's pt-N chain exhaustion, or orphan-recovery exhaustion
 (`retryCount ≥ slotManagerStatics.orphanRecovery.maxResets`). It marks the failed work item `failed`, drains every
-still-`pending` work item to `skipped`, and sets status `blocked`. The user resumes a blocked quest (`blocked →
-in_progress`).
+still-`pending` work item to `skipped`, and sets status `blocked`.
+
+A block ends the scan it happened in: `scan-once-layer-broker` returns `null` the moment recovery reports it blocked,
+rather than falling through to the advance self-heal. Otherwise advance would mint the next ledger scope's work item and
+the same scan would dispatch an agent against a quest that just halted.
+
+The user resumes a blocked quest (`blocked → in_progress`) through the resume endpoint, which **rearms** it:
+`quest-resume-rearm-work-items-transformer` returns every work item whose linked operation item is still unfinished to
+`pending` with `retryCount` cleared to 0, keeping `sessionId` + the `resume` marker. Without the rearm a resume is
+cosmetic — the blocking item is still `failed` at the budget, so the next recovery pass re-escalates it and blocks again.
+An item whose operation item is `complete` is left alone, which is what stops a red ward's already-superseded `failed`
+work item from being resurrected.
 
 ---
 

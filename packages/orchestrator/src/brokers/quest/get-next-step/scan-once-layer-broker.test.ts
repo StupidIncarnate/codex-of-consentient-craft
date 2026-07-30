@@ -11,6 +11,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ActiveQuestFacadeStub } from '../../../contracts/active-quest-facade/active-quest-facade.stub';
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { scanOnceLayerBroker } from './scan-once-layer-broker';
 import { scanOnceLayerBrokerProxy } from './scan-once-layer-broker.proxy';
 
@@ -134,6 +135,51 @@ describe('scanOnceLayerBroker', () => {
     expect(setActive).toHaveBeenCalledWith({ questId });
   });
 
+  it('VALID: {orphan at the reset budget with a pending operation item behind it} => blocks and returns null WITHOUT advancing the ledger or dispatching', async () => {
+    const proxy = scanOnceLayerBrokerProxy();
+    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildItem = GuildListItemStub({ id: guildId, valid: true });
+    const questId = QuestIdStub({ value: 'q-scan-orphan-exhausted' });
+    const orphanId = QuestWorkItemIdStub({ value: 'ccc33333-1111-4222-9333-444444444444' });
+    const doneOperationId = OperationItemIdStub({ value: '11111111-1111-4222-9333-444444444444' });
+    const nextOperationId = OperationItemIdStub({ value: '22222222-1111-4222-9333-444444444444' });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      operations: [
+        OperationItemStub({ id: doneOperationId, role: 'codeweaver', status: 'in_progress' }),
+        // The next scope on the ledger. Before the block short-circuit, advance would mint a work
+        // item for it and this scan would dispatch an agent against an already-halted quest.
+        OperationItemStub({ id: nextOperationId, role: 'lawbringer', status: 'pending' }),
+      ],
+      workItems: [
+        WorkItemStub({
+          id: orphanId,
+          role: 'codeweaver',
+          status: 'in_progress',
+          retryCount: slotManagerStatics.orphanRecovery.maxResets,
+          relatedDataItems: [`operations/${doneOperationId}`],
+        }),
+      ],
+    });
+    proxy.setupGuildsAndQuests({
+      guildItems: [guildItem],
+      questsByGuildId: [{ guildId, quests: [quest] }],
+    });
+    proxy.setupModifyForQuest({ quest });
+    const clear = jest.fn();
+    const setActive = jest.fn();
+    const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+    const result = await scanOnceLayerBroker({ activeQuest });
+
+    expect(result).toBe(null);
+    expect(proxy.getBlockCalls()).toStrictEqual([{ questId, failedWorkItemId: orphanId }]);
+    expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    expect(clear).toHaveBeenCalledWith();
+    expect(setActive).toHaveBeenCalledTimes(0);
+  });
+
   it('VALID: {orphaned in_progress item WITH sessionId} => resumed spawn carries resumeSessionId and resumePrompt, taskPrompt stays fresh', async () => {
     const proxy = scanOnceLayerBrokerProxy();
     const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
@@ -169,7 +215,7 @@ describe('scanOnceLayerBroker', () => {
           workItemId: orphanId,
           taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           resumeSessionId: sessionId,
-          resumePrompt: `Your previous session for this work item was interrupted — you already have its context above. Verify what you completed (git status + recent commits), finish the remaining scope of your operation item, commit a prose handoff, then call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}). If you no longer have context, call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions.`,
+          resumePrompt: `You were CUT OFF mid-work on this item — your session was killed, not paused cleanly. The context above therefore stops abruptly and your LAST ACTION MAY NEVER HAVE COMPLETED: an edit may not have been written, a command may have died mid-run, a commit may not exist. Do not treat your own context as a record of what landed.\n\nRE-ESTABLISH THE CURRENT STATE FIRST, before doing any new work:\n1. Run \`git status\` and \`git log --oneline -5\` — what is actually committed, and what is still uncommitted?\n2. Re-read the files you believe you edited, and confirm the change is really on disk.\n3. Re-run whatever you were in the middle of verifying (a test, a ward run, a browser step) instead of trusting the remembered result.\n\nOnly once you know the real state: finish the remaining scope of your operation item, commit a prose handoff, then call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${orphanId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).\n\nIf you have no usable context above, call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${orphanId}",\n  questId: "${questId}"\n}) and follow its instructions from the top.`,
         },
       ],
     });

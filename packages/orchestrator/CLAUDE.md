@@ -649,7 +649,40 @@ have done, and no PathSeeker replan. Ward routing lives entirely in `quest-run-w
 KEEPING `sessionId`/`agentId` and adds a `resume` marker; Node/UI dispatch resumes the retained Claude session
 (`claude --resume`) so partial work survives. An early crash with no captured session falls back to a fresh spawn; the
 MCP-Task path re-dispatches fresh. Budget: each recovery bumps `retryCount`; at
-`slotManagerStatics.orphanRecovery.maxResets` the crash loop is terminal and the quest blocks.
+`slotManagerStatics.orphanRecovery.maxResets` the crash loop is terminal and the quest blocks. The broker returns
+`{ quest, blocked }`, and `scan-once-layer-broker` STOPS on `blocked: true` — it does not fall through to the advance
+self-heal, because minting and dispatching the next ledger scope's work item against a quest that just halted is exactly
+the bug that flag exists to prevent.
+
+**Never clobber a retained session.** `buildSpawnInstructionLayerBroker` decides resume-vs-fresh on
+`sessionId !== undefined && agentId === undefined` — it does NOT consult the `resume` marker. Any
+dispatchable work item carrying a session resumes it, whatever the role. Gating on the marker meant an
+item whose session was recorded but never formally reclaimed (a quest that blocked before recovery
+reached it, a hand-repaired quest.json) fresh-spawned, and the new child's init line overwrote
+`sessionId` — silently orphaning a session that still held real work. `agentId` is the ONE exception:
+`get-agent-prompt` stamps it together with a `sessionId` that is the user's `/dumpster-launch` loop
+session, not the agent's own. The `resume` marker is still written as an audit record of "this item was
+reclaimed"; it no longer gates dispatch. The resume prompt itself opens by telling the agent it was
+CUT OFF (killed, not paused) and requires re-establishing real state before any new work, since its
+last action may never have landed. Covered end-to-end by
+`packages/web/src/flows/quest-chat/dispatch-resumes-retained-session.e2e.ts`, which asserts the
+spawned child's actual argv and prompt.
+
+**An API overload is not a crash.** A dispatched child that exits non-zero after emitting a 529 / `overloaded_error`
+marker lost the upstream API, not its own work. `spawn-one-agent-layer-broker` owns that case BELOW orphan recovery: it
+re-dispatches the same work item in place on `apiOverloadRetryStatics`' schedule (10 retries a minute apart, then 20 five
+minutes apart) WITHOUT touching `retryCount`, resuming the captured session when the dead attempt reached its init line.
+Recovery's budget is 3 resets and a 529 death takes seconds, so routing overloads through recovery blocks a quest inside
+a few minutes of an outage that would have cleared itself. Detection needs BOTH the marker and the non-zero exit — a
+marker alone is just an agent printing a string. The retry yields to a paused dispatcher (rechecked after each backoff,
+which can sleep minutes) and to a work item that went terminal mid-wait.
+
+**Resuming a blocked quest rearms it.** `OrchestrationResumeResponder` accepts `blocked` as well as `paused` (a block
+leaves no `pausedAtStatus`, so it restores `in_progress`) and runs `quest-resume-rearm-work-items-transformer` first:
+every work item whose linked operation item is still unfinished goes back to `pending` with `retryCount` cleared,
+keeping `sessionId` + the `resume` marker. Without it the blocking item is still `failed` at the budget, so the next
+recovery pass re-escalates and re-blocks — a resume that does nothing. The rearm persists BEFORE the status flip. Items
+whose operation item is `complete` are left alone, so a red ward's superseded `failed` item is not resurrected.
 
 **Flowrider and Siegemaster own their dev server.** For runtime flows both control their own dev server via
 Playwright's `webServer` config (`{ command: <devCommand>, url: <devServerUrl>, reuseExistingServer: true }`, resolved

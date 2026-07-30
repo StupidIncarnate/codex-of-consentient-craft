@@ -33,6 +33,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   setAutoEmitLines: (params: { lines: readonly string[] }) => void;
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
+  getAllSpawnedArgs: () => readonly unknown[];
   getSpawnedOptions: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
@@ -132,6 +133,8 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
+
+    getAllSpawnedArgs: (): readonly unknown[] => spawnProxy.getAllSpawnedArgs(),
 
     getSpawnedOptions: (): unknown => spawnProxy.getSpawnedOptions(),
 

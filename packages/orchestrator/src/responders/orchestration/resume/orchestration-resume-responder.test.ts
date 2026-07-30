@@ -1,5 +1,14 @@
-import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  OperationItemIdStub,
+  OperationItemStub,
+  QuestIdStub,
+  QuestStub,
+  QuestWorkItemIdStub,
+  SessionIdStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
+import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { OrchestrationResumeResponderProxy } from './orchestration-resume-responder.proxy';
 
 describe('OrchestrationResumeResponder', () => {
@@ -83,6 +92,108 @@ describe('OrchestrationResumeResponder', () => {
     });
   });
 
+  describe('resuming a blocked quest', () => {
+    it('VALID: {blocked quest, no pausedAtStatus snapshot} => restores status to in_progress', async () => {
+      const questId = QuestIdStub({ value: 'resume-blocked' });
+      const quest = QuestStub({ id: questId, status: 'blocked' });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+      expect(proxy.getLastPersistedQuest().status).toBe('in_progress');
+    });
+
+    it('VALID: {blocked quest whose failed item is at the reset budget} => rearms it to pending with retryCount 0 and the resume marker BEFORE the status flip', async () => {
+      const questId = QuestIdStub({ value: 'resume-blocked-rearm' });
+      const operationId = OperationItemIdStub({ value: '3c08dd53-c172-4edb-a5e9-c305fc377544' });
+      const workItemId = QuestWorkItemIdStub({ value: 'f3054db6-5f14-4c79-a44e-b4ee375416e2' });
+      const sessionId = SessionIdStub({ value: 'a219be5c-ef0f-4987-abea-ed45fb509bbc' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'blocked',
+        operations: [
+          OperationItemStub({ id: operationId, role: 'siegemaster', status: 'in_progress' }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'siegemaster',
+            status: 'failed',
+            retryCount: slotManagerStatics.orphanRecovery.maxResets,
+            resume: true,
+            sessionId,
+            relatedDataItems: [`operations/${operationId}`],
+          }),
+        ],
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest, rearmWrites: 1 });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+
+      // Write 0 is the rearm; the status flip only happens afterwards, so a dispatch scan can
+      // never see this quest dispatchable while its exhausted item is still failed-at-budget.
+      const rearmed = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect({
+        status: rearmed.status,
+        workItems: rearmed.workItems.map((item) => ({
+          id: item.id,
+          status: item.status,
+          retryCount: item.retryCount,
+          resume: item.resume,
+          sessionId: item.sessionId,
+        })),
+      }).toStrictEqual({
+        status: 'blocked',
+        workItems: [
+          {
+            id: workItemId,
+            status: 'pending',
+            retryCount: 0,
+            resume: true,
+            sessionId,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {blocked quest whose only failed item owns a COMPLETE operation} => no rearm write, just the status flip', async () => {
+      const questId = QuestIdStub({ value: 'resume-blocked-no-rearm' });
+      const operationId = OperationItemIdStub({ value: '44444444-1111-4222-9333-444444444444' });
+      const workItemId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'blocked',
+        operations: [OperationItemStub({ id: operationId, role: 'ward', status: 'complete' })],
+        workItems: [
+          WorkItemStub({
+            id: workItemId,
+            role: 'ward',
+            status: 'failed',
+            spawnerType: 'command',
+            relatedDataItems: [`operations/${operationId}`],
+          }),
+        ],
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const firstWrite = proxy.getPersistedQuestAt({ index: 0 });
+
+      expect({
+        status: firstWrite.status,
+        workItemStatuses: firstWrite.workItems.map((item) => item.status),
+      }).toStrictEqual({ status: 'in_progress', workItemStatuses: ['failed'] });
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {quest not found} => throws Quest not found', async () => {
       const questId = QuestIdStub({ value: 'nonexistent' });
@@ -92,7 +203,7 @@ describe('OrchestrationResumeResponder', () => {
       await expect(proxy.callResponder({ questId })).rejects.toThrow(/Quest not found/u);
     });
 
-    it('ERROR: {quest not in paused status} => throws Quest is not paused', async () => {
+    it('ERROR: {quest in a non-resumable status} => throws Quest is not resumable', async () => {
       const questId = QuestIdStub({ value: 'still-running' });
       const quest = QuestStub({
         id: questId,
@@ -102,7 +213,7 @@ describe('OrchestrationResumeResponder', () => {
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
 
-      await expect(proxy.callResponder({ questId })).rejects.toThrow(/Quest is not paused/u);
+      await expect(proxy.callResponder({ questId })).rejects.toThrow(/Quest is not resumable/u);
     });
 
     it('ERROR: {paused quest missing pausedAtStatus snapshot} => throws no pausedAtStatus snapshot', async () => {

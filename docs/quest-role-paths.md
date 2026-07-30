@@ -350,10 +350,54 @@ session, so a re-`Task()` is always fresh). Because of strict 1:1, resume never 
 work item. Budget: `retryCount ≥ slotManagerStatics.orphanRecovery.maxResets` → the crash loop is
 terminal → `quest-block-on-failure-broker`.
 
+**A retained `sessionId` is never thrown away.** The resume decision lives in
+`buildSpawnInstructionLayerBroker` and keys on `sessionId !== undefined && agentId === undefined` —
+NOT on the `resume` marker. Any dispatchable work item that has a session resumes it, whatever the
+role. The marker is still written as a record of "this item was reclaimed", but gating on it meant an
+item whose session was recorded and then never formally reclaimed (a quest that blocked before
+recovery reached it, a hand-repaired quest.json) fresh-spawned instead — and the new child's init line
+overwrote `sessionId`, silently orphaning a session that still held real work. `agentId` is the ONE
+exception: `get-agent-prompt` stamps it together with a `sessionId` that is the user's
+`/dumpster-launch` loop session, not the agent's own, so resuming it would hand a headless child the
+user's interactive session.
+
+The resume prompt leads with the fact that the session was KILLED, not paused: its context ends
+mid-action, so the agent's last edit/command/commit may never have landed. It requires re-establishing
+real state (`git status`, re-read the files, re-run the check that was in flight) BEFORE any new work,
+because an agent that trusts its own context re-reports work it never finished or redoes work it
+already committed.
+
 A **reconcile net** in the same broker covers the (atomically-unreachable) case where a work item is
 terminal but its operation item is still `in_progress`: flip the work item back to `pending` (keeping
 identity + resume marker) so it re-dispatches and re-signals. It can never un-complete a quest,
 because the status transformer never derived `complete` while an operation was non-complete.
+
+An escalation ends the scan. `recoverOrphanedWorkItemsLayerBroker` returns `{ quest, blocked }`, and
+`scan-once-layer-broker` returns `null` on `blocked: true` instead of continuing to the advance
+self-heal — the status filter that admitted the quest ran BEFORE the block was written, so nothing
+downstream would notice on its own. Continuing would mint the next ledger scope's work item and
+dispatch an agent against a halted quest, and would read `pending` for items the block had just
+drained to `skipped`.
+
+### (c2) API overload → wait it out — `spawn-one-agent-layer-broker`
+
+A dispatched child that exits non-zero having emitted a 529 / `overloaded_error` marker did not fail;
+the upstream Anthropic API did. This is NOT an orphan and must not spend recovery budget: a 529 death
+takes seconds, so three of them inside a few minutes would exhaust `orphanRecovery.maxResets` and
+block the quest over an outage that clears on its own. The spawn layer instead re-dispatches the SAME
+work item in place on `apiOverloadRetryStatics`' schedule — 10 retries one minute apart, then 20 five
+minutes apart, a ~110 minute window — and resumes the captured `sessionId` when the dead attempt got
+far enough to have one, so an agent that worked for twenty minutes before the outage keeps its
+context. The retry abandons itself if dispatch is paused (checked before AND after each backoff, which
+can sleep for minutes) or if the work item went terminal during the wait (it signalled back, then
+lost the API). Only once the schedule is spent does the death fall through to orphan recovery.
+
+Detection requires BOTH signals: `isApiOverloadLineGuard` matching an output line AND a non-zero exit
+code. An agent that merely prints "API Error: 529" while exiting 0 is a success.
+
+Each attempt registers its own process id and `unregisterProcess`es it on exit, so the stale-process
+watchdog (which only warns, never kills — a minutes-long backoff is safe) does not accumulate an entry
+per dead child.
 
 ### (d) blocked → pt N + immediate halt — `QuestHandleSignalBackResponder`
 
@@ -397,6 +441,25 @@ There is no PathSeeker and no replan. A `blocked` quest is not dispatched: the s
 `isAnyAgentRunningQuestStatusGuard` (`== in_progress`), so a `blocked` quest is skipped and dispatch
 halts. The user can resume it (`blocked → in_progress`).
 
+## Resuming a blocked quest — rearm, don't just unblock
+
+`OrchestrationResumeResponder` handles both halts: a user PAUSE (restore `pausedAtStatus`) and a
+`blocked` quest (no snapshot exists — a block is not a pause — so it restores `in_progress`). The web
+RESUME button routes every resumable status through this endpoint; a bare status PATCH is wrong.
+
+A block leaves wreckage that a status flip alone does not clear: the item that blocked reads `failed`
+with `retryCount` AT `orphanRecovery.maxResets`, and everything queued behind it was drained to
+`skipped`. Re-entering the scan with that intact means the first recovery pass re-escalates the same
+exhausted item and blocks again — the user presses RESUME and watches nothing happen.
+
+So the blocked path rearms first, via `quest-resume-rearm-work-items-transformer`: every work item
+whose linked operation item is still unfinished goes back to `pending` with `retryCount` cleared to 0,
+**keeping** `sessionId` + the `resume` marker so dispatch resumes those Claude sessions rather than
+discarding their work. Items whose operation item is `complete` are left alone — that is what keeps a
+red ward's `failed` work item (already superseded by a spliced spiritmender + fresh ward) from being
+resurrected. The rearm is persisted BEFORE the status flip, so no scan can observe the quest
+dispatchable while the wreckage is still in place.
+
 ---
 
 ## Invariants (testable — assert these in integration tests)
@@ -436,7 +499,18 @@ halts. The user can resume it (`blocked → in_progress`).
 - **ORPH-1 — Resume, don't restart.** An orphaned `in_progress` work item flips to `pending` keeping
   `sessionId`/`agentId` + a resume marker; Node/UI dispatch resumes the session (`claude --resume`).
   MCP-Task and no-sessionId orphans fresh-spawn.
+- **ORPH-1a — A retained session is NEVER clobbered.** `buildSpawnInstructionLayerBroker` resumes on
+  `sessionId !== undefined && agentId === undefined` — the `resume` marker is NOT consulted, so an
+  item whose session was recorded but never formally reclaimed still resumes instead of fresh-spawning
+  and overwriting `sessionId` with a new id. `agentId` is the sole exception: it is stamped only
+  alongside an MCP parent-loop `sessionId`, which is not the agent's own session to resume. Proven
+  end-to-end in `dispatch-resumes-retained-session.e2e.ts` by reading the spawned child's real argv.
 - **ORPH-2 — Bounded.** `retryCount ≥ orphanRecovery.maxResets` → `blocked`.
+- **ORPH-3 — An API overload never spends the budget.** A non-zero exit carrying a 529 /
+  `overloaded_error` marker retries in place on `apiOverloadRetryStatics`' two-tier schedule with
+  `retryCount` untouched, resuming the captured session. Only a spent schedule reaches recovery.
+- **ORPH-4 — The overload retry yields.** It abandons on a paused dispatcher (checked before and
+  after each backoff) and on a work item that went terminal during the wait.
 
 ### Block
 
@@ -444,6 +518,13 @@ halts. The user can resume it (`blocked → in_progress`).
   reached only from ward-retry exhaustion, pt-N-chain exhaustion, or orphan-recovery exhaustion.
 - **BLK-2 — A blocked quest is not dispatched.** The scan filters on `in_progress`, so a `blocked`
   quest is skipped and dispatch halts; the user resumes it explicitly.
+- **BLK-3 — A block ends its own scan.** When recovery escalates, `scan-once-layer-broker` returns
+  `null` without running the advance self-heal — no work item is minted for the next ledger scope and
+  nothing is dispatched against the quest that just halted.
+- **BLK-4 — Resume rearms.** `blocked → in_progress` returns every work item whose operation item is
+  still unfinished to `pending` with `retryCount` 0, keeping `sessionId` + the resume marker, and
+  persists that BEFORE the status flip. A resume that only flipped the status would re-block on the
+  next scan.
 
 ### Contract integrity
 

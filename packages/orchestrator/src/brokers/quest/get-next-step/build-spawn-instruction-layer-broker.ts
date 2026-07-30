@@ -1,10 +1,23 @@
 /**
  * PURPOSE: Layer helper for questGetNextStepBroker — converts a single WorkItem + its quest's id
  * into a fully-formed SpawnInstruction, parsing the work-item role into an AgentRole and
- * interpolating the taskPrompt template. A work item carrying the orphan-recovery resume marker
- * (retained sessionId) gets `resumeSessionId` threaded onto the instruction so Node dispatch can
- * resume the session; taskPrompt stays the FRESH variant because the MCP/Task dispatcher cannot
- * resume and always re-dispatches fresh from taskPrompt.
+ * interpolating the taskPrompt template.
+ *
+ * NEVER CLOBBER A SESSION. A retained `sessionId` is work already done, so ANY work item that has
+ * one is re-dispatched as a resume (`resumeSessionId` + the resume-variant prompt) regardless of
+ * role — no `resume` marker required. Relying on that marker meant an item whose session was
+ * recorded but which was never formally reclaimed (say a `blocked` quest halted before orphan
+ * recovery reached it) fresh-spawned instead, and the new child's init line overwrote the old
+ * `sessionId` — silently orphaning a session that still held real work.
+ *
+ * THE ONE EXCEPTION is a work item carrying `agentId`. `agentId` and `sessionId` are stamped
+ * together, and only by the MCP `get-agent-prompt` path, where `sessionId` is the PARENT
+ * `/dumpster-launch` loop session — not the agent's own. Resuming that would hand a headless child
+ * the user's interactive session. Node dispatch stamps `sessionId` alone (`agentId` stays unset for
+ * top-level sessions), so `agentId === undefined` is exactly "this session is mine to resume".
+ *
+ * `taskPrompt` stays the FRESH variant either way: the MCP/Task dispatcher cannot resume and always
+ * re-dispatches from it.
  *
  * USAGE:
  * const instruction = buildSpawnInstructionLayerBroker({ questId, workItem });
@@ -18,7 +31,7 @@ import {
   type AgentRole,
 } from '../../../contracts/agent-role/agent-role-contract';
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
-import { buildTaskPromptLayerBroker } from './build-task-prompt-layer-broker';
+import { agentTaskPromptTransformer } from '../../../transformers/agent-task-prompt/agent-task-prompt-transformer';
 
 export const buildSpawnInstructionLayerBroker = ({
   questId,
@@ -28,12 +41,12 @@ export const buildSpawnInstructionLayerBroker = ({
   workItem: WorkItem;
 }): SpawnInstruction => {
   const role: AgentRole = agentRoleContract.parse(workItem.role);
-  const canResume = workItem.resume === true && workItem.sessionId !== undefined;
+  const canResume = workItem.sessionId !== undefined && workItem.agentId === undefined;
   return {
     questId,
     role,
     workItemId: workItem.id,
-    taskPrompt: buildTaskPromptLayerBroker({
+    taskPrompt: agentTaskPromptTransformer({
       role,
       workItemId: workItem.id,
       questId,
@@ -41,7 +54,7 @@ export const buildSpawnInstructionLayerBroker = ({
     ...(canResume
       ? {
           resumeSessionId: workItem.sessionId,
-          resumePrompt: buildTaskPromptLayerBroker({
+          resumePrompt: agentTaskPromptTransformer({
             role,
             workItemId: workItem.id,
             questId,
