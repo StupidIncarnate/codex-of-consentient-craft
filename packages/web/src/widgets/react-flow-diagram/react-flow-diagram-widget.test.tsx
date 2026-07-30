@@ -867,6 +867,154 @@ describe('ReactFlowDiagramWidget', () => {
     });
   });
 
+  describe('selection resolved against the live flow', () => {
+    it('VALID: {selected node removed from the flow while its panel is open} => the panel closes instead of stranding on a box that no longer exists', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        type: 'state',
+        observables: [],
+      });
+      const survivor = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'dashboard' }),
+        label: 'Dashboard',
+        type: 'terminal',
+        observables: [],
+      });
+      const comments = [
+        QuestCommentStub({
+          id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'login-page',
+          text: 'note on the doomed node',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        }),
+      ];
+
+      proxy.setupPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'dashboard', x: 0, y: 200 },
+        ],
+      });
+
+      const rendered = mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={FlowStub({ id: 'login-flow', nodes: [node, survivor], edges: [] })}
+            comments={comments}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+          'Login Page',
+          'Dashboard',
+        ]);
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the doomed node']);
+
+      // An agent turn deletes the selected node from the spec. The comment stays on the quest
+      // (orphan cleanup is a write-time concern), so nothing but the live-flow lookup stops the
+      // panel from stranding on a box the canvas no longer draws.
+      rendered.rerender(
+        <ReactFlowDiagramWidget
+          flow={FlowStub({ id: 'login-flow', nodes: [survivor], edges: [] })}
+          comments={comments}
+        />,
+      );
+
+      expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+        'Dashboard',
+      ]);
+      expect(proxy.hasDetailPanel()).toBe(false);
+      expect(proxy.getPanelCommentTexts()).toStrictEqual([]);
+    });
+
+    it('VALID: {selected assertion removed from its node while its panel is open} => the panel closes rather than falling back to the parent node own comments', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const observable = FlowObservableStub({
+        id: 'redirects',
+        type: 'ui-state',
+        description: 'redirects to dashboard',
+      });
+      const comments = [
+        QuestCommentStub({
+          id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'login-page',
+          text: 'note on the parent node',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        }),
+        QuestCommentStub({
+          id: 'bbbbbbbb-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          nodeId: 'login-page',
+          observableId: 'redirects',
+          text: 'note on the doomed assertion',
+          createdAt: '2026-02-01T00:00:00.000Z',
+        }),
+      ];
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      const rendered = mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={FlowStub({
+              id: 'login-flow',
+              nodes: [
+                FlowNodeStub({
+                  id: FlowNodeIdStub({ value: 'login-page' }),
+                  type: 'state',
+                  observables: [observable],
+                }),
+              ],
+              edges: [],
+            })}
+            comments={comments}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickObservableNode({ nodeId: 'login-page', observableId: 'redirects' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the doomed assertion']);
+
+      // The assertion disappears but its PARENT NODE survives, so the dangerous failure is a
+      // silent fallback to the node's panel — the reader would be shown another box's comments
+      // under a heading they never clicked.
+      rendered.rerender(
+        <ReactFlowDiagramWidget
+          flow={FlowStub({
+            id: 'login-flow',
+            nodes: [
+              FlowNodeStub({
+                id: FlowNodeIdStub({ value: 'login-page' }),
+                type: 'state',
+                observables: [],
+              }),
+            ],
+            edges: [],
+          })}
+          comments={comments}
+        />,
+      );
+
+      expect(proxy.hasDetailPanel()).toBe(false);
+      expect(proxy.getPanelCommentTexts()).toStrictEqual([]);
+    });
+  });
+
   describe('panel dismissal', () => {
     it('VALID: {ESC pressed after selection} => panel removed and node deselected', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();

@@ -280,6 +280,39 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
         'pre-wrap',
       );
     });
+
+    it('EDGE: {comment text is one unbroken token wider than the panel} => breaks the word so the whole text stays inside the 400px panel', () => {
+      const proxy = FlowNodeDetailPanelLayerWidgetProxy();
+      const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
+      const comment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d479',
+        text: 'rename boxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirst please',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const onClose = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <FlowNodeDetailPanelLayerWidget
+            node={node}
+            contracts={[]}
+            comments={[comment]}
+            onClose={onClose}
+          />
+        ),
+      });
+
+      expect(proxy.getCommentTexts()).toStrictEqual([
+        'rename boxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirst please',
+      ]);
+      // pre-wrap alone honours newlines but never splits a token with no break opportunity, so a
+      // long camelCase symbol or base64 blob paints past the panel's maxWidth and is clipped.
+      // break-word is what the sibling surfaces (FLOW_NODE_LABEL, FLOW_OBSERVABLE_NODE_DESC)
+      // already set for the same reason; comment text is the least controllable of the three.
+      expect(screen.getByTestId('FLOW_DETAIL_PANEL_COMMENT_TEXT').style.overflowWrap).toBe(
+        'break-word',
+      );
+    });
   });
 
   describe('#check-no-comments-section', () => {

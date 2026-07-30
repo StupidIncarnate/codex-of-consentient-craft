@@ -152,7 +152,12 @@ export const FlowNodeDetailPanelLayerWidget = ({
             >
               <div
                 data-testid="FLOW_DETAIL_PANEL_COMMENT_TEXT"
-                style={{ color: colors.text, whiteSpace: 'pre-wrap' }}
+                // pre-wrap keeps the author's newlines; break-word is what stops a token with no
+                // break opportunity (a long camelCase symbol, a base64 blob, a hash) from painting
+                // past the panel's maxWidth and clipping the rest of the note. Comment text is
+                // free-form user input, so it needs the same guard the node label and the assertion
+                // description already carry.
+                style={{ color: colors.text, whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
               >
                 {comment.text}
               </div>
