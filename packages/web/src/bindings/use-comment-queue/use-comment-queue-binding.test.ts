@@ -52,6 +52,61 @@ describe('useCommentQueueBinding', () => {
     });
   });
 
+  describe('questId change', () => {
+    it('VALID: {questId switches while mounted to a quest with its own queue} => entries re-read for the newly mounted quest', () => {
+      const proxy = useCommentQueueBindingProxy();
+      proxy.setupEmptyQueue();
+      const questA = QuestIdStub({ value: 'quest-a' });
+      const questB = QuestIdStub({ value: 'quest-b' });
+      const entryA = CommentQueueEntryStub({ nodeId: 'login-page', text: 'the note on quest a' });
+      const entryB = CommentQueueEntryStub({ nodeId: 'dashboard', text: 'the note on quest b' });
+      proxy.setupQueuedComments({ questId: questA, entries: [entryA] });
+      proxy.setupQueuedComments({ questId: questB, entries: [entryB] });
+
+      // The hook stays MOUNTED across the switch — only the questId it is handed changes, the shape
+      // a route param change produces. Without the re-read the previous quest's queue would linger
+      // under the new quest's boxes and toolbar count.
+      let activeQuestId = questA;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useCommentQueueBinding({ questId: activeQuestId }),
+      });
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questB;
+          rerender();
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([entryB]);
+    });
+
+    it('EMPTY: {questId switches while mounted to a quest with no queue} => entries empties rather than keeping the previous quest entries', () => {
+      const proxy = useCommentQueueBindingProxy();
+      proxy.setupEmptyQueue();
+      const questA = QuestIdStub({ value: 'quest-a' });
+      const questB = QuestIdStub({ value: 'quest-b' });
+      proxy.setupQueuedComments({
+        questId: questA,
+        entries: [CommentQueueEntryStub({ nodeId: 'login-page' })],
+      });
+
+      let activeQuestId = questA;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useCommentQueueBinding({ questId: activeQuestId }),
+      });
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questB;
+          rerender();
+        },
+      });
+
+      expect(result.current.entries).toStrictEqual([]);
+    });
+  });
+
   describe('entryFor()', () => {
     it('VALID: {anchor matching a queued node comment} => returns that entry', () => {
       const proxy = useCommentQueueBindingProxy();
