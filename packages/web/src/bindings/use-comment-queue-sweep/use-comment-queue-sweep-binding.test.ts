@@ -82,6 +82,59 @@ describe('useCommentQueueSweepBinding', () => {
       expect(proxy.getStoredValue({ questId: questB })).toBe(JSON.stringify(otherEntries));
     });
 
+    it('VALID: {two different quests each holding only expired entries} => the mount removes both keys in one pass', () => {
+      const proxy = useCommentQueueSweepBindingProxy();
+      proxy.setupEmptyQueue();
+      const questA = QuestIdStub({ value: 'quest-a' });
+      const questB = QuestIdStub({ value: 'quest-b' });
+      proxy.setupQueuedComments({
+        questId: questA,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(Date.now() - 8 * DAY_MS).toISOString() }),
+        ],
+      });
+      proxy.setupQueuedComments({
+        questId: questB,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(Date.now() - 9 * DAY_MS).toISOString() }),
+        ],
+      });
+
+      testingLibraryRenderHookAdapter({ renderCallback: () => useCommentQueueSweepBinding() });
+
+      // Two keys that BOTH need removing is the only shape that proves the scan snapshots its key
+      // list before mutating: removing the first key re-indexes localStorage, so a live index walk
+      // would slide the second key into an already-visited slot and leave it behind forever. Every
+      // other case here pairs one expiring key with one surviving key, where that skip is invisible.
+      expect(proxy.hasStoredQueue({ questId: questA })).toBe(false);
+      expect(proxy.hasStoredQueue({ questId: questB })).toBe(false);
+    });
+
+    it('EDGE: {a key equal to the bare prefix carrying no questId} => the mount leaves it untouched and still purges a real quest key', () => {
+      const proxy = useCommentQueueSweepBindingProxy();
+      proxy.setupEmptyQueue();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const prefixOnlyValue = JSON.stringify([
+        CommentQueueEntryStub({ createdAt: new Date(Date.now() - 8 * DAY_MS).toISOString() }),
+      ]);
+      proxy.setupPrefixOnlyKey({ value: prefixOnlyValue });
+      proxy.setupQueuedComments({
+        questId,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(Date.now() - 8 * DAY_MS).toISOString() }),
+        ],
+      });
+
+      testingLibraryRenderHookAdapter({ renderCallback: () => useCommentQueueSweepBinding() });
+
+      // The bare prefix addresses no quest, so slicing a questId out of it yields an empty string
+      // that questIdContract rejects — sweeping it would throw out of the mount effect and take the
+      // whole quest route down. It is skipped whole, expired contents and all...
+      expect(proxy.getPrefixOnlyValue()).toBe(prefixOnlyValue);
+      // ...and the skip is scoped to that one key rather than abandoning the rest of the scan.
+      expect(proxy.hasStoredQueue({ questId })).toBe(false);
+    });
+
     it('EMPTY: {no comment queue keys at all} => mount completes and reports success', () => {
       const proxy = useCommentQueueSweepBindingProxy();
       proxy.setupEmptyQueue();

@@ -332,6 +332,43 @@ test.describe('Comment Queue Storage Lifecycle', () => {
     await expect(lifecycle.queueCount()).toHaveText('1 COMMENT QUEUED');
   });
 
+  // #scan-comment-queue-keys reaching #remove-queue-key TWICE inside one mount. Every other case in
+  // this file pairs one expiring key with one surviving key, which cannot tell a scan that visits
+  // every key from one that visits every OTHER key: removing a key re-indexes localStorage, so a
+  // live index walk slides the next key into a slot it has already passed. Two keys that both need
+  // removing is the only shape where that skip has somewhere to hide.
+  test('EDGE: {two quests whose keys both hold only 8-day-old entries} => one mount removes both keys and the mounted quest renders no COMMENT_QUEUE_BAR', async ({
+    page,
+    request,
+  }) => {
+    const lifecycle = commentQueueLifecycleHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+    });
+    await lifecycle.seedTwoQuests({ guildName: 'Double Purge Guild' });
+    await lifecycle.openQuest({ which: 'first' });
+    await lifecycle.writeQueue({
+      which: 'first',
+      entries: [{ nodeId: LIFECYCLE_FIRST_NODE_ID, text: STALE_TEXT, ageDays: 8 }],
+    });
+    await lifecycle.writeQueue({
+      which: 'second',
+      entries: [{ nodeId: LIFECYCLE_FIRST_NODE_ID, text: OTHER_QUEST_FIRST_TEXT, ageDays: 9 }],
+    });
+
+    await lifecycle.reloadQuest();
+
+    expect(await lifecycle.hasQueueKey({ which: 'first' })).toBe(false);
+    expect(await lifecycle.hasQueueKey({ which: 'second' })).toBe(false);
+    await expect(lifecycle.queueBar()).toHaveCount(0);
+    // The popover still opens, so the absent bar means "this quest's queue is empty" rather than
+    // "the status or session gate closed the compose affordance" — and it opens onto a blank editor.
+    await lifecycle.openCommentPopoverOn({ card: lifecycle.nodeCard({ which: 'first' }) });
+    await expect(lifecycle.popoverEditor()).toHaveValue('');
+  });
+
   // The stale-entry side of the same scan: a past-window entry that has NOT yet been swept reads
   // back as past-window, so the sentinel readQueue returns is proven to discriminate rather than
   // labelling everything "within". Without this, every purge assertion above could pass vacuously.
