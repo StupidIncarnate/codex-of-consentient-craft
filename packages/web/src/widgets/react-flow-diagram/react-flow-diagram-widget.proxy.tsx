@@ -33,6 +33,10 @@ interface ReactFlowDiagramWidgetProxyResult {
   countCommentButtonsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
   clickObservableNode: (params: { nodeId: string; observableId: string }) => Promise<void>;
   getCommentBadgeTextsOn: (params: { testId: string }) => HTMLElement['textContent'][];
+  getCommentBadgeTextsOnObservable: (params: {
+    nodeId: string;
+    observableId: string;
+  }) => HTMLElement['textContent'][];
   hasCommentsSection: () => boolean;
   getPanelCommentTexts: () => HTMLElement['textContent'][];
 }
@@ -99,6 +103,25 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
             (badge) => badge.textContent,
           ),
         ),
+    // The badges on ONE named assertion card. getCommentBadgeTextsOn collapses every assertion card
+    // into one list, and a card with no badge contributes nothing to it — so ['1'] there cannot say
+    // WHICH card carried the badge. Naming the card is what makes a count painted on the wrong
+    // assertion of the same node a failure.
+    getCommentBadgeTextsOnObservable: ({
+      nodeId,
+      observableId,
+    }: {
+      nodeId: string;
+      observableId: string;
+    }): HTMLElement['textContent'][] => {
+      const wrapper = screen
+        .getByTestId('REACT_FLOW_PANE')
+        .querySelector(`[data-node-id="obs:${nodeId}:${observableId}"]`);
+      if (!wrapper) throw new Error(`Observable wrapper not found: ${nodeId}/${observableId}`);
+      return Array.from(wrapper.querySelectorAll('[data-testid="COMMENT_COUNT_BADGE"]')).map(
+        (badge) => badge.textContent,
+      );
+    },
     hasCommentsSection: (): boolean => screen.queryByTestId('FLOW_DETAIL_PANEL_COMMENTS') !== null,
     getPanelCommentTexts: (): HTMLElement['textContent'][] =>
       screen

@@ -840,6 +840,126 @@ describe('ReactFlowDiagramWidget', () => {
       expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the assertion']);
     });
 
+    // Every other comments-plus-assertion scenario gives its node exactly ONE observable, where the
+    // card being asked about and the node's first card are the same box — so a count resolved from
+    // the wrong assertion of the same node still reads right. These two give the node TWO assertion
+    // cards and anchor the only comment to the SECOND, which is what separates "this card's own
+    // count" from "this node's first card's count".
+    it('VALID: {node with two assertion cards, comment anchored to the second} => the badge renders on the second assertion card while the first and the node card carry none', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+          FlowObservableStub({
+            id: 'sets-cookie',
+            type: 'custom',
+            description: 'sets the session cookie',
+          }),
+        ],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'cccccccc-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                observableId: 'sets-cookie',
+                text: 'note on the second assertion',
+                createdAt: '2026-03-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(
+          proxy.getCommentBadgeTextsOnObservable({
+            nodeId: 'login-page',
+            observableId: 'sets-cookie',
+          }),
+        ).toStrictEqual(['1']);
+      });
+
+      expect(
+        proxy.getCommentBadgeTextsOnObservable({ nodeId: 'login-page', observableId: 'redirects' }),
+      ).toStrictEqual([]);
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual([]);
+    });
+
+    it('VALID: {node with two assertion cards, comment anchored to the second} => clicking the first opens its panel with no comments section and clicking the second lists that comment', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+          FlowObservableStub({
+            id: 'sets-cookie',
+            type: 'custom',
+            description: 'sets the session cookie',
+          }),
+        ],
+      });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'cccccccc-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'login-flow',
+                nodeId: 'login-page',
+                observableId: 'sets-cookie',
+                text: 'note on the second assertion',
+                createdAt: '2026-03-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(
+          proxy.getCommentBadgeTextsOnObservable({
+            nodeId: 'login-page',
+            observableId: 'sets-cookie',
+          }),
+        ).toStrictEqual(['1']);
+      });
+
+      await proxy.clickObservableNode({ nodeId: 'login-page', observableId: 'redirects' });
+
+      expect(proxy.getDetailPanelHeading()?.textContent).toBe('redirects to dashboard');
+      expect(proxy.hasCommentsSection()).toBe(false);
+
+      await proxy.clickObservableNode({ nodeId: 'login-page', observableId: 'sets-cookie' });
+
+      expect(proxy.getDetailPanelHeading()?.textContent).toBe('sets the session cookie');
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the second assertion']);
+    });
+
     it('EMPTY: {node with contracts but no comments clicked} => FLOW_DETAIL_PANEL_COMMENTS absent while contract rows still render', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
