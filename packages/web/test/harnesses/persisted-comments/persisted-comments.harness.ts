@@ -46,6 +46,16 @@ export const NODE_COMMENT_NEWER_AT = '2026-03-04T05:06:07.000Z';
 export const ASSERTION_COMMENT_TEXT = 'the note left on this assertion';
 export const ASSERTION_COMMENT_AT = '2026-02-03T04:05:06.000Z';
 
+// A review note that is ONE unbroken token — the shape a comment takes when it names a symbol.
+// pre-wrap honours the author's newlines but never splits a token with no break opportunity, so
+// without overflow-wrap this row paints past the panel and the rest of the note is clipped. Long
+// enough that no monospace face could fit it in the panel's content box, so the geometry assertion
+// does not depend on which font the test machine resolves `monospace` to. Newest createdAt of the
+// seeded set, so it renders as the FIRST panel row.
+export const LONG_TOKEN_COMMENT_TEXT =
+  'renameBoxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirstAcrossEveryFlowOnTheQuestPlease';
+export const LONG_TOKEN_COMMENT_AT = '2026-05-06T07:08:09.000Z';
+
 export const CONTRACTS_ONLY_CONTRACT_NAME = 'ContractsOnlyPayload';
 export const COMMENTED_NODE_CONTRACT_NAME = 'CommentedNodePayload';
 
@@ -135,6 +145,31 @@ const VIEW_COMMENTS_PERSISTED = [
   },
 ];
 
+const VIEW_COMMENTS_LONG_TOKEN = {
+  id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d004',
+  flowId: VIEW_COMMENTS_FLOW_ID,
+  nodeId: COMMENTED_NODE_ID,
+  text: LONG_TOKEN_COMMENT_TEXT,
+  createdAt: LONG_TOKEN_COMMENT_AT,
+};
+
+// Browser-evaluated predicate: a comment row must paint no wider than the panel holding it. An
+// unbroken token that cannot wrap overflows its own content box (scrollWidth exceeds clientWidth)
+// AND paints past the panel's right edge. jsdom reports every width as 0, so a widget test can
+// assert the break-word declaration but never that the row actually fits — only a browser can.
+// Returns a boolean so the harness signature exposes no raw number. One pixel of slack absorbs
+// sub-pixel rounding on the right edge; a real overflow is tens to thousands of pixels.
+const COMMENT_ROW_FITS_BROWSER_FN = (el: Element): boolean => {
+  const panel = el.closest('[data-testid="FLOW_NODE_DETAIL_PANEL"]');
+  if (panel === null) {
+    return false;
+  }
+  return (
+    el.scrollWidth <= el.clientWidth &&
+    el.getBoundingClientRect().right <= panel.getBoundingClientRect().right + 1
+  );
+};
+
 const FLOW_NODE_COUNT = VIEW_COMMENTS_FLOW.nodes.length;
 const OBSERVABLE_NODE_COUNT = VIEW_COMMENTS_FLOW.nodes.reduce(
   (sum, node) => sum + node.observables.length,
@@ -157,6 +192,7 @@ export const persistedCommentsHarness = ({
     status: string;
     withSession: boolean;
     withComments?: boolean;
+    withLongToken?: boolean;
   }) => Promise<void>;
   seedAndOpenReadOnlySpecTab: (params: { guildName: string }) => Promise<void>;
   nodeCard: () => Locator;
@@ -171,6 +207,7 @@ export const persistedCommentsHarness = ({
   panelCommentTexts: () => Promise<HTMLElement['textContent'][]>;
   panelCommentTimes: () => Promise<HTMLElement['textContent'][]>;
   panelContractNames: () => Promise<HTMLElement['textContent'][]>;
+  commentRowFitsInsidePanel: (params: { index: number }) => Promise<boolean>;
 } => {
   // seedAndOpen learns the questId and the guild slug at runtime, so the navigation step needs
   // somewhere to read them back from.
@@ -197,11 +234,13 @@ export const persistedCommentsHarness = ({
     status,
     withSession,
     withComments,
+    withLongToken,
   }: {
     guildName: string;
     status: string;
     withSession: boolean;
     withComments: boolean;
+    withLongToken: boolean;
   }): Promise<void> => {
     const quests = questHarness({ request });
     const guild = await guildHarness({ request }).createGuild({ name: guildName, path: guildPath });
@@ -238,7 +277,13 @@ export const persistedCommentsHarness = ({
       contracts: VIEW_COMMENTS_CONTRACTS,
       // withComments false writes NO comments key at all — a quest.json shaped exactly like one
       // authored before the field existed, rather than one carrying an empty array.
-      ...(withComments ? { comments: VIEW_COMMENTS_PERSISTED } : {}),
+      ...(withComments
+        ? {
+            comments: withLongToken
+              ? [...VIEW_COMMENTS_PERSISTED, VIEW_COMMENTS_LONG_TOKEN]
+              : VIEW_COMMENTS_PERSISTED,
+          }
+        : {}),
     });
   };
 
@@ -265,13 +310,15 @@ export const persistedCommentsHarness = ({
       status,
       withSession,
       withComments = true,
+      withLongToken = false,
     }: {
       guildName: string;
       status: string;
       withSession: boolean;
       withComments?: boolean;
+      withLongToken?: boolean;
     }): Promise<void> => {
-      await seed({ guildName, status, withSession, withComments });
+      await seed({ guildName, status, withSession, withComments, withLongToken });
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
         questId: seeded.questId,
@@ -299,7 +346,13 @@ export const persistedCommentsHarness = ({
     // SPEC tab is the readOnly QuestSpecPanelWidget. Reaching the panel through the real tab is what
     // makes this the read-only surface rather than a second render of the live one.
     seedAndOpenReadOnlySpecTab: async ({ guildName }: { guildName: string }): Promise<void> => {
-      await seed({ guildName, status: 'complete', withSession: true, withComments: true });
+      await seed({
+        guildName,
+        status: 'complete',
+        withSession: true,
+        withComments: true,
+        withLongToken: false,
+      });
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
         questId: seeded.questId,
@@ -367,5 +420,13 @@ export const persistedCommentsHarness = ({
 
     panelContractNames: async (): Promise<HTMLElement['textContent'][]> =>
       page.getByTestId('FLOW_DETAIL_PANEL_CONTRACT_NAME').allTextContents(),
+
+    // Whether the comment row at `index` actually fits inside the detail panel it is rendered in —
+    // the painted outcome, measured on the real layout rather than inferred from a style rule.
+    commentRowFitsInsidePanel: async ({ index }: { index: number }): Promise<boolean> =>
+      page
+        .getByTestId('FLOW_DETAIL_PANEL_COMMENT_TEXT')
+        .nth(index)
+        .evaluate(COMMENT_ROW_FITS_BROWSER_FN),
   };
 };

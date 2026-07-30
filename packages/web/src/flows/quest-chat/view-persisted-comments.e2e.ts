@@ -9,6 +9,7 @@ import {
   COMMENTED_ASSERTION_TEXT,
   COMMENTED_NODE_CONTRACT_NAME,
   CONTRACTS_ONLY_CONTRACT_NAME,
+  LONG_TOKEN_COMMENT_TEXT,
   NODE_COMMENT_NEWER_AT,
   NODE_COMMENT_NEWER_TEXT,
   NODE_COMMENT_OLDER_AT,
@@ -140,6 +141,40 @@ test.describe('View Persisted Comments on a Quest', () => {
     ]);
     // The node panel still shows the contracts anchored to the node itself.
     expect(await view.panelContractNames()).toStrictEqual([COMMENTED_NODE_CONTRACT_NAME]);
+  });
+
+  // #check-long-comment-token-wraps — a PAINTED-width claim, so a browser is the only place it can
+  // be observed: jsdom has no layout engine and reports every width as 0, which is why the widget
+  // test can assert the break-word declaration but never that the row actually fits. Without that
+  // declaration this row paints hundreds of pixels past the panel and the rest of the note is
+  // clipped, while the declaration-only test stays green.
+  test('EDGE: {a comment whose text is one unbroken token wider than the panel} => the row wraps inside FLOW_NODE_DETAIL_PANEL instead of painting past its right edge', async ({
+    page,
+    request,
+  }) => {
+    const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await view.seedAndOpenSpecPanel({
+      guildName: 'Long Token Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+      withLongToken: true,
+    });
+
+    await view.clickCardBody({ card: view.nodeCard() });
+
+    // Newest createdAt of the three node comments, so the long-token note is row 0 — and the whole
+    // note is present in the DOM, which is what makes "clipped" a rendering question rather than a
+    // truncated-text one.
+    expect(await view.panelCommentTexts()).toStrictEqual([
+      LONG_TOKEN_COMMENT_TEXT,
+      NODE_COMMENT_NEWER_TEXT,
+      NODE_COMMENT_OLDER_TEXT,
+    ]);
+    expect(await view.commentRowFitsInsidePanel({ index: 0 })).toBe(true);
+    // The ordinary rows are measured too, so this test also fails if a wrap fix pushed any other
+    // row out of the panel.
+    expect(await view.commentRowFitsInsidePanel({ index: 1 })).toBe(true);
+    expect(await view.commentRowFitsInsidePanel({ index: 2 })).toBe(true);
   });
 
   // #detail-panel-with-comments, the assertion-card side: its own comments, no contracts, and the
