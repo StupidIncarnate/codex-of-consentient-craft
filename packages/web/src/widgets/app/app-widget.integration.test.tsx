@@ -99,6 +99,7 @@ describe('shared websocket connection', () => {
       entriesByWorkItem: new Map(),
       slotEntries: new Map(),
       quest: null,
+      loadError: null,
       pendingClarification: null,
       isStreaming: false,
       sendMessage: expect.any(Function),

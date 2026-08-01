@@ -12,6 +12,11 @@ import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-rend
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 import { QuestChatContentLayerWidgetProxy } from './quest-chat-content-layer-widget.proxy';
 
+// The message questLoadBroker produces when questContract rejects a field — the shape the server
+// relays when a subscribe-quest read fails.
+const PARSE_FAILURE_REASON =
+  'Failed to parse quest file at /home/dm/guilds/g1/quests/q-broken/quest.json: comments.0.createdAt: Invalid datetime';
+
 describe('QuestChatContentLayerWidget', () => {
   describe('no-questId placeholder surface (claude mode)', () => {
     it('VALID: {claude mode, questId null} => renders the /dumpster-create placeholder banner', async () => {
@@ -557,6 +562,126 @@ describe('QuestChatContentLayerWidget', () => {
       ];
 
       expect(positions).toStrictEqual([0, 1, 2]);
+    });
+  });
+
+  describe('quest load failure surface', () => {
+    it('ERROR: {quest-load-failed for this quest} => renders the parse reason instead of the awaiting surface', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '77777777-8888-9999-aaaa-bbbbbbbbbbbb' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-broken' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: 'q-broken', error: PARSE_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_LOAD_ERROR');
+
+      // The reason has to name the rejected field verbatim — a generic "could not load" would send
+      // the reader looking for a deleted quest instead of a bad field in quest.json.
+      expect(queryByTestId('QUEST_LOAD_ERROR_REASON')?.textContent).toBe(PARSE_FAILURE_REASON);
+      // The awaiting-activity surface reads as "still loading", so it must be gone once the load
+      // has definitively failed.
+      expect(queryByTestId('QUEST_CHAT_ACTIVITY')).toBe(null);
+      expect(queryByTestId('QUEST_SPEC_PANEL')).toBe(null);
+    });
+
+    it('VALID: {quest-load-failed for a DIFFERENT quest} => leaves this route on the awaiting surface', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '88888888-9999-aaaa-bbbb-cccccccccccc' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-mine' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: 'q-someone-else', error: PARSE_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_CHAT_ACTIVITY');
+
+      expect(queryByTestId('QUEST_LOAD_ERROR')).toBe(null);
+    });
+
+    it('VALID: {quest-load-failed then a quest-modified for the same quest} => the error clears and the spec panel renders', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      const guildId = GuildIdStub({ value: '99999999-aaaa-bbbb-cccc-dddddddddd11' });
+      const quest = QuestStub({ id: 'q-repaired', status: 'review_flows' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-repaired' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: quest.id, error: PARSE_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_LOAD_ERROR');
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_SPEC_PANEL');
+
+      expect(queryByTestId('QUEST_LOAD_ERROR')).toBe(null);
     });
   });
 });

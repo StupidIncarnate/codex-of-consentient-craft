@@ -36,6 +36,7 @@ import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
+import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
@@ -56,6 +57,7 @@ export const useQuestChatBinding = ({
   entriesByWorkItem: Map<QuestWorkItemId, ChatEntry[]>;
   slotEntries: Map<SlotIndex, ChatEntry[]>;
   quest: Quest | null;
+  loadError: QuestLoadFailedPayload['error'] | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
   sendMessage: (params: { message: UserInput }) => void;
@@ -79,6 +81,10 @@ export const useQuestChatBinding = ({
     Map<SlotIndex, Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
   const [quest, setQuest] = useState<Quest | null>(null);
+  // The server's field-level reason when this quest's read failed. Held alongside `quest` rather
+  // than folded into it, because a route that only knows "no quest yet" cannot tell a load still in
+  // flight from one that has definitively failed.
+  const [loadError, setLoadError] = useState<QuestLoadFailedPayload['error'] | null>(null);
   const [pendingClarification, setPendingClarification] = useState<{
     questions: AskUserQuestionItem[];
   } | null>(null);
@@ -204,6 +210,16 @@ export const useQuestChatBinding = ({
       const questParsed = questContract.safeParse(updatedQuest);
       if (!questParsed.success) return;
       setQuest(questParsed.data);
+      // A quest that now parses supersedes any earlier failure, so the route stops reporting a
+      // failure it has already recovered from.
+      setLoadError(null);
+    });
+
+    const questLoadFailedSub = rxjsFilterAdapter({
+      source: webSocketChannelState.questLoadFailed$(),
+      predicate: (p) => p.questId === questIdRef.current,
+    }).subscribe((payload): void => {
+      setLoadError(payload.error);
     });
 
     return (): void => {
@@ -212,6 +228,7 @@ export const useQuestChatBinding = ({
       chatStreamEndedSub.unsubscribe();
       clarificationRequestSub.unsubscribe();
       questUpdatedSub.unsubscribe();
+      questLoadFailedSub.unsubscribe();
 
       const subscribedQuestId = subscribedQuestIdRef.current;
       if (subscribedQuestId) {
@@ -360,6 +377,7 @@ export const useQuestChatBinding = ({
     entriesByWorkItem,
     slotEntries,
     quest,
+    loadError,
     pendingClarification,
     isStreaming,
     sendMessage,

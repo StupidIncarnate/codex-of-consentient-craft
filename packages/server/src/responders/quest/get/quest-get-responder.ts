@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await QuestGetResponder({ params: { questId: 'abc' }, query: { stage: 'spec' } });
- * // Returns { status: 200, data: quest } or { status: 400/500, data: { error } }
+ * // Returns { status: 200, data: quest } or { status: 400/404/500, data: { error } }
  */
 
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
@@ -44,6 +44,15 @@ export const QuestGetResponder = async ({
       questId,
       ...(typeof stage === 'string' && { stage }),
     });
+    // questGetBroker catches its own failures and RETURNS `{ success: false, error }` rather than
+    // throwing, so the catch below never sees them. Passing that through unmapped would answer 200
+    // with a body announcing failure — the status has to carry the outcome, and the body the reason.
+    if (!quest.success || quest.quest === undefined) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.notFound,
+        data: { error: quest.error ?? 'Quest not found' },
+      });
+    }
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: quest });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get quest';

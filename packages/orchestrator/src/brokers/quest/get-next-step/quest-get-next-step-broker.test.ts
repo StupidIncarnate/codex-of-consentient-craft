@@ -541,5 +541,39 @@ describe('questGetNextStepBroker', () => {
       });
       expect(proxy.getRegisteredTimeoutMs()).toBe(10);
     });
+
+    // The scan MUTATES: orphan recovery flips an in_progress work item back to pending, and the
+    // advance self-heal mints the next ledger scope's work item. A poll that keeps scanning after
+    // the dispatcher was paused writes to quests the user just stopped it for.
+    it('VALID: {shouldKeepPolling flips false during the wait} => stops scanning and returns idle even though a quest appeared', async () => {
+      const proxy = questGetNextStepBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'quest-after-pause' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [WorkItemStub({ role: 'codeweaver', status: 'pending' })],
+      });
+      // First scan: no guilds — the broker sleeps and would retry.
+      proxy.setupNoGuilds();
+      // What the retry WOULD have found, had the poll been allowed to keep going.
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ setActive });
+
+      const result = await questGetNextStepBroker({
+        activeQuest,
+        longPollTotalMs: 5_000,
+        longPollIntervalMs: 10,
+        shouldKeepPolling: (): boolean => false,
+      });
+
+      expect(result).toStrictEqual({ type: 'idle' });
+      expect(setActive).toHaveBeenCalledTimes(0);
+    });
   });
 });

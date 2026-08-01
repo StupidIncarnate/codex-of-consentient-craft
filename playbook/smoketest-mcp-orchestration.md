@@ -93,9 +93,12 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
 ### The two ledger shapes
 
 - **feature** (`questType: feature`): ChaosWhisperer authors the `{ role: 'codeweaver', text }` implementation items at
-  spec time; Start Quest appends the verify tail `ward(changed) → (flowrider → siegemaster) per quest flow →
-  lawbringer → blightwarden → ward(full)` (all `locked`). The flowrider/siegemaster pair repeats once per flow, in
-  `quest.flows` declaration order, each item carrying that one flow in `flowIds`.
+  spec time; Start Quest appends the verify tail `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden →
+  ward(full)` (all `locked`) — six items whatever the flow count. `flowrider` and `siegemaster` are **operator** roles:
+  exactly ONE operation item each for the whole quest, carrying EVERY quest flow id in `flowIds` (a flow-less quest gets
+  `[]`). One session reads all those flows, groups them into bundles, dispatches a `flowrider-minion` /
+  `siegemaster-minion` per bundle via the `Agent` tool, then verifies the returned work by opening the files — so each
+  operator role has exactly ONE pt-continuation chain for the entire quest.
 - **bug-hunt** (`questType: bug-hunt`): Start Quest seeds a single `pesteater` implementation item + the tail
   `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
 
@@ -198,14 +201,15 @@ gates and the input allowlist, so you can drop the quest into any state:
 
 Paste these into `quest.json`, swapping ids as needed. Operation-item ids are UUIDs (branded `OperationItemId`); the
 `related-data-item-contract` regex is `^(operations|wardResults|flows)/[a-z0-9-]+$`. **An `operational` flow needs no
-dev server** — use it so a seeded flowrider/siegemaster doesn't trigger `.dungeonmaster.json` dev-server resolution.
+dev server** — use it so a seeded siegemaster doesn't trigger `.dungeonmaster.json` dev-server resolution (a seeded
+flowrider never does; only siegemaster items resolve that config).
 
 ```jsonc
 // quest.operations[] — the ledger; each item is worked by exactly one work item
 "operations": [
   { "id": "11111111-1111-1111-1111-111111111111", "role": "codeweaver", "text": "smoketest: build core adapter", "status": "pending", "locked": false },
   { "id": "22222222-2222-2222-2222-222222222222", "role": "ward", "text": "ward (changed)", "status": "pending", "locked": true, "wardMode": "changed" },
-  { "id": "33333333-3333-3333-3333-333333333333", "role": "flowrider", "text": "author flow suite", "status": "pending", "locked": true }
+  { "id": "33333333-3333-3333-3333-333333333333", "role": "flowrider", "text": "author flow suite", "status": "pending", "locked": true, "flowIds": ["flow-1"] }
 ],
 // quest.workItems[] — one session per operation item, strict 1:1 link
 "workItems": [
@@ -225,8 +229,10 @@ dev server** — use it so a seeded flowrider/siegemaster doesn't trigger `.dung
   pending item.
 - Keep work-item `dependsOn` chained after the prior terminal item (advance does this at runtime; match it when
   hand-seeding).
-- Flowrider / Siegemaster self-scope over ALL flows — their work item links `operations/<id>` (NOT a `flows/<id>` ref);
-  they read `quest.flows` directly for context.
+- Flowrider / Siegemaster are operators over ALL of a quest's flows: seed exactly ONE operation item each, listing EVERY
+  `quest.flows[].id` in `flowIds`. Their work item links `operations/<id>` (NOT a `flows/<id>` ref) — `flowIds` on the
+  operation item is what `get-agent-prompt` interpolates as the session's flow set, and the session reads `quest.flows`
+  directly for the rest of the context.
 
 ---
 
@@ -237,13 +243,14 @@ the MCP `get-quest` view strips `workItems`/`wardResults`).
 
 ## A1. Operation-item fields (`quest.operations[]`)
 
-| Field      | Enum / type                             | Who writes it & when                                                                                     |
-|------------|-----------------------------------------|---------------------------------------------------------------------------------------------------------|
-| `status`   | `pending \| in_progress \| complete`    | advance → `in_progress` (when it creates the work item); signal-back/run-ward → `complete`. NO `partial` |
-| `role`     | `workItemRoleContract`                  | seeded (Chaos or the relay seed / advance)                                                               |
-| `text`     | branded string                          | prose; a continuation is auto-named `"pt N: {text}"` by `operationPtChainTransformer`                    |
-| `locked`   | boolean                                 | Chaos/orchestrator-owned items (the plan item + the fixed verify tail) are `locked`; codeweaver = false  |
-| `wardMode` | `changed \| full`                       | present only on `role: ward` items; preserved on the `pt N` re-ward                                      |
+| Field      | Enum / type                          | Who writes it & when                                                                                                                                                                  |
+|------------|--------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `status`   | `pending \| in_progress \| complete` | advance → `in_progress` (when it creates the work item); signal-back/run-ward → `complete`. NO `partial`                                                                              |
+| `role`     | `workItemRoleContract`               | seeded (Chaos or the relay seed / advance)                                                                                                                                            |
+| `text`     | branded string                       | prose; a continuation is auto-named `"pt N: {text}"` by `operationPtChainTransformer`                                                                                                 |
+| `locked`   | boolean                              | Chaos/orchestrator-owned items (the plan item + the fixed verify tail) are `locked`; codeweaver = false                                                                               |
+| `wardMode` | `changed \| full`                    | present only on `role: ward` items; preserved on the `pt N` re-ward                                                                                                                   |
+| `flowIds`  | `FlowId[]`, defaults `[]`            | the flows the item lands on. Start Quest gives the ONE `flowrider` and ONE `siegemaster` item EVERY quest flow id; the other tail roles get none. Copied onto the `pt N` continuation |
 
 ## A2. Work-item fields (the ones that move)
 
@@ -291,11 +298,15 @@ the MCP `get-quest` view strips `workItems`/`wardResults`).
   review_observables, approved, explore_design, review_design, design_approved, in_progress, paused, blocked, complete,
   abandoned`. Terminal = {complete, abandoned}. **`blocked` is NOT terminal** (resumable → in_progress). There are NO
   `seek_*` statuses.
-- **roles:** `codeweaver, ward, flowrider, siegemaster, lawbringer, blightwarden, spiritmender, pesteater` (+ chat
-  `chaoswhisperer`/`glyphsmith`; + the 5 `blightwarden-*-minion` names, which are parent-summoned sub-agents, NOT work
-  items).
+- **roles** (`workItemRoleContract`): `codeweaver, ward, flowrider, siegemaster, lawbringer, blightwarden, spiritmender,
+  pesteater` (+ chat `chaoswhisperer`/`glyphsmith`; + the 5 `blightwarden-*-minion` names, which are parent-summoned
+  sub-agents, NOT work items). `flowrider-minion`, `siegemaster-minion`, `codeweaver-minion`, and `lawbringer-minion`
+  are
+  `agentPromptNameContract` names only — a parent summons them via the `Agent` tool, so they are never work items and
+  never appear on the ledger.
 - **ward retry budget** = `slotManagerStatics.ward.maxRetries` (the red-ward chain of a `wardMode` since the last green
-  of that mode). Verify-role `pt N` chains = `slotManagerStatics.<role>.maxAttempts`.
+  of that mode). A locked verify/operator role's `pt N` chain = `slotManagerStatics.<role>.maxAttempts` — ONE budget per
+  role for the whole quest, because each holds exactly one tail item.
 
 ## A5. signal-back outcome application (assert the `quest.json` result)
 
@@ -360,8 +371,9 @@ expand.
 `data-testid="OPERATIONS_LEDGER"`, rows `OPERATIONS_LEDGER_ROW` — each row is `OPERATIONS_LEDGER_ROW_MARKER` (status
 marker) + `OPERATIONS_LEDGER_ROW_ROLE` (role) + `OPERATIONS_LEDGER_ROW_TEXT` (text) + `OPERATIONS_LEDGER_ROW_FLOWS`
 (`[Flow Name, Other Flow]` — present iff the item carries `flowIds`; an id that no longer resolves to a quest flow
-renders as the raw id) + `OPERATIONS_LEDGER_ROW_WARD_MODE` (`(changed)`/`(full)` on ward rows). The ledger grows live as
-advance appends a `pt N` / spiritmender / fresh ward.
+renders as the raw id) + `OPERATIONS_LEDGER_ROW_WARD_MODE` (`(changed)`/`(full)` on ward rows). The `flowrider` and
+`siegemaster` rows list EVERY quest flow name; the other tail rows carry no flows element at all. The ledger grows live
+as advance appends a `pt N` / spiritmender / fresh ward.
 
 Status bar: `execution-status-bar-layer-widget` → `EXECUTION — {completedOps}/{totalOps} OPERATIONS`, or `EXECUTION —
 AWAITING PLAN` when the ledger is empty (pre-seed). Pause/Resume: `EXECUTION_PAUSE_BUTTON` (visible iff
@@ -389,7 +401,7 @@ detail breakdown only for a known-**failing** ward run.
   assert each row's transcript is **distinct**.
 - **Sub-agent chain collapse inside one transcript = `toolUseId`** (`collectSubagentChainsTransformer`). Chain header
   `SUBAGENT_CHAIN_HEADER` (`▾ SUB-AGENT "{desc}" ({n} entries)`), group `SUBAGENT_CHAIN`. A minion (codeweaver /
-  lawbringer / blightwarden) renders as a chain inside its parent's row.
+  flowrider / siegemaster / lawbringer / blightwarden) renders as a chain inside its parent's row.
 
 ## B5. NOT observable in the UI — assert ONLY in `quest.json`
 
@@ -416,8 +428,8 @@ detail breakdown only for a known-**failing** ward run.
 >   parallel-dispatch different roles** — `signal-back` does not gate on readiness, so a hand-batched pipeline
 >   force-completes items out of order and invalidates the run.
 > - The ONLY same-role parallelism in the model is **minions a parent summons via the Agent tool** (codeweaver /
->   lawbringer / blightwarden). Those are inside the parent's turn, not separate `get-next-step` dispatches — you never
->   dispatch them.
+>   flowrider / siegemaster / lawbringer / blightwarden). Those are inside the parent's turn, not separate
+>   `get-next-step` dispatches — you never dispatch them.
 > - **Operationally:** ONE `get-next-step` → dispatch its single returned entry → wait → assert `quest.json` →
 >   `get-next-step` again. Drive strictly off the returned `workItemId`; never off the seed array or a remembered id.
 >   When in doubt, do one tool call per turn.
@@ -485,6 +497,48 @@ Optionally pre-seed `smoketestPromptOverride` (trivial prompt) + `smoketestExpec
 
 ---
 
+# Flow 0 — Start Quest seed shape (the operator `flowIds` invariant)
+
+Flow 1 hand-seeds the ledger, so it can only assert the shape you typed. This flow makes
+`questBuildRelayGraphBroker` produce the ledger itself, which is the one place the operator `flowIds` invariant can
+actually regress.
+
+### Seed
+
+`create-quest` (feature), then patch `quest.json` on disk to a launch-ready spec — the disk write bypasses the gates:
+
+- `"status": "approved"`
+- `flows[]`: THREE operational flows, ids `flow-a`, `flow-b`, `flow-c` (three so a count-off-by-one is visible)
+- `operations[]`: the seeded plan item (leave it) plus ONE `{ role: 'codeweaver', locked: false, status: 'pending' }`
+  item — `OrchestrationStartResponder` validates startability, and the relay needs an implementation item to hang its
+  first work item on
+- leave `workItems[]` as created
+
+### Probe
+
+1. Call `mcp__dungeonmaster__start-quest({ questId })`. It routes through the same
+   `OrchestrationStartResponder` → `questBuildRelayGraphBroker` seed the Web UI's Start Quest button uses.
+2. **ASSERT `quest.json`:**
+    - status `in_progress`; the `chaoswhisperer` plan item force-completed to `complete`.
+    - The appended tail is EXACTLY six locked items in this order: `ward(changed)`, `flowrider`, `siegemaster`,
+      `lawbringer`, `blightwarden`, `ward(full)`. **Three flows must not produce three flowrider items** — assert
+      `operations.filter(o => o.role === 'flowrider').length === 1` and the same for `siegemaster`.
+    - The `flowrider` item's `flowIds` is `['flow-a', 'flow-b', 'flow-c']` — every quest flow id, in `quest.flows`
+      declaration order. Same for the `siegemaster` item.
+    - Every other tail item's `flowIds` is `[]`. Neither operator item names a flow id in its `text`.
+    - ONE work item was created, for the `codeweaver` item (which is now `in_progress`), linked `operations/<id>`.
+3. **ASSERT web** (~3s): the operations ledger shows 8 rows (plan item + codeweaver + the six-item tail); the flowrider
+   and siegemaster rows each show all three flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS`; the status bar reads
+   `EXECUTION — 1/8 OPERATIONS` (the force-completed plan item is the 1).
+4. Abandon the quest — Flow 1 needs a clean FIFO.
+
+**Repeat once with a ZERO-flow quest** (same seed, `flows: []`): the flowrider and siegemaster items still exist, one
+each, with `flowIds: []`, and their ledger rows render no flows element at all.
+
+**PASS:** one flowrider item + one siegemaster item regardless of flow count, each carrying the complete flow list.
+
+---
+
 # Flow 1 — Happy path relay (feature, pre-seeded)
 
 Pre-seed the full operations ledger + the first work item, then drive the relay one session at a time to `complete`.
@@ -493,15 +547,16 @@ This mirrors the state a quest is in right after Start Quest seeded the relay.
 ### Seed
 
 `create-quest` (feature), then patch `quest.json`: `status: in_progress`, an `operations[]` ledger with a codeweaver
-item + the verify tail as operation items (all `locked` except the codeweaver), one `flows[]` operational flow, and a
-FIRST work item for the codeweaver operation item:
+item + the verify tail as operation items (all `locked` except the codeweaver), TWO `flows[]` operational flows, and a
+FIRST work item for the codeweaver operation item. Two flows is deliberate: the tail is still SIX items, and the one
+flowrider item and the one siegemaster item each carry BOTH flow ids.
 
 ```jsonc
 "operations": [
   { "id": "op-cw",    "role": "codeweaver",   "text": "smoketest: core adapter", "status": "pending", "locked": false },
   { "id": "op-ward1", "role": "ward",         "text": "ward (changed)",          "status": "pending", "locked": true, "wardMode": "changed" },
-  { "id": "op-flow",  "role": "flowrider",    "text": "author flow suite",       "status": "pending", "locked": true },
-  { "id": "op-siege", "role": "siegemaster",  "text": "manual QA + review suite", "status": "pending", "locked": true },
+  { "id": "op-flow",  "role": "flowrider",    "text": "author the flow-perspective test suites across every quest flow", "status": "pending", "locked": true, "flowIds": ["flow-1", "flow-2"] },
+  { "id": "op-siege", "role": "siegemaster",  "text": "manual-QA every quest flow and review its test suites",           "status": "pending", "locked": true, "flowIds": ["flow-1", "flow-2"] },
   { "id": "op-law",   "role": "lawbringer",   "text": "standards review (diff)",  "status": "pending", "locked": true },
   { "id": "op-blight","role": "blightwarden", "text": "cross-cutting audit",      "status": "pending", "locked": true },
   { "id": "op-ward2", "role": "ward",         "text": "ward (full)",             "status": "pending", "locked": true, "wardMode": "full" }
@@ -510,27 +565,30 @@ FIRST work item for the codeweaver operation item:
   { "id": "wi-cw", "role": "codeweaver", "status": "pending", "spawnerType": "agent", "dependsOn": [], "relatedDataItems": ["operations/op-cw"], "createdAt": "..." }
 ],
 "flows": [
-  { "id": "flow-1", "name": "smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] }
+  { "id": "flow-1", "name": "smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] },
+  { "id": "flow-2", "name": "second smoketest flow", "flowType": "operational", "entryPoint": "cli", "exitPoints": ["done"], "nodes": [], "edges": [] }
 ]
 ```
 
-(Use real UUIDs for the ids. Seed only the FIRST work item — the relay creates each subsequent work item on advance.)
+(Use real UUIDs for the operation ids. Seed only the FIRST work item — the relay creates each subsequent work item on
+advance.)
 
 ### Probe sequence
 
-| # | get-next-step                               | dispatch                 | quest.json                                                                                                   | web                                                       |
-|---|---------------------------------------------|--------------------------|--------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
-| 1 | `spawn-agents`, 1× `codeweaver` (`wi-cw`)   | stub `done`              | `wi-cw`: in_progress(+sessionId/agentId/startedAt) → complete; `op-cw` → complete; advance creates a `ward` work item for `op-ward1` | `RUNNING`→`DONE`; ledger row `op-cw` marks complete       |
-| 2 | `run-ward`, `mode: changed`                 | `run-ward` (real, green) | ward work item complete; `op-ward1` complete; `wardResults[]` +1; ward `relatedDataItems` gains `wardResults/<id>`; advance → `flowrider` work item | `Ward exit code: 0 (changed)`; no detail (green)          |
-| 3 | `spawn-agents`, 1× `flowrider`              | stub `done`              | flowrider work item complete; `op-flow` complete; advance → `siegemaster`                                     | `RUNNING`→`DONE`                                           |
-| 4 | `spawn-agents`, 1× `siegemaster`            | stub `done`              | `op-siege` complete; advance → `lawbringer`                                                                   | `RUNNING`→`DONE`                                           |
-| 5 | `spawn-agents`, 1× `lawbringer`             | stub `done`              | `op-law` complete; advance → `blightwarden`                                                                   | `RUNNING`→`DONE`                                           |
-| 6 | `spawn-agents`, 1× `blightwarden`           | stub `done`              | `op-blight` complete; advance → `ward(full)` work item                                                        | `RUNNING`→`DONE`                                           |
-| 7 | `run-ward`, `mode: full`                    | `run-ward` (real, green) | ward complete; `op-ward2` complete; **no pending operation item → quest derives `complete`**                 | terminal banner; all rows `DONE`; `EXECUTION — 7/7 OPERATIONS` |
-| 8 | `idle` (~25s long-poll)                     | —                        | no incomplete work                                                                                           | —                                                         |
+| # | get-next-step                                   | dispatch                 | quest.json                                                                                                                                                                                              | web                                                                |
+|---|-------------------------------------------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| 1 | `spawn-agents`, 1× `codeweaver` (`wi-cw`)       | stub `done`              | `wi-cw`: in_progress(+sessionId/agentId/startedAt) → complete; `op-cw` → complete; advance creates a `ward` work item for `op-ward1`                                                                    | `RUNNING`→`DONE`; ledger row `op-cw` marks complete                |
+| 2 | `run-ward`, `mode: changed`                     | `run-ward` (real, green) | ward work item complete; `op-ward1` complete; `wardResults[]` +1; ward `relatedDataItems` gains `wardResults/<id>`; advance → `flowrider` work item                                                     | `Ward exit code: 0 (changed)`; no detail (green)                   |
+| 3 | `spawn-agents`, 1× `flowrider` (the ONLY one)   | stub `done`              | flowrider work item complete; `op-flow` complete; advance → the single `siegemaster` item. Assert the ledger holds exactly ONE `role: flowrider` item and its `flowIds` equals every `quest.flows[].id` | `RUNNING`→`DONE`; the flowrider ledger row lists BOTH flow names   |
+| 4 | `spawn-agents`, 1× `siegemaster` (the ONLY one) | stub `done`              | `op-siege` complete; advance → `lawbringer`. Assert exactly ONE `role: siegemaster` item, `flowIds` = every quest flow id                                                                               | `RUNNING`→`DONE`; the siegemaster ledger row lists BOTH flow names |
+| 5 | `spawn-agents`, 1× `lawbringer`                 | stub `done`              | `op-law` complete; advance → `blightwarden`                                                                                                                                                             | `RUNNING`→`DONE`                                                   |
+| 6 | `spawn-agents`, 1× `blightwarden`               | stub `done`              | `op-blight` complete; advance → `ward(full)` work item                                                                                                                                                  | `RUNNING`→`DONE`                                                   |
+| 7 | `run-ward`, `mode: full`                        | `run-ward` (real, green) | ward complete; `op-ward2` complete; **no pending operation item → quest derives `complete`**                                                                                                            | terminal banner; all rows `DONE`; `EXECUTION — 7/7 OPERATIONS`     |
+| 8 | `idle` (~25s long-poll)                         | —                        | no incomplete work                                                                                                                                                                                      | —                                                                  |
 
 **PASS:** quest `complete`, every field asserted in `quest.json` and mirrored live (correct labels, distinct logs, ward
-exit-code shown, ledger drained), terminal banner present.
+exit-code shown, ledger drained), terminal banner present. The two-flow quest ran SEVEN operation items — one flowrider
+session and one siegemaster session, not one pair per flow.
 
 > **get-agent-prompt will fail** at step 1/3/4/5/6 if the linked operation item isn't in `operations[]` — that's the
 > missing-seed failure mode (§6 / G4), not an orchestration bug. Confirm the operation items are present before
@@ -538,9 +596,20 @@ exit-code shown, ledger drained), terminal banner present.
 
 ---
 
-# Flow 2 — Sad paths (partial → pt N, the verify fixpoint)
+# Flow 2 — Sad paths (partial → pt N)
 
 None of these is a failure. Each keeps the quest `in_progress` and moves it forward.
+
+The orchestrator's handling of `partial` is identical for every locked role — complete the item, append `pt N`, bound
+the chain by `slotManagerStatics.<role>.maxAttempts`. What DIFFERS is what makes a role emit it, and the probes below
+split on that because a stub that signals the wrong outcome tests nothing:
+
+- `lawbringer` / `blightwarden` run the **verify fixpoint**: `partial` means "this pass changed something", `done` means
+  "this pass changed nothing". Convergence IS the verdict.
+- `flowrider` / `siegemaster` are **operators** and signal on remaining SCOPE: `done` once every observable on every
+  flow carries a disposition, `partial` only when a named remainder is left. An operator delegates to minions and then
+  re-reads the files they wrote, so it already is the fresh pair of eyes a `pt N` session supplies — authoring a test or
+  landing a fix is the job, not a reason to respawn the role.
 
 ### 2A — Codeweaver `partial` → pt N (unbounded)
 
@@ -554,15 +623,30 @@ Seed a single codeweaver operation item + work item (as Flow 1 step 1). Dispatch
 
 Repeat `partial` several times to confirm the codeweaver `pt N` chain is **unbounded** (unlocked role — never blocks).
 
-### 2B — Verify role `partial` → bounded fixpoint
+### 2B — Operator `partial` → bounded whole-quest chain (flowrider / siegemaster)
 
-Seed so a locked verify role (e.g. `flowrider`) is next. Dispatch `partial` repeatedly.
+Seed the Flow 1 ledger (TWO flows, one flowrider item carrying both ids) so the single `flowrider` item is next.
+Dispatch `partial` repeatedly — the stub stands in for a session that left a named remainder, e.g. one bundle it could
+not dispatch.
 
-| # | get-next-step                  | dispatch       | assert                                                                                                                                                                                              |
-|---|--------------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | `spawn-agents`, 1× `flowrider` | stub `partial` | `op-flow` complete; a `pt 2` flowrider item appended **carrying the same `flowIds`**; a fresh flowrider work item runs (the fixpoint)                                                               |
-| … | repeat `partial`               | stub `partial` | the `pt N` chain grows until it reaches `slotManagerStatics.flowrider.maxAttempts` → **`blocked`** (no more append). The chain is keyed on role + base text, so a per-flow item's budget is its own |
-| — | (or) `done` on any pass        | stub `done`    | convergence — advance moves to the `siegemaster` item for the SAME flow. Convergence IS the verdict                                                                                                 |
+| # | get-next-step                  | dispatch       | assert                                                                                                                                                                                                                              |
+|---|--------------------------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | `spawn-agents`, 1× `flowrider` | stub `partial` | `op-flow` complete; a `pt 2` flowrider item appended **carrying the same `flowIds` — every quest flow id, not a subset**; a fresh flowrider work item runs, still owning ALL the flows                                              |
+| … | repeat `partial`               | stub `partial` | the `pt N` chain grows until it reaches `slotManagerStatics.flowrider.maxAttempts` (3) → **`blocked`** (no more append). That is ONE budget for the whole quest: three flowrider `partial`s block the quest whatever the flow count |
+| — | (or) `done` on any pass        | stub `done`    | `op-flow` complete with no append; advance moves to the single `siegemaster` item. `done` asserts every observable on every flow has a disposition — NOT that the pass changed nothing                                              |
+
+Repeat the whole table with `siegemaster` next: same shape, its own separate 3-attempt budget.
+
+### 2C — Review role `partial` → bounded fixpoint (lawbringer / blightwarden)
+
+Seed so a locked whole-diff review role (e.g. `lawbringer`) is next. Here `partial` genuinely means "my pass changed
+code", so a stub that keeps signalling `partial` is a role that never converges.
+
+| # | get-next-step                   | dispatch       | assert                                                                                                                                                     |
+|---|---------------------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | `spawn-agents`, 1× `lawbringer` | stub `partial` | `op-law` complete; a `pt 2` lawbringer item appended (no `flowIds` — whole-diff roles carry none); a fresh lawbringer work item runs against the new state |
+| … | repeat `partial`                | stub `partial` | the chain grows until `slotManagerStatics.lawbringer.maxAttempts` → **`blocked`** (no more append)                                                         |
+| — | (or) `done` on any pass         | stub `done`    | convergence — a fresh pass that changed nothing IS the acceptance; advance moves to `blightwarden`                                                         |
 
 **Critical:** confirm the redelivery no-op (G/A5) — call `signal-back` twice for the same terminal work item; the second
 must NOT mint a second `pt N` or a second work item.
@@ -612,16 +696,20 @@ Verify each agent prompt still gives an LLM enough to do its job — every capab
 Every static under `packages/orchestrator/src/statics/` ending in `-prompt` or `-minion`: `codeweaver-prompt`,
 `flowrider-prompt`, `siegemaster-prompt`, `lawbringer-prompt`, `blightwarden-prompt`, `spiritmender-prompt`,
 `pesteater-prompt`, `glyphsmith-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`; the minions
-`codeweaver-minion`, `lawbringer-minion`, the 5 `blightwarden-*-minion`, `chaoswhisperer-gap-minion`.
+`codeweaver-minion`, `flowrider-minion`, `siegemaster-minion`, `lawbringer-minion`, the 5 `blightwarden-*-minion`,
+`chaoswhisperer-gap-minion`.
 
 ### Procedure (per prompt)
 
 1. **Read** the static.
 2. **Enumerate the role's required capabilities** (e.g. Codeweaver: read its operation item + git + ledger, verify it's
    the right next step, dispatch + verify `codeweaver-minion`s, edit inline, commit a prose handoff, signal
-   `done`/`partial`; Flowrider: self-scope all flows, author the suite, own its dev server, signal `done`/`partial`;
-   Spiritmender: read the failed ward result + detail, fix, signal `done`/`partial`; Blightwarden: dispatch the 5
-   report-only minions, judge `planningNotes.blightReports`, clean up, signal `done`/`partial`).
+   `done`/`partial`; Flowrider: read every flow in its `flowIds`, bundle them, dispatch a `flowrider-minion` per bundle,
+   verify the returned work by opening the files, own its dev server, signal on remaining scope; Siegemaster: same
+   operator shape with `siegemaster-minion` walk-bundles; Spiritmender: read the failed ward result + detail, fix,
+   signal
+   `done`/`partial`; Blightwarden: dispatch the 5 report-only minions, judge `planningNotes.blightReports`, clean up,
+   signal `done`/`partial`).
 3. **Trace each capability to a real mechanism:** does the prompt name the exact MCP tool / command / file path /
    static, and does it still exist? (`discover` to confirm — don't trust the prompt.) Are referenced signals/fields
    valid against current contracts (`signal-back` = `complete` + `operationStatus`; agents never write `operations`;
@@ -641,6 +729,7 @@ bug, use the Fix Agent / TDD-First / Bug Procedure from `playbook/smoketest-orch
 edit source directly. Session-level running state goes in `playbook/smoketest-mcp-handoff.md`.
 
 **Order:** (1) setup — build, **wipe `.dungeonmaster/guilds/21523917-…/quests`**, `npm run prod`, browser on `:4801`;
-(2) Flow 1 (pre-seeded relay) end to end; (3) Flow 2 (partial → pt N, both bounded and unbounded); (4) Flow 3 (ward red
-→ spiritmender, ward budget → block, orphan → resume), clean FIFO before each; (5) prompt-walk; (6) abandon all
+(2) Flow 0 (Start Quest seed shape / operator `flowIds`); (3) Flow 1 (pre-seeded relay) end to end; (4) Flow 2
+(partial → pt N — operator scope chain, review fixpoint, and the unbounded codeweaver chain); (5) Flow 3 (ward red →
+spiritmender, ward budget → block, orphan → resume), clean FIFO before each; (6) prompt-walk; (7) abandon all
 smoketest quests, confirm the quest queue is clean.

@@ -16,6 +16,12 @@ const QUEST_ID = QuestIdStub({ value: 'quest-a' });
 const FLOW_ID = FlowIdStub({ value: 'login-flow' });
 const NODE_ID = FlowNodeIdStub({ value: 'login-page' });
 const OBSERVABLE_ID = ObservableIdStub({ value: 'login-redirects-to-dashboard' });
+// A review note that is ONE unbroken token — the shape a comment takes when it names a symbol.
+// pre-wrap honours the author's newlines but never splits a token with no break opportunity, so
+// without overflow-wrap this row paints past the fixed-width popover and the rest of the note is
+// clipped. A slash-separated path would NOT reproduce it: UAX#14 permits a break after a solidus.
+const LONG_TOKEN_TEXT =
+  'rename boxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirst please';
 
 describe('CommentPopoverWidget', () => {
   describe('comment button', () => {
@@ -237,6 +243,25 @@ describe('CommentPopoverWidget', () => {
 
       expect(proxy.getQueuedText()).toBe('already queued');
       expect(proxy.hasTextarea()).toBe(false);
+    });
+
+    it('VALID: {queued text is one unbroken token} => the queued row declares overflowWrap break-word', async () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ text: LONG_TOKEN_TEXT })],
+      });
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+      await proxy.clickCommentButton();
+
+      // The whole note is in the DOM either way, so this pair separates "the text is there" from
+      // "the text can wrap" — the second is the only thing the fixed-width dropdown depends on.
+      expect(proxy.getQueuedText()).toBe(LONG_TOKEN_TEXT);
+      expect(proxy.getQueuedTextOverflowWrap()).toBe('break-word');
     });
 
     it('VALID: {click Edit} => reopens the editor prefilled with the queued text', async () => {

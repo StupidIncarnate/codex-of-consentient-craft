@@ -18,6 +18,7 @@ describe('orchestrationEventTypeContract', () => {
     'chat-complete',
     'quest-created',
     'quest-modified',
+    'quest-load-failed',
     'quest-persisted',
     'clarification-request',
     'chat-history-complete',

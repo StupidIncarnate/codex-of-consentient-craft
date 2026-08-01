@@ -24,6 +24,7 @@ import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dum
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
+import { QuestLoadErrorWidgetProxy } from '../quest-load-error/quest-load-error-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 
 export const QuestChatContentLayerWidgetProxy = (): {
@@ -65,6 +66,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   DumpsterCommandBannerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
   QuestApprovedModalWidgetProxy();
+  QuestLoadErrorWidgetProxy();
   QuestSpecPanelWidgetProxy();
   return {
     setupConnectedChannel: () => {

@@ -106,8 +106,8 @@ The Web UI "Start Quest" button → `orchestration-start-responder`. It seeds th
 
 1. Force-completes any non-complete intake (`chaoswhisperer` / `glyphsmith`) operation item.
 2. Appends the type's `startImplementationOps` + the fixed verify tail (`relayTail`) as **locked, pending** operation
-   items. A `{ forEachFlow: [...] }` tail entry expands once per quest flow, in `quest.flows` declaration order, each
-   item carrying that single flow in `flowIds` and its id appended to the text.
+   items, one per seed. The flow-operator entries (flowrider + siegemaster) each become ONE whole-quest item carrying
+   every quest flow id in `flowIds` (empty on a flow-less quest).
 3. Creates ONE work item for the first actionable (`pending`) operation item, linked `operations/<id>`, depending on
    the completed chat work items.
 
@@ -116,8 +116,7 @@ The seed is idempotent — a re-Start detects the already-appended locked ward t
 The two quest types differ only in their ledger shape:
 
 - **feature** (`/dumpster-create`): `startImplementationOps` is empty (ChaosWhisperer authored the `codeweaver` items at
-  spec time). Verify tail = `ward(changed) → (flowrider → siegemaster) per flow → lawbringer → blightwarden →
-  ward(full)`.
+  spec time). Verify tail = `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)`.
 - **bug-hunt** (`/dumpster-hunt`): `startImplementationOps` = a single orchestrator-seeded `pesteater` item. Verify
   tail = `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
 
@@ -126,7 +125,7 @@ So the full feature relay is:
 ```
 codeweaver ×N (Chaos-authored)
   → ward(changed)
-  → [ flowrider(flow A) → siegemaster(flow A) → flowrider(flow B) → siegemaster(flow B) → … ]
+  → flowrider(every quest flow) → siegemaster(every quest flow)
   → lawbringer → blightwarden → ward(full)
 ```
 
@@ -210,18 +209,22 @@ marking a work item terminal) and the dispatch scan's self-heal. In one `questOp
    `wardMode`), linked `operations/<id>`, depending on the most-recent terminal work item, and mark the operation
    `in_progress`.
 
-**Duplicate-on-partial is the verify fixpoint.** For a verify/review role (flowrider, siegemaster, lawbringer,
-blightwarden), a session signals `partial` when its pass changed code; the appended `pt N` continuation makes a FRESH
-session of the same role re-run against the new state. The role converges when a pass changes nothing and signals
-`done` — convergence IS the verdict. A locked role's `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`
+**Duplicate-on-partial is the verify fixpoint.** For a whole-diff review role (lawbringer, blightwarden), a session
+signals `partial` when its pass changed code; the appended `pt N` continuation makes a FRESH session of the same role
+re-run against the new state. The role converges when a pass changes nothing and signals `done` — convergence IS the
+verdict. The flow operators (flowrider, siegemaster) signal on remaining SCOPE instead: they own every flow, delegate
+bundles to minions, re-read what the minions wrote, and signal `done` once every observable has a disposition — so
+`partial` means a named remainder, never merely "this pass wrote code". A locked role's `pt N` chain is bounded by
+`slotManagerStatics.<role>.maxAttempts`
 (ward by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest. An unlocked `codeweaver` item's `pt N`
 chain is unbounded — codeweavers pivot in place freely. A `blocked` signal appends its `pt N` regardless of budget — the
-halt is the bound, and dropping the append would make a resume skip the scope. A chain is keyed on role + base text, so
-a per-flow flowrider/siegemaster item — whose text carries its flow id — gets its OWN budget per flow, and the
-continuation copies its `flowIds`.
+halt is the bound, and dropping the append would make a resume skip the scope. A chain is keyed on role + base text, and
+each verify-tail role holds exactly one item, so each role gets exactly one budget; the continuation copies its
+`flowIds`.
 
-Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider(A) → siegemaster(A) →
-flowrider(B) → siegemaster(B) → lawbringer → blightwarden → ward(full)`. After `ward(full)` is green, no `pending`
+Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → siegemaster → lawbringer →
+blightwarden → ward(full)` — the flowrider and siegemaster items each carry both flow ids. After `ward(full)` is green,
+no `pending`
 operation item remains and the operation-aware status transformer derives `complete`. The dispatcher's next
 `get-next-step` picks up the next FIFO quest.
 
@@ -365,5 +368,5 @@ least satisfy those invariants.
   operation's status by hand.
 - `dependsOn` between work items is the ONLY ordering mechanism — no hardcoded role sequence.
 - A ready ward item always dispatches via `run-ward`, alone.
-- Use an `operational` flow for flowrider/siegemaster runtime seeds to avoid needing a dev server (runtime flows
-  resolve `.dungeonmaster.json` dev-server config; operational flows don't).
+- Use an `operational` flow for siegemaster runtime seeds to avoid needing a dev server (a siegemaster item resolves
+  `.dungeonmaster.json` dev-server config; operational flows run no server, and flowrider is never handed one).

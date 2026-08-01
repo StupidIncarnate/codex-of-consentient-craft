@@ -56,7 +56,9 @@ export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/du
 export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
 export { lawbringerPromptStatics } from './statics/lawbringer-prompt/lawbringer-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';
+export { siegemasterMinionStatics } from './statics/siegemaster-minion/siegemaster-minion-statics';
 export { flowriderPromptStatics } from './statics/flowrider-prompt/flowrider-prompt-statics';
+export { flowriderMinionStatics } from './statics/flowrider-minion/flowrider-minion-statics';
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';
 export { toolDisplayConfigStatics } from './statics/tool-display-config/tool-display-config-statics';
 

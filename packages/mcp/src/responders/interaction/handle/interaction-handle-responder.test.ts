@@ -49,7 +49,7 @@ describe('InteractionHandleResponder', () => {
   });
 
   describe('ask-user-question', () => {
-    it('VALID: {questions} => returns the wait-for-next-message instruction', async () => {
+    it('VALID: {questions} => returns the wait-or-continue instruction keyed on the caller shape', async () => {
       const proxy = InteractionHandleResponderProxy();
 
       const result = await proxy.callResponder({
@@ -70,7 +70,11 @@ describe('InteractionHandleResponder', () => {
         content: [
           {
             type: 'text',
-            text: "Questions sent to the user. Their answers will arrive as your next user message. Do NOT continue generating — wait for the session to resume with the user's response.",
+            text: [
+              'Questions sent to the user.',
+              "If you are an INTERACTIVE session (you were started by a slash command or a chat, and you have no work item): their answers arrive as your next user message. Do NOT continue generating — stop here and wait for the session to resume with the user's response.",
+              'If you are a DISPATCHED WORK-ITEM agent (you fetched your prompt with get-agent-prompt and a workItemId): nothing will resume you, so do NOT wait. Record the question and the fact that it is outstanding in your handoff, keep working through the rest of your prompt, and finish your turn with signal-back as normal.',
+            ].join(' '),
           },
         ],
       });

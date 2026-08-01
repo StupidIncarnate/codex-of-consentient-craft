@@ -3,15 +3,24 @@
  * for a dispatched agent session. Resolves the work item's `operations/<id>` ref into its
  * operation item and substitutes `$ARGUMENTS` in the role's prompt template with the operation
  * context: the item being worked, the full operations ledger (the agent verifies it is the right
- * next step against git before trusting it), and role-specific extras (dev server for
- * flowrider/siegemaster, the failed ward result for spiritmender).
+ * next step against git before trusting it), and role-specific extras (dev server for siegemaster,
+ * the failed ward result for spiritmender).
  *
  * **Path discrimination — minion vs role:** the agent name is run through
  * `workItemRoleContract.safeParse`. If it fails (e.g. `chaoswhisperer-gap-minion`,
- * `codeweaver-minion`), the agent is parent-dispatched via the Agent tool — its `workItemId`
- * param is the parent's work item id — and receives a minimal "Quest ID + Work Item ID"
- * substitution; the parent briefs task context inline. Blightwarden minions and pesteater own
- * their work items but read the quest/diff themselves, so they also take the minimal branch.
+ * `codeweaver-minion`, `flowrider-minion`, `siegemaster-minion`), the agent is parent-dispatched via
+ * the Agent tool and receives a minimal "Quest ID + Work Item ID" substitution; the parent briefs
+ * task context inline. Blightwarden minions and pesteater own their work items but read the
+ * quest/diff themselves, so they also take the minimal branch.
+ *
+ * Every parent prompt instructs its minion to fetch with `{ agent, questId }` and NO `workItemId`,
+ * which routes to `agentPromptGetBroker`'s minion-fetch branch (a bare `Quest ID:` substitution, no
+ * quest load) and never reaches this transformer. That is deliberate and load-bearing:
+ * `subagentStopNeedsBlockGuard` treats a `get-agent-prompt` call carrying a workItemId as proof the
+ * caller is a work-item agent and blocks it from stopping until it calls `signal-back`. A minion that
+ * passed its parent's workItemId would be held to that rule and could only escape by signalling on
+ * the PARENT's operation item — completing the parent's scope while the parent is still running. The
+ * branch below stays for a caller that echoes an id anyway; it must not become the documented path.
  *
  * USAGE:
  * const { prompt } = workItemToPromptTransformer({ quest, workItem, agentName });
@@ -123,28 +132,28 @@ export const workItemToPromptTransformer = ({
 
   // The flows this item lands on, with the caveat inline because the agent reads this block, not
   // the contract's describe(). What the pointer MEANS differs by role: flowrider and siegemaster
-  // are dispatched one item per flow, so their flow is the unit they are accountable for; every
-  // other role gets a non-binding starting point, and treating it as a boundary is the failure
-  // mode to avoid (an item serving the whole spec carries no flows at all).
-  const isPerFlowRole = workItem.role === 'flowrider' || workItem.role === 'siegemaster';
+  // are operators dispatched ONE item for the whole quest, so every flow listed is theirs to
+  // account for — they bundle them and delegate to minions; every other role gets a non-binding
+  // starting point, and treating it as a boundary is the failure mode to avoid (an item serving the
+  // whole spec carries no flows at all).
+  const isFlowOperatorRole = workItem.role === 'flowrider' || workItem.role === 'siegemaster';
   if (linkedOperation.flowIds.length > 0) {
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
-        `${isPerFlowRole ? 'Your flow' : 'Flows your operation item lands on'}: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
+        `${isFlowOperatorRole ? 'Your flows' : 'Flows your operation item lands on'}: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
       ),
       contentTextContract.parse(
-        isPerFlowRole
-          ? '(YOUR unit of accountability — this dispatch is per flow. Read the other flows for context; the one named here is the one you verify.)'
+        isFlowOperatorRole
+          ? '(YOUR unit of accountability — ALL of them, plus the seams between them. One session owns every flow on this quest: bundle them, delegate each bundle to a minion, then verify what comes back.)'
           : '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
       ),
     );
   }
 
-  if (
-    (workItem.role === 'flowrider' || workItem.role === 'siegemaster') &&
-    devServer !== undefined
-  ) {
+  // Siegemaster only. Flowrider never starts a server — Playwright's own `webServer` config owns
+  // the one its e2e run needs — so these lines would be dead context for it.
+  if (workItem.role === 'siegemaster' && devServer !== undefined) {
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(`Dev Server Command: ${String(devServer.devCommand)}`),

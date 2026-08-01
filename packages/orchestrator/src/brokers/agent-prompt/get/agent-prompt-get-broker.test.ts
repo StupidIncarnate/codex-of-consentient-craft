@@ -10,6 +10,8 @@ import {
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
+import { flowriderMinionStatics } from '../../../statics/flowrider-minion/flowrider-minion-statics';
+import { siegemasterMinionStatics } from '../../../statics/siegemaster-minion/siegemaster-minion-statics';
 import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
@@ -301,14 +303,14 @@ describe('agentPromptGetBroker', () => {
   });
 
   describe('flowrider dev-server delivery', () => {
-    it('VALID: {role: flowrider, operation linked, devServer config resolves} => prompt includes Dev Server Command and Dev Server URL', async () => {
+    it('EDGE: {role: flowrider, devServer config available} => prompt has NO Dev Server lines (Playwright webServer owns it)', async () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3030-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3030-4222-9333-444444444444' });
       const operation = OperationItemStub({
         id: operationId,
         role: 'flowrider',
-        text: 'own flows/ + startup/ files',
+        text: 'author the flow-perspective test suites',
         status: 'in_progress',
       });
       const workItem = WorkItemStub({
@@ -334,13 +336,10 @@ describe('agentPromptGetBroker', () => {
         `Quest ID: ${String(quest.id)}`,
         `Work Item ID: ${String(workItemId)}`,
         `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [flowrider] own flows/ + startup/ files',
+        'Your operation item: [flowrider] author the flow-perspective test suites',
         '',
         'Operations ledger (in order):',
-        '1. [>] [flowrider] own flows/ + startup/ files  <-- YOUR OPERATION ITEM',
-        '',
-        'Dev Server Command: npm run dev',
-        `Dev Server URL: http://${environmentStatics.hostname}:4400`,
+        '1. [>] [flowrider] author the flow-perspective test suites  <-- YOUR OPERATION ITEM',
         '',
         'Original user request (the intent behind the flows):',
         'Add authentication to the application',
@@ -349,6 +348,34 @@ describe('agentPromptGetBroker', () => {
       expect(result.prompt).toBe(
         flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
+    });
+
+    it('EDGE: {role: flowrider} => does not resolve dev-server config at all', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3131-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3131-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'flowrider',
+        text: 'author the flow-perspective test suites',
+        status: 'in_progress',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'flowrider',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDevServer({ devCommand: 'npm run dev', port: 4400 });
+
+      await agentPromptGetBroker({ agent: 'flowrider', questId: quest.id, workItemId });
+
+      expect(proxy.getDevServerConfigStartPath()).toBe(undefined);
     });
   });
 
@@ -400,6 +427,25 @@ describe('agentPromptGetBroker', () => {
         ),
       });
     });
+
+    it.each([
+      ['flowrider-minion', flowriderMinionStatics] as const,
+      ['siegemaster-minion', siegemasterMinionStatics] as const,
+    ])(
+      'VALID: {agent: %s, questId, no workItemId} => resolves as a minion instead of demanding a workItemId',
+      async (agent, statics) => {
+        agentPromptGetBrokerProxy();
+        const questId = QuestIdStub({ value: 'add-auth' });
+
+        const result = await agentPromptGetBroker({ agent, questId });
+
+        expect(result).toStrictEqual({
+          name: agent,
+          model: 'sonnet',
+          prompt: statics.prompt.template.replace('$ARGUMENTS', `Quest ID: ${String(questId)}`),
+        });
+      },
+    );
 
     it('ERROR: {role agent, questId, no workItemId} => throws role-requires-workItemId', async () => {
       agentPromptGetBrokerProxy();

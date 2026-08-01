@@ -16,6 +16,11 @@ import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wai
 import { useQuestChatBinding } from './use-quest-chat-binding';
 import { useQuestChatBindingProxy } from './use-quest-chat-binding.proxy';
 
+// The message questLoadBroker produces when questContract rejects a field, relayed verbatim by the
+// server's subscribe-quest failure path.
+const LOAD_FAILURE_REASON =
+  'Failed to parse quest file at /home/dm/guilds/g1/quests/q1/quest.json: comments.0.createdAt: Invalid datetime';
+
 describe('useQuestChatBinding', () => {
   describe('initial state', () => {
     it('EMPTY: {questId: null} => starts with empty entries map and not streaming', () => {
@@ -32,6 +37,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
@@ -137,6 +143,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: expectedWorkItemMap,
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
         pendingClarification: null,
         isStreaming: true,
         sendMessage: expect.any(Function),
@@ -176,6 +183,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
@@ -214,6 +222,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
@@ -251,6 +260,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest,
+        loadError: null,
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
@@ -288,6 +298,129 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
+        pendingClarification: null,
+        isStreaming: false,
+        sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+  });
+
+  describe('quest-load-failed handling', () => {
+    it('ERROR: {quest-load-failed for matching questId} => exposes the reason as loadError and leaves quest null', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-broken-1' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-load-failed',
+              payload: { questId: 'quest-broken-1', error: LOAD_FAILURE_REASON },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
+        slotEntries: new Map(),
+        quest: null,
+        loadError: LOAD_FAILURE_REASON,
+        pendingClarification: null,
+        isStreaming: false,
+        sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+
+    it('EDGE: {quest-load-failed for different questId} => is ignored', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-mine' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-load-failed',
+              payload: { questId: 'quest-other', error: LOAD_FAILURE_REASON },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
+        slotEntries: new Map(),
+        quest: null,
+        loadError: null,
+        pendingClarification: null,
+        isStreaming: false,
+        sendMessage: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+
+    it('VALID: {quest-load-failed then quest-modified for the same quest} => loadError clears with the quest', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-repaired-1' });
+      const quest = QuestStub({ id: questId });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-load-failed',
+              payload: { questId: 'quest-repaired-1', error: LOAD_FAILURE_REASON },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-repaired-1', quest },
+              timestamp: '2025-01-01T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      // A stale error beside a quest that now loads would keep the route showing a failure it has
+      // already recovered from.
+      expect(result.current).toStrictEqual({
+        entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
+        slotEntries: new Map(),
+        quest,
+        loadError: null,
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
@@ -416,6 +549,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
         pendingClarification: null,
         isStreaming: true,
         sendMessage: expect.any(Function),
@@ -699,6 +833,7 @@ describe('useQuestChatBinding', () => {
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
         quest: null,
+        loadError: null,
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),

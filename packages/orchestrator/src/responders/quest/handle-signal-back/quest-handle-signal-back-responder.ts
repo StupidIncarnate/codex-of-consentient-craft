@@ -191,8 +191,8 @@ export const QuestHandleSignalBackResponder = async ({
         return { operations: completedOperations, workItems: nextWorkItems };
       }
 
-      // `flowIds` rides along with the role and lock: a per-flow item (flowrider/siegemaster) whose
-      // continuation lost its flow would hand the fresh session no scope at all.
+      // `flowIds` rides along with the role and lock: a flow-scoped item (flowrider/siegemaster)
+      // whose continuation lost its flows would hand the fresh session no scope at all.
       const continuation = operationItemContract.parse({
         id: crypto.randomUUID(),
         role: linkedOperation.role,

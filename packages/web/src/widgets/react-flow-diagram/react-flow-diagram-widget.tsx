@@ -176,28 +176,48 @@ export const ReactFlowDiagramWidget = ({
       ? selectedAnchor.nodeId
       : undefined;
 
-  const flowNodes = flow.nodes.map((n) => ({
-    id: String(n.id),
-    type: n.type,
-    position: positions[String(n.id)] ?? { x: 0, y: 0 },
-    selected: selectedCardNodeId !== undefined && String(selectedCardNodeId) === String(n.id),
-    data: reactFlowNodeDataContract.parse({
-      ...commentAnchorData,
-      nodeId: n.id,
-      label: n.label,
-      nodeType: n.type,
-      // Badge counts the contracts anchored to this node — the same nodeId match the detail panel
-      // uses. Contract arrays are small, so a per-node filter is fine.
-      contractCount: contractCountContract.parse(
-        contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
-      ),
-      // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong to
-      // those cards' own badges, so the badge here always agrees with the list the panel shows.
-      commentCount: commentCountContract.parse(
-        boxCommentsTransformer({ comments, flowId: flow.id, nodeId: n.id }).length,
-      ),
-    }),
-  }));
+  // React Flow paints a node `visibility: hidden` until its own ResizeObserver has measured it, and
+  // it DISCARDS that measurement every time a render hands it a fresh node object (`adoptUserNodes`
+  // keeps internals only for an identical object reference). This widget rebuilds its node objects
+  // on every render, so a discard that lands in the same React batch as the measurement leaves the
+  // node permanently unmeasured — a blank canvas with the cards in the DOM but invisible.
+  // `initialWidth`/`initialHeight` is React Flow's answer: a node that already knows its box is
+  // never "unmeasured", so it paints from the first frame whatever the measurement does. The box is
+  // the SAME estimate `elkLayoutAdapter` laid the graph out with (elkLayoutStatics.labelEstimate),
+  // so the pre-measurement size matches the rectangle ELK reserved for the card.
+  const flowNodes = flow.nodes.map((n) => {
+    const { labelEstimate } = elkLayoutStatics;
+    const labelLines = Math.max(1, Math.ceil(String(n.label).length / labelEstimate.charsPerLine));
+    const cardHeight =
+      labelEstimate.chromeHeight +
+      labelLines * labelEstimate.lineHeight +
+      labelEstimate.badgeHeight +
+      labelEstimate.buffer;
+    return {
+      id: String(n.id),
+      type: n.type,
+      position: positions[String(n.id)] ?? { x: 0, y: 0 },
+      initialWidth: elkLayoutStatics.node.width,
+      initialHeight: cardHeight,
+      selected: selectedCardNodeId !== undefined && String(selectedCardNodeId) === String(n.id),
+      data: reactFlowNodeDataContract.parse({
+        ...commentAnchorData,
+        nodeId: n.id,
+        label: n.label,
+        nodeType: n.type,
+        // Badge counts the contracts anchored to this node — the same nodeId match the detail panel
+        // uses. Contract arrays are small, so a per-node filter is fine.
+        contractCount: contractCountContract.parse(
+          contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
+        ),
+        // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong to
+        // those cards' own badges, so the badge here always agrees with the list the panel shows.
+        commentCount: commentCountContract.parse(
+          boxCommentsTransformer({ comments, flowId: flow.id, nodeId: n.id }).length,
+        ),
+      }),
+    };
+  });
 
   // Each observable becomes its own card stacked into a column to the RIGHT of its flow node, so a
   // reviewer reads every assertion on the canvas. Positions are computed relative to the flow
@@ -222,6 +242,8 @@ export const ReactFlowDiagramWidget = ({
         id: `obs:${String(n.id)}:${String(obs.id)}`,
         type: 'observable',
         position: { x: columnX, y },
+        initialWidth: observable.width,
+        initialHeight: obsCardHeight,
         data: flowObservableNodeDataContract.parse({
           ...commentAnchorData,
           observableId: obs.id,
@@ -246,12 +268,22 @@ export const ReactFlowDiagramWidget = ({
   // `flowId:nodeId` reference so the cross-flow edge (source/target = String(e.to)) resolves to
   // this node instead of dangling. Clicking one is a no-op — onNodeClick only matches flow.nodes.
   const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
-  const portalNodes = portals.map((portal) => ({
-    id: String(portal.reference),
-    type: 'portal',
-    position: positions[String(portal.reference)] ?? { x: 0, y: 0 },
-    data: portal,
-  }));
+  const portalNodes = portals.map((portal) => {
+    const { labelEstimate } = elkLayoutStatics;
+    const portalLines = Math.max(
+      1,
+      Math.ceil(String(portal.label).length / labelEstimate.charsPerLine),
+    );
+    return {
+      id: String(portal.reference),
+      type: 'portal',
+      position: positions[String(portal.reference)] ?? { x: 0, y: 0 },
+      initialWidth: elkLayoutStatics.node.width,
+      initialHeight:
+        labelEstimate.chromeHeight + portalLines * labelEstimate.lineHeight + labelEstimate.buffer,
+      data: portal,
+    };
+  });
 
   const nodes = [...flowNodes, ...observableNodes, ...portalNodes];
 

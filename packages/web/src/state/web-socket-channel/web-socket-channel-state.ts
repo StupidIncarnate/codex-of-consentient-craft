@@ -30,6 +30,8 @@ import type { ChatOutputPayload } from '../../contracts/chat-output-payload/chat
 import type { ChatStreamEndedPayload } from '../../contracts/chat-stream-ended-payload/chat-stream-ended-payload-contract';
 import { clarificationRequestPayloadContract } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
 import type { ClarificationRequestPayload } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
+import { questLoadFailedPayloadContract } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
+import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
 import { questModifiedPayloadContract } from '../../contracts/quest-modified-payload/quest-modified-payload-contract';
 import { wardDetailResponseContract } from '../../contracts/ward-detail-response/ward-detail-response-contract';
 import type { WardDetailResponse } from '../../contracts/ward-detail-response/ward-detail-response-contract';
@@ -54,6 +56,7 @@ const internalState: {
   chatStreamEndedSubject: SubjectAdapter<ChatStreamEndedPayload>;
   clarificationRequestSubject: SubjectAdapter<ClarificationRequestPayload>;
   questUpdatedSubject: SubjectAdapter<Quest>;
+  questLoadFailedSubject: SubjectAdapter<QuestLoadFailedPayload>;
   executionQueueChangedSubject: SubjectAdapter<undefined>;
   rateLimitsChangedSubject: SubjectAdapter<undefined>;
   dispatchStateChangedSubject: SubjectAdapter<undefined>;
@@ -69,6 +72,7 @@ const internalState: {
   chatStreamEndedSubject: rxjsSubjectAdapter<ChatStreamEndedPayload>(),
   clarificationRequestSubject: rxjsSubjectAdapter<ClarificationRequestPayload>(),
   questUpdatedSubject: rxjsSubjectAdapter<Quest>(),
+  questLoadFailedSubject: rxjsSubjectAdapter<QuestLoadFailedPayload>(),
   executionQueueChangedSubject: rxjsSubjectAdapter<undefined>(),
   rateLimitsChangedSubject: rxjsSubjectAdapter<undefined>(),
   dispatchStateChangedSubject: rxjsSubjectAdapter<undefined>(),
@@ -155,6 +159,11 @@ export const webSocketChannelState = {
       if (payload.success) internalState.questUpdatedSubject.next(payload.data.quest as Quest);
       return;
     }
+    if (envelope.data.type === 'quest-load-failed') {
+      const payload = questLoadFailedPayloadContract.safeParse(envelope.data.payload);
+      if (payload.success) internalState.questLoadFailedSubject.next(payload.data);
+      return;
+    }
     if (envelope.data.type === 'execution-queue-updated') {
       internalState.executionQueueChangedSubject.next(undefined);
       return;
@@ -181,6 +190,8 @@ export const webSocketChannelState = {
   clarificationRequest$: (): ChannelObservable<ClarificationRequestPayload> =>
     internalState.clarificationRequestSubject.observable,
   questUpdated$: (): ChannelObservable<Quest> => internalState.questUpdatedSubject.observable,
+  questLoadFailed$: (): ChannelObservable<QuestLoadFailedPayload> =>
+    internalState.questLoadFailedSubject.observable,
   executionQueueChanged$: (): ChannelObservable<undefined> =>
     internalState.executionQueueChangedSubject.observable,
   rateLimitsChanged$: (): ChannelObservable<undefined> =>

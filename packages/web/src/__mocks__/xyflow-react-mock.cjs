@@ -31,6 +31,11 @@ const ReactFlow = ({ nodes, edges, nodeTypes, onNodeClick, onPaneClick, children
         {
           key: node.id,
           'data-node-id': node.id,
+          // Real React Flow keeps a node `visibility: hidden` until it has measured it, unless the
+          // node arrives carrying initialWidth/initialHeight. Surfacing them here is what lets a
+          // jsdom test assert the diagram never hands over a card with no pre-measurement box.
+          'data-initial-width': node.initialWidth,
+          'data-initial-height': node.initialHeight,
           onClick: (event) => onNodeClick && onNodeClick(event, node),
         },
         React.createElement(CustomNode, {
@@ -46,6 +51,8 @@ const ReactFlow = ({ nodes, edges, nodeTypes, onNodeClick, onPaneClick, children
       key: node.id,
       'data-testid': 'FLOW_NODE',
       'data-node-id': node.id,
+      'data-initial-width': node.initialWidth,
+      'data-initial-height': node.initialHeight,
       'data-selected': node.selected ? 'true' : undefined,
       onClick: (event) => onNodeClick && onNodeClick(event, node),
     });

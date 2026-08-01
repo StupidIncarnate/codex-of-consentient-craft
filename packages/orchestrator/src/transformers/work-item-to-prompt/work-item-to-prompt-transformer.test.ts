@@ -468,14 +468,14 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    describe('per-flow scoping for flowrider/siegemaster', () => {
-      const perFlowCases = [
+    describe('whole-quest flow scoping for the flowrider/siegemaster operators', () => {
+      const flowOperatorCases = [
         ['flowrider', flowriderPromptStatics] as const,
         ['siegemaster', siegemasterPromptStatics] as const,
       ];
 
-      it.each(perFlowCases)(
-        'VALID: {role: %s, operation with one flowId} => names it as the unit of accountability, not a starting point',
+      it.each(flowOperatorCases)(
+        'VALID: {role: %s, operation carrying every quest flowId} => names them ALL as the unit of accountability, not a starting point',
         (role, statics) => {
           const questId = QuestIdStub({ value: 'my-quest' });
           const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-9999-4222-9333-444444444444' });
@@ -485,9 +485,9 @@ describe('workItemToPromptTransformer', () => {
           const operation = OperationItemStub({
             id: operationId,
             role,
-            text: 'verify the flow — flow: send-queued-comment-batch',
+            text: 'verify every quest flow',
             status: 'in_progress',
-            flowIds: ['send-queued-comment-batch'],
+            flowIds: ['send-queued-comment-batch', 'view-persisted-comments'],
           });
           const workItem = WorkItemStub({
             id: workItemId,
@@ -506,13 +506,13 @@ describe('workItemToPromptTransformer', () => {
             `Quest ID: ${String(questId)}`,
             `Work Item ID: ${String(workItemId)}`,
             `Operation Item ID: ${String(operationId)}`,
-            `Your operation item: [${role}] verify the flow — flow: send-queued-comment-batch`,
+            `Your operation item: [${role}] verify every quest flow`,
             '',
             'Operations ledger (in order):',
-            `1. [>] [${role}] verify the flow — flow: send-queued-comment-batch  <-- YOUR OPERATION ITEM`,
+            `1. [>] [${role}] verify every quest flow  <-- YOUR OPERATION ITEM`,
             '',
-            'Your flow: #send-queued-comment-batch',
-            '(YOUR unit of accountability — this dispatch is per flow. Read the other flows for context; the one named here is the one you verify.)',
+            'Your flows: #send-queued-comment-batch, #view-persisted-comments',
+            '(YOUR unit of accountability — ALL of them, plus the seams between them. One session owns every flow on this quest: bundle them, delegate each bundle to a minion, then verify what comes back.)',
             '',
             'Original user request (the intent behind the flows):',
             'Add authentication to the application',
@@ -523,107 +523,109 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    describe('dev-server pass-through for flowrider/siegemaster', () => {
-      const cases = [
-        ['flowrider', flowriderPromptStatics] as const,
-        ['siegemaster', siegemasterPromptStatics] as const,
-      ];
+    describe('dev-server pass-through is siegemaster-only', () => {
+      it('VALID: {role: siegemaster, devServer provided} => appends Dev Server Command + Dev Server URL lines', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-4444-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({
+          value: 'ffffffff-4444-4222-9333-444444444444',
+        });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'siegemaster',
+          text: 'manual-QA every quest flow',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'siegemaster',
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({
+          id: questId,
+          operations: [operation],
+          workItems: [workItem],
+        });
 
-      it.each(cases)(
-        'VALID: {role: %s, devServer provided} => appends Dev Server Command + Dev Server URL lines',
-        (role, statics) => {
-          const questId = QuestIdStub({ value: 'my-quest' });
-          const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-4444-4222-9333-444444444444' });
-          const operationId = OperationItemIdStub({
-            value: 'ffffffff-4444-4222-9333-444444444444',
-          });
-          const operation = OperationItemStub({
-            id: operationId,
-            role,
-            text: 'own flows/ + startup/ files',
-            status: 'in_progress',
-          });
-          const workItem = WorkItemStub({
-            id: workItemId,
-            role,
-            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-          });
-          const quest = QuestStub({
-            id: questId,
-            operations: [operation],
-            workItems: [workItem],
-          });
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'siegemaster' }),
+          devServer: {
+            devCommand: DevCommandStub({ value: 'npm run dev' }),
+            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
+          },
+        });
 
-          const result = workItemToPromptTransformer({
-            quest,
-            workItem,
-            agentName: AgentPromptNameStub({ value: role }),
-            devServer: {
-              devCommand: DevCommandStub({ value: 'npm run dev' }),
-              devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
-            },
-          });
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [siegemaster] manual-QA every quest flow',
+          '',
+          'Operations ledger (in order):',
+          '1. [>] [siegemaster] manual-QA every quest flow  <-- YOUR OPERATION ITEM',
+          '',
+          'Dev Server Command: npm run dev',
+          'Dev Server URL: http://localhost:3000',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
 
-          const expectedArgs = [
-            `Quest ID: ${String(questId)}`,
-            `Work Item ID: ${String(workItemId)}`,
-            `Operation Item ID: ${String(operationId)}`,
-            `Your operation item: [${role}] own flows/ + startup/ files`,
-            '',
-            'Operations ledger (in order):',
-            `1. [>] [${role}] own flows/ + startup/ files  <-- YOUR OPERATION ITEM`,
-            '',
-            'Dev Server Command: npm run dev',
-            'Dev Server URL: http://localhost:3000',
-            '',
-            'Original user request (the intent behind the flows):',
-            'Add authentication to the application',
-          ].join('\n');
-
-          expect(result.prompt).toBe(statics.prompt.template.replace('$ARGUMENTS', expectedArgs));
-        },
-      );
-    });
-
-    it('EDGE: {role: flowrider, no devServer} => omits Dev Server Command/URL lines', () => {
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5555-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5555-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'flowrider',
-        text: 'own flows/ + startup/ files',
-        status: 'in_progress',
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'flowrider',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
-
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'flowrider' }),
+        expect(result.prompt).toBe(
+          siegemasterPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
       });
 
-      const expectedArgs = [
-        `Quest ID: ${String(questId)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [flowrider] own flows/ + startup/ files',
-        '',
-        'Operations ledger (in order):',
-        '1. [>] [flowrider] own flows/ + startup/ files  <-- YOUR OPERATION ITEM',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
-      ].join('\n');
+      // Flowrider never starts a server — Playwright's own `webServer` config owns the one its e2e
+      // run needs, and its tests navigate baseURL-relative. Even handed a resolved devServer, the
+      // transformer must not append the lines: they would invite a minion to author a `webServer`
+      // block into the shared Playwright config, which races when bundles run in parallel.
+      it('EDGE: {role: flowrider, devServer provided} => still omits Dev Server Command/URL lines', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5555-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5555-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'flowrider',
+          text: 'author the flow-perspective test suites',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'flowrider',
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
-      expect(result.prompt).toBe(
-        flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
-      );
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'flowrider' }),
+          devServer: {
+            devCommand: DevCommandStub({ value: 'npm run dev' }),
+            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3000' }),
+          },
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [flowrider] author the flow-perspective test suites',
+          '',
+          'Operations ledger (in order):',
+          '1. [>] [flowrider] author the flow-perspective test suites  <-- YOUR OPERATION ITEM',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          flowriderPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
     });
 
     it('VALID: {role: spiritmender, latest wardResult failed with runId} => appends Failed ward result + Ward detail blob lines', () => {

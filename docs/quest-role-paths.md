@@ -59,9 +59,14 @@ reached only when a bounded loop is spent.
 - **Environment wall** — `operationStatus: 'blocked'`. Duplicate-on-partial still appends the `pt N`
   continuation, but the work item is marked `failed` with the agent's `blockedReason`, the pt budget is bypassed, and
   the quest halts for the user instead of advancing (see § (d)).
-- **Fixpoint** — the `pt N` chain for a verify/review role. Each pass that changes something completes
-  its item and spawns `pt N+1`; a pass that changes nothing signals `done` and the chain ends.
+- **Fixpoint** — the `pt N` chain for the whole-diff review roles (`lawbringer`, `blightwarden`). Each pass that changes
+  something completes its item and spawns `pt N+1`; a pass that changes nothing signals `done` and the chain ends.
   Convergence IS the verdict: a fresh pass that changed nothing is acceptance.
+- **Operator convergence** — the flow operators (`flowrider`, `siegemaster`) do NOT use the fixpoint. They signal on
+  remaining SCOPE: `done` once every observable on every flow carries a disposition,
+  `partial` only when a named remainder is left. An operator delegates to minions and then re-reads the files they
+  wrote, so it already IS the fresh pair of eyes a `pt N` session would supply — authoring a test or landing a fix is
+  the job, not a reason to respawn the role.
 - **Git is the record of what was built.** The ledger is the plan/status; commit messages are the
   cross-session handoff. A stale ledger self-heals because the next agent verifies against git first.
 
@@ -76,17 +81,17 @@ seeds at Start (`startImplementationOps`), and the fixed verify tail (`relayTail
 `questBuildRelayGraphBroker` appends `startImplementationOps` + `relayTail` as **locked, pending**
 operation items at Start Quest.
 
-| Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                                                       |
-|------------|-------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| `feature`  | `/dumpster-create` (ChaosWhisperer) | **Chaos-authored** `codeweaver` items (`startImplementationOps` is empty) | `ward(changed) → (flowrider → siegemaster) × every flow → lawbringer → blightwarden → ward(full)` |
-| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | orchestrator-seeded `pesteater` (`initialWorkItemRole` is null)           | `ward(changed) → lawbringer → blightwarden → ward(full)`                                          |
+| Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                                        |
+|------------|-------------------------------------|---------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| `feature`  | `/dumpster-create` (ChaosWhisperer) | **Chaos-authored** `codeweaver` items (`startImplementationOps` is empty) | `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)` |
+| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | orchestrator-seeded `pesteater` (`initialWorkItemRole` is null)           | `ward(changed) → lawbringer → blightwarden → ward(full)`                           |
 
 So the full feature relay is:
 
 ```
 chaoswhisperer (plan item)   → codeweaver ×N (Chaos-authored)
   → ward(changed)
-  → [ flowrider(flow A) → siegemaster(flow A) → flowrider(flow B) → siegemaster(flow B) → … ]
+  → flowrider (ALL flows, bundled to minions) → siegemaster (ALL flows, bundled to minions)
   → lawbringer → blightwarden → ward(full)
 ```
 
@@ -97,12 +102,10 @@ pesteater
   → ward(changed) → lawbringer → blightwarden → ward(full)
 ```
 
-`flowrider` and `siegemaster` are dispatched **per flow**: the registry declares them as a
-`{ forEachFlow: [...] }` group, and `questBuildRelayGraphBroker` expands that group once per quest flow in `quest.flows`
-declaration order — the flows have an order of operation between them, and each flow's authoring and its QA both land
-before the next flow starts. Each expanded item carries exactly that one flow in `flowIds`, with the flow id appended to
-its text so its pt-continuation chain is its own. A quest with no flows falls back to one flow-less item per group
-member.
+`flowrider` and `siegemaster` are **operator** roles: the registry declares one tail entry each, and
+`questBuildRelayGraphBroker` seeds exactly ONE operation item per role, carrying EVERY quest flow id in `flowIds` (a
+quest with no flows gets an empty list). One session owns all of a quest's flows and delegates across them internally,
+so each role has exactly one pt-continuation chain.
 
 `lawbringer` and `blightwarden` stay **ONE** operation item each, self-scoping over the **whole** diff — there is no
 per-package chunking in the ledger. Bug-hunt reuses the same flow/observable spec lifecycle (the reproduction path is a
@@ -197,11 +200,13 @@ Trace one feature quest end to end.
 6. **Ward operation items** are dispatched as `run-ward` (`spawnerType: 'command'`) and handled by
    `quest-run-ward-broker` (see the ward path below).
 
-7. **Verify/review roles** run in tail order — `(flowrider → siegemaster)` once per quest flow, then
-   `lawbringer`, then `blightwarden`. Each item is one session, looping via the `pt N` fixpoint until a pass changes
-   nothing (a per-flow item's chain is its own, keyed on its flow-suffixed text). After
-   `blightwarden` converges, `ward(full)` runs; on green, no `pending` operation item remains and the
-   operation-aware status transformer derives `complete`.
+7. **Verify/review roles** run in tail order — `flowrider`, `siegemaster`, `lawbringer`, then
+   `blightwarden`, one item each. The flow operators (`flowrider`, `siegemaster`) each run one session over every quest
+   flow and signal `done` once every observable carries a disposition. The whole-diff reviewers (`lawbringer`,
+   `blightwarden`) loop via the `pt N` fixpoint until a pass changes nothing. Either way there is one chain per role,
+   keyed on role + base text. After `blightwarden` converges,
+   `ward(full)` runs; on green, no `pending` operation item remains and the operation-aware status transformer derives
+   `complete`.
 
 ---
 
@@ -277,20 +282,28 @@ once in § (d) rather than repeated per role: the operation item completes and g
 | **Codeweaver** | No (Chaos-authored) | operation `complete`, work item `complete`, advance → next operation | operation `complete` + a `pt N` continuation appended (unlocked → **unbounded** pt chain — codeweavers pivot in place freely); advance creates a fresh work item that continues from git |
 | **PestEater** (bug-hunt) | Yes | operation `complete`, advance → `ward(changed)`                | operation `complete` + `pt N` (locked → **bounded** by `slotManagerStatics.pesteater.maxAttempts`); spent chain → `blocked` |
 
-### Verify / review (feature tail; flowrider + siegemaster per flow, lawbringer + blightwarden whole-diff)
+### Verify / review (feature tail; flowrider, siegemaster, lawbringer + blightwarden all whole-quest)
 
-Each is a **locked** operation item. `done` (a pass that changed nothing) advances; `partial`
-(a pass that changed something) appends `pt N` for a fresh pass. The `pt N` chain is the fixpoint,
-**bounded** by `slotManagerStatics.<role>.maxAttempts`; a spent chain blocks the quest via
-`quest-block-on-failure-broker`. A per-flow item's chain is keyed on its flow-suffixed text, so each flow gets its own
-budget and the continuation carries the same `flowIds`.
+Each is a **locked** operation item, and `partial` always appends a `pt N` continuation for a fresh pass — **bounded**
+by `slotManagerStatics.<role>.maxAttempts`, with a spent chain blocking the quest via `quest-block-on-failure-broker`. A
+chain is keyed on role + base text, and each role holds exactly one tail item, so each role gets exactly one budget for
+the whole quest; the continuation carries the same `flowIds`.
 
-| Role             | Happy (`done`)                                                             | Sad (`partial`)                                                     |
-|------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------|
-| **Flowrider**    | advance → `siegemaster` for the SAME flow                                  | `pt N` continuation → fresh flowrider pass on that flow (bounded)   |
-| **Siegemaster**  | advance → next flow's `flowrider`, or `lawbringer` when the flows are done | `pt N` continuation → fresh siegemaster pass on that flow (bounded) |
-| **Lawbringer**   | advance → `blightwarden`                                                   | `pt N` continuation → fresh lawbringer pass (bounded)               |
-| **Blightwarden** | advance → `ward(full)`                                                     | `pt N` continuation → fresh blightwarden pass (bounded)             |
+What earns `done` differs by role, and this is the important distinction:
+
+- **The flow operators** (`flowrider`, `siegemaster`) signal on remaining **scope**. `done` once every observable on
+  every flow carries a disposition; `partial` only when a named remainder is left. Each delegates bundles to minions and
+  then re-reads the files they wrote, so it already is the fresh pair of eyes a `pt N` session would supply — writing a
+  test or landing a fix is the job, not a reason to respawn the role.
+- **The whole-diff reviewers** (`lawbringer`, `blightwarden`) use the fixpoint: `done` on a pass that changed nothing,
+  `partial` on a pass that changed something. Convergence IS the verdict.
+
+| Role             | Happy (`done`)                                           | Sad (`partial`)                                                         |
+|------------------|----------------------------------------------------------|-------------------------------------------------------------------------|
+| **Flowrider**    | advance → `siegemaster` (every observable dispositioned) | `pt N` continuation → fresh flowrider pass, named remainder (bounded)   |
+| **Siegemaster**  | advance → `lawbringer` (every observable dispositioned)  | `pt N` continuation → fresh siegemaster pass, named remainder (bounded) |
+| **Lawbringer**   | advance → `blightwarden`                                 | `pt N` continuation → fresh lawbringer pass (bounded)                   |
+| **Blightwarden** | advance → `ward(full)`                                   | `pt N` continuation → fresh blightwarden pass (bounded)                 |
 
 > `blightwarden` is a single operation item that audits cross-cutting concerns across the whole diff.
 > (The `work-item-role-contract` additionally defines five `blightwarden-*-minion` roles; the relay
@@ -480,9 +493,9 @@ dispatchable while the wreckage is still in place.
 - **REL-5 — No false complete.** `workItemsToQuestStatusTransformer` never derives `complete` while
   any operation item is `pending`/`in_progress` (the "all work items momentarily terminal, advance not
   yet run" window).
-- **REL-6 — Duplicate-on-partial fixpoint.** `partial` → operation `complete` + a `pt N` continuation
-  → a fresh work item. A locked role's chain is bounded; convergence is a fresh pass that signals
-  `done` having changed nothing.
+- **REL-6 — Duplicate-on-partial.** `partial` → operation `complete` + a `pt N` continuation → a fresh work item. A
+  locked role's chain is bounded. What earns `done` is role-dependent: for the whole-diff reviewers it is a fresh pass
+  that changed nothing; for the flow operators it is an observable ledger with no undispositioned entry left.
 - **REL-7 — Idempotent signal.** A redelivered signal for an already-terminal work item is a no-op
   (no second `pt N`, no second advance side effect).
 
@@ -550,9 +563,8 @@ dispatchable while the wreckage is still in place.
 [DISPATCHER] Node/UI play button (or /dumpster-launch)
    ▼ codeweaver ×N (one session each)   → done → advance
    ▼ ward (changed)   [run-ward]        → green → advance
-   ▼ per flow, in quest.flows order:
-       ▼ flowrider (that flow)          → done → advance     (pt N until a pass changes nothing)
-       ▼ siegemaster (that flow)        → done → advance     (pt N fixpoint)
+   ▼ flowrider (all quest flows)        → done → advance     (bundles flows, delegates to minions)
+   ▼ siegemaster (all quest flows)      → done → advance     (bundles flows, delegates to minions)
    ▼ lawbringer                         → done → advance     (pt N fixpoint)
    ▼ blightwarden                       → done → advance     (pt N fixpoint)
    ▼ ward (full)      [run-ward]        → green → advance

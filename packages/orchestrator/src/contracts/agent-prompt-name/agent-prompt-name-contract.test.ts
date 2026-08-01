@@ -122,6 +122,22 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
+  it('VALID: {value: "flowrider-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'flowrider-minion' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('flowrider-minion');
+  });
+
+  it('VALID: {value: "siegemaster-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'siegemaster-minion' });
+
+    const result = agentPromptNameContract.parse(name);
+
+    expect(result).toBe('siegemaster-minion');
+  });
+
   it('INVALID: {value: "unknown-agent"} => throws validation error', () => {
     expect(() => {
       agentPromptNameContract.parse('unknown-agent');

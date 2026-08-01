@@ -39,6 +39,7 @@ interface ReactFlowDiagramWidgetProxyResult {
   }) => HTMLElement['textContent'][];
   hasCommentsSection: () => boolean;
   getPanelCommentTexts: () => HTMLElement['textContent'][];
+  getInitialBoxes: () => HTMLElement['textContent'][][];
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
@@ -122,6 +123,17 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
         (badge) => badge.textContent,
       );
     },
+    // The [id, initialWidth, initialHeight] triple React Flow received for every card on the canvas.
+    // React Flow paints a card `visibility: hidden` until its own measurement lands, so a card that
+    // arrives with no box is one lost measurement away from an invisible diagram.
+    getInitialBoxes: (): HTMLElement['textContent'][][] =>
+      Array.from(screen.getByTestId('REACT_FLOW_PANE').querySelectorAll('[data-node-id]')).map(
+        (element) => [
+          element.getAttribute('data-node-id'),
+          element.getAttribute('data-initial-width'),
+          element.getAttribute('data-initial-height'),
+        ],
+      ),
     hasCommentsSection: (): boolean => screen.queryByTestId('FLOW_DETAIL_PANEL_COMMENTS') !== null,
     getPanelCommentTexts: (): HTMLElement['textContent'][] =>
       screen

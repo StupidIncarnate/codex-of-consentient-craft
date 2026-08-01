@@ -3,8 +3,10 @@
  * /dumpster-launch polls, but dispatches by spawning headless Claude CLI children instead of
  * Task() sub-agents. One recursion per dispatch decision: spawn-agents → spawn the batch and
  * await exits; run-ward → run ward synchronously; idle → return control to the runner (which
- * re-kicks on wake events — no sleep-polling). Checks isPlaying() between steps as the graceful
- * pause point: in-flight children finish, nothing new dispatches.
+ * re-kicks on wake events — no sleep-polling). isPlaying() is read TWICE per iteration — before
+ * the scan and again after it, because the scan long-polls and can return work that only appeared
+ * after a pause. That pair is the graceful pause point: in-flight children finish, nothing new
+ * dispatches.
  *
  * USAGE:
  * await questNodeDispatchLoopBroker({ isPlaying: () => orchestrationDispatchState.getIsPlaying() });
@@ -64,7 +66,19 @@ export const questNodeDispatchLoopBroker = async ({
     activeQuest: INERT_ACTIVE_QUEST_FACADE,
     longPollTotalMs: orchestrationDispatchStatics.loop.longPollTotalMs,
     longPollIntervalMs: orchestrationDispatchStatics.loop.longPollIntervalMs,
+    // Stop the poll the moment the user pauses. Each retry scan WRITES (orphan recovery flips an
+    // in_progress work item back to pending; the advance self-heal mints the next work item), so a
+    // poll that outlives the pause keeps mutating quests the dispatcher was stopped for.
+    shouldKeepPolling: isPlaying,
   });
+
+  // Re-read AFTER the scan, not just before it. The scan is a long poll: it sits waiting for work
+  // for up to `longPollTotalMs`, so the step it hands back can describe a quest that only became
+  // dispatchable AFTER the user pressed pause. Acting on it would spawn a child (or run ward)
+  // against a dispatcher the user has already stopped.
+  if (!isPlaying()) {
+    return ok;
+  }
 
   if (step.type === 'idle') {
     return ok;

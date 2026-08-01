@@ -403,10 +403,10 @@ describe('QuestHandleSignalBackResponder', () => {
       ]);
     });
 
-    it("VALID: {per-flow flowrider item, 'partial'} => continuation carries the same single flowId so the fresh session keeps its flow", async () => {
+    it("VALID: {whole-quest flowrider item, 'partial'} => continuation carries the same flowIds so the fresh session keeps every flow", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const flowText = 'Flowrider: author the flow-perspective test suite — flow: send-comment';
+      const flowText = 'Flowrider: author the flow-perspective test suites across every quest flow';
       const quest = QuestStub({
         operations: [
           OperationItemStub({
@@ -415,7 +415,7 @@ describe('QuestHandleSignalBackResponder', () => {
             text: flowText,
             status: 'in_progress',
             locked: true,
-            flowIds: ['send-comment'],
+            flowIds: ['send-comment', 'view-comments'],
           }),
         ],
         workItems: [
@@ -441,7 +441,7 @@ describe('QuestHandleSignalBackResponder', () => {
         text: flowText,
         status: 'complete',
         locked: true,
-        flowIds: ['send-comment'],
+        flowIds: ['send-comment', 'view-comments'],
       });
       const continuation = OperationItemStub({
         id: CONTINUATION_UUID,
@@ -449,7 +449,7 @@ describe('QuestHandleSignalBackResponder', () => {
         text: `pt 2: ${flowText}`,
         status: 'pending',
         locked: true,
-        flowIds: ['send-comment'],
+        flowIds: ['send-comment', 'view-comments'],
       });
       const questAfterOutcome = QuestStub({
         operations: [op1Complete, continuation],

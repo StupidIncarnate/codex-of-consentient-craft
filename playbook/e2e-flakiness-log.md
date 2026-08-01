@@ -23,6 +23,205 @@ Each entry follows this shape:
 
 ---
 
+## 2026-07-30 — A paused Node dispatcher kept dispatching AND kept mutating quests (operations-ward-recovery, execution-panel-active-row-collapse)
+
+**Branch / worktree:** `remove-pathseeker-flow-retweak`
+**Failing specs:**
+
+- `packages/web/src/flows/quest-chat/operations-ward-recovery.e2e.ts:121` "VALID: {ledger
+  [ward (changed), flowrider] driven red/done/green/done} => red splices a spiritmender + fresh ward, dispatches the
+  SPIRITMENDER next (never a ward back-to-back), then converges" — failed at line 157
+  (`expect(markers).toHaveText(['[>]', '[ ]'])` received `["[x]","[>]","[ ]","[ ]"]`).
+- `packages/web/src/flows/quest-chat/execution-panel-active-row-collapse.e2e.ts:22` "VALID:
+  {in_progress row, user clicks header to collapse} => row stays collapsed" — failed at line 99 waiting for
+  `execution-row-expanded`. The failure snapshot shows the codeweaver row reading
+  `PENDING`, not `IN PROGRESS`: the seeded `in_progress` work item had been reset by orphan recovery, so the auto-expand
+  precondition (`status === 'in_progress' && hasEntries`) never held.
+
+**Symptom:** "I pressed PAUSE, and the dispatcher ran the next work item anyway" — and, for the second spec, "something
+reset my in-flight work item while the dispatcher was stopped." In operations-ward-recovery the second test's
+freshly-seeded quest already showed FOUR ledger rows before the test had called `playAndDrive` — a ward had run against
+it, exited red on an empty mock queue, and spliced a spiritmender + a `pt 2: ward` continuation.
+`GET /api/orchestration/dispatch`
+reported `paused` the whole time. 5/5 failures when the file is run alone; 3/3 passes when only that test is run.
+
+**Root cause (PRODUCT BUG, not a test bug).** `questNodeDispatchLoopBroker` read `isPlaying()` ONCE per iteration —
+before calling `questGetNextStepBroker`, never after. That call is a **long poll**:
+it re-scans every active quest every `longPollIntervalMs` for up to `longPollTotalMs`
+(`orchestrationDispatchStatics.loop` = 2 000 ms / 500 ms for the Node loop; the MCP default is 25 000 ms / 500 ms) and
+returns the first dispatchable step it finds. So the guard proved the dispatcher was playing when the poll STARTED and
+said nothing about whether it was still playing when the poll RETURNED. Pressing pause inside that window did not stop
+the dispatch: the loop took the step the poll had just found and ran it.
+
+In the spec that reads: test 1's quest completes, the loop recurses and enters a 2 s poll that finds nothing;
+`afterEach` + the next `beforeEach` POST `/dispatch/pause`; test 2 then creates its guild and seeds its quest — all
+inside that same 2 s. The still-in-flight poll's next scan finds test 2's
+`in_progress` quest with a pending ward work item, returns `run-ward`, and the loop runs ward with no re-check. The fake
+ward finds the mock queue empty (`beforeEach` clears it), exits red, and
+`questRunWardBroker` splices the spiritmender + fresh ward and advances — exactly the four rows the assertion reported.
+In production the same window means a user's PAUSE press is ignored for up to one poll cycle and a headless `claude -p`
+child gets spawned against a stopped dispatcher.
+
+**The same window has a WRITE half, which is what broke execution-panel-active-row-collapse.**
+`scanOnceLayerBroker` mutates: `recoverOrphanedWorkItemsLayerBroker` flips an `in_progress` work item back to `pending`
+(stamping a `resume` marker and bumping `retryCount`), and the advance self-heal mints the next ledger scope's work
+item. Those writes happen on every retry scan of the poll, independent of whether the returned step is ever dispatched.
+That spec seeds exactly the shape recovery targets — an `in_progress` codeweaver work item — and it runs right after the
+two
+`dispatch-*` specs, so a poll left in flight by one of them scanned this spec's quest seconds later and reset it.
+Guarding only the dispatch would have left this half live.
+
+**Fix location:**
+
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.ts`
+  — `isPlaying()` is now read a second time immediately after `questGetNextStepBroker` resolves and before the
+  `run-ward` / `spawn-agents` switch (closes the dispatch half), and `isPlaying` is passed to the poll as
+  `shouldKeepPolling` (closes the write half). PURPOSE block updated.
+- `packages/orchestrator/src/brokers/quest/get-next-step/quest-get-next-step-broker.ts` — new optional
+  `shouldKeepPolling?: () => boolean`, checked after each interval sleep and before the next scan; false returns
+  `{ type: 'idle' }` immediately. Optional, so the MCP `get-next-step`
+  responder (which has no play flag to consult) is unchanged.
+- `.../quest-node-dispatch-loop-broker.test.ts` — two new pause-gating cases (a `run-ward` step and a
+  `spawn-agents` step returned by a poll that a pause outlived, each asserting nothing dispatched). The existing "pause
+  flips after first dispatch" case now stages `true, true, false` because a dispatching iteration legitimately reads the
+  flag twice.
+- `.../quest-get-next-step-broker.test.ts` — new long-poll case: `shouldKeepPolling` false stops the retry scan and
+  returns idle even though the staged retry would have found a dispatchable quest.
+
+**Negative results / dead ends:**
+
+- **"`pause` doesn't flip the flag."** Disproved before this session: polling
+  `GET /api/orchestration/dispatch` until not-playing changed nothing. The flag flips synchronously; the loop simply
+  wasn't reading it again.
+- **"A leftover in-flight loop drains one more step, so make pause wait for quiet."** `pause` was made to require five
+  consecutive not-playing reads (500 ms of continuous idle) before returning. Still 5/5 failures — the in-flight poll
+  sits waiting for work for up to 2 s and the quest it eventually finds is seeded well after that 500 ms. Reverted.
+- **Guarding only the dispatch and leaving the poll running** was the first shape of the fix. It makes
+  operations-ward-recovery deterministic, but the very next full ward produced a `-retry1` for
+  `execution-panel-active-row-collapse` whose page snapshot showed the seeded `in_progress` work item reading
+  `PENDING` — orphan recovery, from a scan on a paused dispatcher. The poll itself has to stop, not just the dispatch.
+
+**Residual window (bounded, by design):** the scan that is ALREADY executing when pause lands still finishes —
+`shouldKeepPolling` is checked between scans, not inside one. That is milliseconds of file reads rather than the up-to-2
+s (up-to-25 s for the MCP default) of repeated scanning it replaces. Closing it completely would mean `pause` awaiting
+the runner's in-flight loop, which needs a quiescence handle on `questNodeDispatchRunnerBroker`.
+
+**Reproducer:**
+
+```bash
+cd packages/web
+# Pre-fix: 5/5 failures on the line-121 test. Post-fix: 20/20 pass.
+npx playwright test --repeat-each=10 --retries=0 --reporter=line \
+  src/flows/quest-chat/operations-ward-recovery.e2e.ts
+# Running ONLY the line-121 test passes even pre-fix — the first test in the file is what
+# leaves a long poll in flight, so the whole FILE is the reproducer.
+
+# The write half needs the two dispatch specs that run before it in file order — they are what
+# leave a poll in flight. Post-fix: 30/30 pass.
+npx playwright test --repeat-each=10 --retries=0 --reporter=line \
+  src/flows/quest-chat/dispatch-resumes-retained-session.e2e.ts \
+  src/flows/quest-chat/dispatch-survives-unparseable-quest-file.e2e.ts \
+  src/flows/quest-chat/execution-panel-active-row-collapse.e2e.ts
+```
+
+---
+
+## 2026-07-30 — Flow diagram renders blank: React Flow measurement discarded in the batch it landed in
+
+**Branch / worktree:** `remove-pathseeker-flow-retweak`
+**Failing specs:**
+
+- `packages/web/src/flows/quest-chat/comment-queue-storage-lifecycle.e2e.ts` — 6/45 across the file at
+  `--repeat-each=5`, always inside `commentQueueLifecycleHarness.reloadQuest()`:
+  `TimeoutError: locator.waitFor: waiting for getByTestId('FLOW_NODE').nth(2) to be visible`,
+  `25 × locator resolved to hidden <div data-testid="FLOW_NODE" …>`. Observed on the tests at
+  `:45`, `:198`, `:248`, `:302`, `:340`.
+
+**Symptom:** "I reloaded a quest page and the flow diagram came up empty." The FLOWS section renders its header, the 800
+px canvas is there with the zoom controls and the React Flow attribution — and no cards. The cards ARE in the DOM at
+their correct ELK positions; every one of them is
+`visibility: hidden`, permanently.
+
+**Root cause (PRODUCT BUG).** Three things compose:
+
+1. `@xyflow/react`'s `NodeWrapper` renders `visibility: nodeHasDimensions(node) ? 'visible' :
+   'hidden'`. A node is "unmeasured" until its ResizeObserver callback reaches
+   `updateNodeInternals`.
+2. `adoptUserNodes` (`@xyflow/system`) keeps a node's internals ONLY when the incoming user node is the *same object
+   reference* as last time (`checkEquality`). Otherwise it rebuilds the internal node with
+   `measured: { width: userNode.measured?.width, height: … }` — i.e. it **throws the measurement away**.
+   `ReactFlowDiagramWidget` rebuilds its whole `nodes` array from fresh object literals on every render, so every
+   re-render discards every measurement.
+3. `useNodeObserver`'s re-observe effect is keyed on `[isInitialized, node.hidden]`. It re-observes only when the
+   RENDERED `isInitialized` changes. `setNodes` runs from `StoreUpdater`'s passive effect, so a discard can land in the
+   same React batch as the measurement — `isInitialized` goes false→true→false without ever rendering `true`, the dep
+   never changes, nothing re-observes, and the ResizeObserver never fires again because the element's size never
+   changes.
+
+Proven in-browser by patching `ResizeObserver` and `Map.prototype.clear` from a Playwright init script. A failing run's
+timeline: `adoptUserNodes` at t=296 ms (nodes mount) → 4 node `observe()`
+calls at t=297–298 → ResizeObserver callback at t=319 carrying all four nodes at real sizes (240×90, 220×88) → **a
+second `adoptUserNodes` at t=323 ms**, 4 ms later, before React committed the re-render → no further `observe`/
+`unobserve`, no further callback, all four nodes hidden for the rest of the page's life.
+`document.querySelectorAll('.react-flow').length === 1` and
+`.xyflow__viewport` present at callback time, and no exception was thrown, which rules out React Flow's other bail-out
+(`updateNodeInternals` returning early on a missing `domNode`). The t=323 re-render is the quest route's own: the WS
+`subscribe-quest` reply (`quest-modified`) lands ~400 ms after load and replaces the quest object, which replaces the
+`flow` prop, which rebuilds the nodes — which is why this only ever fires on the SECOND mount (`page.reload()`), never
+on the first navigation.
+
+**Fix location:**
+
+- `packages/web/src/widgets/react-flow-diagram/react-flow-diagram-widget.tsx` — every node handed to React Flow (flow
+  card, assertion card, cross-flow portal) now carries `initialWidth` /
+  `initialHeight`. `nodeHasDimensions` is then true from the first frame, so a card is never invisible no matter how
+  many times its measurement is discarded and retaken. The box is the SAME
+  `elkLayoutStatics.labelEstimate` arithmetic `elkLayoutAdapter` laid the graph out with, so the pre-measurement size is
+  the rectangle ELK reserved for the card. (React Flow drops the inline dimensions again as soon as `handleBounds` is
+  set, so a measured card is unaffected.)
+- `packages/web/src/__mocks__/xyflow-react-mock.cjs` — the jsdom mock surfaces
+  `data-initial-width` / `data-initial-height` on each node wrapper.
+- `.../react-flow-diagram-widget.proxy.tsx` — `getInitialBoxes()`.
+- `.../react-flow-diagram-widget.test.tsx` — new `pre-measurement box` describe asserting the exact
+  `[id, width, height]` triples for a flow card, an assertion card and a portal.
+
+**Negative results / dead ends:**
+
+- **"ELK is slow / the canvas isn't laid out yet."** Refuted by the DOM dump: the nodes carry their correct ELK
+  translate offsets and a non-empty bounding box (159×60 at the 0.664 viewport scale), and the viewport transform is
+  set — the layout completed. The problem is `visibility`, not geometry, and it never recovers across 25 polls / 10 s.
+- **"React Flow's `updateNodeInternals` bailed because the store's `domNode` was null."** Instrumented and refuted: at
+  callback time `.react-flow` and `.xyflow__viewport` both resolve, every observed target is `isConnected` with a
+  `.react-flow` ancestor, and the callback throws nothing.
+- **Memoizing `nodes`/`edges` instead** (so re-renders reuse node identities and `checkEquality`
+  preserves the measurement) does NOT close it on its own: the re-render that discards the measurement is a genuine
+  `flow`-identity change from the WS `quest-modified`, so any content-blind memo is busted by exactly the render that
+  matters. It also cannot be added without hoisting a
+  `useMemo` above the widget's three early returns. Still worth doing for churn/perf — see below.
+
+**Still open (not fixed here):** `ReactFlowDiagramWidget` hands React Flow a brand-new `nodes` array of brand-new node
+objects on every render, so React Flow re-adopts and re-measures the entire graph on every render (and resets
+`handleBounds` each time). `initialWidth`/`initialHeight` makes the user-visible failure mode unreachable but does not
+stop the churn; a lost measurement still leaves
+`handleBounds` undefined, which can drop the assertion-card connector edges for that mount.
+
+**Reproducer:**
+
+```bash
+cd packages/web
+# Pre-fix: 6/45 fail, always inside reloadQuest(). Post-fix: 90/90 pass.
+npx playwright test --repeat-each=5 --retries=0 --reporter=line \
+  src/flows/quest-chat/comment-queue-storage-lifecycle.e2e.ts
+```
+
+**Note on why these two classes hid for so long:** `packages/web/playwright.config.ts` sets
+`retries: CI_RETRIES` where `CI_RETRIES = 1` — unconditionally, not only under CI. A test that fails and passes on retry
+is reported as PASSING, so `npm run ward` shows `e2e: PASS` while
+`packages/web/test-results/` fills with `-retry1` directories. When triaging, always re-run with
+`--retries=0`, and check `test-results/` for `-retry1` dirs after a full ward.
+
+---
+
 ## 2026-05-07 — Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)
 
 **Branch / worktree:** master.
@@ -642,18 +841,21 @@ whether `chat-start-responder.onComplete` is awaiting it.
 When an agent picks up an e2e flake, this list should be the first thing
 checked. Each entry below has a direct link to the entry above.
 
-| Symptom                                                                                        | Likely candidates                                                                                                                                                                                                                                                                                                                                                                                                      |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `isStreaming` pinned true / chat input disabled after first response                           | "Chat resume-flow flakes" — three independent bugs share this symptom                                                                                                                                                                                                                                                                                                                                                  |
-| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame                         | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline                                                                                                                                                                                                                                                              |
-| `expect(text).toBeVisible()` times out, no WS frame for that text                              | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe                                                                                                                                                                                                                                                                                                                                |
-| Strict-mode violation: text resolved to N elements                                             | Buffer-replay dupe — frame delivered twice via different paths                                                                                                                                                                                                                                                                                                                                                         |
-| Fails at repeat 11+ in broad sweep, passes alone                                               | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak"                                                                                                                                                                                                                                                                                                                              |
-| Sub-agent chain renders "(0 entries)"                                                          | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder)                                                                                                                                                                                                                                                                                                                                 |
-| `TOOL_ROW_RESULT` toBeVisible times out, page snapshot shows chevron `▸` collapsed AFTER click | "chat-stream-vs-replay-parity TOOL_ROW header click toggles instead of expands" — `defaultExpanded={true}` from streaming `isLastUnpaired` window locks `expanded=true` in `useState`, blind click toggles → collapse. Recurs across tests in this spec (2026-05-04 fix landed at lines 1368/1400, 2026-05-11 fix at lines 1531/1560). The cross-reference under the 2026-05-04 entry lists other still-exposed lines. |
-| `backendWsCount` is 2+ in multi-widget assertion under full ward, passes alone                 | "Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)" — handshake-failure WS counted alongside durable one; count by `framesent`/`framereceived` instead                                                                                                                                                                                                                                 |
-| Rate-limits / queue / outbox-watcher visible-update test times out under load                  | "Three CPU-contention flakes" — fixed-poll-interval responders exceed test budget; expose env-var override for the interval                                                                                                                                                                                                                                                                                            |
-| `QUEST_QUEUE_BAR_COLLAPSED_LABEL` not visible after `request.post(/start)` in e2e              | Queued quest hits terminal in <1 s — emptying the queue before React renders. Pause the quest immediately after start (see `execution-queue-streaming.spec.ts:91-97` pattern)                                                                                                                                                                                                                                          |
-| MCP integration test "Server starts and responds" times out under full ward                    | "Three CPU-contention flakes" — fixed `startupMs` sleep insufficient under tsx cold-start contention; replace with deadline-budgeted readiness probe                                                                                                                                                                                                                                                                   |
+| Symptom                                                                                                                                                                                              | Likely candidates                                                                                                                                                                                                                                                                                                                                                                                                      |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `isStreaming` pinned true / chat input disabled after first response                                                                                                                                 | "Chat resume-flow flakes" — three independent bugs share this symptom                                                                                                                                                                                                                                                                                                                                                  |
+| `expect(text).toBeVisible()` times out, network log SHOWS the WS frame                                                                                                                               | Web binding's contract `safeParse` rejecting silently, OR row-expansion lifecycle (see "ward-execution-streaming racy click"), OR slot-rendering pipeline                                                                                                                                                                                                                                                              |
+| `expect(text).toBeVisible()` times out, no WS frame for that text                                                                                                                                    | "quest-ws-update:177 sessionId-stamp race" if first message; live emit before subscribe                                                                                                                                                                                                                                                                                                                                |
+| Strict-mode violation: text resolved to N elements                                                                                                                                                   | Buffer-replay dupe — frame delivered twice via different paths                                                                                                                                                                                                                                                                                                                                                         |
+| Fails at repeat 11+ in broad sweep, passes alone                                                                                                                                                     | State accumulation — fs.watch handles, map growth. See "Cross-spec chat-tail handle leak"                                                                                                                                                                                                                                                                                                                              |
+| Sub-agent chain renders "(0 entries)"                                                                                                                                                                | "Subagent tail lifecycle race" — fixed (resolve + drain races in chat-start-responder)                                                                                                                                                                                                                                                                                                                                 |
+| `TOOL_ROW_RESULT` toBeVisible times out, page snapshot shows chevron `▸` collapsed AFTER click                                                                                                       | "chat-stream-vs-replay-parity TOOL_ROW header click toggles instead of expands" — `defaultExpanded={true}` from streaming `isLastUnpaired` window locks `expanded=true` in `useState`, blind click toggles → collapse. Recurs across tests in this spec (2026-05-04 fix landed at lines 1368/1400, 2026-05-11 fix at lines 1531/1560). The cross-reference under the 2026-05-04 entry lists other still-exposed lines. |
+| `backendWsCount` is 2+ in multi-widget assertion under full ward, passes alone                                                                                                                       | "Three CPU-contention flakes (multi-widget WS, rate-limits poll, mcp init startup)" — handshake-failure WS counted alongside durable one; count by `framesent`/`framereceived` instead                                                                                                                                                                                                                                 |
+| Rate-limits / queue / outbox-watcher visible-update test times out under load                                                                                                                        | "Three CPU-contention flakes" — fixed-poll-interval responders exceed test budget; expose env-var override for the interval                                                                                                                                                                                                                                                                                            |
+| `QUEST_QUEUE_BAR_COLLAPSED_LABEL` not visible after `request.post(/start)` in e2e                                                                                                                    | Queued quest hits terminal in <1 s — emptying the queue before React renders. Pause the quest immediately after start (see `execution-queue-streaming.spec.ts:91-97` pattern)                                                                                                                                                                                                                                          |
+| MCP integration test "Server starts and responds" times out under full ward                                                                                                                          | "Three CPU-contention flakes" — fixed `startupMs` sleep insufficient under tsx cold-start contention; replace with deadline-budgeted readiness probe                                                                                                                                                                                                                                                                   |
+| A spec sees quest state it never asked for while `GET /api/orchestration/dispatch` reads `paused`: extra ledger rows before `playAndDrive`, or a seeded `in_progress` work item that reads `PENDING` | "A paused Node dispatcher kept dispatching AND kept mutating quests" — `questGetNextStepBroker` long-polls for seconds and every retry scan both returns dispatchable work AND writes (orphan recovery / advance self-heal). A play flag read only BEFORE the poll cannot stop either half; the poll needs `shouldKeepPolling` and the dispatch needs a re-read after the await                                        |
+| `FLOW_NODE` / `FLOW_OBSERVABLE_NODE` `waitFor visible` times out with "locator resolved to hidden", diagram canvas paints empty                                                                      | "Flow diagram renders blank: React Flow measurement discarded in the batch it landed in" — nodes are in the DOM at correct ELK positions but `visibility: hidden` forever. Any React Flow node handed over without `initialWidth`/`initialHeight` is one discarded measurement away from this                                                                                                                          |
+| `npm run ward` says `e2e: PASS` but `packages/web/test-results/` holds `-retry1` directories                                                                                                         | False green. `playwright.config.ts` sets `retries: 1` unconditionally. Re-run the named specs with `--retries=0` before believing a green e2e                                                                                                                                                                                                                                                                          |
 
 When you fix a flake not yet in this catalog, add a new symptom row.

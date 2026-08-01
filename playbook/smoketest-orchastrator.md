@@ -35,7 +35,12 @@ Consequences for this playbook:
   waits for its `signal-back` (or ward exit) before advancing. A ready `ward` item is dispatched alone via `run-ward`.
 - **There is no failure signal — only forward.** An agent that can't finish its scope signals `operationStatus:
   'partial'`; the orchestrator marks its operation item `complete` and appends a `"pt N: {text}"` continuation a fresh
-  session runs (the verify fixpoint). The ONLY failure concept is a **ward exit-code red**, which inserts a
+  session runs. `lawbringer` and `blightwarden` use that chain as the **verify fixpoint** — `partial` means "this pass
+  changed something", `done` means "this pass changed nothing". The flow **operators** (`flowrider`, `siegemaster`)
+  signal on remaining SCOPE instead: `done` once every observable on every flow carries a disposition, `partial` only
+  for a named remainder, because an operator re-reads what its own minions wrote and so already is the fresh pair of
+  eyes a
+  `pt N` session supplies. The ONLY failure concept is a **ward exit-code red**, which inserts a
   `spiritmender` operation item + a fresh ward. A server crash mid-session **resumes** the orphaned session
   (`claude --resume`) — it does not restart it. The **sole** path to `blocked` is a spent bounded loop (ward-retry, a
   locked role's `pt N` chain, or orphan-recovery exhaustion).
@@ -55,9 +60,10 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
 3. **`git log --oneline -30`** — recent bug-fix commits. Each validation-driven fix has a message prefixed with
    "Phase N checkpoint X.Y fix:" — these landed because a prior run blocked on them.
 4. **`docs/quest-role-paths.md`** and **`packages/orchestrator/CLAUDE.md`** — the authoritative model for the operations
-   relay: per-role happy/sad transitions, block ownership, the verify fixpoint, and how quest status is derived. Read
-   these if you need context on why Flowrider / Siegemaster / Lawbringer / Blightwarden each run as ONE session over all
-   flows / the whole diff.
+   relay: per-role happy/sad transitions, block ownership, the **Fixpoint** and **Operator convergence** bullets in Core
+   concepts, and how quest status is derived. Read these if you need context on why Flowrider / Siegemaster /
+   Lawbringer / Blightwarden each run as ONE session over all flows / the whole diff, and why the operators signal on
+   scope rather than on whether the pass changed code.
 
 **Resumption rules:**
 
@@ -77,7 +83,16 @@ If you're a fresh Claude session resuming this smoke test, read these in order b
 
 Static policies. These hold for every run.
 
-- **NEVER manually refresh the browser. EVER.** This includes F5, Ctrl+R, Cmd+R, right-click-reload, clicking the browser reload button, `page.reload()`, `mcp__claude-in-chrome__navigate` to the current URL, `key: "F5"`, `key: "ctrl+r"`, or ANY other mechanism that reloads the page. Manually refreshing **kills any agent currently running in the quest session** (PathSeeker, codeweaver, blightwarden, etc.) and corrupts the orchestration state. The UI manages its own state end-to-end: panels swap, statuses update, clarifications appear, execution progress renders — all via WebSocket. If something doesn't show up live, **that is a bug to file** — not something to work around with a refresh. If you see yourself about to refresh for any reason (including the phrase "refresh test"), stop, screenshot the current state, and describe what's missing. Refreshing is a destructive action on live runs. This rule supersedes any step in this playbook that appears to request a refresh; if you find such wording, treat it as a doc bug and edit it out before proceeding.
+- **NEVER manually refresh the browser. EVER.** This includes F5, Ctrl+R, Cmd+R, right-click-reload, clicking the
+  browser reload button, `page.reload()`, `mcp__claude-in-chrome__navigate` to the current URL, `key: "F5"`,
+  `key: "ctrl+r"`, or ANY other mechanism that reloads the page. Manually refreshing **kills any agent currently running
+  in the quest session** (codeweaver, flowrider, blightwarden, etc.) and corrupts the orchestration state. The UI
+  manages its own state end-to-end: panels swap, statuses update, clarifications appear, execution progress renders —
+  all via WebSocket. If something doesn't show up live, **that is a bug to file** — not something to work around with a
+  refresh. If you see yourself about to refresh for any reason (including the phrase "refresh test"), stop, screenshot
+  the current state, and describe what's missing. Refreshing is a destructive action on live runs. This rule supersedes
+  any step in this playbook that appears to request a refresh; if you find such wording, treat it as a doc bug and edit
+  it out before proceeding.
 - **Autonomy: fix, then restart — do NOT ask for approval between runs.** After a blocking bug is fixed and committed, immediately follow Run Lifecycle step 1 for the next run. Do not pause to ask the user "should I start Run N?" or "do you want me to proceed?". The user will intervene if they want you to stop. Same rule applies mid-run: keep driving through checkpoints, branching to fixers on red, without checking in at every checkpoint. Only stop-and-ask when you genuinely cannot decide (ambiguous bug classification, missing context for a fix).
 - **Orchestrator (you) does NOT edit source code or run ward directly.** Fix work and ward invocation MUST be delegated to sub-agents via the `Agent` tool. The orchestrator's job is to drive the flow, observe outcomes, classify bugs, dispatch agents, and commit results. Exceptions: the orchestrator may freely edit `VALIDATION-PLAYBOOK.md`, `/tmp/validation-notes.md`, and update task lists — those are process artifacts, not codebase changes. Everything else — contract edits, prompt edits, guard fixes, broker fixes, widget fixes, test updates, rebuilds — goes to an agent. This protects the orchestrator's context window for the full end-to-end validation run.
 - **Kickoff surfaces.** Spec + Start Quest go through the Web UI (and MCP tools / server HTTP endpoints) as a real user
@@ -95,9 +110,11 @@ Static policies. These hold for every run.
   that added a new export (e.g. `StartOrchestrator.resumeQuest`) will pass its own scoped ward inside its worktree
   (which ran its own build) but fail on master until the main tree rebuilds. Run `npm run build` at the repo root
   immediately after applying any sub-agent's patch, before handing off to the ward-runner agent.
-- **Two servers: smoke test (prod, manual) and agent-spawned (dev).** Flowrider and Siegemaster own their own dev server
-  for runtime flows (via Playwright's `webServer` config, resolved from `.dungeonmaster.json`) — no other role
-  (codeweaver, lawbringer, blightwarden, ward) touches the dev-server lifecycle. The validation orchestrator (you) runs
+- **Two servers: smoke test (prod, manual) and agent-spawned (dev).** Siegemaster is the only role handed a dev server:
+  it resolves `devCommand` + dev `port` from `.dungeonmaster.json`, stands one up by hand for its walks, and tears it
+  down before signalling. Flowrider gets no dev-server config at all — the server its e2e run needs comes from the
+  project's Playwright `webServer` block and lives only for that run. No other role (codeweaver, lawbringer,
+  blightwarden, ward) touches the dev-server lifecycle. The validation orchestrator (you) runs
   `npm run prod` on ports 4800/4801 for the smoke-test UI you drive — the compiled server from `dist/`, exercising the
   same code a real user would hit. A runtime-flow agent spawns its OWN test server via `npm run dev` on ports 4750/4751
   per `.dungeonmaster.json`. The two MUST NOT overlap; the dev server kills whatever is on its configured ports before
@@ -156,8 +173,9 @@ each run, in order:
    agents will resume writing codeweaver outputs / blight reports into the working tree during the new run.
 4. **Build.** `npm run build` — packages run from `dist/`, stale builds mask or invent bugs. The smoke-test server
    (prod) runs from `dist/` too, so this is mandatory before every server (re)start.
-5. **Start smoke-test server.** `npm run prod` (ports 4800/4801). Single process only. Leave it up for the whole run.
-   Do NOT run `npm run dev` — that port range is reserved for the dev server a runtime-flow agent (Flowrider/Siegemaster) spawns during verification.
+5. **Start smoke-test server.** `npm run prod` (ports 4800/4801). Single process only. Leave it up for the whole run. Do
+   NOT run `npm run dev` — that port range is reserved for the dev server Siegemaster stands up during verification (and
+   for the one Playwright's `webServer` starts inside a Flowrider e2e run).
 6. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
 7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4801/codex/session) → "New Chat" → describe the trivial
@@ -538,12 +556,18 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
        Screenshot to confirm.
     2. **The operations ledger renders in the execution panel** (`data-testid="OPERATIONS_LEDGER"`, rows
        `OPERATIONS_LEDGER_ROW` — role badge + text + status; ward rows show a `(changed)`/`(full)` mode tag, and any row
-       whose item carries `flowIds` shows the flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS`). The status
+       whose item carries `flowIds` shows the flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS` — the flowrider and
+       siegemaster rows list EVERY flow on the quest, the other tail rows list none). The status
        bar (`execution-status-bar-layer-widget`) reads `EXECUTION — 0/M OPERATIONS` once the relay is seeded (or
        `AWAITING PLAN` before Start Quest seeds it).
-    3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items (`ward(changed) → (flowrider → siegemaster) per quest flow in declaration order → lawbringer → blightwarden →
-       ward(full)`, all `locked`, `pending`) and created ONE work item for the FIRST `codeweaver` operation item,
-       marking that operation `in_progress`.
+  3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items
+     (`ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)`, all `locked`, `pending`) and
+     created ONE work item for the FIRST `codeweaver` operation item, marking that operation `in_progress`. **Assert the
+     tail is SIX items on a 2-flow quest** — `flowrider` and `siegemaster` are operator roles, so the ledger holds
+     exactly ONE item each regardless of flow count. Read `quest.json` and confirm each of those two items carries EVERY
+     `quest.flows[].id` in `flowIds`, in declaration order, and that neither names a flow id in its
+     `text`. This is the invariant most likely to regress: a per-flow fan-out or a truncated `flowIds` both show up here
+     first.
     4. Once a dispatcher is running, the first codeweaver work item flips to `in_progress` (a flat
        `execution-row-layer-widget` row, `RUNNING` badge) and gets a `sessionId`.
 
@@ -601,40 +625,58 @@ alone.
 spiritmender path is Phase 2.3).
 **→ PASS:** continue.
 
-### 1.5 — Flowrider (one session PER quest flow)
+### 1.5 — Flowrider (ONE operator session covering EVERY quest flow)
 
 - **Assert:**
     - Dispatched only after `ward(changed)` is green (its operation item is next `pending`).
-  - ONE flowrider work item per quest flow, seeded in `quest.flows` declaration order. Its operation item carries
-    exactly that one flow in `flowIds` and names the flow id in its text; the ledger row shows the flow NAME. The
-    session authors that flow's test suite and owns `flows/` + `startup/` files inline.
+  - EXACTLY ONE flowrider work item for the whole quest. Its operation item carries EVERY quest flow id in `flowIds`
+    (declaration order) and names no flow id in its text; the ledger row lists every flow NAME. A second flowrider row
+    appearing for a 2-flow quest is a regression — file it.
+  - The session reads all its flows, groups them into bundles by shared surface/harness/layer, dispatches a
+    `flowrider-minion` per bundle via the `Agent` tool (visible as sub-agent chains inside the flowrider's own row —
+    minions are NOT work items), then verifies the returned work by opening the files itself — the verification IS the
+    job. It is a test writer and reviewer FIRST — coverage is what its operation item buys — but it and its minions also
+    close the implementation holes their testing exposes, red-first. Only an architectural fix, or one needing a product
+    decision, is left as a red test plus a `GAP:` for Siegemaster. It prefers extending the suites Codeweaver left over
+    starting fresh, and it does not rebuild what Codeweaver already built.
     - For a **runtime** flow it controls its own dev server (Playwright `webServer` config from `.dungeonmaster.json`).
       Confirm the prod server on 4800/4801 stays LISTEN throughout; a dev server (4750/4751) comes up and goes down
       within the session. For an **operational** flow, no dev server is needed.
-  - `done` (a pass that changed nothing) → advance to the `siegemaster` item for the SAME flow. `partial` (a pass that
-    changed code) → the orchestrator appends a `pt N` flowrider continuation carrying the same `flowIds`, and a FRESH
-    flowrider session re-runs on that flow (the verify fixpoint, bounded per flow by
-    `slotManagerStatics.flowrider.maxAttempts`). Convergence IS the verdict.
+  - **Its signal reflects remaining SCOPE, not whether it touched code.** `done` → every observable on every flow
+    carries a disposition; advance moves to the single `siegemaster` item. Authoring tests is the job, so a pass that
+    wrote code still signals `done`. `partial` → a NAMED remainder is left (a bundle it could not dispatch, an
+    observable with no disposition, a suite left red); the orchestrator appends a `pt N` flowrider continuation carrying
+    the same complete `flowIds`, and a fresh flowrider session picks up from that remainder. The chain is bounded by
+    `slotManagerStatics.flowrider.maxAttempts` (3) — ONE budget for the whole quest, not one per flow — and a spent
+    chain blocks.
 
-**→ FAIL (dev server leaks / clobbers prod):** check the flowrider agent's Playwright `webServer` config + port
-resolution. Restart 1.5.
+**→ FAIL (a flowrider item per flow / a truncated `flowIds`):** fix the tail seed in `questBuildRelayGraphBroker` (and
+the continuation's `flowIds` copy in `quest-handle-signal-back-responder`). Restart 1.5. **→ FAIL (dev server leaks /
+clobbers prod):** check Siegemaster's Gate 5 start + Gate 10 scoped teardown, and the Playwright `webServer` config +
+port resolution behind a Flowrider e2e run. Restart 1.5.
 **→ PASS:** continue.
 
-### 1.6 — Siegemaster (one session PER quest flow)
+### 1.6 — Siegemaster (ONE operator session covering EVERY quest flow)
 
 - **Assert:**
-    - Dispatched only after the flowrider for the SAME flow converges (`done`).
-    - ONE siegemaster work item for that flow — manual QA of that flow + reviews its suite + TDD-fixes what it breaks,
-      editing inline. Same dev-server ownership as flowrider for runtime flows.
-    - `done` → advance to the NEXT flow's `flowrider`, or to `lawbringer` once every flow is done; `partial` → `pt N`
-      fresh siegemaster pass on that flow (bounded fixpoint).
+    - Dispatched only after the single flowrider item signals `done`.
+    - EXACTLY ONE siegemaster work item for the whole quest, its operation item carrying EVERY quest flow id in
+      `flowIds`. It groups the flows into walk-bundles, stands up ONE dev server for all of them, dispatches a
+      `siegemaster-minion` per bundle (every DRIVING bundle strictly one at a time; only mutate-nothing inspection runs
+      in parallel), then verifies what came back. A minion records a defect's broken state before it may close a small
+      local hole, and a `READ-ONLY`-lane one edits nothing. Siegemaster is the LAST role that fixes BEHAVIOUR and has
+      the widest fix authority on the quest — it reviews the suites and TDD-fixes what it breaks, editing inline,
+      including the architectural gaps flowrider left red for it.
+    - `done` (every flow walked, every observable dispositioned — a landed fix is not a reason to respawn) → advance to
+      `lawbringer`. `partial` (a named remainder) → a `pt N` siegemaster continuation carrying the same complete
+      `flowIds`, bounded by `slotManagerStatics.siegemaster.maxAttempts` (3) for the whole quest.
 
 **→ PASS:** continue.
 
 ### 1.7 — Lawbringer (whole-diff review)
 
 - **Assert:**
-    - Dispatched only after siegemaster converges.
+    - Dispatched only after the single siegemaster item signals `done`.
     - ONE lawbringer work item reviewing the WHOLE quest diff; it fans out `lawbringer-minion` sub-agents per pair-group
       inside its own turn and fixes violations inline (minions are not work items — they are briefed inline and never
       signal back).
@@ -692,18 +734,40 @@ keep the quest `in_progress` and move it forward. The ONLY route to `blocked` is
 duplicate-on-partial + the strict-1:1 guard.
 **→ PASS:** continue.
 
-### 2.2 — Verify-role `partial` → fixpoint convergence
+### 2.2 — Locked verify-tail role `partial` → bounded pt-N chain
 
-- **Seed / drive:** a flowrider (or siegemaster / lawbringer / blightwarden) session signals `operationStatus:
-  'partial'` (its pass changed code).
+The orchestrator's handling is identical for every locked role; what differs is what makes a role emit `partial`, so
+drive both cases.
+
+**2.2a — Review-role fixpoint (lawbringer / blightwarden).**
+
+- **Seed / drive:** a lawbringer (or blightwarden) session signals `operationStatus: 'partial'` because its pass changed
+  code.
 - **Assert:**
-    - Its operation item is marked `complete` and a `pt N` continuation (same **locked** role, same `flowIds`) is
-      appended; a fresh session of the same role re-runs against the new state, on the same flow for a per-flow role.
+    - Its operation item is marked `complete` and a `pt N` continuation (same **locked** role, no `flowIds` — whole-diff
+      roles carry none) is appended; a fresh session of the same role re-runs against the new state.
     - The role converges when a pass changes nothing and signals `done` → advance moves on. Convergence IS the verdict.
-    - The `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`; a spent chain blocks the quest via
-      `quest-block-on-failure-broker` (see 2.4).
 
-**→ FAIL (chain never converges / unbounded on a locked role):** check the fixpoint budget wiring.
+**2.2b — Operator scope remainder (flowrider / siegemaster).**
+
+- **Seed / drive:** a flowrider (or siegemaster) session signals `operationStatus: 'partial'` because a NAMED remainder
+  is left — a bundle it could not dispatch, an observable with no disposition, a suite left red. **A pass that merely
+  wrote a test or landed a fix must signal `done`**: an operator re-reads what its minions wrote, so it already is the
+  fresh pair of eyes a `pt N` session supplies. A `partial` on a completed scope is a prompt bug — file it.
+- **Assert:**
+    - Its operation item is marked `complete` and a `pt N` continuation is appended carrying the **complete** `flowIds`
+      (every quest flow id, never a subset); a fresh session of the same role owns all the same flows and starts from
+      the remainder the commit named.
+    - `done` advances to the next tail item (flowrider → the single siegemaster item; siegemaster → lawbringer) on the
+      first pass that has every observable dispositioned — there is no "changed nothing" pass to wait for.
+
+**Both cases:** the `pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts` (3). That is ONE budget per role
+for the whole quest — each role holds exactly one tail item, so three `partial`s from the same role block the quest via
+`quest-block-on-failure-broker` (see 2.4) whatever the flow count.
+
+**→ FAIL (chain never converges / unbounded on a locked role):** check the pt-chain budget wiring. **→ FAIL (a `pt N`
+flowrider/siegemaster continuation loses flow ids):** fix the `flowIds` copy in
+`quest-handle-signal-back-responder`.
 **→ PASS:** continue.
 
 ### 2.3 — Ward red → spiritmender operation item → re-ward (no ward loop)

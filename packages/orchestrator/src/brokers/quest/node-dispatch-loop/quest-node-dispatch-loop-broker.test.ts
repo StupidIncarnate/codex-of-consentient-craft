@@ -26,7 +26,13 @@ describe('questNodeDispatchLoopBroker', () => {
       const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
       proxy.queueStep({ step: spawnStep });
       proxy.queueStep({ step: spawnStep });
-      const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
+      // Two reads per iteration — once before the scan, once after it — so the first iteration
+      // needs BOTH true to dispatch; the pause lands before the second iteration's first read.
+      const isPlaying = jest
+        .fn()
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(true)
+        .mockReturnValue(false);
 
       const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
 
@@ -37,8 +43,44 @@ describe('questNodeDispatchLoopBroker', () => {
           activeQuest: { setActive: expect.any(Function), clear: expect.any(Function) },
           longPollTotalMs: orchestrationDispatchStatics.loop.longPollTotalMs,
           longPollIntervalMs: orchestrationDispatchStatics.loop.longPollIntervalMs,
+          shouldKeepPolling: expect.any(Function),
         },
       ]);
+    });
+
+    // The scan is a LONG POLL: it sits waiting for work for up to `longPollTotalMs`, and a quest
+    // seeded during that wait is what it eventually returns. A pause pressed inside that window
+    // must win — the work the poll found was found AFTER the dispatcher was told to stop.
+    it('VALID: {pause lands while the scan long-polls, then the scan returns ward work} => the ward never runs', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      proxy.queueStep({
+        step: NextStepStub({
+          type: 'run-ward',
+          questId: 'add-auth',
+          workItemId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          mode: 'changed',
+        } as never),
+      });
+      const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
+
+      const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
+
+      expect(result).toStrictEqual(AdapterResultStub());
+      expect(proxy.getRunWardCalls()).toStrictEqual([]);
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
+    });
+
+    it('VALID: {pause lands while the scan long-polls, then the scan returns agent work} => no batch spawns', async () => {
+      const proxy = questNodeDispatchLoopBrokerProxy();
+      const agents = [SpawnInstructionStub()];
+      proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents }) });
+      const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
+
+      const result = await questNodeDispatchLoopBroker({ isPlaying, onWardLine: () => undefined });
+
+      expect(result).toStrictEqual(AdapterResultStub());
+      expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
+      expect(proxy.getRunWardCalls()).toStrictEqual([]);
     });
   });
 
@@ -57,6 +99,7 @@ describe('questNodeDispatchLoopBroker', () => {
           activeQuest: { setActive: expect.any(Function), clear: expect.any(Function) },
           longPollTotalMs: orchestrationDispatchStatics.loop.longPollTotalMs,
           longPollIntervalMs: orchestrationDispatchStatics.loop.longPollIntervalMs,
+          shouldKeepPolling: expect.any(Function),
         },
       ]);
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);

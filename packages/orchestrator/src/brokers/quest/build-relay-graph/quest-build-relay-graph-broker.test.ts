@@ -65,7 +65,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000002',
             role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suite — flow: login-flow',
+            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
             status: 'pending',
             locked: true,
             flowIds: ['login-flow'],
@@ -73,7 +73,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
             role: 'siegemaster',
-            text: 'Siegemaster: manual-QA the flow and review its test suite — flow: login-flow',
+            text: 'Siegemaster: manual-QA every quest flow and review its test suites',
             status: 'pending',
             locked: true,
             flowIds: ['login-flow'],
@@ -167,7 +167,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with two flows} => flowrider+siegemaster fan out per flow in declaration order, one flow id each', () => {
+    it('VALID: {feature quest with two flows} => ONE flowrider + ONE siegemaster item, each carrying both flow ids in declaration order', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -178,8 +178,6 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
           '00000000-0000-4000-8000-000000000007',
-          '00000000-0000-4000-8000-000000000008',
-          '00000000-0000-4000-8000-000000000009',
         ],
       });
 
@@ -213,23 +211,13 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suite — flow: send-comment',
-          flowIds: ['send-comment'],
+          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          flowIds: ['send-comment', 'view-comments'],
         },
         {
           role: 'siegemaster',
-          text: 'Siegemaster: manual-QA the flow and review its test suite — flow: send-comment',
-          flowIds: ['send-comment'],
-        },
-        {
-          role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suite — flow: view-comments',
-          flowIds: ['view-comments'],
-        },
-        {
-          role: 'siegemaster',
-          text: 'Siegemaster: manual-QA the flow and review its test suite — flow: view-comments',
-          flowIds: ['view-comments'],
+          text: 'Siegemaster: manual-QA every quest flow and review its test suites',
+          flowIds: ['send-comment', 'view-comments'],
         },
         {
           role: 'lawbringer',
@@ -245,7 +233,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster fall back to one flow-less item each', () => {
+    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each, carrying an empty flowIds', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -283,12 +271,12 @@ describe('questBuildRelayGraphBroker', () => {
         { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
         {
           role: 'flowrider',
-          text: 'Flowrider: author the flow-perspective test suite',
+          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
           flowIds: [],
         },
         {
           role: 'siegemaster',
-          text: 'Siegemaster: manual-QA the flow and review its test suite',
+          text: 'Siegemaster: manual-QA every quest flow and review its test suites',
           flowIds: [],
         },
         {

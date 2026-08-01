@@ -47,33 +47,19 @@ const PROCESS_ID = `proc-${SEEDED_UUIDS[0]}`;
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
 // Feature quests seed NO implementation ops at Start (Chaos authored the codeweaver items at spec
-// time), so the verify tail consumes uuids 1..6 and the first work item consumes the next one.
-// QuestStub carries exactly one flow, so the `forEachFlow` group (flowrider + siegemaster) expands
-// once — each of those items carrying that flow and naming it in its text.
+// time), so the verify tail consumes uuids 1..6 and the first work item consumes the next one. The
+// flow-operator roles (flowrider + siegemaster) each get ONE whole-quest item carrying every flow id
+// QuestStub declares; every other tail item carries none.
 const QUEST_STUB_FLOW_ID = 'login-flow';
-const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail
-  .map((entry) =>
-    'forEachFlow' in entry
-      ? entry.forEachFlow.map((seed) => ({
-          role: seed.role,
-          text: `${seed.text} — flow: ${QUEST_STUB_FLOW_ID}`,
-          status: 'pending',
-          locked: true,
-          flowIds: [QUEST_STUB_FLOW_ID],
-        }))
-      : [
-          {
-            role: entry.role,
-            text: entry.text,
-            status: 'pending',
-            locked: true,
-            flowIds: [],
-            ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
-          },
-        ],
-  )
-  .flat()
-  .map((item, index) => ({ id: SEEDED_UUIDS[index + 1], ...item }));
+const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail.map((entry, index) => ({
+  id: SEEDED_UUIDS[index + 1],
+  role: entry.role,
+  text: entry.text,
+  status: 'pending',
+  locked: true,
+  flowIds: entry.role === 'flowrider' || entry.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],
+  ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
+}));
 const FEATURE_WORK_ITEM_UUID = SEEDED_UUIDS[FEATURE_TAIL_EXPECTED.length + 1];
 
 // Bug-hunt quests seed the registry's implementation ops first (uuids 1..N), then the tail. The

@@ -286,6 +286,23 @@ export const ServerInitResponder = ({
                 processDevLogAdapter({
                   message: `subscribe-quest replay failed for ${subQuestId}: ${reason}`,
                 });
+                // The subscribing client is the only consumer that can act on this. Without the
+                // frame it receives no quest and no reason, so the quest route cannot tell "still
+                // loading" from "this quest.json does not parse" and paints nothing at all.
+                try {
+                  subWs.send(
+                    JSON.stringify(
+                      wsMessageContract.parse({
+                        type: 'quest-load-failed',
+                        payload: { questId: subQuestId, error: reason },
+                        timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                      }),
+                    ),
+                  );
+                } catch {
+                  clientSubscriptions.delete(subWs);
+                  clients.delete(subWs);
+                }
               })
               .finally(() => {
                 const replayingForClientFinish = replayInProgressByClient.get(subWs);

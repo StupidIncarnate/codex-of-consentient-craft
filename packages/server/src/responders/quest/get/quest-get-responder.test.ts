@@ -109,4 +109,31 @@ describe('QuestGetResponder', () => {
       });
     });
   });
+
+  describe('quest could not be read', () => {
+    it('ERROR: {adapter returns success:false, quest missing} => returns 404 with the error, not 200', async () => {
+      const proxy = QuestGetResponderProxy();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      proxy.setupGetQuestFailure({ questId, error: 'Quest not found in any guild' });
+
+      const result = await proxy.callResponder({ params: { questId }, query: {} });
+
+      expect(result).toStrictEqual({
+        status: 404,
+        data: { error: 'Quest not found in any guild' },
+      });
+    });
+
+    it('ERROR: {adapter returns success:false from a parse failure} => surfaces the parse reason verbatim', async () => {
+      const proxy = QuestGetResponderProxy();
+      const questId = QuestIdStub({ value: 'test-quest' });
+      const parseError =
+        'Failed to parse quest file at /q/quest.json: comments.0.createdAt: Invalid datetime';
+      proxy.setupGetQuestFailure({ questId, error: parseError });
+
+      const result = await proxy.callResponder({ params: { questId }, query: {} });
+
+      expect(result).toStrictEqual({ status: 404, data: { error: parseError } });
+    });
+  });
 });

@@ -15,12 +15,6 @@
  * pending operation item. Adding a new quest type = one entry here + the type added to
  * questTypeContract.
  *
- * A `{ forEachFlow: [...] }` entry expands once per quest flow, in `quest.flows` declaration order,
- * keeping the group's internal order — so a two-flow quest gets flowrider(A), siegemaster(A),
- * flowrider(B), siegemaster(B). Each expanded item carries that single flow in `flowIds` and its id
- * in the text, which is what keeps one flow's pt-continuation chain out of another's. A quest with
- * no flows falls back to one flow-less item per group member.
- *
  * Role and slash-command-filename strings are cross-checked against workItemRoleContract and
  * slashCommandsStatics in the colocated test so they cannot drift.
  */
@@ -33,16 +27,12 @@ export const questTypeRegistryStatics = {
     relayTail: [
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
       {
-        forEachFlow: [
-          {
-            role: 'flowrider',
-            text: 'Flowrider: author the flow-perspective test suite',
-          },
-          {
-            role: 'siegemaster',
-            text: 'Siegemaster: manual-QA the flow and review its test suite',
-          },
-        ],
+        role: 'flowrider',
+        text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+      },
+      {
+        role: 'siegemaster',
+        text: 'Siegemaster: manual-QA every quest flow and review its test suites',
       },
       { role: 'lawbringer', text: 'Lawbringer: standards review across the whole quest diff' },
       { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },

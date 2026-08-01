@@ -46,6 +46,14 @@ export const COMMENT_BOX_OBSERVABLE_ID = 'diagram-canvas-renders';
 // asserts the whole entry with toStrictEqual AND gets the "createdAt is a real ISO timestamp" check
 // for free — a raw passthrough would force a weaker per-field assertion.
 export const COMMENT_BOX_ISO_CREATED_AT = '<iso-timestamp>';
+// A review note that is ONE unbroken token — the shape a comment takes when it names a symbol. The
+// popover dropdown is a fixed width, and pre-wrap never splits a token with no break opportunity, so
+// without overflow-wrap this row paints past the dropdown and the rest of the note is clipped. Long
+// enough that no monospace face could fit the token in the dropdown's content box, so the geometry
+// assertion does not depend on which font the test machine resolves `monospace` to. A
+// slash-separated path would NOT reproduce it: UAX#14 permits a break after a solidus.
+export const COMMENT_BOX_LONG_TOKEN_TEXT =
+  'rename boxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirst please';
 
 // Three flow nodes, one assertion card branching off the entry node, and one cross-flow edge whose
 // target lives in another flow so the canvas also paints a FLOW_PORTAL_NODE stand-in. That mix is
@@ -101,6 +109,23 @@ const SEED_KEY_BROWSER_FN = ({ key, value }: { key: string; value: string }): vo
   globalThis.localStorage.setItem(key, value);
 };
 
+// Browser-evaluated predicate: the queued-comment row must paint no wider than the popover holding
+// it. An unbroken token that cannot wrap overflows its own content box (scrollWidth exceeds
+// clientWidth) AND paints past the dropdown's right edge. jsdom reports every width as 0, so a
+// widget test can assert the break-word declaration but never that the row actually fits — only a
+// browser can. Returns a boolean so the harness signature exposes no raw number. One pixel of slack
+// absorbs sub-pixel rounding on the right edge; a real overflow is hundreds of pixels.
+const QUEUED_TEXT_FITS_BROWSER_FN = (el: Element): boolean => {
+  const dropdown = el.closest('[data-testid="COMMENT_POPOVER"]');
+  if (dropdown === null) {
+    return false;
+  }
+  return (
+    el.scrollWidth <= el.clientWidth &&
+    el.getBoundingClientRect().right <= dropdown.getBoundingClientRect().right + 1
+  );
+};
+
 export const commentBoxHarness = ({
   page,
   request,
@@ -138,6 +163,7 @@ export const commentBoxHarness = ({
   clickCancelButton: () => Promise<void>;
   clickEditButton: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
+  queuedTextFitsInsidePopover: () => Promise<boolean>;
   readQueue: () => Promise<unknown>;
   hasQueueKey: () => Promise<boolean>;
   captureQueueSnapshot: () => Promise<void>;
@@ -448,6 +474,11 @@ export const commentBoxHarness = ({
     clickDeleteButton: async (): Promise<void> => {
       await page.getByTestId('COMMENT_DELETE_BUTTON').click();
     },
+
+    // Whether the queued-comment row actually fits inside the popover it is rendered in — the
+    // painted outcome, measured on the real layout rather than inferred from a style rule.
+    queuedTextFitsInsidePopover: async (): Promise<boolean> =>
+      page.getByTestId('COMMENT_QUEUED_TEXT').evaluate(QUEUED_TEXT_FITS_BROWSER_FN),
 
     // The queue exactly as the browser stored it, with each createdAt that round-trips as a real ISO
     // timestamp swapped for a sentinel so the scenario can assert the whole entry at once.

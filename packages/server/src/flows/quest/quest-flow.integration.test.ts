@@ -20,13 +20,13 @@ describe('QuestFlow', () => {
   });
 
   describe('GET /api/quests/:questId', () => {
-    it('VALID: {questId} => delegates to QuestGetResponder and returns response', async () => {
+    it('VALID: {questId with no quest on disk} => delegates to QuestGetResponder and returns 404', async () => {
       const app = QuestFlow();
       const questId = QuestIdStub();
 
       const response = await app.request(`/api/quests/${questId}`);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(404);
     });
   });
 

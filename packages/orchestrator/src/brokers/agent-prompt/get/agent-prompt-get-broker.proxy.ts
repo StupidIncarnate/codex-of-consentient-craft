@@ -113,7 +113,7 @@ export const agentPromptGetBrokerProxy = (): {
       configProxy.setupConfigResolved({ startPath: DEV_SERVER_CONFIG_START_PATH, config });
     },
 
-    // Stage the flowrider/siegemaster branch resolving a config with NO devServer block —
+    // Stage the siegemaster branch resolving a config with NO devServer block —
     // the real DungeonmasterConfigStub() default (devServer is `.optional()`, no default),
     // matching a repo that has a .dungeonmaster.json but no devServer configured.
     setupNoDevServerConfig: (): void => {

@@ -122,6 +122,82 @@ describe('ReactFlowDiagramWidget', () => {
     });
   });
 
+  // React Flow paints every node `visibility: hidden` until its own ResizeObserver measurement
+  // lands, and it throws that measurement away whenever a render hands it a fresh node object —
+  // which this widget does on every render. A measurement discarded in the same React batch it
+  // landed in is never retaken, and the whole canvas stays invisible with the cards in the DOM.
+  // A card that arrives already carrying its box is never "unmeasured", so it can never be hidden.
+  describe('pre-measurement box', () => {
+    it('VALID: {node with one assertion card} => both cards reach React Flow carrying the box ELK laid them out with', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        type: 'state',
+        observables: [
+          FlowObservableStub({
+            id: 'redirects',
+            type: 'ui-state',
+            description: 'redirects to dashboard',
+          }),
+        ],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBeInTheDocument();
+      });
+
+      // 'Login Page' is 10 chars => 1 wrapped line => 40 chrome + 16 line + 22 badge + 12 buffer.
+      // 'redirects to dashboard' is 22 chars => 1 wrapped line => 30 chrome + 15 line + 10 buffer.
+      expect(proxy.getInitialBoxes()).toStrictEqual([
+        ['login-page', '240', '90'],
+        ['obs:login-page:redirects', '220', '55'],
+      ]);
+    });
+
+    it('VALID: {edge targets a node in another flow} => the portal stand-in reaches React Flow carrying a box too', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'run-compile' }),
+        label: 'Run Compile flow',
+        type: 'action',
+        observables: [],
+      });
+      const crossEdge = FlowEdgeStub({
+        id: 'run-compile-invokes',
+        from: 'run-compile',
+        to: 'compile-flow:compile-entry',
+        label: 'invokes',
+      });
+      const flow = FlowStub({ nodes: [node], edges: [crossEdge] });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'run-compile', x: 0, y: 0 },
+          { id: 'compile-flow:compile-entry', x: 0, y: 200 },
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
+      });
+
+      // 'Run Compile flow' is 16 chars => 1 line => 40 + 16 + 22 + 12. The portal's
+      // '↗ compile-flow → compile-entry' is 30 chars => 2 lines => 40 + 32 + 12 (no badge).
+      expect(proxy.getInitialBoxes()).toStrictEqual([
+        ['run-compile', '240', '90'],
+        ['compile-flow:compile-entry', '240', '84'],
+      ]);
+    });
+  });
+
   describe('cross-flow edges', () => {
     it('VALID: {edge targets a node in another flow} => renders a FLOW_PORTAL_NODE for the off-flow target instead of erroring', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();

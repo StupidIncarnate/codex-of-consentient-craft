@@ -6,6 +6,7 @@ import {
   commentBoxHarness,
   COMMENT_BOX_FLOW_ID,
   COMMENT_BOX_ISO_CREATED_AT,
+  COMMENT_BOX_LONG_TOKEN_TEXT,
   COMMENT_BOX_NODE_ID,
   COMMENT_BOX_NODE_LABEL,
   COMMENT_BOX_OBSERVABLE_ID,
@@ -235,6 +236,30 @@ test.describe('Leave a Comment on a Diagram Box', () => {
     await expect(page.getByTestId('COMMENT_EDIT_BUTTON')).toBeVisible();
     await expect(page.getByTestId('COMMENT_DELETE_BUTTON')).toBeVisible();
     await expect(page.getByTestId('COMMENT_QUEUE_COUNT')).toHaveText('1 COMMENT QUEUED');
+  });
+
+  // #comment-queued terminal, read-back half: the queued view has to SHOW the note it stored.
+  test('VALID: {queue a comment whose text is one unbroken token wider than the popover} => the queued row wraps and stays inside COMMENT_POPOVER', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment Long Token Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: COMMENT_BOX_LONG_TOKEN_TEXT });
+    await comments.pressEnter();
+
+    // The whole note reaches the DOM either way, so asserting the text FIRST separates "it was
+    // stored and rendered" from "it is actually readable inside the dropdown".
+    await expect(page.getByTestId('COMMENT_QUEUED_TEXT')).toHaveText(COMMENT_BOX_LONG_TOKEN_TEXT);
+    // Real layout: pre-wrap alone leaves the token unbreakable, so the row paints past the
+    // fixed-width dropdown and the rest of the note is clipped off-panel.
+    expect(await comments.queuedTextFitsInsidePopover()).toBe(true);
   });
 
   // #write-queue-entry again, this time proving the assertion card anchors to its own observableId.

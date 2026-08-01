@@ -29,6 +29,7 @@ export const CommentPopoverWidgetProxy = (): {
   getTextareaRows: () => HTMLElement['ariaRowSpan'];
   getTextareaHeight: () => HTMLElement['style']['height'];
   getQueuedText: () => HTMLElement['textContent'];
+  getQueuedTextOverflowWrap: () => HTMLElement['style']['overflowWrap'];
   hasEditButton: () => boolean;
   hasDeleteButton: () => boolean;
   hasQueueButton: () => boolean;
@@ -94,6 +95,11 @@ export const CommentPopoverWidgetProxy = (): {
     getTextareaHeight: (): HTMLElement['style']['height'] => textarea().style.height,
     getQueuedText: (): HTMLElement['textContent'] =>
       screen.queryByTestId('COMMENT_QUEUED_TEXT')?.textContent ?? null,
+    // The inline declaration only — jsdom has no layout engine, so this guards the MECHANISM that
+    // lets a token wrap. The painted outcome is measured in a browser by
+    // commentBoxHarness.queuedTextFitsInsidePopover.
+    getQueuedTextOverflowWrap: (): HTMLElement['style']['overflowWrap'] =>
+      screen.getByTestId('COMMENT_QUEUED_TEXT').style.overflowWrap,
     hasEditButton: (): boolean => screen.queryByTestId('COMMENT_EDIT_BUTTON') !== null,
     hasDeleteButton: (): boolean => screen.queryByTestId('COMMENT_DELETE_BUTTON') !== null,
     hasQueueButton: (): boolean => screen.queryByTestId('COMMENT_QUEUE_BUTTON') !== null,

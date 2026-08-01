@@ -4,9 +4,9 @@
  * `workItemToPromptTransformer`, which resolves the work item's `operations/<id>` ref and
  * substitutes `$ARGUMENTS` in the prompt template with the operation-relay context.
  *
- * Broker-owned I/O: flowrider/siegemaster own their dev server via Playwright `webServer`. The
- * broker resolves `.dungeonmaster.json` (`devServer.devCommand` + `devServer.port`) and hands
- * the command + URL to the transformer.
+ * Broker-owned I/O: siegemaster stands up and owns a long-lived dev server for hands-on QA. The
+ * broker resolves `.dungeonmaster.json` (`devServer.devCommand` + `devServer.port`) and hands the
+ * command + URL to the transformer for that role only.
  *
  * Session id capture: this broker does NOT persist sessionId itself — MCP stdio carries
  * no per-call session metadata. The capture happens in the JSONL watcher: when each
@@ -87,13 +87,17 @@ export const agentPromptGetBroker = async ({
     throw new Error(`agentPromptGetBroker: workItem ${workItemId} not found on quest ${questId}`);
   }
 
-  // Siegemaster AND Flowrider own their dev server through Playwright's webServer config.
-  // Resolve the dev-server command + URL from .dungeonmaster.json here; the transformer injects
-  // them into the operation context.
+  // Siegemaster ALONE gets the dev server. It stands a long-lived one up by hand at its Gate 5,
+  // drives it, and tears it down before signalling, so it needs the real command and URL.
+  // Flowrider deliberately does NOT: it never starts a server. Its e2e server is whatever the
+  // project's Playwright config declares in `webServer`, started inside the run and torn down with
+  // it, and its tests navigate `baseURL`-relative — so neither value has a consumer. Handing them
+  // over invited a minion to author a `webServer` block into the shared config, which is install
+  // scaffolding rather than a test and races when bundles run in parallel.
   const devServer = await (async (): Promise<
     Parameters<typeof workItemToPromptTransformer>[0]['devServer']
   > => {
-    if (workItem.role !== 'siegemaster' && workItem.role !== 'flowrider') {
+    if (workItem.role !== 'siegemaster') {
       return undefined;
     }
     // The config-find chain dirname()s startPath on its first iteration — it expects a FILE, so it

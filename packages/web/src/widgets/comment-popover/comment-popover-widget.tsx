@@ -204,7 +204,12 @@ export const CommentPopoverWidget = ({
               ff="monospace"
               size="xs"
               data-testid="COMMENT_QUEUED_TEXT"
-              style={{ color: colors.text, whiteSpace: 'pre-wrap' }}
+              // pre-wrap keeps the author's newlines; break-word is what stops a token with no
+              // break opportunity (a long camelCase symbol, a base64 blob, a hash) from painting
+              // past the dropdown's fixed width and clipping the rest of the note. Comment text is
+              // free-form user input, so it needs the same guard the node label and the assertion
+              // description already carry.
+              style={{ color: colors.text, whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
             >
               {queued.text}
             </Text>

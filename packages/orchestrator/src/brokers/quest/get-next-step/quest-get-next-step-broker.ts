@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Multi-quest scan that returns the next dispatch instruction for /dumpster-launch. Picks the oldest post-Start-Quest quest (FIFO by createdAt) that still has incomplete work, sets it as the active quest, computes ready work items, and returns either a spawn-agents response for the next ready work item (the relay runs one session at a time, so this is always a single agent), a run-ward response, or idle. Long-polls internally up to ~25s before giving up.
+ * PURPOSE: Multi-quest scan that returns the next dispatch instruction for /dumpster-launch. Picks the oldest post-Start-Quest quest (FIFO by createdAt) that still has incomplete work, sets it as the active quest, computes ready work items, and returns either a spawn-agents response for the next ready work item (the relay runs one session at a time, so this is always a single agent), a run-ward response, or idle. Long-polls internally up to ~25s before giving up; an optional `shouldKeepPolling` predicate cuts the poll short for a caller that can be switched off mid-wait.
  *
  * USAGE:
  * const step = await questGetNextStepBroker({ activeQuest });
@@ -28,11 +28,18 @@ export const questGetNextStepBroker = async ({
   longPollTotalMs,
   longPollIntervalMs,
   deadline,
+  shouldKeepPolling,
 }: {
   activeQuest: ActiveQuestFacade;
   longPollTotalMs?: number;
   longPollIntervalMs?: number;
   deadline?: number;
+  // Re-checked before every retry scan. Callers that can be switched off mid-poll (the Node
+  // dispatch loop, whose play flag the user flips from /queue) pass their live flag here so the
+  // poll stops the moment they do. scanOnceLayerBroker WRITES — orphan recovery flips an
+  // in_progress work item back to pending and the advance self-heal mints the next ledger scope's
+  // work item — so a poll that keeps scanning past a pause keeps mutating quests.
+  shouldKeepPolling?: () => boolean;
 }): Promise<NextStep> => {
   const totalMs = longPollTotalMs ?? LONG_POLL_TOTAL_MS;
   const intervalMs = longPollIntervalMs ?? LONG_POLL_INTERVAL_MS;
@@ -46,10 +53,14 @@ export const questGetNextStepBroker = async ({
     return nextStepContract.parse({ type: 'idle' });
   }
   await timerSetTimeoutAdapter({ ms: intervalMs });
+  if (shouldKeepPolling !== undefined && !shouldKeepPolling()) {
+    return nextStepContract.parse({ type: 'idle' });
+  }
   return questGetNextStepBroker({
     activeQuest,
     ...(longPollTotalMs === undefined ? {} : { longPollTotalMs }),
     longPollIntervalMs: intervalMs,
     deadline: effectiveDeadline,
+    ...(shouldKeepPolling === undefined ? {} : { shouldKeepPolling }),
   });
 };

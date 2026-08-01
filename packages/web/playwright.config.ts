@@ -3,7 +3,12 @@ import * as path from 'path';
 import { defineConfig, devices } from '@playwright/test';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
+// CI keeps one retry to absorb shared-runner infrastructure noise.
 const CI_RETRIES = 1;
+// Locally a retry HIDES the failure instead: a spec that fails then passes is reported green,
+// which is how genuine product bugs sat behind an `e2e: PASS` — a paused dispatcher still
+// running work, and a flow diagram rendering blank. Zero retries makes the suite honest.
+const LOCAL_RETRIES = 0;
 const DEFAULT_E2E_PORT = 5737;
 
 const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_E2E_PORT;
@@ -35,7 +40,7 @@ export default defineConfig({
   fullyParallel: false,
   timeout: 10_000,
   forbidOnly: Boolean(process.env.CI),
-  retries: CI_RETRIES,
+  retries: process.env.CI === undefined ? LOCAL_RETRIES : CI_RETRIES,
   reporter: 'json',
 
   globalSetup: './test/harnesses/global-setup.ts',

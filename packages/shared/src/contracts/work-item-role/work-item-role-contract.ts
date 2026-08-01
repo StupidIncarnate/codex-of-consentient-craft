@@ -17,12 +17,21 @@ export const workItemRoleContract = z.enum([
   'codeweaver',
   'ward',
   'spiritmender',
-  /** Flowrider: verify role — a TEST WRITER only. Reviews and extends the integration tests
-   * Codeweaver left until they cover whole flows, and authors the Playwright e2e suite. Writes no
-   * implementation: Codeweaver owns every implementation file, `flows/` and `startup/` included.
-   * Self-scopes over ALL quest flows within one session; loops via pt N continuation items until a
-   * fresh pass changes nothing. */
+  /** Flowrider: verify OPERATOR — a TEST WRITER and reviewer first. One session owns EVERY quest
+   * flow: it bundles them, dispatches a `flowrider-minion` per bundle, then reopens the files each
+   * minion wrote to reject hand-waved coverage. Tests are its primary output, but it and its minions
+   * MAY close an implementation hole their testing exposes, red-first; only an architectural fix or
+   * one needing a product decision is left as a red test plus a `GAP:` for Siegemaster. Signals on
+   * remaining scope — `done` once every observable on every flow carries a disposition, `partial`
+   * only for a named remainder. */
   'flowrider',
+  /** Siegemaster: verify OPERATOR — the last role that fixes behaviour, and the one with the widest
+   * fix authority. One session owns EVERY quest flow: it groups them into walk-bundles, stands up ONE
+   * dev server, and dispatches a `siegemaster-minion` per bundle (every DRIVING bundle strictly
+   * serially, since concurrent walks share one server's state and one reset lever) to walk them by
+   * hand and report measured evidence. A minion records the broken state before it may close a small
+   * local hole; the operator verifies those reports, TDD-fixes what survived, and signals on
+   * remaining scope. */
   'siegemaster',
   'lawbringer',
   /** Blightwarden minions: five report-only finders that run in parallel, one per cross-cutting

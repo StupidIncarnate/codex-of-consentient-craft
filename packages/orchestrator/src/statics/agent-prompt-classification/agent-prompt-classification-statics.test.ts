@@ -7,6 +7,8 @@ describe('agentPromptClassificationStatics', () => {
         'chaoswhisperer-gap-minion',
         'codeweaver-minion',
         'lawbringer-minion',
+        'flowrider-minion',
+        'siegemaster-minion',
         'blightwarden-security-minion',
         'blightwarden-dedup-minion',
         'blightwarden-perf-minion',

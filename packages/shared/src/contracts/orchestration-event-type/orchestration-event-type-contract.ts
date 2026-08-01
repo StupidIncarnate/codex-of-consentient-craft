@@ -18,6 +18,10 @@ export const orchestrationEventTypeContract = z.enum([
   'chat-complete',
   'quest-created',
   'quest-modified',
+  // Sent directly to a subscribing client when its quest could not be read (malformed quest.json).
+  // Never emitted on the in-memory bus — it is per-subscription, and its payload carries the
+  // field-level reason so the route can name what rejected instead of rendering nothing.
+  'quest-load-failed',
   'quest-persisted',
   'quest-paused',
   'quest-resumed',

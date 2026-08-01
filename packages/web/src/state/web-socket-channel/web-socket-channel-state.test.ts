@@ -9,6 +9,7 @@ import { ChatCompletePayloadStub } from '../../contracts/chat-complete-payload/c
 import { ChatHistoryCompletePayloadStub } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload.stub';
 import { ChatOutputPayloadStub } from '../../contracts/chat-output-payload/chat-output-payload.stub';
 import { ClarificationRequestPayloadStub } from '../../contracts/clarification-request-payload/clarification-request-payload.stub';
+import { QuestLoadFailedPayloadStub } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload.stub';
 import { QuestModifiedPayloadStub } from '../../contracts/quest-modified-payload/quest-modified-payload.stub';
 import { WardDetailResponseStub } from '../../contracts/ward-detail-response/ward-detail-response.stub';
 
@@ -163,6 +164,57 @@ describe('webSocketChannelState', () => {
       sub.unsubscribe();
 
       expect(captured[0]).toStrictEqual(payload.quest);
+    });
+
+    it('ERROR: {quest-load-failed ws message} => questLoadFailed$ emits the parsed payload', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const questId = QuestIdStub({ value: 'quest-broken-1' });
+      const captured: ReturnType<typeof QuestLoadFailedPayloadStub>[] = [];
+      const sub = webSocketChannelState.questLoadFailed$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      const payload = QuestLoadFailedPayloadStub({ questId });
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'quest-load-failed',
+          payload,
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      expect(captured[0]).toStrictEqual(payload);
+    });
+
+    it('INVALID: {quest-load-failed ws message with an empty error} => questLoadFailed$ emits nothing', () => {
+      const proxy = webSocketChannelStateProxy();
+      proxy.setupEmpty();
+      proxy.connect();
+      proxy.triggerOpen();
+
+      const captured: ReturnType<typeof QuestLoadFailedPayloadStub>[] = [];
+      const sub = webSocketChannelState.questLoadFailed$().subscribe((p) => {
+        captured.push(p);
+      });
+
+      proxy.deliverMessage({
+        data: JSON.stringify({
+          type: 'quest-load-failed',
+          payload: { questId: 'quest-broken-2', error: '' },
+          timestamp: '2025-01-01T00:00:00.000Z',
+        }),
+      });
+
+      sub.unsubscribe();
+
+      // A blank reason is worse than none: it would paint an error surface that names nothing.
+      expect(captured).toStrictEqual([]);
     });
 
     it('VALID: {execution-queue-updated ws message} => executionQueueChanged$ emits undefined', () => {

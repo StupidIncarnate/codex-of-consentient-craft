@@ -48,6 +48,7 @@ import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
 import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
+import { QuestLoadErrorWidget } from '../quest-load-error/quest-load-error-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 
 const NO_QUEST_BANNER_MESSAGE = displayLabelContract.parse(
@@ -93,6 +94,7 @@ export const QuestChatContentLayerWidget = ({
   // inert state (empty entries, no streaming, no subscription).
   const {
     quest,
+    loadError,
     entriesBySession,
     entriesByWorkItem,
     isStreaming,
@@ -203,6 +205,27 @@ export const QuestChatContentLayerWidget = ({
   //  - otherwise (node mode either questId case; claude mode with questId set but quest not replayed)
   //    → the dual-panel chat surface. In node mode the first message creates the quest (handleSend)
   //    and the right panel is the dumpster loader; in claude mode it's the "Awaiting..." box.
+  // A load that definitively FAILED, ahead of every no-quest-yet branch below: those all read as
+  // "still loading", and a quest.json the contract rejects will never arrive, so leaving the reader
+  // on a loading surface hides the failure completely. questId is non-null whenever loadError is
+  // set — the binding only subscribes, and only matches this event, for a quest it was given.
+  if (quest === null && loadError !== null && questId !== null) {
+    return (
+      <Box
+        data-testid="QUEST_CHAT"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          padding: 16,
+        }}
+      >
+        <QuestLoadErrorWidget questId={questId} reason={loadError} />
+      </Box>
+    );
+  }
+
   if (quest === null) {
     if (modeLoading) {
       return (
