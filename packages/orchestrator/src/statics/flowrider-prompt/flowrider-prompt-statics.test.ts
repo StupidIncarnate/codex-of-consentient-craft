@@ -1,4 +1,5 @@
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evidence-contract-statics';
 import { flowriderPromptStatics } from './flowrider-prompt-statics';
 
 const has = (needle: string): boolean => flowriderPromptStatics.prompt.template.includes(needle);
@@ -33,6 +34,13 @@ describe('flowriderPromptStatics', () => {
     expect(has(agentOperatingRulesStatics.markdown)).toBe(true);
   });
 
+  // The operator's reject list and the minion's authoring checklist are the SAME block. Asserting
+  // the whole static is embedded (rather than re-listing its criteria here) is what makes a change
+  // to one side impossible to land without the other.
+  it('VALID: template => embeds the shared evidence contract verbatim', () => {
+    expect(has(flowEvidenceContractStatics.markdown)).toBe(true);
+  });
+
   it('VALID: template => frames the role as an operator accountable for EVERY flow on the quest', () => {
     expect({
       ownsOneItem: has("You own ONE operation item on the quest's operations ledger"),
@@ -61,8 +69,15 @@ describe('flowriderPromptStatics', () => {
       section: /^## What Is Authoritative/mu.test(flowriderPromptStatics.prompt.template),
       gitIsState: has('**Git is the state.**'),
       artifactIsClaim: has("**A minion's artifact is a claim, not evidence.**"),
+      claimCoversFixesAndGaps: has('That covers its tests, its fixes, and its gaps\n   alike.'),
       lastLine: has('**Your own reading is the last line.**'),
-    }).toStrictEqual({ section: true, gitIsState: true, artifactIsClaim: true, lastLine: true });
+    }).toStrictEqual({
+      section: true,
+      gitIsState: true,
+      artifactIsClaim: true,
+      claimCoversFixesAndGaps: true,
+      lastLine: true,
+    });
   });
 
   it('VALID: template => loads all three standards tools as a blocking first gate', () => {
@@ -74,8 +89,28 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({ blocking: true, architecture: true, syntax: true, testing: true });
   });
 
-  it('VALID: template => trusts git over the ledger when verifying its operation item', () => {
-    expect(has('**Trust git over the ledger.**')).toBe(true);
+  // A pt-N or resumed session inherits scope a prior session of its own role partly covered. Git
+  // says what EXISTS; only the ledger says which part of this scope has already been worked.
+  it('VALID: template => reads the ledger for prior passes of its own role, not just git', () => {
+    expect({
+      splitsTheTwoAuthorities: has(
+        '**Trust git over the ledger for what EXISTS; trust the ledger for what your role has ALREADY DONE.**',
+      ),
+      detectsPriorPasses: has('the ledger shows completed\n  items of YOUR role'),
+      jobIsTheRemainder: has('your job is the remainder'),
+      noFixedLogWindow: has(
+        'far enough back to cover the whole quest, not a\n  fixed number of lines',
+      ),
+      namesTheDefaultWindowTrap: has('more\n  commits than a default `-15` window shows'),
+      readsBodies: has('read the BODIES'),
+    }).toStrictEqual({
+      splitsTheTwoAuthorities: true,
+      detectsPriorPasses: true,
+      jobIsTheRemainder: true,
+      noFixedLogWindow: true,
+      namesTheDefaultWindowTrap: true,
+      readsBodies: true,
+    });
   });
 
   it('VALID: template => requires opening test files rather than crediting a filename', () => {
@@ -86,15 +121,48 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({ openThem: true, neverCredit: true, namesTheFailure: true });
   });
 
-  // The spec's only drift record is the ADDED:/ADJUSTED: prose in commit bodies, which Gate 2 reads.
-  // quest.json is overwritten in place, carries no history field, and lives in a gitignored dir — so
-  // no "as authored" version exists to compare against, and a prompt implying one sends an agent
-  // hunting for a diff it cannot find.
-  it('VALID: template => promises no authored-version comparison the quest cannot supply', () => {
+  // A large quest overflows get-quest to a file and its inventory outlives the reading. Both are
+  // load-bearing: the inventory is the denominator Gate 7's set difference reconciles against.
+  it('VALID: template => survives an overflowing quest by writing the inventory to a file', () => {
     expect({
-      noAuthoredBaseline: has('not as they were authored'),
-      driftMarkersReadAtGate2: has('including `GAP:`, `ADDED:`, and\n`ADJUSTED:` notes'),
-    }).toStrictEqual({ noAuthoredBaseline: false, driftMarkersReadAtGate2: true });
+      readsAllOfTheOverflow: has('If the payload overflows to a file, read all of it'),
+      namesTheSkimRisk: has('skimming\nit is how a flow ends up with no bundle'),
+      writesItDown: has('**write it to a file rather than holding it in your head**'),
+      capturesTypePerObservable: has('**every observable id with its verbatim text and type**'),
+      recordsTheDenominator: has(
+        'Record the\ntotal observable count; it is the denominator Gate 7 reconciles against.',
+      ),
+    }).toStrictEqual({
+      readsAllOfTheOverflow: true,
+      namesTheSkimRisk: true,
+      writesItDown: true,
+      capturesTypePerObservable: true,
+      recordsTheDenominator: true,
+    });
+  });
+
+  // Design decisions carry the rationale AND a Relates-to list naming the exact observables they
+  // govern — the trap an assertion is supposed to catch. Without them a minion writes the easy one.
+  it('VALID: template => treats the quest design decisions as mandatory briefing material', () => {
+    expect({
+      mandatory: has("**Also read the quest's design decisions.**"),
+      notOptional: has('they are not optional reading'),
+      namesTheRelatesTo: has(
+        '`Relates to:` list naming the exact nodes and observables it governs',
+      ),
+      contrastsTextWithRationale: has(
+        "An observable's text says what to assert; its design decision says what goes wrong if\nyou assert it the easy way.",
+      ),
+      namesTheFailure: has(
+        'A minion that gets the observable but not the decision writes the easy\nassertion.',
+      ),
+    }).toStrictEqual({
+      mandatory: true,
+      notOptional: true,
+      namesTheRelatesTo: true,
+      contrastsTextWithRationale: true,
+      namesTheFailure: true,
+    });
   });
 
   it('VALID: template => bundles flows by shared surface, layer, and coupled observables', () => {
@@ -110,6 +178,22 @@ describe('flowriderPromptStatics', () => {
       coupled: true,
       splitBig: true,
       parallel: true,
+    });
+  });
+
+  // Without a size anchor a session defaults to one bundle per flow, which is the per-flow model the
+  // operator conversion replaced — and the observable count is what actually predicts a skim.
+  it('VALID: template => anchors bundle size by observable count and dispatches by surface', () => {
+    expect({
+      sizeAnchor: has('a bundle much past ~25 observables is one a minion will skim'),
+      notOnePerFlow: has('prefer a handful of well-briefed bundles over one per flow'),
+      bySurfaceNotByFlow: has('You are dispatching\n  by SURFACE, not by flow'),
+      countPerBundleInThePlan: has('the observable count per bundle'),
+    }).toStrictEqual({
+      sizeAnchor: true,
+      notOnePerFlow: true,
+      bySurfaceNotByFlow: true,
+      countPerBundleInThePlan: true,
     });
   });
 
@@ -131,73 +215,80 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => defines a five-part evidence contract whose fourth item is the failure mode', () => {
+  // At quest scale a single deep pass over every assertion is not completable in one turn, so an
+  // unqualified "verify everything" instruction produces exactly the hand-waving it forbids. The
+  // split keeps the cheap check total and forces the expensive one to be risk-ranked AND named.
+  it('VALID: template => splits artifact verification into a total structural pass and a named semantic pass', () => {
     expect({
-      contract: has('**The evidence contract.**'),
-      failureMode: has('**what makes it fail**'),
-      witnessedRed: has('**witnessed red output**'),
-      itemFourCatchesIt: has('Item 4 catches nearly everything.'),
-    }).toStrictEqual({
-      contract: true,
-      failureMode: true,
-      witnessedRed: true,
-      itemFourCatchesIt: true,
-    });
-  });
-
-  it('VALID: template => rejects existence-only coverage that only name-matches observables', () => {
-    expect({
-      criterion: has('**Existence-only coverage.**'),
-      nameMatching: has('is name-matching, not auditing'),
-      notAnAudit: has('it was not an audit'),
-    }).toStrictEqual({ criterion: true, nameMatching: true, notAnAudit: true });
-  });
-
-  it('VALID: template => rejects a paint claim asserted where no layout engine exists', () => {
-    expect({
-      criterion: has(
-        '**Layer blindness — the assertion cannot observe what the observable claims.**',
+      namesTheScaleProblem: has(
+        'At quest scale you cannot deep-read several hundred assertions in one turn',
       ),
-      jsdomBlind: has('jsdom is worthless: jsdom has\n  no layout engine'),
-      widthZero: has('every width reads 0'),
-      textContent: has('proves a string is in the DOM, never that a user can read it'),
+      passATotal: has('**Pass A — structural, on 100% of claims.**'),
+      passANoExcuseToSample: has('so there is no excuse to sample it'),
+      passAChecksNaming: has('obeys the naming and colocation rules'),
+      passAChecksHarnessImport: has(
+        'imports its harness from the UI package rather than\nhand-rolling one',
+      ),
+      passBSemantic: has('**Pass B — semantic, by opening the file.**'),
+      passBMandatoryCategories: has('MANDATORY for every one of these, no sampling'),
+      passBCatchesLayerDisagreement: has(
+        'every claim whose asserted layer disagrees with the modality table',
+      ),
+      namedSample: has('**named random sample of the remainder**'),
+      silentCapIsALie: has(
+        'A sample you do not name is a silent cap, and a silent cap reads to the next session as "all of this\nwas checked"',
+      ),
     }).toStrictEqual({
-      criterion: true,
-      jsdomBlind: true,
-      widthZero: true,
-      textContent: true,
+      namesTheScaleProblem: true,
+      passATotal: true,
+      passANoExcuseToSample: true,
+      passAChecksNaming: true,
+      passAChecksHarnessImport: true,
+      passBSemantic: true,
+      passBMandatoryCategories: true,
+      passBCatchesLayerDisagreement: true,
+      namedSample: true,
+      silentCapIsALie: true,
     });
   });
 
-  it('VALID: template => forbids stopping at the browser when a flow reaches the server', () => {
+  // The minion promises the operator verifies its fixes and adjudicates its handed-up defects. If
+  // the operator is never told to, a real fix ships unverified and a proven defect evaporates.
+  it('VALID: template => adjudicates the minion FIXES MADE block including the ripple', () => {
     expect({
-      criterion: has('**Stopping at the browser when the flow goes deeper.**'),
-      onlyWhatBrowserSees: has('Playwright can only prove what the browser\n  can observe.'),
-      skippedMost: has('This is the layer minions skip most.'),
-    }).toStrictEqual({ criterion: true, onlyWhatBrowserSees: true, skippedMost: true });
-  });
-
-  it('VALID: template => rejects single-instance fixtures that cannot discriminate', () => {
-    expect({
-      criterion: has('**Single-instance fixtures.**'),
-      indistinguishable: has('"the right one"\n  and "the first one" are the same value'),
-      demandTwo: has('Demand at least two, so\n  an off-by-index bug is visible.'),
-    }).toStrictEqual({ criterion: true, indistinguishable: true, demandTwo: true });
-  });
-
-  it('VALID: template => rejects benign-input monoculture, vacuous negatives, and unwitnessed red', () => {
-    expect({
-      monoculture: has('**Benign-input monoculture.**'),
-      vacuous: has('**Vacuous negatives.**'),
-      unwitnessed: has('**Unwitnessed red.**'),
-      selfReferential: has('**Self-referential tests.**'),
-      unreachableGuard: has('**A guard for an input the product cannot produce.**'),
+      adjudicates: has("**Adjudicate the minion's `FIXES MADE`.**"),
+      fixIsAClaim: has('A fix is a claim like any other.'),
+      redBeforeTheChange: has('confirm the red was genuinely witnessed BEFORE the change'),
+      rippleIsTheOperators: has(
+        'A minion sees one bundle; you see\nthe quest, so the ripple is yours to finish.',
+      ),
+      namesTheConsequence: has(
+        "An unrippled fix is the defect you will meet again in\nSiegemaster's pass.",
+      ),
     }).toStrictEqual({
-      monoculture: true,
-      vacuous: true,
-      unwitnessed: true,
-      selfReferential: true,
-      unreachableGuard: true,
+      adjudicates: true,
+      fixIsAClaim: true,
+      redBeforeTheChange: true,
+      rippleIsTheOperators: true,
+      namesTheConsequence: true,
+    });
+  });
+
+  it('VALID: template => forces a take-or-record verdict on every defect a minion handed up', () => {
+    expect({
+      adjudicates: has("**Adjudicate the minion's `DEFECTS LEFT UNFIXED`.**"),
+      minionVerdictIsAProposal: has('is a proposal, not a verdict'),
+      takeIt: has('**take it**'),
+      passItOn: has('**pass it on**'),
+      mayNotEvaporate: has('What you may not do is let it evaporate.'),
+      namesTheConsequence: has('a red test then looks like a mistake instead of a finding'),
+    }).toStrictEqual({
+      adjudicates: true,
+      minionVerdictIsAProposal: true,
+      takeIt: true,
+      passItOn: true,
+      mayNotEvaporate: true,
+      namesTheConsequence: true,
     });
   });
 
@@ -219,19 +310,49 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({ pivot: true, onceThenInline: true, recoverNoArtifact: true });
   });
 
-  it('VALID: template => gates on a whole-quest observable ledger with one disposition each', () => {
+  // Retyping a full quest's rows from memory is how a session drops the ones it forgot. A set
+  // difference over ids can actually be completed, and it is what catches an unbundled flow.
+  it('VALID: template => assembles the ledger from artifacts and reconciles it by set difference', () => {
     expect({
       gate: has('### Gate 7: The Whole-Quest Observable Ledger'),
-      notASummary: has('Not a summary —\nthe actual list.'),
-      covered: has('`COVERED`'),
-      gap: has('`GAP:`'),
-      notAnExcuse: has('It\n  is **not** a way to dispose of something you simply did not get to.'),
+      assembleNotRetype: has('**Assemble it; do not retype it.**'),
+      reconcileById: has('reconcile **by id** against the Gate 3 inventory'),
+      differenceMustBeEmpty: has('must be EMPTY'),
+      catchesUnbundledFlow: has('it is the one that catches a flow nobody bundled'),
+      namesTheRetypingFailure: has(
+        'Retyping a hundred-plus rows from\nmemory is how a session silently drops the ones it forgot.',
+      ),
+      exitIsTheDifference: has('**Exit Criteria:** The set difference is empty.'),
     }).toStrictEqual({
       gate: true,
-      notASummary: true,
-      covered: true,
-      gap: true,
-      notAnExcuse: true,
+      assembleNotRetype: true,
+      reconcileById: true,
+      differenceMustBeEmpty: true,
+      catchesUnbundledFlow: true,
+      namesTheRetypingFailure: true,
+      exitIsTheDifference: true,
+    });
+  });
+
+  // GAP: (no test can reach it) and DEFECT: (a red test proves it) are opposite evidentiary states.
+  // Collapsing them tells Siegemaster to hand-check something that already has a failing test.
+  it('VALID: template => keeps DEFECT and GAP separate and refuses to bank unreached scope in either', () => {
+    expect({
+      dispositionsListed: has('`COVERED`, `DEFECT:`, `GAP:`, or `ADJUSTED:`/`ADDED:`'),
+      unreachedIsRemainingScope: has(
+        'An observable with no disposition is not a `GAP:` — it is remaining scope',
+      ),
+      unreachedForcesPartial: has('it means you signal\n`partial` and name it'),
+      architecturalIsADefect: has('is scope you hand on as a `DEFECT:`, not scope you take'),
+      trivialFixIsNotADefect: has(
+        'A defect you could have\n  fixed in a line is not a `DEFECT:`, it is a fix you skipped.',
+      ),
+    }).toStrictEqual({
+      dispositionsListed: true,
+      unreachedIsRemainingScope: true,
+      unreachedForcesPartial: true,
+      architecturalIsADefect: true,
+      trivialFixIsNotADefect: true,
     });
   });
 
@@ -280,20 +401,17 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => makes a deliberately-red GAP test the only allowed ward failure', () => {
+  it('VALID: template => makes a test left red to prove a DEFECT the only allowed ward failure', () => {
     expect({
       onlyAllowedRed: has(
-        '**A deliberately-red test is an allowed ward failure, and the ONLY one.**',
+        '**A test left red to prove a `DEFECT:` is an allowed ward failure, and the ONLY one.**',
       ),
       mostAreClosedNotLeftRed: has(
-        'Most defects your testing\nexposes you close yourself (see "Your Authority")',
-      ),
-      redIsForHandedOnDefects: has(
-        'A red\ntest is the honest record for the ones you are HANDING ON — architectural, or needing a product\ndecision',
+        'Most defects\nyour testing exposes you close yourself (see "Your Authority")',
       ),
       wasRedIsNotADisposition: has('"It was red when I got here" is not\na disposition.'),
       noForbiddenFraming: !has('You are forbidden from\nfixing implementation'),
-      neverWeakenForGreen: has('Never weaken, skip,\nor delete such a test to buy a green.'),
+      neverWeakenForGreen: has('Never weaken, skip, or delete such a test to buy a green.'),
       everyOtherRedIsYours: has('**Every OTHER red is yours to fix before you signal**'),
       includesFixableDefects: has('and a defect small enough for you to close'),
       exitCriteriaCarvesItOut: has(
@@ -302,7 +420,6 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({
       onlyAllowedRed: true,
       mostAreClosedNotLeftRed: true,
-      redIsForHandedOnDefects: true,
       wasRedIsNotADisposition: true,
       noForbiddenFraming: true,
       neverWeakenForGreen: true,
@@ -338,8 +455,14 @@ describe('flowriderPromptStatics', () => {
     expect({
       onlyChannel: has('**The commit message is the ONLY handoff channel'),
       recordRejections: has('**every artifact you rejected and why**'),
+      recordsTheSample: has("**which observables got Gate 6's deep pass and which\nwere sampled**"),
       noStash: has('**Hard rule — DO NOT STASH.**'),
-    }).toStrictEqual({ onlyChannel: true, recordRejections: true, noStash: true });
+    }).toStrictEqual({
+      onlyChannel: true,
+      recordRejections: true,
+      recordsTheSample: true,
+      noStash: true,
+    });
   });
 
   it('VALID: template => ties the signal to remaining SCOPE rather than to having touched code', () => {
@@ -388,7 +511,7 @@ describe('flowriderPromptStatics', () => {
       ),
       model: has('`model: "sonnet"`'),
       subagentType: has('`subagent_type: "general-purpose"`'),
-      neverSignals: has('It does NOT call\n   `signal-back`; its final message IS the artifact.'),
+      neverSignals: has('It does NOT\n   call `signal-back`; its final message IS the artifact.'),
     }).toStrictEqual({
       protocol: true,
       minionFetch: true,
@@ -402,14 +525,54 @@ describe('flowriderPromptStatics', () => {
     expect({
       onlyContext: has('**Your spawn message is the ONLY quest context it gets.**'),
       quoteNotParaphrase: has('**quote from the quest rather than paraphrasing**'),
-      neverOptional: has('`ALSO FORBIDDEN` are never optional'),
-      mustSatisfyVerbatim: has('- <observable-id>: "<the observable\'s description, VERBATIM>"'),
+      mustSatisfyVerbatim: has(
+        '- <observable-id> [<type>]: "<the observable\'s description, VERBATIM>"',
+      ),
     }).toStrictEqual({
       onlyContext: true,
       quoteNotParaphrase: true,
-      neverOptional: true,
       mustSatisfyVerbatim: true,
     });
+  });
+
+  // Every one of these lines is consumed by a named step of the minion's own prompt. A minion that
+  // has to rediscover them spends its budget on the operator's homework instead of on assertions.
+  it('VALID: template => carries the brief lines the minion prompt actually consumes', () => {
+    expect({
+      designDecisions: has('DESIGN DECISIONS GOVERNING THIS BUNDLE:'),
+      testids: has('TESTIDS:'),
+      testidsSavesNDiscoveryPasses: has('so N minions\n  do not each run the same discovery pass'),
+      layers: has('LAYERS THIS BUNDLE CROSSES:'),
+      alreadyCovered: has('ALREADY COVERED:'),
+      alreadyCoveredHasExplicitNone: has(
+        'If genuinely nothing covers this bundle, say "nothing" explicitly',
+      ),
+      fixtureRequirements: has('FIXTURE REQUIREMENTS:'),
+      neverOptional: has(
+        '`DESIGN DECISIONS`, `ALREADY COVERED` and `FIXTURE REQUIREMENTS` are never optional',
+      ),
+      namesTheCost: has('spends its budget on your homework instead of on assertions'),
+    }).toStrictEqual({
+      designDecisions: true,
+      testids: true,
+      testidsSavesNDiscoveryPasses: true,
+      layers: true,
+      alreadyCovered: true,
+      alreadyCoveredHasExplicitNone: true,
+      fixtureRequirements: true,
+      neverOptional: true,
+      namesTheCost: true,
+    });
+  });
+
+  // The minion's own trace is authoritative — it reads the code, the operator read a summary. The
+  // brief must say so, or a minion defers to a layer list that missed a layer.
+  it('VALID: template => hands the LAYERS line over as a hypothesis the minion may overrule', () => {
+    expect({
+      isAHypothesis: has('my reading, as a starting\n  hypothesis'),
+      minionTraceWins: has('Your own trace is authoritative'),
+      reportsTheMiss: has('report any layer I missed in GOTCHAS'),
+    }).toStrictEqual({ isAHypothesis: true, minionTraceWins: true, reportsTheMiss: true });
   });
 
   it('VALID: template => takes no dev server and refuses to author a Playwright webServer block', () => {
@@ -465,23 +628,17 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => forbids the minion from building or writing git in the brief itself', () => {
+  // The minion prompt already forbids building and every git write. Restating both in full in every
+  // brief crowds out the bundle-specific prohibitions that are the only ones the operator knows.
+  it('VALID: template => reserves the brief ALSO FORBIDDEN line for bundle-specific prohibitions', () => {
     expect({
-      forbidsBuild: has('ALSO FORBIDDEN: Do not run `npm run build`'),
-      escalatesInsteadOfBuilding: has(
-        'tell me in GOTCHAS if you changed implementation and I will rebuild',
+      bundleSpecificOnly: has('ALSO FORBIDDEN: <bundle-specific prohibitions only.'),
+      pointsAtTheMinionPrompt: has(
+        'Its own prompt already forbids `npm run build`\n  and every `git` write',
       ),
-      forbidsGitWrites: has(
-        'Do not run\n  `git commit`, `git stash`, `git checkout` or `git reset`',
-      ),
-      operatorOwnsTheCommit: has('I own the single commit for this\n  session'),
-      readingGitIsFine: has('Reading git is fine.'),
     }).toStrictEqual({
-      forbidsBuild: true,
-      escalatesInsteadOfBuilding: true,
-      forbidsGitWrites: true,
-      operatorOwnsTheCommit: true,
-      readingGitIsFine: true,
+      bundleSpecificOnly: true,
+      pointsAtTheMinionPrompt: true,
     });
   });
 
@@ -514,23 +671,19 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => bounds that authority at rebuilds, reversed fixes, and weakened tests', () => {
     expect({
       doNotRebuildTheFeature: has('**Close the hole; do not rebuild the feature.**'),
-      architecturalIsHandedOn: has(
-        'A fix that is\n  architectural — a new module, a changed contract, a refactor spanning packages — is scope you hand\n  on, not scope you take.',
-      ),
+      noScopeNoFlowAsksFor: has('or build\n  scope no flow asks for'),
       neverBendImplementation: has('**Never bend the implementation to make a test pass.**'),
       weakeningRunBackwards: has('That is weakening a test, run backwards.'),
       neverWeaken: has('**Never weaken, skip, or delete a test to reach green**'),
       certifiesTheBreak: has('certifies the break'),
-      trivialFixIsNotAGap: has('A defect you could have fixed in a\n  line is not a `GAP:`'),
       fixesGoInTheCommit: has('Every change you make beyond a test goes in your commit message'),
     }).toStrictEqual({
       doNotRebuildTheFeature: true,
-      architecturalIsHandedOn: true,
+      noScopeNoFlowAsksFor: true,
       neverBendImplementation: true,
       weakeningRunBackwards: true,
       neverWeaken: true,
       certifiesTheBreak: true,
-      trivialFixIsNotAGap: true,
       fixesGoInTheCommit: true,
     });
   });
@@ -553,11 +706,22 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => routes a product-decision defect to the user instead of burying it in prose', () => {
+  // ask-user-question's canned reply tells the caller to stop generating. A dispatched work item
+  // that obeys it never reaches signal-back and wedges every role behind it.
+  it('VALID: template => overrides the ask-user-question wait instruction for a dispatched item', () => {
     expect({
       askUser: has('`ask-user-question`'),
       prosePlusLost: has('A real defect recorded only in prose gets lost'),
-    }).toStrictEqual({ askUser: true, prosePlusLost: true });
+      overridesTheWait: has('does NOT apply to you'),
+      namesTheWedge: has('strands your work item, and wedges every role behind you'),
+      carryOn: has('carry straight on to the rest of your gates'),
+    }).toStrictEqual({
+      askUser: true,
+      prosePlusLost: true,
+      overridesTheWait: true,
+      namesTheWedge: true,
+      carryOn: true,
+    });
   });
 
   it('VALID: template => declares e2e Playwright-exclusive and colocated with the entry flow', () => {
@@ -588,13 +752,19 @@ describe('flowriderPromptStatics', () => {
 
     expect({
       rules: /^## Rules$/mu.test(template),
-      gitOverLedger: has('1. **Git over ledger**'),
+      gitAndLedger: has(
+        '1. **Git over ledger for what exists; the ledger for what your role already did**',
+      ),
       everyFlow: has('2. **Every flow is your scope**'),
+      modalityPerObservable: has('5. **Match the modality to each OBSERVABLE**'),
+      noSilentCaps: has('11. **No fabrication, no silent caps**'),
       doneIsRight: has('`done` is the right\n    answer when your scope is complete'),
     }).toStrictEqual({
       rules: true,
-      gitOverLedger: true,
+      gitAndLedger: true,
       everyFlow: true,
+      modalityPerObservable: true,
+      noSilentCaps: true,
       doneIsRight: true,
     });
   });
