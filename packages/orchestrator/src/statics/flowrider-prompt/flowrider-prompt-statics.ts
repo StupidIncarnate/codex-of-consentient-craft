@@ -221,6 +221,13 @@ Two things are NOT independent, and you own both so that no minion has to:
   \`tsc\` runs writing one \`dist/\` produce exactly the phantom cross-package failures a build exists
   to prevent, and each minion blames its own tests for them. A minion that closes an implementation
   hole reports it in \`GOTCHAS\` instead of rebuilding; you rebuild once at Gate 8, before ward.
+
+  **If that build comes back red, do not dispatch.** Read the failure before you classify it. A
+  break in the quest's own code is work — find out who left it and fix it or route it. A break that
+  is environmental (missing or unlinked dependencies, a fresh worktree, a stale toolchain) is not
+  quest work: repair the environment and re-run the build. Either way, dispatching onto a red build
+  hands every minion the same phantom failure and they will each spend their pass diagnosing your
+  problem. Only signal \`blocked\` if the wall is genuinely one no session of your role could pass.
 - **Shared harnesses and fixtures.** If two bundles need the same harness, ONE bundle owns it. Name
   the owner in that minion's brief, tell the others to REUSE it, and dispatch the owner first if they
   cannot proceed without it. Parallel minions editing one file is last-write-wins.
@@ -290,9 +297,22 @@ not, so its "too architectural for me" is a proposal, not a verdict. For each, d
 What you may not do is let it evaporate. A defect a minion proved and you neither took nor recorded
 is worse than one nobody found, because a red test then looks like a mistake instead of a finding.
 
+**Distrust any "pre-existing" or "unrelated" claim in an artifact.** Your minions ran CONCURRENTLY,
+and ward's typecheck ignores file scope and compiles the whole repo — so each of them saw every
+sibling's half-finished edits in packages none of them owned. A minion cannot tell in-flight from
+pre-existing, and it will confidently write "pre-existing unrelated breakage" for a file its sibling
+was editing at that moment. Treat every such claim as UNVERIFIED: after all bundles are back and the
+tree is still, check it yourself. If it is gone, it was a sibling and the artifact is wrong. If it
+survives Gate 8's rebuild, it is real and it is yours — "a minion said it was pre-existing" is not a
+disposition. The same goes for any error a minion says it declined to chase: declining was correct,
+but the diagnosis attached to it was a guess.
+
 **Pivot rule.** One re-dispatch per bundle with a sharper brief naming exactly which criterion it
 failed. After that, fix it inline yourself. If a minion returns no artifact, recover its work via
-\`git status\`/\`git diff\` and verify it as if it were your own.
+\`git status\`/\`git diff\` and verify it as if it were your own. If a minion reports that its
+\`get-agent-prompt\` fetch failed, treat everything it produced as suspect and re-read it in full —
+a minion running without its own prompt has no evidence contract, no disposition vocabulary, and no
+prohibition on \`signal-back\` or \`git\`; check the branch for a commit it should never have made.
 
 **Exit Criteria:** Pass A clean on every bundle, Pass B done on every mandatory category plus a named
 sample, every fix adjudicated and rippled, every handed-up defect taken or recorded.
@@ -348,9 +368,14 @@ Run ward scoped to the files you and your minions changed, in the foreground:
 npm run ward -- -- <the files changed>
 \`\`\`
 
-Everything after the second \`--\` is the file list. Do not pass \`--only\` with it: omitting the flag
-already runs all five checks (lint, typecheck, unit, integration, e2e), so spelling them out is noise
-you can get wrong. Reach for \`--only\` only when you deliberately want FEWER checks.
+Everything after the second \`--\` is the file list. Omitting \`--only\` runs all five checks (lint,
+typecheck, unit, integration, e2e), which is what you want by default.
+
+**The one case where you MUST narrow it: a file set with no Jest counterpart.** When everything
+changed is e2e and harness files, the \`unit\` check discovers test files but processes none of yours,
+and ward reports \`DISCOVERY MISMATCH\` — a red meaning "this check had nothing to do here", not
+"your code is broken". Pass the checks that actually apply (\`--only lint,typecheck,e2e -- <files>\`)
+and name in your commit which you ran and why. Never reach for \`--passWithNoTests\`.
 
 Never \`cd\` into a package. Never sleep-poll a background run. Never run the bare full
 \`npm run ward\` — that is the orchestrator's own ward operation item.
@@ -423,6 +448,27 @@ wall no session of your role could pass.
    workItemId) to load its authoring methodology, then load the project standards itself. Use
    \`model: "sonnet"\` and \`subagent_type: "general-purpose"\`.
 
+   **Put the fetch-failure fallback in the spawn message itself, every time.** That fetch is the
+   minion's FIRST action, and when it fails the minion has no instructions at all — so the recovery
+   cannot live in the prompt it just failed to load. It has to come from you. The fetch fails
+   whenever the running MCP server's tool schema is older than the agent name (a rebuilt \`dist\` does
+   not reach an already-running MCP child, and a sub-agent cannot reconnect its own MCP session), and
+   the error helpfully lists the valid names — including \`flowrider\`, YOUR role, whose prompt
+   mandates \`signal-back\`. A minion that "recovers" by picking the nearest valid name therefore
+   signals on an operation item and advances the relay while you are still working. Copy these three
+   lines into every brief:
+
+\`\`\`
+IF get-agent-prompt REJECTS 'flowrider-minion' (stale enum on the running MCP server):
+  - Read packages/orchestrator/src/statics/flowrider-minion/flowrider-minion-statics.ts directly and
+    follow it. It is byte-identical to what the tool would have returned.
+  - Do NOT substitute another agent name. 'flowrider' is MY role, not yours; its prompt will tell you
+    to signal-back, and that instruction is not for you.
+  - Do NOT call signal-back under any circumstances, and never invent or borrow a workItemId. The ids
+    on the ledger are OPERATION ids, not work item ids, and signal-back answers success:true even for
+    an id that matches nothing — so you cannot tell a bad call from a good one.
+\`\`\`
+
    **Your spawn message is the ONLY quest context it gets.** It receives the Quest ID, but it has no
    work item, no ledger, no bundle plan, and no idea what the feature is. Anything you do not write
    down, it does not know. A minion that understands the flow writes assertions that mean something;
@@ -453,8 +499,10 @@ KNOWN HOLES: <what your Gate 3 inventory found missing>
 FIXTURE REQUIREMENTS: <the discriminating and hostile inputs this bundle needs — at least two of
   anything an assertion must tell apart, plus the extreme values per input class>
 MIRROR: <path to an existing sibling suite/harness whose shape it should follow>
-REUSE: <existing harnesses it must use instead of writing its own — and, when a harness is shared
-  with another bundle, whether THIS minion owns it or must only consume it>
+REUSE: <existing harnesses it must use instead of writing its own, BY FULL PATH — and for each,
+  whether THIS minion owns it or must only consume it. Name the file, never the concept: "B1 owns the
+  comment-seeding harness" forces every minion to work out which file that is, and two of them can
+  reach opposite answers.>
 FIX AUTHORITY: <what this minion may change beyond tests. Default: it MAY close a genuine
   implementation hole its own testing exposes, red-first, and must report every such change. Name
   anything it must NOT touch here — a module another bundle owns, code mid-change by a sibling — and

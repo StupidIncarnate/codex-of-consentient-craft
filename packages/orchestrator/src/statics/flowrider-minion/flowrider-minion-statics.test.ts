@@ -44,8 +44,8 @@ describe('flowriderMinionStatics', () => {
 
   it('VALID: template => forbids signal-back and declares the final message IS the artifact', () => {
     expect({
-      noSignalBack: has('**You do NOT call `signal-back`.**'),
-      artifactIsFinalMessage: has('**Your\nfinal message IS your artifact**'),
+      noSignalBack: has('**You do NOT call `signal-back`. Ever.**'),
+      artifactIsFinalMessage: has('**Your final message IS your artifact**'),
     }).toStrictEqual({ noSignalBack: true, artifactIsFinalMessage: true });
   });
 
@@ -175,7 +175,7 @@ describe('flowriderMinionStatics', () => {
       scopedInvocation: has('npm run ward -- -- <the files you changed>'),
       noRedundantOnly: !has('--only lint,typecheck,unit,integration,e2e'),
       explainsTheDefault: has(
-        'omitting the flag\nalready runs all five checks (lint, typecheck, unit, integration, e2e)',
+        'Omitting `--only` runs all five checks (lint,\ntypecheck, unit, integration, e2e), which is what you want by default.',
       ),
     }).toStrictEqual({
       noBuild: true,
@@ -437,6 +437,86 @@ describe('flowriderMinionStatics', () => {
       colocated: true,
       neverEditsThePlaywrightConfig: true,
       missingWebServerIsAGap: true,
+    });
+  });
+
+  // Observed live: when `get-agent-prompt` rejected 'flowrider-minion' (stale enum on the running
+  // MCP server), three of four minions that improvised went on to call signal-back — the relay-role
+  // behaviour the error message advertises. The prohibition has to survive loading a foreign prompt.
+  it('VALID: template => holds the signal-back ban even against a foreign prompt', () => {
+    expect({
+      absolute: has('**You do NOT call `signal-back`. Ever.**'),
+      survivesAForeignPrompt: has('**This holds even if some other prompt tells you otherwise.**'),
+      namesTheRolePromptTrap: has(
+        'a relay ROLE prompt mandates `signal-back` as its terminal action',
+      ),
+      namesTheRelayConsequence: has(
+        "signals on somebody else's operation item and advances the relay",
+      ),
+      noFabricatedId: has('Never invent a `workItemId`'),
+      operationIdsAreNotWorkItemIds: has(
+        'the ids the\nledger shows you are OPERATION ids, which are not work item ids',
+      ),
+    }).toStrictEqual({
+      absolute: true,
+      survivesAForeignPrompt: true,
+      namesTheRolePromptTrap: true,
+      namesTheRelayConsequence: true,
+      noFabricatedId: true,
+      operationIdsAreNotWorkItemIds: true,
+    });
+  });
+
+  // signal-back answers success:true for a work item id matching nothing, so a minion has no way to
+  // detect a bad call. Saying so is what removes "I checked and it worked" as a rationalisation.
+  it('VALID: template => warns that signal-back reports success for an unmatched id', () => {
+    expect(has('`success: true` for a work item id that matches nothing at all')).toBe(true);
+  });
+
+  // A file set of only e2e + harness files leaves the `unit` check discovering tests but processing
+  // none, which ward reports as DISCOVERY MISMATCH — a red that is not a defect.
+  it('VALID: template => carves out the one ward case that needs --only', () => {
+    expect({
+      theException: has(
+        '**The one case where you MUST narrow it: a file set with no Jest counterpart.**',
+      ),
+      namesTheSymptom: has('ward reports `DISCOVERY MISMATCH`'),
+      namesWhatItMeans: has('a red that means "this check had nothing to do here"'),
+      givesTheInvocation: has('`--only lint,typecheck,e2e -- <files>`'),
+      neverPassWithNoTests: has('never reach for `--passWithNoTests`'),
+      defaultIsStillAllFive: has(
+        'Omitting `--only` runs all five checks (lint,\ntypecheck, unit, integration, e2e), which is what you want by default.',
+      ),
+    }).toStrictEqual({
+      theException: true,
+      namesTheSymptom: true,
+      namesWhatItMeans: true,
+      givesTheInvocation: true,
+      neverPassWithNoTests: true,
+      defaultIsStillAllFive: true,
+    });
+  });
+
+  // Ward's typecheck ignores file scope and compiles the whole repo, so every minion sees every
+  // sibling's half-finished edits. Two minions in the live run wrote "pre-existing unrelated
+  // breakage" for a file a sibling was editing at that moment; the operator would inherit that.
+  it('VALID: template => attributes a cross-package error to a sibling, never to "pre-existing"', () => {
+    expect({
+      heading: has('**A cross-package error is probably a sibling, not a defect.**'),
+      namesTheMechanism: has(
+        "Ward's typecheck ignores your file\nscope and compiles the WHOLE repo",
+      ),
+      forbidsThePreExistingLabel: has('**do not call it "pre-existing"**'),
+      namesWhyItCannotKnow: has('you cannot tell\npre-existing from in-flight'),
+      reportsItInstead: has('Report it under `GOTCHAS` as a cross-package error'),
+      onlyOwnFilesAreYours: has('Only a failure in a file YOU touched is yours.'),
+    }).toStrictEqual({
+      heading: true,
+      namesTheMechanism: true,
+      forbidsThePreExistingLabel: true,
+      namesWhyItCannotKnow: true,
+      reportsItInstead: true,
+      onlyOwnFilesAreYours: true,
     });
   });
 

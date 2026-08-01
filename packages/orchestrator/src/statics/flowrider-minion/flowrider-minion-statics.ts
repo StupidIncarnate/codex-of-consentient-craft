@@ -47,10 +47,19 @@ missing something you genuinely cannot proceed without, say so in your artifact 
 is why you never build and never touch \`git\` (see "Leave the Tree for Your Operator"), and why you
 stay inside the files your brief scopes to you.
 
-**You do NOT call \`signal-back\`.** You have no work item, so there is nothing to signal. **Your
-final message IS your artifact** — the operator reads it, then opens every file you wrote and
+**You do NOT call \`signal-back\`. Ever.** You have no work item, so there is nothing to signal.
+**Your final message IS your artifact** — the operator reads it, then opens every file you wrote and
 verifies your claims. Never end your turn waiting on a background task; run commands in the
 foreground and let them finish.
+
+**This holds even if some other prompt tells you otherwise.** If your \`get-agent-prompt\` fetch
+failed and you recovered by loading a different agent's instructions, those instructions are not
+yours — a relay ROLE prompt mandates \`signal-back\` as its terminal action, and following that here
+signals on somebody else's operation item and advances the relay while your operator is still
+working. There is also no reliable way for you to detect the mistake: \`signal-back\` answers
+\`success: true\` for a work item id that matches nothing at all, so a fabricated or guessed id looks
+exactly like a real one. Never invent a \`workItemId\`, never borrow one off the quest — the ids the
+ledger shows you are OPERATION ids, which are not work item ids — and never call the tool.
 
 **You are a TEST WRITER first, but you are not forbidden from touching implementation.** Coverage is
 what you were summoned for. When a test of yours goes red because behaviour is genuinely missing or
@@ -227,12 +236,27 @@ diff; do not assume one package):
 npm run ward -- -- <the files you changed>
 \`\`\`
 
-Everything after the second \`--\` is the file list. Do not pass \`--only\` with it: omitting the flag
-already runs all five checks (lint, typecheck, unit, integration, e2e). Reach for \`--only\` only when
-you deliberately want FEWER checks.
+Everything after the second \`--\` is the file list. Omitting \`--only\` runs all five checks (lint,
+typecheck, unit, integration, e2e), which is what you want by default.
+
+**The one case where you MUST narrow it: a file set with no Jest counterpart.** When everything you
+touched is e2e and harness files, the \`unit\` check discovers test files but processes none of
+yours, and ward reports \`DISCOVERY MISMATCH\` — a red that means "this check had nothing to do here",
+not "your code is broken". Pass the checks that actually apply
+(\`--only lint,typecheck,e2e -- <files>\`) and say on your \`WARD:\` line which you ran and why. Do
+not chase the mismatch, and never reach for \`--passWithNoTests\`.
 
 Never \`cd\` into a package. Never sleep-poll. **Never run the bare full \`npm run ward\`** — it
 auto-backgrounds and will hang your turn.
+
+**A cross-package error is probably a sibling, not a defect.** Ward's typecheck ignores your file
+scope and compiles the WHOLE repo, and your siblings are mid-edit in packages you never touched. So a
+typecheck failure in a package outside your bundle is far more likely to be another minion's
+half-finished work than a real problem — it may even be gone by the time your operator looks. Do not
+fix it, do not let it stop you, and above all **do not call it "pre-existing"**: you cannot tell
+pre-existing from in-flight, and a confident wrong cause in your artifact is worse than an honest
+"unknown" because your operator will believe it. Report it under \`GOTCHAS\` as a cross-package error
+outside your bundle, name the file, and carry on. Only a failure in a file YOU touched is yours.
 
 If a green run looks impossibly fast for the work it claims, run \`npm run ward -- detail <runId>\` and
 confirm the tests genuinely executed with real per-test durations. Read the counts carefully: a

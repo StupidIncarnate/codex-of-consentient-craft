@@ -437,7 +437,7 @@ describe('flowriderPromptStatics', () => {
       scopedInvocation: has('npm run ward -- -- <the files changed>'),
       noRedundantOnly: !has('--only lint,typecheck,unit,integration,e2e'),
       explainsTheDefault: has(
-        'omitting the flag\nalready runs all five checks (lint, typecheck, unit, integration, e2e)',
+        'Omitting `--only` runs all five checks (lint,\ntypecheck, unit, integration, e2e), which is what you want by default.',
       ),
       detail: has('`npm run ward -- detail <runId>`'),
       discoveredIsNotRan: has('a "discovered" file count\nis not a count of tests that ran'),
@@ -745,6 +745,128 @@ describe('flowriderPromptStatics', () => {
       uiPackage: template.indexOf('packages/web'),
       specTs: template.indexOf('.spec.ts'),
     }).toStrictEqual({ uiPackage: -1, specTs: -1 });
+  });
+
+  // The minion's FIRST action is the get-agent-prompt fetch. When it fails the minion has no
+  // instructions at all, so the recovery cannot live in the prompt it failed to load — only the
+  // spawn message can carry it. Observed live: the fetch failed for all six bundles, and three of
+  // the four that improvised substituted the operator role and called signal-back.
+  it('VALID: template => puts the prompt-fetch-failure fallback in the spawn message', () => {
+    expect({
+      heading: has('**Put the fetch-failure fallback in the spawn message itself, every time.**'),
+      namesWhyItCannotLiveInThePrompt: has(
+        'the recovery\n   cannot live in the prompt it just failed to load',
+      ),
+      namesTheStaleMcpCause: has(
+        'a rebuilt `dist` does\n   not reach an already-running MCP child',
+      ),
+      namesTheAdvertisedTrap: has('including `flowrider`, YOUR role, whose prompt\n   mandates'),
+      literalFallbackBlock: has(
+        "IF get-agent-prompt REJECTS 'flowrider-minion' (stale enum on the running MCP server):",
+      ),
+      tellsItToReadTheStatics: has(
+        'Read packages/orchestrator/src/statics/flowrider-minion/flowrider-minion-statics.ts directly',
+      ),
+      forbidsSubstitution: has("Do NOT substitute another agent name. 'flowrider' is MY role"),
+      forbidsSignalBack: has('Do NOT call signal-back under any circumstances'),
+      warnsSuccessIsMeaningless: has('signal-back answers success:true even for'),
+    }).toStrictEqual({
+      heading: true,
+      namesWhyItCannotLiveInThePrompt: true,
+      namesTheStaleMcpCause: true,
+      namesTheAdvertisedTrap: true,
+      literalFallbackBlock: true,
+      tellsItToReadTheStatics: true,
+      forbidsSubstitution: true,
+      forbidsSignalBack: true,
+      warnsSuccessIsMeaningless: true,
+    });
+  });
+
+  // Dispatching onto a red build hands every minion the same phantom failure to diagnose. The
+  // environmental case is real: a fresh worktree fails to build for reasons that are not quest work.
+  it('VALID: template => refuses to dispatch onto a red build and separates environment from work', () => {
+    expect({
+      doNotDispatch: has('**If that build comes back red, do not dispatch.**'),
+      classifyFirst: has('Read the failure before you classify it.'),
+      environmentalIsNotQuestWork: has('is not\n  quest work: repair the environment and re-run'),
+      namesTheCost: has('they will each spend their pass diagnosing your\n  problem'),
+      blockedIsStillBounded: has(
+        'Only signal `blocked` if the wall is genuinely one no session of your role could pass.',
+      ),
+    }).toStrictEqual({
+      doNotDispatch: true,
+      classifyFirst: true,
+      environmentalIsNotQuestWork: true,
+      namesTheCost: true,
+      blockedIsStillBounded: true,
+    });
+  });
+
+  // Minions run concurrently and ward's typecheck compiles the whole repo, so each sees the others'
+  // half-finished edits. A minion cannot distinguish in-flight from pre-existing and will assert the
+  // wrong one confidently; only the operator, with a still tree, can adjudicate.
+  it('VALID: template => treats a minion’s "pre-existing" claim as unverified', () => {
+    expect({
+      heading: has('**Distrust any "pre-existing" or "unrelated" claim in an artifact.**'),
+      namesTheMechanism: has("ward's typecheck ignores file scope and compiles the whole repo"),
+      unverified: has('Treat every such claim as UNVERIFIED'),
+      checkAfterTheTreeIsStill: has('after all bundles are back and the\ntree is still'),
+      notADisposition: has('"a minion said it was pre-existing" is not a\ndisposition'),
+      decliningWasStillCorrect: has(
+        'declining was correct,\nbut the diagnosis attached to it was a guess',
+      ),
+    }).toStrictEqual({
+      heading: true,
+      namesTheMechanism: true,
+      unverified: true,
+      checkAfterTheTreeIsStill: true,
+      notADisposition: true,
+      decliningWasStillCorrect: true,
+    });
+  });
+
+  // A minion that never loaded its prompt has no evidence contract, no disposition vocabulary and no
+  // prohibition on signal-back or git — everything it produced needs re-reading, and the branch
+  // needs checking for a commit it should never have made.
+  it('VALID: template => re-reads everything from a minion whose prompt fetch failed', () => {
+    expect({
+      suspect: has('treat everything it produced as suspect and re-read it in full'),
+      namesWhatItLacked: has(
+        'a minion running without its own prompt has no evidence contract, no disposition vocabulary, and no\nprohibition on `signal-back` or `git`',
+      ),
+      checksForARogueCommit: has('check the branch for a commit it should never have made'),
+    }).toStrictEqual({
+      suspect: true,
+      namesWhatItLacked: true,
+      checksForARogueCommit: true,
+    });
+  });
+
+  it('VALID: template => carves out the one ward case that needs --only', () => {
+    expect({
+      theException: has(
+        '**The one case where you MUST narrow it: a file set with no Jest counterpart.**',
+      ),
+      namesTheSymptom: has('ward reports `DISCOVERY MISMATCH`'),
+      givesTheInvocation: has('`--only lint,typecheck,e2e -- <files>`'),
+      neverPassWithNoTests: has('Never reach for `--passWithNoTests`'),
+    }).toStrictEqual({
+      theException: true,
+      namesTheSymptom: true,
+      givesTheInvocation: true,
+      neverPassWithNoTests: true,
+    });
+  });
+
+  // "B1 owns the comment-seeding harness" made a minion work out which file that was before it could
+  // safely proceed, and two minions can reach opposite answers from the same sentence.
+  it('VALID: template => names shared harness ownership by path rather than by concept', () => {
+    expect({
+      byFullPath: has('BY FULL PATH'),
+      nameTheFile: has('Name the file, never the concept'),
+      namesTheAmbiguity: has('two of them can\n  reach opposite answers'),
+    }).toStrictEqual({ byFullPath: true, nameTheFile: true, namesTheAmbiguity: true });
   });
 
   it('VALID: template => closes with numbered rules ending on the signal-back outcome', () => {
