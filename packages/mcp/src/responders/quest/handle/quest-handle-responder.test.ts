@@ -855,7 +855,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesReturns({
         questId: 'test-quest-id',
-        result: { success: true, data: { blightReports: [] } },
+        result: { success: true, data: { blightReports: [], qaLedger: [] } },
       });
 
       const result = await proxy.callResponder({
@@ -870,7 +870,7 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify(
               {
                 success: true,
-                data: { blightReports: [] },
+                data: { blightReports: [], qaLedger: [] },
               },
               null,
               JSON_INDENT_SPACES,

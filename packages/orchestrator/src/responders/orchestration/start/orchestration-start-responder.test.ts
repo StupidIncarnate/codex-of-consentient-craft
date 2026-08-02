@@ -48,13 +48,16 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 
 // Feature quests seed NO implementation ops at Start (Chaos authored the codeweaver items at spec
 // time), so the verify tail consumes uuids 1..6 and the first work item consumes the next one. The
-// flow-operator roles (flowrider + siegemaster) each get ONE whole-quest item carrying every flow id
-// QuestStub declares; every other tail item carries none.
+// flowrider gets ONE whole-quest item carrying every flow id QuestStub declares; siegemaster gets
+// one item PER FLOW (QuestStub declares one, so the tail length is unchanged); every other tail
+// item carries none.
 const QUEST_STUB_FLOW_ID = 'login-flow';
 const FEATURE_TAIL_EXPECTED = questTypeRegistryStatics.feature.relayTail.map((entry, index) => ({
   id: SEEDED_UUIDS[index + 1],
   role: entry.role,
-  text: entry.text,
+  // Siegemaster fans out to one item per flow, each suffixed with the flow it owns. QuestStub
+  // declares exactly one flow, so the tail keeps its 1:1 shape here and only the text differs.
+  text: entry.role === 'siegemaster' ? `${entry.text} — flow: ${QUEST_STUB_FLOW_ID}` : entry.text,
   status: 'pending',
   locked: true,
   flowIds: entry.role === 'flowrider' || entry.role === 'siegemaster' ? [QUEST_STUB_FLOW_ID] : [],

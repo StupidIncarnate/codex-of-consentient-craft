@@ -23,6 +23,7 @@ import { lawbringerMinionStatics } from '../../statics/lawbringer-minion/lawbrin
 import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterMinionStatics } from '../../statics/siegemaster-minion/siegemaster-minion-statics';
+import { siegemasterTestAuditMinionStatics } from '../../statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 
@@ -91,6 +92,12 @@ export const agentNameToPromptTransformer = ({
         name: 'siegemaster-minion',
         model: 'sonnet',
         prompt: siegemasterMinionStatics.prompt.template,
+      });
+    case 'siegemaster-test-audit-minion':
+      return agentPromptResultContract.parse({
+        name: 'siegemaster-test-audit-minion',
+        model: 'sonnet',
+        prompt: siegemasterTestAuditMinionStatics.prompt.template,
       });
     case 'blightwarden':
       return agentPromptResultContract.parse({

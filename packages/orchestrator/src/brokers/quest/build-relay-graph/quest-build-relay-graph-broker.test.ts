@@ -73,7 +73,7 @@ describe('questBuildRelayGraphBroker', () => {
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
             role: 'siegemaster',
-            text: 'Siegemaster: manual-QA every quest flow and review its test suites',
+            text: 'Siegemaster: manual-QA this flow and review its test suite — flow: login-flow',
             status: 'pending',
             locked: true,
             flowIds: ['login-flow'],
@@ -167,7 +167,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with two flows} => ONE flowrider + ONE siegemaster item, each carrying both flow ids in declaration order', () => {
+    it('VALID: {feature quest with two flows} => ONE whole-quest flowrider item, and ONE siegemaster item PER FLOW so each flow gets its own pt budget and completion gate', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -216,8 +216,13 @@ describe('questBuildRelayGraphBroker', () => {
         },
         {
           role: 'siegemaster',
-          text: 'Siegemaster: manual-QA every quest flow and review its test suites',
-          flowIds: ['send-comment', 'view-comments'],
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: send-comment',
+          flowIds: ['send-comment'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: view-comments',
+          flowIds: ['view-comments'],
         },
         {
           role: 'lawbringer',
@@ -233,7 +238,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each, carrying an empty flowIds', () => {
+    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so inbound GAP work still has an owner', () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -276,7 +281,7 @@ describe('questBuildRelayGraphBroker', () => {
         },
         {
           role: 'siegemaster',
-          text: 'Siegemaster: manual-QA every quest flow and review its test suites',
+          text: 'Siegemaster: manual-QA this flow and review its test suite',
           flowIds: [],
         },
         {

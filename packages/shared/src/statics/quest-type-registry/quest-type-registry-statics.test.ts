@@ -15,7 +15,7 @@ describe('questTypeRegistryStatics', () => {
           },
           {
             role: 'siegemaster',
-            text: 'Siegemaster: manual-QA every quest flow and review its test suites',
+            text: 'Siegemaster: manual-QA this flow and review its test suite',
           },
           { role: 'lawbringer', text: 'Lawbringer: standards review across the whole quest diff' },
           { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },

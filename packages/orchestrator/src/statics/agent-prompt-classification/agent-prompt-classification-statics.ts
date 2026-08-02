@@ -17,6 +17,7 @@ export const agentPromptClassificationStatics = {
     'lawbringer-minion',
     'flowrider-minion',
     'siegemaster-minion',
+    'siegemaster-test-audit-minion',
     'blightwarden-security-minion',
     'blightwarden-dedup-minion',
     'blightwarden-perf-minion',

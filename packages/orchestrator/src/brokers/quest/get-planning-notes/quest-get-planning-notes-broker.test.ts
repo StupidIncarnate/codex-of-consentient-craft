@@ -14,7 +14,7 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({ blightReports: [] });
+      expect(result).toStrictEqual({ blightReports: [], qaLedger: [] });
     });
 
     it('VALID: {questId, fully populated planningNotes} => returns full object', async () => {
@@ -23,7 +23,7 @@ describe('questGetPlanningNotesBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
       proxy.setupQuestFound({ quest });
 
@@ -31,7 +31,7 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({ blightReports: [blight] });
+      expect(result).toStrictEqual({ blightReports: [blight], qaLedger: [] });
     });
   });
 
@@ -42,7 +42,7 @@ describe('questGetPlanningNotesBroker', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
       proxy.setupQuestFound({ quest });
 

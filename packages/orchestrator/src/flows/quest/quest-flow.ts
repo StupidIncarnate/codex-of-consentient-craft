@@ -9,6 +9,7 @@
  * const fullQuest = await QuestFlow.load({ questId });
  * const modified = await QuestFlow.modify({ questId, input });
  * const notes = await QuestFlow.getPlanningNotes({ questId });
+ * const checklist = await QuestFlow.getQaChecklist({ questId, flowId });
  * const created = await QuestFlow.mcpCreate({ userRequest });
  * const next = await QuestFlow.getNextStep();
  * const wardResult = await QuestFlow.runWard({ questId, workItemId, mode });
@@ -21,6 +22,7 @@ import { QuestFindByWorkItemIdResponder } from '../../responders/quest/find-by-w
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/quest-get-next-step-responder';
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
+import { QuestGetQaChecklistResponder } from '../../responders/quest/get-qa-checklist/quest-get-qa-checklist-responder';
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
 import { QuestHandleSignalBackResponder } from '../../responders/quest/handle-signal-back/quest-handle-signal-back-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
@@ -39,6 +41,9 @@ type GetResult = Awaited<ReturnType<typeof QuestGetResponder>>;
 
 type GetPlanningNotesParams = Parameters<typeof QuestGetPlanningNotesResponder>[0];
 type GetPlanningNotesResult = Awaited<ReturnType<typeof QuestGetPlanningNotesResponder>>;
+
+type GetQaChecklistParams = Parameters<typeof QuestGetQaChecklistResponder>[0];
+type GetQaChecklistResult = Awaited<ReturnType<typeof QuestGetQaChecklistResponder>>;
 
 type ListParams = Parameters<typeof QuestListResponder>[0];
 type ListResult = Awaited<ReturnType<typeof QuestListResponder>>;
@@ -86,6 +91,12 @@ export const QuestFlow = {
     section,
   }: GetPlanningNotesParams): Promise<GetPlanningNotesResult> =>
     QuestGetPlanningNotesResponder({ questId, ...(section !== undefined && { section }) }),
+
+  getQaChecklist: async ({
+    questId,
+    flowId,
+  }: GetQaChecklistParams): Promise<GetQaChecklistResult> =>
+    QuestGetQaChecklistResponder({ questId, ...(flowId !== undefined && { flowId }) }),
 
   list: async ({ guildId }: ListParams): Promise<ListResult> => QuestListResponder({ guildId }),
 

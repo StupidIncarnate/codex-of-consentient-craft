@@ -35,7 +35,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
     });
 
@@ -66,7 +66,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
     });
 
@@ -97,7 +97,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
     });
 
@@ -213,7 +213,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
     });
 
@@ -320,10 +320,11 @@ describe('questContract', () => {
 
       expect(result.planningNotes).toStrictEqual({
         blightReports: [firstReport, secondReport],
+        qaLedger: [],
       });
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to {blightReports: []}', () => {
+    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports and qaLedger', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -337,6 +338,7 @@ describe('questContract', () => {
 
       expect(result.planningNotes).toStrictEqual({
         blightReports: [],
+        qaLedger: [],
       });
     });
 

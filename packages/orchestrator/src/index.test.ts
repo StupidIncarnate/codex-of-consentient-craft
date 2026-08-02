@@ -63,6 +63,7 @@ describe('orchestrator', () => {
       'sessionIdExtractorTransformer',
       'siegemasterMinionStatics',
       'siegemasterPromptStatics',
+      'siegemasterTestAuditMinionStatics',
       'signalFromStreamTransformer',
       'slotCountContract',
       'slotIndexContract',

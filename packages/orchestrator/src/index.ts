@@ -57,6 +57,7 @@ export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-
 export { lawbringerPromptStatics } from './statics/lawbringer-prompt/lawbringer-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';
 export { siegemasterMinionStatics } from './statics/siegemaster-minion/siegemaster-minion-statics';
+export { siegemasterTestAuditMinionStatics } from './statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
 export { flowriderPromptStatics } from './statics/flowrider-prompt/flowrider-prompt-statics';
 export { flowriderMinionStatics } from './statics/flowrider-minion/flowrider-minion-statics';
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';

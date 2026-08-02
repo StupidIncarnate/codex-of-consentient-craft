@@ -410,6 +410,32 @@ export * from './src/contracts/modify-quest-input/modify-quest-input.stub';
 export * from './src/contracts/planning-blight-report/planning-blight-report-contract';
 export * from './src/contracts/planning-blight-report/planning-blight-report.stub';
 
+// QA Checklist Contracts (Siegemaster's computed coverage — the deterministic enumeration of a
+// flow into atomic verification units, and the durable disposition ledger keyed on them)
+export * from './src/contracts/qa-checklist-kind/qa-checklist-kind-contract';
+export * from './src/contracts/qa-checklist-kind/qa-checklist-kind.stub';
+
+export * from './src/contracts/qa-off-map-family/qa-off-map-family-contract';
+export * from './src/contracts/qa-off-map-family/qa-off-map-family.stub';
+
+export * from './src/contracts/qa-disposition/qa-disposition-contract';
+export * from './src/contracts/qa-disposition/qa-disposition.stub';
+
+export * from './src/contracts/qa-checklist-item-id/qa-checklist-item-id-contract';
+export * from './src/contracts/qa-checklist-item-id/qa-checklist-item-id.stub';
+
+export * from './src/contracts/qa-checklist-item/qa-checklist-item-contract';
+export * from './src/contracts/qa-checklist-item/qa-checklist-item.stub';
+
+export * from './src/contracts/qa-walk-path/qa-walk-path-contract';
+export * from './src/contracts/qa-walk-path/qa-walk-path.stub';
+
+export * from './src/contracts/qa-checklist/qa-checklist-contract';
+export * from './src/contracts/qa-checklist/qa-checklist.stub';
+
+export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
+export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry.stub';
+
 // Chat Entry Contracts
 export * from './src/contracts/chat-entry/chat-entry-contract';
 export * from './src/contracts/chat-entry/chat-entry.stub';

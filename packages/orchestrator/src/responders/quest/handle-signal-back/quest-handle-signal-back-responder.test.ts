@@ -1,8 +1,10 @@
 import {
   BlockedReasonStub,
+  FlowStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
+  QuestQaLedgerEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   WorkItemStub,
@@ -308,6 +310,342 @@ describe('QuestHandleSignalBackResponder', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
+    });
+  });
+
+  describe("completion gate — 'done' is refused while QA units carry no disposition", () => {
+    it("ERROR: {siegemaster item scoped to a flow, empty ledger, 'done'} => throws naming the outstanding count", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+          planningNotes: { blightReports: [], qaLedger: [] },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'siegemaster',
+              status: 'in_progress',
+              locked: true,
+              flowIds: ['login-flow'],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'siegemaster',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(/signal-back refused: operationStatus 'done'.*6 still carry none/su);
+    });
+
+    it("ERROR: {refused 'done'} => nothing is persisted, so the session can carry on and signal again", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      proxy.setupQuest({
+        quest: QuestStub({
+          flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+          planningNotes: { blightReports: [], qaLedger: [] },
+          operations: [
+            OperationItemStub({
+              id: OP1_ID,
+              role: 'siegemaster',
+              status: 'in_progress',
+              locked: true,
+              flowIds: ['login-flow'],
+            }),
+          ],
+          workItems: [
+            WorkItemStub({
+              id: itemId,
+              role: 'siegemaster',
+              status: 'in_progress',
+              relatedDataItems: [`operations/${OP1_ID}`],
+            }),
+          ],
+        }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(/signal-back refused/u);
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
+    });
+
+    it("VALID: {every unit dispositioned, 'done'} => the gate clears and the outcome applies", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const siegeOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'siegemaster',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['login-flow'],
+      });
+      const ledger = [
+        'login-flow:off-map:re-entry',
+        'login-flow:off-map:concurrency',
+        'login-flow:off-map:interruption',
+        'login-flow:off-map:staleness',
+        'login-flow:off-map:configuration',
+        'login-flow:off-map:hostile-input',
+      ].map((itemIdValue) => QuestQaLedgerEntryStub({ itemId: itemIdValue }));
+      const quest = QuestStub({
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: ledger },
+        operations: [siegeOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: ledger },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it("VALID: {uncovered siegemaster item, 'partial'} => NOT gated, because partial is the honest escape", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const siegeOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'siegemaster',
+        text: 'Siegemaster: manual-QA this flow',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['login-flow'],
+      });
+      const quest = QuestStub({
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [siegeOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'siegemaster',
+            text: 'Siegemaster: manual-QA this flow',
+            status: 'complete',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+          OperationItemStub({
+            id: CONTINUATION_UUID,
+            role: 'siegemaster',
+            text: 'pt 2: Siegemaster: manual-QA this flow',
+            status: 'pending',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it("VALID: {flowrider item scoped to a flow, empty ledger, 'done'} => NOT gated, the gate binds siegemaster only", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const flowOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'flowrider',
+        status: 'in_progress',
+        locked: true,
+        flowIds: ['login-flow'],
+      });
+      const quest = QuestStub({
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [flowOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'flowrider',
+            status: 'complete',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'flowrider',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it("VALID: {siegemaster item declaring no flowIds, 'done'} => NOT gated, so a flow-less quest still completes", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const siegeOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'siegemaster',
+        status: 'in_progress',
+        locked: true,
+        flowIds: [],
+      });
+      const quest = QuestStub({
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [siegeOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        flows: [FlowStub({ id: 'login-flow', nodes: [], edges: [] })],
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'siegemaster',
+            status: 'complete',
+            locked: true,
+            flowIds: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'siegemaster',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
     });
   });
 
