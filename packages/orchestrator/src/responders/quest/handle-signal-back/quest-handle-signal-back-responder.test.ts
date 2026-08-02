@@ -42,7 +42,7 @@ const UNBOUNDED_PT_ROLES = [
 ] as const;
 
 describe('QuestHandleSignalBackResponder', () => {
-  describe('quest load failures surface (never silently drop the signal)', () => {
+  describe('signal failures surface (never silently drop the signal)', () => {
     it('ERROR: {quest unreadable} => throws naming the quest, signal, and work item', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       proxy.setupQuestUnreadable();
@@ -55,10 +55,14 @@ describe('QuestHandleSignalBackResponder', () => {
         /signal-back could not load quest add-auth to apply 'complete' to work item a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d/u,
       );
     });
-  });
 
-  describe('idempotent no-ops', () => {
-    it('EDGE: {work item not on quest} => success without any persist', async () => {
+    // An id that is not on the quest at all is NOT a redelivery — no legitimate path produces one,
+    // and the redelivery case is the already-terminal branch below. Reporting success for it lets an
+    // agent end its turn believing it signalled while its REAL work item stays `in_progress` until
+    // orphan recovery spends a reset on it, and the agent has no way to detect the mistake. Throw
+    // for exactly the reason the unreadable-quest branch throws: the failure must ride back up the
+    // awaited signal-back path to the agent instead of vanishing behind a green response.
+    it('ERROR: {work item not on quest} => throws naming the quest and work item, persisting nothing', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const quest = QuestStub({
         operations: [OperationItemStub({ id: OP1_ID, status: 'in_progress' })],
@@ -66,16 +70,21 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupQuest({ quest });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: QuestWorkItemIdStub({ value: ITEM_ID }),
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: QuestWorkItemIdStub({ value: ITEM_ID }),
+          signal: 'complete',
+        }),
+      ).rejects.toThrow(
+        /signal-back: work item a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d is not on quest add-auth/u,
+      );
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
+  });
 
+  describe('idempotent no-ops', () => {
     it("EDGE: {work item already terminal, redelivered 'partial'} => success, no second pt continuation and zero persists", async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });

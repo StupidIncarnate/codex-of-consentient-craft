@@ -85,9 +85,16 @@ export const QuestHandleSignalBackResponder = async ({
 
   const signaledItem = result.quest.workItems.find((wi) => wi.id === workItemId);
   if (!signaledItem) {
-    // Quest loaded, but the work item genuinely isn't on it (unknown id). Nothing to
-    // transition — an idempotent no-op, safe to report success.
-    return adapterResultContract.parse({ success: true });
+    // Quest loaded, but this id is not on it at all. That is NOT a redelivery — a redelivery finds
+    // its item and lands in the already-terminal branch below. Nothing legitimate produces an id
+    // that was never on the quest, so this is a wrong, stale or fabricated one. Reporting success
+    // for it is worse than useless: the agent ends its turn believing it signalled while its REAL
+    // work item sits at `in_progress` until orphan recovery spends a reset on it, and the agent has
+    // no way to tell the difference. Throw for exactly the reason the unreadable-quest branch above
+    // throws — the failure must ride back up the awaited signal-back path to the caller.
+    throw new Error(
+      `signal-back: work item ${workItemId} is not on quest ${questId} — nothing was applied`,
+    );
   }
 
   // IDEMPOTENCY: a redelivered signal for an already-terminal work item must not mint a second
