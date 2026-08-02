@@ -376,4 +376,285 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
     await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
     expect(await send.hasQueueKey()).toBe(false);
   });
+
+  // #check-badge-appears-after-send, and pairs #check-clear-sends-nothing's zero-request claim
+  // against a real non-zero reading on the SAME hasCommentPostRequest() selector — a Clear-only
+  // suite could otherwise pass with a selector that never fires.
+  test('VALID: {Send succeeds on a box with zero prior comments} => COMMENT_COUNT_BADGE appears reading 1 and the comments POST is observed', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Badge Appears Guild' });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'gamma' }),
+      text: 'gamma needs a second look',
+    });
+
+    send.queueClaudeResponse({ text: 'Looking into the gamma note now' });
+    await send.clickSendButton();
+
+    await expect(send.commentBadge({ card: send.nodeCard({ which: 'gamma' }) })).toHaveText('1', {
+      timeout: SEND_TIMEOUT,
+    });
+    expect(send.hasCommentPostRequest()).toBe(true);
+  });
+
+  // #check-user-turn-in-chat — the fake CLI mirrors real Claude CLI: the -p prompt is never echoed
+  // to stdout, only appended to the on-disk session transcript (writeJsonlSessionFile). The live
+  // WS stream during THIS send therefore carries only the assistant's reply (proven empirically:
+  // an unreloaded assertion here finds no "User Comment:" text). A reload re-subscribes and
+  // replays the now-updated transcript from disk, which is what actually surfaces the composed
+  // markdown as a user chat entry — the same reload-replay technique quest-dual-panel.e2e.ts uses
+  // to prove chat content survives navigation.
+  test('VALID: {reload after a successful send} => the replayed chat transcript carries a user entry containing User Comment:', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'User Turn In Chat Guild' });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'alpha' }),
+      text: 'alpha needs a rewrite',
+    });
+
+    send.queueClaudeResponse({ text: 'Reworking alpha now' });
+    await send.clickSendButton();
+    await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
+    await expect(page.getByText('Reworking alpha now')).toBeVisible({ timeout: SEND_TIMEOUT });
+
+    await page.reload();
+    await page.getByTestId('QUEST_SPEC_PANEL').waitFor({ state: 'visible', timeout: SEND_TIMEOUT });
+
+    await expect(page.getByText(/User Comment: alpha needs a rewrite/u).first()).toBeVisible({
+      timeout: SEND_TIMEOUT,
+    });
+  });
+
+  // #check-second-round-same-box
+  test('VALID: {send a second comment on a box that already has one} => COMMENT_COUNT_BADGE reads 2 with the newer comment listed first', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Second Round Guild' });
+
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'alpha' }),
+      text: 'first observation',
+    });
+    send.queueClaudeResponse({ text: 'Reviewing first observation' });
+    await send.clickSendButton();
+    await expect(send.commentBadge({ card: send.nodeCard({ which: 'alpha' }) })).toHaveText('1', {
+      timeout: SEND_TIMEOUT,
+    });
+
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'alpha' }),
+      text: 'second observation',
+    });
+    send.queueClaudeResponse({ text: 'Reviewing second observation' });
+    await send.clickSendButton();
+    await expect(send.commentBadge({ card: send.nodeCard({ which: 'alpha' }) })).toHaveText('2', {
+      timeout: SEND_TIMEOUT,
+    });
+
+    await send.clickCardBody({ card: send.nodeCard({ which: 'alpha' }) });
+
+    expect(await send.panelCommentTexts()).toStrictEqual([
+      'second observation',
+      'first observation',
+    ]);
+  });
+
+  // #check-requeue-after-send
+  test('VALID: {queue a new comment after a successful send} => COMMENT_QUEUE_BAR reads 1 COMMENT QUEUED again while the previously sent comment still shows in the detail panel', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Requeue After Send Guild' });
+
+    await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'sent comment' });
+    send.queueClaudeResponse({ text: 'Reviewing the sent comment' });
+    await send.clickSendButton();
+    await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
+
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'gamma' }),
+      text: 'requeued comment',
+    });
+
+    await expect(send.queueCount()).toHaveText('1 COMMENT QUEUED');
+
+    await send.clickCardBody({ card: send.nodeCard({ which: 'alpha' }) });
+    expect(await send.panelCommentTexts()).toStrictEqual(['sent comment']);
+  });
+
+  // #check-resend-after-prune-succeeds — continues directly from the same stale-anchor prune
+  // #check-only-stale-entries-dropped already proves (3 queued, beta genuinely deleted server-side),
+  // then drives a SECOND real Send against the two survivors and proves it actually succeeds.
+  test('EDGE: {Send again after a stale-anchor prune} => the resend returns 200 and persists the 2 surviving comments', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Resend After Prune Guild' });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'alpha' }),
+      text: 'alpha survives resend',
+    });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'beta' }),
+      text: 'beta gets pruned again',
+    });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'gamma' }),
+      text: 'gamma survives resend',
+    });
+    const beforePrune = await send.readQueue();
+    const expectedSurvivors = beforePrune.filter((entry) => entry.nodeId !== SEND_NODE_BETA_ID);
+
+    send.makeNodeBetaStale();
+    await send.clickSendButton();
+    await expect(send.queueCount()).toHaveText('2 COMMENTS QUEUED', { timeout: SEND_TIMEOUT });
+    await expect(send.sendButton()).toBeEnabled({ timeout: SEND_TIMEOUT });
+
+    send.queueClaudeResponse({ text: 'Resending after the prune' });
+    await send.clickSendButton();
+
+    await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
+    const persisted = await send.readPersistedComments();
+    expect(
+      persisted.map((entry) => ({
+        flowId: entry.flowId,
+        nodeId: entry.nodeId,
+        text: entry.text,
+        createdAt: entry.createdAt,
+      })),
+    ).toStrictEqual(
+      expectedSurvivors.map((entry) => ({
+        flowId: entry.flowId,
+        nodeId: entry.nodeId,
+        text: entry.text,
+        createdAt: entry.createdAt,
+      })),
+    );
+  });
+
+  // #check-clear-then-send-cycle
+  test('VALID: {Clear, then queue two fresh comments, then Send} => returns 200 and persists exactly those two comments', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Clear Then Send Cycle Guild' });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'alpha' }),
+      text: 'discarded before send',
+    });
+
+    await send.clickClearButton();
+    expect(await send.hasQueueKey()).toBe(false);
+
+    await send.queueCommentOn({ card: send.nodeCard({ which: 'beta' }), text: 'fresh beta note' });
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'gamma' }),
+      text: 'fresh gamma note',
+    });
+    const beforeSend = await send.readQueue();
+
+    send.queueClaudeResponse({ text: 'Reviewing the fresh batch' });
+    await send.clickSendButton();
+
+    await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
+    const persisted = await send.readPersistedComments();
+    expect(
+      persisted.map((entry) => ({
+        flowId: entry.flowId,
+        nodeId: entry.nodeId,
+        text: entry.text,
+        createdAt: entry.createdAt,
+      })),
+    ).toStrictEqual(
+      beforeSend.map((entry) => ({
+        flowId: entry.flowId,
+        nodeId: entry.nodeId,
+        text: entry.text,
+        createdAt: entry.createdAt,
+      })),
+    );
+  });
+
+  // #check-clear-leaves-quest-comments
+  test('VALID: {Clear a freshly queued comment after an earlier comment was already sent} => the previously persisted comment survives Clear unchanged', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Clear Leaves Quest Comments Guild' });
+
+    await send.queueCommentOn({
+      card: send.nodeCard({ which: 'alpha' }),
+      text: 'already sent note',
+    });
+    send.queueClaudeResponse({ text: 'Reviewing the already-sent note' });
+    await send.clickSendButton();
+    await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
+
+    const persistedBeforeClear = await send.readPersistedComments();
+    const [firstPersisted] = persistedBeforeClear;
+    if (firstPersisted === undefined) {
+      throw new Error('expected exactly one persisted comment before queueing the second note');
+    }
+
+    await send.queueCommentOn({ card: send.nodeCard({ which: 'gamma' }), text: 'never sent note' });
+    await send.clickClearButton();
+    expect(await send.hasQueueKey()).toBe(false);
+
+    const persistedAfterClear = await send.readPersistedComments();
+    expect(persistedAfterClear).toStrictEqual(persistedBeforeClear);
+  });
 });

@@ -7,11 +7,15 @@
  */
 
 import {
+  DesignDecisionStub,
   FlowNodeStub,
   FlowObservableStub,
   FlowStub,
+  OperationItemStub,
   QuestCommentStub,
+  QuestContractEntryStub,
   QuestStub,
+  ToolingRequirementStub,
 } from '@dungeonmaster/shared/contracts';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
@@ -557,11 +561,14 @@ describe('McpServerFlow', () => {
           nodeId: 'start' as never,
           text: 'Existing user comment' as never,
         });
+        // Hostile-shaped text (markup + embedded JSON + a newline): off-map hostile-input probe —
+        // the strip is unconditional on the field, not a content-shaped filter, so it must block
+        // this exactly as it blocks a benign string.
         const sneakyComment = QuestCommentStub({
           id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d202' as never,
           flowId: 'login-flow' as never,
           nodeId: 'start' as never,
-          text: 'An agent should not be able to write this' as never,
+          text: '<script>{"inject":"me"}</script>\nAn agent should not be able to write this' as never,
         });
         const quest = QuestStub({
           id: questId as never,
@@ -604,7 +611,14 @@ describe('McpServerFlow', () => {
         expect(persisted.comments).toStrictEqual([existingComment]);
       });
 
-      it('VALID: {modify-quest title-only write on a quest already carrying an orphan comment} => comments stay byte-identical because no flows write means no anchor resolution runs', async () => {
+      // dd-no-orphan-validation-gate: the save-time invariant list carries no check that fails a
+      // quest for an orphaned comment. orphanComment below is seeded pre-orphaned (nodeId
+      // 'ghost-node' never existed in flows — not something cleanup dropped this write, since
+      // this write never touches flows at all) so the save proceeds against a quest.json that
+      // ALREADY holds the violation the DD forbids gating on. Parsing the tool response body for
+      // an explicit `success: true` (not just the JSON-RPC transport-level absence of an error)
+      // is the literal proof the DD asks for.
+      it('VALID: {modify-quest title-only write on a quest already carrying an orphan comment} => comments stay byte-identical because no flows write means no anchor resolution runs, and the save-time invariants never gate on the orphan — the tool response body itself is success: true', async () => {
         const questId = 'mcp-title-only-orphan';
         const questFolder = '001-mcp-title-only-orphan';
         const flow = FlowStub({
@@ -647,6 +661,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
+        const result = ToolCallResultStub(response.result as never);
+        const [content] = result.content;
+        const actual: unknown = JSON.parse(String(content!.text));
         const persisted = QuestStub(
           mcp.readQuestFile({
             dungeonmasterHome: client.dungeonmasterHome,
@@ -656,6 +673,9 @@ describe('McpServerFlow', () => {
         );
 
         expect(response.error).toBe(undefined);
+        // The literal DD proof: the save succeeded (body-level success: true, no failedChecks)
+        // even though quest.json still holds a comment whose anchor never resolves.
+        expect(actual).toStrictEqual({ success: true });
         expect({ title: persisted.title, comments: persisted.comments }).toStrictEqual({
           title: 'New Title',
           comments: [orphanComment],
@@ -916,6 +936,427 @@ describe('McpServerFlow', () => {
 
         expect(response.error).toBe(undefined);
         expect(persisted.comments).toStrictEqual([comment]);
+      });
+    });
+
+    // Named list, not a hardcoded it.each array in isolation — every value questStageContract
+    // currently accepts (spec/planning/implementation). Test files cannot import contracts (only
+    // stubs), so this cannot be derived from questStageContract.options directly; the "omitted"
+    // case (stage argument left off entirely) is covered by a separate standalone test per format
+    // below rather than folded into this array, since it needs a differently-shaped arguments
+    // object (no stage key at all, not merely an empty value).
+    const GET_QUEST_STAGE_FILTERS = ['spec', 'planning', 'implementation'] as const;
+    // Markup- and JSON-shaped, plus an embedded newline: a strip implemented by string surgery
+    // (e.g. removing a `"comments":[...]` substring) rather than object-shape filtering would
+    // still let this leak through, while the real strip (parsing through a narrower Zod shape) is
+    // unaffected by the content's shape.
+    const HOSTILE_COMMENT_TEXT =
+      '<script>{"leak":"me"}</script>\nSENTINEL_HOSTILE_COMMENT_MUST_NEVER_REACH_AGENT';
+
+    describe('check-get-quest-omits-comments + check-no-comment-text-reaches-agent — every stage x format', () => {
+      it.each(GET_QUEST_STAGE_FILTERS)(
+        'VALID: {format: json, stage: %s, quest with a hostile comment} => raw response has no comments key and never contains the hostile text',
+        async (stage) => {
+          const questId = `comment-matrix-json-${stage}`;
+          const questFolder = `001-comment-matrix-json-${stage}`;
+          const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+          const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+          const hostileComment = QuestCommentStub({
+            id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d801' as never,
+            flowId: 'login-flow' as never,
+            nodeId: 'start' as never,
+            text: HOSTILE_COMMENT_TEXT as never,
+          });
+          const quest = QuestStub({
+            id: questId as never,
+            folder: questFolder as never,
+            status: 'flows_approved' as never,
+            flows: [flow],
+            comments: [hostileComment],
+          });
+
+          mcp.seedQuest({
+            dungeonmasterHome: client.dungeonmasterHome,
+            guildId: GUILD_ID,
+            questFolder,
+            quest,
+          });
+
+          const request = JsonRpcRequestStub({
+            id: RpcIdStub({ value: 7001 }),
+            method: RpcMethodStub({ value: 'tools/call' }),
+            params: {
+              name: 'get-quest',
+              arguments: { questId, format: 'json', stage },
+            },
+          });
+
+          const response = await client.sendRequest(request);
+          const result = ToolCallResultStub(response.result as never);
+          const [content] = result.content;
+          const rawText = String(content!.text);
+
+          expect(response.error).toBe(undefined);
+          expect(rawText.indexOf('"comments"')).toBe(-1);
+          expect(rawText.indexOf(HOSTILE_COMMENT_TEXT)).toBe(-1);
+        },
+      );
+
+      it('VALID: {format: json, stage omitted, quest with a hostile comment} => raw response has no comments key and never contains the hostile text', async () => {
+        const questId = 'comment-matrix-json-omitted';
+        const questFolder = '001-comment-matrix-json-omitted';
+        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const hostileComment = QuestCommentStub({
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d803' as never,
+          flowId: 'login-flow' as never,
+          nodeId: 'start' as never,
+          text: HOSTILE_COMMENT_TEXT as never,
+        });
+        const quest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [hostileComment],
+        });
+
+        mcp.seedQuest({
+          dungeonmasterHome: client.dungeonmasterHome,
+          guildId: GUILD_ID,
+          questFolder,
+          quest,
+        });
+
+        const request = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7002 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'get-quest',
+            arguments: { questId, format: 'json' },
+          },
+        });
+
+        const response = await client.sendRequest(request);
+        const result = ToolCallResultStub(response.result as never);
+        const [content] = result.content;
+        const rawText = String(content!.text);
+
+        expect(response.error).toBe(undefined);
+        expect(rawText.indexOf('"comments"')).toBe(-1);
+        expect(rawText.indexOf(HOSTILE_COMMENT_TEXT)).toBe(-1);
+      });
+
+      it.each(GET_QUEST_STAGE_FILTERS)(
+        'VALID: {format: text, stage: %s, quest with a hostile comment} => rendered text never contains the hostile comment text',
+        async (stage) => {
+          const questId = `comment-matrix-text-${stage}`;
+          const questFolder = `001-comment-matrix-text-${stage}`;
+          const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+          const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+          const hostileComment = QuestCommentStub({
+            id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d804' as never,
+            flowId: 'login-flow' as never,
+            nodeId: 'start' as never,
+            text: HOSTILE_COMMENT_TEXT as never,
+          });
+          const quest = QuestStub({
+            id: questId as never,
+            folder: questFolder as never,
+            status: 'flows_approved' as never,
+            flows: [flow],
+            comments: [hostileComment],
+          });
+
+          mcp.seedQuest({
+            dungeonmasterHome: client.dungeonmasterHome,
+            guildId: GUILD_ID,
+            questFolder,
+            quest,
+          });
+
+          const request = JsonRpcRequestStub({
+            id: RpcIdStub({ value: 7101 }),
+            method: RpcMethodStub({ value: 'tools/call' }),
+            params: {
+              name: 'get-quest',
+              arguments: { questId, format: 'text', stage },
+            },
+          });
+
+          const response = await client.sendRequest(request);
+          const result = ToolCallResultStub(response.result as never);
+          const [content] = result.content;
+          const rawText = String(content!.text);
+
+          expect(response.error).toBe(undefined);
+          expect(rawText.indexOf(HOSTILE_COMMENT_TEXT)).toBe(-1);
+        },
+      );
+
+      it('VALID: {format: text, stage omitted, quest with a hostile comment} => rendered text never contains the hostile comment text', async () => {
+        const questId = 'comment-matrix-text-omitted';
+        const questFolder = '001-comment-matrix-text-omitted';
+        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const hostileComment = QuestCommentStub({
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d805' as never,
+          flowId: 'login-flow' as never,
+          nodeId: 'start' as never,
+          text: HOSTILE_COMMENT_TEXT as never,
+        });
+        const quest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [hostileComment],
+        });
+
+        mcp.seedQuest({
+          dungeonmasterHome: client.dungeonmasterHome,
+          guildId: GUILD_ID,
+          questFolder,
+          quest,
+        });
+
+        const request = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7102 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'get-quest',
+            arguments: { questId, format: 'text' },
+          },
+        });
+
+        const response = await client.sendRequest(request);
+        const result = ToolCallResultStub(response.result as never);
+        const [content] = result.content;
+        const rawText = String(content!.text);
+
+        expect(response.error).toBe(undefined);
+        expect(rawText.indexOf(HOSTILE_COMMENT_TEXT)).toBe(-1);
+      });
+    });
+
+    describe('check-agent-payload-otherwise-complete', () => {
+      it('VALID: {format: json, quest with non-empty designDecisions/toolingRequirements/contracts/operations plus a comment} => every other section passes through unchanged and only comments is stripped', async () => {
+        const questId = 'comment-strip-full-sections';
+        const questFolder = '001-comment-strip-full-sections';
+        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const designDecision = DesignDecisionStub({ relatedNodeIds: ['start'] as never });
+        const toolingRequirement = ToolingRequirementStub();
+        const contractEntry = QuestContractEntryStub({ nodeId: 'start' as never });
+        const operation = OperationItemStub({
+          id: '00000000-0000-4000-8000-0000000000e1' as never,
+          role: 'codeweaver',
+          text: 'build core',
+          status: 'pending',
+          locked: false,
+        });
+        const comment = QuestCommentStub({
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
+          flowId: 'login-flow' as never,
+          nodeId: 'start' as never,
+          text: 'A comment among otherwise full sections' as never,
+        });
+        const quest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'flows_approved' as never,
+          flows: [flow],
+          designDecisions: [designDecision],
+          toolingRequirements: [toolingRequirement],
+          contracts: [contractEntry],
+          operations: [operation],
+          comments: [comment],
+        });
+
+        mcp.seedQuest({
+          dungeonmasterHome: client.dungeonmasterHome,
+          guildId: GUILD_ID,
+          questFolder,
+          quest,
+        });
+        Reflect.deleteProperty(quest, 'comments');
+
+        const request = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7201 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'get-quest',
+            arguments: { questId, format: 'json' },
+          },
+        });
+
+        const response = await client.sendRequest(request);
+        const result = ToolCallResultStub(response.result as never);
+        const [content] = result.content;
+        const actual: unknown = JSON.parse(String(content!.text));
+
+        expect(response.error).toBe(undefined);
+        // Exact match against a quest carrying REAL content in every other section (not the
+        // empty-array defaults) — proves the strip costs the agent nothing beyond comments,
+        // rather than vacuously passing because those sections were empty either way.
+        expect(actual).toStrictEqual({ success: true, quest });
+      });
+    });
+
+    // Off-map: concurrency. Two clients (here: two pipelined calls on the same MCP connection)
+    // writing the SAME quest at once — one deletes a node (triggering comment cleanup), the other
+    // renames the title. withQuestModifyLockLayerBroker serializes the critical section per
+    // questId, so BOTH changes must land rather than one read-modify-write clobbering the other.
+    describe('off-map: concurrency — parallel writes against the same quest serialize rather than race', () => {
+      it('VALID: {two parallel modify-quest calls: node-delete and title-rename, same quest} => both changes land in the final persisted state', async () => {
+        const questId = 'mcp-concurrent-writes';
+        const questFolder = '001-mcp-concurrent-writes';
+        const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        const keepNode = FlowNodeStub({ id: 'keep' as never, label: 'Keep' as never });
+        const flow = FlowStub({
+          id: 'login-flow' as never,
+          nodes: [startNode, keepNode],
+          edges: [],
+        });
+        const doomedComment = QuestCommentStub({
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01' as never,
+          flowId: 'login-flow' as never,
+          nodeId: 'start' as never,
+          text: 'Comment on the node the parallel delete removes' as never,
+        });
+        const quest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'explore_flows' as never,
+          title: 'Original Title' as never,
+          flows: [flow],
+          comments: [doomedComment],
+        });
+
+        mcp.seedQuest({
+          dungeonmasterHome: client.dungeonmasterHome,
+          guildId: GUILD_ID,
+          questFolder,
+          quest,
+        });
+
+        const deleteRequest = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7301 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'modify-quest',
+            arguments: {
+              questId,
+              flows: [{ id: 'login-flow', nodes: [{ id: 'start', _delete: true }] }],
+            },
+          },
+        });
+        const titleRequest = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7302 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'modify-quest',
+            arguments: { questId, title: 'Retitled Under Race' },
+          },
+        });
+
+        const [deleteResponse, titleResponse] = await Promise.all([
+          client.sendRequest(deleteRequest),
+          client.sendRequest(titleRequest),
+        ]);
+
+        const persisted = QuestStub(
+          mcp.readQuestFile({
+            dungeonmasterHome: client.dungeonmasterHome,
+            guildId: GUILD_ID,
+            questFolder,
+          }) as never,
+        );
+
+        expect(deleteResponse.error).toBe(undefined);
+        expect(titleResponse.error).toBe(undefined);
+        expect({
+          title: persisted.title,
+          flowNodeIds: persisted.flows[0]!.nodes.map((flowNode) => flowNode.id),
+          comments: persisted.comments,
+        }).toStrictEqual({
+          title: 'Retitled Under Race',
+          flowNodeIds: ['keep'],
+          comments: [],
+        });
+      });
+    });
+
+    // Off-map: re-entry. "Repeat the same action" — the second call targets a node already gone,
+    // so this also proves the cleanup and the upsert delete are stable under a repeat rather than
+    // erroring or resurrecting/duplicating the dropped comment.
+    describe('off-map: re-entry — repeating the same node-delete write is a safe no-op the second time', () => {
+      it('VALID: {same modify-quest node-delete request sent twice in sequence} => both calls succeed, comments stay clean, no corruption from the repeat', async () => {
+        const questId = 'mcp-repeat-node-delete';
+        const questFolder = '001-mcp-repeat-node-delete';
+        const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        const flow = FlowStub({ id: 'login-flow' as never, nodes: [startNode], edges: [] });
+        const comment = QuestCommentStub({
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da02' as never,
+          flowId: 'login-flow' as never,
+          nodeId: 'start' as never,
+          text: 'Comment on the node repeatedly deleted' as never,
+        });
+        const quest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [comment],
+        });
+
+        mcp.seedQuest({
+          dungeonmasterHome: client.dungeonmasterHome,
+          guildId: GUILD_ID,
+          questFolder,
+          quest,
+        });
+
+        const firstRequest = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7401 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'modify-quest',
+            arguments: {
+              questId,
+              flows: [{ id: 'login-flow', nodes: [{ id: 'start', _delete: true }] }],
+            },
+          },
+        });
+        const firstResponse = await client.sendRequest(firstRequest);
+
+        const secondRequest = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 7402 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'modify-quest',
+            arguments: {
+              questId,
+              flows: [{ id: 'login-flow', nodes: [{ id: 'start', _delete: true }] }],
+            },
+          },
+        });
+        const secondResponse = await client.sendRequest(secondRequest);
+
+        const persisted = QuestStub(
+          mcp.readQuestFile({
+            dungeonmasterHome: client.dungeonmasterHome,
+            guildId: GUILD_ID,
+            questFolder,
+          }) as never,
+        );
+
+        expect(firstResponse.error).toBe(undefined);
+        expect(secondResponse.error).toBe(undefined);
+        expect({
+          flowNodeIds: persisted.flows[0]!.nodes.map((flowNode) => flowNode.id),
+          comments: persisted.comments,
+        }).toStrictEqual({ flowNodeIds: [], comments: [] });
       });
     });
   });

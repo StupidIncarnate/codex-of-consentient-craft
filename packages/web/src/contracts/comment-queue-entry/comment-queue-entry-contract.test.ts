@@ -44,5 +44,30 @@ describe('commentQueueEntryContract', () => {
         /Invalid datetime/u,
       );
     });
+
+    // The anchor ids are the validated surface for a queued comment (a non-kebab flowId/nodeId is
+    // already proven at the commentAnchorContract level this contract extends); observableId is the
+    // third anchor field and has no dedicated coverage of its own anywhere, so it is proven here.
+    it('INVALID: {observableId: "Bad Observable"} => throws for non-kebab observableId', () => {
+      expect(() => CommentQueueEntryStub({ observableId: 'Bad Observable' as never })).toThrow(
+        /invalid_string/u,
+      );
+    });
+  });
+
+  describe('JSON round trip', () => {
+    // The real localStorage write path (comment-queue-state.ts) is JSON.stringify on write and
+    // JSON.parse + safeParse on read — never a hand-rolled serializer. This proves that real round
+    // trip survives quotes, a backslash and brace characters byte-identical: a string-concatenation
+    // serializer would corrupt or truncate at the first quote instead.
+    it('VALID: {text with quotes, a backslash and braces} => JSON.stringify then JSON.parse then re-parsed through the contract is byte-identical to the original', () => {
+      const entry = CommentQueueEntryStub({
+        text: 'She typed "click submit" \\ then pasted {"nodeId": "start", "ok": true} inline',
+      });
+
+      const roundTripped: unknown = JSON.parse(JSON.stringify(entry));
+
+      expect(commentQueueEntryContract.parse(roundTripped)).toStrictEqual(entry);
+    });
   });
 });

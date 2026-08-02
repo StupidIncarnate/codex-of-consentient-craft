@@ -161,6 +161,62 @@ describe('boxCommentsTransformer', () => {
     expect(result).toStrictEqual([newest, middle, oldest]);
   });
 
+  it('VALID: {two comments with identical text on the same box} => returns both, not deduplicated by content', () => {
+    const first = QuestCommentStub({
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+      text: 'looks wrong',
+      createdAt: '2024-01-01T00:00:00.000Z',
+    });
+    const second = QuestCommentStub({
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+      text: 'looks wrong',
+      createdAt: '2024-06-01T00:00:00.000Z',
+    });
+
+    const result = boxCommentsTransformer({
+      comments: [first, second],
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+    });
+
+    expect(result).toStrictEqual([second, first]);
+  });
+
+  // #check-newest-first-order's tie case: the comparator returns 0 for equal createdAt, which only
+  // yields a deterministic order because Array.prototype.sort is a STABLE sort — it preserves each
+  // call's own input order on a tie. Running the same two comments in both input orders and getting
+  // each one's own order back (never one fixed order regardless of input) is what proves that.
+  it('EDGE: {two comments sharing the exact same createdAt} => keeps them in the order they were given, not a fixed order regardless of input', () => {
+    const first = QuestCommentStub({
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+      text: 'first arrival',
+      createdAt: '2024-06-01T00:00:00.000Z',
+    });
+    const second = QuestCommentStub({
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+      text: 'second arrival',
+      createdAt: '2024-06-01T00:00:00.000Z',
+    });
+
+    const resultForwardInput = boxCommentsTransformer({
+      comments: [first, second],
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+    });
+    const resultReversedInput = boxCommentsTransformer({
+      comments: [second, first],
+      flowId: FLOW_ID,
+      nodeId: NODE_ID,
+    });
+
+    expect(resultForwardInput).toStrictEqual([first, second]);
+    expect(resultReversedInput).toStrictEqual([second, first]);
+  });
+
   it('EDGE: {input comments array} => is not mutated by the transformer', () => {
     const first = QuestCommentStub({
       flowId: FLOW_ID,

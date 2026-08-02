@@ -6,12 +6,14 @@ import {
   commentBoxHarness,
   COMMENT_BOX_FLOW_ID,
   COMMENT_BOX_ISO_CREATED_AT,
+  COMMENT_BOX_JSON_HOSTILE_TEXT,
   COMMENT_BOX_LONG_TOKEN_TEXT,
   COMMENT_BOX_MARKUP_TEXT,
   COMMENT_BOX_NEWLINE_TEXT,
   COMMENT_BOX_NODE_ID,
   COMMENT_BOX_NODE_LABEL,
   COMMENT_BOX_OBSERVABLE_ID,
+  COMMENT_BOX_OVERSIZED_TEXT,
   COMMENT_BOX_SECOND_NODE_ID,
   COMMENT_BOX_SECOND_OBSERVABLE_ID,
 } from '../../../test/harnesses/comment-box/comment-box.harness';
@@ -545,5 +547,109 @@ test.describe('Leave a Comment on a Diagram Box', () => {
       },
     ]);
     expect(await comments.queuedTextExact()).toBe(COMMENT_BOX_MARKUP_TEXT);
+  });
+
+  // #write-queue-entry with the oversized hostile-input class: text far longer than any UI element
+  // here was sized for. Nothing in this feature caps comment length, so this proves the absence of
+  // a cap does not mean bulk text silently truncates or corrupts on the way through the popover and
+  // into localStorage. Uses replaceComment (fill) rather than typeComment (keyboard) — typing this
+  // many characters one keystroke at a time would make the test needlessly slow without proving
+  // anything typeComment's own coverage elsewhere does not already prove about the keyboard path.
+  test('EDGE: {queue a comment far longer than any UI here was designed for} => the stored entry and the queued-view text both keep it whole, byte-identical', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment Oversized Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.replaceComment({ text: COMMENT_BOX_OVERSIZED_TEXT });
+    await comments.pressEnter();
+
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_NODE_ID,
+        text: COMMENT_BOX_OVERSIZED_TEXT,
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    expect(await comments.queuedTextExact()).toBe(COMMENT_BOX_OVERSIZED_TEXT);
+  });
+
+  // #write-queue-entry with the JSON-hostile input class: text containing quotes, a backslash and
+  // brace characters — exactly what a hand-rolled (string-concatenation) serializer would mangle.
+  // localStorage here uses JSON.stringify/JSON.parse, so this proves the real round trip survives
+  // byte-identical rather than corrupting or truncating at the first quote or backslash.
+  test('VALID: {queue a comment containing quotes, a backslash and braces} => the stored entry and the queued-view text both keep it byte-identical through the JSON round trip', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment JSON Hostile Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: COMMENT_BOX_JSON_HOSTILE_TEXT });
+    await comments.pressEnter();
+
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_NODE_ID,
+        text: COMMENT_BOX_JSON_HOSTILE_TEXT,
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    expect(await comments.queuedTextExact()).toBe(COMMENT_BOX_JSON_HOSTILE_TEXT);
+  });
+
+  // #write-queue-entry with the duplicate hostile-input class: the SAME text queued on two
+  // DIFFERENT boxes. Storage keys on the anchor (flowId+nodeId[+observableId]), never on content —
+  // isSameCommentAnchorGuard only compares the anchor — so this must NOT collapse into one entry.
+  // A hypothetical content-based dedup bug (or a Set/Map keyed on text) would be caught here.
+  test('VALID: {queue the identical text on two different boxes} => both entries persist independently, neither collapsed by the other', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment Duplicate Text Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: 'please double check this' });
+    await comments.pressEnter();
+    await comments.closeCommentPopoverOnNode();
+
+    await comments.openCommentPopoverOnSecondObservable();
+    await comments.typeComment({ text: 'please double check this' });
+    await comments.pressEnter();
+
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_NODE_ID,
+        text: 'please double check this',
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_SECOND_NODE_ID,
+        observableId: COMMENT_BOX_SECOND_OBSERVABLE_ID,
+        text: 'please double check this',
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    await expect(page.getByTestId('COMMENT_QUEUE_COUNT')).toHaveText('2 COMMENTS QUEUED');
   });
 });
