@@ -1,4 +1,5 @@
 import { DesignDecisionStub, ToolingRequirementStub } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import {
@@ -22,6 +23,33 @@ import { questSpecReadonlyHarness } from '../../../test/harnesses/quest-spec-rea
 const GUILD_PATH = '/tmp/dm-e2e-spec-panel-edit-mode-removed';
 const PANEL_TIMEOUT = 10_000;
 const CLARIFY_TIMEOUT = 10_000;
+
+// A 140-char unbroken token (no space/hyphen break opportunity) plus markup-shaped rationale text —
+// proves the read-only list renders adversarial content verbatim instead of truncating or executing
+// it. Reused for both a design decision and a tooling entry so the fixture exercises the same hostile
+// shape in both PlanSectionWidget-backed lists.
+const HOSTILE_TOKEN = `Zx${'q'.repeat(138)}`;
+const HOSTILE_RATIONALE = 'Markup probe: <script>alert("rspem-xss")</script> and a bare --- marker';
+
+// Derived from the canonical statics — never hardcoded — so a newly added quest status is picked up
+// automatically instead of silently going untested. Mirrors the pattern in
+// pause-resume-status-matrix.e2e.ts: one statics source drives both the iteration list and the
+// expected-subset membership.
+type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+const ALL_STATUSES = Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[];
+// QuestSpecPanelWidget (and its ACTION_BAR) only mounts via the non-execution-phase branch of
+// QuestChatContentLayerWidget. The 5 execution-phase statuses render QuestSpecPanelWidget readOnly,
+// nested one tab-click deep inside ExecutionPanelWidget — a different widget's own navigation surface,
+// out of this flow's scope. See MISSING COVERAGE in the audit report for that gap.
+const NON_EXECUTION_STATUSES = ALL_STATUSES.filter(
+  (status) => !questStatusMetadataStatics.statuses[status].shouldRenderExecutionPanel,
+);
+const ACTION_BAR_APPROVE_STATUSES = NON_EXECUTION_STATUSES.filter(
+  (status) => questStatusMetadataStatics.statuses[status].nextApprovalStatus !== null,
+);
+const ACTION_BAR_EMPTY_STATUSES = NON_EXECUTION_STATUSES.filter(
+  (status) => questStatusMetadataStatics.statuses[status].nextApprovalStatus === null,
+);
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
@@ -67,8 +95,12 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
       ],
     });
 
-    // Fixture requirement: TWO of each, so a wrongly-scoped selector (one that grabbed the wrong
-    // PLAN_SECTION or bled items across DESIGN_DECISIONS_LAYER/CONTRACTS_LAYER) cannot pass by luck.
+    // Fixture requirement: THREE of each — a plain entry, a HOSTILE entry (140-char unbroken token +
+    // markup-shaped rationale, proving no truncation/escaping regression), and a DUPLICATE entry
+    // sharing entry 1's title/name with a different rationale/package (proving items are matched by
+    // index/identity, not by "the only one with that name"). Two benign entries alone can't
+    // distinguish "the right one" from "the first one"; this can't pass by luck on a wrongly-scoped
+    // selector OR a wrongly-ordered render either.
     specReadonly.seedDesignDecisionsAndTooling({
       questFilePath: String(created.filePath),
       designDecisions: [
@@ -78,9 +110,14 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
           rationale: 'First rationale text',
         }),
         DesignDecisionStub({
-          id: 'dd-second-decision',
-          title: 'Second Design Decision',
-          rationale: 'Second rationale text',
+          id: 'dd-hostile-decision',
+          title: HOSTILE_TOKEN,
+          rationale: HOSTILE_RATIONALE,
+        }),
+        DesignDecisionStub({
+          id: 'dd-duplicate-decision',
+          title: 'First Design Decision',
+          rationale: 'Duplicate rationale text',
         }),
       ],
       toolingRequirements: [
@@ -91,10 +128,16 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
           reason: 'First reason',
         }),
         ToolingRequirementStub({
-          id: 'tool-second-entry',
-          name: 'Second Tool',
-          packageName: 'second-package',
-          reason: 'Second reason',
+          id: 'tool-hostile-entry',
+          name: HOSTILE_TOKEN,
+          packageName: 'hostile-package',
+          reason: HOSTILE_RATIONALE,
+        }),
+        ToolingRequirementStub({
+          id: 'tool-duplicate-entry',
+          name: 'First Tool',
+          packageName: 'duplicate-package',
+          reason: 'Duplicate reason',
         }),
       ],
     });
@@ -118,25 +161,36 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     // selector here would silently read the wrong section's items.
     const designDecisionsLayer = specPanel.getByTestId('DESIGN_DECISIONS_LAYER');
     await expect(designDecisionsLayer.getByTestId('PLAN_SECTION')).toHaveCount(1);
+    // Section label + live count, asserted verbatim — SECTION_HEADER_LABEL and SECTION_HEADER_COUNT
+    // are adjacent text nodes with no literal space between them in JSX, so the real rendered text is
+    // the label and "(N)" glued together with no separator.
+    await expect(designDecisionsLayer.getByTestId('SECTION_HEADER')).toHaveText(
+      'DESIGN DECISIONS(3)',
+    );
     await expect(designDecisionsLayer.getByTestId('DECISION_TITLE')).toHaveText([
       'First Design Decision',
-      'Second Design Decision',
+      HOSTILE_TOKEN,
+      'First Design Decision',
     ]);
     await expect(designDecisionsLayer.getByTestId('DECISION_RATIONALE')).toHaveText([
       'First rationale text',
-      'Second rationale text',
+      HOSTILE_RATIONALE,
+      'Duplicate rationale text',
     ]);
 
     // Tooling read-mode list, scoped to CONTRACTS_LAYER — the second PLAN_SECTION on this page.
     const contractsLayer = specPanel.getByTestId('CONTRACTS_LAYER');
     await expect(contractsLayer.getByTestId('PLAN_SECTION')).toHaveCount(1);
+    await expect(contractsLayer.getByTestId('SECTION_HEADER')).toHaveText('TOOLING(3)');
     await expect(contractsLayer.getByTestId('TOOLING_NAME')).toHaveText([
       'First Tool',
-      'Second Tool',
+      HOSTILE_TOKEN,
+      'First Tool',
     ]);
     await expect(contractsLayer.getByTestId('TOOLING_PACKAGE')).toHaveText([
       'first-package',
-      'second-package',
+      'hostile-package',
+      'duplicate-package',
     ]);
 
     // ACTION_BAR renders exactly one control — APPROVE — and no leftover MODIFY/SUBMIT/CANCEL.
@@ -187,6 +241,13 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     await abandonBar.getByTestId('PIXEL_BTN').filter({ hasText: 'ABANDON QUEST' }).click();
 
     await expect(abandonBar.getByTestId('PIXEL_BTN')).toHaveText(['CONFIRM ABANDON', 'CANCEL']);
+
+    // A CANCEL button now genuinely exists on the page (inside ABANDON_BAR), unlike the CANCEL-count
+    // assertions elsewhere in this file that run before any CANCEL exists anywhere. This is the
+    // discriminating case: ACTION_BAR must stay scoped to its own subtree and not pick up a CANCEL
+    // that lives in a sibling section of the panel.
+    const actionBar = page.getByTestId('QUEST_SPEC_PANEL').getByTestId('ACTION_BAR');
+    await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'CANCEL' })).toHaveCount(0);
 
     await abandonBar.getByTestId('PIXEL_BTN').filter({ hasText: 'CANCEL' }).click();
 
@@ -281,4 +342,150 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     await freeform.getByTestId('FORM_INPUT').fill('a freeform clarification answer');
     await expect(freeform.getByTestId('FORM_INPUT')).toHaveValue('a freeform clarification answer');
   });
+
+  test('EMPTY: a quest with no design decisions or tooling still renders PLAN_SECTION with a live "(0)" count, not an absent one', async ({
+    page,
+    request,
+  }) => {
+    const guilds = guildHarness({ request });
+    const quests = questHarness({ request });
+    const nav = navigationHarness({ page });
+
+    const guild = await guilds.createGuild({ name: 'Zero Item Section Guild', path: GUILD_PATH });
+    const urlSlug = guilds.extractUrlSlug({ guild });
+
+    const created = await quests.createQuest({
+      guildId: String(guild.id),
+      title: 'Zero Item Section Quest',
+      userRequest: 'Prove SECTION_HEADER_COUNT reads (0) instead of vanishing on an empty list',
+    });
+
+    // No specReadonly.seedDesignDecisionsAndTooling call — questHarness.writeQuestFile defaults
+    // designDecisions and toolingRequirements to [].
+    quests.writeQuestFile({
+      questId: String(created.questId),
+      questFolder: String(created.questFolder),
+      questFilePath: String(created.filePath),
+      status: 'review_design',
+      workItems: [
+        { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', status: 'complete' },
+      ],
+    });
+
+    await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+
+    const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
+    await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
+
+    const designDecisionsLayer = specPanel.getByTestId('DESIGN_DECISIONS_LAYER');
+    await expect(designDecisionsLayer.getByTestId('PLAN_SECTION')).toHaveCount(1);
+    await expect(designDecisionsLayer.getByTestId('SECTION_HEADER_COUNT')).toHaveText('(0)');
+    await expect(designDecisionsLayer.getByTestId('DECISION_TITLE')).toHaveCount(0);
+
+    const contractsLayer = specPanel.getByTestId('CONTRACTS_LAYER');
+    await expect(contractsLayer.getByTestId('PLAN_SECTION')).toHaveCount(1);
+    await expect(contractsLayer.getByTestId('SECTION_HEADER_COUNT')).toHaveText('(0)');
+    await expect(contractsLayer.getByTestId('TOOLING_NAME')).toHaveCount(0);
+  });
+
+  // Status-matrix coverage for ACTION_BAR's button set. The observable claims "at any quest status",
+  // but every test above exercises only review_design/review_observables. Both lists below are
+  // derived from questStatusMetadataStatics (never hardcoded), so a newly added status is picked up
+  // automatically. Only the 11 NON-execution-phase statuses are reachable here — QuestSpecPanelWidget
+  // mounts unconditionally (readOnly undefined) in that branch of QuestChatContentLayerWidget. The 5
+  // execution-phase statuses (in_progress, paused, blocked, complete, abandoned) render
+  // QuestSpecPanelWidget readOnly, one tab-click deep inside ExecutionPanelWidget — a different
+  // widget's own navigation surface, out of this flow's scope (see the audit report for this gap).
+  for (const status of ACTION_BAR_APPROVE_STATUSES) {
+    test(`VALID: {status: ${status}} => ACTION_BAR renders exactly APPROVE, no MODIFY/SUBMIT/CANCEL`, async ({
+      page,
+      request,
+    }) => {
+      const guilds = guildHarness({ request });
+      const quests = questHarness({ request });
+      const nav = navigationHarness({ page });
+
+      const guild = await guilds.createGuild({
+        name: `Status Matrix Approve ${status} Guild`,
+        path: GUILD_PATH,
+      });
+      const urlSlug = guilds.extractUrlSlug({ guild });
+
+      const created = await quests.createQuest({
+        guildId: String(guild.id),
+        title: `Status Matrix Approve ${status} Quest`,
+        userRequest: 'Prove ACTION_BAR holds APPROVE-only at this status',
+      });
+
+      quests.writeQuestFile({
+        questId: String(created.questId),
+        questFolder: String(created.questFolder),
+        questFilePath: String(created.filePath),
+        status,
+        workItems: [
+          {
+            id: 'e2e00000-0000-4000-8000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+          },
+        ],
+      });
+
+      await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+
+      const actionBar = page.getByTestId('QUEST_SPEC_PANEL').getByTestId('ACTION_BAR');
+      await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' })).toHaveCount(
+        1,
+        {
+          timeout: PANEL_TIMEOUT,
+        },
+      );
+      await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'MODIFY' })).toHaveCount(0);
+      await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'SUBMIT' })).toHaveCount(0);
+      await expect(actionBar.getByTestId('PIXEL_BTN').filter({ hasText: 'CANCEL' })).toHaveCount(0);
+    });
+  }
+
+  for (const status of ACTION_BAR_EMPTY_STATUSES) {
+    test(`VALID: {status: ${status}} => ACTION_BAR is visible but renders zero PIXEL_BTN controls`, async ({
+      page,
+      request,
+    }) => {
+      const guilds = guildHarness({ request });
+      const quests = questHarness({ request });
+      const nav = navigationHarness({ page });
+
+      const guild = await guilds.createGuild({
+        name: `Status Matrix Empty ${status} Guild`,
+        path: GUILD_PATH,
+      });
+      const urlSlug = guilds.extractUrlSlug({ guild });
+
+      const created = await quests.createQuest({
+        guildId: String(guild.id),
+        title: `Status Matrix Empty ${status} Quest`,
+        userRequest: 'Prove ACTION_BAR holds zero buttons at this status',
+      });
+
+      quests.writeQuestFile({
+        questId: String(created.questId),
+        questFolder: String(created.questFolder),
+        questFilePath: String(created.filePath),
+        status,
+        workItems: [
+          {
+            id: 'e2e00000-0000-4000-8000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+          },
+        ],
+      });
+
+      await nav.navigateToQuest({ urlSlug, questId: String(created.questId) });
+
+      const actionBar = page.getByTestId('QUEST_SPEC_PANEL').getByTestId('ACTION_BAR');
+      await expect(actionBar).toBeVisible({ timeout: PANEL_TIMEOUT });
+      await expect(actionBar.getByTestId('PIXEL_BTN')).toHaveCount(0);
+    });
+  }
 });
