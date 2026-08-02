@@ -320,21 +320,33 @@ describe('ServerInitResponder', () => {
   // that. Mocking only the true I/O boundary (orchestratorLoadQuestAdapter) and exercising the
   // real broadcast code proves badges/panels get comments live over the WS wire the same way the
   // HTTP GET does.
+  //
+  // Two comments, not one: a single-comment fixture cannot tell "the whole array survived" from
+  // "only the first element survived" (truncation reads identical to correct behavior when there
+  // is nothing after index 0), and cannot tell whether observableId (anchor to an observable box,
+  // vs a bare node) survives the wire when every fixture comment shares the same anchor shape.
   describe('websocket onMessage subscribe-quest quest carrying comments', () => {
-    it('VALID: {subscribe-quest for a quest carrying a comment} => the quest-modified payload carries the comments array unchanged', async () => {
+    it('VALID: {subscribe-quest for a quest carrying two comments — one bare-node, one observable-anchored} => the quest-modified payload carries the full comments array unchanged, anchors intact', async () => {
       const proxy = ServerInitResponderProxy();
       const questId = QuestIdStub({ value: 'quest-with-comments-1' });
-      const comment = QuestCommentStub({
+      const bareComment = QuestCommentStub({
         id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01' as never,
         flowId: 'login-flow' as never,
         nodeId: 'start' as never,
         text: 'Badge and panel should see this live' as never,
       });
+      const observableComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da02' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'end' as never,
+        observableId: 'login-redirects-to-dashboard' as never,
+        text: 'Anchored to an observable, must survive same as the bare-node comment' as never,
+      });
       const quest = QuestStub({
         id: questId,
         status: 'flows_approved',
         workItems: [],
-        comments: [comment],
+        comments: [bareComment, observableComment],
       });
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
@@ -365,7 +377,91 @@ describe('ServerInitResponder', () => {
       const [, payloadQuestValue] = Object.values(parsedMessage.payload);
       const payloadQuest = QuestStub(payloadQuestValue as never);
 
-      expect(payloadQuest.comments).toStrictEqual([comment]);
+      expect(payloadQuest.comments).toStrictEqual([bareComment, observableComment]);
+    });
+  });
+
+  // Flow: comments-excluded-from-agent-reads, node web-read-keeps-comments, observable
+  // check-ws-quest-modified-carries-comments. The test above only exercises the subscribe-quest
+  // IMMEDIATE send. This is the OTHER, independent source of a quest-modified frame — the outbox
+  // watcher's onQuestChanged callback, fired when a real mutation (e.g. a new comment) is
+  // persisted after the client already subscribed. server-init-responder.ts does no merging here
+  // either: it re-calls orchestratorLoadQuestAdapter fresh on every firing and forwards whatever
+  // that returns. The property worth pinning is exactly that freshness — a regression that reused
+  // or cached the quest object handed to the FIRST send would leave every subsequent broadcast
+  // stuck at the old comment count (the badge would never grow), which is indistinguishable from
+  // "extends" only if a SECOND, different load result is proven to reach the wire.
+  describe('websocket onMessage subscribe-quest quest carrying comments — outbox watcher broadcast', () => {
+    it('VALID: {a real mutation fires onQuestChanged after subscribe} => the outbox broadcast carries the CURRENT full comments array, not the one from the original subscribe send', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-with-comments-outbox-1' });
+      const bareComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da10' as never,
+        flowId: 'alpha-flow' as never,
+        nodeId: 'node-one' as never,
+        text: 'Present before the mutation' as never,
+      });
+      const initialQuest = QuestStub({
+        id: questId,
+        status: 'flows_approved',
+        workItems: [],
+        comments: [bareComment],
+      });
+      proxy.setupLoadQuestSuccess({ quest: initialQuest });
+      proxy.setupFindQuestPathSuccess({
+        questId,
+        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        guildId: GuildIdStub(),
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      sendMock.mockClear();
+
+      const observableComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da11' as never,
+        flowId: 'beta-flow' as never,
+        nodeId: 'node-two' as never,
+        observableId: 'checkout-completes-order' as never,
+        text: 'Added by the real mutation the outbox watcher observed' as never,
+      });
+      const mutatedQuest = QuestStub({
+        id: questId,
+        status: 'flows_approved',
+        workItems: [],
+        comments: [bareComment, observableComment],
+      });
+      proxy.setupLoadQuestSuccess({ quest: mutatedQuest });
+
+      const { onQuestChanged } = proxy.getOutboxWatchCallbacks();
+      onQuestChanged!({ questId });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const parsedMessage = WsMessageStub(JSON.parse(String(sendMock.mock.calls[0]?.[0])) as never);
+      const [, payloadQuestValue] = Object.values(parsedMessage.payload);
+      const payloadQuest = QuestStub(payloadQuestValue as never);
+
+      expect({
+        sendCount: sendMock.mock.calls.length,
+        comments: payloadQuest.comments,
+      }).toStrictEqual({
+        sendCount: 1,
+        comments: [bareComment, observableComment],
+      });
     });
   });
 

@@ -42,8 +42,14 @@ describe('QuestFlow', () => {
   // output — only the MCP get-quest tool does that (packages/mcp only). Driving a real HTTP
   // request through the real Hono router against a real quest.json on disk proves the browser's
   // GET keeps the comments array the agent read is denied.
+  //
+  // Two comments, not one: a single-comment fixture cannot tell "the whole array survived" from
+  // "only the first element survived" (an off-by-index/truncation regression reads identical to
+  // correct behavior when there is nothing after index 0). The two comments also differ in anchor
+  // shape — one bare-node, one carrying observableId — so a regression that drops or defaults
+  // observableId on the wire is not masked by every fixture comment sharing the same anchor shape.
   describe('GET /api/quests/:questId with comments', () => {
-    it('VALID: {quest carrying a comment} => the JSON response includes the comments array unchanged', async () => {
+    it('VALID: {quest carrying two comments — one bare-node-anchored, one observable-anchored} => the JSON response includes the full comments array unchanged, anchors intact', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-get' });
       const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
       const questId = 'server-http-comment-quest';
@@ -52,21 +58,31 @@ describe('QuestFlow', () => {
 
       const flow = FlowStub({
         id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+        nodes: [
+          FlowNodeStub({ id: 'start' as never, label: 'Start' as never }),
+          FlowNodeStub({ id: 'end' as never, label: 'End' as never }),
+        ],
         edges: [],
       });
-      const comment = QuestCommentStub({
+      const bareComment = QuestCommentStub({
         id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
         flowId: 'login-flow' as never,
         nodeId: 'start' as never,
         text: 'Visible to the browser, never to an agent' as never,
+      });
+      const observableComment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d902' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'end' as never,
+        observableId: 'login-redirects-to-dashboard' as never,
+        text: 'Anchored to an observable, must survive same as the bare-node comment' as never,
       });
       const quest = QuestStub({
         id: questId as never,
         folder: questFolder as never,
         status: 'flows_approved' as never,
         flows: [flow],
-        comments: [comment],
+        comments: [bareComment, observableComment],
       });
 
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });

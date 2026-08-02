@@ -1,16 +1,22 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import {
+  DesignDecisionStub,
+  FlowNodeStub,
+  FlowStub,
   GetQuestResultStub,
   GuildIdStub,
   ModifyQuestResultStub,
+  OperationItemStub,
   OrchestrationStatusStub,
   ProcessIdStub,
   QuestCommentStub,
+  QuestContractEntryStub,
   QuestIdStub,
   QuestListItemStub,
   QuestStub,
   QuestWorkItemIdStub,
+  ToolingRequirementStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
@@ -186,9 +192,30 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {format: json, quest with comments} => flows, designDecisions, contracts, toolingRequirements and operations pass through unchanged', async () => {
+    it('VALID: {format: json, quest with non-empty designDecisions/toolingRequirements/contracts/operations plus a comment} => flows, designDecisions, contracts, toolingRequirements and operations pass through unchanged', async () => {
       const proxy = QuestHandleResponderProxy();
+      // Every non-comment section below is populated with a REAL entry (not the empty-array
+      // QuestStub default) — an over-strip that drops or empties one of these sections entirely,
+      // not just comments, produces a shorter/different payload than an empty-array fixture could
+      // ever distinguish from the correct one.
+      const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const designDecision = DesignDecisionStub({ relatedNodeIds: ['start'] as never });
+      const toolingRequirement = ToolingRequirementStub();
+      const contractEntry = QuestContractEntryStub({ nodeId: 'start' as never });
+      const operation = OperationItemStub({
+        id: '00000000-0000-4000-8000-0000000000e2' as never,
+        role: 'codeweaver',
+        text: 'build core',
+        status: 'pending',
+        locked: false,
+      });
       const quest = QuestStub({
+        flows: [flow],
+        designDecisions: [designDecision],
+        toolingRequirements: [toolingRequirement],
+        contracts: [contractEntry],
+        operations: [operation],
         comments: [QuestCommentStub()],
       });
       const questResult = GetQuestResultStub({ quest });

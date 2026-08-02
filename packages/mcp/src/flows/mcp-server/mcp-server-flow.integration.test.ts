@@ -1204,15 +1204,32 @@ describe('McpServerFlow', () => {
       it('VALID: {format: json, quest with non-empty designDecisions/toolingRequirements/contracts/operations plus a comment} => every other section passes through unchanged and only comments is stripped', async () => {
         const questId = 'comment-strip-full-sections';
         const questFolder = '001-comment-strip-full-sections';
-        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        // Every surviving section below deliberately carries the literal word "comments" inside
+        // its OWN content (label/title/reason/name/text) — decoys. A strip that drops anything
+        // whose content merely MENTIONS comments, rather than the schema-shaped `comments` key
+        // (e.g. a naive string-scan strip), would collaterally eat these, and this test would
+        // catch it. A fixture where nothing but the actual comment carries that word cannot tell
+        // a schema-shaped strip apart from a content-shaped one.
+        const node = FlowNodeStub({
+          id: 'start' as never,
+          label: 'Where comments anchor' as never,
+        });
         const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-        const designDecision = DesignDecisionStub({ relatedNodeIds: ['start'] as never });
-        const toolingRequirement = ToolingRequirementStub();
-        const contractEntry = QuestContractEntryStub({ nodeId: 'start' as never });
+        const designDecision = DesignDecisionStub({
+          title: 'Track where comments anchor on the flow diagram' as never,
+          relatedNodeIds: ['start'] as never,
+        });
+        const toolingRequirement = ToolingRequirementStub({
+          reason: 'Renders inline comments in the flow diagram sidebar' as never,
+        });
+        const contractEntry = QuestContractEntryStub({
+          name: 'FlowComments' as never,
+          nodeId: 'start' as never,
+        });
         const operation = OperationItemStub({
           id: '00000000-0000-4000-8000-0000000000e1' as never,
           role: 'codeweaver',
-          text: 'build core',
+          text: 'build core: render the comments sidebar',
           status: 'pending',
           locked: false,
         });
