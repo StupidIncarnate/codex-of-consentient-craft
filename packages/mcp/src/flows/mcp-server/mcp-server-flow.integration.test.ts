@@ -611,6 +611,67 @@ describe('McpServerFlow', () => {
         expect(persisted.comments).toStrictEqual([existingComment]);
       });
 
+      // The strip deletes the whole `comments` key from the args object before modifyQuestInputContract
+      // ever parses it — so a malformed (non-array) comments value never reaches validation at all. If
+      // the strip instead ran AFTER validation (or not at all), this same payload would fail Zod's
+      // array check inside questModifyBroker and the call would come back success: false. Getting
+      // success: true here is the one assertion that distinguishes "stripped before validation" from
+      // "stripped after" or "not stripped."
+      it('VALID: {modify-quest comments: "not-an-array" from an agent} => the call still succeeds because the strip runs BEFORE validation, not after', async () => {
+        const questId = 'mcp-malformed-comments';
+        const questFolder = '001-mcp-malformed-comments';
+        const flow = FlowStub({
+          id: 'login-flow' as never,
+          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+          edges: [],
+        });
+        const existingComment = QuestCommentStub({
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
+          flowId: 'login-flow' as never,
+          nodeId: 'start' as never,
+          text: 'Existing user comment' as never,
+        });
+        const quest = QuestStub({
+          id: questId as never,
+          folder: questFolder as never,
+          status: 'flows_approved' as never,
+          flows: [flow],
+          comments: [existingComment],
+        });
+
+        mcp.seedQuest({
+          dungeonmasterHome: client.dungeonmasterHome,
+          guildId: GUILD_ID,
+          questFolder,
+          quest,
+        });
+
+        const request = JsonRpcRequestStub({
+          id: RpcIdStub({ value: 6008 }),
+          method: RpcMethodStub({ value: 'tools/call' }),
+          params: {
+            name: 'modify-quest',
+            arguments: { questId, comments: 'not-an-array' },
+          },
+        });
+
+        const response = await client.sendRequest(request);
+        const result = ToolCallResultStub(response.result as never);
+        const [content] = result.content;
+        const actual: unknown = JSON.parse(String(content!.text));
+        const persisted = QuestStub(
+          mcp.readQuestFile({
+            dungeonmasterHome: client.dungeonmasterHome,
+            guildId: GUILD_ID,
+            questFolder,
+          }) as never,
+        );
+
+        expect(response.error).toBe(undefined);
+        expect(actual).toStrictEqual({ success: true });
+        expect(persisted.comments).toStrictEqual([existingComment]);
+      });
+
       // dd-no-orphan-validation-gate: the save-time invariant list carries no check that fails a
       // quest for an orphaned comment. orphanComment below is seeded pre-orphaned (nodeId
       // 'ghost-node' never existed in flows — not something cleanup dropped this write, since

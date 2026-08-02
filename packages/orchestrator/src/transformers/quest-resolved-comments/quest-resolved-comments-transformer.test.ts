@@ -115,6 +115,87 @@ describe('questResolvedCommentsTransformer', () => {
     });
   });
 
+  // Two flows carrying the SAME node id, each with its own (different) observable set — flowId is
+  // the only thing that discriminates which flow's node the comment actually belongs to. A
+  // transformer that resolves by node id alone (ignoring which flow map it came from) either
+  // wrongly keeps a comment via a same-id node in the WRONG flow, or wrongly drops one whose own
+  // flow simply isn't first in iteration order.
+  describe('cross-flow node id collision (flow-scoped, not first-match)', () => {
+    it('EDGE: {two flows share a node id; comment targets the second flow but names the FIRST flow’s observable id} => drops the comment', () => {
+      const alphaObservable = FlowObservableStub({ id: 'shared-obs' as never });
+      const alphaNode = FlowNodeStub({
+        id: 'shared-node' as never,
+        label: 'Shared Node' as never,
+        observables: [alphaObservable],
+      });
+      const alphaFlow = FlowStub({ id: 'ocl-alpha' as never, nodes: [alphaNode] });
+
+      const betaObservable = FlowObservableStub({ id: 'second-obs' as never });
+      const betaNode = FlowNodeStub({
+        id: 'shared-node' as never,
+        label: 'Shared Node' as never,
+        observables: [betaObservable],
+      });
+      const betaFlow = FlowStub({
+        id: 'ocl-beta' as never,
+        name: 'Beta Flow' as never,
+        nodes: [betaNode],
+      });
+
+      // comment.flowId is ocl-beta, but observableId 'shared-obs' only exists on ocl-alpha's copy
+      // of shared-node — ocl-beta's copy only carries 'second-obs'.
+      const comment = QuestCommentStub({
+        flowId: 'ocl-beta' as never,
+        nodeId: 'shared-node' as never,
+        observableId: 'shared-obs' as never,
+      });
+
+      const result = questResolvedCommentsTransformer({
+        comments: [comment],
+        flows: [alphaFlow, betaFlow],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {two flows share a node id; comment’s own flow is NOT first in the flows array} => keeps the comment', () => {
+      const alphaObservable = FlowObservableStub({ id: 'shared-obs' as never });
+      const alphaNode = FlowNodeStub({
+        id: 'shared-node' as never,
+        label: 'Shared Node' as never,
+        observables: [alphaObservable],
+      });
+      const alphaFlow = FlowStub({ id: 'ocl-alpha' as never, nodes: [alphaNode] });
+
+      const betaObservable = FlowObservableStub({ id: 'second-obs' as never });
+      const betaNode = FlowNodeStub({
+        id: 'shared-node' as never,
+        label: 'Shared Node' as never,
+        observables: [betaObservable],
+      });
+      const betaFlow = FlowStub({
+        id: 'ocl-beta' as never,
+        name: 'Beta Flow' as never,
+        nodes: [betaNode],
+      });
+
+      // ocl-beta is listed FIRST here; the comment belongs to ocl-alpha (second in the array) and
+      // names alpha's own observable — resolution must key on comment.flowId, not array position.
+      const comment = QuestCommentStub({
+        flowId: 'ocl-alpha' as never,
+        nodeId: 'shared-node' as never,
+        observableId: 'shared-obs' as never,
+      });
+
+      const result = questResolvedCommentsTransformer({
+        comments: [comment],
+        flows: [betaFlow, alphaFlow],
+      });
+
+      expect(result).toStrictEqual([comment]);
+    });
+  });
+
   describe('label rename', () => {
     it('VALID: {node label renamed, id unchanged} => comment survives with unchanged text and createdAt', () => {
       const node = FlowNodeStub({ id: 'start' as never, label: 'Renamed Start' as never });

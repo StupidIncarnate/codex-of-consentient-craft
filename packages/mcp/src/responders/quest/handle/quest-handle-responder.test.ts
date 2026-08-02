@@ -401,6 +401,72 @@ describe('QuestHandleResponder', () => {
       });
     });
 
+    it('EDGE: {comments in args, edit shape {id, text}} => strips comments before passing to adapter, and still succeeds', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          comments: [
+            {
+              id: 'sneaky-comment-id',
+              text: 'An agent should not be able to edit this',
+            },
+          ],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(modifyResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('EDGE: {comments in args, delete shape {id, _delete: true}} => strips comments before passing to adapter, and still succeeds', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          comments: [
+            {
+              id: 'sneaky-comment-id',
+              _delete: true,
+            },
+          ],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(modifyResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
     it('EDGE: {planningNotes in args} => passes planningNotes through sanitization unchanged', async () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub();
