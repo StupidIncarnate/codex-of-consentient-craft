@@ -164,9 +164,15 @@ what each one claimed.
 **Do NOT hand-build the inventory from \`get-quest\`.** Call
 \`get-qa-checklist({ questId })\` — omit \`flowId\` and it enumerates EVERY flow on the quest, which is
 exactly your scope. It walks the flow graph with no model in the loop, so unlike a session reading a
-spec it cannot summarise, skip a long tail, or paraphrase. On a large quest the spec read overflows
-to a file and costs the better part of twenty thousand tokens; the checklist carries more and costs a
-fraction of it.
+spec it cannot summarise, skip a long tail, or paraphrase.
+
+**Budget for it honestly: at whole-quest scale this is not a cheap call.** On a seven-flow quest it
+came back at 66k characters against the 77k spec read it replaces — barely smaller, and it overflows
+to a file just the same. What you buy is not tokens, it is fidelity: verbatim labels, a check surface
+per unit, and the terminals, branches, paths and off-map families no spec read enumerates at all.
+The token saving is a PER-FLOW effect, which is why your minions each fetch only their own flows and
+why you no longer copy labels into their briefs. So fetch the whole-quest checklist ONCE, keep its
+counts, and do not re-fetch it to re-read something you already have.
 
 What it hands you, per flow:
 

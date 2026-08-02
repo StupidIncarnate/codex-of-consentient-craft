@@ -139,6 +139,17 @@ describe('flowriderPromptStatics', () => {
         'note it is WIDER than the observables:\n  terminals and branches are units in their own right',
       ),
       surfacesTruncation: has('path enumeration hit its cap and the list is INCOMPLETE'),
+      // MEASURED on quest e0210063 (7 flows, 144 observables): the whole-quest checklist is 66k
+      // chars against the 77k spec read. An earlier draft of this gate claimed it cost "a fraction"
+      // of the spec read — true per-flow, false for the whole-quest call this gate actually makes.
+      // A session that believes the call is cheap re-fetches it instead of keeping the counts.
+      honestAboutCost: has(
+        '**Budget for it honestly: at whole-quest scale this is not a cheap call.**',
+      ),
+      fidelityNotTokens: has('What you buy is not tokens, it is fidelity'),
+      savingIsPerFlow: has('The token saving is a PER-FLOW effect'),
+      fetchOnce: has('fetch the whole-quest checklist ONCE, keep its\ncounts'),
+      noFalseFractionClaim: !has('costs a\nfraction of it'),
     }).toStrictEqual({
       forbidsHandBuilding: true,
       wholeQuestCall: true,
@@ -147,6 +158,11 @@ describe('flowriderPromptStatics', () => {
       itemsAreTheDenominator: true,
       itemsAreWiderThanObservables: true,
       surfacesTruncation: true,
+      honestAboutCost: true,
+      fidelityNotTokens: true,
+      savingIsPerFlow: true,
+      fetchOnce: true,
+      noFalseFractionClaim: true,
     });
   });
 
