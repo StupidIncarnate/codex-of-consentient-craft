@@ -92,6 +92,44 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  it('VALID: {planningNotes with a qaLedger disposition} => survives parsing instead of being stripped', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      planningNotes: {
+        qaLedger: [
+          {
+            itemId: 'login-flow:observable:check-redirect',
+            disposition: 'walked',
+            evidence: 'the browser landed on /dashboard',
+            brokenWouldShow: 'would have stayed on /login',
+            observedBy: 'walker slice 1',
+            rippleSites: [],
+            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+            createdAt: '2024-01-15T10:00:00.000Z',
+          },
+        ],
+      },
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      planningNotes: {
+        qaLedger: [
+          {
+            itemId: 'login-flow:observable:check-redirect',
+            disposition: 'walked',
+            evidence: 'the browser landed on /dashboard',
+            brokenWouldShow: 'would have stayed on /login',
+            observedBy: 'walker slice 1',
+            rippleSites: [],
+            workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+            createdAt: '2024-01-15T10:00:00.000Z',
+          },
+        ],
+      },
+    });
+  });
+
   it('VALID: {planningNotes with blightReports delete marker} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',

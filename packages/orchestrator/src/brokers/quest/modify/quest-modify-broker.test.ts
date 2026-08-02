@@ -6,6 +6,7 @@ import {
   OperationItemStub,
   PlanningBlightReportStub,
   QuestCommentStub,
+  QuestQaLedgerEntryStub,
   QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -646,6 +647,228 @@ describe('questModifyBroker', () => {
       const result = await questModifyBroker({ input });
 
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('planningNotes.qaLedger handling', () => {
+    it('VALID: {planningNotes.qaLedger with a new itemId} => the disposition is persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const entry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { qaLedger: [entry] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [entry],
+      });
+    });
+
+    it('VALID: {planningNotes.qaLedger re-dispositioning an existing itemId} => replaces that entry rather than appending a second', async () => {
+      const proxy = questModifyBrokerProxy();
+      const original = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+        disposition: 'gap',
+        evidence: 'no browser attached on that pass' as never,
+      });
+      const untouched = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:terminal:logged-in' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [original, untouched] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const corrected = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+        disposition: 'walked',
+        evidence: 'the browser landed on /dashboard' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { qaLedger: [corrected] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [untouched, corrected],
+      });
+    });
+
+    it('EDGE: {planningNotes.qaLedger: []} with a non-empty existing ledger => leaves existing entries untouched (empty payload does not wipe)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingEntry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [existingEntry] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { qaLedger: [] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [existingEntry],
+      });
+    });
+
+    it('VALID: {planningNotes.blightReports and planningNotes.qaLedger both changing in one call} => both merges land, neither clobbers the other', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingReport = PlanningBlightReportStub({
+        id: '11111111-1111-4111-8111-111111111111' as never,
+        minion: 'security',
+      });
+      const existingEntry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:terminal:logged-in' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [existingReport], qaLedger: [existingEntry] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newReport = PlanningBlightReportStub({
+        id: '22222222-2222-4222-8222-222222222222' as never,
+        minion: 'dedup',
+      });
+      const newEntry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { blightReports: [newReport], qaLedger: [newEntry] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [existingReport, newReport],
+        qaLedger: [existingEntry, newEntry],
+      });
+    });
+
+    it('VALID: {planningNotes: {}} with neither blightReports nor qaLedger => leaves existing planningNotes untouched', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingReport = PlanningBlightReportStub({
+        id: '11111111-1111-4111-8111-111111111111' as never,
+        minion: 'security',
+      });
+      const existingEntry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:terminal:logged-in' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [existingReport], qaLedger: [existingEntry] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: {},
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [existingReport],
+        qaLedger: [existingEntry],
+      });
+    });
+  });
+
+  describe('planningNotes.qaLedger duplicate collapsing', () => {
+    it('EDGE: {two dispositions for the same itemId in ONE payload} => only the last survives', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const first = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+        disposition: 'gap',
+        evidence: 'superseded within the same payload' as never,
+      });
+      const last = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+        disposition: 'walked',
+        evidence: 'the browser landed on /dashboard' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { qaLedger: [first, last] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [last],
+      });
     });
   });
 

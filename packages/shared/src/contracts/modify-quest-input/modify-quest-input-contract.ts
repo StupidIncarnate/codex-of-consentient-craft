@@ -32,6 +32,7 @@ import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
+import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
@@ -201,9 +202,17 @@ export const modifyQuestInputContract = z
             ]),
           )
           .optional(),
+        qaLedger: z
+          .array(questQaLedgerEntryContract)
+          .describe(
+            'QA checklist dispositions to merge into quest.planningNotes.qaLedger, keyed on itemId — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a pt-N session can correct a predecessor. This is the only write path for the ledger the get-qa-checklist tool reads and the signal-back completion gate enforces.',
+          )
+          .optional(),
       })
       .partial()
-      .describe('Blightwarden blight reports to merge into quest.planningNotes')
+      .describe(
+        'Blightwarden blight reports and QA ledger dispositions to merge into quest.planningNotes',
+      )
       .optional(),
   })
   .strict()

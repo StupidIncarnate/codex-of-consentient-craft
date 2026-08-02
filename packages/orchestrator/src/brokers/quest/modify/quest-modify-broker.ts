@@ -190,6 +190,7 @@ export const questModifyBroker = async ({
         if (validated.planningNotes) {
           const incoming = validated.planningNotes;
           const current = quest.planningNotes;
+          const incomingLedger = incoming.qaLedger;
 
           quest.planningNotes = {
             ...current,
@@ -198,6 +199,20 @@ export const questModifyBroker = async ({
                 existing: current.blightReports,
                 updates: incoming.blightReports as typeof current.blightReports,
               }),
+            }),
+            // Keyed on itemId, not the `id: UUID` questArrayUpsertTransformer expects, so the
+            // upsert is spelled out here: a unit's newest disposition REPLACES its prior one, which
+            // is what lets a pt-N session correct what a predecessor recorded rather than stacking
+            // a second entry the checklist would then count twice. The incoming batch is collapsed
+            // by itemId first (last one wins) so one payload carrying two dispositions for the same
+            // unit cannot smuggle a duplicate past the same rule.
+            ...(incomingLedger !== undefined && {
+              qaLedger: [
+                ...current.qaLedger.filter(
+                  (entry) => !incomingLedger.some((update) => update.itemId === entry.itemId),
+                ),
+                ...[...new Map(incomingLedger.map((entry) => [entry.itemId, entry])).values()],
+              ] as typeof current.qaLedger,
             }),
           };
         }
