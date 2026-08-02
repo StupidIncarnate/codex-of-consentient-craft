@@ -375,6 +375,34 @@ describe('commentQueueState', () => {
       expect(proxy.hasKey({ questId })).toBe(false);
     });
 
+    it('VALID: {two quests each holding only expired entries} => the sweep removes both keys in one pass', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questA = QuestIdStub({ value: 'quest-a' });
+      const questB = QuestIdStub({ value: 'quest-b' });
+      // Two keys that BOTH need removing is the only shape that proves the scan snapshots its key
+      // list before mutating: removeItem re-indexes localStorage, so a live index walk would slide
+      // the second key into an already-visited slot and leave it behind. Every other case in this
+      // file pairs one expiring key with one surviving key, where that skip is invisible.
+      proxy.seedQueue({
+        questId: questA,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString() }),
+        ],
+      });
+      proxy.seedQueue({
+        questId: questB,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(NOW_MS - 9 * DAY_MS).toISOString() }),
+        ],
+      });
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(proxy.hasKey({ questId: questA })).toBe(false);
+      expect(proxy.hasKey({ questId: questB })).toBe(false);
+    });
+
     it('VALID: {a second quest holds only fresh entries} => its raw value is untouched and its subscriber is not notified', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
