@@ -15,6 +15,12 @@ import { tmpdir } from 'os';
 export const serverAppHarness = (): {
   setupTestHome: (params: { baseName: string }) => () => void;
   toPlain: (value: unknown) => unknown;
+  seedQuest: (params: {
+    dungeonmasterHome: string;
+    guildId: string;
+    questFolder: string;
+    quest: unknown;
+  }) => void;
 } => {
   const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
     const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
@@ -35,8 +41,29 @@ export const serverAppHarness = (): {
 
   const toPlain = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
+  // Writes a quest.json straight onto disk under an already-`setupTestHome`'d DUNGEONMASTER_HOME,
+  // the same way mcp-server.harness.ts's seedQuest does for the MCP subprocess suite. The
+  // orchestrator's quest lookup globs guilds/*/quests/*/quest.json — it does not require the
+  // guild to be registered in config.json first.
+  const seedQuest = ({
+    dungeonmasterHome,
+    guildId,
+    questFolder,
+    quest,
+  }: {
+    dungeonmasterHome: string;
+    guildId: string;
+    questFolder: string;
+    quest: unknown;
+  }): void => {
+    const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
+    mkdirSync(questDir, { recursive: true });
+    writeFileSync(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+  };
+
   return {
     setupTestHome,
     toPlain,
+    seedQuest,
   };
 };

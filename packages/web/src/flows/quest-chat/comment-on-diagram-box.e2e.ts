@@ -7,9 +7,13 @@ import {
   COMMENT_BOX_FLOW_ID,
   COMMENT_BOX_ISO_CREATED_AT,
   COMMENT_BOX_LONG_TOKEN_TEXT,
+  COMMENT_BOX_MARKUP_TEXT,
+  COMMENT_BOX_NEWLINE_TEXT,
   COMMENT_BOX_NODE_ID,
   COMMENT_BOX_NODE_LABEL,
   COMMENT_BOX_OBSERVABLE_ID,
+  COMMENT_BOX_SECOND_NODE_ID,
+  COMMENT_BOX_SECOND_OBSERVABLE_ID,
 } from '../../../test/harnesses/comment-box/comment-box.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-comment-on-diagram-box';
@@ -413,5 +417,133 @@ test.describe('Leave a Comment on a Diagram Box', () => {
     expect(await comments.readQueue()).toStrictEqual([]);
     // The key is removed outright rather than left holding an empty array, so nothing accumulates.
     expect(await comments.hasQueueKey()).toBe(false);
+  });
+
+  // #check-delete-removes-entry, the multi-entry half every other test in this file leaves
+  // unproven: with only ever one box queued at a time, `remove` filtering one anchor out of the
+  // array is indistinguishable from `remove` wiping the array outright. Two DIFFERENT box kinds
+  // (a FLOW_NODE and a FLOW_OBSERVABLE_NODE on a different node) also proves "the right box, not
+  // just the first box" — reopening either one must show its own text, never the other's.
+  test('VALID: {two different boxes each carry their own queued comment} => each box shows only its own text, and deleting one leaves the other entry, its COMMENT_QUEUE_BAR and its count intact', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment Multi Box Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: 'node box note' });
+    await comments.pressEnter();
+    await comments.closeCommentPopoverOnNode();
+
+    await comments.openCommentPopoverOnSecondObservable();
+    await comments.typeComment({ text: 'second observable note' });
+    await comments.pressEnter();
+
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_NODE_ID,
+        text: 'node box note',
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_SECOND_NODE_ID,
+        observableId: COMMENT_BOX_SECOND_OBSERVABLE_ID,
+        text: 'second observable note',
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    await expect(page.getByTestId('COMMENT_QUEUE_COUNT')).toHaveText('2 COMMENTS QUEUED');
+    // The second box's popover is still open from queueing above, showing only its own text.
+    await expect(page.getByTestId('COMMENT_QUEUED_TEXT')).toHaveText('second observable note');
+    await comments.closeCommentPopoverOnSecondObservable();
+
+    // Reopening the FIRST box shows ITS text, not the second box's.
+    await comments.openCommentPopoverOnNode();
+    await expect(page.getByTestId('COMMENT_QUEUED_TEXT')).toHaveText('node box note');
+
+    await comments.clickDeleteButton();
+
+    // The survivor is untouched: same text, same anchor, same createdAt — filtered OUT of the
+    // array by anchor, not wiped alongside it.
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_SECOND_NODE_ID,
+        observableId: COMMENT_BOX_SECOND_OBSERVABLE_ID,
+        text: 'second observable note',
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    await expect(page.getByTestId('COMMENT_QUEUE_BAR')).toBeVisible();
+    await expect(page.getByTestId('COMMENT_QUEUE_COUNT')).toHaveText('1 COMMENT QUEUED');
+  });
+
+  // #write-queue-entry with a hostile-input class none of the tests above exercise: an authored
+  // note that spans multiple lines. typeComment cannot type this directly (a bare \n in the string
+  // types as an unshifted Enter keypress and would submit after "first line"), so this composes
+  // through Shift+Enter and reads the result back with the one method that does not
+  // whitespace-normalize — proving the newline survives the JSON round trip into localStorage
+  // rather than collapsing into a space.
+  test('VALID: {queue a comment spanning two lines} => the stored entry and the queued-view text both keep the real newline character', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment Newline Queue Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.composeMultiLineComment({ lines: COMMENT_BOX_NEWLINE_TEXT.split('\n') });
+    await comments.clickQueueButton();
+
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_NODE_ID,
+        text: COMMENT_BOX_NEWLINE_TEXT,
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    expect(await comments.queuedTextExact()).toBe(COMMENT_BOX_NEWLINE_TEXT);
+  });
+
+  // #write-queue-entry with the other hostile-input class missing from this file: text that reads
+  // as markup. {queued.text} is a React text node, never dangerouslySetInnerHTML, so this proves
+  // the queue stores and repaints the note inert rather than stripped or interpreted — and stands
+  // as a regression guard if a future change ever swapped that text node for raw HTML.
+  test('VALID: {queue a comment that reads as markup} => the stored entry and the queued-view text both keep it as inert literal text', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Comment Markup Queue Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: COMMENT_BOX_MARKUP_TEXT });
+    await comments.pressEnter();
+
+    expect(await comments.readQueue()).toStrictEqual([
+      {
+        flowId: COMMENT_BOX_FLOW_ID,
+        nodeId: COMMENT_BOX_NODE_ID,
+        text: COMMENT_BOX_MARKUP_TEXT,
+        createdAt: COMMENT_BOX_ISO_CREATED_AT,
+      },
+    ]);
+    expect(await comments.queuedTextExact()).toBe(COMMENT_BOX_MARKUP_TEXT);
   });
 });

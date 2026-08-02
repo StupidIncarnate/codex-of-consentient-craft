@@ -10,7 +10,10 @@
 import type {
   GuildId,
   QuestId,
+  FlowStub,
   OperationItemStub,
+  QuestCommentStub,
+  QuestStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import {
@@ -34,6 +37,9 @@ const JSON_INDENT_SPACES = 2;
 
 type OperationItem = ReturnType<typeof OperationItemStub>;
 type WorkItem = ReturnType<typeof WorkItemStub>;
+type Flow = ReturnType<typeof FlowStub>;
+type QuestComment = ReturnType<typeof QuestCommentStub>;
+type Quest = ReturnType<typeof QuestStub>;
 
 export const orchestrationQuestHarness = (): {
   afterEach: () => Promise<void>;
@@ -50,6 +56,19 @@ export const orchestrationQuestHarness = (): {
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
   }) => Promise<void>;
+  // Overwrites flows/workItems/comments directly on disk, leaving every other field (status,
+  // title, etc.) as QuestUserAddResponder set it. Bypasses QuestModifyResponder the same way
+  // seedInProgressRelay does — the per-status input allowlist is covered by the broker/
+  // responder unit tests, not by this fixture-building helper.
+  seedFlowsAndComments: (params: {
+    questId: QuestId;
+    flows: readonly Flow[];
+    workItems: readonly WorkItem[];
+    comments: readonly QuestComment[];
+  }) => Promise<void>;
+  // Reads the quest back off real disk — for asserting what a prior seed or a real broker
+  // call actually persisted.
+  reload: (params: { questId: QuestId }) => Promise<Quest>;
   removeGuild: (params: { guildId: GuildId }) => Promise<void>;
 } => {
   const createdGuildIds: GuildId[] = [];
@@ -86,6 +105,15 @@ export const orchestrationQuestHarness = (): {
       JSON.stringify(seededQuest, null, JSON_INDENT_SPACES),
     );
     await questPersistBroker({ questFilePath, contents: questJson, questId });
+  };
+
+  const loadByQuestId = async (params: { questId: QuestId }): Promise<Quest> => {
+    const { questId } = params;
+    const { questPath } = await questFindQuestPathBroker({ questId });
+    const questFilePath = filePathContract.parse(
+      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    );
+    return questLoadBroker({ questFilePath });
   };
 
   return {
@@ -129,6 +157,36 @@ export const orchestrationQuestHarness = (): {
       return { guild, questId };
     },
     seedInProgressRelay,
+    seedFlowsAndComments: async ({
+      questId,
+      flows,
+      workItems,
+      comments,
+    }: {
+      questId: QuestId;
+      flows: readonly Flow[];
+      workItems: readonly WorkItem[];
+      comments: readonly QuestComment[];
+    }): Promise<void> => {
+      const { questPath } = await questFindQuestPathBroker({ questId });
+      const questFilePath = filePathContract.parse(
+        pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+      );
+      const loadedQuest = await questLoadBroker({ questFilePath });
+
+      const seededQuest = {
+        ...loadedQuest,
+        flows: [...flows],
+        workItems: [...workItems],
+        comments: [...comments],
+      };
+
+      const questJson = fileContentsContract.parse(
+        JSON.stringify(seededQuest, null, JSON_INDENT_SPACES),
+      );
+      await questPersistBroker({ questFilePath, contents: questJson, questId });
+    },
+    reload: loadByQuestId,
     removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> => {
       await GuildRemoveResponder({ guildId });
     },

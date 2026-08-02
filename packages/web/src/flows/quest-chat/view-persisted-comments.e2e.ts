@@ -9,11 +9,14 @@ import {
   COMMENTED_ASSERTION_TEXT,
   COMMENTED_NODE_CONTRACT_NAME,
   CONTRACTS_ONLY_CONTRACT_NAME,
+  FIRST_ASSERTION_TEXT,
   LONG_TOKEN_COMMENT_TEXT,
   NODE_COMMENT_NEWER_AT,
   NODE_COMMENT_NEWER_TEXT,
   NODE_COMMENT_OLDER_AT,
   NODE_COMMENT_OLDER_TEXT,
+  SECOND_ASSERTION_COMMENT_TEXT,
+  SECOND_ASSERTION_TEXT,
 } from '../../../test/harnesses/persisted-comments/persisted-comments.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-view-persisted-comments';
@@ -47,8 +50,8 @@ test.describe('View Persisted Comments on a Quest', () => {
     });
 
     // The canvas really painted, so the zero badges below mean "no comments" rather than "no quest".
-    await expect(page.getByTestId('FLOW_NODE')).toHaveCount(3);
-    await expect(page.getByTestId('FLOW_OBSERVABLE_NODE')).toHaveCount(1);
+    await expect(page.getByTestId('FLOW_NODE')).toHaveCount(4);
+    await expect(page.getByTestId('FLOW_OBSERVABLE_NODE')).toHaveCount(3);
     expect(await view.commentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual([]);
     expect(await view.commentBadgeTextsOn({ testId: 'FLOW_OBSERVABLE_NODE' })).toStrictEqual([]);
   });
@@ -75,6 +78,42 @@ test.describe('View Persisted Comments on a Quest', () => {
     expect(await view.commentBadgeTextOnCard({ card: view.bareCard() })).toStrictEqual([]);
     // Badge and compose button coexist on one card: the two gates are independent.
     await expect(view.nodeCard().getByTestId('COMMENT_BUTTON')).toHaveCount(1);
+  });
+
+  // #check-badge-per-assertion-card — each assertion card must badge its OWN observableId. A node
+  // with a single assertion card cannot distinguish "badges its own id" from "badges its node's
+  // first observable"; this node carries two, with the only comment on the second, so a badge (or a
+  // panel) that rolled up to the first card's id instead of its own fails loudly.
+  test('VALID: {a node with two assertion cards, the only comment anchored to the second} => the second assertion badges 1 while the first assertion and the node card badge nothing, and each card opens its own panel', async ({
+    page,
+    request,
+  }) => {
+    const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await view.seedAndOpenSpecPanel({
+      guildName: 'Per Assertion Badge Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    // Neither the node card nor the first assertion carries a comment of its own, so a badge on
+    // either one here would prove the count leaked from the second card's comment.
+    expect(await view.commentBadgeTextOnCard({ card: view.twoAssertionsNodeCard() })).toStrictEqual(
+      [],
+    );
+    expect(await view.commentBadgeTextOnCard({ card: view.firstAssertionCard() })).toStrictEqual(
+      [],
+    );
+    expect(await view.commentBadgeTextOnCard({ card: view.secondAssertionCard() })).toStrictEqual([
+      '1',
+    ]);
+
+    await view.clickObservableCard({ card: view.firstAssertionCard() });
+    await expect(page.getByTestId('FLOW_DETAIL_PANEL_HEADING')).toHaveText(FIRST_ASSERTION_TEXT);
+    await expect(page.getByTestId('FLOW_DETAIL_PANEL_COMMENTS')).toHaveCount(0);
+
+    await view.clickObservableCard({ card: view.secondAssertionCard() });
+    await expect(page.getByTestId('FLOW_DETAIL_PANEL_HEADING')).toHaveText(SECOND_ASSERTION_TEXT);
+    expect(await view.panelCommentTexts()).toStrictEqual([SECOND_ASSERTION_COMMENT_TEXT]);
   });
 
   // #check-badge-without-button-when-approved — the status gate closes on the button alone.

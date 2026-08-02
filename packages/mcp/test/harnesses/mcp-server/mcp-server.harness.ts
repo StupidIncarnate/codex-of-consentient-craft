@@ -44,6 +44,11 @@ export const mcpServerHarness = (): {
     questFolder: string;
     quest: unknown;
   }) => void;
+  readQuestFile: (params: {
+    dungeonmasterHome: GuildPath;
+    guildId: string;
+    questFolder: string;
+  }) => unknown;
 } => {
   const buildInitRequest = ({
     id = RpcIdStub({ value: 1 }),
@@ -234,10 +239,30 @@ export const mcpServerHarness = (): {
     );
   };
 
+  // Reads the RAW persisted quest.json straight off disk, bypassing the get-quest MCP tool
+  // entirely. That tool strips `comments` before an agent ever sees the response (by design —
+  // see quest-strip-comments-transformer.ts), so it cannot be used to observe whether a comment
+  // wrote, survived, or dropped after a modify-quest call. This is the only way an integration
+  // test can inspect quest.comments post-write.
+  const readQuestFile = ({
+    dungeonmasterHome,
+    guildId,
+    questFolder,
+  }: {
+    dungeonmasterHome: GuildPath;
+    guildId: string;
+    questFolder: string;
+  }): unknown => {
+    const questDir = path.join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
+    const raw = fs.readFileSync(path.join(questDir, 'quest.json'), 'utf8');
+    return JSON.parse(raw);
+  };
+
   return {
     createClient,
     buildInitRequest,
     buildToolListRequest,
     seedQuest,
+    readQuestFile,
   };
 };

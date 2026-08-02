@@ -2,6 +2,7 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 import {
   AddQuestInputStub,
   BlockedReasonStub,
+  CommentBatchEntryStub,
   GuildNameStub,
   GuildPathStub,
   OperationItemIdStub,
@@ -11,6 +12,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { CommentBatchResponder } from '../../responders/comment/batch/comment-batch-responder';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestFlow } from './quest-flow';
@@ -520,6 +522,43 @@ describe('QuestFlow', () => {
         spiritWorkItemStatus: 'pending',
         spiritWorkItemLink: [`operations/${String(spiritOp!.id)}`],
       });
+    }, 30_000);
+  });
+
+  // Flow: orphan-comment-cleanup, node quest-modify-request, observable
+  // check-http-comments-write-allowed. CommentBatchResponder is the comment-batch route's own
+  // server-side persist path — it calls questModifyBroker directly, with none of the MCP
+  // responder's comments strip (that strip lives ONLY at the MCP tool boundary, in
+  // packages/mcp/src/responders/quest/handle/quest-handle-responder.ts). Driving it here against a
+  // real quest on real disk proves the strip is scoped to the MCP agent payload, not to the
+  // `comments` field itself — mcp-server-flow.integration.test.ts proves the opposite half: the
+  // SAME field, arriving via modify-quest, is silently dropped for an agent caller.
+  describe('comment integrity — the comment-batch route writes comments the MCP agent path blocks', () => {
+    it('VALID: {CommentBatchResponder persists one comment} => the real persisted quest.comments carries it on the very next read', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-comment-batch-write' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const entry = CommentBatchEntryStub({
+        flowId: 'login-flow' as never,
+        nodeId: 'start' as never,
+        text: 'Left on the box by a real user, through the batch route' as never,
+      });
+
+      const batchResult = await CommentBatchResponder({ questId, comments: [entry] });
+      const afterBatch = await QuestGetResponder({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        flowId: batchResult.comments[0]!.flowId,
+        nodeId: batchResult.comments[0]!.nodeId,
+        text: batchResult.comments[0]!.text,
+      }).toStrictEqual({ flowId: entry.flowId, nodeId: entry.nodeId, text: entry.text });
+      expect(afterBatch.quest!.comments).toStrictEqual(batchResult.comments);
     }, 30_000);
   });
 

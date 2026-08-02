@@ -4,11 +4,13 @@ import {
   FileContentsStub,
   GuildIdStub,
   ProcessIdStub,
+  QuestCommentStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
   WorkItemStub,
+  WsMessageStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
@@ -309,6 +311,61 @@ describe('ServerInitResponder', () => {
         firstSendCarriesQuestStatus: true,
         questModifiedBeforeChatHistoryComplete: true,
       });
+    });
+  });
+
+  // Flow: comments-excluded-from-agent-reads, node web-read-keeps-comments, observable
+  // check-ws-quest-modified-carries-comments. This responder never strips anything from the
+  // loaded quest before broadcasting it — only the MCP get-quest tool (a different package) does
+  // that. Mocking only the true I/O boundary (orchestratorLoadQuestAdapter) and exercising the
+  // real broadcast code proves badges/panels get comments live over the WS wire the same way the
+  // HTTP GET does.
+  describe('websocket onMessage subscribe-quest quest carrying comments', () => {
+    it('VALID: {subscribe-quest for a quest carrying a comment} => the quest-modified payload carries the comments array unchanged', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-with-comments-1' });
+      const comment = QuestCommentStub({
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01' as never,
+        flowId: 'login-flow' as never,
+        nodeId: 'start' as never,
+        text: 'Badge and panel should see this live' as never,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'flows_approved',
+        workItems: [],
+        comments: [comment],
+      });
+      proxy.setupLoadQuestSuccess({ quest });
+      proxy.setupFindQuestPathSuccess({
+        questId,
+        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        guildId: GuildIdStub(),
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'subscribe-quest', questId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      const parsedMessage = WsMessageStub(JSON.parse(String(sendMock.mock.calls[0]?.[0])) as never);
+      // payload's key type is branded (PayloadKey), so dot/bracket access by name (`.quest`)
+      // does not type-check. Object.values() sidesteps the branded KEY type entirely — it only
+      // cares about the VALUE type (unknown) — and is safe here because every quest-modified
+      // send in server-init-responder.ts constructs payload as `{ questId, quest }` in that
+      // fixed order (both the subscribe-quest immediate send and the outbox watcher broadcast).
+      const [, payloadQuestValue] = Object.values(parsedMessage.payload);
+      const payloadQuest = QuestStub(payloadQuestValue as never);
+
+      expect(payloadQuest.comments).toStrictEqual([comment]);
     });
   });
 

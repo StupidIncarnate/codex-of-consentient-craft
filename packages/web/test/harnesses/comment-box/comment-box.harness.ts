@@ -13,6 +13,9 @@
  */
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
+import { commentTextContract } from '@dungeonmaster/shared/contracts';
+import type { CommentText } from '@dungeonmaster/shared/contracts';
+
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -55,6 +58,28 @@ export const COMMENT_BOX_ISO_CREATED_AT = '<iso-timestamp>';
 export const COMMENT_BOX_LONG_TOKEN_TEXT =
   'rename boxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirst please';
 
+// A second box on a DIFFERENT node than review-spec's observable, so a test can prove a comment
+// queued on one box never bleeds into the other — the "right box, not just the first box" this
+// fixture exists to distinguish. Anchored to the terminal node, whose own FLOW_NODE card and this
+// assertion card are both usable as a fully independent second target.
+export const COMMENT_BOX_SECOND_NODE_ID = 'accept-spec';
+export const COMMENT_BOX_SECOND_OBSERVABLE_ID = 'accept-spec-recorded';
+export const COMMENT_BOX_SECOND_OBSERVABLE_TEXT = 'the accepted spec state is recorded';
+
+// A newline-bearing note — the shape a comment takes when a reviewer quotes multiple lines back.
+// Split on \n and typed through composeMultiLineComment (typeComment cannot carry this: a bare \n
+// inside the string types as an unshifted Enter keypress, and the widget's own handler submits the
+// draft before the second line ever lands), then queued and read back — proving the character
+// survives the JSON.stringify/JSON.parse round trip into localStorage and repaints as a real line
+// break rather than collapsing away.
+export const COMMENT_BOX_NEWLINE_TEXT = 'first line\nsecond line';
+
+// A note that reads as markup. React renders {queued.text} as a plain text node, never HTML, so
+// this proves the queue stores and repaints it inert rather than stripped or interpreted — and
+// stands as a regression guard if a future change ever swapped that text node for
+// dangerouslySetInnerHTML.
+export const COMMENT_BOX_MARKUP_TEXT = '<script>alert(1)</script>';
+
 // Three flow nodes, one assertion card branching off the entry node, and one cross-flow edge whose
 // target lives in another flow so the canvas also paints a FLOW_PORTAL_NODE stand-in. That mix is
 // exactly what #check-comment-button-on-flow-node / -on-observable-node / -no-...-on-portal need on
@@ -79,7 +104,18 @@ const COMMENT_FLOW = {
       ],
     },
     { id: 'looks-right', label: 'Looks Right?', type: 'decision', observables: [] },
-    { id: 'accept-spec', label: 'Accept Spec', type: 'terminal', observables: [] },
+    {
+      id: COMMENT_BOX_SECOND_NODE_ID,
+      label: 'Accept Spec',
+      type: 'terminal',
+      observables: [
+        {
+          id: COMMENT_BOX_SECOND_OBSERVABLE_ID,
+          type: 'ui-state',
+          description: COMMENT_BOX_SECOND_OBSERVABLE_TEXT,
+        },
+      ],
+    },
   ],
   edges: [
     { id: 'review-to-decision', from: COMMENT_BOX_NODE_ID, to: 'looks-right' },
@@ -145,12 +181,15 @@ export const commentBoxHarness = ({
   }) => Promise<void>;
   nodeCard: () => Locator;
   observableCard: () => Locator;
+  secondObservableCard: () => Locator;
   everyFlowNodeHasOneCommentButton: () => Promise<boolean>;
   everyObservableNodeHasOneCommentButton: () => Promise<boolean>;
   portalCardHasNoCommentButton: () => Promise<boolean>;
   openCommentPopoverOnNode: () => Promise<void>;
   openCommentPopoverOnObservable: () => Promise<void>;
+  openCommentPopoverOnSecondObservable: () => Promise<void>;
   closeCommentPopoverOnNode: () => Promise<void>;
+  closeCommentPopoverOnSecondObservable: () => Promise<void>;
   clickNodeCardBody: () => Promise<void>;
   commentButtonWobbleLeavesCardInPlace: () => Promise<boolean>;
   typeComment: (params: { text: string }) => Promise<void>;
@@ -164,6 +203,7 @@ export const commentBoxHarness = ({
   clickEditButton: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   queuedTextFitsInsidePopover: () => Promise<boolean>;
+  queuedTextExact: () => Promise<CommentText>;
   readQueue: () => Promise<unknown>;
   hasQueueKey: () => Promise<boolean>;
   captureQueueSnapshot: () => Promise<void>;
@@ -213,6 +253,11 @@ export const commentBoxHarness = ({
       .getByTestId('FLOW_OBSERVABLE_NODE')
       .filter({ has: page.getByText(COMMENT_BOX_OBSERVABLE_TEXT) });
 
+  const secondObservableCard = (): Locator =>
+    page
+      .getByTestId('FLOW_OBSERVABLE_NODE')
+      .filter({ has: page.getByText(COMMENT_BOX_SECOND_OBSERVABLE_TEXT) });
+
   // Counts the COMMENT_BUTTON descendants of every card carrying the given testid, so a card that
   // renders two buttons — or none — is as much a failure as a wrong total across the canvas.
   const commentButtonsPerCard = async ({ testId }: { testId: string }) => {
@@ -236,6 +281,16 @@ export const commentBoxHarness = ({
   const openPopoverOn = async ({ card }: { card: Locator }): Promise<void> => {
     await card.getByTestId('COMMENT_BUTTON').click();
     await page.getByTestId('COMMENT_POPOVER').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+  };
+
+  // The comment button toggles: a second press on an open popover closes it. Shared by every
+  // "close this box's popover" method so two boxes never have their popovers open at once, which
+  // would leave testid locators like COMMENT_TEXTAREA ambiguous across both.
+  const closePopoverOn = async ({ card }: { card: Locator }): Promise<void> => {
+    await card.getByTestId('COMMENT_BUTTON').click();
+    await page
+      .getByTestId('COMMENT_POPOVER')
+      .waitFor({ state: 'detached', timeout: PANEL_TIMEOUT });
   };
 
   return {
@@ -343,6 +398,7 @@ export const commentBoxHarness = ({
 
     nodeCard,
     observableCard,
+    secondObservableCard,
 
     everyFlowNodeHasOneCommentButton: async (): Promise<boolean> => {
       const perCard = await commentButtonsPerCard({ testId: 'FLOW_NODE' });
@@ -367,14 +423,21 @@ export const commentBoxHarness = ({
       await openPopoverOn({ card: observableCard() });
     },
 
-    // The comment button toggles: a second press on an open popover closes it. Closing and pressing
-    // again is how a reviewer returns to a box they already queued something on, which is the only
-    // way to reach the already-has-a-queued-comment branch through the real UI.
+    openCommentPopoverOnSecondObservable: async (): Promise<void> => {
+      await openPopoverOn({ card: secondObservableCard() });
+    },
+
+    // Closing and pressing again is how a reviewer returns to a box they already queued something
+    // on, which is the only way to reach the already-has-a-queued-comment branch through the real UI.
     closeCommentPopoverOnNode: async (): Promise<void> => {
-      await nodeCard().getByTestId('COMMENT_BUTTON').click();
-      await page
-        .getByTestId('COMMENT_POPOVER')
-        .waitFor({ state: 'detached', timeout: PANEL_TIMEOUT });
+      await closePopoverOn({ card: nodeCard() });
+    },
+
+    // Needed whenever a test must move on to a DIFFERENT box's popover: only one popover may be
+    // open at a time, or the two boxes' shared testids (COMMENT_TEXTAREA, COMMENT_QUEUED_TEXT, ...)
+    // become ambiguous locators.
+    closeCommentPopoverOnSecondObservable: async (): Promise<void> => {
+      await closePopoverOn({ card: secondObservableCard() });
     },
 
     // Clicks the card's own label, which is the part of the card a reviewer clicks to open the
@@ -479,6 +542,18 @@ export const commentBoxHarness = ({
     // painted outcome, measured on the real layout rather than inferred from a style rule.
     queuedTextFitsInsidePopover: async (): Promise<boolean> =>
       page.getByTestId('COMMENT_QUEUED_TEXT').evaluate(QUEUED_TEXT_FITS_BROWSER_FN),
+
+    // The exact DOM text content of the queued row — not Playwright's toHaveText, which
+    // whitespace-normalizes both sides of the comparison and would collapse a real newline down
+    // to a space on both the actual AND the expected string, silently passing either way. This is
+    // the only path that can tell "a newline" apart from "a space" or "stripped/escaped markup".
+    queuedTextExact: async (): Promise<CommentText> => {
+      const text = await page.getByTestId('COMMENT_QUEUED_TEXT').textContent();
+      if (text === null) {
+        throw new Error('COMMENT_QUEUED_TEXT has no text content');
+      }
+      return commentTextContract.parse(text);
+    },
 
     // The queue exactly as the browser stored it, with each createdAt that round-trips as a real ISO
     // timestamp swapped for a sentinel so the scenario can assert the whole entry at once.

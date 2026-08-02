@@ -76,7 +76,7 @@ export const QuestSpecPanelWidget = ({
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
       <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
-      <Box style={SCROLLABLE_STYLE}>
+      <Box style={SCROLLABLE_STYLE} data-testid="QUEST_SPEC_PANEL_CONTENT">
         <Text
           ff="monospace"
           size={HEADER_FONT_SIZE}

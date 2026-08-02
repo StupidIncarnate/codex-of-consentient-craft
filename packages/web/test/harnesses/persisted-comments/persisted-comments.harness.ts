@@ -59,17 +59,31 @@ export const LONG_TOKEN_COMMENT_AT = '2026-05-06T07:08:09.000Z';
 export const CONTRACTS_ONLY_CONTRACT_NAME = 'ContractsOnlyPayload';
 export const COMMENTED_NODE_CONTRACT_NAME = 'CommentedNodePayload';
 
-// Three flow nodes covering the three display states this flow forks on: a node carrying comments
-// AND a contract (badge beside badge, panel with both sections), a node carrying a contract but no
-// comments (panel with contracts and no comments section), and a node carrying neither (empty
-// panel). One assertion card branches off the commented node so an observable comment has somewhere
-// to anchor and the node-vs-assertion partition has two real boxes to keep apart.
+// A second node carrying TWO assertion cards, with the only comment anchored to the SECOND one.
+// One card is unfalsifiable here: without a sibling, "badges its own observableId" and "badges its
+// node's first observable" produce the same result. Neither card nor the node itself carries a
+// comment of its own, so any badge painted on the node card or the first assertion is a real defect.
+export const TWO_ASSERTIONS_NODE_ID = 'two-assertions-node';
+export const TWO_ASSERTIONS_NODE_LABEL = 'Two Assertions Node';
+export const FIRST_ASSERTION_ID = 'first-assertion';
+export const FIRST_ASSERTION_TEXT = 'the first assertion in this pair carries no comment';
+export const SECOND_ASSERTION_ID = 'second-assertion';
+export const SECOND_ASSERTION_TEXT = 'the second assertion in this pair carries the only comment';
+export const SECOND_ASSERTION_COMMENT_TEXT = 'this second assertion needs a closer look';
+export const SECOND_ASSERTION_COMMENT_AT = '2026-04-05T06:07:08.000Z';
+
+// Four flow nodes covering the four display states this flow forks on: a node carrying comments AND
+// a contract (badge beside badge, panel with both sections), a node carrying a contract but no
+// comments (panel with contracts and no comments section), a node carrying neither (empty panel), and
+// a node with two assertion cards where only the second carries a comment (per-card badge isolation).
+// One assertion card branches off the commented node so an observable comment has somewhere to
+// anchor and the node-vs-assertion partition has two real boxes to keep apart.
 const VIEW_COMMENTS_FLOW = {
   id: VIEW_COMMENTS_FLOW_ID,
   name: 'Comment View Flow',
   flowType: 'runtime',
   entryPoint: COMMENTED_NODE_ID,
-  exitPoints: ['bare-node'],
+  exitPoints: ['bare-node', TWO_ASSERTIONS_NODE_ID],
   nodes: [
     {
       id: COMMENTED_NODE_ID,
@@ -90,10 +104,20 @@ const VIEW_COMMENTS_FLOW = {
       observables: [],
     },
     { id: 'bare-node', label: BARE_NODE_LABEL, type: 'terminal', observables: [] },
+    {
+      id: TWO_ASSERTIONS_NODE_ID,
+      label: TWO_ASSERTIONS_NODE_LABEL,
+      type: 'action',
+      observables: [
+        { id: FIRST_ASSERTION_ID, type: 'ui-state', description: FIRST_ASSERTION_TEXT },
+        { id: SECOND_ASSERTION_ID, type: 'ui-state', description: SECOND_ASSERTION_TEXT },
+      ],
+    },
   ],
   edges: [
     { id: 'commented-to-contracts', from: COMMENTED_NODE_ID, to: 'contracts-only-node' },
     { id: 'contracts-to-bare', from: 'contracts-only-node', to: 'bare-node' },
+    { id: 'contracts-to-two-assertions', from: 'contracts-only-node', to: TWO_ASSERTIONS_NODE_ID },
   ],
 };
 
@@ -142,6 +166,14 @@ const VIEW_COMMENTS_PERSISTED = [
     nodeId: COMMENTED_NODE_ID,
     text: NODE_COMMENT_NEWER_TEXT,
     createdAt: NODE_COMMENT_NEWER_AT,
+  },
+  {
+    id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d005',
+    flowId: VIEW_COMMENTS_FLOW_ID,
+    nodeId: TWO_ASSERTIONS_NODE_ID,
+    observableId: SECOND_ASSERTION_ID,
+    text: SECOND_ASSERTION_COMMENT_TEXT,
+    createdAt: SECOND_ASSERTION_COMMENT_AT,
   },
 ];
 
@@ -199,11 +231,15 @@ export const persistedCommentsHarness = ({
   contractsOnlyCard: () => Locator;
   bareCard: () => Locator;
   assertionCard: () => Locator;
+  twoAssertionsNodeCard: () => Locator;
+  firstAssertionCard: () => Locator;
+  secondAssertionCard: () => Locator;
   commentBadgeTextsOn: (params: { testId: string }) => Promise<HTMLElement['textContent'][]>;
   commentBadgeTextOnCard: (params: { card: Locator }) => Promise<HTMLElement['textContent'][]>;
   contractBadgeTextOnCard: (params: { card: Locator }) => Promise<HTMLElement['textContent'][]>;
   clickCardBody: (params: { card: Locator }) => Promise<void>;
   clickAssertionCard: () => Promise<void>;
+  clickObservableCard: (params: { card: Locator }) => Promise<void>;
   panelCommentTexts: () => Promise<HTMLElement['textContent'][]>;
   panelCommentTimes: () => Promise<HTMLElement['textContent'][]>;
   panelContractNames: () => Promise<HTMLElement['textContent'][]>;
@@ -226,6 +262,15 @@ export const persistedCommentsHarness = ({
     page
       .getByTestId('FLOW_OBSERVABLE_NODE')
       .filter({ has: page.getByText(COMMENTED_ASSERTION_TEXT) });
+
+  const twoAssertionsNodeCard = (): Locator =>
+    page.getByTestId('FLOW_NODE').filter({ has: page.getByText(TWO_ASSERTIONS_NODE_LABEL) });
+
+  const firstAssertionCard = (): Locator =>
+    page.getByTestId('FLOW_OBSERVABLE_NODE').filter({ has: page.getByText(FIRST_ASSERTION_TEXT) });
+
+  const secondAssertionCard = (): Locator =>
+    page.getByTestId('FLOW_OBSERVABLE_NODE').filter({ has: page.getByText(SECOND_ASSERTION_TEXT) });
 
   // Seeds guild + quest + quest.json and parks the ids navigation needs. Kept separate from the
   // navigation step so the two openers below can share it without duplicating the seed.
@@ -371,6 +416,9 @@ export const persistedCommentsHarness = ({
     contractsOnlyCard,
     bareCard,
     assertionCard,
+    twoAssertionsNodeCard,
+    firstAssertionCard,
+    secondAssertionCard,
 
     // Every COMMENT_COUNT_BADGE across all cards carrying the given testid, so a badge painted on
     // the wrong card is as loud a failure as a missing one.
@@ -406,6 +454,15 @@ export const persistedCommentsHarness = ({
 
     clickAssertionCard: async (): Promise<void> => {
       await assertionCard().click();
+      await page
+        .getByTestId('FLOW_NODE_DETAIL_PANEL')
+        .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    },
+
+    // Generic version of clickAssertionCard for any FLOW_OBSERVABLE_NODE card — an observable card
+    // has no FLOW_NODE_LABEL sub-element, so (unlike clickCardBody) the click lands on the card root.
+    clickObservableCard: async ({ card }: { card: Locator }): Promise<void> => {
+      await card.click();
       await page
         .getByTestId('FLOW_NODE_DETAIL_PANEL')
         .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
