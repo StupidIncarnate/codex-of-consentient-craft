@@ -10,13 +10,16 @@ import {
   COMMENTED_NODE_CONTRACT_NAME,
   CONTRACTS_ONLY_CONTRACT_NAME,
   FIRST_ASSERTION_TEXT,
+  FLOW_BETA_NODE_COMMENT_TEXT,
   LONG_TOKEN_COMMENT_TEXT,
   NODE_COMMENT_NEWER_AT,
   NODE_COMMENT_NEWER_TEXT,
   NODE_COMMENT_OLDER_AT,
   NODE_COMMENT_OLDER_TEXT,
+  NODE_COMMENT_SCRAMBLED_TEXT,
   SECOND_ASSERTION_COMMENT_TEXT,
   SECOND_ASSERTION_TEXT,
+  VIEW_COMMENTS_FLOW_BETA_NAME,
 } from '../../../test/harnesses/persisted-comments/persisted-comments.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-view-persisted-comments';
@@ -180,6 +183,68 @@ test.describe('View Persisted Comments on a Quest', () => {
     ]);
     // The node panel still shows the contracts anchored to the node itself.
     expect(await view.panelContractNames()).toStrictEqual([COMMENTED_NODE_CONTRACT_NAME]);
+  });
+
+  // #check-newest-first-order, discriminating a REAL descending sort from an array reversal. The
+  // fixture above stores only two node comments, both ascending, so reversing that stored array and
+  // sorting it descending by createdAt produce the IDENTICAL two-row result — the test above cannot
+  // tell a `.reverse()` bug from a real sort. This seed adds a third node comment dated BETWEEN the
+  // other two but written LAST in quest.json, breaking that coincidence.
+  test('VALID: {a third node comment dated between the other two but written LAST in quest.json} => the panel lists rows in true chronological order, not a reversed insertion order', async ({
+    page,
+    request,
+  }) => {
+    const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await view.seedAndOpenSpecPanel({
+      guildName: 'Scrambled Order Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+      withScrambledOrder: true,
+    });
+
+    await view.clickCardBody({ card: view.nodeCard() });
+
+    // A `.reverse()` of the stored array would read [SCRAMBLED, NEWER, OLDER] — this row is LAST in
+    // quest.json, so reversing puts it FIRST. Only a real descending sort by createdAt puts it here,
+    // in the middle, where 2026-02-15 actually falls between 2026-01-02 and 2026-03-04.
+    expect(await view.panelCommentTexts()).toStrictEqual([
+      NODE_COMMENT_NEWER_TEXT,
+      NODE_COMMENT_SCRAMBLED_TEXT,
+      NODE_COMMENT_OLDER_TEXT,
+    ]);
+  });
+
+  // Every other fixture in this file lives on ONE flow, so nothing above can catch a filter that
+  // dropped flowId and matched on nodeId (+ observableId) alone. This seed adds a second flow whose
+  // node shares the IDENTICAL id and label with flow alpha's commented node — flowId is the only
+  // thing that can tell the two boxes apart.
+  test('VALID: {two flows whose node shares the same id and label, each carrying its own comment} => switching flow tabs shows only that flow own comment, never the other flow one', async ({
+    page,
+    request,
+  }) => {
+    const view = persistedCommentsHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await view.seedAndOpenSpecPanel({
+      guildName: 'Cross Flow Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+      withSecondFlow: true,
+    });
+
+    // Flow alpha (the default active tab) still reads its own two comments — flow beta's
+    // identically-ided box contributed nothing to it.
+    expect(await view.commentBadgeTextOnCard({ card: view.nodeCard() })).toStrictEqual(['2']);
+    await view.clickCardBody({ card: view.nodeCard() });
+    expect(await view.panelCommentTexts()).toStrictEqual([
+      NODE_COMMENT_NEWER_TEXT,
+      NODE_COMMENT_OLDER_TEXT,
+    ]);
+
+    await view.clickFlowTab({ name: VIEW_COMMENTS_FLOW_BETA_NAME });
+
+    // Flow beta's identically-ided, identically-labelled node reads ONLY its own single comment.
+    expect(await view.commentBadgeTextOnCard({ card: view.nodeCard() })).toStrictEqual(['1']);
+    await view.clickCardBody({ card: view.nodeCard() });
+    expect(await view.panelCommentTexts()).toStrictEqual([FLOW_BETA_NODE_COMMENT_TEXT]);
   });
 
   // #check-long-comment-token-wraps — a PAINTED-width claim, so a browser is the only place it can

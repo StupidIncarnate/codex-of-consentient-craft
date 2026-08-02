@@ -56,6 +56,27 @@ export const LONG_TOKEN_COMMENT_TEXT =
   'renameBoxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirstAcrossEveryFlowOnTheQuestPlease';
 export const LONG_TOKEN_COMMENT_AT = '2026-05-06T07:08:09.000Z';
 
+// A THIRD node comment whose createdAt sits BETWEEN NODE_COMMENT_OLDER_AT and NODE_COMMENT_NEWER_AT,
+// but is appended to quest.json AFTER both of them. The two comments above are stored in ascending
+// (oldest-first) order, so reversing that stored array and sorting it descending by createdAt produce
+// the IDENTICAL two-row result — neither operation can be told apart by that fixture alone. This
+// third comment breaks the coincidence: `.reverse()` of the stored array would put it FIRST (it is
+// last in the file); only a real descending sort by createdAt puts it in the MIDDLE, where
+// 2026-02-15 actually falls between 2026-01-02 and 2026-03-04.
+export const NODE_COMMENT_SCRAMBLED_TEXT = 'a mid-dated note filed last, after the newest one';
+export const NODE_COMMENT_SCRAMBLED_AT = '2026-02-15T00:00:00.000Z';
+
+// A second flow reusing the SAME nodeId and label as flow alpha's commented node — flowId is the
+// only thing that can tell the two boxes apart. Quest comments carry flowId (unlike quest.contracts
+// entries, which anchor by nodeId alone), so this is the one canvas that can prove a filter which
+// dropped flowId and matched on nodeId alone would leak a comment from one flow onto the
+// identically-numbered box in the other.
+export const VIEW_COMMENTS_FLOW_BETA_ID = 'comment-view-flow-beta';
+export const VIEW_COMMENTS_FLOW_BETA_NAME = 'Comment View Flow Beta';
+export const FLOW_BETA_NODE_COMMENT_TEXT =
+  'a note that belongs to the OTHER flow — must never appear here';
+export const FLOW_BETA_NODE_COMMENT_AT = '2026-07-01T00:00:00.000Z';
+
 export const CONTRACTS_ONLY_CONTRACT_NAME = 'ContractsOnlyPayload';
 export const COMMENTED_NODE_CONTRACT_NAME = 'CommentedNodePayload';
 
@@ -185,6 +206,41 @@ const VIEW_COMMENTS_LONG_TOKEN = {
   createdAt: LONG_TOKEN_COMMENT_AT,
 };
 
+const VIEW_COMMENTS_SCRAMBLED_MIDDLE = {
+  id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d006',
+  flowId: VIEW_COMMENTS_FLOW_ID,
+  nodeId: COMMENTED_NODE_ID,
+  text: NODE_COMMENT_SCRAMBLED_TEXT,
+  createdAt: NODE_COMMENT_SCRAMBLED_AT,
+};
+
+// Mirrors COMMENTED_NODE_ID's id and label exactly. The only difference between this box and flow
+// alpha's own commented node is the flowId of the comment anchored to it.
+const VIEW_COMMENTS_FLOW_BETA = {
+  id: VIEW_COMMENTS_FLOW_BETA_ID,
+  name: VIEW_COMMENTS_FLOW_BETA_NAME,
+  flowType: 'runtime',
+  entryPoint: COMMENTED_NODE_ID,
+  exitPoints: [COMMENTED_NODE_ID],
+  nodes: [
+    {
+      id: COMMENTED_NODE_ID,
+      label: COMMENTED_NODE_LABEL,
+      type: 'action',
+      observables: [],
+    },
+  ],
+  edges: [],
+};
+
+const VIEW_COMMENTS_BETA_PERSISTED = {
+  id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d007',
+  flowId: VIEW_COMMENTS_FLOW_BETA_ID,
+  nodeId: COMMENTED_NODE_ID,
+  text: FLOW_BETA_NODE_COMMENT_TEXT,
+  createdAt: FLOW_BETA_NODE_COMMENT_AT,
+};
+
 // Browser-evaluated predicate: a comment row must paint no wider than the panel holding it. An
 // unbroken token that cannot wrap overflows its own content box (scrollWidth exceeds clientWidth)
 // AND paints past the panel's right edge. jsdom reports every width as 0, so a widget test can
@@ -225,6 +281,8 @@ export const persistedCommentsHarness = ({
     withSession: boolean;
     withComments?: boolean;
     withLongToken?: boolean;
+    withScrambledOrder?: boolean;
+    withSecondFlow?: boolean;
   }) => Promise<void>;
   seedAndOpenReadOnlySpecTab: (params: { guildName: string }) => Promise<void>;
   nodeCard: () => Locator;
@@ -240,6 +298,7 @@ export const persistedCommentsHarness = ({
   clickCardBody: (params: { card: Locator }) => Promise<void>;
   clickAssertionCard: () => Promise<void>;
   clickObservableCard: (params: { card: Locator }) => Promise<void>;
+  clickFlowTab: (params: { name: string }) => Promise<void>;
   panelCommentTexts: () => Promise<HTMLElement['textContent'][]>;
   panelCommentTimes: () => Promise<HTMLElement['textContent'][]>;
   panelContractNames: () => Promise<HTMLElement['textContent'][]>;
@@ -280,12 +339,16 @@ export const persistedCommentsHarness = ({
     withSession,
     withComments,
     withLongToken,
+    withScrambledOrder,
+    withSecondFlow,
   }: {
     guildName: string;
     status: string;
     withSession: boolean;
     withComments: boolean;
     withLongToken: boolean;
+    withScrambledOrder: boolean;
+    withSecondFlow: boolean;
   }): Promise<void> => {
     const quests = questHarness({ request });
     const guild = await guildHarness({ request }).createGuild({ name: guildName, path: guildPath });
@@ -318,15 +381,21 @@ export const persistedCommentsHarness = ({
           ...(withSession ? { sessionId } : {}),
         },
       ],
-      flows: [VIEW_COMMENTS_FLOW],
+      flows: withSecondFlow ? [VIEW_COMMENTS_FLOW, VIEW_COMMENTS_FLOW_BETA] : [VIEW_COMMENTS_FLOW],
       contracts: VIEW_COMMENTS_CONTRACTS,
       // withComments false writes NO comments key at all — a quest.json shaped exactly like one
-      // authored before the field existed, rather than one carrying an empty array.
+      // authored before the field existed, rather than one carrying an empty array. The three
+      // opt-in extras below (long token, scrambled-order, second flow) are additive on top of the
+      // base fixture, never a replacement for it, so a test can combine them without duplicating
+      // the base two node comments.
       ...(withComments
         ? {
-            comments: withLongToken
-              ? [...VIEW_COMMENTS_PERSISTED, VIEW_COMMENTS_LONG_TOKEN]
-              : VIEW_COMMENTS_PERSISTED,
+            comments: [
+              ...VIEW_COMMENTS_PERSISTED,
+              ...(withLongToken ? [VIEW_COMMENTS_LONG_TOKEN] : []),
+              ...(withScrambledOrder ? [VIEW_COMMENTS_SCRAMBLED_MIDDLE] : []),
+              ...(withSecondFlow ? [VIEW_COMMENTS_BETA_PERSISTED] : []),
+            ],
           }
         : {}),
     });
@@ -356,14 +425,26 @@ export const persistedCommentsHarness = ({
       withSession,
       withComments = true,
       withLongToken = false,
+      withScrambledOrder = false,
+      withSecondFlow = false,
     }: {
       guildName: string;
       status: string;
       withSession: boolean;
       withComments?: boolean;
       withLongToken?: boolean;
+      withScrambledOrder?: boolean;
+      withSecondFlow?: boolean;
     }): Promise<void> => {
-      await seed({ guildName, status, withSession, withComments, withLongToken });
+      await seed({
+        guildName,
+        status,
+        withSession,
+        withComments,
+        withLongToken,
+        withScrambledOrder,
+        withSecondFlow,
+      });
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
         questId: seeded.questId,
@@ -397,6 +478,8 @@ export const persistedCommentsHarness = ({
         withSession: true,
         withComments: true,
         withLongToken: false,
+        withScrambledOrder: false,
+        withSecondFlow: false,
       });
       await navigationHarness({ page }).navigateToQuest({
         urlSlug: seeded.urlSlug,
@@ -466,6 +549,17 @@ export const persistedCommentsHarness = ({
       await page
         .getByTestId('FLOW_NODE_DETAIL_PANEL')
         .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    },
+
+    // Switches to a FLOW_TAB by its visible name (only present when the seed carries a second flow)
+    // and waits for the remounted canvas (key={flow.id}) to settle on that flow's own node before
+    // returning, so a caller's next read never races the previous flow's still-painted DOM.
+    clickFlowTab: async ({ name }: { name: string }): Promise<void> => {
+      await page.getByTestId('FLOW_TAB').filter({ hasText: name }).click();
+      await page
+        .getByTestId('REACT_FLOW_CANVAS')
+        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      await nodeCard().waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
     },
 
     // Panel rows in DOM order, so the scenario asserts the rendered ORDER rather than mere presence.

@@ -1036,6 +1036,58 @@ describe('ReactFlowDiagramWidget', () => {
       expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the second assertion']);
     });
 
+    // Every other comments scenario in this describe renders exactly one flow, so a badge or panel
+    // that filtered on nodeId alone (dropping flowId entirely) would still read correctly — there is
+    // no OTHER flowId in the fixture to leak from. Two comments sharing the identical nodeId but
+    // anchored to DIFFERENT flowIds is what separates "this flow's own comment" from "any comment on
+    // a node with this id", proving the widget actually threads flow.id into boxCommentsTransformer
+    // rather than relying on nodeId uniqueness that only holds by convention.
+    it('VALID: {two comments share an identical nodeId but anchored to different flowIds} => the FLOW_NODE badge and its detail panel count only this flow own comment', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'shared-node' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'vpc-flow-alpha', nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'shared-node', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: (
+          <ReactFlowDiagramWidget
+            flow={flow}
+            comments={[
+              QuestCommentStub({
+                id: 'aaaaaaaa-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'vpc-flow-alpha',
+                nodeId: 'shared-node',
+                text: "this flow's own comment",
+                createdAt: '2026-01-01T00:00:00.000Z',
+              }),
+              QuestCommentStub({
+                id: 'bbbbbbbb-58cc-4372-a567-0e02b2c3d479',
+                flowId: 'vpc-flow-beta',
+                nodeId: 'shared-node',
+                text: 'the other flow same-nodeId comment',
+                createdAt: '2026-02-01T00:00:00.000Z',
+              }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['1']);
+
+      await proxy.clickNode({ nodeId: 'shared-node' });
+
+      expect(proxy.getPanelCommentTexts()).toStrictEqual(["this flow's own comment"]);
+    });
+
     it('EMPTY: {node with contracts but no comments clicked} => FLOW_DETAIL_PANEL_COMMENTS absent while contract rows still render', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
