@@ -183,6 +183,29 @@ describe('QuestFlow', () => {
       expect(harness.toPlain(body)).toStrictEqual({ error: 'Invalid signal-back input' });
     });
 
+    // Mirrors the comments route's non-JSON-body test below: quest-flow.ts degrades a body that
+    // is not JSON at all to an empty object (`.catch(() => ({}))`) so the responder's own
+    // validation produces the 400, rather than an unhandled parse error escaping the route
+    // handler. Same code shape as the comments route's catch; this proves the signal-back route's
+    // own copy of it behaves identically instead of assuming it does by analogy.
+    it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, non-JSON body} => reaches the responder 400 rather than throwing out of the route', async () => {
+      process.env.E2E_SIGNAL_BACK_HTTP = '1';
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const app = QuestFlow();
+
+      const response = await app.request(`/api/quests/${questId}/signal-back`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'not json at all',
+      });
+      const body: unknown = await response.json();
+
+      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'Invalid signal-back input' });
+    });
+
     it('VALID: {E2E_SIGNAL_BACK_HTTP=1, valid body, no matching quest} => 500 drives the real StartOrchestrator.handleSignalBack which surfaces the missing-quest error', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-signal-back' });
       process.env.E2E_SIGNAL_BACK_HTTP = '1';

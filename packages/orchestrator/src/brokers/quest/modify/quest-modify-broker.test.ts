@@ -1213,8 +1213,12 @@ describe('questModifyBroker', () => {
         proxy.setupQuestFound({ quest });
       });
 
-      const calls = Array.from({ length: 10 }, async (_, index) => {
-        const uuid = `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`;
+      const reportIds = Array.from(
+        { length: 10 },
+        (_, index) => `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`,
+      );
+
+      const calls = reportIds.map(async (uuid) => {
         const report = PlanningBlightReportStub({
           id: uuid as never,
           minion: 'security',
@@ -1241,21 +1245,14 @@ describe('questModifyBroker', () => {
         true,
       ]);
 
-      // One persist call per modify call — mutex serializes them, none are dropped.
+      // One persist call per modify call, and each call's OWN report reached disk — mutex
+      // serializes the calls so none are dropped, and none overwrite a sibling's write.
       const persisted = proxy.getAllPersistedContents();
+      const persistedReportIds = persisted
+        .map((raw) => parseLatestPersisted([raw]).planningNotes.blightReports[0]!.id)
+        .sort();
 
-      expect(persisted.map(() => true)).toStrictEqual([
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-      ]);
+      expect(persistedReportIds).toStrictEqual([...reportIds].sort());
     });
 
     it('VALID: {concurrent modify calls on different questIds} => both succeed independently', async () => {

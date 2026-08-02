@@ -787,7 +787,12 @@ describe('QuestHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, processId }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
@@ -887,7 +892,8 @@ describe('QuestHandleResponder', () => {
     it('VALID: {guildId} => returns quests list', async () => {
       const proxy = QuestHandleResponderProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      proxy.setupListQuestsReturns({ guildId, quests: [QuestListItemStub()] });
+      const quests = [QuestListItemStub()];
+      proxy.setupListQuestsReturns({ guildId, quests });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'list-quests' }),
@@ -895,7 +901,12 @@ describe('QuestHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, quests }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
@@ -936,8 +947,15 @@ describe('QuestHandleResponder', () => {
         args: {},
       });
 
+      // No setupListGuildsReturns call — the underlying adapter proxy's own default (no guilds
+      // registered) resolves an empty array, which is what a real "no guilds yet" state returns.
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, guilds: [] }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 

@@ -426,7 +426,7 @@ export const QuestHandleResponder = async ({
     try {
       const config = orchestratorGetServerConfigAdapter();
       const payload = getServerConfigOutputContract.parse({
-        baseUrl: config.baseUrl as never,
+        baseUrl: config.baseUrl,
         port: config.port,
       });
       return {

@@ -284,6 +284,22 @@ describe('commentBatchToMarkdownTransformer', () => {
       );
     });
 
+    // `index > 1` alone is not sufficient to prove danger — it only guarantees a real content line
+    // sits two rows back. The immediately preceding row still has to be blank to supply the second
+    // newline. Two real content lines directly above the rule (no blank line in between) only ever
+    // put ONE newline before it, same as the single-real-line case above, just at a deeper index.
+    it('EDGE: {comment text has two real lines then a line reading exactly "---", with no blank line directly above it} => the rule line is left byte-identical even though index > 1', () => {
+      const node = FlowNodeStub({ id: 'start', label: 'Start Page' });
+      const flow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [node] });
+      const comment = QuestCommentStub({ text: 'First real line\nSecond real line\n---' });
+
+      const result = commentBatchToMarkdownTransformer({ comments: [comment], flows: [flow] });
+
+      expect(result).toBe(
+        'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: First real line\nSecond real line\n---',
+      );
+    });
+
     // This one IS dangerous and is the reason the blank-line condition exists: a text ending in a
     // BLANK line then `---` puts '\n\n---' at the end of its block, which the join's own leading
     // '\n\n' completes into a real divider — stranding the NEXT comment's context line as the tail

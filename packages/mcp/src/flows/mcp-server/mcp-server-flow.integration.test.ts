@@ -218,6 +218,29 @@ describe('McpServerFlow', () => {
     });
   });
 
+  describe('tools/call with params._meta present', () => {
+    it('VALID: {name: get-architecture, params._meta: {claudecode/toolUseId}} => forwards meta to the handler without error', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 8001 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-architecture',
+          arguments: {},
+          _meta: { 'claudecode/toolUseId': 'toolu_01test0000000000000000000' },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      expect(response.error).toBe(undefined);
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toMatch(/^# Architecture Overview$/mu);
+    });
+  });
+
   describe('invalid tool calls', () => {
     it('ERROR: {name: unknown-tool} => returns error', async () => {
       const request = JsonRpcRequestStub({
