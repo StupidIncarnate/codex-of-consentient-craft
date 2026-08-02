@@ -75,16 +75,22 @@ export const commentBatchToMarkdownTransformer = ({
       nodesByFlowId.get(comment.flowId)?.get(comment.nodeId)?.label ?? comment.nodeId;
 
     // Only a line that could actually FORGE the divider is escaped, and that is narrower than
-    // "any line reading `---`": the sequence is '\n\n---\n\n', so the rule line must have a BLANK
-    // line before it. A `---` directly under real content cannot produce it, and neither can the
-    // text's first line, which is embedded after `User Comment: ` and so is never a bare line.
-    // Everything else — `3---5`, a trailing `---`, a four-dash `----` rule, a `---` under a
-    // sentence — passes through byte-identical, because mangling text that was never dangerous is
-    // its own defect.
+    // "any line reading `---`": the sequence is '\n\n---\n\n', so TWO newlines must precede the
+    // rule line. `lines[index - 1] === ''` alone only proves ONE did — the join's own '\n' between
+    // that blank line and the dash line — so `index > 1` is also required: it guarantees a real
+    // line (contributing its OWN trailing '\n') sits before the blank one, which is what supplies
+    // the second newline. Without that guard, a comment whose text simply STARTS with a blank line
+    // (`'\n---\n...'`, so lines[0] === '' and the dash line sits at index 1) would be escaped even
+    // though `User Comment: ` carries no trailing newline of its own — only one newline actually
+    // precedes that dash line, not two, so it cannot forge anything. A `---` directly under real
+    // content cannot produce it either, and neither can the text's first line, which is embedded
+    // after `User Comment: ` and so is never a bare line. Everything else — `3---5`, a trailing
+    // `---`, a four-dash `----` rule, a `---` under a sentence — passes through byte-identical,
+    // because mangling text that was never dangerous is its own defect.
     const lines = comment.text.split('\n');
     const text = lines
       .map((line, index) =>
-        line === DIVIDER_RULE && index > 0 && lines[index - 1] === '' ? ESCAPED_DIVIDER_RULE : line,
+        line === DIVIDER_RULE && index > 1 && lines[index - 1] === '' ? ESCAPED_DIVIDER_RULE : line,
       )
       .join('\n');
 

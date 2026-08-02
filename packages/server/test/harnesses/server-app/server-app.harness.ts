@@ -14,7 +14,7 @@ import { join } from 'path';
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { GuildNameStub, GuildPathStub, filePathContract } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
 // The real fake-Claude-CLI binary lives in the web package's own e2e harness (it records every
 // invocation's argv to `invocations.jsonl` BEFORE it even reads its response queue — see that
@@ -149,7 +149,7 @@ export const serverAppHarness = (): {
     process.env.FAKE_CLAUDE_QUEUE_DIR = claudeQueueDir;
 
     return {
-      claudeQueueDir: filePathContract.parse(claudeQueueDir),
+      claudeQueueDir: FilePathStub({ value: claudeQueueDir }),
       restore: (): void => {
         if (savedCliPath === undefined) {
           Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
@@ -172,9 +172,17 @@ export const serverAppHarness = (): {
   // plain Node script outside any package's public API.
   const encodeCwdForFakeCli = (cwd: string) => cwd.replace(/[^A-Za-z0-9._-]/gu, '_');
 
-  const readLastInvocation = (invocationsPath: string): unknown => {
-    const lines = readFileSync(invocationsPath, 'utf-8').trim().split('\n');
-    return JSON.parse(lines[lines.length - 1] ?? '{}') as unknown;
+  // Returns `undefined` (not a thrown error) when the line is not yet valid JSON — the fake
+  // CLI's append can be caught mid-write by `existsSync` below (file created, JSON line not
+  // fully flushed), and treating that as "not ready yet" lets pollForInvocation retry instead
+  // of the whole test crashing on a truncated-JSON parse error.
+  const tryReadLastInvocation = (invocationsPath: string): unknown => {
+    try {
+      const lines = readFileSync(invocationsPath, 'utf-8').trim().split('\n');
+      return JSON.parse(lines[lines.length - 1] ?? '{}') as unknown;
+    } catch {
+      return undefined;
+    }
   };
 
   const pollForInvocation = async (params: {
@@ -182,8 +190,11 @@ export const serverAppHarness = (): {
     deadline: number;
   }): Promise<unknown> => {
     const { invocationsPath, deadline } = params;
-    if (existsSync(invocationsPath)) {
-      return readLastInvocation(invocationsPath);
+    const invocation = existsSync(invocationsPath)
+      ? tryReadLastInvocation(invocationsPath)
+      : undefined;
+    if (invocation !== undefined) {
+      return invocation;
     }
     if (Date.now() >= deadline) {
       return null;

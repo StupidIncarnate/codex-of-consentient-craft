@@ -8,6 +8,8 @@ import {
   QuestCommentStub,
   QuestQaLedgerEntryStub,
   QuestStub,
+  ToolingRequirementStub,
+  WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -371,6 +373,39 @@ describe('questModifyBroker', () => {
             details: `Operation item '${lockedOperation.id}' is locked and cannot be deleted`,
           },
         ],
+      });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    });
+  });
+
+  describe('duplicate sibling ids (Tier 1, rejected before quest load)', () => {
+    it('INVALID: {designDecisions: two entries sharing the same id in one payload} => rejects with the duplicate-id message; quest is never looked up', async () => {
+      const proxy = questModifyBrokerProxy();
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        designDecisions: [
+          {
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'First title',
+            rationale: 'First rationale',
+            relatedNodeIds: [],
+          },
+          {
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Second title',
+            rationale: 'Second rationale',
+            relatedNodeIds: [],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error:
+          'Duplicate ID "c23bc10b-58cc-4372-a567-0e02b2c3d479" in designDecisions — this ID already exists. Use a unique ID or omit to leave existing unchanged.',
       });
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
@@ -975,6 +1010,94 @@ describe('questModifyBroker', () => {
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
       expect(persisted.planningNotes).toStrictEqual({ blightReports: [keepReport], qaLedger: [] });
+    });
+  });
+
+  describe('toolingRequirements upsert', () => {
+    it('VALID: {questId, toolingRequirements: [new]} => adds new tooling requirement', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        toolingRequirements: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newRequirement = ToolingRequirementStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        toolingRequirements: [newRequirement],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.toolingRequirements).toStrictEqual([newRequirement]);
+    });
+
+    it('VALID: {questId, toolingRequirements: [partial patch]} => merges only the changed field, preserves siblings', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingRequirement = ToolingRequirementStub({
+        id: 'pg-driver',
+        name: 'Postgres Driver',
+        packageName: 'pg',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        toolingRequirements: [existingRequirement],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        toolingRequirements: [{ id: existingRequirement.id, name: 'Postgres Driver v2' } as never],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.toolingRequirements).toStrictEqual([
+        { ...existingRequirement, name: 'Postgres Driver v2' },
+      ]);
+    });
+  });
+
+  describe('wardResults upsert (server-only field, bypasses the input allowlist)', () => {
+    it('VALID: {questId, wardResults: [new]} => adds new ward result entry', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        wardResults: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newResult = WardResultStub();
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        wardResults: [newResult],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.wardResults).toStrictEqual([newResult]);
     });
   });
 
@@ -1605,6 +1728,64 @@ describe('questModifyBroker', () => {
             passed: false,
             details:
               "Contract 'EmailAddress' has status 'existing' but source 'packages/shared/src/contracts/missing-thing/missing-thing-contract.ts' does not resolve on disk. Set status to 'new', or correct the source path.",
+          },
+        ],
+      });
+    });
+
+    it('INVALID: {contracts: [new] with an already-absolute source path that already resolves on disk} => returns Contract Source Resolution failedCheck without prepending "./" (absolute-path branch)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'flows_approved',
+        flows: [flow],
+        contracts: [],
+      });
+
+      proxy.setupQuestFound({ quest });
+      proxy.setupContractSourceResolvesOnce({
+        source:
+          '/abs/packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
+      });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        contracts: [
+          {
+            id: 'a47bc10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'LoginCredentials',
+            kind: 'data',
+            status: 'new',
+            source:
+              '/abs/packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
+            nodeId: 'submit-form',
+            properties: [
+              {
+                name: 'email',
+                type: 'EmailAddress',
+                description: 'User email for authentication',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Contract source path resolution failed',
+        failedChecks: [
+          {
+            name: 'Contract Source Resolution',
+            passed: false,
+            details:
+              "Contract 'LoginCredentials' has status 'new' but source '/abs/packages/shared/src/contracts/login-credentials/login-credentials-contract.ts' already resolves on disk. Set status to 'existing' or 'modified', change the source path, or drop the entry.",
           },
         ],
       });

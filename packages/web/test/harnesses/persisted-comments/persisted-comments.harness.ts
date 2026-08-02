@@ -331,6 +331,15 @@ export const persistedCommentsHarness = ({
   const secondAssertionCard = (): Locator =>
     page.getByTestId('FLOW_OBSERVABLE_NODE').filter({ has: page.getByText(SECOND_ASSERTION_TEXT) });
 
+  // Shared by clickAssertionCard and clickObservableCard below — both click a card root (as
+  // opposed to clickCardBody's FLOW_NODE_LABEL sub-element click) and wait for the same panel.
+  const clickCardAndWaitForPanel = async ({ card }: { card: Locator }): Promise<void> => {
+    await card.click();
+    await page
+      .getByTestId('FLOW_NODE_DETAIL_PANEL')
+      .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+  };
+
   // Seeds guild + quest + quest.json and parks the ids navigation needs. Kept separate from the
   // navigation step so the two openers below can share it without duplicating the seed.
   const seed = async ({
@@ -536,19 +545,13 @@ export const persistedCommentsHarness = ({
     },
 
     clickAssertionCard: async (): Promise<void> => {
-      await assertionCard().click();
-      await page
-        .getByTestId('FLOW_NODE_DETAIL_PANEL')
-        .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+      await clickCardAndWaitForPanel({ card: assertionCard() });
     },
 
     // Generic version of clickAssertionCard for any FLOW_OBSERVABLE_NODE card — an observable card
     // has no FLOW_NODE_LABEL sub-element, so (unlike clickCardBody) the click lands on the card root.
     clickObservableCard: async ({ card }: { card: Locator }): Promise<void> => {
-      await card.click();
-      await page
-        .getByTestId('FLOW_NODE_DETAIL_PANEL')
-        .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+      await clickCardAndWaitForPanel({ card });
     },
 
     // Switches to a FLOW_TAB by its visible name (only present when the seed carries a second flow)

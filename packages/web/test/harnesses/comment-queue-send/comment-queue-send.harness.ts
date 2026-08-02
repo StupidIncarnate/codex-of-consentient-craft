@@ -128,8 +128,6 @@ export const commentQueueSendHarness = ({
   queueCount: () => Locator;
   clearButton: () => Locator;
   sendButton: () => Locator;
-  openCommentPopoverOn: (params: { card: Locator }) => Promise<void>;
-  closeCommentPopoverOn: (params: { card: Locator }) => Promise<void>;
   queueCommentOn: (params: { card: Locator; text: string }) => Promise<void>;
   clickClearButton: () => Promise<void>;
   clickSendButton: () => Promise<void>;
@@ -287,9 +285,6 @@ export const commentQueueSendHarness = ({
     queueCount: (): Locator => page.getByTestId('COMMENT_QUEUE_COUNT'),
     clearButton: (): Locator => page.getByTestId('COMMENT_CLEAR_BUTTON'),
     sendButton: (): Locator => page.getByTestId('COMMENT_SEND_BUTTON'),
-
-    openCommentPopoverOn,
-    closeCommentPopoverOn,
 
     // Queues via the Enter key — open, type, Enter, wait for the queued readback, close.
     queueCommentOn: async ({ card, text }: { card: Locator; text: string }): Promise<void> => {

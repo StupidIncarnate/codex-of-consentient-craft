@@ -528,6 +528,22 @@ describe('commentQueueState', () => {
       expect(second).toHaveBeenCalledTimes(1);
     });
 
+    it('VALID: {two listeners, one unsubscribes} => the surviving listener still fires and the unsubscribed one does not', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const first = jest.fn();
+      const second = jest.fn();
+      const unsubscribeFirst = commentQueueState.subscribe({ questId, listener: first });
+      commentQueueState.subscribe({ questId, listener: second });
+
+      unsubscribeFirst();
+      commentQueueState.queue({ questId, entry: CommentQueueEntryStub({}) });
+
+      expect(first).toHaveBeenCalledTimes(0);
+      expect(second).toHaveBeenCalledTimes(1);
+    });
+
     it('EDGE: {unsubscribe called twice} => the second call is a no-op instead of throwing', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();

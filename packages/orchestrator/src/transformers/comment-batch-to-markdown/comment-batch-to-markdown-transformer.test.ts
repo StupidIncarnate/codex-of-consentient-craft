@@ -255,6 +255,22 @@ describe('commentBatchToMarkdownTransformer', () => {
       );
     });
 
+    // `lines[0] === ''` (text starts with a blank line) looks identical to the genuinely dangerous
+    // "content\n\n---" shape if you only check `lines[index - 1] === ''`, but it is NOT dangerous:
+    // `User Comment: ` carries no trailing newline of its own, so a text starting with a single
+    // leading '\n' puts only ONE newline before the dash line, not the two the divider needs.
+    it('EDGE: {comment text starts with a blank line then a line reading exactly "---"} => the dash line is left byte-identical (only one newline precedes it, not the two the divider needs)', () => {
+      const node = FlowNodeStub({ id: 'start', label: 'Start Page' });
+      const flow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [node] });
+      const comment = QuestCommentStub({ text: '\n---\nSecond line of real content' });
+
+      const result = commentBatchToMarkdownTransformer({ comments: [comment], flows: [flow] });
+
+      expect(result).toBe(
+        'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: \n---\nSecond line of real content',
+      );
+    });
+
     // A `---` directly under real content cannot produce '\n\n---\n\n' either, so it survives.
     it('EDGE: {comment text ends with a line reading exactly "---" directly under real content} => the last line is left byte-identical', () => {
       const node = FlowNodeStub({ id: 'start', label: 'Start Page' });
