@@ -1,3 +1,4 @@
+import type { ZodError } from 'zod';
 import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { commentBatchBodyContract } from './comment-batch-body-contract';
@@ -122,6 +123,120 @@ describe('commentBatchBodyContract', () => {
           comments: [{ flowId: 'login-flow', nodeId: 'start', text: '   ' }],
         });
       }).toThrow(/whitespace-only/u);
+    });
+
+    // The delivered batch becomes the `-p` argv of a spawned process, and an argv string cannot
+    // carry a NUL. Rejecting it HERE, at the same sink as the whitespace guard, is what keeps the
+    // failure a clean 400 with nothing written. Validated any later it is a 500 raised by spawn()
+    // AFTER the comment was already persisted — and because the browser releases its queue only on
+    // a 200, every retry appends another duplicate row and the send can never succeed.
+    it('INVALID: {comment text carrying a NUL byte} => throws validation error', () => {
+      expect(() => {
+        commentBatchBodyContract.parse({
+          comments: [{ flowId: 'login-flow', nodeId: 'start', text: 'nul\u0000byte' }],
+        });
+      }).toThrow(/control character/u);
+    });
+
+    it('INVALID: {one NUL-carrying entry among two otherwise-valid entries} => rejects the whole batch', () => {
+      expect(() => {
+        commentBatchBodyContract.parse({
+          comments: [
+            { flowId: 'login-flow', nodeId: 'start', text: 'valid one' },
+            { flowId: 'login-flow', nodeId: 'submit', text: 'bad\u0000entry' },
+          ],
+        });
+      }).toThrow(/control character/u);
+    });
+  });
+
+  describe('issue path — entry-level vs array-level classification', () => {
+    // The responder (quest-comment-batch-responder) tells "array is empty/absent" apart from "one
+    // bad entry" ONLY by issue.path: length 1 with path[0] === 'comments' means array-level, a
+    // longer path means entry-level. Both refines on nonWhitespaceCommentBatchEntryContract sit on
+    // the ENTRY schema specifically so a rejected entry's path stays ['comments', index, ...] and
+    // never collapses to ['comments'] — which would flip the responder's message to the empty-batch
+    // one on a batch that was never empty. A bare `.toThrow()` on the message text cannot see this:
+    // the refine's own message is identical no matter which schema level it is attached to.
+    it('INVALID: {whitespace-only text in the only entry} => issue path is entry-scoped, not array-scoped', () => {
+      const result = commentBatchBodyContract.safeParse({
+        comments: [{ flowId: 'login-flow', nodeId: 'start', text: '   ' }],
+      });
+      const { error } = result as { success: false; error: ZodError };
+      const [issue] = error.issues;
+
+      expect(result.success).toBe(false);
+      expect(issue?.path).toStrictEqual(['comments', 0]);
+    });
+
+    it('INVALID: {NUL byte in the only entry} => issue path is entry-scoped, not array-scoped', () => {
+      const result = commentBatchBodyContract.safeParse({
+        comments: [{ flowId: 'login-flow', nodeId: 'start', text: 'nul\u0000byte' }],
+      });
+      const { error } = result as { success: false; error: ZodError };
+      const [issue] = error.issues;
+
+      expect(result.success).toBe(false);
+      expect(issue?.path).toStrictEqual(['comments', 0]);
+    });
+
+    // The other half of the classification: an empty batch IS array-scoped by design (min(1) sits
+    // on the array itself, not on any entry) — this pins the branch the entry-level tests above are
+    // contrasted against.
+    it('EMPTY: {comments: []} => issue path is array-scoped, exactly ["comments"]', () => {
+      const result = commentBatchBodyContract.safeParse({ comments: [] });
+      const { error } = result as { success: false; error: ZodError };
+      const [issue] = error.issues;
+
+      expect(result.success).toBe(false);
+      expect(issue?.path).toStrictEqual(['comments']);
+    });
+
+    // The malformed entry sits at index 1, not index 0 — a fixture is only discriminating if the
+    // assertion actually reads the index, rather than just confirming something threw.
+    it('INVALID: {malformed flowId is the SECOND of two entries} => issue path names index 1, not index 0', () => {
+      const result = commentBatchBodyContract.safeParse({
+        comments: [
+          { flowId: 'login-flow', nodeId: 'start', text: 'valid one' },
+          { flowId: 'Login Flow', nodeId: 'submit', text: 'malformed flowId' },
+        ],
+      });
+      const { error } = result as { success: false; error: ZodError };
+      const [issue] = error.issues;
+
+      expect(result.success).toBe(false);
+      expect(issue?.path).toStrictEqual(['comments', 1, 'flowId']);
+    });
+
+    it('INVALID: {NUL-carrying entry is the SECOND of two entries} => issue path names index 1, not index 0', () => {
+      const result = commentBatchBodyContract.safeParse({
+        comments: [
+          { flowId: 'login-flow', nodeId: 'start', text: 'valid one' },
+          { flowId: 'login-flow', nodeId: 'submit', text: 'bad\u0000entry' },
+        ],
+      });
+      const { error } = result as { success: false; error: ZodError };
+      const [issue] = error.issues;
+
+      expect(result.success).toBe(false);
+      expect(issue?.path).toStrictEqual(['comments', 1]);
+    });
+  });
+
+  describe('control characters the compose editor legitimately produces', () => {
+    // Shift+Enter inserts a newline, and pasted text can carry tabs and CRLF. None of them break an
+    // argv, so the guard must let every one through — a blanket control-character ban here would
+    // reject the ordinary multi-line comment the popover exists to write.
+    it('VALID: {comment text carrying newlines, tabs and a carriage return} => parses unchanged', () => {
+      const multiline = 'first line\nsecond\tindented\r\nthird line';
+
+      const result = commentBatchBodyContract.parse({
+        comments: [{ flowId: 'login-flow', nodeId: 'start', text: multiline }],
+      });
+
+      expect(result).toStrictEqual({
+        comments: [{ flowId: 'login-flow', nodeId: 'start', text: multiline }],
+      });
     });
   });
 
