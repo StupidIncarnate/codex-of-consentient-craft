@@ -1,3 +1,5 @@
+import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
+
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
 
 describe('flowEvidenceContractStatics', () => {
@@ -60,26 +62,54 @@ describe('flowEvidenceContractStatics', () => {
     });
   });
 
-  it('VALID: markdown => gives every observable type its own modality row', () => {
+  // The table is GENERATED from qaCheckSurfaceStatics rather than hand-listed, so a newly added
+  // outcome type reaches this prompt automatically. That static's own colocated test asserts its
+  // keys 1:1 against outcomeTypeContract, so covering every key here inherits full contract
+  // coverage — which is the guarantee a hand-maintained list could not give, and is exactly how
+  // `cache-state` came to be named by no modality at all.
+  it('VALID: markdown => carries a check-surface row for EVERY outcome type the shared static maps', () => {
     const { markdown } = flowEvidenceContractStatics;
-    const types = ['ui-state', 'cache-state', 'api-call', 'db-query', 'process-state', 'custom'];
+    const missing = Object.keys(qaCheckSurfaceStatics.byOutcomeType).filter(
+      (outcomeType) => !markdown.includes(`| \`${outcomeType}\` |`),
+    );
 
-    expect(types.filter((type) => markdown.includes(`| \`${type}\` |`))).toStrictEqual(types);
+    expect(missing).toStrictEqual([]);
   });
 
-  it('VALID: markdown => routes a browser-storage lifecycle claim to a real browser', () => {
+  // Rendering the static's own sentence (not a paraphrase of it) is what makes the checklist a
+  // session fetches and the contract it is judged against agree by construction.
+  it('VALID: markdown => renders each row with the shared static’s own surface sentence', () => {
+    const { markdown } = flowEvidenceContractStatics;
+    const mismatched = Object.entries(qaCheckSurfaceStatics.byOutcomeType)
+      .filter(([outcomeType, surface]) => !markdown.includes(`| \`${outcomeType}\` | ${surface} |`))
+      .map(([outcomeType]) => outcomeType);
+
+    expect(mismatched).toStrictEqual([]);
+  });
+
+  it('VALID: markdown => names the wrong proof each type attracts', () => {
     const { markdown } = flowEvidenceContractStatics;
 
     expect({
-      namesTheStorages: markdown.includes('localStorage, sessionStorage, IndexedDB'),
-      namesTheLifecycleEvents: markdown.includes(
-        'mount, reload, navigation, a second tab, or a sweep that runs on mount',
+      jsdomHasNoLayout: markdown.includes('It has no layout engine, every measured width reads 0'),
+      textContentIsNotPaint: markdown.includes(
+        '`textContent` proves a string is in the DOM,\n  never that a user can read it',
       ),
-      rejectsDirectHelperCall: markdown.includes("proves the helper's shape ONLY"),
+      namesTheLifecycleEvents: markdown.includes(
+        'mount, reload,\n  navigation, a second tab, a sweep that runs on mount',
+      ),
+      rejectsDirectHelperCall: markdown.includes("proves the helper's shape\n  ONLY"),
+      rejectsMockedFetch: markdown.includes('That proves your mock, not the route'),
+      rejectsWriteSpy: markdown.includes('It proves the call happened, never that what landed is'),
+      rejectsMockedSpawner: markdown.includes('a mocked spawner, which cannot prove the "zero'),
     }).toStrictEqual({
-      namesTheStorages: true,
+      jsdomHasNoLayout: true,
+      textContentIsNotPaint: true,
       namesTheLifecycleEvents: true,
       rejectsDirectHelperCall: true,
+      rejectsMockedFetch: true,
+      rejectsWriteSpy: true,
+      rejectsMockedSpawner: true,
     });
   });
 

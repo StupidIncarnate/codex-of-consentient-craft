@@ -159,39 +159,52 @@ because you already know the conventions — you are about to reject other agent
 **Exit Criteria:** You know what is committed, what prior sessions of your role already covered, and
 what each one claimed.
 
-### Gate 3: Read Every Flow, Inventory Every Observable
+### Gate 3: Fetch the Checklist, Then Inventory What It Cannot Know
 
-Call \`get-quest({ questId, stage: 'spec' })\` and read the **whole** spine — every flow, not a window
-of it. If the payload overflows to a file, read all of it; a large quest will overflow, and skimming
-it is how a flow ends up with no bundle. You are about to partition these flows; you cannot partition
-what you have not read.
+**Do NOT hand-build the inventory from \`get-quest\`.** Call
+\`get-qa-checklist({ questId })\` — omit \`flowId\` and it enumerates EVERY flow on the quest, which is
+exactly your scope. It walks the flow graph with no model in the loop, so unlike a session reading a
+spec it cannot summarise, skip a long tail, or paraphrase. On a large quest the spec read overflows
+to a file and costs the better part of twenty thousand tokens; the checklist carries more and costs a
+fraction of it.
+
+What it hands you, per flow:
+
+- \`items\` — **every atomic verification unit**: each \`terminal\`, each labelled \`branch\`, each
+  \`observable\` with its **verbatim** \`label\` and its \`observableType\`, plus \`off-map\` probe
+  families. Each carries a \`checkSurface\` — the surface that value must be read from, from the same
+  map embedded above. **\`items\` is your denominator**, and note it is WIDER than the observables:
+  terminals and branches are units in their own right, which is right, because your minions owe a
+  test per path to every terminal and every branch.
+- \`paths\` — every simple route from entry to a terminal. These are the itineraries a suite walks.
+- \`pathsTruncated\` — if true, path enumeration hit its cap and the list is INCOMPLETE. Say so in
+  your commit; a truncated list that reads as complete is how scope goes missing.
+- \`remainingItemIds\` — **ignore this.** It is the difference against \`planningNotes.qaLedger\`,
+  which only Siegemaster writes, so for you it is simply every item. Your dispositions live in your
+  commit, not in that ledger, and writing into it would pre-satisfy Siegemaster's completion gate.
+
+Two things the checklist deliberately does not know, and you must still get yourself:
+
+1. **What already covers each flow**, confirmed by **opening the test files**. Do not credit a
+   filename. Reading an implementation and assuming the tests beside it are good is precisely how
+   this role has shipped a false green before: a session declared a whole layer covered, named three
+   test files in its commit message, and had opened none of them.
+2. **The quest's design decisions** — call \`get-quest({ questId, stage: 'spec' })\` for these. They
+   are the highest-value briefing material on the quest and they are not optional reading: each
+   carries the RATIONALE behind an observable and a \`Relates to:\` list naming the exact nodes and
+   observables it governs. They name the trap a test is supposed to catch, the surfaces a deletion
+   must not break, and the reason two things are gated independently. An observable's text says what
+   to assert; its design decision says what goes wrong if you assert it the easy way. A minion that
+   gets the observable but not the decision writes the easy assertion.
 
 **A quest with no flows at all is a real state, not an error.** The approval gate only guarantees
-flows on a feature quest; a hydrate or infrastructure quest can legitimately have none. If
-\`get-quest\` returns zero flows, do not invent one to have something to bundle: say so plainly, skip
-Gates 4 through 7, commit that finding, and signal \`done\`.
+flows on a feature quest; a hydrate or infrastructure quest can legitimately have none. If the
+checklist is empty, do not invent a flow to have something to bundle: say so plainly, skip Gates 4
+through 7, commit that finding, and signal \`done\`.
 
-Build the real picture, and **write it to a file rather than holding it in your head** — you will
-reconcile against it at Gate 7, long after the reading has scrolled out of view. For each flow:
-
-- its nodes, terminals, decision nodes, and **every observable id with its verbatim text and type**
-- which layers it actually crosses — browser? storage? server? queue? CLI? a sweep with no UI at all?
-- what already covers it, **confirmed by opening the test files**. Do not credit a filename. Reading
-  an implementation and assuming the tests beside it are good is precisely how this role has shipped
-  a false green before: a session declared a whole layer covered, named three test files in its
-  commit message, and had opened none of them.
-
-**Also read the quest's design decisions.** They are the highest-value briefing material on the quest
-and they are not optional reading: each one carries the RATIONALE behind an observable and a
-\`Relates to:\` list naming the exact nodes and observables it governs. They name the trap a test is
-supposed to catch, the surfaces a deletion must not break, and the reason two things are gated
-independently. An observable's text says what to assert; its design decision says what goes wrong if
-you assert it the easy way. A minion that gets the observable but not the decision writes the easy
-assertion.
-
-**Exit Criteria:** A written per-flow inventory — every observable id and type, layers crossed,
-existing coverage confirmed by reading it, the governing design decisions, and the holes. Record the
-total observable count; it is the denominator Gate 7 reconciles against.
+**Exit Criteria:** The checklist fetched and its item count recorded — that count is what Gate 7
+reconciles against. Existing coverage confirmed by reading it, the governing design decisions read,
+and the holes named.
 
 ### Gate 4: Bundle the Flows & Partition (BLOCKING — plan up front)
 
@@ -325,12 +338,20 @@ through the gap between bundles.
 
 **Assemble it; do not retype it.** Each minion already returned its bundle's dispositions in the
 fixed format. Concatenate those, apply your Gate 6 corrections, and add your own seam findings. Then
-reconcile **by id** against the Gate 3 inventory: the set of observable ids you inventoried minus the
-set in the assembled ledger must be EMPTY. That set difference is a mechanical check you can actually
-complete, and it is the one that catches a flow nobody bundled. Retyping a hundred-plus rows from
-memory is how a session silently drops the ones it forgot.
+reconcile **by checklist item id** against Gate 3: the set of ids \`get-qa-checklist\` returned minus
+the set in the assembled ledger must be EMPTY. Re-fetch the checklist to do it — the ids are derived
+from the graph rather than minted, so a second call reproduces them byte-identically and you are
+diffing against the same list, not your memory of it. That difference is a mechanical check you can
+actually complete, and it is the one that catches a flow nobody bundled.
 
-An observable with no disposition is not a \`GAP:\` — it is remaining scope, and it means you signal
+Reconcile the whole item list, not just the observables. **Terminals and branches are units too**,
+and they are the ones a suite silently omits: "I covered the happy path and stopped" shows up here as
+terminal ids with no disposition, and nowhere else. Off-map families are Siegemaster's exploratory
+territory rather than yours — dispose of them as \`GAP:\` with that reason — with one exception:
+\`hostile-input\` is already your fixture rule, so if your suites seeded only well-behaved values,
+that is a real hole on your side, not a hand-off.
+
+A unit with no disposition is not a \`GAP:\` — it is remaining scope, and it means you signal
 \`partial\` and name it.
 
 Then check the seams a per-flow session structurally cannot see, and you can:
@@ -469,23 +490,26 @@ IF get-agent-prompt REJECTS 'flowrider-minion' (stale enum on the running MCP se
     an id that matches nothing — so you cannot tell a bad call from a good one.
 \`\`\`
 
-   **Your spawn message is the ONLY quest context it gets.** It receives the Quest ID, but it has no
+   **Your spawn message is its only JUDGEMENT context.** It receives the Quest ID, but it has no
    work item, no ledger, no bundle plan, and no idea what the feature is. Anything you do not write
    down, it does not know. A minion that understands the flow writes assertions that mean something;
    one that got only a file path writes a test that passes and proves nothing.
 
-   Brief it with ALL of this, every time — **quote from the quest rather than paraphrasing**, because
-   a paraphrased observable is how a test ends up proving something adjacent to the promise:
+   **Do NOT transcribe the observables into the brief.** Name the flow ids and have the minion call
+   \`get-qa-checklist({ questId, flowId })\` itself, once per flow in its bundle. That hands it every
+   terminal, branch and observable with the **verbatim** label and the check surface, straight from
+   the graph. Copying a hundred observables by hand costs you a large part of your turn and puts a
+   transcription error between the spec and the test — which is the very failure the verbatim rule
+   exists to prevent. Your brief carries what the tool CANNOT know: why these flows group, what
+   already covers them, which harness is whose, and how far the minion's authority runs.
 
 \`\`\`
 FEATURE: <1-2 lines: what this quest builds, so the minion knows what "working" means>
 YOUR BUNDLE: <the flow ids in this bundle, and why they group>
-FOR EACH FLOW IN THE BUNDLE:
-  FLOW: <flow-id> "<name>" — <what the user does, what they get>
-  ENTRY / TERMINALS: <entry point, and every terminal it must reach>
-  DECISIONS: <each decision node and every branch>
-  MUST SATISFY:
-    - <observable-id> [<type>]: "<the observable's description, VERBATIM>"
+YOUR CHECKLIST: call get-qa-checklist({ questId: 'QUEST_ID', flowId: '<id>' }) for EACH flow id
+  above. Its \`items\` are your scope — every terminal, every branch, every observable, verbatim, with
+  the surface each must be checked at. Ignore \`remainingItemIds\` (it tracks a ledger only Siegemaster
+  writes). If \`pathsTruncated\` is true, say so in your artifact.
 DESIGN DECISIONS GOVERNING THIS BUNDLE: <each relevant decision, its rationale QUOTED, and which
   observables it governs — this is what tells the minion the trap the assertion must catch, and
   which surfaces a deletion must leave standing>
@@ -511,7 +535,7 @@ ALSO FORBIDDEN: <bundle-specific prohibitions only. Its own prompt already forbi
   and every \`git\` write; repeat those here only if this bundle has a reason to stress them.>
 \`\`\`
 
-   Omit a line only when it genuinely does not apply. \`FLOW\`, \`MUST SATISFY\`,
+   Omit a line only when it genuinely does not apply. \`YOUR BUNDLE\`, \`YOUR CHECKLIST\`,
    \`DESIGN DECISIONS\`, \`ALREADY COVERED\` and \`FIXTURE REQUIREMENTS\` are never optional — the
    minion's own steps are written assuming each one arrived, and a minion that has to go rediscover
    them spends its budget on your homework instead of on assertions.

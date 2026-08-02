@@ -361,7 +361,7 @@ describe('flowriderMinionStatics', () => {
         'GAPS (no layer available to me can prove this — no test exists):',
       ),
       selfAuditNamesTheDifference: has(
-        'a `DEFECT:` has a red test proving it, a `GAP:` has no test because no layer\navailable to you can reach it',
+        'a `DEFECT:` has a red test proving it, a `GAP:` has no\ntest because no layer available to you can reach it',
       ),
     }).toStrictEqual({
       handsUpToTheDefectBlock: true,
@@ -378,11 +378,14 @@ describe('flowriderMinionStatics', () => {
       notReachedBlock: has(
         'NOT REACHED (bundle scope I did not get to — neither covered nor a GAP):',
       ),
-      selfAuditForbidsBanking: has(
-        'Neither is a place to put an observable you simply did not get to',
-      ),
+      selfAuditForbidsBanking: has('Neither is a place to put an item you simply did\nnot get to'),
       namesTheConsequence: has(
-        'so your operator knows the bundle is unfinished rather than believing it is\ncovered',
+        'so your operator knows the bundle is\nunfinished rather than believing it is covered',
+      ),
+      // Terminals and branches are exactly what "I covered the happy path and stopped" omits, and
+      // an observable-only self-audit is blind to them.
+      auditsTerminalsAndBranchesToo: has(
+        '**Every item the checklist returned** must leave this step with\nexactly one disposition',
       ),
       undetectableFromFilesAlone: has(
         'An empty\n`NOT REACHED` list that should not be empty is the one failure it cannot detect from your files\nalone.',
@@ -391,6 +394,7 @@ describe('flowriderMinionStatics', () => {
       notReachedBlock: true,
       selfAuditForbidsBanking: true,
       namesTheConsequence: true,
+      auditsTerminalsAndBranchesToo: true,
       undetectableFromFilesAlone: true,
     });
   });

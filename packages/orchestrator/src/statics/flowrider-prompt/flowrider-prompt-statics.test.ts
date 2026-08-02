@@ -115,29 +115,53 @@ describe('flowriderPromptStatics', () => {
 
   it('VALID: template => requires opening test files rather than crediting a filename', () => {
     expect({
-      openThem: has('**confirmed by opening the test files**'),
-      neverCredit: has('Do not credit a filename.'),
+      openThem: has('confirmed by **opening the test files**'),
+      neverCredit: has('Do not credit a\n   filename.'),
       namesTheFailure: has('had opened none of them'),
     }).toStrictEqual({ openThem: true, neverCredit: true, namesTheFailure: true });
   });
 
-  // A large quest overflows get-quest to a file and its inventory outlives the reading. Both are
-  // load-bearing: the inventory is the denominator Gate 7's set difference reconciles against.
-  it('VALID: template => survives an overflowing quest by writing the inventory to a file', () => {
+  // Hand-building the inventory from get-quest is what this replaces: on a real quest that read
+  // overflows to a file and costs ~19k tokens, and a session that skims it drops a flow. The tool
+  // walks the graph with no model in the loop, so it cannot summarise or paraphrase.
+  it('VALID: template => sources the inventory from get-qa-checklist rather than building it by hand', () => {
     expect({
-      readsAllOfTheOverflow: has('If the payload overflows to a file, read all of it'),
-      namesTheSkimRisk: has('skimming\nit is how a flow ends up with no bundle'),
-      writesItDown: has('**write it to a file rather than holding it in your head**'),
-      capturesTypePerObservable: has('**every observable id with its verbatim text and type**'),
-      recordsTheDenominator: has(
-        'Record the\ntotal observable count; it is the denominator Gate 7 reconciles against.',
+      forbidsHandBuilding: has('**Do NOT hand-build the inventory from `get-quest`.**'),
+      wholeQuestCall: has('`get-qa-checklist({ questId })`'),
+      omitFlowIdIsWholeQuest: has(
+        'omit `flowId` and it enumerates EVERY flow on the quest, which is\nexactly your scope',
       ),
+      noModelInTheLoop: has(
+        'It walks the flow graph with no model in the loop, so unlike a session reading a\nspec it cannot summarise, skip a long tail, or paraphrase.',
+      ),
+      itemsAreTheDenominator: has('**`items` is your denominator**'),
+      itemsAreWiderThanObservables: has(
+        'note it is WIDER than the observables:\n  terminals and branches are units in their own right',
+      ),
+      surfacesTruncation: has('path enumeration hit its cap and the list is INCOMPLETE'),
     }).toStrictEqual({
-      readsAllOfTheOverflow: true,
-      namesTheSkimRisk: true,
-      writesItDown: true,
-      capturesTypePerObservable: true,
-      recordsTheDenominator: true,
+      forbidsHandBuilding: true,
+      wholeQuestCall: true,
+      omitFlowIdIsWholeQuest: true,
+      noModelInTheLoop: true,
+      itemsAreTheDenominator: true,
+      itemsAreWiderThanObservables: true,
+      surfacesTruncation: true,
+    });
+  });
+
+  // remainingItemIds is the diff against planningNotes.qaLedger, which ONLY siegemaster writes.
+  // Flowrider writing into that ledger would pre-satisfy siegemaster's completion gate — the gate
+  // would pass with every unit already dispositioned by a role that never walked anything.
+  it('VALID: template => tells flowrider to ignore remainingItemIds and stay out of the qaLedger', () => {
+    expect({
+      ignoreIt: has('`remainingItemIds` — **ignore this.**'),
+      namesWhoWritesTheLedger: has('which only Siegemaster writes'),
+      namesTheHazard: has("writing into it would pre-satisfy Siegemaster's completion gate"),
+    }).toStrictEqual({
+      ignoreIt: true,
+      namesWhoWritesTheLedger: true,
+      namesTheHazard: true,
     });
   });
 
@@ -145,17 +169,13 @@ describe('flowriderPromptStatics', () => {
   // govern — the trap an assertion is supposed to catch. Without them a minion writes the easy one.
   it('VALID: template => treats the quest design decisions as mandatory briefing material', () => {
     expect({
-      mandatory: has("**Also read the quest's design decisions.**"),
+      mandatory: has("**The quest's design decisions**"),
       notOptional: has('they are not optional reading'),
-      namesTheRelatesTo: has(
-        '`Relates to:` list naming the exact nodes and observables it governs',
-      ),
+      namesTheRelatesTo: has('`Relates to:` list naming the exact nodes and'),
       contrastsTextWithRationale: has(
-        "An observable's text says what to assert; its design decision says what goes wrong if\nyou assert it the easy way.",
+        "An observable's text says what\n   to assert; its design decision says what goes wrong if you assert it the easy way.",
       ),
-      namesTheFailure: has(
-        'A minion that gets the observable but not the decision writes the easy\nassertion.',
-      ),
+      namesTheFailure: has('gets the observable but not the decision writes the easy assertion'),
     }).toStrictEqual({
       mandatory: true,
       notOptional: true,
@@ -316,20 +336,34 @@ describe('flowriderPromptStatics', () => {
     expect({
       gate: has('### Gate 7: The Whole-Quest Observable Ledger'),
       assembleNotRetype: has('**Assemble it; do not retype it.**'),
-      reconcileById: has('reconcile **by id** against the Gate 3 inventory'),
+      reconcileById: has('reconcile **by checklist item id** against Gate 3'),
       differenceMustBeEmpty: has('must be EMPTY'),
-      catchesUnbundledFlow: has('it is the one that catches a flow nobody bundled'),
-      namesTheRetypingFailure: has(
-        'Retyping a hundred-plus rows from\nmemory is how a session silently drops the ones it forgot.',
+      // Graph-derived ids reproduce byte-identically, so re-fetching diffs against the same list
+      // rather than the session's recollection of it.
+      refetchRatherThanRecall: has(
+        'a second call reproduces them byte-identically and you are\ndiffing against the same list, not your memory of it',
       ),
+      catchesUnbundledFlow: has('it is the one that catches a flow nobody bundled'),
+      // Terminals and branches are exactly what a happy-path-only suite omits, and they are
+      // invisible to an observable-only reconciliation.
+      includesTerminalsAndBranches: has('**Terminals and branches are units too**'),
+      namesTheHappyPathFailure: has(
+        '"I covered the happy path and stopped" shows up here as\nterminal ids with no disposition',
+      ),
+      offMapIsSiegemasters: has("Off-map families are Siegemaster's exploratory\nterritory"),
+      hostileInputStaysMine: has('`hostile-input` is already your fixture rule'),
       exitIsTheDifference: has('**Exit Criteria:** The set difference is empty.'),
     }).toStrictEqual({
       gate: true,
       assembleNotRetype: true,
       reconcileById: true,
       differenceMustBeEmpty: true,
+      refetchRatherThanRecall: true,
       catchesUnbundledFlow: true,
-      namesTheRetypingFailure: true,
+      includesTerminalsAndBranches: true,
+      namesTheHappyPathFailure: true,
+      offMapIsSiegemasters: true,
+      hostileInputStaysMine: true,
       exitIsTheDifference: true,
     });
   });
@@ -340,7 +374,7 @@ describe('flowriderPromptStatics', () => {
     expect({
       dispositionsListed: has('`COVERED`, `DEFECT:`, `GAP:`, or `ADJUSTED:`/`ADDED:`'),
       unreachedIsRemainingScope: has(
-        'An observable with no disposition is not a `GAP:` — it is remaining scope',
+        'A unit with no disposition is not a `GAP:` — it is remaining scope',
       ),
       unreachedForcesPartial: has('it means you signal\n`partial` and name it'),
       architecturalIsADefect: has('is scope you hand on as a `DEFECT:`, not scope you take'),
@@ -521,17 +555,33 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => makes the spawn brief the minion’s only context and quotes observables verbatim', () => {
+  // The brief no longer transcribes observables: the minion fetches them from the tool, which
+  // returns them verbatim by construction. Hand-copying a hundred-odd observables cost the operator
+  // a large part of its turn AND put a transcription error between the spec and the test — the very
+  // failure the old "quote, never paraphrase" rule existed to prevent.
+  it('VALID: template => has the minion fetch its own checklist instead of transcribing observables', () => {
     expect({
-      onlyContext: has('**Your spawn message is the ONLY quest context it gets.**'),
-      quoteNotParaphrase: has('**quote from the quest rather than paraphrasing**'),
-      mustSatisfyVerbatim: has(
-        '- <observable-id> [<type>]: "<the observable\'s description, VERBATIM>"',
+      judgementContext: has('**Your spawn message is its only JUDGEMENT context.**'),
+      forbidsTranscription: has('**Do NOT transcribe the observables into the brief.**'),
+      minionFetchesPerFlow: has(
+        '`get-qa-checklist({ questId, flowId })` itself, once per flow in its bundle',
       ),
+      namesTheTranscriptionRisk: has(
+        'puts a\n   transcription error between the spec and the test',
+      ),
+      briefCarriesWhatToolCannot: has(
+        "Your brief carries what the tool CANNOT know: why these flows group, what\n   already covers them, which harness is whose, and how far the minion's authority runs.",
+      ),
+      briefLine: has('YOUR CHECKLIST: call get-qa-checklist('),
+      noTranscribedObservableLine: !has('- <observable-id> [<type>]:'),
     }).toStrictEqual({
-      onlyContext: true,
-      quoteNotParaphrase: true,
-      mustSatisfyVerbatim: true,
+      judgementContext: true,
+      forbidsTranscription: true,
+      minionFetchesPerFlow: true,
+      namesTheTranscriptionRisk: true,
+      briefCarriesWhatToolCannot: true,
+      briefLine: true,
+      noTranscribedObservableLine: true,
     });
   });
 

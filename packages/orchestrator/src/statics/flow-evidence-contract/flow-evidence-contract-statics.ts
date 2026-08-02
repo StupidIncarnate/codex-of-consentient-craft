@@ -13,7 +13,20 @@
  * modality was keyed on a flow's `flowType` even though an operational flow routinely carries
  * `ui-state` observables that still need a browser. Both are now keyed on the OBSERVABLE, not the
  * flow, because that is the level a modality is actually chosen at.
+ *
+ * The check-surface table is GENERATED from `qaCheckSurfaceStatics.byOutcomeType`, the same map the
+ * `get-qa-checklist` tool stamps onto every item, rather than restated in prose here. That static is
+ * asserted 1:1 against `outcomeTypeContract`, so a newly added outcome type appears in this prompt
+ * automatically instead of silently falling off a hand-maintained list — which is exactly how
+ * `cache-state` went unnamed. What stays hand-written below it is the part a surface map cannot
+ * carry: the specific WRONG proof each type attracts.
  */
+
+import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
+
+const checkSurfaceRows = Object.entries(qaCheckSurfaceStatics.byOutcomeType)
+  .map(([outcomeType, surface]) => `| \`${outcomeType}\` | ${surface} |`)
+  .join('\n');
 
 export const flowEvidenceContractStatics = {
   markdown: `## The Evidence Contract — what makes an observable COVERED
@@ -41,14 +54,33 @@ exactly one of those layers. Read each observable's \`type\` and pick from this 
 \`flowType\` is a hint about where its centre of gravity sits — it never overrides the per-observable
 choice, and an \`operational\` flow carrying \`ui-state\` observables still needs a browser for those.
 
-| \`type\` | what it claims | what proves it | what does NOT |
-|---|---|---|---|
-| \`ui-state\` | what a user sees or can drive | Playwright, for anything about paint, geometry, visibility, ordering or real interaction | jsdom for any painted claim — no layout engine, every measured width reads 0. \`textContent\` proves a string is in the DOM, never that a user can read it |
-| \`cache-state\` | browser storage — localStorage, sessionStorage, IndexedDB | Playwright whenever the claim involves a page lifecycle: mount, reload, navigation, a second tab, or a sweep that runs on mount. Read the real storage through the page | a jsdom test that calls the read/write helper directly proves the helper's shape ONLY, and never that the app reaches it on the lifecycle event the observable names |
-| \`api-call\` | a request went out, or a response came back a particular way | prove it from the side that makes the claim: browser-side request interception for "the browser sent this body"; a server-layer integration test for "the route answered 400 with this message" | asserting a mocked fetch was called proves your mock, not the route |
-| \`db-query\` | persisted state after an operation | read the real persisted artifact back after the operation and assert its shape | a spy on the write function; it proves the call happened, never that what landed is correct |
-| \`process-state\` | a process was or was not spawned | integration against the real spawn boundary, asserting the child's actual argv | a mocked spawner, which cannot prove the "zero processes spawned" half of the claim at all |
-| \`custom\` | a predicate stated in prose — often a grep, a count, or a real-state check | run the predicate exactly as written and assert its stated result, including the exact match count | paraphrasing the predicate into something easier to satisfy. A \`custom\` observable is not automatically operational — read what it actually asks for |
+**Where each type's value must be read from.** This is the same map \`get-qa-checklist\` stamps onto
+every item as its \`checkSurface\`, so the checklist you fetch and the contract you are judged against
+agree by construction:
+
+| \`type\` | the surface the value must be read from |
+|---|---|
+${checkSurfaceRows}
+
+**And the wrong proof each type attracts.** The surface above says where to look; these are the
+shortcuts that look like looking:
+
+- \`ui-state\` — jsdom for any painted claim. It has no layout engine, every measured width reads 0,
+  and the assertion passes no matter what paints. \`textContent\` proves a string is in the DOM,
+  never that a user can read it. Geometry, wrapping, clipping and visibility need a real browser.
+- \`cache-state\` — a test that calls the read/write helper directly. That proves the helper's shape
+  ONLY, never that the app reaches it on the lifecycle event the observable names (mount, reload,
+  navigation, a second tab, a sweep that runs on mount).
+- \`api-call\` — asserting a mocked fetch was called. That proves your mock, not the route. Prove it
+  from the side that makes the claim: request interception for "the browser sent this body", a
+  server-layer test for "the route answered 400 with this message".
+- \`db-query\` — a spy on the write function. It proves the call happened, never that what landed is
+  correct. Read the persisted artifact back.
+- \`process-state\` — a mocked spawner, which cannot prove the "zero processes spawned" half of the
+  claim at all.
+- \`custom\` — paraphrasing the predicate into something easier to satisfy. A \`custom\` observable is
+  not automatically operational; run what it actually asks for, and when it names a grep, the grep's
+  real output IS the measured value.
 
 Two consequences worth stating outright:
 
