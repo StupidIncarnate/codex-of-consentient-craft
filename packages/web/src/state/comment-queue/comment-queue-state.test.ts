@@ -527,5 +527,19 @@ describe('commentQueueState', () => {
       expect(first).toHaveBeenCalledTimes(1);
       expect(second).toHaveBeenCalledTimes(1);
     });
+
+    it('EDGE: {unsubscribe called twice} => the second call is a no-op instead of throwing', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const listener = jest.fn();
+      const unsubscribe = commentQueueState.subscribe({ questId, listener });
+      unsubscribe();
+
+      unsubscribe();
+      commentQueueState.queue({ questId, entry: CommentQueueEntryStub({}) });
+
+      expect(listener).toHaveBeenCalledTimes(0);
+    });
   });
 });

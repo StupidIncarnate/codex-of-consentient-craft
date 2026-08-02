@@ -210,6 +210,50 @@ describe('modifyQuestInputContract', () => {
     });
   });
 
+  it('VALID: {contracts full shape} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      contracts: [
+        {
+          id: 'login-credentials',
+          name: 'LoginCredentials',
+          kind: 'data',
+          status: 'new',
+          source: 'src/contracts/login-credentials/login-credentials-contract.ts',
+          nodeId: 'start',
+          properties: [],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      contracts: [
+        {
+          id: 'login-credentials',
+          name: 'LoginCredentials',
+          kind: 'data',
+          status: 'new',
+          source: 'src/contracts/login-credentials/login-credentials-contract.ts',
+          nodeId: 'start',
+          properties: [],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {contracts delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      contracts: [{ id: 'login-credentials', _delete: true }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      contracts: [{ id: 'login-credentials', _delete: true }],
+    });
+  });
+
   it('VALID: {designDecisions partial-patch shape: id + rationale only} => parses successfully', () => {
     const result = modifyQuestInputContract.parse({
       questId: 'add-auth',
@@ -223,6 +267,44 @@ describe('modifyQuestInputContract', () => {
       designDecisions: [
         { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', rationale: 'Sharpened wording' },
       ],
+    });
+  });
+
+  it('VALID: {designDecisions full shape} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      designDecisions: [
+        {
+          id: 'use-jwt-auth',
+          title: 'Use JWT for auth',
+          rationale: 'Stateless tokens avoid a server-side session store',
+          relatedNodeIds: ['start'],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      designDecisions: [
+        {
+          id: 'use-jwt-auth',
+          title: 'Use JWT for auth',
+          rationale: 'Stateless tokens avoid a server-side session store',
+          relatedNodeIds: ['start'],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {designDecisions delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      designDecisions: [{ id: 'use-jwt-auth', _delete: true }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      designDecisions: [{ id: 'use-jwt-auth', _delete: true }],
     });
   });
 
@@ -251,6 +333,166 @@ describe('modifyQuestInputContract', () => {
     expect(result).toStrictEqual({
       questId: 'add-auth',
       packagesAffected: ['orchestrator', 'web', 'shared'],
+    });
+  });
+
+  it('VALID: {toolingRequirements full shape} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      toolingRequirements: [
+        {
+          id: 'pg-driver',
+          name: 'PostgreSQL Driver',
+          packageName: 'pg',
+          reason: 'DB verification',
+          requiredByObservables: ['login-redirects-to-dashboard'],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      toolingRequirements: [
+        {
+          id: 'pg-driver',
+          name: 'PostgreSQL Driver',
+          packageName: 'pg',
+          reason: 'DB verification',
+          requiredByObservables: ['login-redirects-to-dashboard'],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {toolingRequirements partial-patch shape: id + reason only} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      toolingRequirements: [{ id: 'pg-driver', reason: 'Updated reason' }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      toolingRequirements: [{ id: 'pg-driver', reason: 'Updated reason' }],
+    });
+  });
+
+  it('VALID: {toolingRequirements delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      toolingRequirements: [{ id: 'pg-driver', _delete: true }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      toolingRequirements: [{ id: 'pg-driver', _delete: true }],
+    });
+  });
+
+  it('VALID: {flows delete marker} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [{ id: 'login-flow', _delete: true }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [{ id: 'login-flow', _delete: true }],
+    });
+  });
+
+  // Nested-union coverage unique to this composed contract: deletableFlowContract wraps
+  // flowContract's own nodes/edges/observables in their own delete-marker unions
+  // (deletableNodeContract, deletableEdgeContract, deletableObservableContract) — flowContract's
+  // own test file proves the base shape, but only THIS contract's partial-patch-with-nested-array
+  // branches prove a node, an edge, and an observable can each be independently deleted inside a
+  // flow patch without restating the whole flow.
+  it('VALID: {flows partial-patch with a deleted node, a deleted edge, and a nested deleted observable} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            { id: 'start', _delete: true },
+            { id: 'end', observables: [{ id: 'login-redirects-to-dashboard', _delete: true }] },
+          ],
+          edges: [{ id: 'start-to-end', _delete: true }],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            { id: 'start', _delete: true },
+            { id: 'end', observables: [{ id: 'login-redirects-to-dashboard', _delete: true }] },
+          ],
+          edges: [{ id: 'start-to-end', _delete: true }],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {workItems entry with only id} => parses successfully (every other field optional for upsert)', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      workItems: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      workItems: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }],
+    });
+  });
+
+  it('VALID: {wardResults entry} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      wardResults: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 0,
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      wardResults: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          createdAt: '2024-01-15T10:00:00.000Z',
+          exitCode: 0,
+        },
+      ],
+    });
+  });
+
+  it('VALID: {designPort} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      designPort: 5173,
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      designPort: 5173,
+    });
+  });
+
+  it('VALID: {status} => parses successfully', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      status: 'in_progress',
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      status: 'in_progress',
     });
   });
 

@@ -79,6 +79,12 @@ export const QuestHandleResponderProxy = (): {
     guildSlug: UrlSlug;
   }) => void;
   setupCreateQuestThrows: (params: { userRequest: string; error: Error }) => void;
+  // Stages the Claude Code session-resolve broker's "found" path (real fs.readdir/fs.stat
+  // adapters underneath) against the same homedir/projectDir the responder's unstaged
+  // processCwdAdapter/osUserHomedirAdapter defaults resolve to, so a test can prove the
+  // create-quest tool's `resolved !== undefined` branch threads sessionId through.
+  setupSessionResolved: (params: { entries: readonly { name: string; mtimeMs: number }[] }) => void;
+  getLastCreateQuestInput: () => unknown;
   setupGetNextStepReturns: (params: { step: NextStep }) => void;
   setupGetNextStepThrows: (params: { error: Error }) => void;
   setupRunWardReturns: (params: {
@@ -245,6 +251,20 @@ export const QuestHandleResponderProxy = (): {
     }): void => {
       createQuestProxy.throws({ userRequest, error });
     },
+
+    setupSessionResolved: ({
+      entries,
+    }: {
+      entries: readonly { name: string; mtimeMs: number }[];
+    }): void => {
+      sessionResolveProxy.setupSessionsDir({
+        homedir: '/home/default',
+        projectDir: '/default/cwd',
+        entries,
+      });
+    },
+
+    getLastCreateQuestInput: (): unknown => createQuestProxy.getLastCallInput(),
 
     setupGetNextStepReturns: ({ step }: { step: NextStep }): void => {
       getNextStepProxy.returns({ step });

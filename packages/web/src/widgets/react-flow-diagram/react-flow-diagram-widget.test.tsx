@@ -233,6 +233,40 @@ describe('ReactFlowDiagramWidget', () => {
         '↗ compile-flow → compile-entry',
       );
     });
+
+    it('VALID: {portal node clicked} => no detail panel opens (clicking a cross-flow stand-in is a no-op)', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'run-compile' }),
+        label: 'Run Compile flow',
+        type: 'action',
+        observables: [],
+      });
+      const crossEdge = FlowEdgeStub({
+        id: 'run-compile-invokes',
+        from: 'run-compile',
+        to: 'compile-flow:compile-entry',
+        label: 'invokes',
+      });
+      const flow = FlowStub({ nodes: [node], edges: [crossEdge] });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'run-compile', x: 0, y: 0 },
+          { id: 'compile-flow:compile-entry', x: 0, y: 200 },
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'compile-flow:compile-entry' });
+
+      expect(proxy.hasDetailPanel()).toBe(false);
+    });
   });
 
   describe('error handling', () => {
@@ -1286,6 +1320,61 @@ describe('ReactFlowDiagramWidget', () => {
       expect(proxy.hasDetailPanel()).toBe(true);
 
       await proxy.pressEsc();
+
+      expect(proxy.hasDetailPanel()).toBe(false);
+      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-selected')).toBe(null);
+    });
+
+    it('VALID: {non-Escape key pressed after selection} => panel stays open', async () => {
+      const user = userEvent.setup();
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.hasDetailPanel()).toBe(true);
+
+      await user.keyboard('{Enter}');
+
+      expect(proxy.hasDetailPanel()).toBe(true);
+      expect(screen.getByTestId('FLOW_NODE').getAttribute('data-selected')).toBe('true');
+    });
+
+    it('VALID: {pane clicked after selection} => panel removed and node deselected', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const node = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        type: 'state',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [node], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      await proxy.clickNode({ nodeId: 'login-page' });
+
+      expect(proxy.hasDetailPanel()).toBe(true);
+
+      await proxy.clickPane();
 
       expect(proxy.hasDetailPanel()).toBe(false);
       expect(screen.getByTestId('FLOW_NODE').getAttribute('data-selected')).toBe(null);

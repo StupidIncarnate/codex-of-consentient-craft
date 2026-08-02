@@ -978,6 +978,103 @@ describe('questModifyBroker', () => {
     });
   });
 
+  describe('packagesAffected handling (replace-not-upsert)', () => {
+    it('VALID: {packagesAffected: [new list]} => replaces the whole array rather than upserting by id', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        packagesAffected: ['shared'],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        packagesAffected: ['orchestrator', 'mcp'],
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.packagesAffected).toStrictEqual(['orchestrator', 'mcp']);
+    });
+
+    it('VALID: {no packagesAffected in input} => leaves the existing array unchanged', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        packagesAffected: ['shared'],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({ questId: 'add-auth' });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.packagesAffected).toStrictEqual(['shared']);
+    });
+  });
+
+  describe('designPort handling (orchestrator-only field)', () => {
+    it('VALID: {designPort: 5173} => sets quest.designPort', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        designPort: 5173,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.designPort).toBe(5173);
+    });
+
+    it('VALID: {no designPort in input} => leaves quest.designPort unchanged', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        designPort: 4173,
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({ questId: 'add-auth' });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.designPort).toBe(4173);
+    });
+  });
+
   describe('mutex behavior (concurrency safety)', () => {
     it('VALID: {10 concurrent modify calls on same questId} => all 10 persist calls complete (serialized, none dropped)', async () => {
       const proxy = questModifyBrokerProxy();

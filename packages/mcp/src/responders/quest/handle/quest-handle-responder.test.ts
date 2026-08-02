@@ -169,6 +169,29 @@ describe('QuestHandleResponder', () => {
       },
     );
 
+    it('VALID: {format: text, unsuccessful result} => falls through to the JSON strip branch instead of rendering text', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const quest = QuestStub();
+      const questResult = GetQuestResultStub({ success: false, quest });
+      Reflect.deleteProperty(quest, 'comments');
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', format: 'text' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: false, quest }, null, JSON_INDENT_SPACES),
+          },
+        ],
+        isError: true,
+      });
+    });
+
     it('VALID: {format: text, quest with a sentinel comment} => rendered text never contains the comment text', async () => {
       const proxy = QuestHandleResponderProxy();
       const quest = QuestStub({
@@ -1109,6 +1132,34 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify({ questId, guildSlug }, null, JSON_INDENT_SPACES),
           },
         ],
+      });
+    });
+
+    it('VALID: {userRequest} with a resolvable Claude Code session on disk => forwards the resolved sessionId to the create-quest adapter', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      proxy.setupSessionResolved({
+        entries: [{ name: 'resolved-session-abc.jsonl', mtimeMs: 1000 }],
+      });
+      proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-quest' }),
+        args: { userRequest: 'Build the login flow' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ questId, guildSlug }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+      expect(proxy.getLastCreateQuestInput()).toStrictEqual({
+        userRequest: 'Build the login flow',
+        sessionId: 'resolved-session-abc',
       });
     });
 

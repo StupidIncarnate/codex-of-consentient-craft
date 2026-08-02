@@ -5,6 +5,8 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  SessionIdStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
@@ -425,26 +427,20 @@ describe('QuestFlow', () => {
         nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
         edges: [],
       });
-      const sessionId = 'bbbbbbbb-2222-4222-8222-444444444444';
+      const sessionId = SessionIdStub({ value: 'bbbbbbbb-2222-4222-8222-444444444444' });
       const quest = QuestStub({
         id: questId as never,
         folder: questFolder as never,
         status: 'flows_approved' as never,
         flows: [flow],
         workItems: [
-          {
-            id: 'aaaaaaaa-2222-4222-8222-444444444444',
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-2222-4222-8222-444444444444' }),
             role: 'chaoswhisperer',
             status: 'in_progress',
-            spawnerType: 'agent',
             sessionId,
-            relatedDataItems: [],
-            dependsOn: [],
-            attempt: 0,
-            maxAttempts: 1,
-            createdAt: '2024-01-15T10:00:00.000Z',
-          },
-        ] as never,
+          }),
+        ],
       });
 
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
@@ -541,19 +537,13 @@ describe('QuestFlow', () => {
         status: 'flows_approved' as never,
         flows: [flow],
         workItems: [
-          {
-            id: 'aaaaaaaa-4444-4222-8222-444444444444',
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'aaaaaaaa-4444-4222-8222-444444444444' }),
             role: 'chaoswhisperer',
             status: 'in_progress',
-            spawnerType: 'agent',
-            sessionId: 'bbbbbbbb-4444-4222-8222-444444444444',
-            relatedDataItems: [],
-            dependsOn: [],
-            attempt: 0,
-            maxAttempts: 1,
-            createdAt: '2024-01-15T10:00:00.000Z',
-          },
-        ] as never,
+            sessionId: SessionIdStub({ value: 'bbbbbbbb-4444-4222-8222-444444444444' }),
+          }),
+        ],
       });
 
       harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });

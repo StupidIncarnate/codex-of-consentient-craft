@@ -16,6 +16,7 @@ type UrlSlug = ReturnType<typeof UrlSlugStub>;
 export const orchestratorCreateQuestAdapterProxy = (): {
   returns: (params: { userRequest: string; questId: QuestId; guildSlug: UrlSlug }) => void;
   throws: (params: { userRequest: string; error: Error }) => void;
+  getLastCallInput: () => unknown;
 } => {
   const handle = registerMock({ fn: StartOrchestrator.createQuestForMcp });
 
@@ -34,5 +35,13 @@ export const orchestratorCreateQuestAdapterProxy = (): {
     throws: ({ userRequest, error }: { userRequest: string; error: Error }): void => {
       handle.calledWith([{ userRequest }]).rejects(error);
     },
+    // The raw first-argument object of the most recent call — lets a caller prove which
+    // optional fields (questType, sessionId) actually reached StartOrchestrator.createQuestForMcp,
+    // since `returns`/`throws` only address on `userRequest` and would match regardless.
+    getLastCallInput: (): unknown =>
+      handle
+        .callsMatching([])
+        .map((call) => call[0])
+        .at(-1),
   };
 };
