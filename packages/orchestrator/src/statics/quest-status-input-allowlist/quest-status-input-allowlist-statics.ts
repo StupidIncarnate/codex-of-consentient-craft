@@ -143,8 +143,9 @@ export const questStatusInputAllowlistStatics = {
     // missed can pull in a package the spec never listed, and every later session reads that field.
     allowedFields: ['contracts', 'toolingRequirements', 'flows', 'packagesAffected', 'status'],
     flowsRule: 'additive-only',
-    // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields —
-    // blightwarden minions write blightReports (the only sub-field on the contract) mid-run.
+    // 'all' accepts a planningNotes payload even though planningNotes is not in allowedFields:
+    // blightwarden minions write `blightReports` mid-run, and siegemaster writes `qaLedger` — the
+    // per-unit QA dispositions its own signal-back completion gate is then computed against.
     allowedPlanningNotesFields: 'all',
   },
   paused: {

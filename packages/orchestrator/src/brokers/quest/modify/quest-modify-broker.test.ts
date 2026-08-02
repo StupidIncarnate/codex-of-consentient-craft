@@ -660,7 +660,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: { blightReports: [existingReport] },
+        planningNotes: { blightReports: [existingReport], qaLedger: [] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -671,7 +671,7 @@ describe('questModifyBroker', () => {
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { blightReports: [newReport] },
+        planningNotes: { blightReports: [newReport], qaLedger: [] },
       });
 
       const result = await questModifyBroker({ input });
@@ -680,7 +680,10 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.planningNotes).toStrictEqual({ blightReports: [existingReport, newReport] });
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [existingReport, newReport],
+        qaLedger: [],
+      });
     });
 
     it('VALID: {planningNotes.blightReports with existing UUID} => deep-merges (overwrites matching id)', async () => {
@@ -695,7 +698,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: { blightReports: [existingReport] },
+        planningNotes: { blightReports: [existingReport], qaLedger: [] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -707,7 +710,7 @@ describe('questModifyBroker', () => {
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { blightReports: [updatedReport] },
+        planningNotes: { blightReports: [updatedReport], qaLedger: [] },
       });
 
       const result = await questModifyBroker({ input });
@@ -716,7 +719,10 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.planningNotes).toStrictEqual({ blightReports: [updatedReport] });
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [updatedReport],
+        qaLedger: [],
+      });
     });
 
     it('VALID: {planningNotes.blightReports with _delete: true} => removes matching entry', async () => {
@@ -729,14 +735,14 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: { blightReports: [keepReport, deleteReport] },
+        planningNotes: { blightReports: [keepReport, deleteReport], qaLedger: [] },
       });
 
       proxy.setupQuestFound({ quest });
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { blightReports: [{ id: deleteId, _delete: true } as never] },
+        planningNotes: { blightReports: [{ id: deleteId, _delete: true } as never], qaLedger: [] },
       });
 
       const result = await questModifyBroker({ input });
@@ -745,7 +751,7 @@ describe('questModifyBroker', () => {
 
       const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
 
-      expect(persisted.planningNotes).toStrictEqual({ blightReports: [keepReport] });
+      expect(persisted.planningNotes).toStrictEqual({ blightReports: [keepReport], qaLedger: [] });
     });
   });
 
@@ -756,7 +762,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
 
       // Queue 10 quest-file responses so each of the 10 serialized modify calls has a load result
@@ -772,7 +778,7 @@ describe('questModifyBroker', () => {
         });
         const input = ModifyQuestInputStub({
           questId: 'add-auth',
-          planningNotes: { blightReports: [report] },
+          planningNotes: { blightReports: [report], qaLedger: [] },
         });
         return questModifyBroker({ input });
       });
@@ -815,7 +821,7 @@ describe('questModifyBroker', () => {
         id: 'add-auth',
         folder: '001-add-auth',
         status: 'in_progress',
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
 
       // Queue two load responses — one per concurrent call.
@@ -833,11 +839,11 @@ describe('questModifyBroker', () => {
 
       const inputA = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { blightReports: [reportA] },
+        planningNotes: { blightReports: [reportA], qaLedger: [] },
       });
       const inputB = ModifyQuestInputStub({
         questId: 'add-auth',
-        planningNotes: { blightReports: [reportB] },
+        planningNotes: { blightReports: [reportB], qaLedger: [] },
       });
 
       const [resultA, resultB] = await Promise.all([

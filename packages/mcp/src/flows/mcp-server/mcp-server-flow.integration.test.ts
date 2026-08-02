@@ -980,6 +980,7 @@ describe('McpServerFlow', () => {
       'get-quest',
       'get-quest-status',
       'get-quest-planning-notes',
+      'get-qa-checklist',
       'get-agent-prompt',
       'run-ward',
       'ask-user-question',

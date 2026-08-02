@@ -19,6 +19,7 @@ export const agentPromptNameContract = z.enum([
   'flowrider-minion',
   'siegemaster',
   'siegemaster-minion',
+  'siegemaster-test-audit-minion',
   'blightwarden',
   'blightwarden-security-minion',
   'blightwarden-dedup-minion',

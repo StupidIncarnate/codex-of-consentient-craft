@@ -13,7 +13,7 @@ describe('QuestGetPlanningNotesResponder', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { blightReports: [] },
+        data: { blightReports: [], qaLedger: [] },
       });
     });
 
@@ -23,7 +23,7 @@ describe('QuestGetPlanningNotesResponder', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
       proxy.setupQuestFound({ quest });
 
@@ -31,7 +31,7 @@ describe('QuestGetPlanningNotesResponder', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { blightReports: [blight] },
+        data: { blightReports: [blight], qaLedger: [] },
       });
     });
   });
@@ -43,7 +43,7 @@ describe('QuestGetPlanningNotesResponder', () => {
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
       proxy.setupQuestFound({ quest });
 

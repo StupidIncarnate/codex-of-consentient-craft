@@ -69,7 +69,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -91,7 +91,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
       });
     });
 
@@ -112,7 +112,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -129,7 +129,7 @@ describe('questGetBroker', () => {
         designDecisions: result.quest?.designDecisions,
         toolingRequirements: result.quest?.toolingRequirements,
       }).toStrictEqual({
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
         operations: [operation],
         contracts: [contractEntry],
         flows: [],
@@ -153,7 +153,7 @@ describe('questGetBroker', () => {
         toolingRequirements: [tooling],
         contracts: [contractEntry],
         operations: [operation],
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
       });
 
       proxy.setupQuestFound({ quest });
@@ -169,7 +169,7 @@ describe('questGetBroker', () => {
         toolingRequirements: result.quest?.toolingRequirements,
         flows: result.quest?.flows,
       }).toStrictEqual({
-        planningNotes: { blightReports: [blight] },
+        planningNotes: { blightReports: [blight], qaLedger: [] },
         operations: [operation],
         contracts: [contractEntry],
         toolingRequirements: [tooling],

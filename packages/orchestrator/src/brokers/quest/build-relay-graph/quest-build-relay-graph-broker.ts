@@ -4,9 +4,13 @@
  * items) plus the fixed verify tail to the operations ledger, and creates ONE work item for the
  * first actionable (pending) operation item so the dispatch loop has something to pick up.
  *
- * Flowrider and siegemaster are operator roles: each gets exactly ONE whole-quest operation item
- * carrying every quest flow id in `flowIds`, and that single session fans its own work out across
- * those flows internally.
+ * Flowrider gets ONE whole-quest operation item carrying every quest flow id in `flowIds`, and that
+ * single session fans its own work out across those flows internally — authoring test suites is
+ * parallel-safe.
+ *
+ * Siegemaster gets ONE ITEM PER FLOW. Its work is strictly serial (one dev server, one reset lever),
+ * so a whole-quest item put every flow behind one session's context and one pt budget. Per-flow
+ * items give each flow its own budget and its own completion gate.
  *
  * USAGE:
  * const { operations, workItems } = questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
@@ -64,23 +68,51 @@ export const questBuildRelayGraphBroker = ({
     }),
   );
 
-  // Every tail seed maps 1:1 to an operation item, in registry order. The flow-operator roles
-  // (flowrider, siegemaster) are accountable for the WHOLE spine, so their item carries every quest
-  // flow id; a flow-less quest gives them an empty list. The remaining tail roles serve the whole
-  // diff and set no `flowIds` at all.
-  const tailOps = registry.relayTail.map((entry) =>
-    operationItemContract.parse({
-      id: crypto.randomUUID(),
+  // Tail seeds expand in registry order. Most roles serve the whole diff and set no `flowIds`.
+  //
+  // `flowrider` stays ONE whole-quest item: authoring test suites is parallel-safe, so its session
+  // fans out to minions that run concurrently and the whole spine fits one pass.
+  //
+  // `siegemaster` fans out to ONE ITEM PER FLOW. Its work is strictly serial (one dev server, one
+  // reset lever), so a whole-quest item put every flow behind a single session's context AND a
+  // single pt budget of `slotManagerStatics.siegemaster.maxAttempts`. Per-flow items give each flow
+  // its own budget — the pt chain keys on role + base text, and the text carries the flow id — and
+  // scope the completion gate to a checklist one session can actually finish.
+  const tailOps = registry.relayTail.flatMap((entry) => {
+    const seed = {
       role: entry.role,
-      text: entry.text,
       status: 'pending',
       locked: true,
       ...('wardMode' in entry ? { wardMode: entry.wardMode } : {}),
-      ...(entry.role === 'flowrider' || entry.role === 'siegemaster'
-        ? { flowIds: quest.flows.map((flow) => flow.id) }
-        : {}),
-    }),
-  );
+    };
+
+    if (entry.role === 'siegemaster') {
+      // A flow-less quest still gets exactly one item: inbound `GAP:` work from earlier roles has
+      // to land somewhere, and dropping the role entirely would leave nobody accountable for it.
+      if (quest.flows.length === 0) {
+        return [
+          operationItemContract.parse({ ...seed, id: crypto.randomUUID(), text: entry.text }),
+        ];
+      }
+      return quest.flows.map((flow) =>
+        operationItemContract.parse({
+          ...seed,
+          id: crypto.randomUUID(),
+          text: `${entry.text} — flow: ${String(flow.id)}`,
+          flowIds: [flow.id],
+        }),
+      );
+    }
+
+    return [
+      operationItemContract.parse({
+        ...seed,
+        id: crypto.randomUUID(),
+        text: entry.text,
+        ...(entry.role === 'flowrider' ? { flowIds: quest.flows.map((flow) => flow.id) } : {}),
+      }),
+    ];
+  });
 
   const operations = [...settledExisting, ...implementationOps, ...tailOps];
 

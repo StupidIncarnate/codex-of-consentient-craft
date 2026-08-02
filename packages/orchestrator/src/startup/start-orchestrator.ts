@@ -193,6 +193,15 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
 
+  getQaChecklist: async ({
+    questId,
+    flowId,
+  }: {
+    questId: string;
+    flowId?: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.getQaChecklist>>> =>
+    QuestFlow.getQaChecklist({ questId, ...(flowId !== undefined && { flowId }) }),
+
   modifyQuest: async ({
     questId,
     input,

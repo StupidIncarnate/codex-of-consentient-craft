@@ -32,6 +32,13 @@ export * from './src/statics/banned-jest-matchers/banned-jest-matchers-statics';
 export * from './src/statics/guild-name-small-words/guild-name-small-words-statics';
 export * from './src/statics/quest-type-registry/quest-type-registry-statics';
 
+// QA checklist vocabulary — where each observable type is actually confirmed, and what each
+// off-map probe family concretely means. Consumed by qaChecklistBuildTransformer so the tool
+// states both deterministically instead of leaving every walker to re-derive them.
+export * from './src/statics/qa-check-surface/qa-check-surface-statics';
+export * from './src/statics/qa-off-map-probe/qa-off-map-probe-statics';
+export * from './src/statics/qa-checklist-limits/qa-checklist-limits-statics';
+
 // Execution dungeon floor config — the canonical role/floor pipeline order shared by the web floor
 // view and the orchestrator dispatcher.
 export * from './src/statics/execution-floor-config/execution-floor-config-statics';

@@ -59,7 +59,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [
           FlowStub({
             nodes: [
@@ -102,7 +102,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });
@@ -136,7 +136,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });
@@ -174,7 +174,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [flow],
       });
     });
@@ -208,7 +208,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });
@@ -249,7 +249,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [FlowStub()],
       });
     });
@@ -300,7 +300,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });
@@ -332,7 +332,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: quest.flows,
       });
     });
@@ -368,7 +368,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });
@@ -400,7 +400,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });
@@ -432,7 +432,7 @@ describe('questSectionFilterTransformer', () => {
         workItems: [],
         wardResults: [],
         comments: [],
-        planningNotes: { blightReports: [] },
+        planningNotes: { blightReports: [], qaLedger: [] },
         flows: [],
       });
     });

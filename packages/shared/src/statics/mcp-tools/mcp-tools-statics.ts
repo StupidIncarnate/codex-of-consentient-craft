@@ -31,6 +31,7 @@ export const mcpToolsStatics = {
       'get-agent-prompt',
       'get-project-map',
       'get-quest-planning-notes',
+      'get-qa-checklist',
       'get-project-inventory',
       'create-quest',
       'get-next-step',

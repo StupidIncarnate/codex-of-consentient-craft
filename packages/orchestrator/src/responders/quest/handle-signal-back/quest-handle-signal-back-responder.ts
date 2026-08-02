@@ -4,7 +4,12 @@
  * `operationStatus` and is applied here server-side (authoritative — an agent cannot forget to
  * patch the ledger, because agents never write the ledger at all):
  *
- * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`.
+ * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`. For a
+ *   `siegemaster` item declaring `flowIds`, this is GATED: the responder recomputes the flow's QA
+ *   checklist and refuses `done` (by throwing, so the agent sees why) while any unit carries no
+ *   entry in `quest.planningNotes.qaLedger`. Completion is a computed fact rather than the agent's
+ *   recollection of its own pass. Every disposition clears a unit, `gap` and `recorded` included,
+ *   so the gate is always satisfiable honestly; it refuses absence, not honesty.
  * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
  *   "pt N: {text}" continuation item (same role, locked flag preserved) is appended immediately
  *   after it — duplicate-on-partial keeps the strict 1:1 operation-item↔work-item invariant and an
@@ -53,7 +58,12 @@ import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failu
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
+import { qaCoverageOutstandingTransformer } from '../../../transformers/qa-coverage-outstanding/qa-coverage-outstanding-transformer';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
+
+// How many outstanding unit ids to name inline before deferring to get-qa-checklist. Enough to act
+// on directly for a nearly-finished flow, short of dumping 144 ids into a tool error.
+const OUTSTANDING_PREVIEW_LIMIT = 15;
 
 export const QuestHandleSignalBackResponder = async ({
   questId,
@@ -101,6 +111,53 @@ export const QuestHandleSignalBackResponder = async ({
   // pt N continuation + work item. The first delivery already applied the outcome atomically.
   if (isTerminalWorkItemStatusGuard({ status: signaledItem.status })) {
     return adapterResultContract.parse({ success: true });
+  }
+
+  // COMPLETION GATE — runs BEFORE any mutation, so a refused `done` leaves the work item and its
+  // operation item exactly as they were and the session can carry on and signal again.
+  //
+  // `done` from a siegemaster item means "every unit on my flow has been dealt with". That claim
+  // used to be the agent's memory of its own pass, which is precisely what failed: a session walked
+  // part of a flow across a long serial run and reported done. Here it is recomputed from the flow
+  // graph and the persisted ledger. Every disposition clears a unit — `gap` and `recorded` included
+  // — so the gate is always satisfiable honestly; what it refuses is scope with no entry at all.
+  //
+  // Throwing (rather than returning) is deliberate and matches the unloadable-quest case above: the
+  // error rides the awaited signal-back path back through the MCP tool to the agent, where it is
+  // visible and actionable, instead of being silently swallowed as a success.
+  if (operationStatus === undefined || operationStatus === 'done') {
+    const linkedRef = signaledItem.relatedDataItems
+      .map((ref) => String(ref))
+      .find((ref) => ref.startsWith('operations/'));
+    const linkedId = operationItemId === undefined ? linkedRef?.split('/')[1] : operationItemId;
+    const linkedOperation = result.quest.operations.find((operation) => operation.id === linkedId);
+
+    if (linkedOperation !== undefined) {
+      const outstanding = qaCoverageOutstandingTransformer({
+        quest: result.quest,
+        operationItem: linkedOperation,
+      });
+
+      if (outstanding.length > 0) {
+        throw new Error(
+          [
+            `signal-back refused: operationStatus 'done' means every verification unit on your flow carries a disposition, and ${String(outstanding.length)} still carry none.`,
+            '',
+            'Outstanding units:',
+            ...outstanding.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((id) => `  - ${String(id)}`),
+            ...(outstanding.length > OUTSTANDING_PREVIEW_LIMIT
+              ? [
+                  `  … and ${String(outstanding.length - OUTSTANDING_PREVIEW_LIMIT)} more — call get-qa-checklist for the full list.`,
+                ]
+              : []),
+            '',
+            'Do ONE of these, then signal again:',
+            '  1. Deal with each remaining unit and record it in quest.planningNotes.qaLedger (a `gap` or `recorded` entry with a real reason counts — this gate refuses absence, not honesty).',
+            "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
+          ].join('\n'),
+        );
+      }
+    }
   }
 
   // Object holder (not a bare `let`): the flag is assigned inside the update callback, which

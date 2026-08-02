@@ -377,7 +377,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   ├─ codeweaver ──── one session per codeweaver op item ChaosWhisperer authored; implementation + unit tests
   ├─ ward (changed)─ mcp__dungeonmaster__run-ward({mode: 'changed'}); spawnerType: 'command'
   ├─ flowrider ──── one session for ALL quest flows; authors their flow-perspective test suites
-  ├─ siegemaster ── one session for ALL quest flows; manual QA + reviews the suites + TDD-fixes what it breaks
+  ├─ siegemaster ── ONE SESSION PER FLOW; orchestrates manual QA of that flow via walker minions
   ├─ lawbringer ──── one session; standards review across the whole quest diff (fixes inline)
   ├─ blightwarden ── one session; cross-cutting whole-diff audit
   ├─ ward (full) ─── mcp__dungeonmaster__run-ward({mode: 'full'}); spawnerType: 'command'
@@ -417,10 +417,15 @@ one work item over its life.
 - **Seed** (`questBuildRelayGraphBroker`, at Start): appends the quest type's `startImplementationOps` + `relayTail`
   (from `questTypeRegistryStatics`) as pending locked operation items, force-completes any leftover
   chaoswhisperer/glyphsmith intake items, and creates the first work item — all in one `questOperationsUpdateBroker`
-  persist. Every `relayTail` entry maps 1:1 to an operation item; the flow-operator entries (flowrider + siegemaster)
-  each get ONE whole-quest item carrying every quest flow id in `flowIds` (empty on a flow-less quest), so one session
-  owns all of a quest's flows and each role holds exactly one pt-continuation chain. Idempotent: a re-Start detects the
-  already-seeded verify tail (a locked `role: ward` item) and skips straight to the status transition.
+  persist. Most `relayTail` entries map 1:1 to an operation item. **`flowrider` gets ONE whole-quest item** carrying
+  every quest flow id in `flowIds` (empty on a flow-less quest) — authoring test suites is parallel-safe, so one
+  session fans out internally and holds one pt chain. **`siegemaster` fans out to ONE ITEM PER FLOW**, each carrying a
+  single `flowId` and a text suffixed `— flow: <id>`. Its work is strictly serial (one dev server, one reset lever),
+  so a whole-quest item put every flow behind one session's context AND one pt budget; per-flow items give each flow
+  its own budget (the pt chain keys on role + base text, and the text carries the flow id) and its own completion
+  gate. A flow-less quest still gets exactly one siegemaster item, so inbound `GAP:` work keeps an owner. Idempotent:
+  a re-Start detects the already-seeded verify tail (a locked `role: ward` item) and skips straight to the status
+  transition.
 - **Dispatch** (`quest-get-next-step-broker`): FIFO-scans active quests, picks the oldest with incomplete work, and
   returns a `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which Task()s the agent or calls
   the `run-ward` MCP tool.
@@ -572,7 +577,7 @@ Claude-dispatched agent roles (codeweaver, spiritmender, lawbringer, flowrider, 
 | codeweaver     | `/dumpster-launch` via Task() (one per codeweaver op item)         | complete (done / partial / blocked) | none                                                        |
 | ward           | `/dumpster-launch` via `run-ward` MCP tool (command)               | exit code (green / red)             | none (broker writes wardResults + item status)              |
 | flowrider      | `/dumpster-launch` via Task() (one session for every quest flow)   | complete (done / partial / blocked) | none (tests first, plus the impl holes its testing exposes) |
-| siegemaster    | `/dumpster-launch` via Task() (one session for every quest flow)   | complete (done / partial / blocked) | none (edits inline)                                         |
+| siegemaster    | `/dumpster-launch` via Task() (ONE SESSION PER FLOW)               | complete (done / partial / blocked) | `planningNotes.qaLedger` (per-unit dispositions)            |
 | lawbringer     | `/dumpster-launch` via Task() (whole-diff review)                  | complete (done / partial / blocked) | none (fixes findings inline)                                |
 | blightwarden   | `/dumpster-launch` via Task() (whole-diff audit)                   | complete (done / partial / blocked) | planningNotes.blightReports (via its minions)               |
 | spiritmender   | `/dumpster-launch` via Task() (inserted on ward red)               | complete (done / partial / blocked) | none                                                        |
@@ -585,14 +590,20 @@ code, and the orchestrator appends a `"pt N: {text}"` continuation operation ite
 re-runs against the new state. The role converges when a pass changes nothing and it signals `done`.
 
 `flowrider` and `siegemaster` are **operators**, NOT fixpoint roles: they signal on remaining scope — `done` once every
-observable on every quest flow carries a disposition, `partial` only for a named remainder. Each delegates bundles of
-flows to minions and then re-reads the files they wrote, so the operator itself is the fresh pair of eyes a `pt N`
-session would otherwise supply; writing a test or landing a fix does not by itself earn another pass. Their `pt N`
-budget still exists as a backstop and still blocks a spent chain. Each locked (verify-tail) role's pt chain is bounded
-by `slotManagerStatics.<role>.maxAttempts` (ward by
+unit in scope carries a disposition, `partial` only for a named remainder. Writing a test or landing a fix does not by
+itself earn another pass.
+
+For `siegemaster` that claim is no longer taken on trust. Its flow decomposes into atomic **verification units**
+(`get-qa-checklist` — every terminal, labelled branch, observable, and off-map probe family), each unit gets a
+disposition in `quest.planningNotes.qaLedger`, and `signal-back` recomputes the outstanding set and **refuses `done`
+while any unit is undispositioned** (see "Signal System"). Completion is computed, not remembered — a session that
+reported `done` having walked part of one flow is the failure that motivated this.
+
+Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts` (ward by
 `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest instead of looping. A chain is keyed on role +
-base text, and each verify-tail role holds exactly one item, so each role gets exactly one budget; the continuation
-copies the item's `flowIds` so the fresh session keeps that scope. See "Signal System" + "Failure handling".
+base text. `flowrider` holds exactly one item and therefore one budget; `siegemaster` holds one item PER FLOW, and
+because each carries the flow id in its text, each flow gets its own budget. The continuation copies the item's
+`flowIds` so the fresh session keeps that scope. See "Signal System" + "Failure handling".
 
 ### Minions (parent-summoned sub-agents)
 
@@ -622,6 +633,12 @@ operation OUTCOME rides on the same call as `operationStatus` (`signalBackInputC
 rejected). The live handler is `quest-handle-signal-back-responder.ts`, which applies the outcome server-side
 (authoritative — an agent cannot forget to patch the ledger, because agents never write it):
 
+0. **Completion gate (before any mutation).** For a `siegemaster` operation item declaring `flowIds`, `done` is
+   recomputed rather than believed: the responder rebuilds the flow's QA checklist and, if any unit carries no entry
+   in `quest.planningNotes.qaLedger`, THROWS — naming the outstanding units so the agent can act. Nothing is
+   persisted, so the session simply carries on and signals again. Every disposition clears a unit (`gap` and
+   `recorded` included), so the gate is always satisfiable honestly; it refuses absence, not honesty. An item
+   declaring no `flowIds` is never gated, which keeps a flow-less quest and any pre-gate item completable.
 1. Marks the signaled work item terminal (`completedAt`, `actualSignal`) — `complete`, or `failed` on `blocked`.
 2. Resolves the linked operation item (the call's `operationItemId`, else the work item's `operations/<id>` ref).
 3. `operationStatus: 'done'` (or absent) → marks that operation item `complete`.
@@ -723,9 +740,14 @@ Operational flows run no server.
 **The operator roles' minions run in lanes, for opposite reasons.** Flowrider's minions run in PARALLEL — authoring
 tests needs no exclusive resource — but the operator keeps the two things that are not parallel-safe: it runs
 `npm run build` once before dispatch (concurrent `tsc` corrupts the shared `dist/`) and it owns the session's only
-`git` write. Siegemaster's minions are SERIAL whenever they drive the system at all — browser, `curl`, CLI, queue and
-sweep alike, because they share one server's state and one reset lever — and only mutate-nothing inspection (code
-reading, layer tracing, suite audits) runs in parallel beside the driver.
+`git` write. Siegemaster's walker minions are SERIAL, always — browser, `curl`, CLI, queue and sweep alike, because
+they share one server's state and one reset lever. Its `siegemaster-test-audit-minion`s run in PARALLEL, but only
+because they run LAST: the walks are already finished, so nothing is driving the system while they read and add tests.
+
+**Siegemaster's walkers converge by re-walking, not by self-certifying.** A walker walks its slice, STOPS at the first
+defect, fixes it red-first, and reports — it never continues past its own repair. The operator then dispatches a FRESH
+walker over the same slice from the reset state, and that independent clean traversal is what verifies the fix. This
+is why a walker may fix at all: the session that made the repair is never the one that grades it.
 
 ### Completion
 
@@ -823,7 +845,8 @@ sub-agents call in parallel against the same MCP stdio child.
 | codeweaver-minion              | Codeweaver via the Agent tool (per piece)   | Focused TDD worker: builds one isolated step/file-group, returns a distilled artifact. No work item                                                                                                                                                             |
 | lawbringer-minion              | Lawbringer via the Agent tool (per group)   | Focused review-and-fix worker over one group of impl+test pairs; fixes violations inline. No work item                                                                                                                                                          |
 | flowrider-minion               | Flowrider via the Agent tool (per bundle)   | Authors the flow-perspective suite for one bundle of flows and closes the impl holes it exposes (red-first); PARALLEL siblings, so it never builds and never writes `git`. Returns the five-part evidence contract per observable                               |
-| siegemaster-minion             | Siegemaster via the Agent tool (per bundle) | Hand-walks one bundle; SERIAL whenever its brief's `LANE` is `DRIVING`. Records the broken state BEFORE it may close a small local hole (`READ-ONLY` lane edits nothing — a source edit reloads the server under the walker). Writes no tests, never runs `git` |
+| siegemaster-minion             | Siegemaster via the Agent tool (per slice)  | Hand-walks ONE slice of one flow; always SERIAL. STOPS at the first defect, fixes it red-first (e2e or integration by layer), and reports — never continues past its own repair, because a FRESH walker re-walks the slice to verify it. Never runs `git` or ward |
+| siegemaster-test-audit-minion  | Siegemaster via the Agent tool (per flow)   | Runs LAST, after every slice is clean, so several may run in parallel. Judges the tests the walks produced for false greens (mocked SUT, weaker assertion, benign fixture, jsdom geometry) and adds missing ones. May ADD tests; may NOT edit implementation — a behaviour change now would invalidate the clean walks. Suspected defects are reported for re-walk |
 | blightwarden-security-minion   | Blightwarden via the Agent tool             | Report-only: cross-file taint-flow review; writes a `PlanningBlightReport`                                                                                                                                                                                      |
 | blightwarden-dedup-minion      | Blightwarden via the Agent tool             | Report-only: semantic-duplication review                                                                                                                                                                                                                        |
 | blightwarden-perf-minion       | Blightwarden via the Agent tool             | Report-only: performance-regression review                                                                                                                                                                                                                      |

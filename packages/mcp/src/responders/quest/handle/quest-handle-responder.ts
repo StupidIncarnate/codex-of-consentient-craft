@@ -22,6 +22,7 @@ import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/st
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
+import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -286,6 +287,10 @@ export const QuestHandleResponder = async ({
         isError: true,
       };
     }
+  }
+
+  if (tool === 'get-qa-checklist') {
+    return QaChecklistLayerResponder({ args });
   }
 
   if (tool === 'get-quest-planning-notes') {

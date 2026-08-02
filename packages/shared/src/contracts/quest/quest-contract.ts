@@ -15,6 +15,7 @@ import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
+import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { questTypeContract } from '../quest-type/quest-type-contract';
@@ -102,10 +103,16 @@ export const questContract = z.object({
   planningNotes: z
     .object({
       blightReports: z.array(planningBlightReportContract).default([]),
+      qaLedger: z
+        .array(questQaLedgerEntryContract)
+        .default([])
+        .describe(
+          "Siegemaster's per-unit QA dispositions, keyed on the derived QaChecklistItemId so coverage is computed rather than remembered. The signal-back completion gate reads this: a siegemaster item cannot report `done` while any checklist unit on its flow has no entry here.",
+        ),
     })
-    .default({ blightReports: [] })
+    .default({ blightReports: [], qaLedger: [] })
     .describe(
-      'Blightwarden blight reports (cross-cutting whole-diff findings written by the five report-only minions, judged by the blightwarden synthesizer)',
+      'Blightwarden blight reports (cross-cutting whole-diff findings written by the five report-only minions, judged by the blightwarden synthesizer) and the Siegemaster QA coverage ledger',
     ),
   questSource: questSourceContract
     .optional()
