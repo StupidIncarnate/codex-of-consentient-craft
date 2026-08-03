@@ -13,6 +13,7 @@ import { claudeCodeSessionResolveBrokerProxy } from '../../../brokers/claude-cod
 import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
+import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
 import { orchestratorGetServerConfigAdapterProxy } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
@@ -45,6 +46,7 @@ type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
 type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
+type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
 type NextStep = ReturnType<typeof NextStepStub>;
 type QuestRunWardResult = ReturnType<typeof QuestRunWardResultStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
@@ -73,6 +75,12 @@ export const QuestHandleResponderProxy = (): {
     result: GetPlanningNotesResult;
   }) => void;
   setupGetPlanningNotesThrows: (params: { questId: string; error: Error }) => void;
+  setupGetBlightChecklistReturns: (params: {
+    questId: string;
+    result: GetBlightChecklistResult;
+  }) => void;
+  setupGetBlightChecklistThrows: (params: { questId: string; error: Error }) => void;
+  getLastGetBlightChecklistInput: (params: { questId: string }) => unknown;
   setupCreateQuestReturns: (params: {
     userRequest: string;
     questId: QuestId;
@@ -126,6 +134,7 @@ export const QuestHandleResponderProxy = (): {
   const listGuildsProxy = orchestratorListGuildsAdapterProxy();
   const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
   QaChecklistLayerResponderProxy();
+  const blightChecklistProxy = BlightChecklistLayerResponderProxy();
   const createQuestProxy = orchestratorCreateQuestAdapterProxy();
   const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
   const runWardProxy = orchestratorRunWardAdapterProxy();
@@ -229,6 +238,29 @@ export const QuestHandleResponderProxy = (): {
     setupGetPlanningNotesThrows: ({ questId, error }: { questId: string; error: Error }): void => {
       getPlanningNotesProxy.throws({ questId, error });
     },
+
+    setupGetBlightChecklistReturns: ({
+      questId,
+      result,
+    }: {
+      questId: string;
+      result: GetBlightChecklistResult;
+    }): void => {
+      blightChecklistProxy.setupReturns({ questId, result });
+    },
+
+    setupGetBlightChecklistThrows: ({
+      questId,
+      error,
+    }: {
+      questId: string;
+      error: Error;
+    }): void => {
+      blightChecklistProxy.setupThrows({ questId, error });
+    },
+
+    getLastGetBlightChecklistInput: ({ questId }: { questId: string }): unknown =>
+      blightChecklistProxy.getLastCalledInputFor({ questId }),
 
     setupCreateQuestReturns: ({
       userRequest,

@@ -123,19 +123,19 @@ describe('questGetNextStepBroker', () => {
       expect(setActive).toHaveBeenCalledWith({ questId });
     });
 
-    it('VALID: {ready codeweaver + ready lawbringer with no deps} => returns only the first one (single agent rule)', async () => {
+    it('VALID: {ready codeweaver + ready blightwarden with no deps} => returns only the first one (single agent rule)', async () => {
       const proxy = questGetNextStepBrokerProxy();
       const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-mixed' });
       const cwId = QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
-      const lbId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
+      const bwId = QuestWorkItemIdStub({ value: 'dddddddd-1111-4222-9333-444444444444' });
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
         workItems: [
           WorkItemStub({ id: cwId, role: 'codeweaver', status: 'pending' }),
-          WorkItemStub({ id: lbId, role: 'lawbringer', status: 'pending' }),
+          WorkItemStub({ id: bwId, role: 'blightwarden', status: 'pending' }),
         ],
       });
       proxy.setupGuildsAndQuests({
@@ -417,7 +417,7 @@ describe('questGetNextStepBroker', () => {
           WorkItemStub({ id: orphanId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: blockedId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'pending',
             dependsOn: [orphanId],
           }),
@@ -468,7 +468,7 @@ describe('questGetNextStepBroker', () => {
           WorkItemStub({ id: doneId, role: 'codeweaver', status: 'complete' }),
           WorkItemStub({
             id: readyId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'pending',
             dependsOn: [doneId],
           }),
@@ -490,9 +490,9 @@ describe('questGetNextStepBroker', () => {
         agents: [
           {
             questId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             workItemId: readyId,
-            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "lawbringer",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "blightwarden",\n  workItemId: "${readyId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${readyId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
           },
         ],
       });

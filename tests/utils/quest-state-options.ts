@@ -199,37 +199,6 @@ export const AgentReportTemplates = {
     '=== END REPORT ===',
   ],
 
-  lawbringer: (
-    issues: Array<{ severity: string; file: string; message: string }>,
-    status: string,
-  ) => [
-    '=== LAWBRINGER REVIEW REPORT ===',
-    'Phase: Code Review',
-    `Status: ${status}`,
-    `Timestamp: ${new Date().toISOString()}`,
-    '',
-    'Review Summary:',
-    `- Total Issues: ${issues.length}`,
-    `- Critical: ${issues.filter((i: { severity: string }) => i.severity === 'critical').length}`,
-    `- Major: ${issues.filter((i: { severity: string }) => i.severity === 'major').length}`,
-    `- Minor: ${issues.filter((i: { severity: string }) => i.severity === 'minor').length}`,
-    '',
-    'Files Reviewed:',
-    ...new Set(issues.map((i: { file: string }) => `- ${i.file}`)),
-    '',
-    issues.length > 0 ? 'Issues Found:' : 'No issues found',
-    ...issues.map(
-      (i: { severity: string; file: string; message: string }) =>
-        `- [${i.severity.toUpperCase()}] ${i.file}: ${i.message}`,
-    ),
-    '',
-    'Recommendations:',
-    '- Maintain consistent code style',
-    '- Add more comprehensive error handling',
-    '- Consider edge cases in tests',
-    '=== END REPORT ===',
-  ],
-
   siegemaster: (
     gapsFound: string,
     analysisResults: Array<{ component: string; gapsFound: number; priority: string }>,

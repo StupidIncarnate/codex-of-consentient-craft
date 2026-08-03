@@ -12,7 +12,6 @@ export const orchestrationPhaseContract = z.enum([
   'codeweaver',
   'flowrider',
   'siegemaster',
-  'lawbringer',
   'spiritmender',
   'ward',
   'idle',

@@ -207,8 +207,8 @@ describe('OperationsLedgerWidget', () => {
       const operations = [
         OperationItemStub({
           id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d444',
-          role: 'lawbringer',
-          text: 'Lawbringer: standards review across the whole quest diff',
+          role: 'blightwarden',
+          text: 'Blightwarden: cross-cutting audit across the whole diff',
           status: 'pending',
         }),
       ];

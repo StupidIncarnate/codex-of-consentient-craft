@@ -32,6 +32,7 @@ export const mcpToolsStatics = {
       'get-project-map',
       'get-quest-planning-notes',
       'get-qa-checklist',
+      'get-blight-checklist',
       'get-project-inventory',
       'create-quest',
       'get-next-step',

@@ -48,13 +48,13 @@ describe('roleToConfigIndexTransformer', () => {
       expect(result).toBe(4);
     });
 
-    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 15 (FLOOR BOSS entry, last floor)', () => {
+    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 11 (FLOOR BOSS entry, last floor)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
         floorName: FloorNameStub({ value: 'FLOOR BOSS' }),
       });
 
-      expect(result).toBe(15);
+      expect(result).toBe(11);
     });
   });
 

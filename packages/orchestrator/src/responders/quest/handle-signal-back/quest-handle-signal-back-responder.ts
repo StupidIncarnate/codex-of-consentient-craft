@@ -5,9 +5,11 @@
  * patch the ledger, because agents never write the ledger at all):
  *
  * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`. For a
- *   `siegemaster` item declaring `flowIds`, this is GATED: the responder recomputes the flow's QA
- *   checklist and refuses `done` (by throwing, so the agent sees why) while any unit carries no
- *   entry in `quest.planningNotes.qaLedger`. Completion is a computed fact rather than the agent's
+ *   `siegemaster` item declaring `flowIds`, or a `blightwarden` item, this is GATED: the responder
+ *   recomputes the flow's QA checklist (siegemaster) or the quest diff's blight checklist
+ *   (blightwarden, via questGetBlightChecklistBroker) and refuses `done` (by throwing, so the agent
+ *   sees why) while any unit carries no entry in `quest.planningNotes.qaLedger` /
+ *   `blightLedger` respectively. Completion is a computed fact rather than the agent's
  *   recollection of its own pass. Every disposition clears a unit, `gap` and `recorded` included,
  *   so the gate is always satisfiable honestly; it refuses absence, not honesty.
  * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
@@ -56,13 +58,16 @@ import { isBlightwardenMinionRoleGuard } from '../../../guards/is-blightwarden-m
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
+import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
+import { blightCoverageOutstandingTransformer } from '../../../transformers/blight-coverage-outstanding/blight-coverage-outstanding-transformer';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
 import { qaCoverageOutstandingTransformer } from '../../../transformers/qa-coverage-outstanding/qa-coverage-outstanding-transformer';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 
-// How many outstanding unit ids to name inline before deferring to get-qa-checklist. Enough to act
-// on directly for a nearly-finished flow, short of dumping 144 ids into a tool error.
+// How many outstanding unit ids to name inline before deferring to get-qa-checklist / the blight
+// equivalent. Enough to act on directly for a nearly-finished flow or diff, short of dumping 144
+// ids into a tool error.
 const OUTSTANDING_PREVIEW_LIMIT = 15;
 
 export const QuestHandleSignalBackResponder = async ({
@@ -116,11 +121,18 @@ export const QuestHandleSignalBackResponder = async ({
   // COMPLETION GATE — runs BEFORE any mutation, so a refused `done` leaves the work item and its
   // operation item exactly as they were and the session can carry on and signal again.
   //
-  // `done` from a siegemaster item means "every unit on my flow has been dealt with". That claim
-  // used to be the agent's memory of its own pass, which is precisely what failed: a session walked
-  // part of a flow across a long serial run and reported done. Here it is recomputed from the flow
-  // graph and the persisted ledger. Every disposition clears a unit — `gap` and `recorded` included
-  // — so the gate is always satisfiable honestly; what it refuses is scope with no entry at all.
+  // `done` from a siegemaster item means "every unit on my flow has been dealt with"; `done` from a
+  // blightwarden item means "every changed-file/concern unit on this quest diff has been dealt
+  // with". Both claims used to be the agent's memory of its own pass, which is precisely what
+  // failed: a session walked part of its scope across a long serial run and reported done. Here
+  // both are recomputed — the flow graph + qaLedger for siegemaster, the git diff (via
+  // questGetBlightChecklistBroker) + blightLedger for blightwarden. Every disposition clears a
+  // unit — `gap` and `recorded` included — so the gate is always satisfiable honestly; what it
+  // refuses is scope with no entry at all. An operation item is never both roles at once, so at
+  // most one of the two transformers below ever contributes.
+  //
+  // The blight branch is gated on the linked operation's role so a git diff does not run on every
+  // signal-back from every role — only a blightwarden item ever calls questGetBlightChecklistBroker.
   //
   // Throwing (rather than returning) is deliberate and matches the unloadable-quest case above: the
   // error rides the awaited signal-back path back through the MCP tool to the agent, where it is
@@ -133,26 +145,39 @@ export const QuestHandleSignalBackResponder = async ({
     const linkedOperation = result.quest.operations.find((operation) => operation.id === linkedId);
 
     if (linkedOperation !== undefined) {
-      const outstanding = qaCoverageOutstandingTransformer({
+      const qaOutstanding = qaCoverageOutstandingTransformer({
         quest: result.quest,
         operationItem: linkedOperation,
       });
+      const isBlightwarden = linkedOperation.role === 'blightwarden';
+      const blightChecklist = isBlightwarden
+        ? await questGetBlightChecklistBroker({ questId })
+        : null;
+      const blightOutstanding = blightCoverageOutstandingTransformer({
+        operationItem: linkedOperation,
+        checklist: blightChecklist,
+      });
+      const outstanding = [...qaOutstanding, ...blightOutstanding];
 
       if (outstanding.length > 0) {
+        const scopeNoun = isBlightwarden ? 'this quest diff' : 'your flow';
+        const ledgerField = isBlightwarden ? 'blightLedger' : 'qaLedger';
+        const checklistTool = isBlightwarden ? 'get-blight-checklist' : 'get-qa-checklist';
+
         throw new Error(
           [
-            `signal-back refused: operationStatus 'done' means every verification unit on your flow carries a disposition, and ${String(outstanding.length)} still carry none.`,
+            `signal-back refused: operationStatus 'done' means every verification unit on ${scopeNoun} carries a disposition, and ${String(outstanding.length)} still carry none.`,
             '',
             'Outstanding units:',
             ...outstanding.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((id) => `  - ${String(id)}`),
             ...(outstanding.length > OUTSTANDING_PREVIEW_LIMIT
               ? [
-                  `  … and ${String(outstanding.length - OUTSTANDING_PREVIEW_LIMIT)} more — call get-qa-checklist for the full list.`,
+                  `  … and ${String(outstanding.length - OUTSTANDING_PREVIEW_LIMIT)} more — call ${checklistTool} for the full list.`,
                 ]
               : []),
             '',
             'Do ONE of these, then signal again:',
-            '  1. Deal with each remaining unit and record it in quest.planningNotes.qaLedger (a `gap` or `recorded` entry with a real reason counts — this gate refuses absence, not honesty).',
+            `  1. Deal with each remaining unit and record it in quest.planningNotes.${ledgerField} (a \`gap\` or \`recorded\` entry with a real reason counts — this gate refuses absence, not honesty).`,
             "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
           ].join('\n'),
         );
@@ -234,13 +259,11 @@ export const QuestHandleSignalBackResponder = async ({
             ? budgets.flowrider.maxAttempts
             : role === 'siegemaster'
               ? budgets.siegemaster.maxAttempts
-              : role === 'lawbringer'
-                ? budgets.lawbringer.maxAttempts
-                : role === 'blightwarden'
-                  ? budgets.blightwarden.maxAttempts
-                  : role === 'pesteater'
-                    ? budgets.pesteater.maxAttempts
-                    : budgets.spiritmender.maxAttempts;
+              : role === 'blightwarden'
+                ? budgets.blightwarden.maxAttempts
+                : role === 'pesteater'
+                  ? budgets.pesteater.maxAttempts
+                  : budgets.spiritmender.maxAttempts;
       })();
       // The pt budget gates `partial` only. An environment wall always appends its continuation:
       // the quest blocks either way, and withholding the append would leave the operation with no

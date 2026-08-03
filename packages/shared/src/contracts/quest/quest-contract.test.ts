@@ -1,6 +1,7 @@
 import { FlowStub } from '../flow/flow.stub';
 import { OperationItemStub } from '../operation-item/operation-item.stub';
 import { PlanningBlightReportStub } from '../planning-blight-report/planning-blight-report.stub';
+import { QuestBlightLedgerEntryStub } from '../quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
@@ -35,7 +36,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
       });
     });
 
@@ -66,7 +67,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
       });
     });
 
@@ -97,7 +98,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
       });
     });
 
@@ -213,7 +214,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
       });
     });
 
@@ -321,10 +322,37 @@ describe('questContract', () => {
       expect(result.planningNotes).toStrictEqual({
         blightReports: [firstReport, secondReport],
         qaLedger: [],
+        blightLedger: [],
       });
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports and qaLedger', () => {
+    it('VALID: quest with populated blightLedger => parses successfully', () => {
+      const firstEntry = QuestBlightLedgerEntryStub({
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+      });
+      const secondEntry = QuestBlightLedgerEntryStub({
+        itemId: 'packages/shared/src/index.ts:dead-code',
+        disposition: 'gap',
+        evidence: 'no browser bridge is reachable from this session',
+      });
+      const quest = QuestStub({
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [firstEntry, secondEntry],
+        },
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [firstEntry, secondEntry],
+      });
+    });
+
+    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports, qaLedger, and blightLedger', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -339,7 +367,31 @@ describe('questContract', () => {
       expect(result.planningNotes).toStrictEqual({
         blightReports: [],
         qaLedger: [],
+        blightLedger: [],
       });
+    });
+
+    it('VALID: quest with baseRef => parses successfully', () => {
+      const quest = QuestStub({ baseRef: 'a1b2c3d4e5f6' });
+
+      const result = questContract.parse(quest);
+
+      expect(result.baseRef).toBe('a1b2c3d4e5f6');
+    });
+
+    it('VALID: quest without baseRef field => leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.baseRef).toBe(undefined);
     });
 
     it('VALID: quest with pausedAtStatus => parses successfully', () => {

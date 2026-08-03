@@ -73,8 +73,8 @@ and delegating to specialized AI agents. Think of it as a party system for your 
   `pathseeker-dedup`, `pathseeker-assertion-correctness`, `pathseeker-walk`) that author
   steps + contracts and walk every flow entry→exit to catch structural issues
 - **Codeweaver** - Weaves elegant implementations and tests
-- **Lawbringer** - Ensures code quality and standards compliance
 - **Siegemaster** - Analyzes test completeness and identifies gaps
+- **Blightwarden** - Cross-cutting whole-diff audit (coverage, craft, security, dedup, perf, integrity, dead-code)
 - **Spiritmender** - Heals build errors and failed tests
 
 ## Usage
@@ -178,9 +178,8 @@ on its next pass.
 ### Add a Feature
 
 Same flow. The spec phase elicits flows, observables, contracts, and `packagesAffected[]`
-before approval; `/dumpster-launch` then dispatches the four-tier pathseeker pipeline,
-followed by the codeweaver / ward / siegemaster / lawbringer chain that
-`stepsToWorkItemsTransformer` generates after `pathseeker-walk` commits its findings.
+before approval; `/dumpster-launch` then dispatches the operations relay: codeweaver / ward /
+flowrider / siegemaster / blightwarden / ward.
 
 ## For Monorepos
 

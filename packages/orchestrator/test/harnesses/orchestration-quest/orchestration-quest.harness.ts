@@ -8,23 +8,27 @@
  * await quest.seedInProgressRelay({ questId, operations, workItems });
  */
 import { randomUUID } from 'crypto';
-import { existsSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-import { resolve as pathResolve, join as pathNodeJoin } from 'path';
+import { dirname as pathNodeDirname, resolve as pathResolve, join as pathNodeJoin } from 'path';
 
 import type {
+  FileContents,
   GuildId,
+  GuildPath,
   QuestId,
   FilePath,
   FlowStub,
   OperationItemStub,
   QuestCommentStub,
   QuestStub,
+  RepoRelativePath,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import {
   GuildNameStub,
   GuildPathStub,
+  absoluteFilePathContract,
   fileContentsContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
@@ -33,10 +37,11 @@ import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
 import { GuildRemoveResponder } from '../../../src/responders/guild/remove/guild-remove-responder';
 import { QuestUserAddResponder } from '../../../src/responders/quest/user-add/quest-user-add-responder';
+import { gitHeadShaAdapter } from '../../../src/adapters/git/head-sha/git-head-sha-adapter';
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { childProcessSpawnCaptureAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 
 // The real fake-Claude-CLI binary lives in the web package's e2e harness (it records every
 // invocation's argv to prove --resume/-p mechanics for Playwright specs). Referencing its
@@ -61,6 +66,8 @@ type WorkItem = ReturnType<typeof WorkItemStub>;
 type Flow = ReturnType<typeof FlowStub>;
 type QuestComment = ReturnType<typeof QuestCommentStub>;
 type Quest = ReturnType<typeof QuestStub>;
+type GitBaseRef = NonNullable<Quest['baseRef']>;
+type PlanningNotes = Quest['planningNotes'];
 
 export const orchestrationQuestHarness = (): {
   afterEach: () => Promise<void>;
@@ -76,7 +83,29 @@ export const orchestrationQuestHarness = (): {
     questId: QuestId;
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
+    // Present only for tests exercising the blightwarden completion gate, which recomputes
+    // outstanding review units from a real `git diff baseRef...HEAD` — omitted, quest.baseRef
+    // stays whatever create-quest seeded (unset).
+    baseRef?: GitBaseRef;
+    // Present only for tests seeding quest.planningNotes.blightLedger / qaLedger dispositions
+    // ahead of a signal-back — omitted, planningNotes stays whatever create-quest seeded.
+    planningNotes?: PlanningNotes;
   }) => Promise<void>;
+  // Real `git init` + one commit at repoPath (an integration testbed dir, NOT this repo), so the
+  // blightwarden completion gate's `questGetBlightChecklistBroker` has a real commit to diff
+  // against. Returns the new commit's sha as the quest's baseRef. `-c user.*`/`-c
+  // commit.gpgsign=false` scope identity + signing to this one invocation so the test never
+  // depends on (or mutates) the developer's real git config.
+  initGitRepoAndCommitBase: (params: { repoPath: GuildPath }) => Promise<{ baseRef: GitBaseRef }>;
+  // Writes each file under repoPath and commits them on top of the base commit, so
+  // `git diff baseRef...HEAD --name-only` reports exactly these paths as changed.
+  commitChangedFiles: (params: {
+    repoPath: GuildPath;
+    files: readonly { relativePath: RepoRelativePath; content: FileContents }[];
+  }) => Promise<void>;
+  // Raw file bytes of quest.json — for asserting a refused gate persisted NOTHING (byte-identical
+  // before/after), which a parsed-and-re-compared Quest object cannot prove (parsing normalizes).
+  readQuestFileRaw: (params: { questId: QuestId }) => Promise<FileContents>;
   // Overwrites flows/workItems/comments directly on disk, leaving every other field (status,
   // title, etc.) as QuestUserAddResponder set it. Bypasses QuestModifyResponder the same way
   // seedInProgressRelay does — the per-status input allowlist is covered by the broker/
@@ -119,10 +148,14 @@ export const orchestrationQuestHarness = (): {
     questId,
     operations,
     workItems,
+    baseRef,
+    planningNotes,
   }: {
     questId: QuestId;
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
+    baseRef?: GitBaseRef;
+    planningNotes?: PlanningNotes;
   }): Promise<void> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = filePathContract.parse(
@@ -135,6 +168,8 @@ export const orchestrationQuestHarness = (): {
       status: 'in_progress' as typeof loadedQuest.status,
       operations: [...operations],
       workItems: [...workItems],
+      ...(baseRef === undefined ? {} : { baseRef }),
+      ...(planningNotes === undefined ? {} : { planningNotes }),
       updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,
     };
 
@@ -142,6 +177,73 @@ export const orchestrationQuestHarness = (): {
       JSON.stringify(seededQuest, null, JSON_INDENT_SPACES),
     );
     await questPersistBroker({ questFilePath, contents: questJson, questId });
+  };
+
+  // Real committer identity + disabled GPG signing, scoped to the child process via env vars
+  // (not `-c` argv flags, not `git config` writes) so these throwaway test-fixture commits never
+  // depend on, or mutate, the developer's real global git config.
+  const gitCommitEnv = {
+    GIT_AUTHOR_NAME: 'Dungeonmaster Integration Test',
+    GIT_AUTHOR_EMAIL: 'integration-test@dungeonmaster.test',
+    GIT_COMMITTER_NAME: 'Dungeonmaster Integration Test',
+    GIT_COMMITTER_EMAIL: 'integration-test@dungeonmaster.test',
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: 'commit.gpgsign',
+    GIT_CONFIG_VALUE_0: 'false',
+  };
+
+  const initGitRepoAndCommitBase = async ({
+    repoPath,
+  }: {
+    repoPath: GuildPath;
+  }): Promise<{ baseRef: GitBaseRef }> => {
+    const cwd = absoluteFilePathContract.parse(String(repoPath));
+    await childProcessSpawnCaptureAdapter({ command: 'git', args: ['init'], cwd });
+    writeFileSync(pathNodeJoin(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
+    await childProcessSpawnCaptureAdapter({ command: 'git', args: ['add', '-A'], cwd });
+    await childProcessSpawnCaptureAdapter({
+      command: 'git',
+      args: ['commit', '-m', 'base'],
+      cwd,
+      env: gitCommitEnv,
+    });
+    const baseRef = await gitHeadShaAdapter({ cwd });
+    if (baseRef === null) {
+      throw new Error(
+        `gitHeadShaAdapter returned null for a freshly-committed test repo at ${String(repoPath)}`,
+      );
+    }
+    return { baseRef };
+  };
+
+  const commitChangedFiles = async ({
+    repoPath,
+    files,
+  }: {
+    repoPath: GuildPath;
+    files: readonly { relativePath: RepoRelativePath; content: FileContents }[];
+  }): Promise<void> => {
+    const cwd = absoluteFilePathContract.parse(String(repoPath));
+    for (const file of files) {
+      const fullPath = pathNodeJoin(String(repoPath), String(file.relativePath));
+      mkdirSync(pathNodeDirname(fullPath), { recursive: true });
+      writeFileSync(fullPath, String(file.content));
+    }
+    await childProcessSpawnCaptureAdapter({ command: 'git', args: ['add', '-A'], cwd });
+    await childProcessSpawnCaptureAdapter({
+      command: 'git',
+      args: ['commit', '-m', 'changed files'],
+      cwd,
+      env: gitCommitEnv,
+    });
+  };
+
+  const readQuestFileRaw = async ({ questId }: { questId: QuestId }): Promise<FileContents> => {
+    const { questPath } = await questFindQuestPathBroker({ questId });
+    const questFilePath = filePathContract.parse(
+      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
+    );
+    return fileContentsContract.parse(readFileSync(questFilePath, 'utf-8'));
   };
 
   const loadByQuestId = async (params: { questId: QuestId }): Promise<Quest> => {
@@ -266,6 +368,9 @@ export const orchestrationQuestHarness = (): {
       return { guild, questId };
     },
     seedInProgressRelay,
+    initGitRepoAndCommitBase,
+    commitChangedFiles,
+    readQuestFileRaw,
     seedFlowsAndComments: async ({
       questId,
       flows,

@@ -1523,6 +1523,7 @@ describe('McpServerFlow', () => {
       'get-quest-status',
       'get-quest-planning-notes',
       'get-qa-checklist',
+      'get-blight-checklist',
       'get-agent-prompt',
       'run-ward',
       'ask-user-question',

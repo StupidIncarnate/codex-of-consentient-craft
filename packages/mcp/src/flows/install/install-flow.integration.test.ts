@@ -81,6 +81,7 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__get-project-map',
                 'mcp__dungeonmaster__get-quest-planning-notes',
                 'mcp__dungeonmaster__get-qa-checklist',
+                'mcp__dungeonmaster__get-blight-checklist',
                 'mcp__dungeonmaster__get-project-inventory',
                 'mcp__dungeonmaster__create-quest',
                 'mcp__dungeonmaster__get-next-step',

@@ -54,7 +54,6 @@ export type { DispatchPlayResponse } from './contracts/dispatch-play-response/di
 // Prompt statics - re-exported for CLI package
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
-export { lawbringerPromptStatics } from './statics/lawbringer-prompt/lawbringer-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';
 export { siegemasterMinionStatics } from './statics/siegemaster-minion/siegemaster-minion-statics';
 export { siegemasterTestAuditMinionStatics } from './statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';

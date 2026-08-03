@@ -141,37 +141,6 @@ describe('Quest State Options', () => {
       });
     });
 
-    describe('lawbringer', () => {
-      test('should generate lawbringer report with issues', () => {
-        const issues = [
-          { severity: 'critical', file: 'src/api.ts', message: 'Security vulnerability' },
-          { severity: 'major', file: 'src/config.ts', message: 'Type error' },
-          { severity: 'minor', file: 'src/logger.ts', message: 'Missing JSDoc' },
-        ];
-        const report = AgentReportTemplates.lawbringer(issues, 'Complete');
-
-        expect(report).toContain('=== LAWBRINGER REVIEW REPORT ===');
-        expect(report).toContain('Phase: Code Review');
-        expect(report).toContain('Status: Complete');
-        expect(report).toContain('- Total Issues: 3');
-        expect(report).toContain('- Critical: 1');
-        expect(report).toContain('- Major: 1');
-        expect(report).toContain('- Minor: 1');
-        expect(report).toContain('- [CRITICAL] src/api.ts: Security vulnerability');
-        expect(report).toContain('- [MAJOR] src/config.ts: Type error');
-        expect(report).toContain('- [MINOR] src/logger.ts: Missing JSDoc');
-        expect(report).toContain('=== END REPORT ===');
-      });
-
-      test('should handle no issues', () => {
-        const report = AgentReportTemplates.lawbringer([], 'Complete');
-
-        expect(report).toContain('- Total Issues: 0');
-        expect(report).toContain('No issues found');
-        expect(report).not.toContain('Issues Found:');
-      });
-    });
-
     describe('siegemaster', () => {
       test('should generate siegemaster report', () => {
         const analysisResults = [

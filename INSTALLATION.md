@@ -97,7 +97,7 @@ dungeonmaster clean
    - **Pathseeker**: Analyzes requirements and creates implementation tasks
    - **Codeweaver**: Implements each task
    - **Siegemaster**: Analyzes test coverage gaps
-   - **Lawbringer**: Reviews code quality
+   - **Blightwarden**: Cross-cutting whole-diff audit (coverage, craft, security, dedup, perf, integrity, dead-code)
    - **Spiritmender**: Fixes any errors that occur
 
 3. **Progress Tracking**: Visual progress indicators show agent activity

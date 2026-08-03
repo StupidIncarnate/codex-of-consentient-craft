@@ -12,9 +12,6 @@ describe('slotManagerStatics', () => {
       siegemaster: {
         maxAttempts: 3,
       },
-      lawbringer: {
-        maxAttempts: 3,
-      },
       blightwarden: {
         maxAttempts: 3,
       },

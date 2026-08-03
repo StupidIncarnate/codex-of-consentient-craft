@@ -125,15 +125,8 @@ describe('questHydrateBroker', () => {
     }).toStrictEqual({
       success: true,
       status: 'in_progress',
-      operationRoles: [
-        'chaoswhisperer',
-        'codeweaver',
-        'flowrider',
-        'siegemaster',
-        'lawbringer',
-        'blightwarden',
-      ],
-      operationStatuses: ['complete', 'in_progress', 'pending', 'pending', 'pending', 'pending'],
+      operationRoles: ['chaoswhisperer', 'codeweaver', 'flowrider', 'siegemaster', 'blightwarden'],
+      operationStatuses: ['complete', 'in_progress', 'pending', 'pending', 'pending'],
       workItemRoles: ['codeweaver'],
       workItemStatuses: ['pending'],
     });
@@ -158,7 +151,7 @@ describe('questHydrateBroker', () => {
 
     // The verify tail is seeded as LOCKED operation items (the intake plan item is also locked, so
     // filter it out by role). Ward is skipped for the minimal blueprint. No minion/ward WORK items
-    // exist — blightwarden/codeweaver/lawbringer summon their minions as sub-agents, not work items.
+    // exist — blightwarden/codeweaver summon their minions as sub-agents, not work items.
     const lockedTailRoles = operations
       .filter((op) => op.locked)
       .filter((op) => op.role !== 'chaoswhisperer')
@@ -175,7 +168,7 @@ describe('questHydrateBroker', () => {
       wardOpCount,
       workItemRoles: workItems.map((wi) => wi.role),
     }).toStrictEqual({
-      lockedTailRoles: ['flowrider', 'siegemaster', 'lawbringer', 'blightwarden'],
+      lockedTailRoles: ['flowrider', 'siegemaster', 'blightwarden'],
       minionItems: [],
       wardOpCount: 0,
       workItemRoles: ['codeweaver'],

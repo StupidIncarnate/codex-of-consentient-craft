@@ -111,6 +111,11 @@ export const smoketestProbeArgsStatics = {
     args: { questId: '{{questId}}' },
     summary: 'mcp-get-qa-checklist-probe-ok',
   },
+  'get-blight-checklist': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-get-blight-checklist-not-in-mcp-suite',
+    note: 'get-blight-checklist is not yet wired into the MCP tool registration (packages/mcp/src/flows/quest/quest-flow.ts) — a later wave of this refactor adds the registration and can flip this to a call probe.',
+  },
   'get-project-inventory': {
     mode: 'call',
     args: { packageName: 'shared' },

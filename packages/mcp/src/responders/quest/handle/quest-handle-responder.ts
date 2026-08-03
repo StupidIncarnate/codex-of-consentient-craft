@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -22,6 +22,7 @@ import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/st
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
+import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
@@ -291,6 +292,10 @@ export const QuestHandleResponder = async ({
 
   if (tool === 'get-qa-checklist') {
     return QaChecklistLayerResponder({ args });
+  }
+
+  if (tool === 'get-blight-checklist') {
+    return BlightChecklistLayerResponder({ args });
   }
 
   if (tool === 'get-quest-planning-notes') {

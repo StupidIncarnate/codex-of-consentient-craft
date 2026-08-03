@@ -4,13 +4,13 @@ import { wardAwareConfigIndexTransformer } from './ward-aware-config-index-trans
 
 describe('wardAwareConfigIndexTransformer', () => {
   describe('ward work items', () => {
-    it('VALID: {role: ward, wardMode: full} => returns 15 (FLOOR BOSS)', () => {
+    it('VALID: {role: ward, wardMode: full} => returns 11 (FLOOR BOSS)', () => {
       const workItem = WorkItemStub({ role: 'ward', wardMode: 'full', dependsOn: [] });
       const allItemMap = new Map([[workItem.id, workItem]]);
 
       const result = wardAwareConfigIndexTransformer({ workItem, allItemMap });
 
-      expect(result).toBe(15);
+      expect(result).toBe(11);
     });
 
     it('VALID: {role: ward, wardMode: changed} => returns 4 (MINI BOSS)', () => {

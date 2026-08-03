@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Catalog of the five orchestration smoketest scenarios — each couples the minimal blueprint
+ * PURPOSE: Catalog of the four orchestration smoketest scenarios — each couples the minimal blueprint
  * with a per-role script of canned prompt names and a final-state assertion. Every scenario drives the
  * reactive operations relay: the scenario driver stamps a canned signal prompt on each pending work
- * item as the relay creates it one at a time (codeweaver -> flowrider -> siegemaster -> lawbringer ->
- * blightwarden; ward is skipped via the blueprint's skipRoles), and each canned agent signals
+ * item as the relay creates it one at a time (codeweaver -> flowrider -> siegemaster -> blightwarden;
+ * ward is skipped via the blueprint's skipRoles), and each canned agent signals
  * `complete` with an operationStatus so the orchestrator advances (done) or spawns a pt continuation
  * (partial) until the quest completes.
  *
@@ -31,7 +31,6 @@ const relayScripts = {
   codeweaver: ['signalDone'],
   flowrider: ['signalDone'],
   siegemaster: ['signalDone'],
-  lawbringer: ['signalDone'],
   blightwarden: ['signalDone'],
 };
 
@@ -55,22 +54,11 @@ export const smoketestScenariosStatics = {
       codeweaver: ['signalPartial', 'signalDone'],
       flowrider: ['signalDone'],
       siegemaster: ['signalDone'],
-      lawbringer: ['signalDone'],
       blightwarden: ['signalDone'],
     },
     assertions: [
       { kind: 'quest-status', expected: 'complete' },
       { kind: 'work-item-role-count', role: 'codeweaver', minCount: 2 },
-    ],
-  },
-  orchReachesLawbringer: {
-    caseId: 'orch-reaches-lawbringer',
-    name: 'Orchestration: relay reaches the lawbringer review role',
-    blueprint: smoketestBlueprintsStatics.minimal,
-    scripts: relayScripts,
-    assertions: [
-      { kind: 'quest-status', expected: 'complete' },
-      { kind: 'work-item-role-count', role: 'lawbringer', minCount: 1 },
     ],
   },
   orchReachesBlightwarden: {

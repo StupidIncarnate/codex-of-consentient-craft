@@ -127,7 +127,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
       });
       const orphan = WorkItemStub({
         id: orphanId,
-        role: 'lawbringer',
+        role: 'blightwarden',
         status: 'pending',
         dependsOn: [missingId],
       });
@@ -146,7 +146,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
         '        WAIT  codeweaver      aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa  waiting',
         '        WAIT  ward            bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb  waiting',
         '        WAIT  siegemaster     cccccccc-cccc-4ccc-8ccc-cccccccccccc  waiting on: codeweaver, ward',
-        '        WAIT  lawbringer      dddddddd-dddd-4ddd-8ddd-dddddddddddd  waiting on: unknown',
+        '        WAIT  blightwarden    dddddddd-dddd-4ddd-8ddd-dddddddddddd  waiting on: unknown',
       ].join('\n');
 
       expect(result).toBe(OrchestrationLoopSummaryStub({ value: expected }));

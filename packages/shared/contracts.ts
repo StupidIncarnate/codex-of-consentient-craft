@@ -436,6 +436,26 @@ export * from './src/contracts/qa-checklist/qa-checklist.stub';
 export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 export * from './src/contracts/quest-qa-ledger-entry/quest-qa-ledger-entry.stub';
 
+// Blightwarden Ledger Contracts (per-unit review ledger — changed file crossed with concern,
+// mirroring how quest-qa-ledger-entry backs Siegemaster's completion gate)
+export * from './src/contracts/blight-concern/blight-concern-contract';
+export * from './src/contracts/blight-concern/blight-concern.stub';
+
+export * from './src/contracts/blight-disposition/blight-disposition-contract';
+export * from './src/contracts/blight-disposition/blight-disposition.stub';
+
+export * from './src/contracts/blight-checklist-item-id/blight-checklist-item-id-contract';
+export * from './src/contracts/blight-checklist-item-id/blight-checklist-item-id.stub';
+
+export * from './src/contracts/blight-checklist-item/blight-checklist-item-contract';
+export * from './src/contracts/blight-checklist-item/blight-checklist-item.stub';
+
+export * from './src/contracts/blight-checklist/blight-checklist-contract';
+export * from './src/contracts/blight-checklist/blight-checklist.stub';
+
+export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
+export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+
 // Chat Entry Contracts
 export * from './src/contracts/chat-entry/chat-entry-contract';
 export * from './src/contracts/chat-entry/chat-entry.stub';

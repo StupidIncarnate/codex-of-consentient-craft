@@ -805,19 +805,22 @@ describe('ChatMessageWidget', () => {
       expect(message.textContent).toBe('SIEGEMASTERresponse');
     });
 
-    it('VALID: {roleLabel: lawbringer} => renders LAWBRINGER label', () => {
+    it('VALID: {roleLabel: blightwarden} => renders BLIGHTWARDEN label', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
       mantineRenderAdapter({
         ui: (
-          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'lawbringer' })} />
+          <ChatMessageWidget
+            entry={entry}
+            roleLabel={ExecutionRoleStub({ value: 'blightwarden' })}
+          />
         ),
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
 
-      expect(message.textContent).toBe('LAWBRINGERresponse');
+      expect(message.textContent).toBe('BLIGHTWARDENresponse');
     });
 
     it('VALID: {no roleLabel} => defaults to CHAOSWHISPERER', () => {

@@ -136,7 +136,7 @@ describe('questNodeDispatchLoopBroker', () => {
 
     it('VALID: {spawn-agents step then idle} => spawns the batch then recurses to idle', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
-      const agents = [SpawnInstructionStub(), SpawnInstructionStub({ role: 'lawbringer' })];
+      const agents = [SpawnInstructionStub(), SpawnInstructionStub({ role: 'blightwarden' })];
       const spawnStep = NextStepStub({ type: 'spawn-agents', agents });
       proxy.queueStep({ step: spawnStep });
       const isPlaying = jest.fn().mockReturnValue(true);

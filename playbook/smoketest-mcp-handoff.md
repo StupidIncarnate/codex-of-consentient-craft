@@ -14,16 +14,18 @@ The operations relay end to end, one agent session at a time:
 
 ```
 codeweaver ×N (Chaos-authored) → ward(changed)
-  → (flowrider → siegemaster) per quest flow, in declaration order
-  → lawbringer → blightwarden → ward(full)
+  → flowrider (every quest flow, one session) → siegemaster (one session per quest flow, in declaration order)
+  → blightwarden → ward(full)
   → quest derives complete
 ```
 
 plus the three non-failure "sad" paths and the sole block path:
 
 - **partial → pt N** — a role signals `operationStatus: 'partial'`; the orchestrator marks its operation item
-  `complete` and appends a `"pt N: {text}"` continuation; a fresh work item runs it. The verify fixpoint is a `pt N`
-  chain converging on `done`.
+  `complete` and appends a `"pt N: {text}"` continuation; a fresh work item runs it. For `ward` this is the verify
+  fixpoint: a `pt N` chain converging on a green run. For the operator roles (`flowrider`, `siegemaster`,
+  `blightwarden`, and the unlocked `codeweaver`) `partial` means a NAMED remainder is left, never merely "this pass
+  changed something" — each signals `done` once every unit in its scope carries a disposition.
 - **ward red → spiritmender → re-ward** — a red ward marks its work item `failed` + its operation item `complete`, then
   appends a `spiritmender` operation item + a fresh ward (`pt N`, same `wardMode`); the spiritmender runs before the
   re-ward (never two wards back-to-back).

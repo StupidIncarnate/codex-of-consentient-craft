@@ -18,22 +18,6 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('codeweaver');
   });
 
-  it('VALID: {value: "lawbringer"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'lawbringer' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('lawbringer');
-  });
-
-  it('VALID: {value: "lawbringer-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'lawbringer-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('lawbringer-minion');
-  });
-
   it('VALID: {value: "spiritmender"} => parses successfully', () => {
     const name = AgentPromptNameStub({ value: 'spiritmender' });
 
@@ -66,44 +50,20 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('blightwarden');
   });
 
-  it('VALID: {value: "blightwarden-security-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-security-minion' });
+  it('VALID: {value: "blightwarden-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'blightwarden-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('blightwarden-security-minion');
+    expect(result).toBe('blightwarden-minion');
   });
 
-  it('VALID: {value: "blightwarden-dedup-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-dedup-minion' });
+  it('VALID: {value: "blightwarden-crosscut-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'blightwarden-crosscut-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('blightwarden-dedup-minion');
-  });
-
-  it('VALID: {value: "blightwarden-perf-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-perf-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('blightwarden-perf-minion');
-  });
-
-  it('VALID: {value: "blightwarden-integrity-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-integrity-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('blightwarden-integrity-minion');
-  });
-
-  it('VALID: {value: "blightwarden-dead-code-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-dead-code-minion' });
-
-    const result = agentPromptNameContract.parse(name);
-
-    expect(result).toBe('blightwarden-dead-code-minion');
+    expect(result).toBe('blightwarden-crosscut-minion');
   });
 
   it('VALID: {value: "pesteater"} => parses successfully', () => {
@@ -147,6 +107,18 @@ describe('agentPromptNameContract', () => {
   it('INVALID: {value: "pathseeker-surface"} => throws validation error', () => {
     expect(() => {
       agentPromptNameContract.parse('pathseeker-surface');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "lawbringer"} => throws validation error (removed role)', () => {
+    expect(() => {
+      agentPromptNameContract.parse('lawbringer');
+    }).toThrow(/Invalid enum value/u);
+  });
+
+  it('INVALID: {value: "lawbringer-minion"} => throws validation error (removed role)', () => {
+    expect(() => {
+      agentPromptNameContract.parse('lawbringer-minion');
     }).toThrow(/Invalid enum value/u);
   });
 

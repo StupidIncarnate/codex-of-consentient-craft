@@ -7,8 +7,8 @@
  *
  * 'feature' is the Dumpster Explorer feature-development pipeline (flows → observables →
  * ChaosWhisperer-authored codeweaver op items → the operations-relay chain). 'bug-hunt' is the
- * regression pipeline (PestEater writes a failing test first, fixes, then ward → lawbringer →
- * blightwarden → ward). The active type
+ * regression pipeline (PestEater writes a failing test first, fixes, then ward → blightwarden →
+ * ward). The active type
  * selects the intake slash command, the Start-Quest work-item graph, and the role set —
  * see questTypeRegistryStatics.
  */

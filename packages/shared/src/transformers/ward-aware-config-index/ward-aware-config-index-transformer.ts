@@ -6,9 +6,9 @@
  *
  * USAGE:
  * wardAwareConfigIndexTransformer({ workItem: wardItem, allItemMap });
- * // Returns: ConfigIndex for the ward's floor — either MINI BOSS (8) or FLOOR BOSS (19)
+ * // Returns: ConfigIndex for the ward's floor — either MINI BOSS (4) or FLOOR BOSS (11)
  * wardAwareConfigIndexTransformer({ workItem: codeweaverItem, allItemMap });
- * // Returns: ConfigIndex for FORGE (6)
+ * // Returns: ConfigIndex for FORGE (2)
  */
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';

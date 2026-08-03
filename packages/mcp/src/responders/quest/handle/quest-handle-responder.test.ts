@@ -1,6 +1,7 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import {
+  ContentTextStub,
   DesignDecisionStub,
   FlowNodeStub,
   FlowStub,
@@ -989,7 +990,10 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesReturns({
         questId: 'test-quest-id',
-        result: { success: true, data: { blightReports: [], qaLedger: [] } },
+        result: {
+          success: true,
+          data: { blightReports: [], qaLedger: [], blightLedger: [] },
+        },
       });
 
       const result = await proxy.callResponder({
@@ -1004,7 +1008,7 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify(
               {
                 success: true,
-                data: { blightReports: [], qaLedger: [] },
+                data: { blightReports: [], qaLedger: [], blightLedger: [] },
               },
               null,
               JSON_INDENT_SPACES,
@@ -1096,6 +1100,80 @@ describe('QuestHandleResponder', () => {
             type: 'text',
             text: JSON.stringify(
               { success: false, error: 'Notes unavailable' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('get-blight-checklist', () => {
+    it('VALID: {questId} => dispatches to the blight layer responder and returns rendered text VERBATIM with newlines intact', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const multiLineChecklist = ContentTextStub({
+        value: '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed',
+      });
+      proxy.setupGetBlightChecklistReturns({
+        questId: 'test-quest-id',
+        result: { success: true, data: multiLineChecklist },
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      // The exact match below is the proof: had the responder JSON.stringify()'d this payload,
+      // every '\n' would come back as the two characters '\\n' and this assertion would fail —
+      // there is no looser check that could hide that regression.
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed',
+          },
+        ],
+      });
+    });
+
+    it('VALID: {questId} => forwards questId to the blight layer responder', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetBlightChecklistReturns({
+        questId: 'test-quest-id',
+        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(proxy.getLastGetBlightChecklistInput({ questId: 'test-quest-id' })).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetBlightChecklistThrows({
+        questId: 'test-quest-id',
+        error: new Error('Quest not found'),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Quest not found' },
               null,
               JSON_INDENT_SPACES,
             ),

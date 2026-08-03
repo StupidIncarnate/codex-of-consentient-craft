@@ -33,20 +33,18 @@ export const workItemRoleContract = z.enum([
    * local hole; the operator verifies those reports, TDD-fixes what survived, and signals on
    * remaining scope. */
   'siegemaster',
-  'lawbringer',
-  /** Blightwarden minions: five report-only finders that run in parallel, one per cross-cutting
-   * concern. Each audits the whole diff for its concern and writes a `PlanningBlightReport`; none
-   * fixes code or blocks the quest. The `blightwarden` synthesizer runs after all five and depends
-   * on them. */
-  'blightwarden-security-minion',
-  'blightwarden-dedup-minion',
-  'blightwarden-perf-minion',
-  'blightwarden-integrity-minion',
-  'blightwarden-dead-code-minion',
-  /** Blightwarden synthesizer: runs after the five minions, reads their reports, judges/dedups,
-   * and applies the final cleanup. Signals an `operationStatus` of done when a pass changes
-   * nothing, partial when it changed code (the orchestrator appends a pt N continuation for a
-   * fresh pass). */
+  /** Blightwarden minions: `blightwarden-minion` reviews one bundle of the whole quest diff;
+   * `blightwarden-crosscut-minion` audits a cross-cutting concern (security, dedup, perf,
+   * integrity, dead-code) across the entire diff. Neither fixes code or blocks the quest — each
+   * writes findings the `blightwarden` operator judges and applies. */
+  'blightwarden-minion',
+  'blightwarden-crosscut-minion',
+  /** Blightwarden: verify OPERATOR — standards review across the whole quest diff. Dispatches
+   * `blightwarden-minion` and `blightwarden-crosscut-minion` sub-agents, judges their findings,
+   * and applies the final cleanup. Completion is COMPUTED, not remembered: every changed
+   * file × concern unit carries a disposition in `quest.planningNotes.blightLedger`, and
+   * signal-back recomputes the outstanding set and refuses `done` while any unit carries none.
+   * Signals `partial` only for a NAMED remainder, which costs one pt-chain attempt. */
   'blightwarden',
   /** Bug Hunt quest type: a single TDD agent that investigates the bug, writes a failing test
    * first, then fixes it. Front of the bug-hunt work-item flow. */

@@ -1,4 +1,5 @@
 import {
+  BlightChecklistStub,
   BlockedReasonStub,
   FlowStub,
   OperationItemIdStub,
@@ -23,6 +24,10 @@ const OP2_ID = '22222222-2222-4222-8222-222222222222';
 const OP3_ID = '33333333-3333-4333-8333-333333333333';
 const CONTINUATION_UUID = 'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b';
 const ADVANCE_UUID = '99999999-9999-4999-8999-999999999999';
+
+// The (fictional) changed file the blightwarden completion gate tests below stage as the sole
+// outstanding checklist unit.
+const BLIGHT_FILE = 'packages/orchestrator/src/foo/foo-broker.ts';
 
 type SlotManagerRole = keyof typeof slotManagerStatics;
 type PtBudgetRole = Exclude<SlotManagerRole, 'ward' | 'orphanRecovery'>;
@@ -184,7 +189,7 @@ describe('QuestHandleSignalBackResponder', () => {
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
       const op2Pending = OperationItemStub({
         id: OP2_ID,
-        role: 'lawbringer',
+        role: 'blightwarden',
         text: 'review: core pairs',
         status: 'pending',
       });
@@ -244,7 +249,7 @@ describe('QuestHandleSignalBackResponder', () => {
             op1Complete,
             OperationItemStub({
               id: OP2_ID,
-              role: 'lawbringer',
+              role: 'blightwarden',
               text: 'review: core pairs',
               status: 'in_progress',
             }),
@@ -253,7 +258,7 @@ describe('QuestHandleSignalBackResponder', () => {
             completedItem,
             WorkItemStub({
               id: ADVANCE_UUID,
-              role: 'lawbringer',
+              role: 'blightwarden',
               status: 'pending',
               spawnerType: 'agent',
               relatedDataItems: [`operations/${OP2_ID}`],
@@ -309,7 +314,10 @@ describe('QuestHandleSignalBackResponder', () => {
         ],
         updatedAt: FIXED_TIMESTAMP,
       });
-      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      // This item's role is blightwarden, so the completion gate now runs the blight-checklist
+      // broker too; the quest carries no baseRef, so it resolves to null and the gate does not
+      // bind (see the dedicated "no baseRef pinned" gate test below for that path's own coverage).
+      proxy.setupSignalFlowWithBlightChecklist({ quest, questAfterOutcome, checklist: null });
 
       const result = await QuestHandleSignalBackResponder({
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -655,6 +663,316 @@ describe('QuestHandleSignalBackResponder', () => {
       });
 
       expect(result).toStrictEqual({ success: true });
+    });
+  });
+
+  describe("completion gate — 'done' is refused while blight units carry no disposition", () => {
+    it("ERROR: {blightwarden item, one undispositioned unit, 'done'} => throws naming that unit id", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        baseRef: 'a1b2c3d4' as never,
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'blightwarden',
+            status: 'in_progress',
+            locked: true,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      proxy.setupQuestWithBlightChecklist({
+        quest,
+        checklist: BlightChecklistStub({ remainingItemIds: [`${BLIGHT_FILE}:dead-code`] }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /signal-back refused: operationStatus 'done'.*1 still carry none.*packages\/orchestrator\/src\/foo\/foo-broker\.ts:dead-code/su,
+      );
+    });
+
+    it("ERROR: {blightwarden item, refused 'done'} => nothing is persisted, so the session can carry on and signal again", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        baseRef: 'a1b2c3d4' as never,
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'blightwarden',
+            status: 'in_progress',
+            locked: true,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      proxy.setupQuestWithBlightChecklist({
+        quest,
+        checklist: BlightChecklistStub({ remainingItemIds: [`${BLIGHT_FILE}:dead-code`] }),
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(/signal-back refused/u);
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
+    });
+
+    it("VALID: {blightwarden item, every unit dispositioned, 'done'} => the gate clears and the outcome applies", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const blightOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'blightwarden',
+        status: 'in_progress',
+        locked: true,
+      });
+      const quest = QuestStub({
+        baseRef: 'a1b2c3d4' as never,
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [blightOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        baseRef: 'a1b2c3d4' as never,
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({ id: OP1_ID, role: 'blightwarden', status: 'complete', locked: true }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlowWithBlightChecklist({
+        quest,
+        questAfterOutcome,
+        checklist: BlightChecklistStub({ remainingItemIds: [] }),
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it("VALID: {uncovered blightwarden item, 'partial'} => NOT gated, because partial is the honest escape and never invokes the checklist broker", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const blightOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'blightwarden',
+        text: 'Blightwarden: cross-cutting whole-diff audit',
+        status: 'in_progress',
+        locked: true,
+      });
+      const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [blightOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'blightwarden',
+            text: 'Blightwarden: cross-cutting whole-diff audit',
+            status: 'complete',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: CONTINUATION_UUID,
+            role: 'blightwarden',
+            text: 'pt 2: Blightwarden: cross-cutting whole-diff audit',
+            status: 'pending',
+            locked: true,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+      proxy.setupContinuationUuids({ ids: [CONTINUATION_UUID] });
+      proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getBlightChecklistCallArgs()).toStrictEqual([]);
+    });
+
+    it("VALID: {blightwarden item, no baseRef pinned, 'done'} => NOT gated, so a quest whose review base was never pinned still completes", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const blightOp = OperationItemStub({
+        id: OP1_ID,
+        role: 'blightwarden',
+        status: 'in_progress',
+        locked: true,
+      });
+      const quest = QuestStub({
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [blightOp],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        planningNotes: { blightReports: [], qaLedger: [] },
+        operations: [
+          OperationItemStub({ id: OP1_ID, role: 'blightwarden', status: 'complete', locked: true }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'blightwarden',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP1_ID}`],
+            completedAt: FIXED_TIMESTAMP,
+            actualSignal: 'complete',
+          }),
+        ],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlowWithBlightChecklist({ quest, questAfterOutcome, checklist: null });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+    });
+
+    it("VALID: {codeweaver item, 'done'} => the blight checklist broker is never called, so no git diff runs on a non-blightwarden signal", async () => {
+      const proxy = QuestHandleSignalBackResponderProxy();
+      const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
+      const quest = QuestStub({
+        operations: [
+          OperationItemStub({
+            id: OP1_ID,
+            role: 'codeweaver',
+            text: 'core: config adapter',
+            status: 'in_progress',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: itemId,
+            role: 'codeweaver',
+            status: 'in_progress',
+            relatedDataItems: [`operations/${OP1_ID}`],
+          }),
+        ],
+      });
+      const completedItem = WorkItemStub({
+        id: itemId,
+        role: 'codeweaver',
+        status: 'complete',
+        relatedDataItems: [`operations/${OP1_ID}`],
+        completedAt: FIXED_TIMESTAMP,
+        actualSignal: 'complete',
+      });
+      const op1Complete = OperationItemStub({
+        id: OP1_ID,
+        role: 'codeweaver',
+        text: 'core: config adapter',
+        status: 'complete',
+      });
+      const questAfterOutcome = QuestStub({
+        status: 'complete',
+        operations: [op1Complete],
+        workItems: [completedItem],
+        updatedAt: FIXED_TIMESTAMP,
+      });
+      proxy.setupSignalFlow({ quest, questAfterOutcome });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        workItemId: itemId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getBlightChecklistCallArgs()).toStrictEqual([]);
     });
   });
 

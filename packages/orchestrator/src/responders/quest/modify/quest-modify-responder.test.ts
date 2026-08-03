@@ -159,7 +159,7 @@ describe('QuestModifyResponder', () => {
       const planId = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
       const cw1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000002' });
       const cw2Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000003' });
-      const lb1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000004' });
+      const bw1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000004' });
 
       const quest = QuestStub({
         id: 'add-auth',
@@ -169,7 +169,7 @@ describe('QuestModifyResponder', () => {
           WorkItemStub({ id: planId, role: 'chaoswhisperer', status: 'complete' }),
           WorkItemStub({ id: cw1Id, role: 'codeweaver', status: 'complete', dependsOn: [planId] }),
           WorkItemStub({ id: cw2Id, role: 'codeweaver', status: 'failed', dependsOn: [planId] }),
-          WorkItemStub({ id: lb1Id, role: 'lawbringer', status: 'pending', dependsOn: [cw1Id] }),
+          WorkItemStub({ id: bw1Id, role: 'blightwarden', status: 'pending', dependsOn: [cw1Id] }),
         ],
       });
 

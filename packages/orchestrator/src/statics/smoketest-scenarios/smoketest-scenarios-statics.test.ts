@@ -11,12 +11,11 @@ describe('smoketestScenariosStatics', () => {
     }).toStrictEqual({
       caseId: 'orch-happy-path',
       name: 'Orchestration: feature relay converges to complete',
-      scriptRoles: ['blightwarden', 'codeweaver', 'flowrider', 'lawbringer', 'siegemaster'],
+      scriptRoles: ['blightwarden', 'codeweaver', 'flowrider', 'siegemaster'],
       scripts: {
         codeweaver: ['signalDone'],
         flowrider: ['signalDone'],
         siegemaster: ['signalDone'],
-        lawbringer: ['signalDone'],
         blightwarden: ['signalDone'],
       },
       assertions: [{ kind: 'quest-status', expected: 'complete' }],
@@ -36,27 +35,11 @@ describe('smoketestScenariosStatics', () => {
         codeweaver: ['signalPartial', 'signalDone'],
         flowrider: ['signalDone'],
         siegemaster: ['signalDone'],
-        lawbringer: ['signalDone'],
         blightwarden: ['signalDone'],
       },
       assertions: [
         { kind: 'quest-status', expected: 'complete' },
         { kind: 'work-item-role-count', role: 'codeweaver', minCount: 2 },
-      ],
-    });
-  });
-
-  it('VALID: {orchReachesLawbringer} => asserts complete plus at least one lawbringer work item', () => {
-    expect({
-      caseId: smoketestScenariosStatics.orchReachesLawbringer.caseId,
-      name: smoketestScenariosStatics.orchReachesLawbringer.name,
-      assertions: smoketestScenariosStatics.orchReachesLawbringer.assertions,
-    }).toStrictEqual({
-      caseId: 'orch-reaches-lawbringer',
-      name: 'Orchestration: relay reaches the lawbringer review role',
-      assertions: [
-        { kind: 'quest-status', expected: 'complete' },
-        { kind: 'work-item-role-count', role: 'lawbringer', minCount: 1 },
       ],
     });
   });
@@ -91,7 +74,7 @@ describe('smoketestScenariosStatics', () => {
     });
   });
 
-  it('VALID: {all scenarios} => exported set of case IDs matches expected five', () => {
+  it('VALID: {all scenarios} => exported set of case IDs matches expected four', () => {
     const caseIds = Object.values(smoketestScenariosStatics)
       .map((s) => s.caseId)
       .sort();
@@ -101,7 +84,6 @@ describe('smoketestScenariosStatics', () => {
       'orch-happy-path',
       'orch-reaches-blightwarden',
       'orch-reaches-flowrider',
-      'orch-reaches-lawbringer',
     ]);
   });
 
@@ -111,7 +93,7 @@ describe('smoketestScenariosStatics', () => {
 
     expect({ allSame, count: blueprints.length }).toStrictEqual({
       allSame: true,
-      count: 5,
+      count: 4,
     });
   });
 });

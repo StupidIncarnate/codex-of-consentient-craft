@@ -59,52 +59,20 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: lawbringer => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'lawbringer' });
+    it('VALID: blightwarden-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-minion' });
 
       const result = workItemRoleContract.parse(role);
 
-      expect(result).toBe('lawbringer');
+      expect(result).toBe('blightwarden-minion');
     });
 
-    it('VALID: blightwarden-security-minion => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightwarden-security-minion' });
+    it('VALID: blightwarden-crosscut-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-crosscut-minion' });
 
       const result = workItemRoleContract.parse(role);
 
-      expect(result).toBe('blightwarden-security-minion');
-    });
-
-    it('VALID: blightwarden-dedup-minion => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightwarden-dedup-minion' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-dedup-minion');
-    });
-
-    it('VALID: blightwarden-perf-minion => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightwarden-perf-minion' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-perf-minion');
-    });
-
-    it('VALID: blightwarden-integrity-minion => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightwarden-integrity-minion' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-integrity-minion');
-    });
-
-    it('VALID: blightwarden-dead-code-minion => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightwarden-dead-code-minion' });
-
-      const result = workItemRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-dead-code-minion');
+      expect(result).toBe('blightwarden-crosscut-minion');
     });
 
     it('VALID: blightwarden => parses successfully', () => {
@@ -146,6 +114,42 @@ describe('workItemRoleContract', () => {
     it('INVALID: pathseeker-surface => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('pathseeker-surface');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: lawbringer => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('lawbringer');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: blightwarden-security-minion => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('blightwarden-security-minion');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: blightwarden-dedup-minion => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('blightwarden-dedup-minion');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: blightwarden-perf-minion => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('blightwarden-perf-minion');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: blightwarden-integrity-minion => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('blightwarden-integrity-minion');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: blightwarden-dead-code-minion => throws validation error (removed role)', () => {
+      expect(() => {
+        workItemRoleContract.parse('blightwarden-dead-code-minion');
       }).toThrow(/Invalid enum value/u);
     });
   });
