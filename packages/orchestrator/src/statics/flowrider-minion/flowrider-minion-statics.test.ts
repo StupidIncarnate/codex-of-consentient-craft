@@ -28,10 +28,15 @@ describe('flowriderMinionStatics', () => {
     expect(flowriderMinionStatics.prompt.template).toMatch(/^## Briefing$/mu);
   });
 
-  // The authoring checklist and the operator's reject list are the SAME block. Embedding it rather
-  // than restating it is what stops a minion being rejected against a criterion it never received.
-  it('VALID: template => embeds the shared evidence contract verbatim', () => {
-    expect(has(flowEvidenceContractStatics.markdown)).toBe(true);
+  // The minion both authors and self-audits, so it carries BOTH blocks. Embedding the operator's
+  // judging criteria rather than restating them is what stops a minion being rejected against a
+  // criterion it never received.
+  it('VALID: template => embeds the shared judging criteria verbatim', () => {
+    expect(has(flowEvidenceContractStatics.judgingMarkdown)).toBe(true);
+  });
+
+  it('VALID: template => embeds the authoring method the operator no longer carries', () => {
+    expect(has(flowEvidenceContractStatics.authoringMarkdown)).toBe(true);
   });
 
   it('VALID: template => declares it is summoned by a Flowrider operator to cover ONE BUNDLE', () => {

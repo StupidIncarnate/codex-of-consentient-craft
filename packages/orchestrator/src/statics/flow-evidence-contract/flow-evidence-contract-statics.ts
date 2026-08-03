@@ -1,12 +1,17 @@
 /**
- * PURPOSE: The single source of truth for what counts as honest flow-perspective coverage — the
- * five-part evidence contract, the modality-per-observable-type table, and the catalogue of known
- * false greens. Embedded verbatim in BOTH the Flowrider operator prompt and the Flowrider-Minion
- * prompt so the operator's reject list and the minion's authoring checklist can never drift apart
+ * PURPOSE: The single source of truth for what counts as honest flow-perspective coverage, split by
+ * who needs it — `judgingMarkdown` is the criteria an artifact is accepted or rejected against, and
+ * `authoringMarkdown` is the method for choosing where to assert
  *
  * USAGE:
- * flowEvidenceContractStatics.markdown;
- * // Returns the shared evidence-contract markdown block, interpolated into both prompts
+ * flowEvidenceContractStatics.judgingMarkdown;
+ * // Returns the evidence contract, false-green catalogue and disposition vocabulary
+ *
+ * The Flowrider operator embeds ONLY `judgingMarkdown`; the Flowrider-Minion embeds both. That split
+ * matches every other operator family — `codeweaver-minion` owns the TDD method its parent never
+ * restates, and `siegemaster-minion` owns the browser-driving knowledge its parent never carries.
+ * The operator judges a finished artifact; it does not need the method that produced it, and
+ * carrying both put the same 8,281 characters into two prompts at once.
  *
  * Two rules in here exist because the taxonomy silently dropped whole classes of observable:
  * `cache-state` (browser storage) appeared in no modality's signal list at all, and the operational
@@ -14,22 +19,16 @@
  * `ui-state` observables that still need a browser. Both are now keyed on the OBSERVABLE, not the
  * flow, because that is the level a modality is actually chosen at.
  *
- * The check-surface table is GENERATED from `qaCheckSurfaceStatics.byOutcomeType`, the same map the
- * `get-qa-checklist` tool stamps onto every item, rather than restated in prose here. That static is
- * asserted 1:1 against `outcomeTypeContract`, so a newly added outcome type appears in this prompt
- * automatically instead of silently falling off a hand-maintained list — which is exactly how
- * `cache-state` went unnamed. What stays hand-written below it is the part a surface map cannot
- * carry: the specific WRONG proof each type attracts.
+ * **The check-surface map is NOT restated here.** `get-qa-checklist` stamps a `checkSurface` on every
+ * unit it returns, generated from `qaCheckSurfaceStatics.byOutcomeType`, and renders a legend
+ * covering exactly the observable types present on that flow. Both roles fetch that checklist before
+ * they author or judge anything, so an inline copy is a second, wider, staler rendering of a value
+ * they already hold per unit. Siegemaster has always relied on the tool this way and carries no
+ * table; this block now matches it.
  */
 
-import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
-
-const checkSurfaceRows = Object.entries(qaCheckSurfaceStatics.byOutcomeType)
-  .map(([outcomeType, surface]) => `| \`${outcomeType}\` | ${surface} |`)
-  .join('\n');
-
 export const flowEvidenceContractStatics = {
-  markdown: `## The Evidence Contract — what makes an observable COVERED
+  judgingMarkdown: `## The Evidence Contract — what makes an observable COVERED
 
 An observable is covered when all five of these exist and a reader can confirm each by opening the
 file. Fewer than five is a claim, not coverage.
@@ -46,50 +45,10 @@ renders the older comment first, because the assertion pins the exact order \`[n
 An agent that cannot say what would make its assertion fail has not written a test — it has written
 a sentence that happens to be true.
 
-## Modality — chosen per OBSERVABLE, never per flow
-
-**A flow is not one technology, and neither is a node.** One flow routinely crosses a browser, an
-HTTP route, a persistence layer and a spawned process, and each of its observables is provable at
-exactly one of those layers. Read each observable's \`type\` and pick from this table. A flow's
-\`flowType\` is a hint about where its centre of gravity sits — it never overrides the per-observable
-choice, and an \`operational\` flow carrying \`ui-state\` observables still needs a browser for those.
-
-**Where each type's value must be read from.** This is the same map \`get-qa-checklist\` stamps onto
-every item as its \`checkSurface\`, so the checklist you fetch and the contract you are judged against
-agree by construction:
-
-| \`type\` | the surface the value must be read from |
-|---|---|
-${checkSurfaceRows}
-
-**And the wrong proof each type attracts.** The surface above says where to look; these are the
-shortcuts that look like looking:
-
-- \`ui-state\` — jsdom for any painted claim. It has no layout engine, every measured width reads 0,
-  and the assertion passes no matter what paints. \`textContent\` proves a string is in the DOM,
-  never that a user can read it. Geometry, wrapping, clipping and visibility need a real browser.
-- \`cache-state\` — a test that calls the read/write helper directly. That proves the helper's shape
-  ONLY, never that the app reaches it on the lifecycle event the observable names (mount, reload,
-  navigation, a second tab, a sweep that runs on mount).
-- \`api-call\` — asserting a mocked fetch was called. That proves your mock, not the route. Prove it
-  from the side that makes the claim: request interception for "the browser sent this body", a
-  server-layer test for "the route answered 400 with this message".
-- \`db-query\` — a spy on the write function. It proves the call happened, never that what landed is
-  correct. Read the persisted artifact back.
-- \`process-state\` — a mocked spawner, which cannot prove the "zero processes spawned" half of the
-  claim at all.
-- \`custom\` — paraphrasing the predicate into something easier to satisfy. A \`custom\` observable is
-  not automatically operational; run what it actually asks for, and when it names a grep, the grep's
-  real output IS the measured value.
-
-Two consequences worth stating outright:
-
-- **A flow that reaches past the browser needs an assertion past the browser.** Playwright can only
-  prove what the browser can observe. It cannot prove the row persisted with the right shape, that
-  the route rejected a bad payload with the right status, that the cleanup ran, or that a downstream
-  side effect fired. This is the layer that gets skipped most.
-- **A negative claim needs the same layer as its positive twin.** "Zero processes spawned" and
-  "no request issued" are only provable where the real thing would have happened.
+**The surface each unit must be checked at comes from the checklist, never from memory.**
+\`get-qa-checklist({ questId, flowId })\` stamps a \`checkSurface\` on every unit it returns. That
+string is the authoritative surface for that unit. An assertion whose layer disagrees with its unit's
+\`checkSurface\` is rejected on that basis alone — no judgement call required.
 
 ## Known false greens — reject on sight
 
@@ -100,9 +59,12 @@ Every pattern below is a real false green that shipped in this repo.
   audit could have been done without reading the assertions, it was not an audit.
 - **Layer blindness.** The assertion cannot observe what the observable claims — a painted-geometry
   claim asserted in jsdom, a storage-lifecycle claim asserted by calling the helper directly, a
-  spawn claim asserted against a mock. See the table above.
-- **Stopping at the browser when the flow goes deeper.** A green browser test over a broken server
-  seam is the exact false confidence this whole contract exists to prevent.
+  spawn claim asserted against a mock. Check it against the unit's \`checkSurface\`.
+- **Stopping at the browser when the flow goes deeper.** Playwright proves only what the browser can
+  observe — never that the row persisted with the right shape, that the route rejected a bad payload
+  with the right status, or that a downstream side effect fired.
+- **A negative claim proved at the wrong layer.** "Zero processes spawned" and "no request issued"
+  are only provable where the real thing would have happened.
 - **Single-instance fixtures.** If the fixture holds exactly one of whatever the assertion
   discriminates — one card, one key, one comment, one row — then "the right one" and "the first one"
   are the same value and the test cannot tell them apart. An off-by-index bug passes. Seed at least
@@ -134,4 +96,33 @@ collapsed into one label. The next role reads them as different instructions.
   reader's instruction is *go verify this yourself*. A \`GAP:\` is never a place to put something
   that was simply not reached — that is remaining scope, and it is reported as remaining scope.
 - **\`ADJUSTED:\` / \`ADDED:\`** — the spec itself was moved via \`modify-quest\`.`,
+
+  authoringMarkdown: `## Modality — chosen per OBSERVABLE, never per flow
+
+**A flow is not one technology, and neither is a node.** One flow routinely crosses a browser, an
+HTTP route, a persistence layer and a spawned process, and each of its observables is provable at
+exactly one of those layers. Read each unit's \`checkSurface\` off the checklist and assert there. A
+flow's \`flowType\` is a hint about where its centre of gravity sits — it never overrides the
+per-observable choice, and an \`operational\` flow carrying \`ui-state\` observables still needs a
+browser for those.
+
+**The wrong proof each type attracts.** The \`checkSurface\` says where to look; these are the
+shortcuts that look like looking:
+
+- \`ui-state\` — jsdom for any painted claim. It has no layout engine, every measured width reads 0,
+  and the assertion passes no matter what paints. \`textContent\` proves a string is in the DOM,
+  never that a user can read it. Geometry, wrapping, clipping and visibility need a real browser.
+- \`cache-state\` — a test that calls the read/write helper directly. That proves the helper's shape
+  ONLY, never that the app reaches it on the lifecycle event the observable names (mount, reload,
+  navigation, a second tab, a sweep that runs on mount).
+- \`api-call\` — asserting a mocked fetch was called. That proves your mock, not the route. Prove it
+  from the side that makes the claim: request interception for "the browser sent this body", a
+  server-layer test for "the route answered 400 with this message".
+- \`db-query\` — a spy on the write function. It proves the call happened, never that what landed is
+  correct. Read the persisted artifact back.
+- \`process-state\` — a mocked spawner, which cannot prove the "zero processes spawned" half of the
+  claim at all.
+- \`custom\` — paraphrasing the predicate into something easier to satisfy. A \`custom\` observable is
+  not automatically operational; run what it actually asks for, and when it names a grep, the grep's
+  real output IS the measured value.`,
 } as const;
