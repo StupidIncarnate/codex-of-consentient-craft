@@ -1,16 +1,23 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import {
+  ContentTextStub,
+  DesignDecisionStub,
+  FlowNodeStub,
+  FlowStub,
   GetQuestResultStub,
   GuildIdStub,
   ModifyQuestResultStub,
+  OperationItemStub,
   OrchestrationStatusStub,
   ProcessIdStub,
   QuestCommentStub,
+  QuestContractEntryStub,
   QuestIdStub,
   QuestListItemStub,
   QuestStub,
   QuestWorkItemIdStub,
+  ToolingRequirementStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
@@ -163,6 +170,29 @@ describe('QuestHandleResponder', () => {
       },
     );
 
+    it('VALID: {format: text, unsuccessful result} => falls through to the JSON strip branch instead of rendering text', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const quest = QuestStub();
+      const questResult = GetQuestResultStub({ success: false, quest });
+      Reflect.deleteProperty(quest, 'comments');
+      proxy.setupGetQuestReturns({ questId: 'test-quest-id', result: questResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest' }),
+        args: { questId: 'test-quest-id', format: 'text' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: false, quest }, null, JSON_INDENT_SPACES),
+          },
+        ],
+        isError: true,
+      });
+    });
+
     it('VALID: {format: text, quest with a sentinel comment} => rendered text never contains the comment text', async () => {
       const proxy = QuestHandleResponderProxy();
       const quest = QuestStub({
@@ -186,9 +216,30 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {format: json, quest with comments} => flows, designDecisions, contracts, toolingRequirements and operations pass through unchanged', async () => {
+    it('VALID: {format: json, quest with non-empty designDecisions/toolingRequirements/contracts/operations plus a comment} => flows, designDecisions, contracts, toolingRequirements and operations pass through unchanged', async () => {
       const proxy = QuestHandleResponderProxy();
+      // Every non-comment section below is populated with a REAL entry (not the empty-array
+      // QuestStub default) — an over-strip that drops or empties one of these sections entirely,
+      // not just comments, produces a shorter/different payload than an empty-array fixture could
+      // ever distinguish from the correct one.
+      const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const designDecision = DesignDecisionStub({ relatedNodeIds: ['start'] as never });
+      const toolingRequirement = ToolingRequirementStub();
+      const contractEntry = QuestContractEntryStub({ nodeId: 'start' as never });
+      const operation = OperationItemStub({
+        id: '00000000-0000-4000-8000-0000000000e2' as never,
+        role: 'codeweaver',
+        text: 'build core',
+        status: 'pending',
+        locked: false,
+      });
       const quest = QuestStub({
+        flows: [flow],
+        designDecisions: [designDecision],
+        toolingRequirements: [toolingRequirement],
+        contracts: [contractEntry],
+        operations: [operation],
         comments: [QuestCommentStub()],
       });
       const questResult = GetQuestResultStub({ quest });
@@ -391,6 +442,72 @@ describe('QuestHandleResponder', () => {
       // The strip happens before validation runs: an agent that tries to write comments gets the
       // ordinary success payload back, never a validation error or a failedChecks entry naming
       // comments — there is nothing here for it to chase.
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(modifyResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('EDGE: {comments in args, edit shape {id, text}} => strips comments before passing to adapter, and still succeeds', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          comments: [
+            {
+              id: 'sneaky-comment-id',
+              text: 'An agent should not be able to edit this',
+            },
+          ],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(modifyResult, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+    });
+
+    it('EDGE: {comments in args, delete shape {id, _delete: true}} => strips comments before passing to adapter, and still succeeds', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const modifyResult = ModifyQuestResultStub();
+      proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'modify-quest' }),
+        args: {
+          questId: 'test-quest-id',
+          comments: [
+            {
+              id: 'sneaky-comment-id',
+              _delete: true,
+            },
+          ],
+        },
+      });
+
+      const passedInput = proxy.getLastModifyInput({ questId: 'test-quest-id' });
+
+      expect(passedInput).toStrictEqual({
+        questId: 'test-quest-id',
+      });
       expect(result).toStrictEqual({
         content: [
           {
@@ -671,7 +788,12 @@ describe('QuestHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, processId }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
@@ -771,7 +893,8 @@ describe('QuestHandleResponder', () => {
     it('VALID: {guildId} => returns quests list', async () => {
       const proxy = QuestHandleResponderProxy();
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      proxy.setupListQuestsReturns({ guildId, quests: [QuestListItemStub()] });
+      const quests = [QuestListItemStub()];
+      proxy.setupListQuestsReturns({ guildId, quests });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'list-quests' }),
@@ -779,7 +902,12 @@ describe('QuestHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, quests }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
@@ -820,8 +948,15 @@ describe('QuestHandleResponder', () => {
         args: {},
       });
 
+      // No setupListGuildsReturns call — the underlying adapter proxy's own default (no guilds
+      // registered) resolves an empty array, which is what a real "no guilds yet" state returns.
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true, guilds: [] }, null, JSON_INDENT_SPACES),
+          },
+        ],
       });
     });
 
@@ -855,7 +990,10 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetPlanningNotesReturns({
         questId: 'test-quest-id',
-        result: { success: true, data: { blightReports: [], qaLedger: [] } },
+        result: {
+          success: true,
+          data: { blightReports: [], qaLedger: [], blightLedger: [] },
+        },
       });
 
       const result = await proxy.callResponder({
@@ -870,7 +1008,7 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify(
               {
                 success: true,
-                data: { blightReports: [], qaLedger: [] },
+                data: { blightReports: [], qaLedger: [], blightLedger: [] },
               },
               null,
               JSON_INDENT_SPACES,
@@ -972,6 +1110,80 @@ describe('QuestHandleResponder', () => {
     });
   });
 
+  describe('get-blight-checklist', () => {
+    it('VALID: {questId} => dispatches to the blight layer responder and returns rendered text VERBATIM with newlines intact', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const multiLineChecklist = ContentTextStub({
+        value: '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed',
+      });
+      proxy.setupGetBlightChecklistReturns({
+        questId: 'test-quest-id',
+        result: { success: true, data: multiLineChecklist },
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      // The exact match below is the proof: had the responder JSON.stringify()'d this payload,
+      // every '\n' would come back as the two characters '\\n' and this assertion would fail —
+      // there is no looser check that could hide that regression.
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed',
+          },
+        ],
+      });
+    });
+
+    it('VALID: {questId} => forwards questId to the blight layer responder', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetBlightChecklistReturns({
+        questId: 'test-quest-id',
+        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(proxy.getLastGetBlightChecklistInput({ questId: 'test-quest-id' })).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetBlightChecklistThrows({
+        questId: 'test-quest-id',
+        error: new Error('Quest not found'),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Quest not found' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
   describe('create-quest', () => {
     it('VALID: {userRequest} => returns { questId, guildSlug } JSON', async () => {
       const proxy = QuestHandleResponderProxy();
@@ -1016,6 +1228,34 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify({ questId, guildSlug }, null, JSON_INDENT_SPACES),
           },
         ],
+      });
+    });
+
+    it('VALID: {userRequest} with a resolvable Claude Code session on disk => forwards the resolved sessionId to the create-quest adapter', async () => {
+      const proxy = QuestHandleResponderProxy();
+      const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
+      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      proxy.setupSessionResolved({
+        entries: [{ name: 'resolved-session-abc.jsonl', mtimeMs: 1000 }],
+      });
+      proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'create-quest' }),
+        args: { userRequest: 'Build the login flow' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ questId, guildSlug }, null, JSON_INDENT_SPACES),
+          },
+        ],
+      });
+      expect(proxy.getLastCreateQuestInput()).toStrictEqual({
+        userRequest: 'Build the login flow',
+        sessionId: 'resolved-session-abc',
       });
     });
 

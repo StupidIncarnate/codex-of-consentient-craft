@@ -1,14 +1,15 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, create-quest, get-next-step, run-ward, get-server-config)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, get-server-config)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 12 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 13 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { createQuestInputContract } from '../../contracts/create-quest-input/create-quest-input-contract';
+import { getBlightChecklistInputContract } from '../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
 import { getNextStepInputContract } from '../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQaChecklistInputContract } from '../../contracts/get-qa-checklist-input/get-qa-checklist-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
@@ -41,6 +42,10 @@ const getQuestPlanningNotesSchema = zodToJsonSchema(
 );
 const getQaChecklistSchema = zodToJsonSchema(
   getQaChecklistInputContract as never,
+  jsonSchemaOptions,
+);
+const getBlightChecklistSchema = zodToJsonSchema(
+  getBlightChecklistInputContract as never,
   jsonSchemaOptions,
 );
 const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jsonSchemaOptions);
@@ -100,6 +105,14 @@ export const QuestFlow = (): ToolRegistration[] => [
       "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units still carry no disposition in the QA ledger. Siegemaster calls this instead of reading the spec and enumerating by hand. `remainingItemIds` empty is the only state in which a siegemaster item may signal done." as never,
     inputSchema: getQaChecklistSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-qa-checklist' as never, args }),
+  },
+  {
+    name: 'get-blight-checklist' as never,
+    description:
+      "Returns a quest's COMPLETE blight review surface, computed deterministically from the git diff against the quest's pinned baseRef: every changed file paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. Blightwarden calls this instead of re-deriving the diff by hand. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring." as never,
+    inputSchema: getBlightChecklistSchema as never,
+    handler: async ({ args }) =>
+      QuestHandleResponder({ tool: 'get-blight-checklist' as never, args }),
   },
   {
     name: 'create-quest' as never,

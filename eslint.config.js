@@ -32,7 +32,7 @@ module.exports = [
       'packages/*/dist/**',
       '@types/**',
       'exploratories/**',
-      'plan/**',
+      'scrolls/**',
       'hypothesis/**',
       '.vscode/**',
       '.idea/**',

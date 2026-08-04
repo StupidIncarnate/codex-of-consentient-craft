@@ -17,7 +17,6 @@ export const orchestrationStatusContract = z.object({
     'codeweaver',
     'flowrider',
     'siegemaster',
-    'lawbringer',
     'spiritmender',
     'ward',
     'idle',

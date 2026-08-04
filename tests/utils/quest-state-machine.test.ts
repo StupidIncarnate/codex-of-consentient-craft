@@ -446,12 +446,12 @@ describe('Quest State Machine', () => {
       expect(QuestStateMachine.getExpectedAction(quest)).toBe('spawn_siegemasters');
     });
 
-    test('should return spawn_lawbringer for review not started', () => {
+    test('should return spawn_blightwarden for review not started', () => {
       const quest = createEmptyQuest('test', 'Test');
       quest.phases.discovery.status = PhaseStatus.COMPLETE;
       quest.phases.implementation.status = PhaseStatus.COMPLETE;
       quest.phases.gapAnalysis.status = PhaseStatus.COMPLETE;
-      expect(QuestStateMachine.getExpectedAction(quest)).toBe('spawn_lawbringer');
+      expect(QuestStateMachine.getExpectedAction(quest)).toBe('spawn_blightwarden');
     });
 
     test('should return complete_quest when all phases complete', () => {

@@ -89,7 +89,7 @@ export function createMockPhaseRunner(phaseType: PhaseType): jest.Mocked<PhaseRu
     discovery: 'pathseeker',
     implementation: 'codeweaver',
     testing: 'siegemaster',
-    review: 'lawbringer',
+    review: 'blightwarden',
   };
 
   return {

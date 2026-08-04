@@ -37,7 +37,6 @@ export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-
 export * from './src/guards/has-resumable-chat-session/has-resumable-chat-session-guard';
 
 // Work Item Dependency Graph Guards
-export * from './src/guards/has-lawbringer-in-deps/has-lawbringer-in-deps-guard';
 export * from './src/guards/has-incomplete-quest-work/has-incomplete-quest-work-guard';
 
 // Work Item Status Guards

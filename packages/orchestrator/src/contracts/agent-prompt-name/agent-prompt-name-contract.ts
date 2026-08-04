@@ -8,25 +8,8 @@
 
 import { z } from 'zod';
 
-export const agentPromptNameContract = z.enum([
-  'chaoswhisperer-gap-minion',
-  'codeweaver',
-  'codeweaver-minion',
-  'lawbringer',
-  'lawbringer-minion',
-  'spiritmender',
-  'flowrider',
-  'flowrider-minion',
-  'siegemaster',
-  'siegemaster-minion',
-  'siegemaster-test-audit-minion',
-  'blightwarden',
-  'blightwarden-security-minion',
-  'blightwarden-dedup-minion',
-  'blightwarden-perf-minion',
-  'blightwarden-integrity-minion',
-  'blightwarden-dead-code-minion',
-  'pesteater',
-]);
+import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
+
+export const agentPromptNameContract = z.enum(agentPromptClassificationStatics.promptNames);
 
 export type AgentPromptName = z.infer<typeof agentPromptNameContract>;

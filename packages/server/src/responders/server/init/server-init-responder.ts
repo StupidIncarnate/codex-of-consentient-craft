@@ -35,6 +35,7 @@ import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
+import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type {
   OrchestrationEventType,
@@ -193,10 +194,7 @@ export const ServerInitResponder = ({
                 );
               })
               .catch((error: unknown) => {
-                const reason =
-                  error instanceof Error
-                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-                    : String(error);
+                const reason = errorFormatReasonTransformer({ error });
                 processDevLogAdapter({
                   message: `ward-detail-request failed for quest ${questId}, ward ${wardResultId}: ${reason}`,
                 });
@@ -279,10 +277,7 @@ export const ServerInitResponder = ({
                 }
               })
               .catch((error: unknown) => {
-                const reason =
-                  error instanceof Error
-                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-                    : String(error);
+                const reason = errorFormatReasonTransformer({ error });
                 processDevLogAdapter({
                   message: `subscribe-quest replay failed for ${subQuestId}: ${reason}`,
                 });
@@ -442,20 +437,14 @@ export const ServerInitResponder = ({
                 );
               })
               .catch((error: unknown) => {
-                const reason =
-                  error instanceof Error
-                    ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-                    : String(error);
+                const reason = errorFormatReasonTransformer({ error });
                 processDevLogAdapter({
                   message: `replay-quest-history failed for ${replayQuestId}: ${reason}`,
                 });
               });
           }
         } catch (error: unknown) {
-          const reason =
-            error instanceof Error
-              ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-              : String(error);
+          const reason = errorFormatReasonTransformer({ error });
           processDevLogAdapter({ message: `WebSocket message parse error: ${reason}` });
         }
       },
@@ -833,10 +822,7 @@ export const ServerInitResponder = ({
           }
         })
         .catch((error: unknown) => {
-          const reason =
-            error instanceof Error
-              ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-              : String(error);
+          const reason = errorFormatReasonTransformer({ error });
           processDevLogAdapter({ message: `Outbox quest load failed for ${questId}: ${reason}` });
         });
     },
@@ -844,10 +830,7 @@ export const ServerInitResponder = ({
       processDevLogAdapter({ message: `Outbox watch error: ${String(error)}` });
     },
   }).catch((error: unknown) => {
-    const reason =
-      error instanceof Error
-        ? `${error.message}${error.cause ? ` | cause: ${error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause)}` : ''}`
-        : String(error);
+    const reason = errorFormatReasonTransformer({ error });
     processDevLogAdapter({ message: `Outbox watcher failed to start: ${reason}` });
   });
 

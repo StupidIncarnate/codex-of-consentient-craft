@@ -1,6 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
 import { elkLayoutAdapterProxy } from '../../adapters/elk/layout/elk-layout-adapter.proxy';
 import { xyflowEdgeAdapterProxy } from '../../adapters/xyflow/edge/xyflow-edge-adapter.proxy';
 import { xyflowReactFlowAdapterProxy } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter.proxy';
@@ -51,6 +53,13 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   FlowObservableNodeLayerWidgetProxy();
   FlowPortalNodeLayerWidgetProxy();
   const user = userEvent.setup();
+  // The widget logs a rejected ELK layout directly from its catch (no thrown error surfaces to
+  // React), so any test that triggers that path would otherwise throw here. passthrough: true —
+  // console.error is a shared sink; React's own internal warnings (e.g. act() warnings) also flow
+  // through it and must keep printing normally, not throw for being unstaged.
+  registerSpyOn({ object: globalThis.console, method: 'error', passthrough: true })
+    .calledWith(['[react-flow-diagram]'])
+    .returns(undefined);
 
   return {
     setupEmptyQueue: (): void => {

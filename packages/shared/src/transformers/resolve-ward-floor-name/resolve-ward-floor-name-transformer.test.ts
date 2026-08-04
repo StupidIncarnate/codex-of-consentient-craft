@@ -25,30 +25,8 @@ describe('resolveWardFloorNameTransformer', () => {
     });
   });
 
-  describe('floor boss', () => {
-    it('VALID: {ward depends on lawbringer} => returns FLOOR BOSS', () => {
-      const lb = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'lawbringer',
-        status: 'complete',
-        dependsOn: [],
-      });
-      const ward = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'ward',
-        status: 'pending',
-        dependsOn: [lb.id],
-      });
-
-      const allItemMap = new Map([lb, ward].map((wi) => [wi.id, wi]));
-      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
-
-      expect(result).toBe('FLOOR BOSS');
-    });
-  });
-
   describe('wardMode', () => {
-    it('VALID: {ward wardMode full, no lawbringer dep} => returns FLOOR BOSS', () => {
+    it('VALID: {ward wardMode full} => returns FLOOR BOSS', () => {
       const ward = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',
         role: 'ward',
@@ -61,27 +39,6 @@ describe('resolveWardFloorNameTransformer', () => {
       const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
 
       expect(result).toBe('FLOOR BOSS');
-    });
-
-    it('VALID: {ward wardMode changed, lawbringer dep present} => returns MINI BOSS (wardMode wins over deps)', () => {
-      const lb = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'lawbringer',
-        status: 'complete',
-        dependsOn: [],
-      });
-      const ward = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'ward',
-        status: 'pending',
-        wardMode: 'changed',
-        dependsOn: [lb.id],
-      });
-
-      const allItemMap = new Map([lb, ward].map((wi) => [wi.id, wi]));
-      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
-
-      expect(result).toBe('MINI BOSS');
     });
 
     it('VALID: {ward retry inherits root wardMode full via insertedBy chain} => FLOOR BOSS', () => {
@@ -149,27 +106,6 @@ describe('resolveWardFloorNameTransformer', () => {
   });
 
   describe('broken insertedBy chain', () => {
-    it('EDGE: {ward insertedBy points to missing parent, no wardMode, lawbringer dep} => stops walk at self, FLOOR BOSS', () => {
-      const lb = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
-        role: 'lawbringer',
-        status: 'complete',
-        dependsOn: [],
-      });
-      const ward = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
-        role: 'ward',
-        status: 'pending',
-        dependsOn: [lb.id],
-        insertedBy: 'a0000000-0000-0000-0000-0000000000ff',
-      });
-
-      const allItemMap = new Map([lb, ward].map((wi) => [wi.id, wi]));
-      const result = resolveWardFloorNameTransformer({ workItem: ward, allItemMap });
-
-      expect(result).toBe('FLOOR BOSS');
-    });
-
     it('EDGE: {ward insertedBy points to a non-ward parent, no wardMode, codeweaver dep} => stops walk at self, MINI BOSS', () => {
       const cw = WorkItemStub({
         id: 'a0000000-0000-0000-0000-000000000001',

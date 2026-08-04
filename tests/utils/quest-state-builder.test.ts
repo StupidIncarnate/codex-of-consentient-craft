@@ -234,67 +234,6 @@ describe('Quest State Builder', () => {
     });
   });
 
-  describe('inLawbringerState', () => {
-    test('should auto-implement if not done', () => {
-      builder.inLawbringerState();
-      const quest = builder.getQuest();
-
-      expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
-    });
-
-    test('should complete review with no issues', () => {
-      builder.inCodeweaverState().inLawbringerState(PhaseStatus.COMPLETE);
-      const quest = builder.getQuest();
-
-      expect(quest.phases.review.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.review.issues).toStrictEqual([]);
-      expect(quest.phases.review.recommendations).toBeDefined();
-    });
-
-    test('should handle review with issues', () => {
-      builder.inCodeweaverState().inLawbringerState(PhaseStatus.COMPLETE, {
-        withErrors: true,
-      });
-      const quest = builder.getQuest();
-
-      expect(quest.phases.review.issues!.length).toBeGreaterThan(0);
-      expect(quest.phases.review.issues!.some((i) => i.severity === 'major')).toBe(true);
-    });
-
-    test('should set components to need revision for major issues', () => {
-      builder.inCodeweaverState();
-      const quest = builder.getQuest();
-
-      // Get the first component file to use in the review issue
-      const firstComponentFile =
-        quest.phases.implementation.components[0]?.files?.[0] || 'src/unknown.ts';
-
-      builder.inLawbringerState(PhaseStatus.COMPLETE, {
-        reviewIssues: [
-          { severity: 'major' as const, file: firstComponentFile, message: 'Critical error' },
-        ],
-      });
-
-      const updatedQuest = builder.getQuest();
-      const needsRevision = updatedQuest.phases.implementation.components.some(
-        (c) => c.status === ComponentStatus.NEEDS_REVISION,
-      );
-      expect(needsRevision).toBe(true);
-      expect(updatedQuest.phases.implementation.status).toBe(PhaseStatus.IN_PROGRESS);
-    });
-
-    test('should handle in-progress review', () => {
-      builder.inCodeweaverState().inLawbringerState(PhaseStatus.IN_PROGRESS, {
-        percentComplete: 75,
-      });
-      const quest = builder.getQuest();
-
-      expect(quest.phases.review.status).toBe(PhaseStatus.IN_PROGRESS);
-      expect(quest.phases.review.progress).toBe('75%');
-    });
-  });
-
   describe('inSiegemasterState', () => {
     test('should complete gap analysis when called', () => {
       builder.inCodeweaverState().inSiegemasterState();
@@ -305,7 +244,7 @@ describe('Quest State Builder', () => {
     });
 
     test('should complete testing phase', () => {
-      builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE);
+      builder.inCodeweaverState().inSiegemasterState(PhaseStatus.COMPLETE);
       const quest = builder.getQuest();
 
       expect(quest.phases.gapAnalysis.status).toBe(PhaseStatus.COMPLETE);
@@ -319,7 +258,7 @@ describe('Quest State Builder', () => {
     });
 
     test('should handle custom gap analysis', () => {
-      builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE, {
+      builder.inCodeweaverState().inSiegemasterState(PhaseStatus.COMPLETE, {
         gapsFound: 3,
       });
       const quest = builder.getQuest();
@@ -328,7 +267,7 @@ describe('Quest State Builder', () => {
     });
 
     test('should handle additional tests needed', () => {
-      builder.inLawbringerState().inSiegemasterState(PhaseStatus.COMPLETE, {
+      builder.inCodeweaverState().inSiegemasterState(PhaseStatus.COMPLETE, {
         additionalTestsNeeded: ['test1', 'test2'],
       });
       const quest = builder.getQuest();
@@ -337,7 +276,7 @@ describe('Quest State Builder', () => {
     });
 
     test('should handle blocked testing', () => {
-      builder.inLawbringerState().inSiegemasterState(PhaseStatus.BLOCKED, {
+      builder.inCodeweaverState().inSiegemasterState(PhaseStatus.BLOCKED, {
         errorMessage: 'Database connection failed',
       });
       const quest = builder.getQuest();
@@ -552,7 +491,6 @@ describe('Quest State Builder', () => {
         .inCodeweaverState(PhaseStatus.IN_PROGRESS, { partialOnly: true })
         // Complete the implementation before moving on
         .inCodeweaverState(PhaseStatus.COMPLETE)
-        .inLawbringerState(PhaseStatus.COMPLETE, { withErrors: true })
         .inSiegemasterState(PhaseStatus.BLOCKED, { errorMessage: 'Tests failing' })
         .inSpiritMenderState(true)
         .inSiegemasterState(PhaseStatus.IN_PROGRESS) // Can't go directly from BLOCKED to COMPLETE
@@ -575,26 +513,11 @@ describe('Quest State Builder', () => {
   });
 
   describe('state transitions', () => {
-    test('should enforce organic state progression', () => {
-      // Can't review before implementing
-      expect(() => {
-        new QuestStateBuilder(testProject.rootDir, 'Test').inLawbringerState();
-      }).not.toThrow(); // Auto-completes previous states
-
-      const quest = new QuestStateBuilder(testProject.rootDir, 'Test')
-        .inLawbringerState()
-        .getQuest();
-
-      expect(quest.phases.discovery.status).toBe(PhaseStatus.COMPLETE);
-      expect(quest.phases.implementation.status).toBe(PhaseStatus.COMPLETE);
-    });
-
     test('should allow chaining states', () => {
       const quest = builder
         .inTaskweaverState()
         .inPathseekerState()
         .inCodeweaverState()
-        .inLawbringerState()
         .inSiegemasterState()
         .inCompletedState()
         .getQuest();
@@ -604,7 +527,6 @@ describe('Quest State Builder', () => {
         'quest_creation',
         'pathseeker',
         'codeweaver',
-        'lawbringer',
         'siegemaster',
       ]);
     });

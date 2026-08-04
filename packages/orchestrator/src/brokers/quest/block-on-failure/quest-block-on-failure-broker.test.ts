@@ -36,7 +36,7 @@ describe('questBlockOnFailureBroker', () => {
           }),
           WorkItemStub({
             id: pendingTwoId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'pending',
             dependsOn: [pendingOneId],
           }),
@@ -79,7 +79,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: pendingId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -119,7 +119,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' }),
           WorkItemStub({
             id: pendingId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -159,7 +159,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' }),
           WorkItemStub({
             id: skippedId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'skipped',
             dependsOn: [failedId],
           }),
@@ -192,7 +192,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: pendingId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'pending',
             dependsOn: [failedId],
           }),
@@ -222,7 +222,7 @@ describe('questBlockOnFailureBroker', () => {
           WorkItemStub({ id: failedId, role: 'codeweaver', status: 'failed' }),
           WorkItemStub({
             id: pendingId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'skipped',
             dependsOn: [failedId],
           }),

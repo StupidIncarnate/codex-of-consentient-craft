@@ -122,6 +122,91 @@ describe('commentQueueState', () => {
 
       expect(commentQueueState.read({ questId })).toStrictEqual([nodeEntry, observableEntry]);
     });
+
+    it('ERROR: {localStorage refuses the write} => leaves the existing queue intact instead of throwing', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const existing = CommentQueueEntryStub({ nodeId: 'login-page' });
+      const added = CommentQueueEntryStub({ nodeId: 'dashboard' });
+      proxy.seedQueue({ questId, entries: [existing] });
+      proxy.setupWriteRejected({ questId });
+
+      commentQueueState.queue({ questId, entry: added });
+
+      expect(commentQueueState.read({ questId })).toStrictEqual([existing]);
+    });
+
+    it('ERROR: {localStorage refuses the write} => reports the failure rather than swallowing it', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const added = CommentQueueEntryStub({ nodeId: 'dashboard' });
+      proxy.setupWriteRejected({ questId });
+
+      commentQueueState.queue({ questId, entry: added });
+
+      expect(proxy.writeFailureLogs()).toStrictEqual([
+        ['[comment-queue] failed to persist the queue', new Error('QuotaExceededError')],
+      ]);
+    });
+  });
+
+  describe('storage the browser refuses', () => {
+    it('ERROR: {localStorage refuses the removal} => clearQueue reports it instead of throwing', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      proxy.setupRemoveRejected({ questId });
+
+      commentQueueState.clearQueue({ questId });
+
+      expect(proxy.writeFailureLogs()).toStrictEqual([
+        ['[comment-queue] failed to persist the queue', new Error('SecurityError')],
+      ]);
+    });
+
+    it('ERROR: {localStorage cannot be enumerated} => the expiry sweep leaves the route mount standing', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const entry = CommentQueueEntryStub({ createdAt: '2026-07-27T00:00:00.000Z' });
+      proxy.seedQueue({ questId, entries: [entry] });
+      proxy.setupScanRejected();
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(commentQueueState.read({ questId })).toStrictEqual([entry]);
+    });
+
+    it('ERROR: {localStorage cannot be enumerated} => reports the scan failure rather than swallowing it', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      proxy.seedQueue({ questId, entries: [CommentQueueEntryStub({})] });
+      proxy.setupScanRejected();
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(proxy.scanFailureLogs()).toStrictEqual([
+        ['[comment-queue] failed to scan storage for expiry', new Error('SecurityError')],
+      ]);
+    });
+
+    it('ERROR: {localStorage cannot be enumerated} => an entry that would have expired survives the skipped sweep', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const stale = CommentQueueEntryStub({
+        createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString(),
+      });
+      proxy.seedQueue({ questId, entries: [stale] });
+      proxy.setupScanRejected();
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(commentQueueState.read({ questId })).toStrictEqual([stale]);
+    });
   });
 
   describe('remove()', () => {
@@ -160,6 +245,20 @@ describe('commentQueueState', () => {
       commentQueueState.remove({ questId, anchor: CommentAnchorStub({ nodeId: 'never-queued' }) });
 
       expect(commentQueueState.read({ questId })).toStrictEqual([entry]);
+    });
+
+    it('ERROR: {localStorage refuses the write} => leaves the existing queue intact instead of throwing', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const kept = CommentQueueEntryStub({ nodeId: 'dashboard' });
+      const removed = CommentQueueEntryStub({ nodeId: 'login-page' });
+      proxy.seedQueue({ questId, entries: [kept, removed] });
+      proxy.setupWriteRejected({ questId });
+
+      commentQueueState.remove({ questId, anchor: CommentAnchorStub({ nodeId: 'login-page' }) });
+
+      expect(commentQueueState.read({ questId })).toStrictEqual([kept, removed]);
     });
   });
 
@@ -276,6 +375,34 @@ describe('commentQueueState', () => {
       expect(proxy.hasKey({ questId })).toBe(false);
     });
 
+    it('VALID: {two quests each holding only expired entries} => the sweep removes both keys in one pass', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questA = QuestIdStub({ value: 'quest-a' });
+      const questB = QuestIdStub({ value: 'quest-b' });
+      // Two keys that BOTH need removing is the only shape that proves the scan snapshots its key
+      // list before mutating: removeItem re-indexes localStorage, so a live index walk would slide
+      // the second key into an already-visited slot and leave it behind. Every other case in this
+      // file pairs one expiring key with one surviving key, where that skip is invisible.
+      proxy.seedQueue({
+        questId: questA,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString() }),
+        ],
+      });
+      proxy.seedQueue({
+        questId: questB,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(NOW_MS - 9 * DAY_MS).toISOString() }),
+        ],
+      });
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(proxy.hasKey({ questId: questA })).toBe(false);
+      expect(proxy.hasKey({ questId: questB })).toBe(false);
+    });
+
     it('VALID: {a second quest holds only fresh entries} => its raw value is untouched and its subscriber is not notified', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
@@ -301,6 +428,27 @@ describe('commentQueueState', () => {
       expect(proxy.readRawValue({ questId: questB })).toBe(JSON.stringify(freshEntries));
       expect(staleListener).toHaveBeenCalledTimes(1);
       expect(freshListener).toHaveBeenCalledTimes(0);
+    });
+
+    it('EDGE: {a key equal to the bare prefix, holding an entry old enough to be swept} => is skipped and left byte-identical', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const staleAtBarePrefix = JSON.stringify([
+        CommentQueueEntryStub({ createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString() }),
+      ]);
+      proxy.seedPrefixOnlyKey({ value: staleAtBarePrefix });
+      const questId = QuestIdStub({ value: 'quest-a' });
+      proxy.seedQueue({
+        questId,
+        entries: [
+          CommentQueueEntryStub({ createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString() }),
+        ],
+      });
+
+      commentQueueState.sweepExpired({ nowMs: NOW_MS });
+
+      expect(proxy.readPrefixOnlyValue()).toBe(staleAtBarePrefix);
+      expect(commentQueueState.read({ questId })).toStrictEqual([]);
     });
 
     it('VALID: {an unrelated localStorage key} => is left byte-identical', () => {
@@ -378,6 +526,36 @@ describe('commentQueueState', () => {
 
       expect(first).toHaveBeenCalledTimes(1);
       expect(second).toHaveBeenCalledTimes(1);
+    });
+
+    it('VALID: {two listeners, one unsubscribes} => the surviving listener still fires and the unsubscribed one does not', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const first = jest.fn();
+      const second = jest.fn();
+      const unsubscribeFirst = commentQueueState.subscribe({ questId, listener: first });
+      commentQueueState.subscribe({ questId, listener: second });
+
+      unsubscribeFirst();
+      commentQueueState.queue({ questId, entry: CommentQueueEntryStub({}) });
+
+      expect(first).toHaveBeenCalledTimes(0);
+      expect(second).toHaveBeenCalledTimes(1);
+    });
+
+    it('EDGE: {unsubscribe called twice} => the second call is a no-op instead of throwing', () => {
+      const proxy = commentQueueStateProxy();
+      proxy.setupEmptyStorage();
+      const questId = QuestIdStub({ value: 'quest-a' });
+      const listener = jest.fn();
+      const unsubscribe = commentQueueState.subscribe({ questId, listener });
+      unsubscribe();
+
+      unsubscribe();
+      commentQueueState.queue({ questId, entry: CommentQueueEntryStub({}) });
+
+      expect(listener).toHaveBeenCalledTimes(0);
     });
   });
 });

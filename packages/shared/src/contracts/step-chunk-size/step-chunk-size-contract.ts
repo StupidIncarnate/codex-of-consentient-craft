@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines a branded positive-integer cap on how many steps may be batched into a single codeweaver/lawbringer work item
+ * PURPOSE: Defines a branded positive-integer cap on how many steps may be batched into a single codeweaver work item
  *
  * USAGE:
  * const cap: StepChunkSize = stepChunkSizeContract.parse(6);

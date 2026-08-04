@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The orchestrator's ONLY runtime writer for the quest operations ledger. Applies an
- * operations mutation — and any accompanying workItems write — in ONE atomic read-modify-write
- * persist, then re-derives quest status through the operation-aware transformer.
+ * operations mutation — and any accompanying workItems or baseRef write — in ONE atomic
+ * read-modify-write persist, then re-derives quest status through the operation-aware transformer.
  *
  * USAGE:
  * await questOperationsUpdateBroker({
@@ -48,6 +48,7 @@ export const questOperationsUpdateBroker = async ({
   update: (params: { quest: Quest }) => {
     operations?: OperationItem[];
     workItems?: WorkItem[];
+    baseRef?: NonNullable<Quest['baseRef']>;
   } | null;
 }): Promise<{ quest: Quest } | null> =>
   questWithModifyLockBroker({
@@ -66,11 +67,17 @@ export const questOperationsUpdateBroker = async ({
 
       const nextOperations = changes.operations ?? quest.operations;
       const nextWorkItems = changes.workItems ?? quest.workItems;
+      // `baseRef` rides this persist rather than a following write so the commit a quest's review
+      // diff is measured from lands atomically with the relay it scopes. A crash between the two
+      // would leave a seeded tail whose reviewers fall back to the default branch — the base that
+      // silently collapses once the default branch absorbs the quest's own implementation commits.
+      const nextBaseRef = changes.baseRef ?? quest.baseRef;
 
       const mutated = questContract.parse({
         ...quest,
         operations: nextOperations,
         workItems: nextWorkItems,
+        ...(nextBaseRef === undefined ? {} : { baseRef: nextBaseRef }),
         // The derivation is what flips the quest `complete` when the LAST operation completes —
         // no other write follows that moment, so a raw persist here would hang it in_progress.
         status: workItemsToQuestStatusTransformer({

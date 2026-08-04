@@ -52,11 +52,21 @@ const state = {
   },
 
   write: ({ key, entries }: { key: string; entries: CommentQueueEntry[] }): void => {
-    if (entries.length === 0) {
-      localStorage.removeItem(key);
-      return;
+    try {
+      if (entries.length === 0) {
+        localStorage.removeItem(key);
+        return;
+      }
+      localStorage.setItem(key, JSON.stringify(entries));
+    } catch (error: unknown) {
+      // A storage that reads fine can still refuse a write: the ~5MB quota is shared across every
+      // quest's queue, and private browsing / restrictive embedded webviews reject writes outright.
+      // readEntries already degrades instead of crashing on those environments, and the write side
+      // has to match — an escaping error here unwinds the React keydown handler mid-flight and
+      // takes the queue bar's own re-render with it. The draft stays in the open editor, so the
+      // comment is not lost, and the queue on screen keeps matching what is actually stored.
+      globalThis.console.error('[comment-queue] failed to persist the queue', error);
     }
-    localStorage.setItem(key, JSON.stringify(entries));
   },
 
   notify: ({ questId }: { questId: QuestId }): void => {
@@ -93,7 +103,9 @@ export const commentQueueState = {
   },
 
   clearQueue: ({ questId }: { questId: QuestId }): void => {
-    localStorage.removeItem(`${commentQueueStatics.storage.keyPrefix}${questId}`);
+    // Through state.write rather than a bare removeItem: an empty array is already its removal
+    // case, so this inherits the one guard against a storage that refuses writes.
+    state.write({ key: `${commentQueueStatics.storage.keyPrefix}${questId}`, entries: [] });
     state.notify({ questId });
   },
 
@@ -103,15 +115,24 @@ export const commentQueueState = {
     // to the bare prefix carries no questId, so it addresses no quest and is skipped — parsing
     // its empty suffix would throw and take the whole route mount down with it.
     const keys = [];
-    for (let index = 0; index < localStorage.length; index += 1) {
-      const key = localStorage.key(index);
-      if (
-        key !== null &&
-        key.startsWith(commentQueueStatics.storage.keyPrefix) &&
-        key.length > commentQueueStatics.storage.keyPrefix.length
-      ) {
-        keys.push(key);
+    try {
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (
+          key !== null &&
+          key.startsWith(commentQueueStatics.storage.keyPrefix) &&
+          key.length > commentQueueStatics.storage.keyPrefix.length
+        ) {
+          keys.push(key);
+        }
       }
+    } catch (error: unknown) {
+      // A storage that cannot even be enumerated — cookies blocked, private browsing — would
+      // otherwise throw straight out of the route mount that calls this and white-screen the quest
+      // page before any comment UI exists. Skipping the sweep only leaves expired entries in place
+      // one session longer, which is the far cheaper failure.
+      globalThis.console.error('[comment-queue] failed to scan storage for expiry', error);
+      return;
     }
 
     keys.forEach((key) => {

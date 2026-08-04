@@ -31,6 +31,10 @@ describe('orchestratorCreateQuestAdapter', () => {
       const result = await orchestratorCreateQuestAdapter({ userRequest, sessionId });
 
       expect(result).toStrictEqual({ questId, guildSlug });
+      // `returns` addresses its mock on userRequest alone, so it would match identically even if
+      // sessionId were silently dropped — this is the only assertion that proves it actually
+      // reached StartOrchestrator.createQuestForMcp.
+      expect(proxy.getLastCallInput()).toStrictEqual({ userRequest, sessionId });
     });
 
     it('VALID: {userRequest, questType: "bug-hunt"} => forwards questType to orchestrator', async () => {
@@ -44,6 +48,9 @@ describe('orchestratorCreateQuestAdapter', () => {
       const result = await orchestratorCreateQuestAdapter({ userRequest, questType: 'bug-hunt' });
 
       expect(result).toStrictEqual({ questId, guildSlug });
+      // Same gap as the sessionId case above: `returns` matches on userRequest regardless of
+      // questType, so only the raw call input proves questType actually reached the orchestrator.
+      expect(proxy.getLastCallInput()).toStrictEqual({ userRequest, questType: 'bug-hunt' });
     });
   });
 

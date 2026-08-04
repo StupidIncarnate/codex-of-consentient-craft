@@ -1,9 +1,10 @@
 import { agentOperatingRulesStatics } from './agent-operating-rules-statics';
 
 describe('agentOperatingRulesStatics', () => {
-  it('VALID: exported value => has a markdown string', () => {
+  it('VALID: exported value => has a work-item markdown string and a minion variant', () => {
     expect(agentOperatingRulesStatics).toStrictEqual({
       markdown: expect.stringMatching(/^.+$/su),
+      minionMarkdown: expect.stringMatching(/^.+$/su),
     });
   });
 
@@ -143,5 +144,80 @@ describe('agentOperatingRulesStatics', () => {
     );
 
     expect(found).toBe(needle);
+  });
+
+  describe('minionMarkdown', () => {
+    it('VALID: minionMarkdown => starts with the same Operating Rules heading', () => {
+      const needle = '## Operating Rules — READ FIRST (ignoring these wedges the whole quest)';
+      const { minionMarkdown } = agentOperatingRulesStatics;
+
+      expect(minionMarkdown.slice(0, needle.length)).toBe(needle);
+    });
+
+    it('VALID: minionMarkdown => Rule 1 FORBIDS signal-back instead of mandating it', () => {
+      const needle =
+        '**1. NEVER call `signal-back` — your final message IS your terminal action.**';
+      const { minionMarkdown } = agentOperatingRulesStatics;
+      const found = minionMarkdown.slice(
+        minionMarkdown.indexOf(needle),
+        minionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it("VALID: minionMarkdown => explains that signalling would complete the PARENT's operation item", () => {
+      const needle =
+        "signalling on it would complete the parent's operation item and advance the relay while the parent is still working";
+      const { minionMarkdown } = agentOperatingRulesStatics;
+      const found = minionMarkdown.slice(
+        minionMarkdown.indexOf(needle),
+        minionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it('VALID: minionMarkdown => carries no "ALWAYS call signal-back" mandate to contradict Rule 1', () => {
+      const { minionMarkdown } = agentOperatingRulesStatics;
+
+      expect(minionMarkdown.indexOf('ALWAYS call `signal-back`')).toBe(-1);
+    });
+
+    it('VALID: minionMarkdown => shows no signal-back call example a minion could copy', () => {
+      const { minionMarkdown } = agentOperatingRulesStatics;
+
+      expect(minionMarkdown.indexOf('signal-back({')).toBe(-1);
+    });
+
+    it('VALID: minionMarkdown => routes an environment wall to UNFIXABLE in the artifact, not a signal', () => {
+      const needle =
+        "Name the wall and what a human must change under `UNFIXABLE` in your return; the parent decides whether that becomes an `operationStatus: 'blocked'` for the whole quest.";
+      const { minionMarkdown } = agentOperatingRulesStatics;
+      const found = minionMarkdown.slice(
+        minionMarkdown.indexOf(needle),
+        minionMarkdown.indexOf(needle) + needle.length,
+      );
+
+      expect(found).toBe(needle);
+    });
+
+    it.each([
+      '**2. NEVER end your turn waiting for a background task, and NEVER poll for one.**',
+      '**3. Run ward SCOPED to what you changed, ALWAYS in the foreground. NEVER run the whole-repo `npm run ward`.**',
+      '**4. The `Agent`/Task tool is SYNCHRONOUS — awaiting a helper you spawn is allowed and does NOT violate Rule 2.**',
+    ])('VALID: minionMarkdown => shares rule %s verbatim with the work-item variant', (needle) => {
+      const { markdown, minionMarkdown } = agentOperatingRulesStatics;
+
+      expect(
+        minionMarkdown.slice(
+          minionMarkdown.indexOf(needle),
+          minionMarkdown.indexOf(needle) + needle.length,
+        ),
+      ).toBe(needle);
+      expect(
+        markdown.slice(markdown.indexOf(needle), markdown.indexOf(needle) + needle.length),
+      ).toBe(needle);
+    });
   });
 });

@@ -217,7 +217,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
           WorkItemStub({ id: firstId, role: 'codeweaver', status: 'in_progress' }),
           WorkItemStub({
             id: secondId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'in_progress',
             dependsOn: [firstId],
           }),
@@ -229,7 +229,12 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
 
       expect(result.quest.workItems).toStrictEqual([
         WorkItemStub({ id: firstId, role: 'codeweaver', status: 'pending' }),
-        WorkItemStub({ id: secondId, role: 'lawbringer', status: 'pending', dependsOn: [firstId] }),
+        WorkItemStub({
+          id: secondId,
+          role: 'blightwarden',
+          status: 'pending',
+          dependsOn: [firstId],
+        }),
       ]);
     });
   });
@@ -339,7 +344,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
           }),
           WorkItemStub({
             id: secondId,
-            role: 'lawbringer',
+            role: 'blightwarden',
             status: 'in_progress',
             retryCount: slotManagerStatics.orphanRecovery.maxResets,
           }),

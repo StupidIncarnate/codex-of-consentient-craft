@@ -37,19 +37,10 @@ export const questTypeRegistryStatics = {
         // a whole-quest item put every flow behind one budget of 3 and one session's context.
         text: 'Siegemaster: manual-QA this flow and review its test suite',
       },
-      { role: 'lawbringer', text: 'Lawbringer: standards review across the whole quest diff' },
       { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: [
-      'codeweaver',
-      'ward',
-      'flowrider',
-      'siegemaster',
-      'lawbringer',
-      'blightwarden',
-      'spiritmender',
-    ],
+    roles: ['codeweaver', 'ward', 'flowrider', 'siegemaster', 'blightwarden', 'spiritmender'],
   },
   'bug-hunt': {
     intakeSlashCommandFileName: 'dumpster-hunt.md',
@@ -62,10 +53,9 @@ export const questTypeRegistryStatics = {
     ],
     relayTail: [
       { role: 'ward', text: 'Ward gate (changed files)', wardMode: 'changed' },
-      { role: 'lawbringer', text: 'Lawbringer: standards review across the whole quest diff' },
       { role: 'blightwarden', text: 'Blightwarden: cross-cutting audit across the whole diff' },
       { role: 'ward', text: 'Ward gate (full monorepo)', wardMode: 'full' },
     ],
-    roles: ['pesteater', 'ward', 'lawbringer', 'blightwarden', 'spiritmender'],
+    roles: ['pesteater', 'ward', 'blightwarden', 'spiritmender'],
   },
 } as const;

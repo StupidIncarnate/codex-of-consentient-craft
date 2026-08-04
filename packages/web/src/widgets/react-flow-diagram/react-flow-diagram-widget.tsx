@@ -127,7 +127,8 @@ export const ReactFlowDiagramWidget = ({
         setPositions(layout.positions);
         setRoutes(layout.routes);
       })
-      .catch(() => {
+      .catch((layoutError: unknown) => {
+        globalThis.console.error('[react-flow-diagram]', layoutError);
         setError(true);
       });
   }, [flow]);

@@ -230,7 +230,10 @@
       "Bash(git add:*)",
       "Bash(git rm:*)",
       "Bash(git mv:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__dungeonmaster__get-qa-checklist",
+      "mcp__claude-in-chrome",
+      "mcp__dungeonmaster__get-blight-checklist"
     ],
     "deny": [
       "Bash(sed:*)"

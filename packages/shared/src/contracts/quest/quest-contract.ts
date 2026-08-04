@@ -13,6 +13,7 @@ import { flowContract } from '../flow/flow-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { planningBlightReportContract } from '../planning-blight-report/planning-blight-report-contract';
+import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
@@ -92,6 +93,14 @@ export const questContract = z.object({
     .describe(
       'The quest status at the moment the quest was paused by the user. Used to restore the pre-pause status on resume. Set by the orchestrator during pause; cleared on resume. Undefined when quest is not paused. Null is the wire-level clear marker written by the resume responder before the field is stripped from the persisted JSON.',
     ),
+  baseRef: z
+    .string()
+    .min(1)
+    .brand<'GitBaseRef'>()
+    .optional()
+    .describe(
+      "The commit the quest's review diff is measured from, stamped when the relay is seeded. It exists because `git diff <default-branch>...HEAD` silently returns the wrong file set once the default branch absorbs the quest's own implementation commits.",
+    ),
   workItems: z
     .array(workItemContract)
     .default([])
@@ -109,10 +118,16 @@ export const questContract = z.object({
         .describe(
           "Siegemaster's per-unit QA dispositions, keyed on the derived QaChecklistItemId so coverage is computed rather than remembered. The signal-back completion gate reads this: a siegemaster item cannot report `done` while any checklist unit on its flow has no entry here.",
         ),
+      blightLedger: z
+        .array(questBlightLedgerEntryContract)
+        .default([])
+        .describe(
+          "Blightwarden's per-unit review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back completion gate reads this: a blightwarden item cannot report `done` while any changed-file/concern unit has no entry here.",
+        ),
     })
-    .default({ blightReports: [], qaLedger: [] })
+    .default({ blightReports: [], qaLedger: [], blightLedger: [] })
     .describe(
-      'Blightwarden blight reports (cross-cutting whole-diff findings written by the five report-only minions, judged by the blightwarden synthesizer) and the Siegemaster QA coverage ledger',
+      'Blightwarden blight reports (cross-cutting whole-diff findings written by the blightwarden-minion and blightwarden-crosscut-minion sub-agents, judged by the blightwarden operator), the per-unit blightwarden review ledger, and the Siegemaster QA coverage ledger',
     ),
   questSource: questSourceContract
     .optional()

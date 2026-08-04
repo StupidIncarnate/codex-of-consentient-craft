@@ -12,7 +12,7 @@ import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp
 
 describe('questBuildRelayGraphBroker', () => {
   describe('feature quest', () => {
-    it('VALID: {feature quest with Chaos-authored codeweaver op} => appends 6-item verify tail, first codeweaver op in_progress with ONE linked work item', () => {
+    it('VALID: {feature quest with Chaos-authored codeweaver op} => appends 5-item verify tail, first codeweaver op in_progress with ONE linked work item', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -22,7 +22,6 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
         ],
       });
 
@@ -40,7 +39,7 @@ describe('questBuildRelayGraphBroker', () => {
       const quest = QuestStub({ operations: [planOp, codeweaverOp] });
       const priorId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [priorId],
         now: IsoTimestampStub(),
@@ -80,20 +79,13 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000004',
-            role: 'lawbringer',
-            text: 'Lawbringer: standards review across the whole quest diff',
-            status: 'pending',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000005',
             role: 'blightwarden',
             text: 'Blightwarden: cross-cutting audit across the whole diff',
             status: 'pending',
             locked: true,
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000006',
+            id: '00000000-0000-4000-8000-000000000005',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -103,7 +95,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000007' }),
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000006' }),
             role: 'codeweaver',
             status: 'pending',
             spawnerType: 'agent',
@@ -115,7 +107,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
     });
 
-    it('VALID: {feature quest with no pending implementation op} => first actionable is the ward(changed) tail item, work item is command with wardMode', () => {
+    it('VALID: {feature quest with no pending implementation op} => first actionable is the ward(changed) tail item, work item is command with wardMode', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -125,7 +117,6 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
         ],
       });
 
@@ -138,7 +129,7 @@ describe('questBuildRelayGraphBroker', () => {
       const quest = QuestStub({ operations: [planOp] });
       const priorId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [priorId],
         now: IsoTimestampStub(),
@@ -151,11 +142,10 @@ describe('questBuildRelayGraphBroker', () => {
         { id: '00000000-0000-4000-8000-000000000003', status: 'pending' },
         { id: '00000000-0000-4000-8000-000000000004', status: 'pending' },
         { id: '00000000-0000-4000-8000-000000000005', status: 'pending' },
-        { id: '00000000-0000-4000-8000-000000000006', status: 'pending' },
       ]);
       expect(result.workItems).toStrictEqual([
         WorkItemStub({
-          id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000007' }),
+          id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000006' }),
           role: 'ward',
           status: 'pending',
           spawnerType: 'command',
@@ -167,7 +157,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('VALID: {feature quest with two flows} => ONE whole-quest flowrider item, and ONE siegemaster item PER FLOW so each flow gets its own pt budget and completion gate', () => {
+    it('VALID: {feature quest with two flows} => ONE whole-quest flowrider item, and ONE siegemaster item PER FLOW so each flow gets its own pt budget and completion gate', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -177,7 +167,6 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
         ],
       });
 
@@ -194,7 +183,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
       });
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -225,11 +214,6 @@ describe('questBuildRelayGraphBroker', () => {
           flowIds: ['view-comments'],
         },
         {
-          role: 'lawbringer',
-          text: 'Lawbringer: standards review across the whole quest diff',
-          flowIds: [],
-        },
-        {
           role: 'blightwarden',
           text: 'Blightwarden: cross-cutting audit across the whole diff',
           flowIds: [],
@@ -238,7 +222,7 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so inbound GAP work still has an owner', () => {
+    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so inbound GAP work still has an owner', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -248,7 +232,6 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
         ],
       });
 
@@ -259,7 +242,7 @@ describe('questBuildRelayGraphBroker', () => {
       });
       const quest = QuestStub({ operations: [codeweaverOp], flows: [] });
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -285,11 +268,6 @@ describe('questBuildRelayGraphBroker', () => {
           flowIds: [],
         },
         {
-          role: 'lawbringer',
-          text: 'Lawbringer: standards review across the whole quest diff',
-          flowIds: [],
-        },
-        {
           role: 'blightwarden',
           text: 'Blightwarden: cross-cutting audit across the whole diff',
           flowIds: [],
@@ -300,7 +278,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('intake plan items forced complete', () => {
-    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress} => both forced complete, codeweaver op is the first actionable', () => {
+    it('VALID: {chaoswhisperer op pending + glyphsmith op in_progress} => both forced complete, codeweaver op is the first actionable', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -310,7 +288,6 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
           '00000000-0000-4000-8000-000000000006',
-          '00000000-0000-4000-8000-000000000007',
         ],
       });
 
@@ -335,7 +312,7 @@ describe('questBuildRelayGraphBroker', () => {
         operations: [forgottenPlanOp, forgottenDesignOp, codeweaverOp],
       });
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -350,7 +327,6 @@ describe('questBuildRelayGraphBroker', () => {
         { id: '00000000-0000-4000-8000-000000000003', status: 'pending' },
         { id: '00000000-0000-4000-8000-000000000004', status: 'pending' },
         { id: '00000000-0000-4000-8000-000000000005', status: 'pending' },
-        { id: '00000000-0000-4000-8000-000000000006', status: 'pending' },
       ]);
       expect(
         result.workItems.map(({ role, relatedDataItems }) => ({ role, relatedDataItems })),
@@ -364,7 +340,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('bug-hunt quest', () => {
-    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress + 4-item verify tail, first work item is pesteater', () => {
+    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress + 3-item verify tail, first work item is pesteater', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [
@@ -373,13 +349,12 @@ describe('questBuildRelayGraphBroker', () => {
           '00000000-0000-4000-8000-000000000003',
           '00000000-0000-4000-8000-000000000004',
           '00000000-0000-4000-8000-000000000005',
-          '00000000-0000-4000-8000-000000000006',
         ],
       });
 
       const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -404,20 +379,13 @@ describe('questBuildRelayGraphBroker', () => {
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000003',
-            role: 'lawbringer',
-            text: 'Lawbringer: standards review across the whole quest diff',
-            status: 'pending',
-            locked: true,
-          }),
-          OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000004',
             role: 'blightwarden',
             text: 'Blightwarden: cross-cutting audit across the whole diff',
             status: 'pending',
             locked: true,
           }),
           OperationItemStub({
-            id: '00000000-0000-4000-8000-000000000005',
+            id: '00000000-0000-4000-8000-000000000004',
             role: 'ward',
             text: 'Ward gate (full monorepo)',
             status: 'pending',
@@ -427,7 +395,7 @@ describe('questBuildRelayGraphBroker', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000006' }),
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
             role: 'pesteater',
             status: 'pending',
             spawnerType: 'agent',
@@ -441,7 +409,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('no actionable operation', () => {
-    it('EMPTY: {every op complete after settling, empty relay tail} => operations unchanged, workItems []', () => {
+    it('EMPTY: {every op complete after settling, empty relay tail} => operations unchanged, workItems []', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       const completeOp = OperationItemStub({
         id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -452,7 +420,7 @@ describe('questBuildRelayGraphBroker', () => {
 
       proxy.setupEmptyFeatureRelayTail();
 
-      const result = questBuildRelayGraphBroker({
+      const result = await questBuildRelayGraphBroker({
         quest,
         priorWorkItemIds: [],
         now: IsoTimestampStub(),
@@ -463,6 +431,202 @@ describe('questBuildRelayGraphBroker', () => {
       expect(result).toStrictEqual({
         operations: [completeOp],
         workItems: [],
+      });
+    });
+
+    it('VALID: {every op complete after settling, empty relay tail, quest.baseRef unset, HEAD readable} => baseRef is still stamped on the no-work-item early-return path', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
+      const completeOp = OperationItemStub({
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        role: 'codeweaver',
+        status: 'complete',
+      });
+      const quest = QuestStub({ operations: [completeOp] });
+
+      proxy.setupEmptyFeatureRelayTail();
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      proxy.restoreFeatureRelayTail();
+
+      expect(result).toStrictEqual({
+        operations: [completeOp],
+        workItems: [],
+        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
+      });
+    });
+  });
+
+  describe('baseRef stamping', () => {
+    it('VALID: {quest.baseRef unset, HEAD readable} => stamps baseRef from gitHeadShaAdapter, in the same result as the seeded operations + first work item', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+        ],
+      });
+      proxy.setupHeadSha({ sha: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1' });
+
+      const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(result).toStrictEqual({
+        operations: [
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000001',
+            role: 'pesteater',
+            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            status: 'in_progress',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000002',
+            role: 'ward',
+            text: 'Ward gate (changed files)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'changed',
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000003',
+            role: 'blightwarden',
+            text: 'Blightwarden: cross-cutting audit across the whole diff',
+            status: 'pending',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000004',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            role: 'pesteater',
+            status: 'pending',
+            spawnerType: 'agent',
+            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+        ],
+        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
+      });
+    });
+
+    it('VALID: {quest.baseRef already set} => a re-call (e.g. a re-Start) does NOT overwrite it, even when HEAD resolves to a different sha', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+        ],
+      });
+      // Staged so the assertion below proves the adapter's answer is never consulted on this path
+      // — a broken short-circuit would surface this NEW sha instead of the original.
+      proxy.setupHeadSha({ sha: 'b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2' });
+
+      const quest = QuestStub({
+        questType: 'bug-hunt',
+        operations: [],
+        baseRef: 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1',
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(result.baseRef).toBe('a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1');
+    });
+
+    it('EMPTY: {quest.baseRef unset, HEAD unreadable} => seeding still completes with the full operations ledger + work item, baseRef stays undefined, no throw', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+        ],
+      });
+      proxy.setupHeadShaUnavailable();
+
+      const quest = QuestStub({ questType: 'bug-hunt', operations: [] });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(result).toStrictEqual({
+        operations: [
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000001',
+            role: 'pesteater',
+            text: 'PestEater: reproduce the bug with a failing test first, then fix it',
+            status: 'in_progress',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000002',
+            role: 'ward',
+            text: 'Ward gate (changed files)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'changed',
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000003',
+            role: 'blightwarden',
+            text: 'Blightwarden: cross-cutting audit across the whole diff',
+            status: 'pending',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: '00000000-0000-4000-8000-000000000004',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-000000000005' }),
+            role: 'pesteater',
+            status: 'pending',
+            spawnerType: 'agent',
+            relatedDataItems: ['operations/00000000-0000-4000-8000-000000000001'],
+            dependsOn: [],
+            createdAt: '2024-01-15T10:00:00.000Z',
+          }),
+        ],
       });
     });
   });

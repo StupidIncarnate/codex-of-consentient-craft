@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Resolves the floor name for a ward work item, keying on its wardMode ('changed' => MINI BOSS,
- *   'full' => FLOOR BOSS). Falls back to tracing the insertedBy chain to the root ward and checking for a
- *   lawbringer in its transitive deps when wardMode is absent (work items written before wardMode existed).
+ * PURPOSE: Resolves the floor name for a ward work item, keying on its wardMode ('full' => FLOOR
+ *   BOSS, anything else — including absent — => MINI BOSS) after tracing the insertedBy chain to
+ *   the root ward, so a retried ward inherits the mode of the ward it replaced.
  *
  * USAGE:
  * resolveWardFloorNameTransformer({workItem, allItemMap});
@@ -12,7 +12,6 @@ import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
 import { floorNameContract } from '../../contracts/floor-name/floor-name-contract';
-import { hasLawbringerInDepsGuard } from '../../guards/has-lawbringer-in-deps/has-lawbringer-in-deps-guard';
 
 export const resolveWardFloorNameTransformer = ({
   workItem,
@@ -32,17 +31,5 @@ export const resolveWardFloorNameTransformer = ({
     rootWard = parent;
   }
 
-  if (rootWard.wardMode === 'full') {
-    return floorNameContract.parse('FLOOR BOSS');
-  }
-  if (rootWard.wardMode === 'changed') {
-    return floorNameContract.parse('MINI BOSS');
-  }
-
-  const hasLawbringer = hasLawbringerInDepsGuard({
-    startItem: rootWard,
-    allItemMap,
-  });
-
-  return floorNameContract.parse(hasLawbringer ? 'FLOOR BOSS' : 'MINI BOSS');
+  return floorNameContract.parse(rootWard.wardMode === 'full' ? 'FLOOR BOSS' : 'MINI BOSS');
 };

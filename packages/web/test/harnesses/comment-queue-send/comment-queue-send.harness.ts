@@ -18,6 +18,8 @@
  */
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
+import { questContract } from '@dungeonmaster/shared/contracts';
+
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -126,8 +128,6 @@ export const commentQueueSendHarness = ({
   queueCount: () => Locator;
   clearButton: () => Locator;
   sendButton: () => Locator;
-  openCommentPopoverOn: (params: { card: Locator }) => Promise<void>;
-  closeCommentPopoverOn: (params: { card: Locator }) => Promise<void>;
   queueCommentOn: (params: { card: Locator; text: string }) => Promise<void>;
   clickClearButton: () => Promise<void>;
   clickSendButton: () => Promise<void>;
@@ -142,6 +142,10 @@ export const commentQueueSendHarness = ({
   goOffline: () => Promise<void>;
   goOnline: () => Promise<void>;
   queueClaudeResponse: (params: { text: string }) => void;
+  commentBadge: (params: { card: Locator }) => Locator;
+  clickCardBody: (params: { card: Locator }) => Promise<void>;
+  panelCommentTexts: () => Promise<HTMLElement['textContent'][]>;
+  readPersistedComments: () => Promise<QueueEntryRecord[]>;
 } => {
   const seeded = { questId: '', questFolder: '', questFilePath: '', urlSlug: '', sessionId: '' };
   // Every POST to the comments route the page has fired, oldest first. Clear is synchronous — its
@@ -282,9 +286,6 @@ export const commentQueueSendHarness = ({
     clearButton: (): Locator => page.getByTestId('COMMENT_CLEAR_BUTTON'),
     sendButton: (): Locator => page.getByTestId('COMMENT_SEND_BUTTON'),
 
-    openCommentPopoverOn,
-    closeCommentPopoverOn,
-
     // Queues via the Enter key — open, type, Enter, wait for the queued readback, close.
     queueCommentOn: async ({ card, text }: { card: Locator; text: string }): Promise<void> => {
       await openCommentPopoverOn({ card });
@@ -387,6 +388,37 @@ export const commentQueueSendHarness = ({
       claudeMock.queueResponse({
         response: SimpleTextResponseStub({ sessionId: seeded.sessionId, text }),
       });
+    },
+
+    // The live comment-count badge on a card — a Locator (not text) so callers can lean on
+    // Playwright's auto-retrying expect(...).toHaveText() to observe the WS-driven quest update
+    // that repaints it after a send, rather than a single point-in-time read.
+    commentBadge: ({ card }: { card: Locator }): Locator => card.getByTestId('COMMENT_COUNT_BADGE'),
+
+    // Clicks the card's own label — the part of the card a reviewer clicks to open the detail
+    // panel — and waits for the panel to mount. Mirrors persisted-comments.harness's clickCardBody;
+    // duplicated rather than imported because that harness belongs to a sibling bundle.
+    clickCardBody: async ({ card }: { card: Locator }): Promise<void> => {
+      await card.getByTestId('FLOW_NODE_LABEL').click();
+      await page
+        .getByTestId('FLOW_NODE_DETAIL_PANEL')
+        .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    },
+
+    // Detail panel comment rows in DOM order (newest first), so a scenario asserts the rendered
+    // ORDER rather than mere presence.
+    panelCommentTexts: async (): Promise<HTMLElement['textContent'][]> =>
+      page.getByTestId('FLOW_DETAIL_PANEL_COMMENT_TEXT').allTextContents(),
+
+    // Reads quest.comments back over the real HTTP quest-get route — the same boundary
+    // check-clear-leaves-quest-comments and check-clear-then-send-cycle need to prove the server's
+    // persisted state, not just what the browser's own localStorage queue believes.
+    readPersistedComments: async (): Promise<QueueEntryRecord[]> => {
+      const response = await request.get(`/api/quests/${seeded.questId}`);
+      const raw: unknown = await response.json();
+      const body = raw as Record<PropertyKey, unknown>;
+      const quest = questContract.parse(body.quest);
+      return quest.comments;
     },
   };
 };

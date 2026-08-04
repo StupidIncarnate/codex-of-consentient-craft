@@ -81,7 +81,9 @@ for where the line sits, and check your brief's \`FIX AUTHORITY\` line, which ca
 block it reads — and against the known false greens in it. Author toward that evidence from your
 first test rather than retrofitting it at the end.
 
-${flowEvidenceContractStatics.markdown}
+${flowEvidenceContractStatics.judgingMarkdown}
+
+${flowEvidenceContractStatics.authoringMarkdown}
 
 ## Step 1: Load Standards (BLOCKING — do this FIRST)
 
@@ -132,7 +134,8 @@ Your brief's \`LAYERS THIS BUNDLE CROSSES\` line is the operator's starting hypo
 answer. **Your own trace is authoritative** — and if it finds a layer the brief did not name, say so
 in \`GOTCHAS\`, because the operator needs it for the whole-quest seam check that only it can run.
 
-Then assign each observable to the layer that can actually prove it, using the modality table above.
+Then assign each observable to the layer that can actually prove it, using its \`checkSurface\` from
+the checklist and the modality guidance above.
 The three coverage modes below combine freely within one flow; they are not labels you assign once.
 
 For each layer, coverage is either **already there** (verify it actually covers this flow's path,

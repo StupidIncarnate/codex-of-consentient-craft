@@ -122,3 +122,44 @@ Relevant files: `transformers/compute-token-annotations/`,
 `transformers/estimate-content-tokens/`, `transformers/merge-tool-entries/`,
 `widgets/tool-row/`, `widgets/context-divider/`,
 `widgets/chat-entry-list/`, `widgets/subagent-chain/`.
+
+## React Flow diagram sizing — four gotchas a jsdom mock hides
+
+All four are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts` +
+`test/harnesses/flow-diagram/` are what actually cover them.
+
+1. **Node overlap vs. full labels.** Cards show the whole label wrapped (no clamp) at
+   `width: node.width`, so height varies. ELK lays out non-overlapping rectangles, so it must reserve
+   each node's REAL height or stacked rows overlap. The elk adapter estimates height from label
+   length with `elkLayoutStatics.labelEstimate`, using a deliberately LOW `charsPerLine` (18 vs the
+   ~29 a 240px monospace line truly fits) so the estimate is an UPPER bound — reserved box ≥ rendered
+   card, no DOM-measure two-pass needed. The estimate must be computed INLINE in the adapter's `.map`
+   callback; a named non-exported helper trips the "non-exported functions forbidden" lint.
+2. **Edge labels overlap because React Flow paints them at the edge MIDPOINT**, independent of ELK's
+   label placement — feeding ELK `edge.labels` does not fix it. A custom edge renders the full label
+   as a bounded-width wrapping HTML box via `EdgeLabelRenderer`. Bound the width and widen
+   `elk.spacing.nodeNode` so sibling midpoints sit farther apart than a box. Truncation is rejected:
+   edge labels have no detail panel, so chopping loses the only copy of the condition. The jsdom
+   mock's `getBezierPath` must be a PLAIN function, not `jest.fn` — the global auto-reset wipes a
+   `jest.fn` implementation and the custom edge's `const [path] = getBezierPath()` reads undefined.
+3. **Fullscreen renders black** because React Flow's canvas is `height: 100%`, which resolves against
+   the parent's `height`, NOT `minHeight`. Pin a DEFINITE height in BOTH states. A live React Flow
+   instance also does not re-fit when its container resizes — remount it via a `key` that flips on the
+   expand toggle.
+4. **Duplicate controls.** The adapter's `<Controls>` are the actuators the custom RPG buttons
+   `.click()`; keep them mounted but `display: none`. Programmatic clicks still fire on a hidden
+   button.
+
+Assertions branch RIGHT as their own always-visible `FLOW_OBSERVABLE_NODE` cards. ELK has no native
+"satellite to the right" in layered/DOWN mode (edge-connected children get pushed to the next layer),
+so it is custom: ELK lays out only the flow spine and the widget positions observables at
+`parentX + node.width + gap`. Reserve the space by inflating each flow node's ELK **height** (not
+width — width would zig-zag the spine, since ELK centers nodes) and widening `spacing.nodeNode`. The
+flow-node badge counts CONTRACTS, not observables; the detail popup is contracts-only.
+
+## Do NOT move react/@mantine from `dependencies` to `devDependencies`
+
+`architectureProjectMapBroker` (the `get-project-map` MCP tool) classifies a package's role from its
+`dependencies` — react being there is THE signal that `web` is `frontend-react`. Moving them breaks
+its integration tests, and reading devDeps instead would misclassify any package that merely *tests*
+React.

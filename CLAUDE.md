@@ -7,6 +7,13 @@ thus won't trigger eslint at all.
 the root of this repo). This keeps scratch files inside the repo's permission scope and, for eslint work, inside the
 folder that actually triggers the linter.
 
+**Handoff and design docs go in `<repoRoot>/scrolls/`.** Anything written for a human or a future session to pick up —
+cross-session handoffs, dogfood runbooks, design proposals, the `scrolls/design/`
+prototype app — belongs there, and is committed with the repo.
+
+**Claude Code plan mode writes to `~/.claude/plans/`, outside the repo, uncommitted.** Keep it that way. A plan-mode
+plan file goes to `~/.claude/plans/`; a plan or handoff asked for "in the repo" goes to `scrolls/`.
+
 **Critical:** Do not document historical state. CLAUDE.md files, code comments, JSDoc, and
 test descriptions should describe what the code does NOW — never "used to do", "previously",
 "historically", or "before the X fix". Git is the history. If the current design needs
@@ -192,3 +199,89 @@ is produced the next time someone runs `npm run init`.
    acceptable outcome is `npm run ward` exits 0. If a fix would have broad blast radius or requires
    product decisions, surface that to the user BEFORE stopping — don't just report "out of scope" and
    walk away from a red ward.
+
+7. **A "No tests found" or DISCOVERY MISMATCH on a scoped run is usually not a regression.**
+    - Jest's `No tests found` banner on a file-scoped `--findRelatedTests` run is converted to
+      `status: 'skip'` when file-scoped; full runs still fail loudly. **Never reach for
+      `--passWithNoTests`** — that flag is a protection against a genuinely missing-tests
+      misconfiguration, and disabling it hides the real case.
+    - `DISCOVERY MISMATCH` on a scoped run means the check type you asked for has no counterpart
+      for those files (e.g. two plain `.test.ts` files and no `.integration.test.ts`). Fix by
+      narrowing `--only` to the checks that actually apply — `npm run ward -- --only
+      lint,typecheck,unit -- <files>` — not by widening the scope or adding flags. Contract /
+      guard / transformer files usually only have `unit`; flow / startup have `unit` +
+      `integration`; `e2e` only applies under `packages/web`. Say in the commit which checks you
+      ran and why.
+
+## Never Edit Infrastructure Files
+
+Beyond `.claude/settings*.json` (above), never directly edit `.mcp.json` or any `.env*` file. The
+harness gates these behind a permission prompt, which stalls any automated run — and dispatching a
+sub-agent to edit them hits the same wall. If root-cause analysis lands on one of these files, write
+up the cause and the exact one-line diff and ask the user to apply it.
+
+## Verification Standards
+
+**The browser UI is the verdict, not the backend.** For any manual QA or smoketest, a run FAILS if a
+UI surface broke during it — blank panel, frozen spinner, missing rows, wrong route, console errors —
+**even when `quest.status` is `complete` and `smoketestResults[0].passed` is `true`.** Backend
+assertions only prove the plumbing fired; they never observed the browser. Use `quest.json`, the dev
+log, and the API as *diagnostics* to explain why the UI broke, never as the verdict.
+
+**Manual QA: the UI is the lens, not the limit.** Every bug you surface through the browser is in
+scope to fix, wherever it lives — widget, responder, broker, contract, transformer, fixture, spawn
+adapter, MCP plumbing. There is no "secondary issue", "out of scope", "backend not UI", or "deeper
+issue we can defer". If the user clicks a failed row and cannot see why it failed, that IS the bug.
+
+**Drive the original repro yourself before handing back.** Tests-green is necessary, not sufficient.
+Open the same URL, the same mode/filter, and watch the reported symptom disappear. If the user stated
+a structural invariant ("one row per quest file on disk"), assert that exact ratio in a test BEFORE
+writing the fix — a test that only checks per-row text is not a regression guard for row count.
+
+## Dispatching Sub-Agents
+
+- **1-3 files per cleanup agent, maximum.** Agents handed large batches optimise for throughput over
+  correctness and invent evasions (extracting violations to variables, `[\s\S]*` wildcards) that pass
+  lint without improving anything. For assertion fixes, tell the agent to run the test first, capture
+  the real output, and assert on that.
+- **Use `model: "sonnet"` for large mechanical fan-outs** (lint cascades, mass refactors). These can
+  spawn 30-50 agents across waves; opus is overkill for apply-the-contract work. Reserve opus for the
+  orchestrator and genuinely hard debugging.
+
+## Searching From a Session Launched In This Repo
+
+This repo's `PreToolUse` hooks are **session-global** — they fire even while you are working in a
+different sibling repo. Blocked session-wide: Bash `grep`/`find`/`rg`, the native Glob/Grep/Search
+tools, bare `tsc`, and bare `npx eslint`. The `discover` / `get-project-map` MCP tools only see this
+repo's `packages/**`, so they cannot search a sibling repo either.
+
+Workarounds: search file contents with a `python3` one-liner (`os.walk` + regex); read files with the
+`Read` tool; typecheck through the target repo's own npm script that wraps tsc (`npm run build`),
+since the hook keys on the command token, not the working directory. `ls` and
+`npx playwright test <spec>` are not blocked.
+
+## Product Framing
+
+Dungeonmaster is a **dev tool / AI orchestrator**, not a SaaS product. The web UI is an operational
+RPG-themed interface — pixel-art dungeon-raid aesthetic — not a product page. Quests in progress
+animate like an RPG dungeon raid. Never use the word "marketing"; it is blacklisted.
+
+## Orchestration Integration Tests Are Mandatory
+
+Every orchestration role needs integration coverage of ALL paths — happy and failure/recovery — as
+enumerated in `docs/quest-role-paths.md`. This has been asked for repeatedly and repeatedly claimed
+without delivery, so the bar is evidentiary:
+
+1. Never claim tests were written without running them and showing the output.
+2. Tests must verify BEHAVIOUR (the callback fired with this content), not wiring (the callback was
+   passed). A structural check that only proves a callback was handed over is what let the missing
+   output-streaming bug ship.
+3. After they pass, READ the assertions and confirm each one asserts real values — states, content,
+   payloads. A test that passes while asserting "rendered" or "was called" is a false positive and is
+   worse than no test.
+
+## Iterating On Test Infrastructure
+
+When debugging test infrastructure (e2e setup, ward display, port management), skip all but one test
+so each cycle is fast, then unskip incrementally as the fix holds. Do not run the full suite until the
+fix is confirmed — a full e2e run costs minutes per iteration.

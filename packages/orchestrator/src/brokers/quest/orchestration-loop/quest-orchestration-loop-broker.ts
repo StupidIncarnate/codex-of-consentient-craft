@@ -35,7 +35,7 @@ import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { runChatLayerBroker } from './run-chat-layer-broker';
 
-// NOTE: every execution-role layer broker (codeweaver, ward, siegemaster, lawbringer,
+// NOTE: every execution-role layer broker (codeweaver, ward, flowrider, siegemaster,
 // blightwarden, spiritmender) is intentionally NOT imported here. Those roles are
 // dispatched by the dispatch loop via get-next-step. The orchestration loop only
 // retains the chat-role dispatch (chaoswhisperer / glyphsmith) for chat surfaces;

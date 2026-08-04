@@ -80,6 +80,25 @@ export const COMMENT_BOX_NEWLINE_TEXT = 'first line\nsecond line';
 // dangerouslySetInnerHTML.
 export const COMMENT_BOX_MARKUP_TEXT = '<script>alert(1)</script>';
 
+// A note far longer than any UI element here was sized for — nothing in this feature caps comment
+// length, so this proves the popover, the queued view and the localStorage round trip all carry
+// bulk text whole rather than truncating or corrupting the stored entry. Built from a repeated
+// phrase joined by single spaces (not String.repeat on a trailing-space phrase) so the string
+// carries NO leading/trailing whitespace of its own — submitDraft trims the whole draft on submit
+// (proven separately in comment-popover-widget.test.tsx), so a trailing space here would be
+// legitimately stripped and make this fixture assert the wrong "oversized" value.
+export const COMMENT_BOX_OVERSIZED_TEXT = Array.from(
+  { length: 150 },
+  () => 'This assertion needs another pass.',
+).join(' ');
+
+// A note containing the exact characters a hand-rolled (string-concatenation) serializer would
+// mangle: double quotes, a backslash, and brace characters that read as nested JSON. The real
+// localStorage path uses JSON.stringify/JSON.parse, so this proves the round trip survives
+// byte-identical rather than corrupting or truncating at the first quote or backslash.
+export const COMMENT_BOX_JSON_HOSTILE_TEXT =
+  'She typed "click submit" \\ then pasted {"nodeId": "start", "ok": true} inline';
+
 // Three flow nodes, one assertion card branching off the entry node, and one cross-flow edge whose
 // target lives in another flow so the canvas also paints a FLOW_PORTAL_NODE stand-in. That mix is
 // exactly what #check-comment-button-on-flow-node / -on-observable-node / -no-...-on-portal need on

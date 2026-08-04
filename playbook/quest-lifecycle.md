@@ -106,8 +106,9 @@ The Web UI "Start Quest" button → `orchestration-start-responder`. It seeds th
 
 1. Force-completes any non-complete intake (`chaoswhisperer` / `glyphsmith`) operation item.
 2. Appends the type's `startImplementationOps` + the fixed verify tail (`relayTail`) as **locked, pending** operation
-   items, one per seed. The flow-operator entries (flowrider + siegemaster) each become ONE whole-quest item carrying
-   every quest flow id in `flowIds` (empty on a flow-less quest).
+   items. Most tail seeds map 1:1 to an operation item; `flowrider` becomes ONE whole-quest item carrying every quest
+   flow id in `flowIds` (empty on a flow-less quest), while `siegemaster` fans out to ONE item PER quest flow (each
+   carrying a single `flowId`), because its work is strictly serial and each flow needs its own budget.
 3. Creates ONE work item for the first actionable (`pending`) operation item, linked `operations/<id>`, depending on
    the completed chat work items.
 
@@ -116,17 +117,17 @@ The seed is idempotent — a re-Start detects the already-appended locked ward t
 The two quest types differ only in their ledger shape:
 
 - **feature** (`/dumpster-create`): `startImplementationOps` is empty (ChaosWhisperer authored the `codeweaver` items at
-  spec time). Verify tail = `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)`.
+  spec time). Verify tail = `ward(changed) → flowrider → siegemaster → blightwarden → ward(full)`.
 - **bug-hunt** (`/dumpster-hunt`): `startImplementationOps` = a single orchestrator-seeded `pesteater` item. Verify
-  tail = `ward(changed) → lawbringer → blightwarden → ward(full)` (no flowrider/siegemaster).
+  tail = `ward(changed) → blightwarden → ward(full)` (no flowrider/siegemaster).
 
 So the full feature relay is:
 
 ```
 codeweaver ×N (Chaos-authored)
   → ward(changed)
-  → flowrider(every quest flow) → siegemaster(every quest flow)
-  → lawbringer → blightwarden → ward(full)
+  → flowrider(every quest flow) → siegemaster(one session per flow)
+  → blightwarden → ward(full)
 ```
 
 ---
@@ -162,8 +163,9 @@ under Node mode) that first calls `get-agent-prompt({ agent, workItemId, questId
    (the sub-agent's realAgentId) + `startedAt`. Identity is resolved MCP-side from
    `request.params._meta.claudecode/toolUseId` scanned against the session's `subagents/agent-*.jsonl` files.
 2. **Builds the role prompt** by resolving the work item's linked operation item (`operations/<id>`) and interpolating
-   its scope (text, package, contracts, file paths). Flowrider / Siegemaster / Lawbringer / Blightwarden self-scope
-   over ALL quest flows / the whole diff — they read the quest context directly, not a per-flow ref.
+   its scope (text, package, contracts, file paths). Flowrider self-scopes over ALL quest flows; Blightwarden
+   self-scopes over the whole diff (via the pinned `baseRef`); both read the quest context directly, not a per-flow
+   ref. Siegemaster's operation item names a single `flowId`, so its scope is that one flow.
 
 Ward is the exception: it is a command item (`spawnerType: 'command'`) with no `get-agent-prompt` call — the dispatcher
 calls the `run-ward` MCP tool for it (§10).
@@ -209,22 +211,23 @@ marking a work item terminal) and the dispatch scan's self-heal. In one `questOp
    `wardMode`), linked `operations/<id>`, depending on the most-recent terminal work item, and mark the operation
    `in_progress`.
 
-**Duplicate-on-partial is the verify fixpoint.** For a whole-diff review role (lawbringer, blightwarden), a session
-signals `partial` when its pass changed code; the appended `pt N` continuation makes a FRESH session of the same role
-re-run against the new state. The role converges when a pass changes nothing and signals `done` — convergence IS the
-verdict. The flow operators (flowrider, siegemaster) signal on remaining SCOPE instead: they own every flow, delegate
-bundles to minions, re-read what the minions wrote, and signal `done` once every observable has a disposition — so
-`partial` means a named remainder, never merely "this pass wrote code". A locked role's `pt N` chain is bounded by
-`slotManagerStatics.<role>.maxAttempts`
+**Duplicate-on-partial is the verify fixpoint for `ward`.** A red ward run marks its operation item `complete` and the
+appended `pt N` continuation makes a FRESH ward run re-verify the new state (a spiritmender splices in ahead of it —
+see §9). The chain converges when a run comes back green — convergence IS the verdict. Every relay AGENT role that
+carries a `pt N` chain (flowrider, siegemaster, blightwarden, and the unlocked codeweaver) is instead an **operator**
+that signals on remaining SCOPE: it owns its scope (every flow for flowrider, one flow for a siegemaster item, the
+whole diff for blightwarden), delegates to minions, re-reads what they wrote, and signals `done` once every unit in
+scope has a disposition — so `partial` means a named remainder, never merely "this pass wrote code". A locked role's
+`pt N` chain is bounded by `slotManagerStatics.<role>.maxAttempts`
 (ward by `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest. An unlocked `codeweaver` item's `pt N`
 chain is unbounded — codeweavers pivot in place freely. A `blocked` signal appends its `pt N` regardless of budget — the
-halt is the bound, and dropping the append would make a resume skip the scope. A chain is keyed on role + base text, and
-each verify-tail role holds exactly one item, so each role gets exactly one budget; the continuation copies its
-`flowIds`.
+halt is the bound, and dropping the append would make a resume skip the scope. A chain is keyed on role + base text.
+`flowrider` and `blightwarden` each hold exactly one tail item, so each gets exactly one budget; `siegemaster` holds
+one tail item PER FLOW, so each flow gets its own budget; the continuation copies its `flowIds`.
 
-Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → siegemaster → lawbringer →
-blightwarden → ward(full)` — the flowrider and siegemaster items each carry both flow ids. After `ward(full)` is green,
-no `pending`
+Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → siegemaster ×2 →
+blightwarden → ward(full)` — the flowrider item carries both flow ids, and the two siegemaster items each carry one.
+After `ward(full)` is green, no `pending`
 operation item remains and the operation-aware status transformer derives `complete`. The dispatcher's next
 `get-next-step` picks up the next FIFO quest.
 

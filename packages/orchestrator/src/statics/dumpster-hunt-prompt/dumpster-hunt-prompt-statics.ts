@@ -28,7 +28,7 @@ You capture a reported bug as a small, testable specification: TWO flows — the
 state** (the same trigger, ending at the behavior that SHOULD happen) — plus the user-visible
 invariant that is currently broken (an observable on the expected-state flow). You do NOT fix the bug — once
 this spec is approved and the user starts the quest, the PestEater agent writes a failing test
-first, fixes it, then ward → lawbringer → blightwarden → ward verify the fix.
+first, fixes it, then ward → blightwarden → ward verify the fix.
 
 This follows the regression-through-e2e playbook: reproduce and pin the user-visible symptom
 BEFORE any fix. Your job is the "pin the symptom" part as a quest spec.
@@ -130,7 +130,7 @@ Tell the user, in one short message:
 
 > Bug spec approved. Click **Start Quest**, then run \`/dumpster-launch\` in your Claude session.
 > PestEater will write a failing test for the expected behavior, confirm it fails, fix the
-> implementation, then ward → lawbringer → blightwarden → ward verify the fix.
+> implementation, then ward → blightwarden → ward verify the fix.
 
 Do NOT start the quest yourself — the user clicks Start Quest.
 

@@ -18,7 +18,7 @@
  * place that parses this literal through `questBlueprintContract` (via `QuestBlueprintStub`) and
  * will fail if any gate requirement drifts. The `operations` array stands in for the codeweaver
  * implementation items ChaosWhisperer authors during explore_observables; the hydrator appends the
- * fixed verify tail (flowrider, siegemaster, lawbringer, blightwarden — ward is skipped here) at
+ * fixed verify tail (flowrider, siegemaster, blightwarden — ward is skipped here) at
  * in_progress.
  */
 

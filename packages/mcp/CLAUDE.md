@@ -76,3 +76,14 @@ claude mcp reset-project-choices
 
 After resetting, restart Claude Code completely. You'll be prompted to re-approve the MCP server, forcing a fresh tool
 load.
+
+## This package's path contracts are deliberately its own — do NOT consolidate them
+
+`packages/mcp` defines its own bare-branded `file-path`, `absolute-file-path`, and
+`extracted-metadata` contracts rather than importing the stricter equivalents from
+`@dungeonmaster/shared`. This looks like duplication a dedup pass should collapse. It is not:
+shared's versions carry tighter validation, and consolidating onto them breaks roughly 55 tests in
+this package because MCP receives paths from tool callers that shared's contracts reject.
+
+If a review flags this as `dedup`, the correct disposition is to record why it stands, not to merge
+them.

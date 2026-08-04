@@ -138,7 +138,6 @@ export interface CodeweaverReport extends AgentReport {
 export interface AgentReports {
   pathseeker?: AgentReport[];
   codeweaver?: CodeweaverReport[];
-  lawbringer?: AgentReport[];
   siegemaster?: AgentReport[];
   spiritmender?: AgentReport[];
 }
@@ -312,8 +311,8 @@ export class QuestStateMachine {
         break;
 
       case 'review':
-        if (phaseStatus === PhaseStatus.NOT_STARTED) return 'spawn_lawbringer';
-        if (phaseStatus === PhaseStatus.IN_PROGRESS) return 'continue_lawbringer';
+        if (phaseStatus === PhaseStatus.NOT_STARTED) return 'spawn_blightwarden';
+        if (phaseStatus === PhaseStatus.IN_PROGRESS) return 'continue_blightwarden';
         if (phaseStatus === PhaseStatus.COMPLETE) return 'run_ward_validation';
         break;
     }
@@ -341,7 +340,6 @@ export const TestPhrases = {
   SPAWNING_PATHSEEKER: '[🎲] 🗺️ Summoning Pathseeker...',
   SPAWNING_SINGLE_CODEWEAVER: '[🎲] 🧵 Summoning Codeweaver for',
   SPAWNING_MULTIPLE_CODEWEAVERS: '[🎲] ⚔️⚔️ Summoning',
-  SPAWNING_LAWBRINGER: '[🎲] ⚖️ Summoning Lawbringer...',
   SPAWNING_SIEGEMASTERS: '[🎲] 🏰 Summoning Siegemasters...',
   SPAWNING_SPIRITMENDER: '[🎲] ✨ Summoning Spiritmender...',
   RUNNING_WARD_VALIDATION: '[🎲] 🛡️ Running ward validation...',

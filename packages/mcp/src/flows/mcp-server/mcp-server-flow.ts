@@ -18,6 +18,7 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
+import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
 
 export const McpServerFlow = async ({
   registrations,
@@ -42,16 +43,17 @@ export const McpServerFlow = async ({
   }));
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-    const handler = handlerMap.get(request.params.name as never);
+    const handler = handlerMap.get(toolNameContract.parse(request.params.name));
     if (!handler) {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }
-    // `params._meta` is a loose record. Claude Code surfaces `claudecode/toolUseId` here
-    // on every call, which identifies the calling sub-agent's parent `Task()` tool use.
-    // Handlers that don't need it ignore the param.
+    // `params._meta` is a loose record. Claude Code surfaces `claudecode/toolUseId` here on
+    // every call, which identifies the calling sub-agent's OWN MCP call (NOT the parent
+    // Task() dispatch id — the two are distinct, verified empirically). Handlers that don't
+    // need it ignore the param.
     return handler({
-      args: (request.params.arguments ?? {}) as never,
-      ...(request.params._meta !== undefined && { meta: request.params._meta as never }),
+      args: request.params.arguments ?? {},
+      ...(request.params._meta !== undefined && { meta: request.params._meta }),
     });
   });
 

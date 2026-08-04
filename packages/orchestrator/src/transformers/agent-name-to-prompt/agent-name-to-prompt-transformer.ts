@@ -8,19 +8,14 @@
 
 import { agentPromptResultContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
-import { blightwardenDeadCodeMinionStatics } from '../../statics/blightwarden-dead-code-minion/blightwarden-dead-code-minion-statics';
-import { blightwardenDedupMinionStatics } from '../../statics/blightwarden-dedup-minion/blightwarden-dedup-minion-statics';
-import { blightwardenIntegrityMinionStatics } from '../../statics/blightwarden-integrity-minion/blightwarden-integrity-minion-statics';
-import { blightwardenPerfMinionStatics } from '../../statics/blightwarden-perf-minion/blightwarden-perf-minion-statics';
+import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
+import { blightwardenMinionStatics } from '../../statics/blightwarden-minion/blightwarden-minion-statics';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
-import { blightwardenSecurityMinionStatics } from '../../statics/blightwarden-security-minion/blightwarden-security-minion-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
 import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderMinionStatics } from '../../statics/flowrider-minion/flowrider-minion-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
-import { lawbringerMinionStatics } from '../../statics/lawbringer-minion/lawbringer-minion-statics';
-import { lawbringerPromptStatics } from '../../statics/lawbringer-prompt/lawbringer-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterMinionStatics } from '../../statics/siegemaster-minion/siegemaster-minion-statics';
 import { siegemasterTestAuditMinionStatics } from '../../statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
@@ -50,18 +45,6 @@ export const agentNameToPromptTransformer = ({
         name: 'codeweaver-minion',
         model: 'sonnet',
         prompt: codeweaverMinionStatics.prompt.template,
-      });
-    case 'lawbringer':
-      return agentPromptResultContract.parse({
-        name: 'lawbringer',
-        model: 'sonnet',
-        prompt: lawbringerPromptStatics.prompt.template,
-      });
-    case 'lawbringer-minion':
-      return agentPromptResultContract.parse({
-        name: 'lawbringer-minion',
-        model: 'sonnet',
-        prompt: lawbringerMinionStatics.prompt.template,
       });
     case 'spiritmender':
       return agentPromptResultContract.parse({
@@ -111,35 +94,17 @@ export const agentNameToPromptTransformer = ({
         model: 'opus',
         prompt: pesteaterPromptStatics.prompt.template,
       });
-    case 'blightwarden-security-minion':
+    case 'blightwarden-minion':
       return agentPromptResultContract.parse({
-        name: 'blightwarden-security-minion',
+        name: 'blightwarden-minion',
         model: 'sonnet',
-        prompt: blightwardenSecurityMinionStatics.prompt.template,
+        prompt: blightwardenMinionStatics.prompt.template,
       });
-    case 'blightwarden-dedup-minion':
+    case 'blightwarden-crosscut-minion':
       return agentPromptResultContract.parse({
-        name: 'blightwarden-dedup-minion',
+        name: 'blightwarden-crosscut-minion',
         model: 'sonnet',
-        prompt: blightwardenDedupMinionStatics.prompt.template,
-      });
-    case 'blightwarden-perf-minion':
-      return agentPromptResultContract.parse({
-        name: 'blightwarden-perf-minion',
-        model: 'sonnet',
-        prompt: blightwardenPerfMinionStatics.prompt.template,
-      });
-    case 'blightwarden-integrity-minion':
-      return agentPromptResultContract.parse({
-        name: 'blightwarden-integrity-minion',
-        model: 'sonnet',
-        prompt: blightwardenIntegrityMinionStatics.prompt.template,
-      });
-    case 'blightwarden-dead-code-minion':
-      return agentPromptResultContract.parse({
-        name: 'blightwarden-dead-code-minion',
-        model: 'sonnet',
-        prompt: blightwardenDeadCodeMinionStatics.prompt.template,
+        prompt: blightwardenCrosscutMinionStatics.prompt.template,
       });
     default: {
       const exhaustiveCheck: never = agent;

@@ -30,23 +30,15 @@ export const boxCommentsTransformer = ({
   observableId?: ObservableId;
 }): QuestComment[] => {
   const matches = comments.filter((comment) => {
-    if (String(comment.flowId) !== String(flowId)) {
+    if (comment.flowId !== flowId) {
       return false;
     }
 
-    if (String(comment.nodeId) !== String(nodeId)) {
+    if (comment.nodeId !== nodeId) {
       return false;
     }
 
-    if (observableId === undefined) {
-      return comment.observableId === undefined;
-    }
-
-    if (comment.observableId === undefined) {
-      return false;
-    }
-
-    return String(comment.observableId) === String(observableId);
+    return comment.observableId === observableId;
   });
 
   return matches.sort((a, b) => {

@@ -24,18 +24,18 @@ describe('selectBatchLayerBroker', () => {
     expect(batch).toStrictEqual([cw]);
   });
 
-  it('VALID: {codeweaver + lawbringer both ready} => returns only the first (one session at a time)', () => {
+  it('VALID: {codeweaver + blightwarden both ready} => returns only the first (one session at a time)', () => {
     selectBatchLayerBrokerProxy();
     const cw = WorkItemStub({
       id: QuestWorkItemIdStub({ value: 'ccc99995-1111-4222-9333-444444444444' }),
       role: 'codeweaver',
     });
-    const lb = WorkItemStub({
+    const bw = WorkItemStub({
       id: QuestWorkItemIdStub({ value: 'ccc99996-1111-4222-9333-444444444444' }),
-      role: 'lawbringer',
+      role: 'blightwarden',
     });
 
-    const batch = selectBatchLayerBroker({ ready: [cw, lb] });
+    const batch = selectBatchLayerBroker({ ready: [cw, bw] });
 
     expect(batch).toStrictEqual([cw]);
   });

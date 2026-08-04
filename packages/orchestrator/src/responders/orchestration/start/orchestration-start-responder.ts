@@ -92,7 +92,7 @@ export const OrchestrationStartResponder = async ({
     // still `approved` (startable), and the hasExistingRelay check above makes the re-Start
     // skip straight to the transition. The update broker persists operations + the promoted
     // chat items + the first work item in ONE atomic write.
-    const relay = questBuildRelayGraphBroker({
+    const relay = await questBuildRelayGraphBroker({
       quest,
       priorWorkItemIds: chatItemIds,
       now,
@@ -103,6 +103,7 @@ export const OrchestrationStartResponder = async ({
       update: () => ({
         operations: relay.operations,
         workItems: [...promotedChatItems, ...relay.workItems],
+        ...(relay.baseRef === undefined ? {} : { baseRef: relay.baseRef }),
       }),
     });
   } else if (promotedChatItems.some((wi, index) => wi !== quest.workItems[index])) {

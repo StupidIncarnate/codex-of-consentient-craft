@@ -78,7 +78,7 @@ export const questHydrateBroker = async ({
     const quest = await questLoadBroker({ questFilePath });
     const now = isoTimestampContract.parse(new Date().toISOString());
 
-    const relay = questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
+    const relay = await questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
     const skipRoles = new Set(blueprint.skipRoles);
 
     // Re-derive the first actionable item AFTER filtering — the builder may have marked a

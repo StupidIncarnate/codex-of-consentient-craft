@@ -59,14 +59,6 @@ describe('orchestrationPhaseContract', () => {
       expect(result).toBe('spiritmender');
     });
 
-    it('VALID: {lawbringer} => parses successfully', () => {
-      const phase = OrchestrationPhaseStub({ value: 'lawbringer' });
-
-      const result = orchestrationPhaseContract.parse(phase);
-
-      expect(result).toBe('lawbringer');
-    });
-
     it('VALID: {idle} => parses successfully', () => {
       const phase = OrchestrationPhaseStub({ value: 'idle' });
 

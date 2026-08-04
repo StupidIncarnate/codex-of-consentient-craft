@@ -3,11 +3,13 @@ import {
   AddQuestInputStub,
   BlockedReasonStub,
   CommentBatchEntryStub,
+  FileContentsStub,
   GuildNameStub,
   GuildPathStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestWorkItemIdStub,
+  RepoRelativePathStub,
   WardRunIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -15,6 +17,7 @@ import {
 import { CommentBatchResponder } from '../../responders/comment/batch/comment-batch-responder';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { slotManagerStatics } from '../../statics/slot-manager/slot-manager-statics';
 import { QuestFlow } from './quest-flow';
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQueueHarness } from '../../../test/harnesses/orchestration-queue/orchestration-queue.harness';
@@ -316,6 +319,298 @@ describe('QuestFlow', () => {
         },
         downstreamWardStatus: 'skipped',
         continuationHasWorkItem: false,
+      });
+    }, 30_000);
+  });
+
+  // blightwarden was converted from a whole-diff `pt N` fixpoint role into an OPERATOR with a
+  // server-computed completion gate (`quest-handle-signal-back-responder.ts`). The gate itself —
+  // refusing/admitting `done` against a real `git diff` — is proven end-to-end in
+  // `quest-handle-signal-back-responder.integration.test.ts`, colocated with the responder it
+  // gates. These three describes prove the surrounding RELAY behaviour QuestFlow owns: `partial`
+  // bypassing the gate entirely, the pt-chain budget blocking the quest instead of looping
+  // forever, and `done` advancing to the fixed ward tail rather than back to blightwarden.
+  describe('operations relay — blightwarden operator: partial bypasses the completion gate', () => {
+    it('VALID: {blightwarden signals complete/partial with real outstanding units} => no throw, operation completes, and a pt N continuation carries the same role + locked flag', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-blight-partial' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+      const { baseRef } = await questHelper.initGitRepoAndCommitBase({
+        repoPath: testbed.guildPath,
+      });
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/foo/foo-broker.ts',
+      });
+      await questHelper.commitChangedFiles({
+        repoPath: testbed.guildPath,
+        files: [
+          {
+            relativePath: implPath,
+            content: FileContentsStub({ value: 'export const fooBroker = (): number => 1;\n' }),
+          },
+        ],
+      });
+
+      const baseText = 'Blightwarden: cross-cutting audit across the whole diff';
+      const blightOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e1' });
+      const blightWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      // Empty blightLedger => every one of the 7 units on this one changed file is outstanding.
+      // If the gate wrongly bound `partial` too (not just `done`), this signal would throw
+      // instead of completing — the outstanding units are what makes this proof airtight.
+      await questHelper.seedInProgressRelay({
+        questId,
+        baseRef,
+        operations: [
+          OperationItemStub({
+            id: blightOpId,
+            role: 'blightwarden',
+            text: baseText,
+            status: 'in_progress',
+            locked: true,
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: blightWorkItemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(blightOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: blightWorkItemId,
+        operationItemId: blightOpId,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      const afterPartial = await questHelper.reload({ questId });
+      const freshWorkItem = afterPartial.workItems.find((wi) => wi.id !== blightWorkItemId);
+
+      testbed.cleanup();
+
+      expect({
+        operations: afterPartial.operations.map((op) => ({
+          role: op.role,
+          status: op.status,
+          locked: op.locked,
+          text: String(op.text),
+        })),
+        freshWorkItemStatus: freshWorkItem?.status,
+      }).toStrictEqual({
+        operations: [
+          { role: 'blightwarden', status: 'complete', locked: true, text: baseText },
+          { role: 'blightwarden', status: 'in_progress', locked: true, text: `pt 2: ${baseText}` },
+        ],
+        freshWorkItemStatus: 'pending',
+      });
+      expect(freshWorkItem?.relatedDataItems).toStrictEqual([
+        `operations/${String(afterPartial.operations[1]!.id)}`,
+      ]);
+    }, 30_000);
+  });
+
+  describe('operations relay — blightwarden operator: pt budget exhaustion blocks the quest', () => {
+    it('VALID: {blightwarden partial at chainLength === slotManagerStatics.blightwarden.maxAttempts} => operation completes, NO further pt continuation is appended, and the quest blocks', async () => {
+      // Read the real budget rather than assuming it — the chain built below must match it
+      // exactly (maxAttempts - 1 prior complete passes + the live session at the edge) for the
+      // block branch to fire instead of another continuation.
+      expect(slotManagerStatics.blightwarden.maxAttempts).toBe(3);
+
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-blight-budget' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const baseText = 'Blightwarden: cross-cutting audit across the whole diff';
+      const op1Id = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e2' });
+      const op2Id = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e3' });
+      const op3Id = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e4' });
+      const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e9' });
+      const op3WorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      // Mirrors the real relay tail (blightwarden is always followed by ward(full)): a still-
+      // `pending` operation after the exhausted chain is what keeps
+      // workItemsToQuestStatusTransformer from deriving `complete` on the interim persist (a
+      // drained ledger + a lone terminal work item) before questBlockOnFailureBroker gets a
+      // chance to set `blocked` — `complete -> blocked` is not a valid status transition.
+      await questHelper.seedInProgressRelay({
+        questId,
+        operations: [
+          OperationItemStub({
+            id: op1Id,
+            role: 'blightwarden',
+            text: baseText,
+            status: 'complete',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: op2Id,
+            role: 'blightwarden',
+            text: `pt 2: ${baseText}`,
+            status: 'complete',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: op3Id,
+            role: 'blightwarden',
+            text: `pt 3: ${baseText}`,
+            status: 'in_progress',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: wardOpId,
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: op3WorkItemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(op3Id)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: op3WorkItemId,
+        operationItemId: op3Id,
+        signal: 'complete',
+        operationStatus: 'partial',
+      });
+
+      const afterBudget = await questHelper.reload({ questId });
+      const op3WorkItem = afterBudget.workItems.find((wi) => wi.id === op3WorkItemId);
+
+      testbed.cleanup();
+
+      expect({
+        questStatus: afterBudget.status,
+        operations: afterBudget.operations.map((op) => ({
+          role: op.role,
+          status: op.status,
+          text: String(op.text),
+        })),
+        op3WorkItemStatus: op3WorkItem?.status,
+        workItemCount: afterBudget.workItems.length,
+      }).toStrictEqual({
+        questStatus: 'blocked',
+        operations: [
+          { role: 'blightwarden', status: 'complete', text: baseText },
+          { role: 'blightwarden', status: 'complete', text: `pt 2: ${baseText}` },
+          { role: 'blightwarden', status: 'complete', text: `pt 3: ${baseText}` },
+          { role: 'ward', status: 'pending', text: 'Ward gate (full monorepo)' },
+        ],
+        op3WorkItemStatus: 'complete',
+        // Advance never runs on this path — a fresh blightwarden pass would hit the same spent
+        // budget, so no work item is minted for the still-pending ward tail item either.
+        workItemCount: 1,
+      });
+    }, 30_000);
+  });
+
+  describe('operations relay — blightwarden operator: done advances to the fixed ward tail', () => {
+    it('VALID: {blightwarden signals complete/done} => operation completes, advance creates the ward(full) work item, and get-next-step dispatches run-ward — never another blightwarden pass', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-blight-relay' }),
+      });
+      envHarness.setup({ tempDir: testbed.guildPath, queueHarness: queue });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const blightOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e5' });
+      const wardOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000e6' });
+      const blightWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      // No baseRef pinned: the completion gate itself is proven separately (this describe's
+      // sibling responder-level integration tests) — this test's only concern is relay ordering
+      // after a clean `done`.
+      await questHelper.seedInProgressRelay({
+        questId,
+        operations: [
+          OperationItemStub({
+            id: blightOpId,
+            role: 'blightwarden',
+            text: 'Blightwarden: cross-cutting audit across the whole diff',
+            status: 'in_progress',
+            locked: true,
+          }),
+          OperationItemStub({
+            id: wardOpId,
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            status: 'pending',
+            locked: true,
+            wardMode: 'full',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: blightWorkItemId,
+            role: 'blightwarden',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(blightOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await QuestFlow.handleSignalBack({
+        questId,
+        workItemId: blightWorkItemId,
+        operationItemId: blightOpId,
+        signal: 'complete',
+        operationStatus: 'done',
+      });
+
+      const afterDone = await questHelper.reload({ questId });
+      const wardWorkItem = afterDone.workItems.find((wi) => wi.role === 'ward');
+      const nextStep = await QuestFlow.getNextStep();
+
+      testbed.cleanup();
+
+      expect({
+        operations: afterDone.operations.map((op) => ({ role: op.role, status: op.status })),
+        blightWorkItemStatus: afterDone.workItems.find((wi) => wi.id === blightWorkItemId)?.status,
+        wardWorkItemStatus: wardWorkItem?.status,
+        wardWorkItemLink: wardWorkItem?.relatedDataItems,
+      }).toStrictEqual({
+        operations: [
+          { role: 'blightwarden', status: 'complete' },
+          { role: 'ward', status: 'in_progress' },
+        ],
+        blightWorkItemStatus: 'complete',
+        wardWorkItemStatus: 'pending',
+        wardWorkItemLink: [`operations/${String(wardOpId)}`],
+      });
+      expect(nextStep).toStrictEqual({
+        type: 'run-ward',
+        questId,
+        workItemId: wardWorkItem!.id,
+        mode: 'full',
       });
     }, 30_000);
   });

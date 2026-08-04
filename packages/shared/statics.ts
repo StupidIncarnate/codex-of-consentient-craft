@@ -22,6 +22,7 @@ export * from './src/statics/quest-status-metadata/quest-status-metadata-statics
 export * from './src/statics/quest-status-transitions/quest-status-transitions-statics';
 export * from './src/statics/work-item-status-metadata/work-item-status-metadata-statics';
 export * from './src/statics/mcp-tools/mcp-tools-statics';
+export * from './src/statics/mcp-tool-result/mcp-tool-result-statics';
 export * from './src/statics/agent-git-permissions/agent-git-permissions-statics';
 export * from './src/statics/agent-browser-permissions/agent-browser-permissions-statics';
 export * from './src/statics/locations/locations-statics';

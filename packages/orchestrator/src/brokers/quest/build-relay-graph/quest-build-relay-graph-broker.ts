@@ -1,8 +1,10 @@
 /**
  * PURPOSE: Builds the Start-Quest relay seed for a quest: appends the quest type's implementation
  * operation items (bug-hunt's pesteater; feature quests already carry Chaos-authored codeweaver
- * items) plus the fixed verify tail to the operations ledger, and creates ONE work item for the
- * first actionable (pending) operation item so the dispatch loop has something to pick up.
+ * items) plus the fixed verify tail to the operations ledger, creates ONE work item for the first
+ * actionable (pending) operation item so the dispatch loop has something to pick up, and stamps
+ * `baseRef` (the commit the quest's review diff is measured from) so review roles never lose track
+ * of it once the default branch absorbs the quest's own commits.
  *
  * Flowrider gets ONE whole-quest operation item carrying every quest flow id in `flowIds`, and that
  * single session fans its own work out across those flows internally — authoring test suites is
@@ -13,16 +15,22 @@
  * items give each flow its own budget and its own completion gate.
  *
  * USAGE:
- * const { operations, workItems } = questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
+ * const { operations, workItems, baseRef } = await questBuildRelayGraphBroker({ quest, priorWorkItemIds, now });
  * // operations = FULL replacement ledger (plan items completed + tail appended, first actionable
- * //   marked in_progress); workItems = the single first work item, linked operations/<id>.
- * // Persist both via questOperationsUpdateBroker (NOT questModifyBroker — this writes the ledger).
+ * //   marked in_progress); workItems = the single first work item, linked operations/<id>; baseRef
+ * //   is the NEW value to stamp (present only when quest.baseRef was unset and HEAD was readable —
+ * //   omit means "leave quest.baseRef exactly as it is").
+ * // Persist all three via questOperationsUpdateBroker (NOT questModifyBroker — this writes the ledger).
  *
  * WHEN-TO-USE: Once per Start Quest transition, from OrchestrationStartResponder, after checking
- *   the tail has not already been appended (idempotency lives in the responder).
+ *   the tail has not already been appended (idempotency lives in the responder). Re-calling this
+ *   broker directly on an already-seeded quest (e.g. quest-hydrate-broker) is also safe: baseRef is
+ *   only ever computed once, from the first call that sees it unset.
  */
 
+import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import {
+  absoluteFilePathContract,
   operationItemContract,
   questWorkItemIdContract,
   workItemContract,
@@ -35,9 +43,12 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
+import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 
-export const questBuildRelayGraphBroker = ({
+type GitBaseRef = NonNullable<Quest['baseRef']>;
+
+export const questBuildRelayGraphBroker = async ({
   quest,
   priorWorkItemIds,
   now,
@@ -45,7 +56,17 @@ export const questBuildRelayGraphBroker = ({
   quest: Quest;
   priorWorkItemIds: QuestWorkItemId[];
   now: IsoTimestamp;
-}): { operations: OperationItem[]; workItems: WorkItem[] } => {
+}): Promise<{ operations: OperationItem[]; workItems: WorkItem[]; baseRef?: GitBaseRef }> => {
+  // Stamp only when unset — a re-Start (or any direct re-call) must never move the base to include
+  // the quest's own implementation commits, which is the exact defect baseRef exists to fix. When
+  // it IS unset, reading HEAD is I/O (the adapter spawns `git`), so it only runs on that path; a
+  // git failure resolves to null here, degrading to "no base" rather than throwing — seeding must
+  // still succeed even when the base can't be pinned.
+  const baseRef: GitBaseRef | undefined =
+    quest.baseRef ??
+    (await gitHeadShaAdapter({ cwd: absoluteFilePathContract.parse(processCwdAdapter()) })) ??
+    undefined;
+
   const registry = questTypeRegistryStatics[quest.questType];
 
   // Intake plan items (chaoswhisperer/glyphsmith) are done by the time the user starts the
@@ -118,7 +139,7 @@ export const questBuildRelayGraphBroker = ({
 
   const firstActionable = operations.find((operation) => operation.status === 'pending');
   if (firstActionable === undefined) {
-    return { operations, workItems: [] };
+    return { operations, workItems: [], ...(baseRef === undefined ? {} : { baseRef }) };
   }
 
   const firstWorkItem = workItemContract.parse({
@@ -140,5 +161,6 @@ export const questBuildRelayGraphBroker = ({
         : operation,
     ),
     workItems: [firstWorkItem],
+    ...(baseRef === undefined ? {} : { baseRef }),
   };
 };

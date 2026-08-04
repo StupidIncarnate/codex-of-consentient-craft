@@ -59,14 +59,15 @@ reached only when a bounded loop is spent.
 - **Environment wall** — `operationStatus: 'blocked'`. Duplicate-on-partial still appends the `pt N`
   continuation, but the work item is marked `failed` with the agent's `blockedReason`, the pt budget is bypassed, and
   the quest halts for the user instead of advancing (see § (d)).
-- **Fixpoint** — the `pt N` chain for the whole-diff review roles (`lawbringer`, `blightwarden`). Each pass that changes
-  something completes its item and spawns `pt N+1`; a pass that changes nothing signals `done` and the chain ends.
-  Convergence IS the verdict: a fresh pass that changed nothing is acceptance.
-- **Operator convergence** — the flow operators (`flowrider`, `siegemaster`) do NOT use the fixpoint. They signal on
-  remaining SCOPE: `done` once every observable on every flow carries a disposition,
-  `partial` only when a named remainder is left. An operator delegates to minions and then re-reads the files they
-  wrote, so it already IS the fresh pair of eyes a `pt N` session would supply — authoring a test or landing a fix is
-  the job, not a reason to respawn the role.
+- **Fixpoint** — the `pt N` chain for `ward`. A red run completes its ward operation item and spawns a fresh `pt N+1`
+  ward continuation (with a spiritmender spliced in ahead of it — see "The sad paths in detail" § (b)); a run that
+  comes back green ends the chain. Convergence IS the verdict: a fresh run that came back green is acceptance.
+- **Operator convergence** — `flowrider`, `siegemaster`, and `blightwarden` do NOT use the fixpoint. They signal on
+  remaining SCOPE: `done` once every unit in scope carries a disposition (an observable on a flow for
+  flowrider/siegemaster; a changed-file × concern unit on the diff for blightwarden), `partial` only when a named
+  remainder is left. An operator delegates to minions and then re-reads the files they wrote, so it already IS the
+  fresh pair of eyes a `pt N` session would supply — authoring a test, walking a path, or landing a fix is the job,
+  not a reason to respawn the role.
 - **Git is the record of what was built.** The ledger is the plan/status; commit messages are the
   cross-session handoff. A stale ledger self-heals because the next agent verifies against git first.
 
@@ -81,10 +82,10 @@ seeds at Start (`startImplementationOps`), and the fixed verify tail (`relayTail
 `questBuildRelayGraphBroker` appends `startImplementationOps` + `relayTail` as **locked, pending**
 operation items at Start Quest.
 
-| Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                                        |
-|------------|-------------------------------------|---------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| `feature`  | `/dumpster-create` (ChaosWhisperer) | **Chaos-authored** `codeweaver` items (`startImplementationOps` is empty) | `ward(changed) → flowrider → siegemaster → lawbringer → blightwarden → ward(full)` |
-| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | orchestrator-seeded `pesteater` (`initialWorkItemRole` is null)           | `ward(changed) → lawbringer → blightwarden → ward(full)`                           |
+| Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                     |
+|------------|-------------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------------------|
+| `feature`  | `/dumpster-create` (ChaosWhisperer) | **Chaos-authored** `codeweaver` items (`startImplementationOps` is empty) | `ward(changed) → flowrider → siegemaster → blightwarden → ward(full)` |
+| `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | orchestrator-seeded `pesteater` (`initialWorkItemRole` is null)           | `ward(changed) → blightwarden → ward(full)`                     |
 
 So the full feature relay is:
 
@@ -92,24 +93,25 @@ So the full feature relay is:
 chaoswhisperer (plan item)   → codeweaver ×N (Chaos-authored)
   → ward(changed)
   → flowrider (ALL flows, bundled to minions) → siegemaster (ALL flows, bundled to minions)
-  → lawbringer → blightwarden → ward(full)
+  → blightwarden → ward(full)
 ```
 
 and the full bug-hunt relay is:
 
 ```
 pesteater
-  → ward(changed) → lawbringer → blightwarden → ward(full)
+  → ward(changed) → blightwarden → ward(full)
 ```
 
-`flowrider` and `siegemaster` are **operator** roles: the registry declares one tail entry each, and
-`questBuildRelayGraphBroker` seeds exactly ONE operation item per role, carrying EVERY quest flow id in `flowIds` (a
-quest with no flows gets an empty list). One session owns all of a quest's flows and delegates across them internally,
-so each role has exactly one pt-continuation chain.
+`flowrider` is an **operator** role: the registry declares one tail entry, and `questBuildRelayGraphBroker` seeds
+exactly ONE operation item carrying EVERY quest flow id in `flowIds` (a quest with no flows gets an empty list). One
+session owns all of a quest's flows and delegates across them internally, so it has exactly one pt-continuation chain.
+`siegemaster` is also an **operator**, but fans out to ONE OPERATION ITEM PER FLOW instead — each carries a single
+`flowId`, so each flow gets its own pt-continuation chain (a flow-less quest still gets exactly one siegemaster item).
 
-`lawbringer` and `blightwarden` stay **ONE** operation item each, self-scoping over the **whole** diff — there is no
-per-package chunking in the ledger. Bug-hunt reuses the same flow/observable spec lifecycle (the reproduction path is a
-flow, the expected behavior is an observable that PestEater turns into a failing test).
+`blightwarden` is also an **operator**, staying **ONE** operation item, self-scoping over the **whole** diff — there
+is no per-package chunking in the ledger. Bug-hunt reuses the same flow/observable spec lifecycle (the reproduction
+path is a flow, the expected behavior is an observable that PestEater turns into a failing test).
 
 ---
 
@@ -200,13 +202,13 @@ Trace one feature quest end to end.
 6. **Ward operation items** are dispatched as `run-ward` (`spawnerType: 'command'`) and handled by
    `quest-run-ward-broker` (see the ward path below).
 
-7. **Verify/review roles** run in tail order — `flowrider`, `siegemaster`, `lawbringer`, then
-   `blightwarden`, one item each. The flow operators (`flowrider`, `siegemaster`) each run one session over every quest
-   flow and signal `done` once every observable carries a disposition. The whole-diff reviewers (`lawbringer`,
-   `blightwarden`) loop via the `pt N` fixpoint until a pass changes nothing. Either way there is one chain per role,
-   keyed on role + base text. After `blightwarden` converges,
-   `ward(full)` runs; on green, no `pending` operation item remains and the operation-aware status transformer derives
-   `complete`.
+7. **Verify/review roles** run in tail order — `flowrider`, `siegemaster`, then `blightwarden`. All three are
+   **operators**: `flowrider` and `blightwarden` each run one session over every quest flow / the whole diff and
+   signal `done` once every unit in scope carries a disposition; `siegemaster` runs one session PER flow, each
+   signalling on that flow's own scope. Each role's chain is keyed on role + base text — `flowrider` and
+   `blightwarden` hold exactly one chain for the whole quest, `siegemaster` holds one PER flow. After `blightwarden`
+   converges, `ward(full)` runs; on green, no `pending` operation item remains and the operation-aware status
+   transformer derives `complete`.
 
 ---
 
@@ -282,32 +284,36 @@ once in § (d) rather than repeated per role: the operation item completes and g
 | **Codeweaver** | No (Chaos-authored) | operation `complete`, work item `complete`, advance → next operation | operation `complete` + a `pt N` continuation appended (unlocked → **unbounded** pt chain — codeweavers pivot in place freely); advance creates a fresh work item that continues from git |
 | **PestEater** (bug-hunt) | Yes | operation `complete`, advance → `ward(changed)`                | operation `complete` + `pt N` (locked → **bounded** by `slotManagerStatics.pesteater.maxAttempts`); spent chain → `blocked` |
 
-### Verify / review (feature tail; flowrider, siegemaster, lawbringer + blightwarden all whole-quest)
+### Verify / review (feature tail; flowrider, siegemaster, blightwarden all operators)
 
 Each is a **locked** operation item, and `partial` always appends a `pt N` continuation for a fresh pass — **bounded**
 by `slotManagerStatics.<role>.maxAttempts`, with a spent chain blocking the quest via `quest-block-on-failure-broker`. A
-chain is keyed on role + base text, and each role holds exactly one tail item, so each role gets exactly one budget for
-the whole quest; the continuation carries the same `flowIds`.
+chain is keyed on role + base text. `flowrider` and `blightwarden` each hold exactly one tail item, so each gets
+exactly one budget for the whole quest; `siegemaster` holds one tail item PER FLOW (its text carries the flow id), so
+each flow gets its own budget. The continuation carries the same `flowIds`.
 
-What earns `done` differs by role, and this is the important distinction:
+All three are **operators** and signal on remaining **scope**, never on whether a pass changed code:
 
-- **The flow operators** (`flowrider`, `siegemaster`) signal on remaining **scope**. `done` once every observable on
-  every flow carries a disposition; `partial` only when a named remainder is left. Each delegates bundles to minions and
-  then re-reads the files they wrote, so it already is the fresh pair of eyes a `pt N` session would supply — writing a
-  test or landing a fix is the job, not a reason to respawn the role.
-- **The whole-diff reviewers** (`lawbringer`, `blightwarden`) use the fixpoint: `done` on a pass that changed nothing,
-  `partial` on a pass that changed something. Convergence IS the verdict.
+- **`flowrider` and `siegemaster`** signal `done` once every observable on their scope carries a disposition — every
+  flow for `flowrider`, the one flow a given `siegemaster` item owns. `partial` only when a named remainder is left.
+  Each delegates bundles/walks to minions and then re-reads the files they wrote, so it already is the fresh pair of
+  eyes a `pt N` session would supply — writing a test, walking a path, or landing a fix is the job, not a reason to
+  respawn the role.
+- **`blightwarden`** signals `done` once every changed-file × concern unit on the quest diff carries a disposition
+  (`get-blight-checklist`, measured from the quest's pinned `baseRef`). `partial` only when a named remainder is left.
+  It dispatches `blightwarden-minion` / `blightwarden-crosscut-minion` sub-agents and re-reads what they wrote before
+  recording a disposition — same shape as the flow operators, closing a finding is not by itself grounds for another
+  pass.
 
-| Role             | Happy (`done`)                                           | Sad (`partial`)                                                         |
-|------------------|----------------------------------------------------------|-------------------------------------------------------------------------|
-| **Flowrider**    | advance → `siegemaster` (every observable dispositioned) | `pt N` continuation → fresh flowrider pass, named remainder (bounded)   |
-| **Siegemaster**  | advance → `lawbringer` (every observable dispositioned)  | `pt N` continuation → fresh siegemaster pass, named remainder (bounded) |
-| **Lawbringer**   | advance → `blightwarden`                                 | `pt N` continuation → fresh lawbringer pass (bounded)                   |
-| **Blightwarden** | advance → `ward(full)`                                   | `pt N` continuation → fresh blightwarden pass (bounded)                 |
+| Role             | Happy (`done`)                                                                                          | Sad (`partial`)                                                                       |
+|------------------|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Flowrider**    | advance → `siegemaster` (every observable dispositioned)                                                  | `pt N` continuation → fresh flowrider pass, named remainder (bounded)                    |
+| **Siegemaster**  | advance → the next `siegemaster` item, or `blightwarden` on the last one (every observable dispositioned) | `pt N` continuation → fresh siegemaster pass for that flow, named remainder (bounded)    |
+| **Blightwarden** | advance → `ward(full)` (every review unit dispositioned)                                                  | `pt N` continuation → fresh blightwarden pass, named remainder (bounded)                 |
 
 > `blightwarden` is a single operation item that audits cross-cutting concerns across the whole diff.
-> (The `work-item-role-contract` additionally defines five `blightwarden-*-minion` roles; the relay
-> tail seeds only one `blightwarden` operation item, so the minions are not relay stages — they are an
+> (The `work-item-role-contract` additionally defines `blightwarden-minion` and `blightwarden-crosscut-minion` roles;
+> the relay tail seeds only one `blightwarden` operation item, so the minions are not relay stages — they are an
 > in-session concern of the blightwarden prompt, not documented here.)
 
 ### Command
@@ -494,8 +500,9 @@ dispatchable while the wreckage is still in place.
   any operation item is `pending`/`in_progress` (the "all work items momentarily terminal, advance not
   yet run" window).
 - **REL-6 — Duplicate-on-partial.** `partial` → operation `complete` + a `pt N` continuation → a fresh work item. A
-  locked role's chain is bounded. What earns `done` is role-dependent: for the whole-diff reviewers it is a fresh pass
-  that changed nothing; for the flow operators it is an observable ledger with no undispositioned entry left.
+  locked role's chain is bounded. What earns `done` is role-dependent: for `ward` it is a fresh run that came back
+  green; for the operator roles (`flowrider`, `siegemaster`, `blightwarden`) it is a checklist (observable ledger or
+  blight ledger) with no undispositioned unit left.
 - **REL-7 — Idempotent signal.** A redelivered signal for an already-terminal work item is a no-op
   (no second `pt N`, no second advance side effect).
 
@@ -564,9 +571,8 @@ dispatchable while the wreckage is still in place.
    ▼ codeweaver ×N (one session each)   → done → advance
    ▼ ward (changed)   [run-ward]        → green → advance
    ▼ flowrider (all quest flows)        → done → advance     (bundles flows, delegates to minions)
-   ▼ siegemaster (all quest flows)      → done → advance     (bundles flows, delegates to minions)
-   ▼ lawbringer                         → done → advance     (pt N fixpoint)
-   ▼ blightwarden                       → done → advance     (pt N fixpoint)
+   ▼ siegemaster (one session per flow) → done → advance     (repeats per flow; walks via minions)
+   ▼ blightwarden                       → done → advance     (operator: get-blight-checklist gate)
    ▼ ward (full)      [run-ward]        → green → advance
    No pending operation item remains → workItemsToQuestStatusTransformer derives complete ✓
 The dispatcher's next get-next-step picks up the next FIFO quest.

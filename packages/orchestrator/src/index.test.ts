@@ -42,7 +42,6 @@ describe('orchestrator', () => {
       'getQuestInputContract',
       'getQuestResultContract',
       'isoTimestampContract',
-      'lawbringerPromptStatics',
       'modifyQuestInputContract',
       'modifyQuestResultContract',
       'nextStepContract',

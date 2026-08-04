@@ -19,14 +19,6 @@ describe('agentRoleContract', () => {
       expect(result).toBe('spiritmender');
     });
 
-    it('VALID: lawbringer => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'lawbringer' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('lawbringer');
-    });
-
     it('VALID: flowrider => parses successfully', () => {
       const role = AgentRoleStub({ value: 'flowrider' });
 
@@ -43,44 +35,20 @@ describe('agentRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: blightwarden-security-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-security-minion' });
+    it('VALID: blightwarden-minion => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'blightwarden-minion' });
 
       const result = agentRoleContract.parse(role);
 
-      expect(result).toBe('blightwarden-security-minion');
+      expect(result).toBe('blightwarden-minion');
     });
 
-    it('VALID: blightwarden-dedup-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-dedup-minion' });
+    it('VALID: blightwarden-crosscut-minion => parses successfully', () => {
+      const role = AgentRoleStub({ value: 'blightwarden-crosscut-minion' });
 
       const result = agentRoleContract.parse(role);
 
-      expect(result).toBe('blightwarden-dedup-minion');
-    });
-
-    it('VALID: blightwarden-perf-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-perf-minion' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-perf-minion');
-    });
-
-    it('VALID: blightwarden-integrity-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-integrity-minion' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-integrity-minion');
-    });
-
-    it('VALID: blightwarden-dead-code-minion => parses successfully', () => {
-      const role = AgentRoleStub({ value: 'blightwarden-dead-code-minion' });
-
-      const result = agentRoleContract.parse(role);
-
-      expect(result).toBe('blightwarden-dead-code-minion');
+      expect(result).toBe('blightwarden-crosscut-minion');
     });
 
     it('VALID: blightwarden => parses successfully', () => {
@@ -128,6 +96,12 @@ describe('agentRoleContract', () => {
     it('INVALID: pathseeker-assertion-correctness => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('pathseeker-assertion-correctness');
+      }).toThrow(/Invalid enum value/u);
+    });
+
+    it('INVALID: lawbringer => throws validation error (removed role)', () => {
+      expect(() => {
+        agentRoleContract.parse('lawbringer');
       }).toThrow(/Invalid enum value/u);
     });
 
