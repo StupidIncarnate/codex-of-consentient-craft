@@ -20,6 +20,10 @@ type RequestCount = ReturnType<EndpointControl['getRequestCount']>;
 
 export const questCommentBatchBrokerProxy = (): {
   setupSent: (params: { chatProcessId: string }) => void;
+  setupSentWithDeliveredMessage: (params: {
+    chatProcessId: string;
+    deliveredMessage: string;
+  }) => void;
   setupSentWithoutChatProcessId: () => void;
   setupSentUnparseableBody: () => void;
   setupStaleAnchors: (params: { staleAnchors: unknown[] }) => void;
@@ -44,6 +48,9 @@ export const questCommentBatchBrokerProxy = (): {
   return {
     setupSent: ({ chatProcessId }): void => {
       endpoint.resolves({ data: { chatProcessId } });
+    },
+    setupSentWithDeliveredMessage: ({ chatProcessId, deliveredMessage }): void => {
+      endpoint.resolves({ data: { chatProcessId, deliveredMessage } });
     },
     setupSentWithoutChatProcessId: (): void => {
       endpoint.resolves({ data: {} });

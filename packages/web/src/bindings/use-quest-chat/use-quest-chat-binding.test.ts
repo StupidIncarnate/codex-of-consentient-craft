@@ -12,6 +12,8 @@ import { testingLibraryActAdapter } from '../../adapters/testing-library/act/tes
 import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
 import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
+import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 
 import { useQuestChatBinding } from './use-quest-chat-binding';
 import { useQuestChatBindingProxy } from './use-quest-chat-binding.proxy';
@@ -20,6 +22,12 @@ import { useQuestChatBindingProxy } from './use-quest-chat-binding.proxy';
 // server's subscribe-quest failure path.
 const LOAD_FAILURE_REASON =
   'Failed to parse quest file at /home/dm/guilds/g1/quests/q1/quest.json: comments.0.createdAt: Invalid datetime';
+
+// The markdown turn the server echoes back after storing a comment batch. Claude's --resume stream
+// never replays the prompt, so this string is the only copy the panel can render for the user's own
+// turn — the entry content must match it character for character.
+const DELIVERED_COMMENT_MESSAGE =
+  '## Feedback on flow "login-flow"\n\n- **login-page**: This assertion looks wrong';
 
 describe('useQuestChatBinding', () => {
   describe('initial state', () => {
@@ -41,6 +49,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -147,6 +156,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: true,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -187,6 +197,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -226,6 +237,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -264,6 +276,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -302,6 +315,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -339,6 +353,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -374,6 +389,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -424,6 +440,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });
@@ -553,8 +570,187 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: true,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
+      });
+    });
+  });
+
+  describe('sendCommentBatch', () => {
+    it('VALID: {outcome sent with deliveredMessage} => appends a user entry holding that exact markdown and arms isStreaming', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-comment-sent-1' });
+      const synthUuid = '00000000-0000-4000-8000-0000000000c1';
+      const synthTs = '2026-07-01T12:00:00.000Z';
+      proxy.setupCommentBatchSent({
+        chatProcessId: ProcessIdStub({ value: 'proc-comment-sent' }),
+        deliveredMessage: DELIVERED_COMMENT_MESSAGE,
+      });
+      proxy.setupUuids({ uuids: [synthUuid] });
+      proxy.setupTimestamps({ timestamps: [synthTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] });
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMap = new Map();
+      expectedMap.set(synthKey, [
+        {
+          role: 'user',
+          content: DELIVERED_COMMENT_MESSAGE,
+          uuid: synthUuid,
+          timestamp: synthTs,
+        },
+      ]);
+
+      expect(result.current).toStrictEqual({
+        entriesBySession: expectedMap,
+        entriesByWorkItem: new Map(),
+        slotEntries: new Map(),
+        quest: null,
+        loadError: null,
+        pendingClarification: null,
+        isStreaming: true,
+        sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+
+    it('EDGE: {outcome sent without deliveredMessage} => returns the sent outcome and appends no chat entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-comment-sent-2' });
+      proxy.setupCommentBatchSentWithoutDeliveredMessage({
+        chatProcessId: ProcessIdStub({ value: 'proc-comment-bare' }),
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      const outcomes: unknown[] = [];
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          outcomes.push(
+            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+          );
+        },
+      });
+
+      // An older server that does not echo the turn back still delivered the batch, so the send
+      // succeeds — there is simply no rendered markdown to put in the panel.
+      expect({
+        outcomes,
+        entriesBySession: result.current.entriesBySession,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        outcomes: [{ outcome: 'sent', chatProcessId: 'proc-comment-bare' }],
+        entriesBySession: new Map(),
+        isStreaming: false,
+      });
+    });
+
+    it('INVALID: {outcome stale} => returns the stale anchors and appends no chat entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-comment-stale-1' });
+      proxy.setupCommentBatchStale({
+        staleAnchors: [CommentAnchorStub({ flowId: 'login-flow', nodeId: 'login-page' })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      const outcomes: unknown[] = [];
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          outcomes.push(
+            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+          );
+        },
+      });
+
+      // A stale batch reached no agent, so rendering it would claim feedback was sent that never was.
+      expect({
+        outcomes,
+        entriesBySession: result.current.entriesBySession,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        outcomes: [
+          { outcome: 'stale', staleAnchors: [{ flowId: 'login-flow', nodeId: 'login-page' }] },
+        ],
+        entriesBySession: new Map(),
+        isStreaming: false,
+      });
+    });
+
+    it('ERROR: {outcome failed} => returns the failure and appends no chat entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-comment-failed-1' });
+      proxy.setupCommentBatchFailed({ error: 'quest is not running' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      const outcomes: unknown[] = [];
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          outcomes.push(
+            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+          );
+        },
+      });
+
+      expect({
+        outcomes,
+        entriesBySession: result.current.entriesBySession,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        outcomes: [{ outcome: 'failed', error: 'quest is not running' }],
+        entriesBySession: new Map(),
+        isStreaming: false,
+      });
+    });
+
+    it('EMPTY: {questId: null} => returns a failed outcome without POSTing the batch', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: null }),
+      });
+
+      const outcomes: unknown[] = [];
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          outcomes.push(
+            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+          );
+        },
+      });
+
+      expect({
+        outcomes,
+        requestCount: proxy.getCommentBatchRequestCount(),
+        entriesBySession: result.current.entriesBySession,
+      }).toStrictEqual({
+        outcomes: [{ outcome: 'failed', error: 'No active quest to send comments to' }],
+        requestCount: 0,
+        entriesBySession: new Map(),
       });
     });
   });
@@ -837,6 +1033,7 @@ describe('useQuestChatBinding', () => {
         pendingClarification: null,
         isStreaming: false,
         sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
       });

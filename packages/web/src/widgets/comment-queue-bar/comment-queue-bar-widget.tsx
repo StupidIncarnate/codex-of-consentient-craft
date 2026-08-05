@@ -8,8 +8,13 @@
  * (#dd-toolbar-hidden-without-session).
  *
  * USAGE:
- * <CommentQueueBarWidget questId={questId} />
+ * <CommentQueueBarWidget questId={questId} onSend={sendCommentBatch} />
  * // Renders nothing while the queue is empty; renders the bar once entries.length > 0
+ *
+ * `onSend` is useQuestChatBinding's `sendCommentBatch`, NOT the broker. Every user-message
+ * injection goes through that binding so the sent batch appears in the chat panel immediately —
+ * Claude's --resume stream never echoes the prompt back, so a direct broker call leaves the
+ * message invisible until a reload replays the session from disk.
  */
 
 import { useState } from 'react';
@@ -19,9 +24,11 @@ import { IconSend, IconTrash } from '@tabler/icons-react';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
+import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
+import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
+
 import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
-import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { staleAnchorNoticeTransformer } from '../../transformers/stale-anchor-notice/stale-anchor-notice-transformer';
 
@@ -34,10 +41,12 @@ const NETWORK_ERROR_MESSAGE = 'Failed to send comments — check your connection
 
 export interface CommentQueueBarWidgetProps {
   questId: QuestId;
+  onSend: (params: { comments: readonly CommentQueueEntry[] }) => Promise<CommentBatchSendResult>;
 }
 
 export const CommentQueueBarWidget = ({
   questId,
+  onSend,
 }: CommentQueueBarWidgetProps): React.JSX.Element | null => {
   const [sending, setSending] = useState(false);
   const { entries, deleteComment, clearQueue } = useCommentQueueBinding({ questId });
@@ -89,7 +98,7 @@ export const CommentQueueBarWidget = ({
             onClick={() => {
               if (sending) return;
               setSending(true);
-              questCommentBatchBroker({ questId, comments: entries })
+              onSend({ comments: entries })
                 .then((result) => {
                   if (result.outcome === 'sent') {
                     // The badges refresh from the server's quest broadcast — nothing else to do

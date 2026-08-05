@@ -9,6 +9,7 @@
 export const roleToModelStatics = {
   chaoswhisperer: 'opus',
   glyphsmith: 'opus',
+  bughunt: 'opus',
   flowrider: 'opus',
   siegemaster: 'opus',
   codeweaver: 'opus',

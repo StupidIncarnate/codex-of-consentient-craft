@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Layer of QuestDrivenWatchersBootstrapResponder — walks every guild's quests,
- * collects the distinct parent sessionIds carried by in-progress workItems, then diffs
+ * PURPOSE: Layer of QuestDrivenWatchersBootstrapResponder — walks every non-terminal quest in every
+ * guild, collects the distinct parent sessionIds carried by their active workItems, then diffs
  * that set against the caller-supplied watchers map: stops tails for sessionIds that
- * dropped out, starts tails for sessionIds that newly appeared.
+ * dropped out, starts tails for sessionIds that newly appeared. Spec-phase quests are included, so
+ * an intake conversation streams into the browser chat panel while it is still being had.
  *
  * USAGE:
  * const result = await ReconcileWatchersLayerResponder({ watchers, projectDir });
@@ -21,8 +22,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
-  isAnyAgentRunningQuestStatusGuard,
-  isStartableQuestStatusGuard,
+  isTerminalQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
@@ -57,17 +57,17 @@ export const ReconcileWatchersLayerResponder = async ({
         return summaries;
       }),
   );
-  // Any quest with an agent currently running counts as a watcher target — that's
-  // in_progress (codeweaver/ward/etc). Startable statuses (approved/design_approved) stay
-  // in the filter too, so a quest can be tailed the moment its first agent dispatches,
-  // even before status transitions to in_progress.
-  const activeQuestSummaries = questsByGuild.flat().filter((summary) => {
-    const questStatus = summary.status;
-    return (
-      isStartableQuestStatusGuard({ status: questStatus }) ||
-      isAnyAgentRunningQuestStatusGuard({ status: questStatus })
-    );
-  });
+  // Every non-terminal quest is a candidate. The status is only a cheap pre-filter to avoid
+  // loading quest.json for quests that can no longer have a live session; the REAL target test is
+  // the active-work-item-with-a-sessionId scan below, which is what a tail actually needs.
+  //
+  // Restricting this to approved/design_approved/in_progress silently excluded the entire spec
+  // phase — a quest at `created`/`explore_flows`/`review_flows` has an intake work item carrying
+  // the chat session's id, but no watcher was ever started for it, so the browser's chat panel
+  // stayed empty for the whole conversation the user was having in their terminal.
+  const activeQuestSummaries = questsByGuild
+    .flat()
+    .filter((summary) => !isTerminalQuestStatusGuard({ status: summary.status }));
   const loadedQuests = await Promise.all(
     activeQuestSummaries.map(async (summary) =>
       orchestratorLoadQuestAdapter({ questId: summary.id }),

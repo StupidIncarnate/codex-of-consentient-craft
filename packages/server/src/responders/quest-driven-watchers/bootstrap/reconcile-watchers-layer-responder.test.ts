@@ -80,4 +80,82 @@ describe('ReconcileWatchersLayerResponder', () => {
       }),
     ).toBe(true);
   });
+
+  describe('spec-phase quests', () => {
+    // A spec-phase quest's intake work item carries the session id of the conversation the user is
+    // having RIGHT NOW. If these statuses are filtered out, no tail is started and the browser chat
+    // panel stays empty for the whole intake — the reason /dumpster-create and /dumpster-hunt
+    // appeared to "not hook up".
+    it.each(['created', 'explore_flows', 'review_flows', 'flows_approved'] as const)(
+      'VALID: {quest status: %s with an active intake item carrying a sessionId} => starts a tail for that session',
+      async (status) => {
+        const proxy = ReconcileWatchersLayerResponderProxy();
+
+        const questId = QuestIdStub({ value: 'spec-phase-quest' });
+        const intakeSessionId = '55555555-5555-5555-5555-555555555555';
+        const intakeWorkItemId = '66666666-6666-6666-6666-666666666666';
+
+        const guild = GuildListItemStub();
+        proxy.guildsProxy.returns({ guilds: [guild] });
+        proxy.questsProxy.returns({
+          guildId: guild.id,
+          quests: [QuestListItemStub({ id: questId, status })],
+        });
+        proxy.loadQuestProxy.returns({
+          questId,
+          quest: QuestStub({
+            id: questId,
+            status,
+            workItems: [
+              WorkItemStub({
+                id: QuestWorkItemIdStub({ value: intakeWorkItemId }),
+                role: 'bughunt',
+                status: 'in_progress',
+                sessionId: SessionIdStub({ value: intakeSessionId }),
+              }),
+            ],
+          }),
+        });
+        proxy.startWatcherProxy.resolves({ parentSessionId: intakeSessionId });
+
+        const result = await ReconcileWatchersLayerResponder({
+          watchers: new Map(),
+          projectDir: '/repo',
+        });
+
+        expect(result).toStrictEqual({ started: 1, stopped: 0 });
+        expect(
+          proxy.startWatcherProxy.startedWithWorkerWorkItemId({
+            parentSessionId: intakeSessionId,
+            workerWorkItemId: intakeWorkItemId,
+          }),
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('terminal quests', () => {
+    it.each(['complete', 'abandoned'] as const)(
+      'EMPTY: {quest status: %s} => starts no tail even though a work item carries a sessionId',
+      async (status) => {
+        const proxy = ReconcileWatchersLayerResponderProxy();
+
+        const questId = QuestIdStub({ value: 'terminal-quest' });
+
+        const guild = GuildListItemStub();
+        proxy.guildsProxy.returns({ guilds: [guild] });
+        proxy.questsProxy.returns({
+          guildId: guild.id,
+          quests: [QuestListItemStub({ id: questId, status })],
+        });
+
+        const result = await ReconcileWatchersLayerResponder({
+          watchers: new Map(),
+          projectDir: '/repo',
+        });
+
+        expect(result).toStrictEqual({ started: 0, stopped: 0 });
+      },
+    );
+  });
 });

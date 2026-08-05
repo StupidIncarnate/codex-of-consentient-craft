@@ -13,6 +13,7 @@ export const questNewBrokerProxy = (): {
   setupInvalidResponse: (params: { questId: unknown; chatProcessId: unknown }) => void;
   setupError: () => void;
   getRequestCount: () => RequestCount;
+  getRequestBodies: () => Promise<unknown[]>;
 } => {
   fetchPostAdapterProxy();
 
@@ -32,5 +33,8 @@ export const questNewBrokerProxy = (): {
       endpoint.networkError();
     },
     getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    // The POSTed bodies, so a test can prove the selected questType reached the wire rather than
+    // only that a request happened.
+    getRequestBodies: async (): Promise<unknown[]> => endpoint.getRequestBodies(),
   };
 };

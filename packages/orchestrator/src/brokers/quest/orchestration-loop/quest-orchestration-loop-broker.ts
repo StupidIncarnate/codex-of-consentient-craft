@@ -25,8 +25,10 @@ import { slotCountContract } from '../../../contracts/slot-count/slot-count-cont
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
+  isChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
+import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
 import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
 import { orchestrationLoopSummaryTransformer } from '../../../transformers/orchestration-loop-summary/orchestration-loop-summary-transformer';
@@ -38,15 +40,10 @@ import { runChatLayerBroker } from './run-chat-layer-broker';
 // NOTE: every execution-role layer broker (codeweaver, ward, flowrider, siegemaster,
 // blightwarden, spiritmender) is intentionally NOT imported here. Those roles are
 // dispatched by the dispatch loop via get-next-step. The orchestration loop only
-// retains the chat-role dispatch (chaoswhisperer / glyphsmith) for chat surfaces;
+// retains the chat-role dispatch (chaoswhisperer / glyphsmith / bughunt) for chat surfaces;
 // every other role drops through this loop as a no-op.
 
 const DEFAULT_SLOT_COUNT = 3;
-
-const CHAT_ROLES = new Set<WorkItemRole>([
-  'chaoswhisperer' as WorkItemRole,
-  'glyphsmith' as WorkItemRole,
-]);
 
 export const questOrchestrationLoopBroker = async ({
   processId,
@@ -114,7 +111,7 @@ export const questOrchestrationLoopBroker = async ({
       questStatus: quest.status,
       workItems: quest.workItems,
       ready,
-      chatRoles: [...CHAT_ROLES],
+      chatRoles: [...workItemRoleStatics.chat],
     })}\n`,
   );
 
@@ -186,11 +183,11 @@ export const questOrchestrationLoopBroker = async ({
     return result;
   }
 
-  // This loop only dispatches chat roles (chaoswhisperer / glyphsmith). Every execution role
-  // is dispatched by /dumpster-launch via the MCP get-next-step tool, and its work item is
+  // This loop only dispatches chat roles (chaoswhisperer / glyphsmith / bughunt). Every execution
+  // role is dispatched by /dumpster-launch via the MCP get-next-step tool, and its work item is
   // flipped to in_progress only when the sub-agent calls get-agent-prompt. Execution-role
   // items are left `pending` here — the loop must not touch their status.
-  const chatReady = ready.filter((item) => CHAT_ROLES.has(item.role));
+  const chatReady = ready.filter((item) => isChatWorkItemRoleGuard({ role: item.role }));
   if (chatReady.length === 0) {
     process.stderr.write(
       `[orchestration-loop] quest=${questId} decision: ${String(ready.length)} ready, 0 chat-role -> execution roles dispatch via the dispatch loop; chat loop idle\n`,
@@ -217,13 +214,15 @@ export const questOrchestrationLoopBroker = async ({
   const [roleName, roleItemsRaw] = firstEntry;
   let roleItems = roleItemsRaw;
 
-  if (CHAT_ROLES.has(roleName) && userMessage === undefined) {
+  if (isChatWorkItemRoleGuard({ role: roleName }) && userMessage === undefined) {
     return result;
   }
 
-  if (CHAT_ROLES.has(roleName)) {
+  if (isChatWorkItemRoleGuard({ role: roleName })) {
     const anyInProgress = quest.workItems.some(
-      (wi) => CHAT_ROLES.has(wi.role) && isActiveWorkItemStatusGuard({ status: wi.status }),
+      (wi) =>
+        isChatWorkItemRoleGuard({ role: wi.role }) &&
+        isActiveWorkItemStatusGuard({ status: wi.status }),
     );
     if (anyInProgress) {
       return result;

@@ -5,7 +5,7 @@ import type { ProcessIdStub, QuestId } from '@dungeonmaster/shared/contracts';
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 
 export const orchestratorCommentBatchAdapterProxy = (): {
-  returns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  returns: (params: { questId: QuestId; chatProcessId: ProcessId; message: string }) => void;
   throws: (params: { questId: QuestId; error: Error }) => void;
   getLastCalledArgs: (params: { questId: QuestId }) => unknown;
   getCalls: (params: { questId: QuestId }) => unknown[];
@@ -13,8 +13,18 @@ export const orchestratorCommentBatchAdapterProxy = (): {
   const mock = registerMock({ fn: StartOrchestrator.commentBatch });
 
   return {
-    returns: ({ questId, chatProcessId }: { questId: QuestId; chatProcessId: ProcessId }): void => {
-      mock.calledWith([{ questId }]).resolves({ chatProcessId });
+    // `message` is the markdown turn the orchestrator handed the agent — the caller names it so a
+    // test can assert the server relays that exact text back to the browser.
+    returns: ({
+      questId,
+      chatProcessId,
+      message,
+    }: {
+      questId: QuestId;
+      chatProcessId: ProcessId;
+      message: string;
+    }): void => {
+      mock.calledWith([{ questId }]).resolves({ chatProcessId, message });
     },
     throws: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       mock.calledWith([{ questId }]).rejects(error);

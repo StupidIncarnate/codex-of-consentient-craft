@@ -45,6 +45,59 @@ describe('QuestNewResponder', () => {
     });
   });
 
+  describe('quest type', () => {
+    it('VALID: {body.questType: "bug-hunt"} => forwards questType to startChat', async () => {
+      const proxy = QuestNewResponderProxy();
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-bug-hunt' });
+
+      proxy.setupQuestNew({ guildId, chatProcessId });
+
+      await proxy.callResponder({
+        params: { guildId },
+        body: { message: 'Rows do not render', questType: 'bug-hunt' },
+      });
+
+      expect(proxy.getLastStartChatArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: 'Rows do not render',
+        questType: 'bug-hunt',
+      });
+    });
+
+    it('VALID: {body without questType} => omits questType so the orchestrator applies its feature default', async () => {
+      const proxy = QuestNewResponderProxy();
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'proc-default' });
+
+      proxy.setupQuestNew({ guildId, chatProcessId });
+
+      await proxy.callResponder({
+        params: { guildId },
+        body: { message: 'Add auth' },
+      });
+
+      expect(proxy.getLastStartChatArgs({ guildId })).toStrictEqual({
+        guildId,
+        message: 'Add auth',
+      });
+    });
+
+    it('INVALID: {body.questType: "bogus"} => returns 400 with error', async () => {
+      QuestNewResponderProxy();
+
+      const result = await QuestNewResponder({
+        params: { guildId: GuildIdStub() },
+        body: { message: 'Add auth', questType: 'bogus' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'message is required' },
+      });
+    });
+  });
+
   describe('validation errors', () => {
     it('ERROR: {null params} => returns 400 with error', async () => {
       QuestNewResponderProxy();

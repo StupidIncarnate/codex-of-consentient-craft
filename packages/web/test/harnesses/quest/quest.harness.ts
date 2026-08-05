@@ -64,6 +64,7 @@ export const questHarness = ({
     questFilePath: string;
     title?: string;
     status: string;
+    questType?: string;
     workItems: {
       id: string;
       role: string;
@@ -183,6 +184,7 @@ export const questHarness = ({
     questFilePath,
     title = 'E2E Quest',
     status,
+    questType,
     workItems,
     steps = [],
     userRequest = 'Build the feature',
@@ -198,6 +200,7 @@ export const questHarness = ({
     questFilePath: string;
     title?: string;
     status: string;
+    questType?: string;
     workItems: {
       id: string;
       role: string;
@@ -250,6 +253,7 @@ export const questHarness = ({
       folder: questFolder,
       title,
       status,
+      ...(questType === undefined ? {} : { questType }),
       createdAt: new Date().toISOString(),
       workItems: workItems.map((wi, index) => ({
         id: wi.id,

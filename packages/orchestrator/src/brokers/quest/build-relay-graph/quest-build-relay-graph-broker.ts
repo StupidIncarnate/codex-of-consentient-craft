@@ -41,6 +41,7 @@ import type {
   QuestWorkItemId,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
+import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
@@ -69,12 +70,11 @@ export const questBuildRelayGraphBroker = async ({
 
   const registry = questTypeRegistryStatics[quest.questType];
 
-  // Intake plan items (chaoswhisperer/glyphsmith) are done by the time the user starts the
-  // quest — force any the intake agent forgot to complete, so advance never tries to dispatch
-  // a fresh chat session for them.
+  // Intake plan items (every chat role — chaoswhisperer/glyphsmith/bughunt) are done by the time
+  // the user starts the quest — force any the intake agent forgot to complete, so advance never
+  // tries to dispatch a fresh chat session for them.
   const settledExisting = quest.operations.map((operation) =>
-    (operation.role === 'chaoswhisperer' || operation.role === 'glyphsmith') &&
-    operation.status !== 'complete'
+    isChatWorkItemRoleGuard({ role: operation.role }) && operation.status !== 'complete'
       ? operationItemContract.parse({ ...operation, status: 'complete' })
       : operation,
   );

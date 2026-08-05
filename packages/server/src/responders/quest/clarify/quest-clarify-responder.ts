@@ -6,6 +6,8 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/404/500, data: { error } }
  */
 
+import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
+
 import { orchestratorClarifyAdapter } from '../../../adapters/orchestrator/clarify/orchestrator-clarify-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
@@ -67,7 +69,7 @@ export const QuestClarifyResponder = async ({
     const quest = await orchestratorLoadQuestAdapter({ questId });
 
     const chatItem = quest.workItems.find(
-      (wi) => (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.sessionId,
+      (wi) => isChatWorkItemRoleGuard({ role: wi.role }) && wi.sessionId,
     );
     const resolvedSessionId = chatItem?.sessionId;
 

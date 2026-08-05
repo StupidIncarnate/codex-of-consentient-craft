@@ -47,6 +47,9 @@ export const questCommentBatchBroker = async ({
       return commentBatchSendResultContract.parse({
         outcome: 'sent',
         chatProcessId: parsed.data.chatProcessId,
+        ...(parsed.data.deliveredMessage === undefined
+          ? {}
+          : { deliveredMessage: parsed.data.deliveredMessage }),
       });
     }
     // A 200 with no chatProcessId is a broken server contract, not a success.

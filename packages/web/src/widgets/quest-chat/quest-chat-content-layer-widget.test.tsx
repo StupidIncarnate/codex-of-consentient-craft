@@ -135,6 +135,126 @@ describe('QuestChatContentLayerWidget', () => {
     });
   });
 
+  describe('quest type picker', () => {
+    it('VALID: {node mode, questId null} => renders the quest type picker on the create surface', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      const guildId = GuildIdStub({ value: '11111111-2222-3333-4444-555555555555' });
+
+      const { findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      const picker = await findByTestId('QUEST_TYPE_PICKER');
+
+      expect(
+        Array.from(picker.querySelectorAll('option')).map((option) => String(option.textContent)),
+      ).toStrictEqual(['Create Feature', 'Create Bug']);
+    });
+
+    it('VALID: {default selection, first message sent} => POSTs questType feature', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupNewQuest({
+        questId: QuestIdStub({ value: 'q-feature' }),
+        chatProcessId: ProcessIdStub({ value: 'proc-feature' }),
+      });
+      const guildId = GuildIdStub({ value: '22222222-3333-4444-5555-666666666666' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+      await proxy.typeMessage({ text: 'Add auth' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      await expect(proxy.getNewQuestRequestBodies()).resolves.toStrictEqual([
+        { message: 'Add auth', questType: 'feature' },
+      ]);
+    });
+
+    it('VALID: {Create Bug selected, first message sent} => POSTs questType bug-hunt', async () => {
+      // The selection has to reach the wire: the server derives the intake role (bughunt vs
+      // chaoswhisperer) and the whole PestEater pipeline from this field alone, so a picker that
+      // renders but never POSTs its value silently creates a feature quest.
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      proxy.setupNewQuest({
+        questId: QuestIdStub({ value: 'q-bug' }),
+        chatProcessId: ProcessIdStub({ value: 'proc-bug' }),
+      });
+      const guildId = GuildIdStub({ value: '33333333-4444-5555-6666-777777777777' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={null}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await screen.findByTestId('CHAT_PANEL');
+      await proxy.selectQuestType({ label: 'Create Bug' });
+      await proxy.typeMessage({ text: 'Rows do not render' });
+      await proxy.clickSend();
+
+      await waitFor(() => {
+        expect(proxy.getNewQuestRequestCount()).toBe(1);
+      });
+
+      await expect(proxy.getNewQuestRequestBodies()).resolves.toStrictEqual([
+        { message: 'Rows do not render', questType: 'bug-hunt' },
+      ]);
+    });
+
+    it('EMPTY: {questId set} => renders no quest type picker, since the type is already settled', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupMode({ mode: 'node' });
+      const guildId = GuildIdStub({ value: '44444444-5555-6666-7777-999999999999' });
+
+      const { queryByTestId, findByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-existing' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      await findByTestId('CHAT_PANEL');
+
+      expect(queryByTestId('QUEST_TYPE_PICKER')).toBe(null);
+    });
+  });
+
   describe('live workspace (questId set)', () => {
     it('VALID: {claude mode, no quest yet from binding} => renders new-chat-style awaiting surface', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();

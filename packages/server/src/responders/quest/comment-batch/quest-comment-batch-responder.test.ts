@@ -16,7 +16,7 @@ import { QuestCommentBatchResponderProxy } from './quest-comment-batch-responder
 
 describe('QuestCommentBatchResponder', () => {
   describe('successful batch', () => {
-    it('VALID: {batch whose anchors all resolve, chat work item with sessionId} => returns 200 with chatProcessId', async () => {
+    it('VALID: {batch whose anchors all resolve, chat work item with sessionId} => returns 200 with chatProcessId and the delivered markdown', async () => {
       const proxy = QuestCommentBatchResponderProxy();
       const questId = QuestIdStub();
       const sessionId = SessionIdStub({ value: 'session-comments' });
@@ -36,7 +36,12 @@ describe('QuestCommentBatchResponder', () => {
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/q/path' }),
       });
-      proxy.setupCommentBatch({ questId, chatProcessId });
+      proxy.setupCommentBatch({
+        questId,
+        chatProcessId,
+        deliveredMessage:
+          'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: This looks wrong',
+      });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -45,7 +50,11 @@ describe('QuestCommentBatchResponder', () => {
 
       expect(result).toStrictEqual({
         status: 200,
-        data: { chatProcessId: 'proc-comments' },
+        data: {
+          chatProcessId: 'proc-comments',
+          deliveredMessage:
+            'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: This looks wrong',
+        },
       });
     });
 
@@ -72,6 +81,8 @@ describe('QuestCommentBatchResponder', () => {
       proxy.setupCommentBatch({
         questId,
         chatProcessId: ProcessIdStub({ value: 'proc-comments' }),
+        deliveredMessage:
+          'Flow "Login Flow" / observable `redirects-to-dashboard` ("Redirects to dashboard") on node `start`\nUser Comment: This assertion is wrong',
       });
 
       await proxy.callResponder({

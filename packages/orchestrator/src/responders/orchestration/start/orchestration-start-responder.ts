@@ -21,6 +21,7 @@ import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import {
+  isChatWorkItemRoleGuard,
   isStartableQuestStatusGuard,
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
@@ -67,11 +68,11 @@ export const OrchestrationStartResponder = async ({
     (operation) => operation.locked && operation.role === 'ward',
   );
 
-  // Mark any non-complete chaoswhisperer/glyphsmith work items as complete. The spec phase is
-  // done by the time the user clicks "Begin Quest", but the work item status is never explicitly
-  // set to complete during the chat phase.
+  // Mark any non-complete chat work items (chaoswhisperer/glyphsmith/bughunt) as complete. The
+  // spec phase is done by the time the user clicks "Begin Quest", but the work item status is
+  // never explicitly set to complete during the chat phase.
   const promotedChatItems = quest.workItems.map((wi) =>
-    (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
+    isChatWorkItemRoleGuard({ role: wi.role }) &&
     !isTerminalWorkItemStatusGuard({ status: wi.status })
       ? workItemContract.parse({
           ...wi,
@@ -82,7 +83,7 @@ export const OrchestrationStartResponder = async ({
   );
 
   const chatItemIds = quest.workItems
-    .filter((wi) => wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith')
+    .filter((wi) => isChatWorkItemRoleGuard({ role: wi.role }))
     .map((wi) => wi.id);
 
   const now = isoTimestampContract.parse(new Date().toISOString());

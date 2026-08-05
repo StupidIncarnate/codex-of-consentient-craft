@@ -6,6 +6,7 @@ describe('executionFloorConfigStatics', () => {
       floors: [
         { name: 'HOMEBASE', role: 'chaoswhisperer', type: 'entrance' },
         { name: 'HOMEBASE', role: 'glyphsmith', type: 'entrance' },
+        { name: 'HOMEBASE', role: 'bughunt', type: 'entrance' },
         { name: 'FORGE', role: 'codeweaver', type: 'floor' },
         { name: 'EXTERMINATION', role: 'pesteater', type: 'floor' },
         { name: 'MINI BOSS', role: 'ward', wardPosition: 'first', type: 'floor' },

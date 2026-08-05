@@ -44,7 +44,7 @@ export const questTypeRegistryStatics = {
   },
   'bug-hunt': {
     intakeSlashCommandFileName: 'dumpster-hunt.md',
-    initialWorkItemRole: null,
+    initialWorkItemRole: 'bughunt',
     startImplementationOps: [
       {
         role: 'pesteater',

@@ -8,5 +8,7 @@ export const CommentBatchResponseStub = ({
 }: StubArgument<CommentBatchResponse> = {}): CommentBatchResponse =>
   commentBatchResponseContract.parse({
     chatProcessId: 'proc-12345',
+    deliveredMessage:
+      'Flow "Login Flow" / node `login-page` ("Login Page")\nUser Comment: This copy is wrong',
     ...props,
   });

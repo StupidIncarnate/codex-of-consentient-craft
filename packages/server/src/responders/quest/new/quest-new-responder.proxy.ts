@@ -13,6 +13,7 @@ export const QuestNewResponderProxy = (): {
     questId?: QuestId;
   }) => void;
   setupError: (params: { guildId: GuildId; message: string }) => void;
+  getLastStartChatArgs: (params: { guildId: GuildId }) => unknown;
   callResponder: typeof QuestNewResponder;
 } => {
   const adapterProxy = orchestratorStartChatAdapterProxy();
@@ -36,6 +37,11 @@ export const QuestNewResponderProxy = (): {
     setupError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
       adapterProxy.throws({ guildId, error: new Error(message) });
     },
+    // The raw first-argument object of the most recent startChat call — the only way to prove
+    // questType reached the orchestrator, since `returns` addresses on guildId alone and would
+    // match identically if the field were dropped.
+    getLastStartChatArgs: ({ guildId }: { guildId: GuildId }): unknown =>
+      adapterProxy.getLastCalledArgs({ guildId }),
     callResponder: QuestNewResponder,
   };
 };

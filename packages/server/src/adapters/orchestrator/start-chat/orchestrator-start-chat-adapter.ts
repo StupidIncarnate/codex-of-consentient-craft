@@ -7,15 +7,28 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildId,
+  ProcessId,
+  QuestId,
+  QuestType,
+  SessionId,
+} from '@dungeonmaster/shared/contracts';
 
 export const orchestratorStartChatAdapter = async ({
   guildId,
   message,
+  questType,
   sessionId,
 }: {
   guildId: GuildId;
   message: string;
+  questType?: QuestType;
   sessionId?: SessionId;
 }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> =>
-  StartOrchestrator.startChat({ guildId, message, ...(sessionId && { sessionId }) });
+  StartOrchestrator.startChat({
+    guildId,
+    message,
+    ...(questType && { questType }),
+    ...(sessionId && { sessionId }),
+  });

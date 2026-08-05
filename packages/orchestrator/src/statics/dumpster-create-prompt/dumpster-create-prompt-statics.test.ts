@@ -172,13 +172,21 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(foundSlice).toBe(needle);
   });
 
-  it('VALID: mint bootstrap => instructs opening the web UI spec view with chat hidden after quest creation', () => {
-    const needle = '?chat=hidden';
+  it('VALID: mint bootstrap => opens the spec view without suppressing the chat panel', () => {
+    const { mint } = dumpsterCreatePromptStatics.questBootstrap;
+
+    // The intake session's transcript streams into the browser chat panel (the quest-driven
+    // watcher tails spec-phase quests), so hiding the panel would throw away what the user
+    // opened the page to watch.
+    expect(mint.indexOf('chat=hidden')).toBe(-1);
+  });
+
+  it('VALID: mint bootstrap => instructs opening the plain spec view URL after quest creation', () => {
+    const needle = '`<baseUrl>/<guildSlug>/quest/<questId>`';
     const { mint } = dumpsterCreatePromptStatics.questBootstrap;
     const foundIndex = mint.indexOf(needle);
-    const foundSlice = mint.slice(foundIndex, foundIndex + needle.length);
 
-    expect(foundSlice).toBe(needle);
+    expect(mint.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
   });
 
   it('VALID: mint bootstrap => instructs calling get-server-config before opening the URL', () => {

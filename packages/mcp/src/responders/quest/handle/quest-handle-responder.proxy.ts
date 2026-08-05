@@ -7,9 +7,8 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
  */
 
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { orchestratorCreateQuestAdapterProxy } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.proxy';
-import { claudeCodeSessionResolveBrokerProxy } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker.proxy';
+import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
 import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
@@ -113,15 +112,13 @@ export const QuestHandleResponderProxy = (): {
   getLastModifyInput: (params: { questId: string }) => unknown;
   getLastGetPlanningNotesInput: (params: { questId: string }) => unknown;
 } => {
-  // create-quest resolves sessionId using processCwdAdapter + claudeCodeSessionResolveBroker;
-  // initialize these proxies so the mocks are registered for every test.
-  processCwdAdapterProxy();
-  const sessionResolveProxy = claudeCodeSessionResolveBrokerProxy();
-  // Default: session dir is missing so resolve returns undefined (session unstamped). Neither
-  // processCwdAdapterProxy nor the homedir adapter it composes is staged elsewhere in this
-  // proxy, so the broker's real calls land on their unstaged defaults ('/default/cwd',
-  // '/home/default') — this address must match those exactly.
-  sessionResolveProxy.setupSessionsDirMissing({
+  // create-quest resolves the caller's sessionId through this layer; initialize its proxy so the
+  // mocks are registered for every test.
+  const callerSessionProxy = ResolveCallerSessionLayerResponderProxy();
+  // Default: sessions dir is missing so BOTH strategies return undefined (session unstamped).
+  // Nothing in this proxy stages processCwdAdapter or the homedir adapter, so the real calls land
+  // on their unstaged defaults ('/default/cwd', '/home/default') — this address must match those.
+  callerSessionProxy.setupSessionsMissing({
     homedir: '/home/default',
     projectDir: '/default/cwd',
   });
@@ -289,10 +286,13 @@ export const QuestHandleResponderProxy = (): {
     }: {
       entries: readonly { name: string; mtimeMs: number }[];
     }): void => {
-      sessionResolveProxy.setupSessionsDir({
+      callerSessionProxy.setupSessions({
         homedir: '/home/default',
         projectDir: '/default/cwd',
-        entries,
+        // create-quest tests exercise the newest-mtime fallback: they call the tool without
+        // `meta`, so the deterministic toolUseId scan is skipped entirely.
+        sessions: [],
+        mtimeEntries: entries,
       });
     },
 

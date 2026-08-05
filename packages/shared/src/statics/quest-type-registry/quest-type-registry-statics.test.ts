@@ -1,3 +1,4 @@
+import { workItemRoleStatics } from '../work-item-role/work-item-role-statics';
 import { questTypeRegistryStatics } from './quest-type-registry-statics';
 
 describe('questTypeRegistryStatics', () => {
@@ -24,7 +25,7 @@ describe('questTypeRegistryStatics', () => {
       },
       'bug-hunt': {
         intakeSlashCommandFileName: 'dumpster-hunt.md',
-        initialWorkItemRole: null,
+        initialWorkItemRole: 'bughunt',
         startImplementationOps: [
           {
             role: 'pesteater',
@@ -45,7 +46,19 @@ describe('questTypeRegistryStatics', () => {
     expect(questTypeRegistryStatics.feature.initialWorkItemRole).toBe('chaoswhisperer');
   });
 
-  it('EMPTY: bug-hunt initialWorkItemRole => null (no create-time seed)', () => {
-    expect(questTypeRegistryStatics['bug-hunt'].initialWorkItemRole).toBe(null);
+  it('VALID: bug-hunt initialWorkItemRole => bughunt seed at create', () => {
+    expect(questTypeRegistryStatics['bug-hunt'].initialWorkItemRole).toBe('bughunt');
+  });
+
+  it('VALID: every intake role => is a chat role, so its session drives the chat panel', () => {
+    const intakeRoles = Object.values(questTypeRegistryStatics).map(
+      (entry) => entry.initialWorkItemRole,
+    );
+
+    const nonChatIntakeRoles = intakeRoles.filter(
+      (role) => !workItemRoleStatics.chat.some((chatRole) => chatRole === role),
+    );
+
+    expect(nonChatIntakeRoles).toStrictEqual([]);
   });
 });

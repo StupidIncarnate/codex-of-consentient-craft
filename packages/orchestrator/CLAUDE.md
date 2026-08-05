@@ -262,9 +262,18 @@ The `quest-monitor-jsonl-watcher-broker` owns the lifecycle of both tails it sta
 each active parent session. The watcher reactor lives in
 `packages/server/src/responders/quest-driven-watchers/bootstrap/` on the HTTP server. It
 maintains a `Map<SessionId, WatcherHandle>` keyed on the union of `workItems[].sessionId`
-across all active quests, reconciles on every quest-modified outbox event (and via a 3s
+across every NON-TERMINAL quest, reconciles on every quest-modified outbox event (and via a 3s
 fallback poll for direct quest.json writes), and starts/stops `questMonitorWatcherStartBroker`
 instances to match. Multiple watcher instances coexist — one per active parent session.
+
+**Non-terminal, not in-progress.** The real target test is "an ACTIVE work item carrying a
+`sessionId`"; quest status is only a cheap pre-filter that skips loading `quest.json` for
+quests that can no longer hold a live session. So the SPEC PHASE is in scope: a quest sitting
+at `created` / `explore_flows` / `review_flows` has an intake work item (chaoswhisperer,
+glyphsmith, or bughunt) carrying the chat session's id, and its tail runs — which is what
+streams an intake conversation into the browser chat panel while the user is still having it
+in their terminal. Narrowing the pre-filter to `approved`/`design_approved`/`in_progress`
+starts no watcher for those quests and the panel stays empty for the whole conversation.
 
 - `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
   Pass `'beginning'` for sub-agent tails — they must drain the JSONL Claude already wrote
@@ -415,7 +424,8 @@ one work item over its life.
   signal, re-entrant scan, restart) can ever mint a second work item for one operation.
 - **Seed** (`questBuildRelayGraphBroker`, at Start): appends the quest type's `startImplementationOps` + `relayTail`
   (from `questTypeRegistryStatics`) as pending locked operation items, force-completes any leftover
-  chaoswhisperer/glyphsmith intake items, and creates the first work item — all in one `questOperationsUpdateBroker`
+  chat-role intake items (`isChatWorkItemRoleGuard` — chaoswhisperer / glyphsmith / bughunt), and creates the first
+  work item — all in one `questOperationsUpdateBroker`
   persist. Most `relayTail` entries map 1:1 to an operation item. **`flowrider` gets ONE whole-quest item** carrying
   every quest flow id in `flowIds` (empty on a flow-less quest) — authoring test suites is parallel-safe, so one
   session fans out internally and holds one pt chain. **`siegemaster` fans out to ONE ITEM PER FLOW**, each carrying a
@@ -429,9 +439,12 @@ one work item over its life.
   returns a `NextStep` (`spawn-agents` / `run-ward` / `idle`) to `/dumpster-launch`, which Task()s the agent or calls
   the `run-ward` MCP tool.
 - **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND `agentId`
-  (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat roles
-  (ChaosWhisperer, Glyphsmith), `sessionId` is captured from the spawned Claude's first stream-json init line via
-  `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under `/dumpster-launch`, both
+  (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl` file). For chat roles —
+  ChaosWhisperer, Glyphsmith, BugHunt, matched by the shared `isChatWorkItemRoleGuard`
+  (`@dungeonmaster/shared/guards`, backed by `workItemRoleStatics.chat`), which is the SINGLE predicate for "is this
+  work item the user's own conversation?" — `sessionId` is captured from the spawned Claude's first stream-json init
+  line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under `/dumpster-launch`,
+  both
   fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the responder reads
   `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP call (NOT the parent Task()
   dispatch id) — and scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an
@@ -541,12 +554,16 @@ role (`initialWorkItemRole`), Start-Quest relay seed (`startImplementationOps` +
 `roles` it uses. `orchestration-start-responder` seeds every type through the SAME `questBuildRelayGraphBroker`, which
 reads the registry entry for `quest.questType`:
 
-- **`feature`** (`/dumpster-create`): `startImplementationOps` is empty — ChaosWhisperer authors the `codeweaver`
-  operation items at spec time. `relayTail` = `ward(changed) → flowrider → siegemaster → blightwarden →
-  ward(full)` — four fixed items plus one `siegemaster` item per quest flow (or one, on a flow-less quest); the
-  `flowrider` item carries every quest flow id (see "Operations Ledger & Work Items" above).
-- **`bug-hunt`** (`/dumpster-hunt`): `startImplementationOps` = a single `pesteater` item (orchestrator-seeded, no
-  intake authoring); `relayTail` = `ward(changed) → blightwarden → ward(full)` (no flowrider/siegemaster).
+- **`feature`** (`/dumpster-create`): `initialWorkItemRole` = `chaoswhisperer`. `startImplementationOps` is empty —
+  ChaosWhisperer authors the `codeweaver` operation items at spec time. `relayTail` = `ward(changed) → flowrider →
+  siegemaster → blightwarden → ward(full)` — four fixed items plus one `siegemaster` item per quest flow (or one, on
+  a flow-less quest); the `flowrider` item carries every quest flow id (see "Operations Ledger & Work Items" above).
+- **`bug-hunt`** (`/dumpster-hunt`): `initialWorkItemRole` = `bughunt`, so `create-quest` seeds a `bughunt` intake
+  operation item + work item exactly as `feature` seeds a `chaoswhisperer` one. That work item is where the intake
+  session's `sessionId` lands, which is what gives the browser chat panel a session to hook onto during the hunt.
+  `bughunt` is a CHAT role (`workItemRoleStatics.chat`) and is DISTINCT from `pesteater`, the implementation op Start
+  Quest seeds. `startImplementationOps` = a single `pesteater` item (orchestrator-seeded, not intake-authored);
+  `relayTail` = `ward(changed) → blightwarden → ward(full)` (no flowrider/siegemaster).
   Bug-hunt reuses the flow/observable spec lifecycle — the bug is captured as two flows (the actual-state reproduction
   path ending at the symptom, and the expected-state path ending at the correct behavior), with the expected behavior
   an observable PestEater turns into a failing test.
@@ -567,7 +584,9 @@ the quest. Quest status is then derived from work-item + operation state.
 The relay role set per quest type is `questTypeRegistryStatics[type].roles`. The `agentRoleContract` enumerates the
 Claude-dispatched agent roles (codeweaver, spiritmender, flowrider, siegemaster, blightwarden, the two
 `blightwarden-*-minion`s, pesteater); the broader `workItemRoleContract` (shared) adds the command/interactive roles
-(`ward`, `chaoswhisperer`, `glyphsmith`) an operation item may carry.
+(`ward`, `chaoswhisperer`, `glyphsmith`, `bughunt`) an operation item may carry. The three interactive ones are the
+`workItemRoleStatics.chat` tuple, and `isChatWorkItemRoleGuard` is the one predicate every call site uses to match
+them — adding a chat role means adding it to that tuple, not to another `||` chain.
 
 | Role           | Dispatched By                                                      | Operation outcome                   | Ledger writes (modify-quest)                                |
 |----------------|--------------------------------------------------------------------|-------------------------------------|-------------------------------------------------------------|

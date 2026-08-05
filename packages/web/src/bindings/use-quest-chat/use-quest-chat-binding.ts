@@ -34,8 +34,12 @@ import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
+import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
+import { commentBatchSendResultContract } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
+import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
+import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
 import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
 import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
@@ -61,6 +65,9 @@ export const useQuestChatBinding = ({
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
   sendMessage: (params: { message: UserInput }) => void;
+  sendCommentBatch: (params: {
+    comments: readonly CommentQueueEntry[];
+  }) => Promise<CommentBatchSendResult>;
   submitClarifyAnswers: (params: {
     answers: { header: string; label: string }[];
     questions: AskUserQuestionItem[];
@@ -310,6 +317,52 @@ export const useQuestChatBinding = ({
     [quest],
   );
 
+  // Comment-batch send lives HERE rather than in the queue-bar widget because the panel entry is
+  // this binding's job: Claude's --resume stream never echoes the prompt back, so a widget that
+  // POSTs directly leaves the user's own message invisible until a reload replays the session from
+  // disk. The synthetic entry uses the server's own rendered markdown, so it reads identically
+  // before and after that reload.
+  const sendCommentBatch = useCallback(
+    async ({
+      comments,
+    }: {
+      comments: readonly CommentQueueEntry[];
+    }): Promise<CommentBatchSendResult> => {
+      const activeQuestId = questIdRef.current;
+      if (!activeQuestId) {
+        return commentBatchSendResultContract.parse({
+          outcome: 'failed',
+          error: 'No active quest to send comments to',
+        });
+      }
+
+      const result = await questCommentBatchBroker({ questId: activeQuestId, comments });
+
+      // Only a delivered batch becomes a chat entry. A stale (409) or failed batch reached no
+      // agent, so rendering it would claim feedback was sent that never was.
+      if (result.outcome === 'sent' && result.deliveredMessage !== undefined) {
+        const userEntry = chatEntryContract.parse({
+          role: 'user',
+          content: result.deliveredMessage,
+          uuid: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
+        });
+        setEntriesBySessionInternal((prev) =>
+          upsertChatEntriesByUuidTransformer({
+            prev,
+            key: SYNTHETIC_SESSION_KEY,
+            newEntries: [userEntry],
+          }),
+        );
+        setIsStreaming(true);
+        setPendingClarification(null);
+      }
+
+      return result;
+    },
+    [],
+  );
+
   const submitClarifyAnswers = useCallback(
     ({
       answers,
@@ -381,6 +434,7 @@ export const useQuestChatBinding = ({
     pendingClarification,
     isStreaming,
     sendMessage,
+    sendCommentBatch,
     submitClarifyAnswers,
     stopChat,
   };

@@ -11,11 +11,15 @@ import { orchestratorCommentBatchAdapterProxy } from './orchestrator-comment-bat
 
 describe('orchestratorCommentBatchAdapter', () => {
   describe('successful delivery', () => {
-    it('VALID: {guildId, sessionId, questId, comments} => returns chatProcessId', async () => {
+    it('VALID: {guildId, sessionId, questId, comments} => returns chatProcessId and the delivered markdown', async () => {
       const proxy = orchestratorCommentBatchAdapterProxy();
       const questId = QuestIdStub();
       const chatProcessId = ProcessIdStub({ value: 'comment-process-123' });
-      proxy.returns({ questId, chatProcessId });
+      proxy.returns({
+        questId,
+        chatProcessId,
+        message: 'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: This looks wrong',
+      });
 
       const result = await orchestratorCommentBatchAdapter({
         guildId: GuildIdStub(),
@@ -24,7 +28,10 @@ describe('orchestratorCommentBatchAdapter', () => {
         comments: [CommentBatchEntryStub()],
       });
 
-      expect(result).toStrictEqual({ chatProcessId: 'comment-process-123' });
+      expect(result).toStrictEqual({
+        chatProcessId: 'comment-process-123',
+        message: 'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: This looks wrong',
+      });
     });
 
     it('VALID: {comments} => forwards the batch verbatim to the orchestrator', async () => {
@@ -33,7 +40,11 @@ describe('orchestratorCommentBatchAdapter', () => {
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub();
       const comment = CommentBatchEntryStub({ observableId: 'login-redirects-to-dashboard' });
-      proxy.returns({ questId, chatProcessId: ProcessIdStub({ value: 'comment-process-123' }) });
+      proxy.returns({
+        questId,
+        chatProcessId: ProcessIdStub({ value: 'comment-process-123' }),
+        message: 'Flow "Login Flow" / node `start` ("Start Page")\nUser Comment: This looks wrong',
+      });
 
       await orchestratorCommentBatchAdapter({
         guildId,

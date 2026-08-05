@@ -48,7 +48,18 @@ export const slashCommandsStatics = {
   },
   dumpsterHunt: {
     fileName: 'dumpster-hunt.md',
-    body: `${DUMPSTER_HUNT_FRONTMATTER}\n\n${dumpsterHuntPromptStatics.prompt.template}\n`,
+    // Same substitution as dumpsterCreate: the slash command runs in the user's interactive terminal
+    // with no pre-created quest, so BugHunt mints its own (the `mint` bootstrap) and uses the native
+    // AskUserQuestion tool (the `native` clarify instruction).
+    body: `${DUMPSTER_HUNT_FRONTMATTER}\n\n${dumpsterHuntPromptStatics.prompt.template
+      .replace(
+        dumpsterHuntPromptStatics.prompt.placeholders.questBootstrap,
+        dumpsterHuntPromptStatics.questBootstrap.mint,
+      )
+      .replace(
+        dumpsterHuntPromptStatics.prompt.placeholders.clarifyInstruction,
+        dumpsterHuntPromptStatics.clarifyInstructions.native,
+      )}\n`,
   },
   dumpsterLaunch: {
     fileName: 'dumpster-launch.md',

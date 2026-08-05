@@ -15,7 +15,7 @@ export const addQuestResultContract = z
     questId: z.string().brand<'QuestId'>().optional(),
     questFolder: z.string().brand<'QuestFolder'>().optional(),
     filePath: z.string().brand<'FilePath'>().optional(),
-    chaoswhispererWorkItemId: questWorkItemIdContract.optional(),
+    intakeWorkItemId: questWorkItemIdContract.optional(),
     error: z.string().brand<'ErrorMessage'>().optional(),
   })
   .brand<'AddQuestResult'>();

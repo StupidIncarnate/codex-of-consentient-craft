@@ -41,7 +41,7 @@ chat-output   { chatProcessId, entries: ChatEntry[] }
 chat-complete { chatProcessId, exitCode, sessionId }
 ```
 
-The binding (`useSessionChatBinding`) appends `entries` directly to React state — there's
+The binding (`useQuestChatBinding`) appends `entries` directly to React state — there's
 no transformation layer between WS and the renderer.
 
 **Sub-agent correlation arrives pre-converged.** The orchestrator stamps the Task's
@@ -59,6 +59,40 @@ Task's `toolUseId`. The Task's `tool_result` entry is pinned to its chain by mat
 either `e.agentId === task.agentId` or `e.toolName === task.agentId` — the latter path
 covers the completion tool_result line where no parent_tool_use_id exists to stamp
 agentId via the convergence.
+
+## Every user-message injection goes through `useQuestChatBinding`
+
+Any affordance that sends text to a running agent — the chat composer (`sendMessage`),
+clarification answers (`submitClarifyAnswers`), the spec panel's queued-comment batch
+(`sendCommentBatch`), and whatever gets added next — MUST call through
+`useQuestChatBinding`. A widget must never call a send broker directly.
+
+The binding does three things a bare broker call does not:
+
+1. **Appends a synthetic user entry** to the chat panel immediately, so the message the
+   user just sent is visible without a browser refresh.
+2. **Owns the `questId`-scoped subscription** the reply arrives on. There is one
+   `chatOutput$` subscription per bound quest, filtered by
+   `p.questId === questIdRef.current || p.questId === undefined` (the second arm carries the
+   `/dumpster-create` monitor-session path, which emits untagged). The send actions discard
+   the broker's result entirely — routing is by quest, not by a per-send handle.
+3. **Arms the running indicator**, so the control reads STOP while the turn is in flight
+   rather than PLAY.
+
+Widget → broker directly produces a silent UI: the server persists and dispatches the turn
+correctly, but the panel shows nothing until a hard refresh, and the play button implies
+idle while the LLM is working.
+
+**Why the comment batch is on the binding too.** Claude's `--resume` stream never echoes the
+prompt back, so a queue bar that called `questCommentBatchBroker` directly would leave the
+batch it just sent invisible until a reload replays the session from disk. The server echoes
+the markdown it actually delivered as `deliveredMessage`, and `sendCommentBatch` renders that
+verbatim as the synthetic entry — so the optimistic entry and the replayed one match.
+
+**Adding a new injection point:** put the send action on `useQuestChatBinding` next to
+`sendMessage` / `submitClarifyAnswers` / `sendCommentBatch`, and call that from the widget.
+The broker still owns the HTTP round-trip; the binding owns the panel entry, the
+quest-scoped subscription, and the running state.
 
 ### If you need a new field or variant
 

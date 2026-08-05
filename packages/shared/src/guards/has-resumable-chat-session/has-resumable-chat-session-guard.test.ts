@@ -40,6 +40,16 @@ describe('hasResumableChatSessionGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {workItems: [bughunt with sessionId]} => returns true', () => {
+      const quest = QuestStub({
+        workItems: [WorkItemStub({ role: 'bughunt', sessionId: SessionIdStub() })],
+      });
+
+      const result = hasResumableChatSessionGuard({ quest });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('chat roles without a matching sessionId', () => {

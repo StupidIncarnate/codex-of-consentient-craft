@@ -233,6 +233,7 @@ export const sessionHarness = ({
   // CLI has already exited. Tests use this to verify the streaming sub-agent tail keeps
   // delivering entries past parent CLI exit.
   appendSubagentLine: (params: { sessionId: string; agentId: string; line: string }) => void;
+  appendMainSessionLine: (params: { sessionId: string; line: string }) => void;
   createSessionWithRedactedThinking: (params: { sessionId: string; assistantText: string }) => void;
   cleanSessionFiles: () => void;
   cleanSessionDirectory: () => void;
@@ -1000,6 +1001,21 @@ export const sessionHarness = ({
     fs.appendFileSync(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
   };
 
+  const appendMainSessionLine = ({
+    sessionId,
+    line,
+  }: {
+    sessionId: string;
+    line: string;
+  }): void => {
+    const jsonlDir = getJsonlDir();
+    fs.mkdirSync(jsonlDir, { recursive: true });
+    // Appends to the PARENT session's own `<sessionId>.jsonl`, which the quest-driven watcher
+    // tails from `end` — so only lines written AFTER the watcher starts emit. That is exactly the
+    // shape of a live intake conversation: the agent writes a turn, the browser panel renders it.
+    fs.appendFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${line}\n`);
+  };
+
   const createSessionWithRedactedThinking = ({
     sessionId,
     assistantText,
@@ -1098,6 +1114,7 @@ export const sessionHarness = ({
     createSubagentTailOnly,
     createSubagentTailMultiEntry,
     appendSubagentLine,
+    appendMainSessionLine,
     createBackgroundAgentSession,
     createSessionWithRedactedThinking,
     cleanSessionFiles,

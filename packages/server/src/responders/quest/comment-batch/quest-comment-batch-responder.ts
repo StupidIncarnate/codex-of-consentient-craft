@@ -7,6 +7,8 @@
  * // or { status: 409, data: { error, staleAnchors } } naming every anchor that no longer resolves
  */
 
+import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
+
 import { orchestratorCommentBatchAdapter } from '../../../adapters/orchestrator/comment-batch/orchestrator-comment-batch-adapter';
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
@@ -71,7 +73,7 @@ export const QuestCommentBatchResponder = async ({
     const quest = await orchestratorLoadQuestAdapter({ questId });
 
     const chatItem = quest.workItems.find(
-      (wi) => (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.sessionId,
+      (wi) => isChatWorkItemRoleGuard({ role: wi.role }) && wi.sessionId,
     );
     const resolvedSessionId = chatItem?.sessionId;
 
@@ -96,7 +98,7 @@ export const QuestCommentBatchResponder = async ({
 
     const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
 
-    const { chatProcessId } = await orchestratorCommentBatchAdapter({
+    const { chatProcessId, message } = await orchestratorCommentBatchAdapter({
       guildId,
       sessionId: resolvedSessionId,
       questId,
@@ -105,7 +107,10 @@ export const QuestCommentBatchResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: commentBatchResponseContract.parse({ chatProcessId }),
+      // `deliveredMessage` is the markdown the agent actually received. The browser renders it as
+      // the user's own chat entry; Claude's --resume stream never echoes the prompt, so without
+      // this the sent batch is invisible until a reload replays the session from disk.
+      data: commentBatchResponseContract.parse({ chatProcessId, deliveredMessage: message }),
     });
   } catch (error: unknown) {
     // Persist gates delivery: the orchestrator flow throws when the quest write fails, so a 500

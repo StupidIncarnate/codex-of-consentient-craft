@@ -50,6 +50,7 @@ import type {
 
 import type { DispatchPlayResponse } from '../contracts/dispatch-play-response/dispatch-play-response-contract';
 import type { NextStep } from '../contracts/next-step/next-step-contract';
+import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 import type { QuestRunWardResult } from '../contracts/quest-run-ward-result/quest-run-ward-result-contract';
 
@@ -221,13 +222,20 @@ export const StartOrchestrator = {
   startChat: async ({
     guildId,
     message,
+    questType,
     sessionId,
   }: {
     guildId: GuildId;
     message: string;
+    questType?: QuestType;
     sessionId?: SessionId;
   }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> =>
-    ChatStartFlow({ guildId, message, ...(sessionId && { sessionId }) }),
+    ChatStartFlow({
+      guildId,
+      message,
+      ...(questType && { questType }),
+      ...(sessionId && { sessionId }),
+    }),
 
   clarifyAnswer: async ({
     guildId,
@@ -254,7 +262,7 @@ export const StartOrchestrator = {
     sessionId: SessionId;
     questId: QuestId;
     comments: CommentBatchEntry[];
-  }): Promise<{ chatProcessId: ProcessId }> =>
+  }): Promise<{ chatProcessId: ProcessId; message: PromptText }> =>
     CommentBatchFlow({ guildId, sessionId, questId, comments }),
 
   stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>

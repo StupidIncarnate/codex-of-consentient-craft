@@ -7,7 +7,15 @@ import type { EndpointControl } from './endpoint-control-contract';
 export const EndpointControlStub = ({
   ...props
 }: StubArgument<EndpointControl> = {}): EndpointControl => {
-  const { resolves, responds, respondRaw, networkError, getRequestCount, ...dataProps } = props;
+  const {
+    resolves,
+    responds,
+    respondRaw,
+    networkError,
+    getRequestCount,
+    getRequestBodies,
+    ...dataProps
+  } = props;
 
   return {
     ...endpointControlContract.parse({
@@ -20,5 +28,8 @@ export const EndpointControlStub = ({
     getRequestCount:
       getRequestCount ??
       ((): ReturnType<EndpointControl['getRequestCount']> => requestCountContract.parse(0)),
+    getRequestBodies:
+      getRequestBodies ??
+      (async (): ReturnType<EndpointControl['getRequestBodies']> => Promise.resolve([])),
   };
 };

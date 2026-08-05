@@ -14,6 +14,12 @@ type ResponderResult = Awaited<ReturnType<typeof ChatStartResponder>>;
 export const ChatStartFlow = async ({
   guildId,
   message,
+  questType,
   sessionId,
 }: ResponderParams): Promise<ResponderResult> =>
-  ChatStartResponder({ guildId, message, ...(sessionId && { sessionId }) });
+  ChatStartResponder({
+    guildId,
+    message,
+    ...(questType && { questType }),
+    ...(sessionId && { sessionId }),
+  });

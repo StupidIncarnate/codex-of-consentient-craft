@@ -17,6 +17,7 @@ import type {
   GuildId,
   QuestId,
   QuestStatus,
+  QuestType,
   UrlSlug,
   UserInput,
 } from '@dungeonmaster/shared/contracts';
@@ -40,13 +41,17 @@ import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
+import { dropdownOptionContract } from '../../contracts/dropdown-option/dropdown-option-contract';
+import type { DropdownOption } from '../../contracts/dropdown-option/dropdown-option-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { questTypeOptionsStatics } from '../../statics/quest-type-options/quest-type-options-statics';
 import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
+import { FormDropdownWidget } from '../form-dropdown/form-dropdown-widget';
 import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
 import { QuestLoadErrorWidget } from '../quest-load-error/quest-load-error-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
@@ -100,6 +105,7 @@ export const QuestChatContentLayerWidget = ({
     isStreaming,
     pendingClarification,
     sendMessage,
+    sendCommentBatch,
     submitClarifyAnswers,
     stopChat,
   } = useQuestChatBinding({ questId });
@@ -110,6 +116,15 @@ export const QuestChatContentLayerWidget = ({
   // covers the gap from "user clicks send on the new-chat surface" until the binding shows activity.
   const [localEntries, setLocalEntries] = useState<ChatEntry[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Which pipeline the first message creates. Only read on the no-questId create path; once the
+  // quest exists its type is settled on disk and the dropdown is gone.
+  const [questTypeLabel, setQuestTypeLabel] = useState<DropdownOption>(
+    dropdownOptionContract.parse(questTypeOptionsStatics.defaultLabel),
+  );
+  const selectedQuestType: QuestType =
+    questTypeOptionsStatics.options.find((option) => option.label === String(questTypeLabel))
+      ?.questType ?? 'feature';
 
   useEffect(() => {
     if (submitting && (isStreaming || entriesBySession.size > 0)) {
@@ -153,7 +168,7 @@ export const QuestChatContentLayerWidget = ({
       });
       setLocalEntries((prev) => [...prev, userEntry]);
       setSubmitting(true);
-      questNewBroker({ guildId, message })
+      questNewBroker({ guildId, message, questType: selectedQuestType })
         .then(({ questId: newQuestId }) => {
           const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
           if (result instanceof Promise) {
@@ -175,7 +190,7 @@ export const QuestChatContentLayerWidget = ({
           setLocalEntries((prev) => [...prev, errorEntry]);
         });
     },
-    [questId, sendMessage, submitting, guildId, guildSlug, navigate],
+    [questId, sendMessage, submitting, guildId, guildSlug, navigate, selectedQuestType],
   );
 
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
@@ -282,6 +297,31 @@ export const QuestChatContentLayerWidget = ({
         {chatHidden ? null : (
           <>
             <Box style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              {/* Only on the create surface: once questId is set the quest's type is settled on
+                  disk, and offering a control that cannot change it would be a lie. */}
+              {questId === null ? (
+                <Box
+                  data-testid="QUEST_TYPE_PICKER"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 12px',
+                    borderBottom: `1px solid ${colors.border}`,
+                  }}
+                >
+                  <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
+                    QUEST TYPE
+                  </Text>
+                  <FormDropdownWidget
+                    value={questTypeLabel}
+                    options={questTypeOptionsStatics.options.map((option) =>
+                      dropdownOptionContract.parse(option.label),
+                    )}
+                    onChange={setQuestTypeLabel}
+                  />
+                </Box>
+              ) : null}
               <ChatPanelWidget
                 entries={flattenedEntries}
                 isStreaming={submitting || isStreaming}
@@ -367,6 +407,7 @@ export const QuestChatContentLayerWidget = ({
   const specPanel = (
     <QuestSpecPanelWidget
       quest={quest}
+      onSendComments={sendCommentBatch}
       onModify={({ modifications, nextStatus }): void => {
         questModifyBroker({ questId: quest.id, modifications })
           .then(() => {

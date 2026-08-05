@@ -28,11 +28,22 @@ export const EndpointMockListenResponder = ({
   const { http, HttpResponse } = mswHttpAdapter();
   // MSW handlers need absolute URLs in Node/jsdom - resolve relative paths against localhost
   const handlerUrl = url.startsWith('/') ? `http://localhost${url}` : url;
-  const requestLog: true[] = [];
+  // One entry per received request, holding its parsed JSON body. Every handler CLONES the request
+  // before reading: MSW hands over a single-use body stream, and consuming it here would leave
+  // nothing for the response path. A body that is not JSON (respondRaw endpoints, bodyless GETs)
+  // is recorded AS its parse error rather than dropped, so nothing is silently swallowed and a
+  // caller inspecting the log can see why a body is missing. The capture is repeated per handler
+  // rather than factored out because nested function declarations are forbidden here.
+  const requestLog: Promise<unknown>[] = [];
 
   server.use(
-    http[method](handlerUrl, () => {
-      requestLog.push(true);
+    http[method](handlerUrl, ({ request }) => {
+      requestLog.push(
+        request
+          .clone()
+          .json()
+          .catch((error: unknown) => ({ bodyParseError: String(error) })),
+      );
       return HttpResponse.json(
         {
           error: `StartEndpointMock: No response configured for ${method.toUpperCase()} ${handlerUrl}`,
@@ -45,8 +56,13 @@ export const EndpointMockListenResponder = ({
   return {
     resolves: ({ data }: { data: unknown }): void => {
       server.use(
-        http[method](handlerUrl, () => {
-          requestLog.push(true);
+        http[method](handlerUrl, ({ request }) => {
+          requestLog.push(
+            request
+              .clone()
+              .json()
+              .catch((error: unknown) => ({ bodyParseError: String(error) })),
+          );
           return HttpResponse.json(data as never);
         }),
       );
@@ -54,8 +70,13 @@ export const EndpointMockListenResponder = ({
 
     responds: ({ status, body }: { status: number; body?: unknown }): void => {
       server.use(
-        http[method](handlerUrl, () => {
-          requestLog.push(true);
+        http[method](handlerUrl, ({ request }) => {
+          requestLog.push(
+            request
+              .clone()
+              .json()
+              .catch((error: unknown) => ({ bodyParseError: String(error) })),
+          );
           return body === undefined
             ? new HttpResponse(null, { status })
             : HttpResponse.json(body as never, { status });
@@ -73,8 +94,13 @@ export const EndpointMockListenResponder = ({
       headers: Record<PropertyKey, string>;
     }): void => {
       server.use(
-        http[method](handlerUrl, () => {
-          requestLog.push(true);
+        http[method](handlerUrl, ({ request }) => {
+          requestLog.push(
+            request
+              .clone()
+              .json()
+              .catch((error: unknown) => ({ bodyParseError: String(error) })),
+          );
           return new HttpResponse(body, { status, headers });
         }),
       );
@@ -82,13 +108,20 @@ export const EndpointMockListenResponder = ({
 
     networkError: (): void => {
       server.use(
-        http[method](handlerUrl, () => {
-          requestLog.push(true);
+        http[method](handlerUrl, ({ request }) => {
+          requestLog.push(
+            request
+              .clone()
+              .json()
+              .catch((error: unknown) => ({ bodyParseError: String(error) })),
+          );
           return HttpResponse.error();
         }),
       );
     },
 
     getRequestCount: (): RequestCount => requestCountContract.parse(requestLog.length),
+
+    getRequestBodies: async (): Promise<unknown[]> => Promise.all(requestLog),
   };
 };

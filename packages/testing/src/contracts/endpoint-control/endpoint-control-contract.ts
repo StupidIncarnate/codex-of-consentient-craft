@@ -23,4 +23,8 @@ export type EndpointControl = z.infer<typeof endpointControlContract> & {
   }) => void;
   networkError: () => void;
   getRequestCount: () => RequestCount;
+  // Parsed JSON bodies of the requests this endpoint received, oldest first. Lets a test assert
+  // WHAT the frontend sent, not merely that it sent something — a request-count-only assertion
+  // passes just as happily when a field the user selected never reached the wire.
+  getRequestBodies: () => Promise<unknown[]>;
 };

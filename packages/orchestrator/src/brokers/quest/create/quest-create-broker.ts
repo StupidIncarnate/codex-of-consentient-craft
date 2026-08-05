@@ -6,13 +6,14 @@
  * // Returns: { questFilePath, questFolderPath }; quest.json is on disk under guild/quests/{questId}/quest.json at status 'created'.
  *
  * Optionally seed work items in the same persist so callers (like questUserAddBroker)
- * don't need a second persist+outbox event for the initial chaoswhisperer item:
- *   await questCreateBroker({ questId, guildId, input, initialWorkItems: [chaosItem] });
+ * don't need a second persist+outbox event for the initial intake item:
+ *   await questCreateBroker({ questId, guildId, input, initialWorkItems: [intakeItem] });
  *
- * PLAN OPERATION ITEM: for quest types with an intake agent (feature's chaoswhisperer), the
- * create seeds ONE plan operation item ({ role, text: 'Author spec + implementation plan',
- * status: in_progress, locked }) and stitches its operations/<id> ref into the caller-supplied
- * intake work item — so EVERY work item, from the first, carries exactly one operations link.
+ * PLAN OPERATION ITEM: every quest type names an intake agent in questTypeRegistryStatics
+ * (feature's chaoswhisperer, bug-hunt's bughunt), so the create seeds ONE plan operation item
+ * ({ role, text: 'Author spec + implementation plan', status: in_progress, locked }) and stitches
+ * its operations/<id> ref into the caller-supplied intake work item — so EVERY work item, from the
+ * first, carries exactly one operations link.
  *
  * WHEN-TO-USE: Anywhere a quest file needs to be produced at status 'created' (user-initiated add, hydrator walk starting point).
  * WHEN-NOT-TO-USE: To modify an existing quest — use questModifyBroker.
@@ -61,21 +62,18 @@ export const questCreateBroker = async ({
 
   const { initialWorkItemRole } = questTypeRegistryStatics[input.questType ?? 'feature'];
 
-  const planOperationItem: OperationItem | null =
-    initialWorkItemRole === null
-      ? null
-      : operationItemContract.parse({
-          id: crypto.randomUUID(),
-          role: initialWorkItemRole,
-          text: 'Author spec + implementation plan',
-          status: 'in_progress',
-          locked: true,
-        });
+  const planOperationItem: OperationItem = operationItemContract.parse({
+    id: crypto.randomUUID(),
+    role: initialWorkItemRole,
+    text: 'Author spec + implementation plan',
+    status: 'in_progress',
+    locked: true,
+  });
 
   // Stitch the plan item's ref into the intake work item so the strict 1:1 link invariant holds
   // from the very first work item.
   const linkedWorkItems = (initialWorkItems ?? []).map((workItem) =>
-    planOperationItem !== null && workItem.role === initialWorkItemRole
+    workItem.role === initialWorkItemRole
       ? {
           ...workItem,
           relatedDataItems: [
@@ -93,7 +91,7 @@ export const questCreateBroker = async ({
     status: 'created',
     createdAt: new Date().toISOString(),
     designDecisions: [],
-    operations: planOperationItem === null ? [] : [planOperationItem],
+    operations: [planOperationItem],
     toolingRequirements: [],
     contracts: [],
     flows: [],

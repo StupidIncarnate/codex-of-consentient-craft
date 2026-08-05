@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Spawns a Claude CLI chat process for either ChaosWhisperer or Glyphsmith role with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
+ * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, or Glyphsmith) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
  *
  * USAGE:
  * const { chatProcessId, handle } = await chatSpawnBroker({
@@ -25,6 +25,7 @@ import type {
   ModifyQuestInput,
   ProcessId,
   QuestId,
+  QuestType,
   QuestWorkItemId,
   SessionId,
   WorkItemRole,
@@ -44,6 +45,7 @@ import { resolveChatQuestLayerBroker } from './resolve-chat-quest-layer-broker';
 export const chatSpawnBroker = async ({
   role,
   guildId,
+  questType,
   questId,
   message,
   sessionId,
@@ -58,6 +60,9 @@ export const chatSpawnBroker = async ({
 }: {
   role: WorkItemRole;
   guildId: GuildId;
+  // Only read on the create path (no questId, no sessionId) — it decides which pipeline the new
+  // quest follows, and therefore which intake seed item questUserAddBroker attaches.
+  questType?: QuestType;
   questId?: QuestId;
   message: string;
   sessionId?: SessionId;
@@ -108,6 +113,7 @@ export const chatSpawnBroker = async ({
   } = await resolveChatQuestLayerBroker({
     role,
     guildId,
+    ...(questType === undefined ? {} : { questType }),
     ...(questId === undefined ? {} : { questId }),
     ...(sessionId === undefined ? {} : { sessionId }),
     message,
@@ -136,7 +142,8 @@ export const chatSpawnBroker = async ({
     guildId,
     questId: resolvedQuestId,
     questWorkItemId: chatWorkItemId,
-    processIdPrefix: processIdPrefixContract.parse(role === 'chaoswhisperer' ? 'chat' : 'design'),
+    // 'design' is glyphsmith's alone; every spec-intake role (chaoswhisperer, bughunt) is a chat.
+    processIdPrefix: processIdPrefixContract.parse(role === 'glyphsmith' ? 'design' : 'chat'),
     prompt,
     cwd: repoRootCwd,
     model: roleToModelTransformer({ role }),

@@ -6,11 +6,10 @@
  * // Returns ToolResponse with quest data
  */
 
-import { absoluteFilePathContract, questIdContract } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { questStripCommentsTransformer } from '../../../transformers/quest-strip-comments/quest-strip-comments-transformer';
-import { claudeCodeSessionResolveBroker } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker';
+import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { orchestratorCreateQuestAdapter } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter';
 import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
@@ -43,9 +42,13 @@ const JSON_INDENT_SPACES = 2;
 export const QuestHandleResponder = async ({
   tool,
   args,
+  meta,
 }: {
   tool: ToolName;
   args: Record<string, unknown>;
+  // Claude Code surfaces `claudecode/toolUseId` here on every MCP call. `create-quest` uses it to
+  // identify the calling session deterministically; every other tool ignores it.
+  meta?: Record<string, unknown>;
 }): Promise<ToolResponse> => {
   if (tool === 'get-quest') {
     const { questId, stage, format } = getQuestInputContract.parse(args);
@@ -335,13 +338,13 @@ export const QuestHandleResponder = async ({
     const { userRequest, questType } = createQuestInputContract.parse(args);
 
     try {
-      const cwd = processCwdAdapter();
-      const projectDir = absoluteFilePathContract.parse(String(cwd));
-      const resolved = await claudeCodeSessionResolveBroker({ projectDir });
+      // The resolved session is stamped on the quest's intake work item, which is what the HTTP
+      // server's watcher reactor tails to stream this conversation into the browser chat panel.
+      const sessionId = await ResolveCallerSessionLayerResponder({ meta });
       const { questId, guildSlug } = await orchestratorCreateQuestAdapter({
         userRequest,
         ...(questType !== undefined && { questType }),
-        ...(resolved !== undefined && { sessionId: resolved.sessionId }),
+        ...(sessionId !== undefined && { sessionId }),
       });
       const payload = createQuestOutputContract.parse({ questId, guildSlug });
 

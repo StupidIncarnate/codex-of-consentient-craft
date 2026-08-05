@@ -13,6 +13,7 @@ describe('EndpointMockFlow', () => {
         respondRaw: expect.any(Function),
         networkError: expect.any(Function),
         getRequestCount: expect.any(Function),
+        getRequestBodies: expect.any(Function),
       });
     });
   });

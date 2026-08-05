@@ -52,7 +52,10 @@ import {
   operationItemContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isChatWorkItemRoleGuard,
+  isTerminalWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 import { isBlightwardenMinionRoleGuard } from '../../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
@@ -246,7 +249,7 @@ export const QuestHandleSignalBackResponder = async ({
       });
       const maxAttempts = ((): typeof slotManagerStatics.codeweaver.maxAttempts | undefined => {
         const role: OperationItem['role'] = linkedOperation.role;
-        if (role === 'chaoswhisperer' || role === 'glyphsmith' || role === 'ward') {
+        if (isChatWorkItemRoleGuard({ role }) || role === 'ward') {
           return undefined;
         }
         if (isBlightwardenMinionRoleGuard({ role })) {

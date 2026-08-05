@@ -1,3 +1,6 @@
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
 import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
@@ -23,6 +26,7 @@ const setupChatEntryList = chatEntryListProxyImpl;
 import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
+import { FormDropdownWidgetProxy } from '../form-dropdown/form-dropdown-widget.proxy';
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
 import { QuestLoadErrorWidgetProxy } from '../quest-load-error/quest-load-error-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
@@ -46,6 +50,8 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
   getNewQuestRequestCount: () => RequestCount;
+  getNewQuestRequestBodies: () => Promise<unknown[]>;
+  selectQuestType: (params: { label: string }) => Promise<void>;
 } => {
   const binding = useQuestChatBindingProxy();
   // Every rendering test must call setupMode before render to configure the declared-mode endpoint.
@@ -63,6 +69,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupAutoScrollContainer();
   setupChatEntryList();
   ExecutionPanelWidgetProxy();
+  FormDropdownWidgetProxy();
   DumpsterCommandBannerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
   QuestApprovedModalWidgetProxy();
@@ -82,6 +89,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
       questNew.setupError();
     },
     getNewQuestRequestCount: () => questNew.getRequestCount(),
+    getNewQuestRequestBodies: async () => questNew.getRequestBodies(),
     deliverWsMessage: ({ data }) => {
       binding.deliverWsMessage({ data });
     },
@@ -102,6 +110,11 @@ export const QuestChatContentLayerWidgetProxy = (): {
     },
     typeMessage: async ({ text }) => {
       await chatPanel.typeMessage({ text });
+    },
+    // Drives the real <select> the create surface renders, so the test exercises the same change
+    // event a user's selection fires rather than reaching into component state.
+    selectQuestType: async ({ label }) => {
+      await userEvent.selectOptions(screen.getByTestId('FORM_DROPDOWN'), label);
     },
     clickSend: async () => {
       await chatPanel.clickSend();

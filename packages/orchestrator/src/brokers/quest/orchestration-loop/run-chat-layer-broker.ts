@@ -71,8 +71,9 @@ export const runChatLayerBroker = async ({
     }
   })();
 
+  // 'design' is glyphsmith's alone; every spec-intake role (chaoswhisperer, bughunt) is a chat.
   const processIdPrefix = processIdPrefixContract.parse(
-    workItem.role === 'chaoswhisperer' ? 'chat' : 'design',
+    workItem.role === 'glyphsmith' ? 'design' : 'chat',
   );
 
   try {

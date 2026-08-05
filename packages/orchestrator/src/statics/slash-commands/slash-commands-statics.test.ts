@@ -68,13 +68,10 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: dumpsterCreate.body => contains the open-UI instruction with chat=hidden', () => {
-      const needle = '?chat=hidden';
+    it('VALID: dumpsterCreate.body => opens the spec view without suppressing the chat panel', () => {
       const { body } = slashCommandsStatics.dumpsterCreate;
-      const foundIndex = body.indexOf(needle);
-      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
 
-      expect(foundSlice).toBe(needle);
+      expect(body.indexOf('chat=hidden')).toBe(-1);
     });
 
     it('VALID: dumpsterCreate.body => contains the get-server-config instruction', () => {
@@ -142,13 +139,28 @@ describe('slashCommandsStatics', () => {
       expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
     });
 
-    it('VALID: dumpsterHunt.body => embeds the dumpster-hunt prompt template verbatim', () => {
+    it('VALID: dumpsterHunt.body => embeds the dumpster-hunt prompt with mint + native substituted', () => {
       const { body } = slashCommandsStatics.dumpsterHunt;
-      const { template } = dumpsterHuntPromptStatics.prompt;
-      const foundIndex = body.indexOf(template);
+      const { template, placeholders } = dumpsterHuntPromptStatics.prompt;
+      const expected = template
+        .replace(placeholders.questBootstrap, dumpsterHuntPromptStatics.questBootstrap.mint)
+        .replace(
+          placeholders.clarifyInstruction,
+          dumpsterHuntPromptStatics.clarifyInstructions.native,
+        );
+      const foundIndex = body.indexOf(expected);
 
-      expect(foundIndex).toBeGreaterThan(0);
-      expect(body.slice(foundIndex, foundIndex + template.length)).toBe(template);
+      expect(body.slice(foundIndex, foundIndex + expected.length)).toBe(expected);
+    });
+
+    it('VALID: dumpsterHunt.body => leaves no unsubstituted placeholders', () => {
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const { placeholders } = dumpsterHuntPromptStatics.prompt;
+
+      expect([
+        body.indexOf(placeholders.questBootstrap),
+        body.indexOf(placeholders.clarifyInstruction),
+      ]).toStrictEqual([-1, -1]);
     });
 
     it('VALID: dumpsterHunt.body => instructs create-quest with questType bug-hunt', () => {

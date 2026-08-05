@@ -35,6 +35,7 @@ export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-
 
 // Quest Chat Session Guards
 export * from './src/guards/has-resumable-chat-session/has-resumable-chat-session-guard';
+export * from './src/guards/is-chat-work-item-role/is-chat-work-item-role-guard';
 
 // Work Item Dependency Graph Guards
 export * from './src/guards/has-incomplete-quest-work/has-incomplete-quest-work-guard';

@@ -34,8 +34,10 @@ import {
   type Quest,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
+import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
+import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
 import { isBlightwardenMinionRoleGuard } from '../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
@@ -86,9 +88,11 @@ export const workItemToPromptTransformer = ({
     );
   }
 
-  if (workItem.role === 'chaoswhisperer' || workItem.role === 'glyphsmith') {
-    // chaoswhisperer runs as the /dumpster-create slash command body; glyphsmith runs through
-    // the chat-broker design flow. Neither has a dispatch-loop lifecycle.
+  if (isChatWorkItemRoleGuard({ role: workItem.role })) {
+    // Chat roles are briefed by their own entry point, not by the dispatch loop: chaoswhisperer
+    // and bughunt run as the /dumpster-create and /dumpster-hunt slash command bodies (or as a
+    // headless node-mode spawn built by chatPromptBuildTransformer); glyphsmith runs through the
+    // chat-broker design flow. None has a dispatch-loop lifecycle.
     throw new Error(
       `workItemToPromptTransformer: role ${workItem.role} is not served by get-agent-prompt`,
     );
@@ -196,7 +200,12 @@ export const workItemToPromptTransformer = ({
     contentTextContract.parse(String(quest.userRequest)),
   );
 
-  const template = roleToPromptTemplateTransformer({ role: workItem.role });
+  // Re-brand through agentRoleContract rather than relying on narrowing: the ward and chat-role
+  // rejections above are guard calls, which return a plain boolean and so do not narrow the union.
+  // Parsing states the same invariant the throws already enforce, and fails loudly if it is broken.
+  const template = roleToPromptTemplateTransformer({
+    role: agentRoleContract.parse(workItem.role),
+  });
 
   // Function replacement, not a string one: operation text is authored prose that can contain a
   // `$` sequence (`$&`, `` $` ``, `$'`), which a string replacement would expand against the match

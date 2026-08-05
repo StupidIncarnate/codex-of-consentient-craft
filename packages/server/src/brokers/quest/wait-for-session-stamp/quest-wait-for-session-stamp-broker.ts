@@ -17,7 +17,10 @@
  */
 
 import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
-import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isChatWorkItemRoleGuard,
+  isPendingWorkItemStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 
@@ -43,7 +46,7 @@ export const questWaitForSessionStampBroker = async ({
   }
   const stillUnstamped = seed.workItems.some(
     (wi) =>
-      (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') &&
+      isChatWorkItemRoleGuard({ role: wi.role }) &&
       isPendingWorkItemStatusGuard({ status: wi.status }) &&
       wi.sessionId === undefined,
   );

@@ -83,6 +83,14 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('blightwarden');
     });
 
+    it('VALID: bughunt => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'bughunt' });
+
+      const result = workItemRoleContract.parse(role);
+
+      expect(result).toBe('bughunt');
+    });
+
     it('VALID: pesteater => parses successfully', () => {
       const role = WorkItemRoleStub({ value: 'pesteater' });
 

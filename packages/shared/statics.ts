@@ -32,6 +32,7 @@ export * from './src/statics/rate-limit/rate-limit-statics';
 export * from './src/statics/banned-jest-matchers/banned-jest-matchers-statics';
 export * from './src/statics/guild-name-small-words/guild-name-small-words-statics';
 export * from './src/statics/quest-type-registry/quest-type-registry-statics';
+export * from './src/statics/work-item-role/work-item-role-statics';
 
 // QA checklist vocabulary — where each observable type is actually confirmed, and what each
 // off-map probe family concretely means. Consumed by qaChecklistBuildTransformer so the tool

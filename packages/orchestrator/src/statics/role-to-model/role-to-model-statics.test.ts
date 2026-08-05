@@ -5,6 +5,7 @@ describe('roleToModelStatics', () => {
     expect(roleToModelStatics).toStrictEqual({
       chaoswhisperer: 'opus',
       glyphsmith: 'opus',
+      bughunt: 'opus',
       flowrider: 'opus',
       siegemaster: 'opus',
       codeweaver: 'opus',

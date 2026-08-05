@@ -11,6 +11,7 @@ import type { QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/con
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
+import { dumpsterHuntPromptStatics } from '../../statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
 
 export const chatPromptBuildTransformer = ({
@@ -28,7 +29,17 @@ export const chatPromptBuildTransformer = ({
     return promptTextContract.parse(message);
   }
 
-  const statics = role === 'chaoswhisperer' ? dumpsterCreatePromptStatics : glyphsmithPromptStatics;
+  // The two spec-intake roles share a prompt shape: a $QUEST_BOOTSTRAP block selected by whether
+  // the quest was pre-created, and a $CLARIFY_INSTRUCTION block selected by execution context.
+  // Glyphsmith has neither, so it is the null arm — its template is filled by $ARGUMENTS alone.
+  const intakeStatics =
+    role === 'chaoswhisperer'
+      ? dumpsterCreatePromptStatics
+      : role === 'bughunt'
+        ? dumpsterHuntPromptStatics
+        : null;
+
+  const statics = intakeStatics ?? glyphsmithPromptStatics;
 
   // Function replacement, not a string one: `message` is the user's raw text and can contain a `$`
   // sequence (`$&`, `` $` ``, `$'`) that a string replacement expands against the match — `` $` ``
@@ -38,16 +49,16 @@ export const chatPromptBuildTransformer = ({
     () => message,
   );
 
-  if (role === 'chaoswhisperer') {
+  if (intakeStatics !== null) {
     // Splice the quest-bootstrap block BEFORE filling $QUEST_ID — the preCreated variant embeds
     // $QUEST_ID tokens the substitution below must reach. A questId means the server already minted
-    // this quest (headless node-mode spawn), so ChaosWhisperer adopts it instead of creating a
+    // this quest (headless node-mode spawn), so the intake agent adopts it instead of creating a
     // duplicate; no questId is the mint path (only reached if a caller spawns without pre-creating).
     const bootstrap = questId
-      ? dumpsterCreatePromptStatics.questBootstrap.preCreated
-      : dumpsterCreatePromptStatics.questBootstrap.mint;
+      ? intakeStatics.questBootstrap.preCreated
+      : intakeStatics.questBootstrap.mint;
     promptText = promptText.replace(
-      dumpsterCreatePromptStatics.prompt.placeholders.questBootstrap,
+      intakeStatics.prompt.placeholders.questBootstrap,
       () => bootstrap,
     );
   }
@@ -58,13 +69,13 @@ export const chatPromptBuildTransformer = ({
     promptText = promptText.split(statics.prompt.placeholders.questId).join(questId);
   }
 
-  if (role === 'chaoswhisperer') {
-    // This is the headless spawn path (node orchestrationMode): ChaosWhisperer runs without an
+  if (intakeStatics !== null) {
+    // This is the headless spawn path (node orchestrationMode): the intake agent runs without an
     // interactive TTY, so it must use the MCP ask-user-question tool (native AskUserQuestion is
-    // unavailable). The /dumpster-create slash-command build substitutes the native variant instead.
+    // unavailable). The slash-command build substitutes the native variant instead.
     promptText = promptText.replace(
-      dumpsterCreatePromptStatics.prompt.placeholders.clarifyInstruction,
-      () => dumpsterCreatePromptStatics.clarifyInstructions.mcp,
+      intakeStatics.prompt.placeholders.clarifyInstruction,
+      () => intakeStatics.clarifyInstructions.mcp,
     );
   }
 

@@ -24,11 +24,17 @@ type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
 describe('QuestSpecPanelWidget', () => {
   describe('read mode', () => {
     it('VALID: {quest} => renders quest title', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ title: 'Add Authentication' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('QUEST_TITLE').textContent).toBe('Add Authentication');
@@ -42,7 +48,13 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(proxy.getActionBarButtonLabels()).toStrictEqual(['APPROVE']);
@@ -53,7 +65,13 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(proxy.getActionBarButtonLabels()).toStrictEqual([]);
@@ -68,7 +86,13 @@ describe('QuestSpecPanelWidget', () => {
       const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={onModify}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       await proxy.clickApprove();
@@ -82,14 +106,20 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: created} => no APPROVE button (non-approvable status)', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'created',
         flows: [FlowStub()],
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.queryAllByTestId('PIXEL_BTN');
@@ -108,7 +138,13 @@ describe('QuestSpecPanelWidget', () => {
       const onModify = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={onModify} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={onModify}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       await proxy.clickApprove();
@@ -122,11 +158,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: approved} => APPROVE button is hidden', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.queryAllByTestId('PIXEL_BTN');
@@ -138,14 +180,20 @@ describe('QuestSpecPanelWidget', () => {
 
   describe('approve gate content guard', () => {
     it('VALID: {status: review_flows, flows: [flow]} => APPROVE is enabled', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_flows',
         flows: [FlowStub()],
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -156,14 +204,20 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: review_flows, flows: []} => APPROVE is disabled', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_flows',
         flows: [],
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -174,7 +228,7 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: review_observables, flows: [flow], operations: [codeweaver]} => APPROVE is enabled', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_observables',
         flows: [FlowStub()],
@@ -182,7 +236,13 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -193,7 +253,7 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: review_observables, flows: [flow], no codeweaver operation} => APPROVE is disabled (feature quests need a codeweaver operation item)', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_observables',
         flows: [FlowStub()],
@@ -201,7 +261,13 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -212,14 +278,20 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: review_observables, flows: []} => APPROVE is disabled', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_observables',
         flows: [],
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       const buttons = screen.getAllByTestId('PIXEL_BTN');
@@ -232,88 +304,136 @@ describe('QuestSpecPanelWidget', () => {
 
   describe('dynamic header', () => {
     it('VALID: {status: created} => renders QUEST CREATED header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'created' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('QUEST CREATED');
     });
 
     it('VALID: {status: pending} => renders QUEST CREATED header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'pending' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('QUEST CREATED');
     });
 
     it('VALID: {status: explore_flows} => renders EXPLORING FLOWS header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_flows' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EXPLORING FLOWS');
     });
 
     it('VALID: {status: review_flows} => renders FLOW APPROVAL header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOW APPROVAL');
     });
 
     it('VALID: {status: flows_approved} => renders FLOWS APPROVED header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'flows_approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('FLOWS APPROVED');
     });
 
     it('VALID: {status: explore_observables} => renders EXPLORING OBSERVABLES header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_observables' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('EXPLORING OBSERVABLES');
     });
 
     it('VALID: {status: review_observables} => renders OBSERVABLES APPROVAL header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_observables' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('OBSERVABLES APPROVAL');
     });
 
     it('VALID: {status: approved} => renders SPEC APPROVED header', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'approved' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('PANEL_HEADER').textContent).toBe('SPEC APPROVED');
@@ -322,13 +442,19 @@ describe('QuestSpecPanelWidget', () => {
 
   describe('user request', () => {
     it('VALID: {quest with userRequest} => renders user request section', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         userRequest: 'Add login with OAuth' as Quest['userRequest'],
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('USER_REQUEST_SECTION')).toBeInTheDocument();
@@ -336,11 +462,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {quest with default userRequest} => renders user request section', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('USER_REQUEST_SECTION')).toBeInTheDocument();
@@ -369,7 +501,13 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(proxy.hasOperationsSection()).toBe(true);
@@ -384,7 +522,13 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ operations: [] });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(proxy.hasOperationsSection()).toBe(false);
@@ -394,13 +538,19 @@ describe('QuestSpecPanelWidget', () => {
 
   describe('gate visibility', () => {
     it('VALID: {status: created} => shows flows and design decisions, hides contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'created',
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -409,11 +559,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: pending} => shows flows and design decisions, hides contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'pending' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -422,11 +578,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: explore_flows} => shows flows and design decisions, hides contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_flows' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -435,11 +597,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: review_flows} => shows flows and design decisions, hides contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -448,13 +616,19 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: flows_approved} => shows flows, design decisions, and contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'flows_approved',
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -463,11 +637,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: explore_observables} => shows flows, design decisions, and contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_observables' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -476,11 +656,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: review_observables} => shows flows, design decisions, and contracts', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_observables' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -489,11 +675,17 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {status: in_progress} => shows all sections', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
@@ -504,7 +696,7 @@ describe('QuestSpecPanelWidget', () => {
 
   describe('design decisions layer', () => {
     it('VALID: {quest with design decisions} => renders design decisions', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         designDecisions: [
           DesignDecisionStub({
@@ -515,7 +707,13 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('DECISION_TITLE').textContent).toBe('Use JWT');
@@ -524,11 +722,17 @@ describe('QuestSpecPanelWidget', () => {
 
   describe('empty states', () => {
     it('EDGE: {quest with empty arrays} => renders without crash', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ designDecisions: [] });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('QUEST_SPEC_PANEL')).toBeInTheDocument();
@@ -548,11 +752,18 @@ describe('QuestSpecPanelWidget', () => {
     });
 
     it('VALID: {readOnly: false} => shows action bar', () => {
-      QuestSpecPanelWidgetProxy();
+      const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} readOnly={false} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            readOnly={false}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(screen.getByTestId('ACTION_BAR')).toBeInTheDocument();
@@ -595,6 +806,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
             pendingQuestion={parsed}
             onSubmitAnswers={onSubmitAnswers}
           />
@@ -624,6 +836,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
             pendingQuestion={parsed}
             onSubmitAnswers={onSubmitAnswers}
           />
@@ -638,7 +851,13 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'review_flows', flows: [FlowStub()] });
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(proxy.hasActionButtons()).toBe(true);
@@ -654,6 +873,7 @@ describe('QuestSpecPanelWidget', () => {
           <QuestSpecPanelWidget
             quest={quest}
             onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
             pendingQuestion={null}
             onSubmitAnswers={jest.fn()}
           />
@@ -671,7 +891,14 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+            onAbandon={jest.fn()}
+          />
+        ),
       });
 
       expect(proxy.hasAbandonButton()).toBe(true);
@@ -682,7 +909,13 @@ describe('QuestSpecPanelWidget', () => {
       const quest: Quest = QuestStub();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
       });
 
       expect(proxy.hasAbandonButton()).toBe(false);
@@ -694,7 +927,14 @@ describe('QuestSpecPanelWidget', () => {
       const onAbandon = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={onAbandon} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+            onAbandon={onAbandon}
+          />
+        ),
       });
 
       await proxy.clickAbandon();
@@ -713,7 +953,14 @@ describe('QuestSpecPanelWidget', () => {
       const onAbandon = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={onAbandon} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+            onAbandon={onAbandon}
+          />
+        ),
       });
 
       await proxy.clickAbandon();
@@ -729,7 +976,14 @@ describe('QuestSpecPanelWidget', () => {
       const onAbandon = jest.fn();
 
       mantineRenderAdapter({
-        ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} onAbandon={onAbandon} />,
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+            onAbandon={onAbandon}
+          />
+        ),
       });
 
       await proxy.clickAbandon();
@@ -750,7 +1004,13 @@ describe('QuestSpecPanelWidget', () => {
         const quest: Quest = QuestStub({ status, flows: [FlowStub()] });
 
         mantineRenderAdapter({
-          ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} />,
+          ui: (
+            <QuestSpecPanelWidget
+              quest={quest}
+              onModify={jest.fn()}
+              onSendComments={proxy.onSendComments}
+            />
+          ),
         });
 
         const labels = proxy.getActionBarButtonLabels().map((label) => String(label));
@@ -778,7 +1038,15 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -802,7 +1070,15 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -826,7 +1102,15 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -845,7 +1129,15 @@ describe('QuestSpecPanelWidget', () => {
         workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
       });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       expect(proxy.hasQueueBar()).toBe(false);
     });
@@ -865,7 +1157,15 @@ describe('QuestSpecPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       expect(proxy.getQueueBarCountText()).toBe('3 COMMENTS QUEUED');
     });
@@ -881,7 +1181,15 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       expect(proxy.isQueueBarPreviousSiblingOfActionBar()).toBe(true);
     });
@@ -897,7 +1205,15 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       expect(proxy.hasQueueBar()).toBe(false);
     });
@@ -913,9 +1229,48 @@ describe('QuestSpecPanelWidget', () => {
         entries: [CommentQueueEntryStub()],
       });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       expect(proxy.hasQueueBar()).toBe(false);
+    });
+  });
+
+  describe('send wiring', () => {
+    it('VALID: {composable quest with one queued comment, click COMMENT_SEND_BUTTON} => invokes onSendComments with the queued comments', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      const entry = CommentQueueEntryStub();
+      proxy.setupQueuedComments({ questId: quest.id, entries: [entry] });
+      const { onSendComments } = proxy;
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={onSendComments}
+          />
+        ),
+      });
+
+      await proxy.clickQueueSend();
+
+      await waitFor(() => {
+        expect(onSendComments).toHaveBeenCalledTimes(1);
+      });
+
+      expect(onSendComments).toHaveBeenCalledWith({ comments: [entry] });
     });
   });
 
@@ -938,7 +1293,15 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -969,7 +1332,15 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} onModify={jest.fn()} /> });
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
@@ -996,7 +1367,9 @@ describe('QuestSpecPanelWidget', () => {
       });
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
-      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} readOnly={true} /> });
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
+      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();

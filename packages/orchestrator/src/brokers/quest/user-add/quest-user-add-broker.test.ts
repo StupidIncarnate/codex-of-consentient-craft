@@ -35,7 +35,7 @@ describe('questUserAddBroker', () => {
       questId: expect.stringMatching(UUID_PATTERN),
       questFolder: expect.stringMatching(UUID_PATTERN),
       filePath: questFilePath,
-      chaoswhispererWorkItemId: expect.stringMatching(UUID_PATTERN),
+      intakeWorkItemId: expect.stringMatching(UUID_PATTERN),
     });
     expect(result.questFolder).toBe(result.questId);
   });
@@ -65,7 +65,7 @@ describe('questUserAddBroker', () => {
     expect(chaosItem?.sessionId).toBe(undefined);
   });
 
-  it('VALID: {input.questType: "bug-hunt"} => seeds no work item and omits chaoswhispererWorkItemId', async () => {
+  it('VALID: {input.questType: "bug-hunt"} => seeds a bughunt work item and returns its intakeWorkItemId', async () => {
     const brokerProxy = questUserAddBrokerProxy();
     const guildId = GuildIdStub();
     const questFilePath = FilePathStub({
@@ -90,8 +90,31 @@ describe('questUserAddBroker', () => {
       questId: expect.stringMatching(UUID_PATTERN),
       questFolder: expect.stringMatching(UUID_PATTERN),
       filePath: questFilePath,
+      intakeWorkItemId: expect.stringMatching(UUID_PATTERN),
     });
-    expect(brokerProxy.getLastInitialWorkItems()).toStrictEqual([]);
+
+    const [intakeItem] = brokerProxy.getLastInitialWorkItems();
+
+    expect(intakeItem?.role).toBe('bughunt');
+  });
+
+  it('VALID: {input.questType: "bug-hunt", sessionId} => stamps sessionId on the bughunt seed work item', async () => {
+    // Without this the /dumpster-hunt session id is resolved and then dropped: no work item carries
+    // it, so no watcher tails the intake conversation and the browser chat panel stays empty.
+    const brokerProxy = questUserAddBrokerProxy();
+    const guildId = GuildIdStub();
+    const sessionId = SessionIdStub({ value: 'bbbbbbbb-2222-4333-9444-bbbbbbbbbbbb' });
+
+    await questUserAddBroker({
+      input: AddQuestInputStub({ questType: 'bug-hunt' }),
+      guildId,
+      sessionId,
+    });
+
+    const [intakeItem] = brokerProxy.getLastInitialWorkItems();
+
+    expect(intakeItem?.role).toBe('bughunt');
+    expect(intakeItem?.sessionId).toBe(sessionId);
   });
 
   it('ERROR: {questCreateBroker throws} => returns failure result with error message', async () => {

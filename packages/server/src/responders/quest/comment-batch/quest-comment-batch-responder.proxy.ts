@@ -62,7 +62,11 @@ export const QuestCommentBatchResponderProxy = (): {
     guildId: GuildId;
     questPath: AbsoluteFilePath;
   }) => void;
-  setupCommentBatch: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  setupCommentBatch: (params: {
+    questId: QuestId;
+    chatProcessId: ProcessId;
+    deliveredMessage: string;
+  }) => void;
   setupCommentBatchError: (params: { questId: QuestId; message: string }) => void;
   getDeliveredBatch: (params: { questId: QuestId }) => unknown;
   getDeliveryAttempts: (params: { questId: QuestId }) => unknown[];
@@ -90,14 +94,18 @@ export const QuestCommentBatchResponderProxy = (): {
     }): void => {
       findPathProxy.returns({ questId, guildId, questPath });
     },
+    // `deliveredMessage` is the markdown the orchestrator handed the agent. The responder echoes it
+    // in the 200 body, so a test names it here and asserts the same text comes back out.
     setupCommentBatch: ({
       questId,
       chatProcessId,
+      deliveredMessage,
     }: {
       questId: QuestId;
       chatProcessId: ProcessId;
+      deliveredMessage: string;
     }): void => {
-      commentBatchProxy.returns({ questId, chatProcessId });
+      commentBatchProxy.returns({ questId, chatProcessId, message: deliveredMessage });
     },
     setupCommentBatchError: ({ questId, message }: { questId: QuestId; message: string }): void => {
       commentBatchProxy.throws({ questId, error: new Error(message) });

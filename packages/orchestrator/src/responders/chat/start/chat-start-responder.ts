@@ -12,9 +12,11 @@ import type {
   GuildId,
   ProcessId,
   QuestId,
+  QuestType,
   QuestWorkItemId,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
+import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -29,10 +31,14 @@ import { streamJsonToClarificationTransformer } from '../../../transformers/stre
 export const ChatStartResponder = async ({
   guildId,
   message,
+  questType,
   sessionId,
 }: {
   guildId: GuildId;
   message: string;
+  // Which pipeline a NEWLY created quest follows — 'bug-hunt' spawns the BugHunt intake instead of
+  // ChaosWhisperer. Ignored when resuming, where the existing quest's own type governs.
+  questType?: QuestType;
   sessionId?: SessionId;
 }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> => {
   if (sessionId) {
@@ -48,6 +54,11 @@ export const ChatStartResponder = async ({
 
   let chatQuestId: QuestId | null = null;
   let chatWorkItemId: QuestWorkItemId | null = null;
+  // The intake role is quest-type derived, never hardcoded: a bug-hunt quest's chat item is a
+  // `bughunt` item. On the resume path the type comes from the quest already on disk (the caller's
+  // `questType` describes a NEW quest and is meaningless there); on the create path, from the
+  // caller. Reassigned below once a resumed quest is found.
+  let chatQuestType: QuestType = questType ?? 'feature';
 
   if (sessionId) {
     try {
@@ -57,6 +68,7 @@ export const ChatStartResponder = async ({
       );
       if (linkedQuest) {
         chatQuestId = linkedQuest.id;
+        chatQuestType = linkedQuest.questType;
         const matchedWorkItem = linkedQuest.workItems.find((wi) => wi.sessionId === sessionId);
         if (matchedWorkItem) {
           chatWorkItemId = matchedWorkItem.id;
@@ -112,27 +124,32 @@ export const ChatStartResponder = async ({
   type StreamHandle = Awaited<ReturnType<typeof chatSpawnBroker>>['handle'];
   const streamHandleRef: { current: StreamHandle | null } = { current: null };
 
+  const chatRole = workItemRoleContract.parse(
+    questTypeRegistryStatics[chatQuestType].initialWorkItemRole,
+  );
+
   const spawnResult = await chatSpawnBroker({
-    role: workItemRoleContract.parse('chaoswhisperer'),
+    role: chatRole,
     guildId,
+    questType: chatQuestType,
     message,
     ...(sessionId && { sessionId }),
     // chatQuestId was resolved above via questListBroker when resuming. Required by
     // resolveChatQuestLayerBroker when sessionId is present so the resume path can
-    // look up the chaoswhisperer work item for addressability.
+    // look up the intake work item for addressability.
     ...(chatQuestId !== null && { questId: chatQuestId }),
     onQuestCreated: ({ questId, chatProcessId }) => {
       chatQuestId = questId;
-      // Resolve the chaoswhisperer work item id created by questUserAddBroker, then flush
+      // Resolve the intake work item id created by questUserAddBroker, then flush
       // any chat-output frames buffered while we were learning it. Fire-and-forget — any
       // buffered emits stay buffered until the lookup resolves; once chatWorkItemId is
       // set, the in-line flush below kicks in on the next onEntries call.
       questGetBroker({ input: getQuestInputContract.parse({ questId }) })
         .then((result) => {
           if (!result.success || !result.quest) return;
-          const chaosItem = result.quest.workItems.find((wi) => wi.role === 'chaoswhisperer');
-          if (chaosItem === undefined) return;
-          chatWorkItemId = chaosItem.id;
+          const intakeItem = result.quest.workItems.find((wi) => wi.role === chatRole);
+          if (intakeItem === undefined) return;
+          chatWorkItemId = intakeItem.id;
           // Drain buffered chat-output emits now that questId+workItemId are both known.
           while (chatOutputBuffer.length > 0) {
             const buffered = chatOutputBuffer.shift();
@@ -144,7 +161,7 @@ export const ChatStartResponder = async ({
                 chatProcessId: buffered.chatProcessId,
                 entries: buffered.entries,
                 questId,
-                workItemId: chaosItem.id,
+                workItemId: intakeItem.id,
               },
             });
           }
@@ -172,8 +189,8 @@ export const ChatStartResponder = async ({
             payload: {
               questId,
               chatProcessId,
-              workItemId: chaosItem.id,
-              role: 'chaoswhisperer',
+              workItemId: intakeItem.id,
+              role: chatRole,
             },
           });
         })

@@ -6,7 +6,10 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
-import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isChatWorkItemRoleGuard,
+  isUserPausedQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
@@ -66,10 +69,10 @@ export const QuestChatResponder = async ({
       await orchestratorResumeQuestAdapter({ questId });
     }
 
-    // Prefer the chat work item (chaoswhisperer/glyphsmith) sessionId over generic active session.
-    // The chat input always resumes the most-recent chat thread the user has been talking to.
+    // Prefer the chat work item (chaoswhisperer/glyphsmith/bughunt) sessionId over generic active
+    // session. The chat input always resumes the most-recent chat thread the user has been talking to.
     const chatItem = quest.workItems.find(
-      (wi) => (wi.role === 'chaoswhisperer' || wi.role === 'glyphsmith') && wi.sessionId,
+      (wi) => isChatWorkItemRoleGuard({ role: wi.role }) && wi.sessionId,
     );
     const resolvedSessionId = chatItem?.sessionId;
 

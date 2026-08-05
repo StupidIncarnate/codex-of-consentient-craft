@@ -17,7 +17,9 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       expect(proxy.hasBar()).toBe(false);
     });
@@ -28,7 +30,9 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
 
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       expect(proxy.getCountText()).toBe('1 COMMENT QUEUED');
     });
@@ -44,7 +48,9 @@ describe('CommentQueueBarWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       expect(proxy.getCountText()).toBe('3 COMMENTS QUEUED');
     });
@@ -53,7 +59,9 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
 
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       expect(proxy.hasClearButton()).toBe(true);
       expect(proxy.hasSendButton()).toBe(true);
@@ -64,17 +72,21 @@ describe('CommentQueueBarWidget', () => {
     it('VALID: {click COMMENT_CLEAR_BUTTON} => the dungeonmaster-quest-comments-{questId} key is absent from localStorage after clicking', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickClear();
 
       expect(proxy.hasStoredQueue({ questId: QUEST_ID })).toBe(false);
     });
 
-    it('VALID: {click COMMENT_CLEAR_BUTTON} => issues zero requests to POST /api/quests/:questId/comments', async () => {
+    it('VALID: {click COMMENT_CLEAR_BUTTON} => calls onSend zero times', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickClear();
 
@@ -87,7 +99,9 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendSucceeds({ chatProcessId: 'proc-1' });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -98,7 +112,7 @@ describe('CommentQueueBarWidget', () => {
       expect(proxy.hasBar()).toBe(false);
     });
 
-    it('VALID: {send} => POST sends { comments: [{ flowId, nodeId, text }] } with one array entry per queued comment', async () => {
+    it('VALID: {send} => onSend receives one { flowId, nodeId, text, createdAt } entry per queued comment', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({
         questId: QUEST_ID,
@@ -118,7 +132,9 @@ describe('CommentQueueBarWidget', () => {
         ],
       });
       proxy.setupSendSucceeds({ chatProcessId: 'proc-1' });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -126,31 +142,31 @@ describe('CommentQueueBarWidget', () => {
         expect(proxy.getRequestCount()).toBe(1);
       });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
-        comments: [
-          {
-            flowId: 'login-flow',
-            nodeId: 'login-page',
-            text: 'first comment',
-            createdAt: '2026-01-01T00:00:00.000Z',
-          },
-          {
-            flowId: 'login-flow',
-            nodeId: 'submit',
-            text: 'second comment',
-            createdAt: '2026-01-02T00:00:00.000Z',
-          },
-        ],
-      });
+      expect(proxy.getRequestBody()).toStrictEqual([
+        {
+          flowId: 'login-flow',
+          nodeId: 'login-page',
+          text: 'first comment',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+        {
+          flowId: 'login-flow',
+          nodeId: 'submit',
+          text: 'second comment',
+          createdAt: '2026-01-02T00:00:00.000Z',
+        },
+      ]);
     });
   });
 
   describe('send server error', () => {
-    it('ERROR: {500 then 200} => the dungeonmaster-quest-comments-{questId} key survives a 500 response and is removed only after a 200', async () => {
+    it('ERROR: {failed outcome then sent outcome} => the dungeonmaster-quest-comments-{questId} key survives the failure and is removed only after the send succeeds', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendServerError({ error: 'Quest write failed' });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
       await waitFor(() => {
@@ -169,11 +185,13 @@ describe('CommentQueueBarWidget', () => {
       expect(proxy.hasStoredQueue({ questId: QUEST_ID })).toBe(false);
     });
 
-    it('ERROR: {500 response} => shows the server error message as a red toast', async () => {
+    it('ERROR: {failed outcome} => shows the server error message as a red toast', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendServerError({ error: 'Quest write failed' });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -189,11 +207,13 @@ describe('CommentQueueBarWidget', () => {
   });
 
   describe('send network failure', () => {
-    it('ERROR: {POST rejects before any response arrives} => the dungeonmaster-quest-comments-{questId} key retains every entry', async () => {
+    it('ERROR: {onSend rejects before any response arrives} => the dungeonmaster-quest-comments-{questId} key retains every entry', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendNetworkError();
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -207,11 +227,13 @@ describe('CommentQueueBarWidget', () => {
       expect(proxy.hasStoredQueue({ questId: QUEST_ID })).toBe(true);
     });
 
-    it('ERROR: {POST rejects before any response arrives} => shows the app standard error notification and leaves COMMENT_QUEUE_BAR visible with its count unchanged', async () => {
+    it('ERROR: {onSend rejects before any response arrives} => shows the app standard error notification and leaves COMMENT_QUEUE_BAR visible with its count unchanged', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendNetworkError();
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -255,7 +277,9 @@ describe('CommentQueueBarWidget', () => {
       proxy.setupSendStale({
         staleAnchors: [CommentAnchorStub({ flowId: 'flow-b', nodeId: 'node-b' })],
       });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -283,7 +307,9 @@ describe('CommentQueueBarWidget', () => {
       proxy.setupSendStale({
         staleAnchors: [CommentAnchorStub({ flowId: 'flow-b', nodeId: 'node-b' })],
       });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -315,7 +341,9 @@ describe('CommentQueueBarWidget', () => {
       proxy.setupSendStale({
         staleAnchors: [CommentAnchorStub({ flowId: 'flow-b', nodeId: 'node-b' })],
       });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
 
@@ -328,11 +356,13 @@ describe('CommentQueueBarWidget', () => {
   });
 
   describe('double-click guard', () => {
-    it('EDGE: {click COMMENT_SEND_BUTTON twice before the first request resolves} => issues exactly one POST request', async () => {
+    it('EDGE: {click COMMENT_SEND_BUTTON twice before the first send resolves} => calls onSend exactly once', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendSucceeds({ chatProcessId: 'proc-1' });
-      mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={QUEST_ID} /> });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
 
       await proxy.clickSend();
       await proxy.clickSend();

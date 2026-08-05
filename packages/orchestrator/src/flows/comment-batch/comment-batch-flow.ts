@@ -2,9 +2,11 @@
  * PURPOSE: Orchestrates a queued comment batch by persisting the comments then resuming the chat session with the markdown batch
  *
  * USAGE:
- * const { chatProcessId } = await CommentBatchFlow({ guildId, sessionId, questId, comments });
+ * const { chatProcessId, message } = await CommentBatchFlow({ guildId, sessionId, questId, comments });
  * // Persists the batch onto quest.comments, builds the agent-facing markdown from the post-persist
- * // flows, then resumes the agent via ChatStartResponder
+ * // flows, then resumes the agent via ChatStartResponder. `message` is the exact markdown turn the
+ * // agent received, handed back so the browser can render it as the user's own chat entry without
+ * // waiting for a reload — Claude's --resume stream never echoes the prompt back.
  */
 
 import type {
@@ -15,6 +17,7 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 
+import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
 import { CommentBatchResponder } from '../../responders/comment/batch/comment-batch-responder';
 import { commentBatchToMarkdownTransformer } from '../../transformers/comment-batch-to-markdown/comment-batch-to-markdown-transformer';
@@ -29,7 +32,7 @@ export const CommentBatchFlow = async ({
   sessionId: SessionId;
   questId: QuestId;
   comments: CommentBatchEntry[];
-}): Promise<{ chatProcessId: ProcessId }> => {
+}): Promise<{ chatProcessId: ProcessId; message: PromptText }> => {
   // Persist gates delivery, mirroring the clarify flow's ordering exactly: the responder throws
   // when the quest write fails, so the markdown is never built and no chat process is ever spawned
   // for feedback the quest does not record. The browser holds its localStorage queue until it sees
@@ -41,5 +44,7 @@ export const CommentBatchFlow = async ({
   // post-persist flows, never off the request body.
   const message = commentBatchToMarkdownTransformer({ comments: persisted, flows });
 
-  return ChatStartResponder({ guildId, message, sessionId });
+  const { chatProcessId } = await ChatStartResponder({ guildId, message, sessionId });
+
+  return { chatProcessId, message };
 };

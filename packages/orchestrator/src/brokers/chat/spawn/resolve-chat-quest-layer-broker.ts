@@ -1,10 +1,16 @@
 /**
- * PURPOSE: Layer of chatSpawnBroker — resolves the quest + chat work item id for the spawn. Handles three paths: glyphsmith (lookup quest, validate design-phase status, find glyphsmith work item), chaoswhisperer-resume (lookup quest by id, find chaoswhisperer work item), and chaoswhisperer-new (create quest with chaos seed item, then re-fetch to extract the work item id). Centralizing this lookup outside the spawn broker keeps the launcher call free of nested helpers and gives the resolution logic its own test scope.
+ * PURPOSE: Layer of chatSpawnBroker — resolves the quest + chat work item id for the spawn. Handles
+ * three paths: glyphsmith (lookup quest, validate design-phase status, find glyphsmith work item),
+ * intake-resume (lookup quest by id, find the work item matching the spawn's chat role), and
+ * intake-new (create a quest of the requested type with its intake seed item, whose id the create
+ * returns). Centralizing this lookup outside the spawn broker keeps the launcher call free of nested
+ * helpers and gives the resolution logic its own test scope.
  *
  * USAGE:
  * const { questId, workItemId } = await resolveChatQuestLayerBroker({
  *   role,
  *   guildId,
+ *   questType,
  *   questId: existingQuestId,
  *   sessionId: resumeSessionId,
  *   message,
@@ -15,6 +21,7 @@ import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/sha
 import type {
   GuildId,
   QuestId,
+  QuestType,
   QuestWorkItemId,
   SessionId,
   WorkItemRole,
@@ -27,12 +34,14 @@ import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
 export const resolveChatQuestLayerBroker = async ({
   role,
   guildId,
+  questType,
   questId,
   sessionId,
   message,
 }: {
   role: WorkItemRole;
   guildId: GuildId;
+  questType?: QuestType;
   questId?: QuestId;
   sessionId?: SessionId;
   message: string;
@@ -62,21 +71,27 @@ export const resolveChatQuestLayerBroker = async ({
     if (!result.success || !result.quest) {
       throw new Error(`Quest not found: ${questId}`);
     }
-    const chaosItem = result.quest.workItems.find((wi) => wi.role === 'chaoswhisperer');
-    if (!chaosItem) {
-      throw new Error(`Quest ${questId} has no chaoswhisperer work item`);
+    // Match the spawn's own role, not chaoswhisperer specifically: a bug-hunt quest's intake item
+    // is a `bughunt` item, and resuming it against a chaoswhisperer lookup would find nothing.
+    const intakeItem = result.quest.workItems.find((wi) => wi.role === role);
+    if (!intakeItem) {
+      throw new Error(`Quest ${questId} has no ${role} work item`);
     }
-    return { questId, workItemId: chaosItem.id, createdQuest: false };
+    return { questId, workItemId: intakeItem.id, createdQuest: false };
   }
 
-  const addInput = addQuestInputContract.parse({ title: 'New Quest', userRequest: message });
+  const addInput = addQuestInputContract.parse({
+    title: 'New Quest',
+    userRequest: message,
+    ...(questType === undefined ? {} : { questType }),
+  });
   const questResult = await questUserAddBroker({ input: addInput, guildId });
-  if (!questResult.success || !questResult.questId || !questResult.chaoswhispererWorkItemId) {
+  if (!questResult.success || !questResult.questId || !questResult.intakeWorkItemId) {
     throw new Error(`Failed to create quest: ${questResult.error ?? 'unknown'}`);
   }
   return {
     questId: questResult.questId,
-    workItemId: questResult.chaoswhispererWorkItemId,
+    workItemId: questResult.intakeWorkItemId,
     createdQuest: true,
   };
 };

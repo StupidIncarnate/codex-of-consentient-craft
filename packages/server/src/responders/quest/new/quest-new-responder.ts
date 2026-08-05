@@ -8,7 +8,7 @@
 
 import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
-import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
+import { questNewBodyContract } from '../../../contracts/quest-new-body/quest-new-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -44,16 +44,20 @@ export const QuestNewResponder = async ({
       });
     }
 
-    const parsedBody = messageBodyContract.safeParse(body);
+    const parsedBody = questNewBodyContract.safeParse(body);
     if (!parsedBody.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
         data: { error: 'message is required' },
       });
     }
-    const { message } = parsedBody.data;
+    const { message, questType } = parsedBody.data;
 
-    const { chatProcessId, questId } = await orchestratorStartChatAdapter({ guildId, message });
+    const { chatProcessId, questId } = await orchestratorStartChatAdapter({
+      guildId,
+      message,
+      ...(questType === undefined ? {} : { questType }),
+    });
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,

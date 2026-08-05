@@ -31,30 +31,30 @@ describe('roleToConfigIndexTransformer', () => {
   });
 
   describe('ward floorName disambiguation', () => {
-    it('VALID: {role: ward, no floorName} => returns 4 (first ward / MINI BOSS entry)', () => {
+    it('VALID: {role: ward, no floorName} => returns 5 (first ward / MINI BOSS entry)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
       });
 
-      expect(result).toBe(4);
+      expect(result).toBe(5);
     });
 
-    it('VALID: {role: ward, floorName: MINI BOSS} => returns 4 (MINI BOSS entry)', () => {
+    it('VALID: {role: ward, floorName: MINI BOSS} => returns 5 (MINI BOSS entry)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
         floorName: FloorNameStub({ value: 'MINI BOSS' }),
       });
 
-      expect(result).toBe(4);
+      expect(result).toBe(5);
     });
 
-    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 11 (FLOOR BOSS entry, last floor)', () => {
+    it('VALID: {role: ward, floorName: FLOOR BOSS} => returns 12 (FLOOR BOSS entry, last floor)', () => {
       const result = roleToConfigIndexTransformer({
         role: WorkItemRoleStub({ value: 'ward' }),
         floorName: FloorNameStub({ value: 'FLOOR BOSS' }),
       });
 
-      expect(result).toBe(11);
+      expect(result).toBe(12);
     });
   });
 

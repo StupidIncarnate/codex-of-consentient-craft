@@ -11,6 +11,7 @@ import { z } from 'zod';
 export const executionRoleContract = z.enum([
   'chaoswhisperer',
   'glyphsmith',
+  'bughunt',
   'codeweaver',
   'ward',
   'spiritmender',

@@ -2,8 +2,15 @@
  * PURPOSE: Renders the quest spec panel with title bar, scrollable content area, and an action bar for approving quest specs
  *
  * USAGE:
- * <QuestSpecPanelWidget quest={quest} onModify={handleModify} />
- * // Renders panel with gated sections, user request display, and approve control
+ * <QuestSpecPanelWidget quest={quest} onModify={handleModify} onSendComments={sendCommentBatch} />
+ * // Renders panel with gated sections, user request display, approve control, and — while the
+ * // quest is still composable — the queued-comment bar pinned above the action bar
+ *
+ * <QuestSpecPanelWidget quest={quest} readOnly={true} />
+ * // Same panel with no action bar and no queue bar. The props are a discriminated union on
+ * // `readOnly`: the read-only arm types `onSendComments` as `never` so a read-only panel cannot be
+ * // handed a send path, and the interactive arm REQUIRES one so a panel that renders Send always
+ * // has somewhere to deliver. "Read-only never sends" is therefore a compile error, not a guard.
  */
 
 import { Box, Group, Stack, Text } from '@mantine/core';
@@ -22,6 +29,8 @@ import { isCommentComposeAllowedGuard } from '../../guards/is-comment-compose-al
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
+import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
+import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import { CommentQueueBarWidget } from '../comment-queue-bar/comment-queue-bar-widget';
 import { OperationsLedgerWidget } from '../operations-ledger/operations-ledger-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -38,14 +47,15 @@ const HEADER_FONT_SIZE = 'xs' as const;
 
 const CONTRACTS_SECTION = 'contracts' as GateSectionKey;
 
-export interface QuestSpecPanelWidgetProps {
+// The props every panel carries, whatever its mode. The `readOnly` / `onSendComments` pair is the
+// only thing that varies, and it varies together — see QuestSpecPanelWidgetProps below.
+interface QuestSpecPanelSharedProps {
   quest: Quest;
   onModify?: (params: {
     modifications: Record<string, unknown>;
     action: 'approve';
     nextStatus?: string;
   }) => void;
-  readOnly?: boolean;
   pendingQuestion?: {
     questions: AskUserQuestionItem[];
   } | null;
@@ -59,11 +69,25 @@ export interface QuestSpecPanelWidgetProps {
   onAbandon?: () => void;
 }
 
+// useQuestChatBinding's sendCommentBatch, threaded down so the queue bar never calls the broker
+// directly — the binding is what puts the sent batch in the chat panel without a reload.
+type QuestSpecPanelSendComments = (params: {
+  comments: readonly CommentQueueEntry[];
+}) => Promise<CommentBatchSendResult>;
+
+// Discriminated on `readOnly`, so the invariant lives in the type: a read-only panel renders no
+// Send affordance and is given no way to deliver one (`onSendComments?: never` rejects the prop
+// outright), while every other panel must supply the send path the queue bar's Send button calls.
+export type QuestSpecPanelWidgetProps =
+  | (QuestSpecPanelSharedProps & { readOnly: true; onSendComments?: never })
+  | (QuestSpecPanelSharedProps & { readOnly?: false; onSendComments: QuestSpecPanelSendComments });
+
 export const QuestSpecPanelWidget = ({
   quest,
   onModify,
   readOnly,
   pendingQuestion,
+  onSendComments,
   onSubmitAnswers,
   onAbandon,
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
@@ -141,8 +165,9 @@ export const QuestSpecPanelWidget = ({
       {readOnly || commentQuestId === undefined ? null : (
         // Sibling directly above ACTION_BAR inside the panel's flex column, OUTSIDE the scrollable
         // content box — that placement plus the bar's own flexShrink:0 is what keeps the queued
-        // count on screen no matter how far the spec is scrolled.
-        <CommentQueueBarWidget questId={commentQuestId} />
+        // count on screen no matter how far the spec is scrolled. Ruling out `readOnly` here also
+        // narrows the props to the arm that carries `onSendComments`.
+        <CommentQueueBarWidget questId={commentQuestId} onSend={onSendComments} />
       )}
       {readOnly ? null : (
         <Box
