@@ -102,6 +102,8 @@ describe('shared websocket connection', () => {
       loadError: null,
       pendingClarification: null,
       isStreaming: false,
+      armStreaming: expect.any(Function),
+      disarmStreaming: expect.any(Function),
       sendMessage: expect.any(Function),
       sendCommentBatch: expect.any(Function),
       submitClarifyAnswers: expect.any(Function),
