@@ -462,17 +462,7 @@ export const persistedCommentsHarness = ({
         .getByTestId('QUEST_SPEC_PANEL')
         .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
-      // An approved quest surfaces the Begin Quest modal on load and its overlay intercepts every
-      // canvas click. A reviewer dismisses it via Keep Chatting to read the spec — do the same. The
-      // modal belongs to another flow (quest-approved-modal.e2e owns it), so dismissing precondition
-      // state here bypasses no control this flow is testing.
-      const keepChatting = page.getByTestId('PIXEL_BTN').filter({ hasText: 'Keep Chatting' });
-      if (await keepChatting.isVisible().catch(() => false)) {
-        await keepChatting.click();
-        await page
-          .getByTestId('QUEST_APPROVED_MODAL_TITLE')
-          .waitFor({ state: 'hidden', timeout: PANEL_TIMEOUT });
-      }
+      await navigationHarness({ page }).dismissApprovedModalIfPresent();
 
       await waitForCanvas();
     },

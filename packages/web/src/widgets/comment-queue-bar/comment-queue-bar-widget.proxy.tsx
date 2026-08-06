@@ -47,6 +47,7 @@ export const CommentQueueBarWidgetProxy = (): {
   setupSendServerError: (params: { error: string }) => void;
   setupSendNetworkError: () => void;
   clickClear: () => Promise<void>;
+  clickClearDuringSend: () => void;
   clickSend: () => Promise<void>;
   hasBar: () => boolean;
   getCountText: () => HTMLElement['textContent'];
@@ -110,6 +111,14 @@ export const CommentQueueBarWidgetProxy = (): {
 
     clickClear: async (): Promise<void> => {
       await user.click(screen.getByTestId('COMMENT_CLEAR_BUTTON'));
+    },
+    // fireEvent.click (not userEvent.click) for the same reason clickSend uses it below: userEvent
+    // honors the `disabled` attribute and never dispatches, so it cannot reach the Clear handler's
+    // own `if (sending) return` guard once a send is in flight. Firing the raw DOM event is what
+    // lets a test prove that guard — not the disabled attribute alone — is what keeps a mid-send
+    // Clear click from wiping the queue.
+    clickClearDuringSend: (): void => {
+      fireEvent.click(screen.getByTestId('COMMENT_CLEAR_BUTTON'));
     },
     // fireEvent.click (not userEvent.click) so the click only flushes the SYNCHRONOUS state update
     // (setSending(true), which disables the button) and returns before the send promise settles —

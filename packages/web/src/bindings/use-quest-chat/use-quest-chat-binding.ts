@@ -230,30 +230,28 @@ export const useQuestChatBinding = ({
       setStreamingFromOutput(true);
     });
 
-    const chatStreamEndedSub = webSocketChannelState
-      .chatStreamEnded$()
-      .subscribe((payload): void => {
-        // The clear-input is scoped the way the chatOutput$ predicate above it already is. A
-        // completion naming a DIFFERENT process is somebody else's turn ending, and letting it
-        // through is what made the control read PLAY while this quest's harness was still working.
-        const trackedChatProcessId = trackedChatProcessIdRef.current;
-        if (
-          trackedChatProcessId !== null &&
-          payload.chatProcessId !== undefined &&
-          payload.chatProcessId !== trackedChatProcessId
-        ) {
-          return;
-        }
-
-        setStreamingFromOutput(false);
-        // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
-        // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
-        // would report a turn the user just started as idle.
-        if (payload.reason === 'turn-ended') {
-          setPendingTurn(false);
-          trackedChatProcessIdRef.current = null;
-        }
-      });
+    const chatStreamEndedSub = rxjsFilterAdapter({
+      source: webSocketChannelState.chatStreamEnded$(),
+      // Scoped the same way the chatOutput$ predicate above it already is. A completion naming a
+      // DIFFERENT process than the one this binding is tracking is somebody else's turn ending —
+      // a sibling work item finishing, another browser's replay draining — and letting it through
+      // is what made the control read PLAY while this quest's harness was still working. An
+      // untracked turn (`null`) or an untagged payload falls through, same as chatOutputSub's own
+      // "no id to compare against" arm.
+      predicate: (p) =>
+        trackedChatProcessIdRef.current === null ||
+        p.chatProcessId === undefined ||
+        p.chatProcessId === trackedChatProcessIdRef.current,
+    }).subscribe((payload): void => {
+      setStreamingFromOutput(false);
+      // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
+      // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
+      // would report a turn the user just started as idle.
+      if (payload.reason === 'turn-ended') {
+        setPendingTurn(false);
+        trackedChatProcessIdRef.current = null;
+      }
+    });
 
     const clarificationRequestSub = webSocketChannelState
       .clarificationRequest$()

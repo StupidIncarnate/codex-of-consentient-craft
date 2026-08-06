@@ -374,4 +374,20 @@ describe('CommentQueueBarWidget', () => {
       expect(proxy.getRequestCount()).toBe(1);
     });
   });
+
+  describe('clear guard during send', () => {
+    it('EDGE: {click COMMENT_CLEAR_BUTTON while a send is in flight} => the dungeonmaster-quest-comments-{questId} key survives because the guard blocks the clear', async () => {
+      const proxy = CommentQueueBarWidgetProxy();
+      proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
+      proxy.setupSendServerError({ error: 'Quest write failed' });
+      mantineRenderAdapter({
+        ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
+      });
+
+      await proxy.clickSend();
+      proxy.clickClearDuringSend();
+
+      expect(proxy.hasStoredQueue({ questId: QUEST_ID })).toBe(true);
+    });
+  });
 });

@@ -81,8 +81,10 @@ export const CommentQueueBarWidget = ({
             size="sm"
             disabled={sending}
             onClick={() => {
-              // Belt-and-suspenders: the disabled attribute already blocks the click while
-              // sending, this guard just makes the invariant explicit at the call site.
+              // Not merely belt-and-suspenders: the disabled attribute blocks a real pointer
+              // click, but a click dispatched straight at the DOM (bypassing the disabled check)
+              // still reaches this handler — this guard is what stops a mid-send Clear from
+              // wiping the locally queued comments before the in-flight send settles.
               if (sending) return;
               clearQueue();
             }}

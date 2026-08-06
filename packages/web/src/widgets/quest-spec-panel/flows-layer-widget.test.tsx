@@ -1,7 +1,13 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { FlowStub, FlowNodeStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  FlowStub,
+  FlowNodeStub,
+  QuestCommentStub,
+  QuestContractEntryStub,
+  QuestIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -298,6 +304,87 @@ describe('FlowsLayerWidget', () => {
       });
 
       expect(screen.getByTestId('SECTION_HEADER_LABEL').textContent).toBe('FLOWS');
+    });
+  });
+
+  // FlowsLayerWidgetProxy exposes countCommentButtonsOn/getCommentBadgeTextsOn specifically to
+  // verify these two optional props reach the diagram — this widget's own layer is where that
+  // forwarding (not just the diagram's own rendering of them) gets proven.
+  describe('comment compose forwarding', () => {
+    it('VALID: {commentQuestId set} => forwards commentQuestId to the diagram, rendering a COMMENT_BUTTON on the node card', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+      const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} commentQuestId={QuestIdStub({ value: 'quest-a' })} />,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtonsOn({ testId: 'FLOW_NODE' })).toBe(1);
+    });
+
+    it('EMPTY: {commentQuestId absent} => the diagram renders zero COMMENT_BUTTON elements on the node card', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+      const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} />,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.countCommentButtonsOn({ testId: 'FLOW_NODE' })).toBe(0);
+    });
+
+    it('VALID: {comments carrying a note on the rendered node} => forwards comments to the diagram, painting the COMMENT_COUNT_BADGE', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+      const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      mantineRenderAdapter({
+        ui: (
+          <FlowsLayerWidget
+            flows={[flow]}
+            comments={[
+              QuestCommentStub({ flowId: 'login-flow', nodeId: 'login-page', text: 'a note' }),
+            ]}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['1']);
+    });
+
+    it('EMPTY: {comments prop omitted} => no COMMENT_COUNT_BADGE on the rendered node', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+      const node = FlowNodeStub({ id: 'login-page', type: 'state', observables: [] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[flow]} />,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual([]);
     });
   });
 });

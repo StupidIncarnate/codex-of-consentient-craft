@@ -180,6 +180,26 @@ describe('QuestSpecPanelWidget', () => {
     });
   });
 
+  describe('approve without onModify', () => {
+    // onModify is optional on the props — a caller that renders the panel purely to display an
+    // approvable quest (no write path wired up) must not crash when APPROVE is clicked.
+    it('EDGE: {no onModify provided, click APPROVE} => does not throw and the panel stays rendered', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        flows: [FlowStub()],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} onSendComments={proxy.onSendComments} />,
+      });
+
+      await proxy.clickApprove();
+
+      expect(screen.getByTestId('QUEST_SPEC_PANEL')).toBeInTheDocument();
+    });
+  });
+
   describe('approve gate content guard', () => {
     it('VALID: {status: review_flows, flows: [flow]} => APPROVE is enabled', () => {
       const proxy = QuestSpecPanelWidgetProxy();
@@ -1347,6 +1367,27 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(proxy.hasQueueBar()).toBe(true);
+    });
+
+    // readOnly renders neither the queue bar nor a send path (onSendComments is typed `never` on
+    // this arm) — a quest that already has comments queued in local storage from an earlier
+    // editable session must not surface a bar with nowhere to deliver a send.
+    it('VALID: {readOnly panel whose quest already has queued comments in local storage} => COMMENT_QUEUE_BAR is absent', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+      });
+      proxy.setupQueuedComments({
+        questId: quest.id,
+        entries: [CommentQueueEntryStub()],
+      });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
+      });
+
+      expect(proxy.hasQueueBar()).toBe(false);
     });
   });
 
