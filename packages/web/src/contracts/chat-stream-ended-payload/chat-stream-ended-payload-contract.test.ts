@@ -4,14 +4,19 @@ import { chatStreamEndedPayloadContract } from './chat-stream-ended-payload-cont
 import { ChatStreamEndedPayloadStub } from './chat-stream-ended-payload.stub';
 
 describe('chatStreamEndedPayloadContract', () => {
-  it('VALID: {empty} => parses with no fields populated', () => {
-    expect(chatStreamEndedPayloadContract.parse({})).toStrictEqual({});
+  it('VALID: {reason only} => parses with no other fields populated', () => {
+    expect(chatStreamEndedPayloadContract.parse({ reason: 'turn-ended' })).toStrictEqual({
+      reason: 'turn-ended',
+    });
   });
 
   it('VALID: {chatProcessId only} => parses', () => {
     const chatProcessId = ProcessIdStub({ value: 'replay-abc' });
 
-    expect(chatStreamEndedPayloadContract.parse({ chatProcessId })).toStrictEqual({
+    expect(
+      chatStreamEndedPayloadContract.parse({ reason: 'history-replayed', chatProcessId }),
+    ).toStrictEqual({
+      reason: 'history-replayed',
       chatProcessId,
     });
   });
@@ -20,7 +25,10 @@ describe('chatStreamEndedPayloadContract', () => {
     const chatProcessId = ProcessIdStub({ value: 'live-1' });
     const sessionId = SessionIdStub({ value: 'sess-1' });
 
-    expect(chatStreamEndedPayloadContract.parse({ chatProcessId, sessionId })).toStrictEqual({
+    expect(
+      chatStreamEndedPayloadContract.parse({ reason: 'turn-ended', chatProcessId, sessionId }),
+    ).toStrictEqual({
+      reason: 'turn-ended',
       chatProcessId,
       sessionId,
     });
@@ -29,7 +37,21 @@ describe('chatStreamEndedPayloadContract', () => {
   it('VALID: {questId only} => parses chat-history-complete shape', () => {
     const questId = QuestIdStub({ value: 'q-1' });
 
-    expect(chatStreamEndedPayloadContract.parse({ questId })).toStrictEqual({ questId });
+    expect(
+      chatStreamEndedPayloadContract.parse({ reason: 'history-replayed', questId }),
+    ).toStrictEqual({ reason: 'history-replayed', questId });
+  });
+
+  it('INVALID: {no reason} => throws, so no emit site can ship an unlabelled stream end', () => {
+    expect(() => {
+      chatStreamEndedPayloadContract.parse({ questId: QuestIdStub({ value: 'q-1' }) });
+    }).toThrow(/Required/u);
+  });
+
+  it('INVALID: {unknown reason} => throws', () => {
+    expect(() => {
+      chatStreamEndedPayloadContract.parse({ reason: 'chat-complete' });
+    }).toThrow(/Invalid enum value/u);
   });
 
   it('VALID: {ChatStreamEndedPayloadStub} => round-trips', () => {

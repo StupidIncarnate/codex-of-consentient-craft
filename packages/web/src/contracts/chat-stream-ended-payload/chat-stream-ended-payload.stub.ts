@@ -7,5 +7,6 @@ export const ChatStreamEndedPayloadStub = ({
   ...props
 }: StubArgument<ChatStreamEndedPayload> = {}): ChatStreamEndedPayload =>
   chatStreamEndedPayloadContract.parse({
+    reason: 'turn-ended',
     ...props,
   });

@@ -8,6 +8,7 @@ import {
 import { ChatCompletePayloadStub } from '../../contracts/chat-complete-payload/chat-complete-payload.stub';
 import { ChatHistoryCompletePayloadStub } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload.stub';
 import { ChatOutputPayloadStub } from '../../contracts/chat-output-payload/chat-output-payload.stub';
+import { ChatStreamEndedPayloadStub } from '../../contracts/chat-stream-ended-payload/chat-stream-ended-payload.stub';
 import { ClarificationRequestPayloadStub } from '../../contracts/clarification-request-payload/clarification-request-payload.stub';
 import { QuestLoadFailedPayloadStub } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload.stub';
 import { QuestModifiedPayloadStub } from '../../contracts/quest-modified-payload/quest-modified-payload.stub';
@@ -65,7 +66,7 @@ describe('webSocketChannelState', () => {
       expect(captured[0]).toStrictEqual(ChatOutputPayloadStub({ questId, chatProcessId }));
     });
 
-    it('VALID: {chat-complete ws message} => chatStreamEnded$ emits parsed payload', () => {
+    it('VALID: {chat-complete ws message} => chatStreamEnded$ emits the payload tagged reason turn-ended', () => {
       const proxy = webSocketChannelStateProxy();
       proxy.setupEmpty();
       proxy.connect();
@@ -87,10 +88,12 @@ describe('webSocketChannelState', () => {
 
       sub.unsubscribe();
 
-      expect(captured[0]).toStrictEqual(ChatCompletePayloadStub({ chatProcessId }));
+      expect(captured[0]).toStrictEqual(
+        ChatStreamEndedPayloadStub({ chatProcessId, reason: 'turn-ended' }),
+      );
     });
 
-    it('VALID: {chat-history-complete ws message} => chatStreamEnded$ emits parsed payload', () => {
+    it('VALID: {chat-history-complete ws message} => chatStreamEnded$ emits the payload tagged reason history-replayed', () => {
       const proxy = webSocketChannelStateProxy();
       proxy.setupEmpty();
       proxy.connect();
@@ -112,7 +115,9 @@ describe('webSocketChannelState', () => {
 
       sub.unsubscribe();
 
-      expect(captured[0]).toStrictEqual(ChatHistoryCompletePayloadStub({ chatProcessId }));
+      expect(captured[0]).toStrictEqual(
+        ChatStreamEndedPayloadStub({ chatProcessId, reason: 'history-replayed' }),
+      );
     });
 
     it('VALID: {clarification-request ws message} => clarificationRequest$ emits parsed payload', () => {

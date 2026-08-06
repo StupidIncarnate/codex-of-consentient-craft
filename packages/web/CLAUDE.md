@@ -94,6 +94,35 @@ verbatim as the synthetic entry — so the optimistic entry and the replayed one
 The broker still owns the HTTP round-trip; the binding owns the panel entry, the
 quest-scoped subscription, and the running state.
 
+### The composer's running state lives in the binding — never add a widget-local copy
+
+`useQuestChatBinding.isStreaming` is `pendingTurn || streamingFromOutput`, and the split is the whole point:
+
+- `pendingTurn` — armed the instant the USER commits a turn, cleared ONLY by a `turn-ended`.
+- `streamingFromOutput` — the agent actually emitting; cleared by any stream end.
+
+Every widget reads `isStreaming` and calls `armStreaming` / `disarmStreaming`. **Do not reintroduce a widget-local "
+submitting" flag.** `QuestChatContentLayerWidget` mounts `<ChatPanelWidget>` twice (no-quest create surface, and live
+workspace) and a first message crosses from the first to the second ~20 ms after its quest is created — so a second flag
+has to be threaded through both mounts identically, nothing type-checks that parity, and the mount that forgets it shows
+SEND for the whole multi-second spawn window while the agent is already running. One flag in the binding has no parity
+to forget. The only reason `armStreaming` is exported at all is the first message, which must create its quest before
+there is a `questId` to POST to.
+
+Two failure modes this shape exists to prevent, both previously live:
+
+1. **`chatStreamEnded$` merges two wire events.** `chat-history-complete` is the subscribe-quest replay draining and
+   fires a couple hundred ms after a browser binds a quest — inside the window where a just-sent turn hasn't produced a
+   token. Disarming on it reports a running turn as idle. That is why the payload carries `reason` and only `turn-ended`
+   disarms. Do not collapse them.
+2. **A turn that emits nothing still has to end the running state.** `chat-complete` with zero chat entries is a real
+   case (a spawn that dies early). Anything gated on "output arrived" sticks on STOP forever.
+
+Guarded by `flows/quest-chat/chat-stop-first-message.e2e.ts` — two cases, held-back output and zero output. It asserts
+the recorded SEND→STOP **sequence** via `chatControlHarness`, not visibility at a moment: `toBeVisible` retries until it
+passes, so a point-in-time check reports green on a control that went dark and came back on its own once output
+arrived — which IS the defect.
+
 ### If you need a new field or variant
 
 1. Add it to `chatEntryContract` in `@dungeonmaster/shared/contracts/chat-entry/`.

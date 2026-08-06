@@ -64,6 +64,8 @@ export const useQuestChatBinding = ({
   loadError: QuestLoadFailedPayload['error'] | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
+  armStreaming: () => void;
+  disarmStreaming: () => void;
   sendMessage: (params: { message: UserInput }) => void;
   sendCommentBatch: (params: {
     comments: readonly CommentQueueEntry[];
@@ -95,7 +97,15 @@ export const useQuestChatBinding = ({
   const [pendingClarification, setPendingClarification] = useState<{
     questions: AskUserQuestionItem[];
   } | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
+  // Two halves of "a turn is running", because they end on different signals.
+  // `pendingTurn` is armed the instant the USER commits a turn (send / clarify answer / comment
+  // batch / the first message that creates the quest) and is cleared ONLY by a real `turn-ended`.
+  // It exists because there is a multi-second window between committing a turn and the agent's
+  // first token, and the quest's own replay drains inside that window.
+  // `streamingFromOutput` tracks the agent actually emitting, and clears on ANY stream end.
+  const [pendingTurn, setPendingTurn] = useState(false);
+  const [streamingFromOutput, setStreamingFromOutput] = useState(false);
+  const isStreaming = pendingTurn || streamingFromOutput;
 
   const entriesBySession = useMemo(
     () => deriveSortedChatEntriesMapTransformer({ source: entriesBySessionInternal }),
@@ -115,6 +125,18 @@ export const useQuestChatBinding = ({
 
   // Track the questId that was active at subscribe time so cleanup sends the correct id
   const subscribedQuestIdRef = useRef<QuestId | null>(null);
+
+  // A pending turn belongs to the quest it was armed for. Carrying it across a real quest→quest
+  // switch would show STOP over an idle workspace. The null→id transition is deliberately NOT a
+  // switch: that is the same turn, whose first message just created its own quest.
+  const previousQuestIdRef = useRef<QuestId | null>(questId);
+  useEffect(() => {
+    const previousQuestId = previousQuestIdRef.current;
+    previousQuestIdRef.current = questId;
+    if (previousQuestId === null || previousQuestId === questId) return;
+    setPendingTurn(false);
+    setStreamingFromOutput(false);
+  }, [questId]);
 
   useEffect(() => {
     const opensSub = webSocketChannelState.opens$().subscribe((): void => {
@@ -193,12 +215,18 @@ export const useQuestChatBinding = ({
         );
       }
 
-      setIsStreaming(true);
+      setStreamingFromOutput(true);
     });
 
-    const chatStreamEndedSub = webSocketChannelState.chatStreamEnded$().subscribe((): void => {
-      setIsStreaming(false);
-    });
+    const chatStreamEndedSub = webSocketChannelState
+      .chatStreamEnded$()
+      .subscribe((payload): void => {
+        setStreamingFromOutput(false);
+        // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
+        // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
+        // would report a turn the user just started as idle.
+        if (payload.reason === 'turn-ended') setPendingTurn(false);
+      });
 
     const clarificationRequestSub = webSocketChannelState
       .clarificationRequest$()
@@ -282,7 +310,7 @@ export const useQuestChatBinding = ({
           newEntries: [userEntry],
         }),
       );
-      setIsStreaming(true);
+      setPendingTurn(true);
       setPendingClarification(null);
 
       const currentQuest = quest;
@@ -296,7 +324,7 @@ export const useQuestChatBinding = ({
       resumeStep
         .then(async () => questChatBroker({ questId: activeQuestId, message }))
         .catch((err: unknown) => {
-          setIsStreaming(false);
+          setPendingTurn(false);
           const errorMessage = err instanceof Error ? err.message : String(err);
           const errorEntry = chatEntryContract.parse({
             role: 'system',
@@ -354,7 +382,7 @@ export const useQuestChatBinding = ({
             newEntries: [userEntry],
           }),
         );
-        setIsStreaming(true);
+        setPendingTurn(true);
         setPendingClarification(null);
       }
 
@@ -388,7 +416,7 @@ export const useQuestChatBinding = ({
           newEntries: [userEntry],
         }),
       );
-      setIsStreaming(true);
+      setPendingTurn(true);
       setPendingClarification(null);
 
       questClarifyBroker({
@@ -396,7 +424,7 @@ export const useQuestChatBinding = ({
         answers,
         questions,
       }).catch((err: unknown) => {
-        setIsStreaming(false);
+        setPendingTurn(false);
         const errorMessage = err instanceof Error ? err.message : String(err);
         const errorEntry = chatEntryContract.parse({
           role: 'system',
@@ -421,8 +449,19 @@ export const useQuestChatBinding = ({
     const activeQuestId = questIdRef.current;
     if (!activeQuestId) return;
     questPauseBroker({ questId: activeQuestId }).catch(() => {
-      setIsStreaming(false);
+      setPendingTurn(false);
     });
+  }, []);
+
+  // For the one turn this binding cannot POST itself: the first message, which must create its
+  // quest before there is a questId to send to. The caller owns that round-trip, so it arms here
+  // and the wire disarms on `turn-ended` like any other turn.
+  const armStreaming = useCallback((): void => {
+    setPendingTurn(true);
+  }, []);
+
+  const disarmStreaming = useCallback((): void => {
+    setPendingTurn(false);
   }, []);
 
   return {
@@ -433,6 +472,8 @@ export const useQuestChatBinding = ({
     loadError,
     pendingClarification,
     isStreaming,
+    armStreaming,
+    disarmStreaming,
     sendMessage,
     sendCommentBatch,
     submitClarifyAnswers,

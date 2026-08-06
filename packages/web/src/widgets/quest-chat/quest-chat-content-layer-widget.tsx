@@ -103,6 +103,8 @@ export const QuestChatContentLayerWidget = ({
     entriesBySession,
     entriesByWorkItem,
     isStreaming,
+    armStreaming,
+    disarmStreaming,
     pendingClarification,
     sendMessage,
     sendCommentBatch,
@@ -112,10 +114,8 @@ export const QuestChatContentLayerWidget = ({
 
   // Node-mode first-message flow: the user's first message lives in localEntries until the binding's
   // replay catches up (the binding boots fresh entries on each questId change, so without this the
-  // message would vanish during the questId param transition after quest creation). `submitting`
-  // covers the gap from "user clicks send on the new-chat surface" until the binding shows activity.
+  // message would vanish during the questId param transition after quest creation).
   const [localEntries, setLocalEntries] = useState<ChatEntry[]>([]);
-  const [submitting, setSubmitting] = useState(false);
 
   // Which pipeline the first message creates. Only read on the no-questId create path; once the
   // quest exists its type is settled on disk and the dropdown is gone.
@@ -125,12 +125,6 @@ export const QuestChatContentLayerWidget = ({
   const selectedQuestType: QuestType =
     questTypeOptionsStatics.options.find((option) => option.label === String(questTypeLabel))
       ?.questType ?? 'feature';
-
-  useEffect(() => {
-    if (submitting && (isStreaming || entriesBySession.size > 0)) {
-      setSubmitting(false);
-    }
-  }, [submitting, isStreaming, entriesBySession]);
 
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];
@@ -144,11 +138,11 @@ export const QuestChatContentLayerWidget = ({
   }, [entriesBySession, localEntries]);
 
   const handleStop = useCallback((): void => {
-    // Clear submitting alongside stopChat so a first-message STOP that fires before any assistant
-    // output returns the input to the SEND state instead of showing STOP forever.
-    setSubmitting(false);
+    // Disarm locally as well as pausing: a STOP that fires before the agent ever emitted has no
+    // turn end coming, so waiting for the wire would leave the input showing STOP forever.
+    disarmStreaming();
     stopChat();
-  }, [stopChat]);
+  }, [disarmStreaming, stopChat]);
 
   const handleSend = useCallback(
     ({ message }: { message: UserInput }): void => {
@@ -159,7 +153,7 @@ export const QuestChatContentLayerWidget = ({
       }
       // First-message path — create the quest, then replace-navigate so the SAME component instance
       // keeps rendering with questId set; localEntries keeps the message visible until replay catches up.
-      if (submitting) return;
+      if (isStreaming) return;
       const userEntry = chatEntryContract.parse({
         role: 'user',
         content: message,
@@ -167,7 +161,9 @@ export const QuestChatContentLayerWidget = ({
         timestamp: new Date().toISOString(),
       });
       setLocalEntries((prev) => [...prev, userEntry]);
-      setSubmitting(true);
+      // The binding cannot arm this turn itself — there is no questId to POST to until the quest
+      // exists — so the caller that owns the round-trip arms it. The wire disarms it like any other.
+      armStreaming();
       questNewBroker({ guildId, message, questType: selectedQuestType })
         .then(({ questId: newQuestId }) => {
           const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
@@ -178,7 +174,7 @@ export const QuestChatContentLayerWidget = ({
           }
         })
         .catch((err: unknown) => {
-          setSubmitting(false);
+          disarmStreaming();
           const errorMessage = err instanceof Error ? err.message : String(err);
           const errorEntry = chatEntryContract.parse({
             role: 'system',
@@ -190,7 +186,17 @@ export const QuestChatContentLayerWidget = ({
           setLocalEntries((prev) => [...prev, errorEntry]);
         });
     },
-    [questId, sendMessage, submitting, guildId, guildSlug, navigate, selectedQuestType],
+    [
+      questId,
+      sendMessage,
+      isStreaming,
+      armStreaming,
+      disarmStreaming,
+      guildId,
+      guildSlug,
+      navigate,
+      selectedQuestType,
+    ],
   );
 
   const [approvedModalOpen, setApprovedModalOpen] = useState(false);
@@ -324,7 +330,7 @@ export const QuestChatContentLayerWidget = ({
               ) : null}
               <ChatPanelWidget
                 entries={flattenedEntries}
-                isStreaming={submitting || isStreaming}
+                isStreaming={isStreaming}
                 onSendMessage={handleSend}
                 onStopChat={handleStop}
               />
@@ -519,10 +525,8 @@ export const QuestChatContentLayerWidget = ({
           <ChatPanelWidget
             entries={flattenedEntries}
             isStreaming={isStreaming}
-            onSendMessage={({ message }): void => {
-              sendMessage({ message });
-            }}
-            onStopChat={stopChat}
+            onSendMessage={handleSend}
+            onStopChat={handleStop}
           />
         </Box>
       )}

@@ -48,6 +48,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -155,6 +157,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: true,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -196,6 +200,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -236,6 +242,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -275,6 +283,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -314,6 +324,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -352,6 +364,8 @@ describe('useQuestChatBinding', () => {
         loadError: LOAD_FAILURE_REASON,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -388,6 +402,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -439,6 +455,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -569,6 +587,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: true,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -620,6 +640,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: true,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
@@ -899,6 +921,112 @@ describe('useQuestChatBinding', () => {
 
       expect(result.current.isStreaming).toBe(false);
     });
+
+    it('VALID: {armed turn ends with chat-complete and NO chat-output} => isStreaming returns to false', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-silent-turn' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.armStreaming();
+        },
+      });
+      const whileArmed = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-silent' }),
+                exitCode: 0,
+                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      // A turn that emitted nothing still ended. Gating the running state on "output arrived"
+      // leaves the composer showing STOP with no turn behind it and no way back except a reload.
+      expect({ whileArmed, afterTurnEnded: result.current.isStreaming }).toStrictEqual({
+        whileArmed: true,
+        afterTurnEnded: false,
+      });
+    });
+
+    it('VALID: {armed turn, then chat-history-complete} => isStreaming STAYS true, because a replay draining is not the turn ending', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-replay-vs-turn' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.armStreaming();
+        },
+      });
+      const whileArmed = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          // The subscribe-quest replay finisher, which lands a couple hundred ms after a browser
+          // binds a quest — squarely inside the window where a just-sent turn has no token yet.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-history-complete',
+              payload: { questId: 'quest-replay-vs-turn' },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ whileArmed, afterHistoryReplayed: result.current.isStreaming }).toStrictEqual({
+        whileArmed: true,
+        afterHistoryReplayed: true,
+      });
+    });
+
+    it('VALID: {armed turn, then bound to a DIFFERENT quest} => isStreaming clears, so an idle workspace never inherits it', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+
+      let activeQuestId = QuestIdStub({ value: 'quest-armed-a' });
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.armStreaming();
+        },
+      });
+      const whileArmed = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = QuestIdStub({ value: 'quest-armed-b' });
+          rerender();
+        },
+      });
+
+      expect({ whileArmed, afterQuestSwitch: result.current.isStreaming }).toStrictEqual({
+        whileArmed: true,
+        afterQuestSwitch: false,
+      });
+    });
   });
 
   describe('submitClarifyAnswers', () => {
@@ -1032,6 +1160,8 @@ describe('useQuestChatBinding', () => {
         loadError: null,
         pendingClarification: null,
         isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),

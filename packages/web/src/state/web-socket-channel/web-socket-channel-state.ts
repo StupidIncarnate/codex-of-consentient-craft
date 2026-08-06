@@ -139,14 +139,21 @@ export const webSocketChannelState = {
       if (payload.success) internalState.chatOutputSubject.next(payload.data);
       return;
     }
+    // Both wire events feed one observable, so `reason` is stamped HERE — the only place that still
+    // knows which frame arrived. Downstream, a turn ending and a replay draining are not
+    // interchangeable: see chat-stream-ended-payload-contract.
     if (envelope.data.type === 'chat-complete') {
       const payload = chatCompletePayloadContract.safeParse(envelope.data.payload);
-      if (payload.success) internalState.chatStreamEndedSubject.next(payload.data);
+      if (payload.success) {
+        internalState.chatStreamEndedSubject.next({ ...payload.data, reason: 'turn-ended' });
+      }
       return;
     }
     if (envelope.data.type === 'chat-history-complete') {
       const payload = chatHistoryCompletePayloadContract.safeParse(envelope.data.payload);
-      if (payload.success) internalState.chatStreamEndedSubject.next(payload.data);
+      if (payload.success) {
+        internalState.chatStreamEndedSubject.next({ ...payload.data, reason: 'history-replayed' });
+      }
       return;
     }
     if (envelope.data.type === 'clarification-request') {
