@@ -24,6 +24,7 @@ import { gitDiffFilesBroker } from '../../git/diff-files/git-diff-files-broker';
 import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
 import { isProjectReferencesModeGuard } from '../../../guards/is-project-references-mode/is-project-references-mode-guard';
 import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
+import { hasUnmatchedTestNamePatternGuard } from '../../../guards/has-unmatched-test-name-pattern/has-unmatched-test-name-pattern-guard';
 import { projectReferencesSyncBroker } from '../../project-references/sync/project-references-sync-broker';
 import { checkRunTypecheckRefsBroker } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker';
 
@@ -130,6 +131,15 @@ export const commandRunBroker = async ({
       `\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n${mismatchList}\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward's discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn't, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward's discovery to match the buggy state.\n`,
     );
     process.exitCode = 1;
+  }
+
+  // Every package the pattern reached came back empty, so the pattern itself is wrong. A pattern
+  // that matched somewhere leaves the packages without such a test as plain skips.
+  if (hasUnmatchedTestNamePatternGuard({ wardResult })) {
+    process.stdout.write(
+      `\n--onlyTests pattern "${String(resolvedConfig.onlyTests)}" matched 0 tests in any package — possible typo or stale test name\n`,
+    );
+    process.exitCode = wardExitCodeStatics.exitCodes.failing;
   }
 
   if (hasFailing) {

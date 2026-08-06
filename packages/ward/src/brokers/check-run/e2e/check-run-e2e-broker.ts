@@ -93,10 +93,13 @@ export const checkRunE2eBroker = async ({
     });
   }
 
+  // --pass-with-no-tests keeps a --grep that matches nothing here from exiting non-zero on its own:
+  // whether the pattern matching nothing is a real failure depends on the other packages in the
+  // run, which only commandRunBroker can see.
   const finalArgs =
     testNamePattern === undefined
       ? [...args, ...e2eFiles]
-      : [...args, '--grep', testNamePattern, ...e2eFiles];
+      : [...args, '--grep', testNamePattern, '--pass-with-no-tests', ...e2eFiles];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
   const serverPort = await netFreePortAdapter();
@@ -164,6 +167,25 @@ export const checkRunE2eBroker = async ({
   }
   const filesCount = lineFiles.length;
 
+  if (testNamePattern !== undefined && status === 'pass' && filesCount === 0) {
+    // No spec in this package carries a name the pattern matches. Report discoveredCount 0 with the
+    // skip: a nonzero count here would trip the discovery-mismatch detector even though skipping is
+    // the correct behavior.
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      testNamePatternMatch: 'unmatched',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      rawOutput: rawOutputContract.parse({
+        stdout: result.output,
+        stderr: '',
+        exitCode,
+      }),
+    });
+  }
+
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
     discoveredFiles,
     processedFiles,
@@ -173,6 +195,7 @@ export const checkRunE2eBroker = async ({
   return projectResultContract.parse({
     projectFolder,
     status,
+    ...(testNamePattern === undefined ? {} : { testNamePatternMatch: 'matched' }),
     errors: [],
     testFailures,
     filesCount,

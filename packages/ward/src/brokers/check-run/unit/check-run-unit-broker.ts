@@ -17,10 +17,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
-import {
-  errorEntryContract,
-  type ErrorEntry,
-} from '../../../contracts/error-entry/error-entry-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -202,7 +198,6 @@ export const checkRunUnitBroker = async ({
   let numPassedTests = 0;
   const processedFiles: GitRelativePath[] = [];
   const fileTimings: FileTiming[] = [];
-  const errors: ErrorEntry[] = [];
 
   if (status === 'fail') {
     try {
@@ -246,17 +241,18 @@ export const checkRunUnitBroker = async ({
     // non-JSON output, filesCount stays 0
   }
 
-  if (resolvedStatus === 'pass' && testNamePattern !== undefined && numPassedTests === 0) {
-    resolvedStatus = 'fail';
-    errors.push(
-      errorEntryContract.parse({
-        filePath: 'jest',
-        line: 0,
-        column: 0,
-        message: `--onlyTests pattern "${testNamePattern}" matched 0 tests — possible typo or stale test name`,
-        severity: 'error',
-      }),
-    );
+  // One package holding no test by that name is a skip, not an error — only the run as a whole can
+  // tell that apart from a typo, so record the outcome and let commandRunBroker judge it across
+  // every package the pattern reached.
+  const testNamePatternMatch =
+    testNamePattern === undefined
+      ? undefined
+      : resolvedStatus === 'pass' && numPassedTests === 0
+        ? 'unmatched'
+        : 'matched';
+
+  if (testNamePatternMatch === 'unmatched') {
+    resolvedStatus = 'skip';
   }
 
   const { onlyDiscovered, onlyProcessed } = discoveryDiffTransformer({
@@ -268,7 +264,8 @@ export const checkRunUnitBroker = async ({
   return projectResultContract.parse({
     projectFolder,
     status: resolvedStatus,
-    errors,
+    ...(testNamePatternMatch === undefined ? {} : { testNamePatternMatch }),
+    errors: [],
     testFailures,
     filesCount,
     discoveredCount,

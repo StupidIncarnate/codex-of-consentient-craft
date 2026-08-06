@@ -67,6 +67,55 @@ describe('commandRunBroker', () => {
     });
   });
 
+  describe('--onlyTests across packages', () => {
+    it('VALID: {pattern matches one package, misses the rest} => leaves process.exitCode at 0', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupMultiPackageOnlyTests({ matches: ['unmatched', 'matched', 'unmatched'] });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['unit'], onlyTests: 'my specific test' });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: process.exitCode,
+      }).toStrictEqual({
+        stdoutCalls: [
+          [
+            'run: 1739625600000-a38e',
+            'unit:      PASS  1 packages (3 files passed/0 files failed, 3 discovered)',
+            '',
+          ].join('\n'),
+        ],
+        exitCode: 0,
+      });
+    });
+
+    it('VALID: {pattern misses every package} => sets process.exitCode to 1 with typo guidance', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupMultiPackageOnlyTests({ matches: ['unmatched', 'unmatched', 'unmatched'] });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['unit'], onlyTests: 'XYZNONEXISTENT' });
+
+      await commandRunBroker({ config, rootPath });
+
+      const stdoutCalls = proxy.getStdoutCalls();
+
+      expect({
+        guidance: stdoutCalls[stdoutCalls.length - 1],
+        exitCode: process.exitCode,
+      }).toStrictEqual({
+        guidance:
+          '\n--onlyTests pattern "XYZNONEXISTENT" matched 0 tests in any package — possible typo or stale test name\n',
+        exitCode: 1,
+      });
+    });
+  });
+
   describe('crashed run', () => {
     it('VALID: {check fails with no findings} => sets process.exitCode to 2', async () => {
       process.exitCode = 0;

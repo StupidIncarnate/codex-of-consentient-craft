@@ -52,6 +52,12 @@ All flags apply to the `run` subcommand.
 **`--onlyTests` accepts a regex pattern.** Use `|` for alternation: `--onlyTests "foo|bar"` runs tests matching either
 name. Ignored by lint and typecheck check types.
 
+**`--onlyTests` is judged across the whole run, not per package.** A test name usually lives in exactly one package, so
+in multi-package mode every other package reports zero matches. Those packages are reported as `skip`. The run fails
+with `--onlyTests pattern "X" matched 0 tests in any package` only when no package the pattern reached matched
+anything — which is what a typo or a stale test name looks like. This means `npm run ward -- --only unit --onlyTests
+"my test"` works without a `-- <path>` scope.
+
 ## Common Invocation Patterns
 
 ```bash
@@ -141,7 +147,9 @@ Ward spawns these commands per package:
 | e2e         | `npx playwright test --reporter=json`                                               | `npx playwright test --reporter=json <file1> <file2> ...`                    |
 
 **`--onlyTests` mapping:** When `--onlyTests <regex>` is provided, ward appends `--testNamePattern <regex>` to Jest
-commands (unit/integration) and `--grep <regex>` to Playwright commands (e2e). Lint and typecheck ignore it.
+commands (unit/integration) and `--grep <regex> --pass-with-no-tests` to Playwright commands (e2e). Lint and typecheck
+ignore it. `--pass-with-no-tests` keeps Playwright from failing a package on its own when the grep matches nothing
+there; whether that is a real failure is decided once for the whole run.
 
 **E2e skip behavior:** The e2e broker checks for `playwright.config.ts` before spawning. If absent, it returns
 `status: 'skip'` — packages without Playwright tests are skipped gracefully.

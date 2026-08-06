@@ -6,6 +6,10 @@ import { gitDiffFilesBrokerProxy } from '../../git/diff-files/git-diff-files-bro
 import { projectReferencesSyncBrokerProxy } from '../../project-references/sync/project-references-sync-broker.proxy';
 import { checkRunTypecheckRefsBrokerProxy } from '../../check-run/typecheck-refs/check-run-typecheck-refs-broker.proxy';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
+import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
+import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
+import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-match/test-name-pattern-match-contract';
 import { commandRunLayerFolderBrokerProxy } from './command-run-layer-folder-broker.proxy';
 import { commandRunLayerSingleBrokerProxy } from './command-run-layer-single-broker.proxy';
 import { commandRunLayerMultiBrokerProxy } from './command-run-layer-multi-broker.proxy';
@@ -26,6 +30,7 @@ export const commandRunBrokerProxy = (): {
   setupSinglePackageFail: () => void;
   setupSinglePackageCrash: () => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
+  setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
   getStdoutCalls: () => unknown[];
   getExitCalls: () => RecordedCalls;
 } => {
@@ -80,6 +85,52 @@ export const commandRunBrokerProxy = (): {
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const projectFolders = Array.from({ length: packageCount }, () => ProjectFolderStub());
       multiProxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent });
+    },
+    // One child ward result per workspace package, each reporting whether the run's --onlyTests
+    // pattern reached anything in that package. Every child ran unit only, so a package without a
+    // matching test comes back as a skip — exactly the shape a real child ward saves.
+    setupMultiPackageOnlyTests: ({ matches }: { matches: TestNamePatternMatch[] }): void => {
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const names = matches.map((_, index) => `pkg${String(index)}`);
+
+      workspaceProxy.setupMultiPackage({
+        patterns: ['packages/*'],
+        dirs: names,
+        packageNames: names,
+      });
+
+      multiProxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: matches.map((testNamePatternMatch, index) => {
+          const name = `pkg${String(index)}`;
+          const projectFolder = ProjectFolderStub({ name, path: `/project/packages/${name}` });
+          const status = testNamePatternMatch === 'matched' ? 'pass' : 'skip';
+
+          return {
+            projectFolder,
+            subResultContent: JSON.stringify(
+              WardResultStub({
+                filters: { only: ['unit'] },
+                checks: [
+                  CheckResultStub({
+                    checkType: 'unit',
+                    status,
+                    projectResults: [
+                      ProjectResultStub({
+                        projectFolder,
+                        status,
+                        testNamePatternMatch,
+                        filesCount: 1,
+                        discoveredCount: 1,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ),
+          };
+        }),
+      });
     },
     // No independent address exists for arbitrary stdout text — flatten via .map() (a real
     // transform over the WHOLE call history, not an unaddressed peek) so callers needing a

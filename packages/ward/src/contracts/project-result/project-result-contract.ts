@@ -15,6 +15,7 @@ import { rawOutputContract } from '../raw-output/raw-output-contract';
 import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
 import { fileTimingContract } from '../file-timing/file-timing-contract';
 import { passingTestContract } from '../passing-test/passing-test-contract';
+import { testNamePatternMatchContract } from '../test-name-pattern-match/test-name-pattern-match-contract';
 
 export const projectResultContract = z.object({
   projectFolder: projectFolderContract,
@@ -28,6 +29,9 @@ export const projectResultContract = z.object({
   onlyProcessed: z.array(gitRelativePathContract).default([]),
   fileTimings: z.array(fileTimingContract).default([]),
   passingTests: z.array(passingTestContract).default([]),
+  // Absent unless the check applied a --onlyTests pattern, which lets the run distinguish a check
+  // that never filtered by name (lint, typecheck) from one that filtered and found nothing.
+  testNamePatternMatch: testNamePatternMatchContract.optional(),
 });
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

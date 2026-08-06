@@ -3,7 +3,6 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { TestFailureStub } from '../../../contracts/test-failure/test-failure.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
-import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 import { PassingTestStub } from '../../../contracts/passing-test/passing-test.stub';
 
@@ -546,7 +545,7 @@ describe('checkRunUnitBroker', () => {
   });
 
   describe('testNamePattern zero matches', () => {
-    it('VALID: {testNamePattern matches no tests} => returns fail with error about zero matching tests', async () => {
+    it('VALID: {testNamePattern matches no tests} => skips the package and records the pattern as unmatched', async () => {
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
@@ -567,17 +566,9 @@ describe('checkRunUnitBroker', () => {
         ProjectResultStub({
           discoveredCount: 1,
           projectFolder,
-          status: 'fail',
-          errors: [
-            ErrorEntryStub({
-              filePath: 'jest',
-              line: 0,
-              column: 0,
-              message:
-                '--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name',
-              severity: 'error',
-            }),
-          ],
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
+          errors: [],
           testFailures: [],
           filesCount: 1,
           onlyDiscovered: ['discovered.ts'],
@@ -587,7 +578,7 @@ describe('checkRunUnitBroker', () => {
       );
     });
 
-    it('VALID: {testNamePattern matches some tests} => returns pass with no errors', async () => {
+    it('VALID: {testNamePattern matches some tests} => returns pass recording the pattern as matched', async () => {
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,
@@ -609,6 +600,7 @@ describe('checkRunUnitBroker', () => {
           discoveredCount: 1,
           projectFolder,
           status: 'pass',
+          testNamePatternMatch: 'matched',
           errors: [],
           testFailures: [],
           filesCount: 1,
@@ -619,7 +611,7 @@ describe('checkRunUnitBroker', () => {
       );
     });
 
-    it('VALID: {no testNamePattern with zero tests} => returns pass preserving existing behavior', async () => {
+    it('VALID: {no testNamePattern with zero tests} => returns pass', async () => {
       const jestOutput = JSON.stringify({
         testResults: [{ name: 'src/index.test.ts', assertionResults: [] }],
         numTotalTestSuites: 1,

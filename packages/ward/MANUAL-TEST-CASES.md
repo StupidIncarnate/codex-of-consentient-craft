@@ -176,7 +176,8 @@ All failures require modifying source files — see linked detail for exact chan
 | [7f](#7f-test-expansion-with-multi-mixed-files)     | `--only test -- .../transformer.test.ts .../start-ward.int.test.ts`            | unit PASS 1, int PASS 1, e2e skip |
 | [8a](#8a-single-pattern-match)                      | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts`                   | jest gets `--testNamePattern`     |
 | [8b](#8b-multiple-patterns-with-pipe)               | `--only unit --onlyTests "EMPTY\|VALID" -- .../transformer.test.ts`            | jest gets alternation             |
-| [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | FAIL — 0 tests matched pattern    |
+| [8c](#8c-pattern-that-matches-nothing)              | `--only unit --onlyTests "XYZNONEXISTENT" -- .../transformer.test.ts`          | FAIL — 0 tests matched anywhere   |
+| [8c-bis](#8c-bis-pattern-that-matches-only-one-package) | `--only unit --onlyTests "<a ward test name>"`                            | PASS — other packages skip        |
 | [8d](#8d---onlytests-ignored-by-lint-and-typecheck) | `--only lint,typecheck --onlyTests "foo" -- packages/ward`                     | lint/tc ignore it                 |
 | [8e](#8e---onlytests-with-integration)              | `--only integration --onlyTests "delegates" -- packages/ward`                  | int respects it                   |
 | [8f](#8f---onlytests-with-multi-files)              | `--only unit --onlyTests "EMPTY" -- .../transformer.test.ts .../guard.test.ts` | runs on both, filters by name     |
@@ -1046,10 +1047,23 @@ npm run ward -- --only unit --onlyTests "XYZNONEXISTENT" -- packages/ward/src/tr
 **Expected:**
 
 - Jest loads the file but no `it()` blocks match the pattern — 0 tests execute
-- Live: `unit ... FAIL 1 files, 1 errors, N discovered`
-- Error detail: `--onlyTests pattern "XYZNONEXISTENT" matched 0 tests — possible typo or stale test name`
+- Live: `unit ... skip`
+- Guidance line: `--onlyTests pattern "XYZNONEXISTENT" matched 0 tests in any package — possible typo or stale test name`
 - Exit code: non-zero
-- Ward detects `numPassedTests === 0` when a `--onlyTests` pattern was provided and reports failure
+- Ward detects `numPassedTests === 0` in every package the pattern reached and fails the run once, at the end
+
+#### 8c-bis. Pattern that matches only one package
+
+```bash
+npm run ward -- --only unit --onlyTests "returns config with onlyTests pattern"
+```
+
+**Expected:**
+
+- Only `@dungeonmaster/ward` holds a test by that name; every other package runs jest and matches nothing
+- Live: `unit @dungeonmaster/ward PASS ...`, every other package `unit ... skip`
+- Summary: `unit: PASS 1 packages ...`
+- Exit code: 0 — a name that lives in one package is not a per-package failure everywhere else
 
 #### 8d. --onlyTests ignored by lint and typecheck
 

@@ -306,7 +306,7 @@ describe('checkRunE2eBroker', () => {
   });
 
   describe('test name pattern', () => {
-    it('VALID: {testNamePattern provided} => adds --grep flag to playwright args', async () => {
+    it('VALID: {testNamePattern provided} => adds --grep and --pass-with-no-tests to playwright args', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunE2eBrokerProxy();
       proxy.setupPass({ projectFolder });
@@ -319,7 +319,63 @@ describe('checkRunE2eBroker', () => {
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
 
-      expect(spawnedArgs).toStrictEqual(['test', '--reporter=line,json', '--grep', 'login']);
+      expect(spawnedArgs).toStrictEqual([
+        'test',
+        '--reporter=line,json',
+        '--grep',
+        'login',
+        '--pass-with-no-tests',
+      ]);
+    });
+
+    it('VALID: {testNamePattern matches no spec} => skips the package and records the pattern as unmatched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'XYZNONEXISTENT',
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'skip',
+          testNamePatternMatch: 'unmatched',
+          errors: [],
+          testFailures: [],
+          filesCount: 0,
+          discoveredCount: 0,
+          rawOutput: RawOutputStub({ stdout: '', stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {testNamePattern matches a spec} => returns pass recording the pattern as matched', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPassWithOutput({
+        projectFolder,
+        stdout: '[1/1] [chromium] › discovered.e2e.ts:3:1 › login works',
+      });
+
+      const result = await checkRunE2eBroker({
+        projectFolder,
+        fileList: [],
+        testNamePattern: 'login',
+      });
+
+      expect({
+        status: result.status,
+        testNamePatternMatch: result.testNamePatternMatch,
+        filesCount: result.filesCount,
+      }).toStrictEqual({
+        status: 'pass',
+        testNamePatternMatch: 'matched',
+        filesCount: 1,
+      });
     });
   });
 });
