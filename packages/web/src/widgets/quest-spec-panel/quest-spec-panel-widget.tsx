@@ -25,7 +25,6 @@ import {
 import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { GateSectionKey } from '../../contracts/gate-section-key/gate-section-key-contract';
-import { isCommentComposeAllowedGuard } from '../../guards/is-comment-compose-allowed/is-comment-compose-allowed-guard';
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -93,9 +92,12 @@ export const QuestSpecPanelWidget = ({
 }: QuestSpecPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
 
-  // One gate, evaluated once and threaded down as the presence of an id. Queueing and sending are
-  // spec-review tools, and a quest with no resumable chat session could never deliver the batch.
-  const commentQuestId = isCommentComposeAllowedGuard({ quest }) ? quest.id : undefined;
+  // A comment's anchor is box identity — flowId + nodeId (+ observableId) — which is spec data, so
+  // no work item, sessionId, or dispatch history participates in whether a box is commentable. The
+  // ONE thing that suppresses the compose affordance is a readOnly diagram: the execution panel's
+  // QUEST SPEC tab, where the spec is approved and frozen. Comment count badges are a read
+  // affordance and keep rendering there regardless (FlowsLayerWidget takes `comments` separately).
+  const commentQuestId = readOnly === true ? undefined : quest.id;
 
   return (
     <Stack gap={0} style={{ height: '100%' }} data-testid="QUEST_SPEC_PANEL">
@@ -162,12 +164,12 @@ export const QuestSpecPanelWidget = ({
           <ContractsLayerWidget tooling={quest.toolingRequirements} />
         ) : null}
       </Box>
-      {readOnly || commentQuestId === undefined ? null : (
+      {readOnly ? null : (
         // Sibling directly above ACTION_BAR inside the panel's flex column, OUTSIDE the scrollable
         // content box — that placement plus the bar's own flexShrink:0 is what keeps the queued
         // count on screen no matter how far the spec is scrolled. Ruling out `readOnly` here also
         // narrows the props to the arm that carries `onSendComments`.
-        <CommentQueueBarWidget questId={commentQuestId} onSend={onSendComments} />
+        <CommentQueueBarWidget questId={quest.id} onSend={onSendComments} />
       )}
       {readOnly ? null : (
         <Box

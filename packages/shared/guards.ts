@@ -34,7 +34,6 @@ export * from './src/guards/should-show-begin-quest-modal-quest-status/should-sh
 export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-approved-quest-status-guard';
 
 // Quest Chat Session Guards
-export * from './src/guards/has-resumable-chat-session/has-resumable-chat-session-guard';
 export * from './src/guards/is-chat-work-item-role/is-chat-work-item-role-guard';
 
 // Work Item Dependency Graph Guards

@@ -10,6 +10,8 @@ export const FlowsLayerWidgetProxy = (): {
   clickNode: ReactFlowProxy['clickNode'];
   clickObservableNode: ReactFlowProxy['clickObservableNode'];
   getCommentBadgeTextsOn: ReactFlowProxy['getCommentBadgeTextsOn'];
+  countCommentButtonsOn: ReactFlowProxy['countCommentButtonsOn'];
+  countCardsOn: ReactFlowProxy['countCardsOn'];
   hasCommentsSection: () => boolean;
   getPanelCommentTexts: () => HTMLElement['textContent'][];
 } => {
@@ -26,6 +28,8 @@ export const FlowsLayerWidgetProxy = (): {
     clickNode: reactFlowProxy.clickNode,
     clickObservableNode: reactFlowProxy.clickObservableNode,
     getCommentBadgeTextsOn: reactFlowProxy.getCommentBadgeTextsOn,
+    countCommentButtonsOn: reactFlowProxy.countCommentButtonsOn,
+    countCardsOn: reactFlowProxy.countCardsOn,
     hasCommentsSection: (): boolean => reactFlowProxy.hasCommentsSection(),
     getPanelCommentTexts: (): HTMLElement['textContent'][] => reactFlowProxy.getPanelCommentTexts(),
   };

@@ -18,6 +18,7 @@ import type {
   AskUserQuestionItem,
   ChatEntry,
   ChatEntryUuid,
+  ProcessId,
   Quest,
   QuestId,
   QuestWorkItemId,
@@ -126,6 +127,16 @@ export const useQuestChatBinding = ({
   // Track the questId that was active at subscribe time so cleanup sends the correct id
   const subscribedQuestIdRef = useRef<QuestId | null>(null);
 
+  // The chatProcessId of the turn the running state is tracking, learned from whichever send
+  // dispatched it. Every completion frame names the process it belongs to, so a foreign one — a
+  // sibling work item finishing, another browser's replay draining — can be ignored instead of
+  // reporting this quest's in-flight turn as idle. `null` means "armed with no handle yet": the
+  // first message, which must create its quest before there is a questId to POST to, and the
+  // sub-second window between committing a turn and its POST resolving. An untracked turn falls
+  // back to clearing on any `turn-ended`, which is what keeps a turn that emits nothing from
+  // sticking on STOP forever.
+  const trackedChatProcessIdRef = useRef<ProcessId | null>(null);
+
   // A pending turn belongs to the quest it was armed for. Carrying it across a real quest→quest
   // switch would show STOP over an idle workspace. The null→id transition is deliberately NOT a
   // switch: that is the same turn, whose first message just created its own quest.
@@ -136,6 +147,7 @@ export const useQuestChatBinding = ({
     if (previousQuestId === null || previousQuestId === questId) return;
     setPendingTurn(false);
     setStreamingFromOutput(false);
+    trackedChatProcessIdRef.current = null;
   }, [questId]);
 
   useEffect(() => {
@@ -221,11 +233,26 @@ export const useQuestChatBinding = ({
     const chatStreamEndedSub = webSocketChannelState
       .chatStreamEnded$()
       .subscribe((payload): void => {
+        // The clear-input is scoped the way the chatOutput$ predicate above it already is. A
+        // completion naming a DIFFERENT process is somebody else's turn ending, and letting it
+        // through is what made the control read PLAY while this quest's harness was still working.
+        const trackedChatProcessId = trackedChatProcessIdRef.current;
+        if (
+          trackedChatProcessId !== null &&
+          payload.chatProcessId !== undefined &&
+          payload.chatProcessId !== trackedChatProcessId
+        ) {
+          return;
+        }
+
         setStreamingFromOutput(false);
         // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
         // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
         // would report a turn the user just started as idle.
-        if (payload.reason === 'turn-ended') setPendingTurn(false);
+        if (payload.reason === 'turn-ended') {
+          setPendingTurn(false);
+          trackedChatProcessIdRef.current = null;
+        }
       });
 
     const clarificationRequestSub = webSocketChannelState
@@ -312,6 +339,9 @@ export const useQuestChatBinding = ({
       );
       setPendingTurn(true);
       setPendingClarification(null);
+      // The previous turn's handle must not outlive it: a late completion for THAT process would
+      // otherwise match and clear the turn just committed.
+      trackedChatProcessIdRef.current = null;
 
       const currentQuest = quest;
       const needsResume =
@@ -323,6 +353,9 @@ export const useQuestChatBinding = ({
 
       resumeStep
         .then(async () => questChatBroker({ questId: activeQuestId, message }))
+        .then(({ chatProcessId }) => {
+          trackedChatProcessIdRef.current = chatProcessId;
+        })
         .catch((err: unknown) => {
           setPendingTurn(false);
           const errorMessage = err instanceof Error ? err.message : String(err);
@@ -384,6 +417,7 @@ export const useQuestChatBinding = ({
         );
         setPendingTurn(true);
         setPendingClarification(null);
+        trackedChatProcessIdRef.current = result.chatProcessId;
       }
 
       return result;
@@ -418,29 +452,34 @@ export const useQuestChatBinding = ({
       );
       setPendingTurn(true);
       setPendingClarification(null);
+      trackedChatProcessIdRef.current = null;
 
       questClarifyBroker({
         questId: activeQuestId,
         answers,
         questions,
-      }).catch((err: unknown) => {
-        setPendingTurn(false);
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        const errorEntry = chatEntryContract.parse({
-          role: 'system',
-          type: 'error',
-          content: errorMessage,
-          uuid: crypto.randomUUID(),
-          timestamp: new Date().toISOString(),
+      })
+        .then(({ chatProcessId }) => {
+          trackedChatProcessIdRef.current = chatProcessId;
+        })
+        .catch((err: unknown) => {
+          setPendingTurn(false);
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const errorEntry = chatEntryContract.parse({
+            role: 'system',
+            type: 'error',
+            content: errorMessage,
+            uuid: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+          });
+          setEntriesBySessionInternal((prev) =>
+            upsertChatEntriesByUuidTransformer({
+              prev,
+              key: SYNTHETIC_SESSION_KEY,
+              newEntries: [errorEntry],
+            }),
+          );
         });
-        setEntriesBySessionInternal((prev) =>
-          upsertChatEntriesByUuidTransformer({
-            prev,
-            key: SYNTHETIC_SESSION_KEY,
-            newEntries: [errorEntry],
-          }),
-        );
-      });
     },
     [],
   );
@@ -455,9 +494,10 @@ export const useQuestChatBinding = ({
 
   // For the one turn this binding cannot POST itself: the first message, which must create its
   // quest before there is a questId to send to. The caller owns that round-trip, so it arms here
-  // and the wire disarms on `turn-ended` like any other turn.
+  // with no process handle and the wire disarms on `turn-ended` like any other turn.
   const armStreaming = useCallback((): void => {
     setPendingTurn(true);
+    trackedChatProcessIdRef.current = null;
   }, []);
 
   const disarmStreaming = useCallback((): void => {

@@ -158,8 +158,8 @@ type QueueEntryRecord = Record<PropertyKey, unknown>;
 const READ_KEY_BROWSER_FN = (key: string) => globalThis.localStorage.getItem(key);
 
 // Runs in the browser BEFORE the app boots (page.addInitScript), so the quest route's mount finds a
-// queue already in localStorage — the only way to reach a state whose own compose affordance is
-// hidden, which is exactly what #check-no-queue-bar-without-session asks for.
+// queue already in localStorage — the only way to assert the bar reflects a queue it did not build
+// itself during the test.
 const SEED_KEY_BROWSER_FN = ({ key, value }: { key: string; value: string }): void => {
   globalThis.localStorage.setItem(key, value);
 };
@@ -342,9 +342,9 @@ export const commentBoxHarness = ({
       });
       seeded.questId = String(created.questId);
 
-      // withSession false drops the sessionId from the chaoswhisperer work item, which is the exact
-      // shape hasResumableChatSessionGuard rejects — the role stays, so the ONLY difference between
-      // the two seeds is the sessionId itself.
+      // withSession false drops the sessionId from the chaoswhisperer work item — the role stays,
+      // so the ONLY difference between the two seeds is the sessionId itself, which is what makes
+      // "execution state does not gate the comment affordance" assertable.
       quests.writeQuestFile({
         questId: seeded.questId,
         questFolder: String(created.questFolder),

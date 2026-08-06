@@ -33,6 +33,7 @@ interface ReactFlowDiagramWidgetProxyResult {
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
   countCommentButtonsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
+  countCardsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
   clickObservableNode: (params: { nodeId: string; observableId: string }) => Promise<void>;
   getCommentBadgeTextsOn: (params: { testId: string }) => HTMLElement['textContent'][];
   getCommentBadgeTextsOnObservable: (params: {
@@ -76,6 +77,10 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
           (total, card) => total + card.querySelectorAll('[data-testid="COMMENT_BUTTON"]').length,
           0,
         ),
+    // How many cards of a given type the canvas painted. A comment-button count only means
+    // "one per box" when the box count it is compared against was read off the same render.
+    countCardsOn: ({ testId }: { testId: string }): HTMLElement['childElementCount'] =>
+      screen.queryAllByTestId(testId).length,
     setupPositions: (args: ReturnsPositionsArgs): void => {
       elkProxy.returnsPositions(args);
     },

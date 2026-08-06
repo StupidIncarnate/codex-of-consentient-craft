@@ -94,6 +94,22 @@ verbatim as the synthetic entry — so the optimistic entry and the replayed one
 The broker still owns the HTTP round-trip; the binding owns the panel entry, the
 quest-scoped subscription, and the running state.
 
+## `readOnly` is the ONLY thing that suppresses a diagram's comment button
+
+A comment anchors on **flowId + nodeId (+ observableId)** — all spec data. So `QuestSpecPanelWidget`
+resolves `commentQuestId` from one input and one only: `readOnly === true ? undefined : quest.id`.
+No work item, no `sessionId`, no quest status, no dispatch history participates. The readOnly render
+is the execution panel's QUEST SPEC tab, where the spec is approved and frozen.
+
+**Do not reintroduce an execution-state gate here.** Tying a spec-authoring affordance to whether a
+work item happens to carry a `sessionId` makes every quest minted by the `create-quest` MCP tool
+(`workItems: []`) silently uncommentable, while a quest that *does* have a resumable session stays
+commentable inside a frozen view — wrong in both directions at once. Same rule for the queue bar:
+it renders whenever the panel is not readOnly, whatever the queue's deliverability.
+
+Comment count badges are a READ affordance and are unaffected — `FlowsLayerWidget` takes `comments`
+separately from `commentQuestId`, so prior comments stay readable in readOnly.
+
 ### The composer's running state lives in the binding — never add a widget-local copy
 
 `useQuestChatBinding.isStreaming` is `pendingTurn || streamingFromOutput`, and the split is the whole point:
@@ -108,6 +124,14 @@ has to be threaded through both mounts identically, nothing type-checks that par
 SEND for the whole multi-second spawn window while the agent is already running. One flag in the binding has no parity
 to forget. The only reason `armStreaming` is exported at all is the first message, which must create its quest before
 there is a `questId` to POST to.
+
+**The clear-input is scoped to the turn being tracked.** Every send path retains the `chatProcessId`
+its POST returned (`trackedChatProcessIdRef`), and a `chatStreamEnded$` payload naming a DIFFERENT
+process is ignored outright — somebody else's turn ending must not report this quest's in-flight turn
+as idle. `null` means "armed with no handle yet" (the first message, and the sub-second window before
+a POST resolves); an untracked turn falls back to clearing on any `turn-ended`, which is what keeps a
+turn that emits nothing from sticking on STOP forever. Scope the clear; never pin the indicator on
+optimistically, or a turn the harness never picked up becomes indistinguishable from a slow one.
 
 Two failure modes this shape exists to prevent, both previously live:
 

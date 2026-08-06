@@ -28,6 +28,8 @@ export const QuestSpecPanelWidgetProxy = (): {
   clickNode: FlowsProxy['clickNode'];
   clickObservableNode: FlowsProxy['clickObservableNode'];
   getCommentBadgeTextsOn: FlowsProxy['getCommentBadgeTextsOn'];
+  countCommentButtonsOn: FlowsProxy['countCommentButtonsOn'];
+  countCardsOn: FlowsProxy['countCardsOn'];
   hasCommentsSection: () => boolean;
   getPanelCommentTexts: () => HTMLElement['textContent'][];
   clickApprove: () => Promise<void>;
@@ -80,6 +82,8 @@ export const QuestSpecPanelWidgetProxy = (): {
     clickNode: flowsProxy.clickNode,
     clickObservableNode: flowsProxy.clickObservableNode,
     getCommentBadgeTextsOn: flowsProxy.getCommentBadgeTextsOn,
+    countCommentButtonsOn: flowsProxy.countCommentButtonsOn,
+    countCardsOn: flowsProxy.countCardsOn,
     hasCommentsSection: (): boolean => flowsProxy.hasCommentsSection(),
     getPanelCommentTexts: (): HTMLElement['textContent'][] => flowsProxy.getPanelCommentTexts(),
     clickApprove: async (): Promise<void> => {

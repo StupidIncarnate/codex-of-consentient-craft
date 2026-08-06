@@ -3,7 +3,9 @@ import { screen, waitFor } from '@testing-library/react';
 import {
   QuestStub,
   DesignDecisionStub,
+  FlowEdgeStub,
   FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
   OperationItemStub,
   QuestCommentStub,
@@ -1055,7 +1057,7 @@ describe('QuestSpecPanelWidget', () => {
       expect(proxy.countCommentButtons()).toBe(1);
     });
 
-    it('EMPTY: {status approved with a resumable session} => renders zero COMMENT_BUTTON elements', async () => {
+    it('VALID: {status approved, editable panel} => the diagram card still renders a COMMENT_BUTTON', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'approved',
@@ -1084,10 +1086,115 @@ describe('QuestSpecPanelWidget', () => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
       });
 
-      expect(proxy.countCommentButtons()).toBe(0);
+      expect(proxy.countCommentButtons()).toBe(1);
     });
 
-    it('EMPTY: {status review_flows with no work item carrying a sessionId} => renders zero COMMENT_BUTTON elements', async () => {
+    it('VALID: {quest whose workItems array is EMPTY, editable panel} => one COMMENT_BUTTON per FLOW_NODE and per FLOW_OBSERVABLE_NODE card, none on the portal card', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'review_flows',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'redirects',
+                    type: 'ui-state',
+                    description: 'redirects to dashboard',
+                  }),
+                ],
+              }),
+              FlowNodeStub({ id: 'dashboard', type: 'state', observables: [] }),
+            ],
+            edges: [
+              FlowEdgeStub({ id: 'to-compile', from: 'dashboard', to: 'compile-flow:entry' }),
+            ],
+          }),
+        ],
+        // The shape the create-quest MCP tool mints: BugHunt/ChaosWhisperer author the spec from a
+        // Claude Code session and no work item is ever spawned. A comment anchors on flowId +
+        // nodeId, which is spec data, so an empty ledger cannot make a box uncommentable.
+        workItems: [],
+      });
+      proxy.setupPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'dashboard', x: 0, y: 200 },
+          { id: 'compile-flow:entry', x: 0, y: 400 },
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_PORTAL_NODE')).toBeInTheDocument();
+      });
+
+      // Read off the same render the buttons were counted on, so the assertion is the RATIO
+      // (one button per box) and not "at least one button somewhere on the canvas".
+      const nodeCards = proxy.countCardsOn({ testId: 'FLOW_NODE' });
+      const assertionCards = proxy.countCardsOn({ testId: 'FLOW_OBSERVABLE_NODE' });
+
+      expect({
+        nodeCards,
+        assertionCards,
+        commentButtons: proxy.countCommentButtons(),
+        portalCommentButtons: proxy.countCommentButtonsOn({ testId: 'FLOW_PORTAL_NODE' }),
+      }).toStrictEqual({
+        nodeCards: 2,
+        assertionCards: 1,
+        commentButtons: nodeCards + assertionCards,
+        portalCommentButtons: 0,
+      });
+    });
+
+    it('EMPTY: {readOnly panel on a review_flows quest with a resumable session} => renders zero COMMENT_BUTTON elements while the COMMENT_COUNT_BADGE still reads its count', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        // Status and session both say "composable"; the ONLY thing suppressing the button here is
+        // the declared readOnly mode, which is what the execution panel renders the diagram in.
+        status: 'review_flows',
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [FlowNodeStub({ id: 'login-page', type: 'state', observables: [] })],
+            edges: [],
+          }),
+        ],
+        workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId: SessionIdStub() })],
+        comments: [
+          QuestCommentStub({ flowId: 'login-flow', nodeId: 'login-page', text: 'a sent note' }),
+        ],
+      });
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      mantineRenderAdapter({
+        ui: <QuestSpecPanelWidget quest={quest} readOnly={true} />,
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
+      });
+
+      expect({
+        commentButtons: proxy.countCommentButtons(),
+        badges: proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' }),
+      }).toStrictEqual({ commentButtons: 0, badges: ['1'] });
+    });
+
+    it('VALID: {status review_flows with a work item carrying NO sessionId} => the diagram card still renders a COMMENT_BUTTON', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_flows',
@@ -1116,7 +1223,7 @@ describe('QuestSpecPanelWidget', () => {
         expect(screen.queryByTestId('FLOW_NODE')).toBeInTheDocument();
       });
 
-      expect(proxy.countCommentButtons()).toBe(0);
+      expect(proxy.countCommentButtons()).toBe(1);
     });
   });
 
@@ -1194,7 +1301,7 @@ describe('QuestSpecPanelWidget', () => {
       expect(proxy.isQueueBarPreviousSiblingOfActionBar()).toBe(true);
     });
 
-    it('EMPTY: {session-less quest whose localStorage already holds queued comments} => COMMENT_QUEUE_BAR is absent', () => {
+    it('VALID: {session-less quest whose localStorage already holds queued comments} => COMMENT_QUEUE_BAR renders', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_flows',
@@ -1215,10 +1322,10 @@ describe('QuestSpecPanelWidget', () => {
         ),
       });
 
-      expect(proxy.hasQueueBar()).toBe(false);
+      expect(proxy.hasQueueBar()).toBe(true);
     });
 
-    it('EMPTY: {approved quest with queued comments} => COMMENT_QUEUE_BAR is absent', () => {
+    it('VALID: {approved quest with queued comments} => COMMENT_QUEUE_BAR renders', () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'approved',
@@ -1239,7 +1346,7 @@ describe('QuestSpecPanelWidget', () => {
         ),
       });
 
-      expect(proxy.hasQueueBar()).toBe(false);
+      expect(proxy.hasQueueBar()).toBe(true);
     });
   });
 
@@ -1275,7 +1382,7 @@ describe('QuestSpecPanelWidget', () => {
   });
 
   describe('persisted comment display', () => {
-    it('VALID: {approved quest with a commented box} => the badge renders while zero COMMENT_BUTTON elements do', async () => {
+    it('VALID: {approved quest with a commented box, editable panel} => the badge and the COMMENT_BUTTON render on the same box', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'approved',
@@ -1308,10 +1415,10 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['1']);
-      expect(proxy.countCommentButtons()).toBe(0);
+      expect(proxy.countCommentButtons()).toBe(1);
     });
 
-    it('VALID: {session-less review_flows quest with a commented box} => the badge renders while zero COMMENT_BUTTON elements do (#check-badge-without-button-when-sessionless)', async () => {
+    it('VALID: {session-less review_flows quest with a commented box, editable panel} => the badge and the COMMENT_BUTTON render on the same box', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'review_flows',
@@ -1322,9 +1429,8 @@ describe('QuestSpecPanelWidget', () => {
             edges: [],
           }),
         ],
-        // The chaoswhisperer role stays; only its sessionId is missing, so the ONLY thing closing
-        // the compose gate here is the absent session — not the status, which still precedes
-        // approval.
+        // The chaoswhisperer role stays; only its sessionId is missing. Execution state does not
+        // participate in the anchor, so the box stays commentable.
         workItems: [WorkItemStub({ role: 'chaoswhisperer' })],
         comments: [
           QuestCommentStub({ flowId: 'login-flow', nodeId: 'login-page', text: 'a sent note' }),
@@ -1347,7 +1453,7 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['1']);
-      expect(proxy.countCommentButtons()).toBe(0);
+      expect(proxy.countCommentButtons()).toBe(1);
     });
 
     it('VALID: {read-only panel on a complete quest} => the clicked box still lists its comment rows', async () => {

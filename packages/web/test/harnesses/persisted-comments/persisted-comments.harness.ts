@@ -380,9 +380,9 @@ export const persistedCommentsHarness = ({
       questFolder: String(created.questFolder),
       questFilePath: String(created.filePath),
       status,
-      // withSession false drops the sessionId from the chaoswhisperer work item, the exact shape
-      // hasResumableChatSessionGuard rejects — the role stays, so the ONLY difference between the
-      // two seeds is the sessionId itself.
+      // withSession false drops the sessionId from the chaoswhisperer work item — the role stays,
+      // so the ONLY difference between the two seeds is the sessionId itself, which is what makes
+      // "execution state does not gate the comment affordance" assertable.
       workItems: [
         {
           id: 'e2e00000-0000-4000-8000-000000000001',

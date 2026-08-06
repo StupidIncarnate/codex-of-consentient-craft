@@ -55,8 +55,9 @@ test.describe('Leave a Comment on a Diagram Box', () => {
     expect(await comments.portalCardHasNoCommentButton()).toBe(true);
   });
 
-  // #no-comment-controls terminal, status branch of #comment-controls-allowed.
-  test('EMPTY: {status approved with a resumable session} => the flow diagram renders zero COMMENT_BUTTON elements', async ({
+  // #comment-button-rendered reached at a LATER status: the spec panel is still editable at
+  // `approved`, so nothing about the status closes the compose affordance.
+  test('VALID: {status approved with a resumable session} => every FLOW_NODE and FLOW_OBSERVABLE_NODE card still carries one COMMENT_BUTTON', async ({
     page,
     request,
   }) => {
@@ -67,15 +68,16 @@ test.describe('Leave a Comment on a Diagram Box', () => {
       withSession: true,
     });
 
-    await expect(page.getByTestId('COMMENT_BUTTON')).toHaveCount(0);
-    // The canvas itself still painted, so the zero above is the compose gate closing rather than a
-    // diagram that never rendered.
+    expect(await comments.everyFlowNodeHasOneCommentButton()).toBe(true);
+    expect(await comments.everyObservableNodeHasOneCommentButton()).toBe(true);
+    expect(await comments.portalCardHasNoCommentButton()).toBe(true);
     await expect(comments.nodeCard()).toBeVisible();
     await expect(comments.observableCard()).toBeVisible();
   });
 
-  // #no-comment-controls terminal, session branch of #comment-controls-allowed.
-  test('EMPTY: {status review_flows with no work item carrying a sessionId} => zero COMMENT_BUTTON elements and no COMMENT_QUEUE_BAR even with a queue already in localStorage', async ({
+  // #anchor-is-node-identity — a comment anchors on flowId + nodeId, both spec data. A quest whose
+  // work item carries no sessionId is exactly as commentable as one that does.
+  test('VALID: {status review_flows with no work item carrying a sessionId} => every box still carries one COMMENT_BUTTON and the pre-queued COMMENT_QUEUE_BAR renders', async ({
     page,
     request,
   }) => {
@@ -87,11 +89,12 @@ test.describe('Leave a Comment on a Diagram Box', () => {
       preQueuedText: 'queued while the session still existed',
     });
 
-    await expect(page.getByTestId('COMMENT_BUTTON')).toHaveCount(0);
-    await expect(page.getByTestId('COMMENT_QUEUE_BAR')).toHaveCount(0);
+    expect(await comments.everyFlowNodeHasOneCommentButton()).toBe(true);
+    expect(await comments.everyObservableNodeHasOneCommentButton()).toBe(true);
+    await expect(page.getByTestId('COMMENT_QUEUE_BAR')).toBeVisible();
     await expect(comments.nodeCard()).toBeVisible();
-    // The queue really is sitting in localStorage — the bar is hidden by the session gate, not by an
-    // empty queue, which is the whole point of gating the bar independently of its contents.
+    // The pre-seeded queue survives the mount untouched, so the bar above is showing the entry that
+    // was already in localStorage rather than one this test queued.
     expect(await comments.hasQueueKey()).toBe(true);
     expect(await comments.readQueue()).toStrictEqual([
       {

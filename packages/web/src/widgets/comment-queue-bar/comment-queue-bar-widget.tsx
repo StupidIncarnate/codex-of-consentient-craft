@@ -3,9 +3,9 @@
  * least one comment is queued for this quest — the queued count plus Clear and Send icon buttons.
  * The local queue survives every send failure and is cleared only on a 200
  * (#dd-persist-before-deliver); a 409 prunes exactly the anchors the server named as stale and
- * leaves every still-valid comment queued for a retry (#dd-stale-anchor-prunes-queue). Visibility
- * (status + resumable session) is gated by the parent that mounts this widget, not here
- * (#dd-toolbar-hidden-without-session).
+ * leaves every still-valid comment queued for a retry (#dd-stale-anchor-prunes-queue). Visibility is
+ * gated by the parent that mounts this widget, not here: QuestSpecPanelWidget renders the bar
+ * whenever the panel is not readOnly.
  *
  * USAGE:
  * <CommentQueueBarWidget questId={questId} onSend={sendCommentBatch} />

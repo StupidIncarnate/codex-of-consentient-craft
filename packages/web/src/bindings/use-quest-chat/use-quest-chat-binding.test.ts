@@ -998,6 +998,88 @@ describe('useQuestChatBinding', () => {
       });
     });
 
+    it('VALID: {sent turn, then chat-complete for a FOREIGN chatProcessId} => isStreaming holds until this turn own chat-complete arrives', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-foreign-complete' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-mine' }) });
+      proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000f1'] });
+      proxy.setupTimestamps({ timestamps: ['2026-08-05T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+      const afterSend = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          // Two completions belonging to other processes — a sibling work item finishing, another
+          // browser's replay draining. Neither is the turn this composer is tracking.
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-someone-else' }),
+                exitCode: 0,
+                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+              },
+              timestamp: '2026-08-05T00:00:01.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-a-third-one' }),
+                exitCode: 0,
+                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+              },
+              timestamp: '2026-08-05T00:00:02.000Z',
+            }),
+          });
+        },
+      });
+      const afterForeignCompletions = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-mine' }),
+                exitCode: 0,
+                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+              },
+              timestamp: '2026-08-05T00:00:03.000Z',
+            }),
+          });
+        },
+      });
+
+      // No chat-output is delivered anywhere in this scenario: the running state must survive the
+      // slow-first-response window on its own, and clear on this turn's own completion — not be
+      // wiped by a stranger's and restored by the first token that happens to arrive.
+      expect({
+        afterSend,
+        afterForeignCompletions,
+        afterOwnCompletion: result.current.isStreaming,
+      }).toStrictEqual({
+        afterSend: true,
+        afterForeignCompletions: true,
+        afterOwnCompletion: false,
+      });
+    });
+
     it('VALID: {armed turn, then bound to a DIFFERENT quest} => isStreaming clears, so an idle workspace never inherits it', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();

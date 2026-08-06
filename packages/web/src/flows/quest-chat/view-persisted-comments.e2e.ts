@@ -119,8 +119,9 @@ test.describe('View Persisted Comments on a Quest', () => {
     expect(await view.panelCommentTexts()).toStrictEqual([SECOND_ASSERTION_COMMENT_TEXT]);
   });
 
-  // #check-badge-without-button-when-approved — the status gate closes on the button alone.
-  test('VALID: {status approved with a resumable session} => the commented boxes keep their COMMENT_COUNT_BADGE while the diagram renders zero COMMENT_BUTTON elements', async ({
+  // #comment-button-rendered — an editable panel at `approved` keeps BOTH affordances: the record
+  // of the review AND the ability to add to it.
+  test('VALID: {status approved with a resumable session} => the commented boxes keep their COMMENT_COUNT_BADGE and still carry a COMMENT_BUTTON', async ({
     page,
     request,
   }) => {
@@ -133,13 +134,14 @@ test.describe('View Persisted Comments on a Quest', () => {
 
     expect(await view.commentBadgeTextOnCard({ card: view.nodeCard() })).toStrictEqual(['2']);
     expect(await view.commentBadgeTextOnCard({ card: view.assertionCard() })).toStrictEqual(['1']);
-    // Approval is exactly when the review the comments capture becomes most worth reading, so the
-    // record must survive the gate that removes the compose affordance.
-    await expect(page.getByTestId('COMMENT_BUTTON')).toHaveCount(0);
+    // The spec panel is still editable at `approved` — the diagram only freezes once the quest
+    // starts executing and the panel renders readOnly.
+    await expect(view.nodeCard().getByTestId('COMMENT_BUTTON')).toHaveCount(1);
+    await expect(view.assertionCard().getByTestId('COMMENT_BUTTON')).toHaveCount(1);
   });
 
-  // #check-badge-without-button-when-sessionless — the OTHER gate, closing independently of status.
-  test('VALID: {status review_flows with no work item carrying a sessionId} => the commented boxes keep their COMMENT_COUNT_BADGE while the diagram renders zero COMMENT_BUTTON elements', async ({
+  // #anchor-is-node-identity — the anchor is flowId + nodeId, which no work item supplies.
+  test('VALID: {status review_flows with no work item carrying a sessionId} => the commented boxes keep their COMMENT_COUNT_BADGE and still carry a COMMENT_BUTTON', async ({
     page,
     request,
   }) => {
@@ -152,7 +154,8 @@ test.describe('View Persisted Comments on a Quest', () => {
 
     expect(await view.commentBadgeTextOnCard({ card: view.nodeCard() })).toStrictEqual(['2']);
     expect(await view.commentBadgeTextOnCard({ card: view.assertionCard() })).toStrictEqual(['1']);
-    await expect(page.getByTestId('COMMENT_BUTTON')).toHaveCount(0);
+    await expect(view.nodeCard().getByTestId('COMMENT_BUTTON')).toHaveCount(1);
+    await expect(view.assertionCard().getByTestId('COMMENT_BUTTON')).toHaveCount(1);
   });
 
   // #click-badged-box -> #detail-panel-with-comments -> #comments-listed-newest-first terminal.
