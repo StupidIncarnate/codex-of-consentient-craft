@@ -7,8 +7,8 @@
  */
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { safeJsonParseTransformer } from '../../../transformers/safe-json-parse/safe-json-parse-transformer';
 import { questContract } from '@dungeonmaster/shared/contracts';
+import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
 
 export const questLoadBroker = async ({

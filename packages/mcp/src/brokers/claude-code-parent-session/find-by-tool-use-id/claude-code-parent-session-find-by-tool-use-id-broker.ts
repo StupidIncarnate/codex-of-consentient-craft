@@ -12,7 +12,8 @@
  *
  * The broker recurses with a small fixed-delay backoff so the deterministic match isn't
  * lost to the Claude-Code-dispatches-MCP-call-BEFORE-flushing-JSONL flush race
- * (empirically ~50–200ms gap). Total budget ~1s, well under the MCP request timeout.
+ * (empirically ~50–200ms gap). The retry budget is MAX_SCAN_ATTEMPTS × SCAN_RETRY_DELAY_MS,
+ * sized in those constants to stay well under the MCP request timeout.
  *
  * USAGE:
  * const result = await claudeCodeParentSessionFindByToolUseIdBroker({ projectDir, toolUseId });

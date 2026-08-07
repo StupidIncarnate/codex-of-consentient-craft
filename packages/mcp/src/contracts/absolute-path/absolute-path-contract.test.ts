@@ -60,13 +60,19 @@ describe('absolutePathContract', () => {
     expect(result).toBe('/home/user/file-name_v2.0.ts');
   });
 
-  it('VALID: {value: empty string} => parses successfully', () => {
+  it('VALID: {value: empty string} => parses successfully, the brand runs no length check', () => {
     const result = AbsolutePathStub({ value: '' });
 
     expect(result).toBe('');
   });
 
-  it('VALID: {value: Windows-style absolute path} => parses successfully', () => {
+  it('VALID: {value: relative path} => parses successfully, the brand runs no absoluteness check', () => {
+    const result = AbsolutePathStub({ value: 'packages/mcp/src/index.ts' });
+
+    expect(result).toBe('packages/mcp/src/index.ts');
+  });
+
+  it('VALID: {value: drive-prefixed path} => parses successfully', () => {
     const result = AbsolutePathStub({ value: 'C:/Users/user/project' });
 
     expect(result).toBe('C:/Users/user/project');

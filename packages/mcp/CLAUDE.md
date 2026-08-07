@@ -1,8 +1,28 @@
 ## Adding New MCP Tools
 
-Add the tool to `mcpToolsStatics.tools.names` so `settingsPermissionsAddBroker` picks it up. **Do NOT hand-edit
+Add the tool to `mcpToolsStatics.tools.names` — that static lives in **shared**, not here:
+`packages/shared/src/statics/mcp-tools/mcp-tools-statics.ts`. `settingsPermissionsAddBroker`
+generates the `mcp__dungeonmaster__*` grants from it. **Do NOT hand-edit
 `.claude/settings.json`** — see root `CLAUDE.md` ("Never Edit `.claude/settings.json` Directly") for the
 build → `npm link --workspaces` → `npm run init` flow that regenerates permissions for this repo.
+
+**That name is one edit of roughly 29.** A tool with an input contract needs its responder, contract
++ stub + test, and registration in the owning flow — then a tail of places that pin the tool list by
+full value and fail one red test at a time. Trace an existing tool (`get-quest-summary`) before
+starting, and expect these:
+
+- `packages/shared/src/statics/mcp-tools/mcp-tools-statics.test.ts` — full-value `toStrictEqual` on
+  the names array.
+- `packages/orchestrator/src/statics/smoketest-probe-args/smoketest-probe-args-statics.ts` — its
+  test asserts `Object.keys(probeArgs).sort()` equals the sorted tool names, so a missing probe
+  entry is a hard fail.
+- `TOOLS_EXEMPT_FROM_SIZE_CAP` in `flows/mcp-server/mcp-server-flow.integration.test.ts`, when the
+  tool's response exceeds the size cap.
+- `brokers/settings/permissions-add/settings-permissions-add-broker.test.ts` — **seven** separate
+  copies of the expected allow-list, plus an **eighth** in
+  `flows/install/install-flow.integration.test.ts`.
+- `flows/quest/quest-flow.integration.test.ts` — **four** parallel hardcoded arrays (names, handler
+  types, descriptions, schema types) that have to stay index-aligned with each other.
 
 ## What MCP Sees from the Calling Claude Code
 
@@ -14,7 +34,7 @@ What's available to a tool handler when Claude Code invokes an MCP tool over std
 | `request.params._meta.progressToken` | Yes — per call. | MCP standard; opaque token for out-of-band progress notifications. |
 | `extra.sessionId` (MCP SDK `RequestHandlerExtra.sessionId`) | **No.** | Unset for stdio transport. Don't rely on it. |
 | `extra._meta` | Yes — mirrors `request.params._meta`. | Either is fine. |
-| `process.env.CLAUDE_CODE_SESSION_ID` | **No.** | NOT set on the MCP child today. Was previously assumed set; verified absent. |
+| `process.env.CLAUDE_CODE_SESSION_ID` | **No.** | Not set on the MCP child — verified absent. Identify a caller via the toolUseId path below. |
 | `process.env.CLAUDE_CODE_SSE_PORT` | Yes. | Set on the MCP child at boot. |
 | `process.env.CLAUDE_PROJECT_DIR` | Yes. | Absolute path of the project Claude Code launched from. |
 | `process.env.CLAUDE_CODE_ENTRYPOINT` | Yes. | `cli`, etc. |
@@ -29,15 +49,17 @@ Env vars are per-process and set at MCP boot; they cannot disambiguate per-call 
 When a sub-agent calls a tool that needs to know its own identity (e.g. `get-agent-prompt`
 stamps work-item `sessionId`/`agentId`):
 
-1. Read `meta?.['claudecode/toolUseId']` from the handler params (after widening
-   `ToolHandler` to accept `meta`).
+1. Read `meta?.['claudecode/toolUseId']` from the handler params — `ToolHandler`
+   (`contracts/tool-registration/tool-registration-contract.ts`) carries `meta` alongside
+   `args`.
 2. Pass it to `claudeCodeParentSessionFindByToolUseIdBroker({projectDir, toolUseId})`
    (in `packages/mcp/src/brokers/claude-code-parent-session/find-by-tool-use-id/`). It
    scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl`
    file for an assistant line whose `tool_use.id` matches. The matching file's basename
    yields `realAgentId`; the containing session dir yields `parentSessionId`.
-3. The broker retries on miss (up to ~1 s total) to absorb the race where Claude Code
-   dispatches the MCP call before flushing the sub-agent's `tool_use` line to disk.
+3. The broker retries on miss (`MAX_SCAN_ATTEMPTS × SCAN_RETRY_DELAY_MS` in that file — ~3 s)
+   to absorb the race where Claude Code dispatches the MCP call before flushing the
+   sub-agent's `tool_use` line to disk.
 4. Returns `{parentSessionId, realAgentId}` — deterministic across any number of
    parallel Claude sessions in the same cwd.
 
@@ -77,13 +99,30 @@ claude mcp reset-project-choices
 After resetting, restart Claude Code completely. You'll be prompted to re-approve the MCP server, forcing a fresh tool
 load.
 
-## This package's path contracts are deliberately its own — do NOT consolidate them
+## Paths from tool callers are `PathSegment`, not `FilePath`
 
-`packages/mcp` defines its own bare-branded `file-path`, `absolute-file-path`, and
-`extracted-metadata` contracts rather than importing the stricter equivalents from
-`@dungeonmaster/shared`. This looks like duplication a dedup pass should collapse. It is not:
-shared's versions carry tighter validation, and consolidating onto them breaks roughly 55 tests in
-this package because MCP receives paths from tool callers that shared's contracts reject.
+MCP tool callers send **bare repo-relative** paths (`packages/mcp/src/foo.ts`). Shared's
+`filePathContract` is `z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'FilePath'>()`
+and the relative branch requires a `./` or `../` prefix — a bare path matches neither branch and is
+rejected. So this package routes caller paths through `pathSegmentContract` from
+`@dungeonmaster/shared/contracts` — `z.string().brand<'PathSegment'>()`, whose PURPOSE explicitly
+makes no prefix commitment. It is the `filepath` input type of every `adapters/fs/*` adapter that
+takes one (`read-file`, `write-file`, `readdir`, `readdir-if-exists`, `stat`, `mkdir`), and the
+dominant path type in the package. The two exceptions are `fs-glob-adapter`, whose optional `cwd`
+is the local `AbsolutePath` brand, and `adapters/path/*`, which take raw `string[]`.
 
-If a review flags this as `dedup`, the correct disposition is to record why it stands, not to merge
-them.
+**The tradeoff:** `PathSegment` validates nothing — it accepts the empty string. It is the bottom of
+the path lattice: the brand is a compile-time domain marker carrying no runtime guarantee. A value
+that must be genuinely absolute has to be parsed through `absoluteFilePathContract`; never infer
+absoluteness from a `PathSegment` brand.
+
+**Two local contracts a dedup pass *should* collapse** (named follow-ups, not drive-by work):
+
+- `contracts/import-path/import-path-contract.ts` — byte-identical to
+  `packages/shared/src/contracts/import-path/import-path-contract.ts`. Its only consumer here is
+  `contracts/folder-dependency-tree/`.
+- `contracts/folder-type/folder-type-contract.ts` — `z.string().brand<'FolderType'>()`, while
+  shared's contract of the **same brand string** is `z.enum([...folderConfigStatics keys])`. Every
+  production consumer in this package imports shared's; the local one is reachable only from its own
+  stub and test. The brand collision means the two are mutually assignable while validating
+  differently, so collapsing it needs a deliberate pass.
