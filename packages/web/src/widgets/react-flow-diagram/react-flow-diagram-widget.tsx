@@ -21,7 +21,9 @@ import {
 import type {
   Flow,
   FlowNode,
+  FlowNodeId,
   FlowObservable,
+  ObservableId,
   QuestComment,
   QuestContractEntry,
   QuestId,
@@ -32,6 +34,7 @@ import { xyflowEdgeAdapter } from '../../adapters/xyflow/edge/xyflow-edge-adapte
 import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter';
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentCountContract } from '../../contracts/comment-count/comment-count-contract';
+import type { CommentCount } from '../../contracts/comment-count/comment-count-contract';
 import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
@@ -181,6 +184,35 @@ export const ReactFlowDiagramWidget = ({
   const commentAnchorData =
     commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: flow.id };
 
+  // `comments` spans the WHOLE quest across every flow (see the prop doc above), so scope down to
+  // THIS flow and count per box in one pass here, rather than letting boxCommentsTransformer
+  // re-scan the full array once per node AND once per observable below — that repeated full-array
+  // filter, multiplied by every box the canvas draws, is exactly the nested-scan shape a Map lookup
+  // replaces with a single O(comments) pass plus O(1) reads.
+  const nodeCommentCounts = new Map<FlowNodeId, CommentCount>();
+  const observableCommentCounts = new Map<FlowNodeId, Map<ObservableId, CommentCount>>();
+  comments
+    .filter((c) => c.flowId === flow.id)
+    .forEach((c) => {
+      if (c.observableId === undefined) {
+        const priorCount = nodeCommentCounts.get(c.nodeId);
+        nodeCommentCounts.set(
+          c.nodeId,
+          commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
+        );
+        return;
+      }
+      const perObservable =
+        observableCommentCounts.get(c.nodeId) ?? new Map<ObservableId, CommentCount>();
+      const priorCount = perObservable.get(c.observableId);
+      perObservable.set(
+        c.observableId,
+        commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
+      );
+      observableCommentCounts.set(c.nodeId, perObservable);
+    });
+  const zeroCommentCount = commentCountContract.parse(0);
+
   // The node card is the selected box only when the selection names no observable — an assertion
   // card's selection leaves its parent card unringed, because the panel is showing the assertion.
   const selectedCardNodeId =
@@ -224,9 +256,7 @@ export const ReactFlowDiagramWidget = ({
         ),
         // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong to
         // those cards' own badges, so the badge here always agrees with the list the panel shows.
-        commentCount: commentCountContract.parse(
-          boxCommentsTransformer({ comments, flowId: flow.id, nodeId: n.id }).length,
-        ),
+        commentCount: nodeCommentCounts.get(n.id) ?? zeroCommentCount,
       }),
     };
   });
@@ -263,14 +293,7 @@ export const ReactFlowDiagramWidget = ({
           nodeId: n.id,
           outcomeType: obs.type,
           description: obs.description,
-          commentCount: commentCountContract.parse(
-            boxCommentsTransformer({
-              comments,
-              flowId: flow.id,
-              nodeId: n.id,
-              observableId: obs.id,
-            }).length,
-          ),
+          commentCount: observableCommentCounts.get(n.id)?.get(obs.id) ?? zeroCommentCount,
         }),
       };
     });

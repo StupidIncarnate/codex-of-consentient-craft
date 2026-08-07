@@ -1,9 +1,10 @@
 /**
  * PURPOSE: Seeds a quest whose flow diagram carries node cards, an assertion card and a cross-flow
- * portal card, opens it in the QUEST SPEC panel, and exposes the pointer gestures and localStorage
- * reads the leave-a-comment-on-a-diagram-box e2e walks. Real React Flow mounting, real pointer
- * events and real localStorage only exist in a browser, so the mechanics live here and the scenario
- * file asserts what they return.
+ * portal card, opens it in the QUEST SPEC panel, and exposes the pointer gestures, bubble
+ * fill/geometry reads and localStorage reads that both comment-on-diagram-box.e2e.ts (composing,
+ * editing, queueing) and comment-bubble-fill.e2e.ts (fill state and layout) walk. Real React Flow
+ * mounting, real pointer events, real painted geometry and real localStorage only exist in a
+ * browser, so the mechanics live here and the two scenario files assert what they return.
  *
  * USAGE:
  * const comments = commentBoxHarness({ page, request, guildPath, sessions });
@@ -168,7 +169,8 @@ const SEED_KEY_BROWSER_FN = ({ key, value }: { key: string; value: string }): vo
 // these class tokens are how a browser tells "this box owes a SEND" from "this box is clean" — and
 // they never overlap: the filled glyph carries `tabler-icon-message-circle-filled` and NOT
 // `tabler-icon-message-circle`, so each selector matches exactly one of the two states.
-const FILLED_BUBBLE_SELECTOR = '[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle-filled';
+const FILLED_BUBBLE_SELECTOR =
+  '[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle-filled';
 const HOLLOW_BUBBLE_SELECTOR = '[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle';
 
 // The shared small icon-button size in px — Mantine's ActionIcon `sm` (1.375rem). Harness files
@@ -247,9 +249,7 @@ export const commentBoxHarness = ({
   nodeCardFilledBubble: () => Locator;
   nodeCardHollowBubble: () => Locator;
   observableCardFilledBubble: () => Locator;
-  observableCardHollowBubble: () => Locator;
   secondObservableCardFilledBubble: () => Locator;
-  secondObservableCardHollowBubble: () => Locator;
   bubbleRightAlignedOnNodeCard: () => Promise<boolean>;
   bubbleRightAlignedOnObservableCard: () => Promise<boolean>;
   bubbleIsSquareAtSharedSmallSize: () => Promise<boolean>;
@@ -475,11 +475,8 @@ export const commentBoxHarness = ({
     nodeCardFilledBubble: (): Locator => nodeCard().locator(FILLED_BUBBLE_SELECTOR),
     nodeCardHollowBubble: (): Locator => nodeCard().locator(HOLLOW_BUBBLE_SELECTOR),
     observableCardFilledBubble: (): Locator => observableCard().locator(FILLED_BUBBLE_SELECTOR),
-    observableCardHollowBubble: (): Locator => observableCard().locator(HOLLOW_BUBBLE_SELECTOR),
     secondObservableCardFilledBubble: (): Locator =>
       secondObservableCard().locator(FILLED_BUBBLE_SELECTOR),
-    secondObservableCardHollowBubble: (): Locator =>
-      secondObservableCard().locator(HOLLOW_BUBBLE_SELECTOR),
 
     // Real layout: whether the bubble's painted right edge sits flush with the card's content-box
     // right edge. jsdom can assert the flex declaration but never the painted result.
