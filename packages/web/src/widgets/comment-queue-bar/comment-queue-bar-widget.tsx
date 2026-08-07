@@ -19,7 +19,7 @@
 
 import { useState } from 'react';
 
-import { ActionIcon, Box, Group, Text } from '@mantine/core';
+import { Box, Group, Text } from '@mantine/core';
 import { IconSend, IconTrash } from '@tabler/icons-react';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
@@ -29,12 +29,21 @@ import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comm
 
 import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
+import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
+import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { staleAnchorNoticeTransformer } from '../../transformers/stale-anchor-notice/stale-anchor-notice-transformer';
+import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
 const { colors } = emberDepthsThemeStatics;
-const ICON_SIZE = 14;
 const CONTAINER_STYLE = { padding: 12, flexShrink: 0 };
+const PRIMARY_VARIANT = buttonVariantContract.parse('primary');
+const DANGER_VARIANT = buttonVariantContract.parse('danger');
+const CLEAR_LABEL = buttonLabelContract.parse('Clear queued comments');
+const CLEAR_TEST_ID = testIdContract.parse('COMMENT_CLEAR_BUTTON');
+const SEND_LABEL = buttonLabelContract.parse('Send queued comments');
+const SEND_TEST_ID = testIdContract.parse('COMMENT_SEND_BUTTON');
 // The one generic fallback shown when the POST rejects before any response arrives (a network
 // failure) — the same red Mantine toast the rest of the app raises for a failed broker call.
 const NETWORK_ERROR_MESSAGE = 'Failed to send comments — check your connection and try again.';
@@ -74,11 +83,11 @@ export const CommentQueueBarWidget = ({
           {countLabel}
         </Text>
         <Group gap={6}>
-          <ActionIcon
-            aria-label="Clear queued comments"
-            data-testid="COMMENT_CLEAR_BUTTON"
-            variant="subtle"
-            size="sm"
+          <IconButtonWidget
+            label={CLEAR_LABEL}
+            testId={CLEAR_TEST_ID}
+            icon={IconTrash}
+            variant={DANGER_VARIANT}
             disabled={sending}
             onClick={() => {
               // Not merely belt-and-suspenders: the disabled attribute blocks a real pointer
@@ -88,14 +97,12 @@ export const CommentQueueBarWidget = ({
               if (sending) return;
               clearQueue();
             }}
-          >
-            <IconTrash size={ICON_SIZE} />
-          </ActionIcon>
-          <ActionIcon
-            aria-label="Send queued comments"
-            data-testid="COMMENT_SEND_BUTTON"
-            variant="subtle"
-            size="sm"
+          />
+          <IconButtonWidget
+            label={SEND_LABEL}
+            testId={SEND_TEST_ID}
+            icon={IconSend}
+            variant={PRIMARY_VARIANT}
             disabled={sending}
             onClick={() => {
               if (sending) return;
@@ -135,9 +142,7 @@ export const CommentQueueBarWidget = ({
                   setSending(false);
                 });
             }}
-          >
-            <IconSend size={ICON_SIZE} />
-          </ActionIcon>
+          />
         </Group>
       </Group>
     </Box>

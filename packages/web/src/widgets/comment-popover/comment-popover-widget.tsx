@@ -1,7 +1,9 @@
 /**
- * PURPOSE: Renders the comment icon button on a flow-diagram box and the popover behind it — a
- * two-row auto-growing textarea where Enter queues and Shift+Enter inserts a newline, and, once a
- * comment is queued for that box, a read-back view with edit and delete buttons.
+ * PURPOSE: The one comment affordance every commentable diagram box mounts — flow-node cards and
+ * assertion cards alike — so the bubble's fill rule, its alignment and its editor land once rather
+ * than per host. The bubble is a queue indicator, not a history marker: it fills for work the author
+ * still owes a SEND, which is why it reads from the live queue store on every render instead of
+ * holding fill state of its own.
  *
  * USAGE:
  * <CommentPopoverWidget questId={questId} flowId={flow.id} nodeId={node.id} />
@@ -10,20 +12,42 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { ActionIcon, Group, Popover, Stack, Text } from '@mantine/core';
-import { IconMessageCircle, IconPencil, IconTrash, IconX } from '@tabler/icons-react';
+import { Group, Popover, Stack, Text } from '@mantine/core';
+import {
+  IconMessageCircle,
+  IconMessageCircleFilled,
+  IconPencil,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react';
 
 import type { FlowId, FlowNodeId, ObservableId, QuestId } from '@dungeonmaster/shared/contracts';
 import { commentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
+import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
+import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
 import { commentAnchorContract } from '../../contracts/comment-anchor/comment-anchor-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
 const { colors } = emberDepthsThemeStatics;
-const ICON_SIZE = 12;
 const DROPDOWN_WIDTH = 260;
+const PRIMARY_VARIANT = buttonVariantContract.parse('primary');
+const DANGER_VARIANT = buttonVariantContract.parse('danger');
+const BUBBLE_LABEL = buttonLabelContract.parse('Comment on this box');
+const BUBBLE_TEST_ID = testIdContract.parse('COMMENT_BUTTON');
+const BUBBLE_ROW_TEST_ID = testIdContract.parse('COMMENT_BUTTON_ROW');
+const QUEUE_LABEL = buttonLabelContract.parse('Queue comment');
+const QUEUE_TEST_ID = testIdContract.parse('COMMENT_QUEUE_BUTTON');
+const CANCEL_LABEL = buttonLabelContract.parse('Cancel comment');
+const CANCEL_TEST_ID = testIdContract.parse('COMMENT_CANCEL_BUTTON');
+const EDIT_LABEL = buttonLabelContract.parse('Edit queued comment');
+const EDIT_TEST_ID = testIdContract.parse('COMMENT_EDIT_BUTTON');
+const DELETE_LABEL = buttonLabelContract.parse('Delete queued comment');
+const DELETE_TEST_ID = testIdContract.parse('COMMENT_DELETE_BUTTON');
 
 export interface CommentPopoverWidgetProps {
   questId: QuestId;
@@ -95,31 +119,34 @@ export const CommentPopoverWidget = ({
       withinPortal
       transitionProps={{ duration: 0 }}
     >
-      <Popover.Target>
-        <ActionIcon
-          component="span"
-          role="button"
-          aria-label="Comment on this box"
-          data-testid="COMMENT_BUTTON"
-          // nodrag/nopan are React Flow's opt-out classes: without them a mousedown on this button
-          // starts a node drag / canvas pan instead of registering as a click.
-          className="nodrag nopan"
-          variant="subtle"
-          size="sm"
-          onClick={(event) => {
-            // The card's own click handler selects the node and opens the detail panel, which would
-            // cover the popover this same click just opened.
-            event.stopPropagation();
-            if (opened) {
-              setOpened(false);
-              return;
-            }
-            openForBox();
-          }}
-        >
-          <IconMessageCircle size={ICON_SIZE} />
-        </ActionIcon>
-      </Popover.Target>
+      {/* The bubble is the last thing in the card's flow, so without this row it inherits the
+          card's left alignment. Right-aligning it gives every box one predictable corner to scan
+          for comment state, which is the whole point of making the fill visible. */}
+      <div data-testid={BUBBLE_ROW_TEST_ID} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Popover.Target>
+          <IconButtonWidget
+            label={BUBBLE_LABEL}
+            testId={BUBBLE_TEST_ID}
+            // Filled means "this box is under edit, or owes a SEND". Both conditions are read
+            // live — `queued` comes from the shared queue store, so queueing on this box fills it
+            // and a delete or a queue flush anywhere empties it again, with no reload.
+            icon={opened || queued !== undefined ? IconMessageCircleFilled : IconMessageCircle}
+            // nodrag/nopan are React Flow's opt-out classes: without them a mousedown on this
+            // button starts a node drag / canvas pan instead of registering as a click.
+            className="nodrag nopan"
+            onClick={(event) => {
+              // The card's own click handler selects the node and opens the detail panel, which
+              // would cover the popover this same click just opened.
+              event.stopPropagation();
+              if (opened) {
+                setOpened(false);
+                return;
+              }
+              openForBox();
+            }}
+          />
+        </Popover.Target>
+      </div>
       <Popover.Dropdown
         data-testid="COMMENT_POPOVER"
         className="nodrag nopan"
@@ -167,22 +194,19 @@ export const CommentPopoverWidget = ({
               }}
             />
             <Group gap={6} justify="flex-end">
-              <ActionIcon
-                aria-label="Queue comment"
-                data-testid="COMMENT_QUEUE_BUTTON"
-                variant="subtle"
-                size="sm"
+              <IconButtonWidget
+                label={QUEUE_LABEL}
+                testId={QUEUE_TEST_ID}
+                icon={IconMessageCircle}
+                variant={PRIMARY_VARIANT}
                 onClick={() => {
                   submitDraft();
                 }}
-              >
-                <IconMessageCircle size={ICON_SIZE} />
-              </ActionIcon>
-              <ActionIcon
-                aria-label="Cancel comment"
-                data-testid="COMMENT_CANCEL_BUTTON"
-                variant="subtle"
-                size="sm"
+              />
+              <IconButtonWidget
+                label={CANCEL_LABEL}
+                testId={CANCEL_TEST_ID}
+                icon={IconX}
                 onClick={() => {
                   // Cancel abandons this edit session without touching the queue: it restores the
                   // prior queued view when there was one, and otherwise just closes.
@@ -193,9 +217,7 @@ export const CommentPopoverWidget = ({
                   setDraft(String(queued.text));
                   setEditing(false);
                 }}
-              >
-                <IconX size={ICON_SIZE} />
-              </ActionIcon>
+              />
             </Group>
           </Stack>
         ) : (
@@ -214,31 +236,25 @@ export const CommentPopoverWidget = ({
               {queued.text}
             </Text>
             <Group gap={6} justify="flex-end">
-              <ActionIcon
-                aria-label="Edit queued comment"
-                data-testid="COMMENT_EDIT_BUTTON"
-                variant="subtle"
-                size="sm"
+              <IconButtonWidget
+                label={EDIT_LABEL}
+                testId={EDIT_TEST_ID}
+                icon={IconPencil}
                 onClick={() => {
                   setDraft(String(queued.text));
                   setEditing(true);
                 }}
-              >
-                <IconPencil size={ICON_SIZE} />
-              </ActionIcon>
-              <ActionIcon
-                aria-label="Delete queued comment"
-                data-testid="COMMENT_DELETE_BUTTON"
-                variant="subtle"
-                color={colors.danger}
-                size="sm"
+              />
+              <IconButtonWidget
+                label={DELETE_LABEL}
+                testId={DELETE_TEST_ID}
+                icon={IconTrash}
+                variant={DANGER_VARIANT}
                 onClick={() => {
                   deleteComment({ anchor });
                   setOpened(false);
                 }}
-              >
-                <IconTrash size={ICON_SIZE} />
-              </ActionIcon>
+              />
             </Group>
           </Stack>
         )}

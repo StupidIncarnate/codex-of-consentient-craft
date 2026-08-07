@@ -229,6 +229,40 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
     await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
   });
 
+  // #obs-send-hollows-every-bubble — a filled bubble means "queued and unsent". Send flushes the
+  // whole queue to the quest, so nothing is queued afterwards and no box may stay marked. The
+  // count is taken across the whole canvas: a rule that only cleared the box Send was clicked
+  // from would leave the other two filled and fail here.
+  test('VALID: {three queued comments flushed by Send} => every comment bubble on the diagram returns to hollow', async ({
+    page,
+    request,
+  }) => {
+    const send = commentQueueSendHarness({
+      page,
+      request,
+      guildPath: GUILD_PATH,
+      sessions,
+      claudeMock,
+    });
+    await send.seedAndOpen({ guildName: 'Send Hollows Bubbles Guild' });
+    await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'alpha note' });
+    await send.queueCommentOn({ card: send.nodeCard({ which: 'beta' }), text: 'beta note' });
+    await send.queueCommentOn({ card: send.observableCard(), text: 'observable note' });
+
+    await expect(send.filledBubbles()).toHaveCount(3);
+    const hollowBeforeSend = await send.hollowBubbles().count();
+
+    send.queueClaudeResponse({ text: 'Reviewing the feedback now' });
+    await send.clickSendButton();
+
+    await expect(send.queueBar()).toHaveCount(0, { timeout: SEND_TIMEOUT });
+    await expect(send.filledBubbles()).toHaveCount(0);
+    // Every bubble that was filled is now hollow — the boxes did not lose their buttons, they
+    // lost their fill.
+    await expect(send.hollowBubbles()).toHaveCount(hollowBeforeSend + 3);
+    expect(await send.hasQueueKey()).toBe(false);
+  });
+
   // #check-post-includes-observable-id + #check-post-omits-labels
   test('VALID: {Send a comment queued on the observable card} => the POST body carries observableId alongside flowId, nodeId, text and createdAt, and no label fields', async ({
     page,

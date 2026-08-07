@@ -164,6 +164,48 @@ const SEED_KEY_BROWSER_FN = ({ key, value }: { key: string; value: string }): vo
   globalThis.localStorage.setItem(key, value);
 };
 
+// The two glyphs a bubble can paint. Tabler stamps its own icon name onto every svg it renders, so
+// these class tokens are how a browser tells "this box owes a SEND" from "this box is clean" — and
+// they never overlap: the filled glyph carries `tabler-icon-message-circle-filled` and NOT
+// `tabler-icon-message-circle`, so each selector matches exactly one of the two states.
+const FILLED_BUBBLE_SELECTOR = '[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle-filled';
+const HOLLOW_BUBBLE_SELECTOR = '[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle';
+
+// The shared small icon-button size in px — Mantine's ActionIcon `sm` (1.375rem). Harness files
+// cannot import statics values, so the literal is duplicated here; iconButtonStatics.sizes.small is
+// its source of truth and this assertion fails loudly if the two ever drift.
+const SHARED_SMALL_SIZE_PX = 22;
+
+// Browser-evaluated predicate: the bubble's right edge must sit flush with its card's content-box
+// right edge — that is what "right-aligned within the box" means on a painted card, and jsdom (no
+// layout engine) can only ever check the declaration that asks for it. React Flow scales the whole
+// canvas, so the card's CSS padding/border are converted into painted pixels by the same factor the
+// bounding rects already carry before the two edges are compared.
+const BUBBLE_RIGHT_ALIGNED_BROWSER_FN = (button: Element): boolean => {
+  const card = button.closest('[data-testid="FLOW_NODE"], [data-testid="FLOW_OBSERVABLE_NODE"]');
+  if (card === null || !(card instanceof HTMLElement)) {
+    return false;
+  }
+  const cardRect = card.getBoundingClientRect();
+  const scale = card.offsetWidth === 0 ? 1 : cardRect.width / card.offsetWidth;
+  const cardStyle = globalThis.getComputedStyle(card);
+  const inset =
+    (Number.parseFloat(cardStyle.paddingRight) + Number.parseFloat(cardStyle.borderRightWidth)) *
+    scale;
+  // Two pixels absorb sub-pixel rounding on a scaled edge. A bubble left in the card's default flow
+  // sits a hundred-plus pixels from the right edge, so the tolerance cannot hide the bug.
+  return Math.abs(button.getBoundingClientRect().right - (cardRect.right - inset)) <= 2;
+};
+
+// Browser-evaluated predicate: the bubble is square and painted at the shared small size. offsetWidth
+// is read rather than the bounding rect because the canvas transform scales the rect but not the
+// element's own box, so this compares against the CSS size the shared base actually assigns.
+const BUBBLE_SQUARE_AT_SMALL_SIZE_BROWSER_FN = (
+  button: HTMLElement,
+  { expectedPx }: { expectedPx: number },
+): boolean =>
+  button.offsetWidth === button.offsetHeight && Math.abs(button.offsetWidth - expectedPx) <= 1;
+
 // Browser-evaluated predicate: the queued-comment row must paint no wider than the popover holding
 // it. An unbroken token that cannot wrap overflows its own content box (scrollWidth exceeds
 // clientWidth) AND paints past the dropdown's right edge. jsdom reports every width as 0, so a
@@ -200,6 +242,19 @@ export const commentBoxHarness = ({
   }) => Promise<void>;
   nodeCard: () => Locator;
   observableCard: () => Locator;
+  filledBubbles: () => Locator;
+  hollowBubbles: () => Locator;
+  nodeCardFilledBubble: () => Locator;
+  nodeCardHollowBubble: () => Locator;
+  observableCardFilledBubble: () => Locator;
+  observableCardHollowBubble: () => Locator;
+  secondObservableCardFilledBubble: () => Locator;
+  secondObservableCardHollowBubble: () => Locator;
+  bubbleRightAlignedOnNodeCard: () => Promise<boolean>;
+  bubbleRightAlignedOnObservableCard: () => Promise<boolean>;
+  bubbleIsSquareAtSharedSmallSize: () => Promise<boolean>;
+  reloadQuestRoute: () => Promise<void>;
+  clickClearButton: () => Promise<void>;
   everyFlowNodeHasOneCommentButton: () => Promise<boolean>;
   everyObservableNodeHasOneCommentButton: () => Promise<boolean>;
   portalCardHasNoCommentButton: () => Promise<boolean>;
@@ -296,6 +351,27 @@ export const commentBoxHarness = ({
     return box.height;
   };
 
+  // Every card kind must be mounted before a count or a geometry read runs, or the assertion races
+  // a half-painted canvas. Shared by the first open and by the reload, which repaints from scratch.
+  const waitForCanvas = async (): Promise<void> => {
+    await page.getByTestId('FLOW_DIAGRAM').waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    await page
+      .getByTestId('REACT_FLOW_CANVAS')
+      .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    await page
+      .getByTestId('FLOW_NODE')
+      .nth(FLOW_NODE_COUNT - 1)
+      .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    await page
+      .getByTestId('FLOW_OBSERVABLE_NODE')
+      .nth(OBSERVABLE_NODE_COUNT - 1)
+      .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    await page
+      .getByTestId('FLOW_PORTAL_NODE')
+      .first()
+      .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+  };
+
   const openPopoverOn = async ({ card }: { card: Locator }): Promise<void> => {
     await card.getByTestId('COMMENT_BUTTON').click();
     await page.getByTestId('COMMENT_POPOVER').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
@@ -384,28 +460,54 @@ export const commentBoxHarness = ({
 
       await nav.dismissApprovedModalIfPresent();
 
-      await page.getByTestId('FLOW_DIAGRAM').waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
-      await page
-        .getByTestId('REACT_FLOW_CANVAS')
-        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
-      // Wait until ELK has laid out and React Flow has mounted every card kind, so a count assertion
-      // never races a half-painted canvas.
-      await page
-        .getByTestId('FLOW_NODE')
-        .nth(FLOW_NODE_COUNT - 1)
-        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
-      await page
-        .getByTestId('FLOW_OBSERVABLE_NODE')
-        .nth(OBSERVABLE_NODE_COUNT - 1)
-        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
-      await page
-        .getByTestId('FLOW_PORTAL_NODE')
-        .first()
-        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      await waitForCanvas();
     },
 
     nodeCard,
     observableCard,
+
+    // Every filled / hollow bubble on the whole canvas. Counting across the canvas is what makes
+    // "exactly the commented boxes are marked" assertable: a rule that fills every box, or none,
+    // fails here where a single-card check would still pass.
+    filledBubbles: (): Locator => page.locator(FILLED_BUBBLE_SELECTOR),
+    hollowBubbles: (): Locator => page.locator(HOLLOW_BUBBLE_SELECTOR),
+
+    nodeCardFilledBubble: (): Locator => nodeCard().locator(FILLED_BUBBLE_SELECTOR),
+    nodeCardHollowBubble: (): Locator => nodeCard().locator(HOLLOW_BUBBLE_SELECTOR),
+    observableCardFilledBubble: (): Locator => observableCard().locator(FILLED_BUBBLE_SELECTOR),
+    observableCardHollowBubble: (): Locator => observableCard().locator(HOLLOW_BUBBLE_SELECTOR),
+    secondObservableCardFilledBubble: (): Locator =>
+      secondObservableCard().locator(FILLED_BUBBLE_SELECTOR),
+    secondObservableCardHollowBubble: (): Locator =>
+      secondObservableCard().locator(HOLLOW_BUBBLE_SELECTOR),
+
+    // Real layout: whether the bubble's painted right edge sits flush with the card's content-box
+    // right edge. jsdom can assert the flex declaration but never the painted result.
+    bubbleRightAlignedOnNodeCard: async (): Promise<boolean> =>
+      nodeCard().getByTestId('COMMENT_BUTTON').evaluate(BUBBLE_RIGHT_ALIGNED_BROWSER_FN),
+
+    bubbleRightAlignedOnObservableCard: async (): Promise<boolean> =>
+      observableCard().getByTestId('COMMENT_BUTTON').evaluate(BUBBLE_RIGHT_ALIGNED_BROWSER_FN),
+
+    bubbleIsSquareAtSharedSmallSize: async (): Promise<boolean> =>
+      nodeCard()
+        .getByTestId('COMMENT_BUTTON')
+        .evaluate(BUBBLE_SQUARE_AT_SMALL_SIZE_BROWSER_FN, { expectedPx: SHARED_SMALL_SIZE_PX }),
+
+    // A full reload, not a re-render: the fill has to come back from the stored queue rather than
+    // from React state that happened to survive.
+    reloadQuestRoute: async (): Promise<void> => {
+      await page.reload();
+      await page
+        .getByTestId('QUEST_SPEC_PANEL')
+        .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+      await navigationHarness({ page }).dismissApprovedModalIfPresent();
+      await waitForCanvas();
+    },
+
+    clickClearButton: async (): Promise<void> => {
+      await page.getByTestId('COMMENT_CLEAR_BUTTON').click();
+    },
 
     everyFlowNodeHasOneCommentButton: async (): Promise<boolean> => {
       const perCard = await commentButtonsPerCard({ testId: 'FLOW_NODE' });

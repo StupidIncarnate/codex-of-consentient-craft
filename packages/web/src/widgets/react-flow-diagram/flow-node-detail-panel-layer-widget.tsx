@@ -12,7 +12,6 @@
  * // Renders the panel for an assertion card: heading = observable.description, no contracts section
  */
 
-import { ActionIcon } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 
 import type {
@@ -22,7 +21,13 @@ import type {
   QuestContractEntry,
 } from '@dungeonmaster/shared/contracts';
 
+import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { IconButtonWidget } from '../icon-button/icon-button-widget';
+
+const CLOSE_LABEL = buttonLabelContract.parse('Close detail panel');
+const CLOSE_TEST_ID = testIdContract.parse('FLOW_DETAIL_PANEL_CLOSE');
 
 export interface FlowNodeDetailPanelLayerWidgetProps {
   node: FlowNode;
@@ -81,15 +86,12 @@ export const FlowNodeDetailPanelLayerWidget = ({
         >
           {heading}
         </div>
-        <ActionIcon
-          data-testid="FLOW_DETAIL_PANEL_CLOSE"
-          size={20}
-          variant="subtle"
+        <IconButtonWidget
+          label={CLOSE_LABEL}
+          testId={CLOSE_TEST_ID}
+          icon={IconX}
           onClick={onClose}
-          style={{ color: colors['text-dim'] }}
-        >
-          <IconX size={14} />
-        </ActionIcon>
+        />
       </div>
 
       {hasContent ? null : (

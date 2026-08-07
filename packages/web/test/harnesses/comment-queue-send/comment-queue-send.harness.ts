@@ -122,6 +122,8 @@ export const commentQueueSendHarness = ({
   seedAndOpen: (params: { guildName: string }) => Promise<void>;
   nodeCard: (params: { which: 'alpha' | 'beta' | 'gamma' }) => Locator;
   observableCard: () => Locator;
+  filledBubbles: () => Locator;
+  hollowBubbles: () => Locator;
   specPanelContent: () => Locator;
   actionBar: () => Locator;
   queueBar: () => Locator;
@@ -278,6 +280,14 @@ export const commentQueueSendHarness = ({
 
     nodeCard,
     observableCard,
+
+    // Every filled / hollow comment bubble on the canvas. A filled bubble means "queued and
+    // unsent", so a successful Send — which flushes the whole queue — must leave none behind.
+    // Tabler stamps its own icon name onto each svg, and the two class tokens never overlap.
+    filledBubbles: (): Locator =>
+      page.locator('[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle-filled'),
+    hollowBubbles: (): Locator =>
+      page.locator('[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle'),
 
     specPanelContent: (): Locator => page.getByTestId('QUEST_SPEC_PANEL_CONTENT'),
     actionBar: (): Locator => page.getByTestId('ACTION_BAR'),

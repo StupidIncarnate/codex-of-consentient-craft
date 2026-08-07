@@ -684,7 +684,7 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('SPAN');
+        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
       });
 
       await testingLibraryActAsyncAdapter({
@@ -748,7 +748,7 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('SPAN');
+        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
       });
 
       await testingLibraryActAsyncAdapter({
@@ -812,7 +812,7 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('SPAN');
+        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
       });
 
       await testingLibraryActAsyncAdapter({

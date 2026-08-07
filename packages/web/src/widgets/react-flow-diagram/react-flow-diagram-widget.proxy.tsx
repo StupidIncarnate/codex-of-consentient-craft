@@ -6,6 +6,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { elkLayoutAdapterProxy } from '../../adapters/elk/layout/elk-layout-adapter.proxy';
 import { xyflowEdgeAdapterProxy } from '../../adapters/xyflow/edge/xyflow-edge-adapter.proxy';
 import { xyflowReactFlowAdapterProxy } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter.proxy';
+import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.proxy';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
 import { FlowObservableNodeLayerWidgetProxy } from './flow-observable-node-layer-widget.proxy';
@@ -49,6 +50,9 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   const elkProxy = elkLayoutAdapterProxy();
   xyflowReactFlowAdapterProxy();
   xyflowEdgeAdapterProxy();
+  // The four canvas controls are IconButtonWidgets. Its proxy mocks nothing, so this constructs
+  // it for the child-proxy rule only — the controls are addressed here by their own testids.
+  IconButtonWidgetProxy();
   const nodeCardProxy = FlowNodeCardLayerWidgetProxy();
   FlowNodeDetailPanelLayerWidgetProxy();
   FlowObservableNodeLayerWidgetProxy();

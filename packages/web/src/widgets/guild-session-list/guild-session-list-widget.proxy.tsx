@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 
 export const GuildSessionListWidgetProxy = (): {
@@ -30,6 +31,9 @@ export const GuildSessionListWidgetProxy = (): {
   clickSpare: () => Promise<void>;
 } => {
   PixelBtnWidgetProxy();
+  // The quest-delete skull is an IconButtonWidget. Its proxy mocks nothing, so this constructs it
+  // for the child-proxy rule only — the skull is addressed here by its per-quest testid.
+  IconButtonWidgetProxy();
 
   return {
     hasHeader: (): boolean => screen.queryByText('SESSIONS') !== null,

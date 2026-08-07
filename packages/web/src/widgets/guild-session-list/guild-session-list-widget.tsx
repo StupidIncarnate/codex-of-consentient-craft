@@ -11,7 +11,6 @@
  */
 
 import {
-  ActionIcon,
   Badge,
   Box,
   Button,
@@ -41,7 +40,11 @@ import type {
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';
+import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
+import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { IconButtonWidget } from '../icon-button/icon-button-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
@@ -66,6 +69,8 @@ export interface GuildSessionListWidgetProps {
 const ITEM_FONT_SIZE = 12;
 const STATUS_FONT_SIZE = 10;
 const { colors } = emberDepthsThemeStatics;
+const DANGER_VARIANT = buttonVariantContract.parse('danger');
+const DELETE_QUEST_LABEL = buttonLabelContract.parse('Delete quest');
 
 const STATUS_COLOR_MAP = new Map<QuestStatus, (typeof colors)[keyof typeof colors]>([
   ['created', colors.warning],
@@ -249,23 +254,18 @@ export const GuildSessionListWidget = ({
                     transitionProps={{ duration: 0 }}
                   >
                     <Popover.Target>
-                      <ActionIcon
-                        component="span"
-                        role="button"
-                        aria-label="Delete quest"
-                        data-testid={`QUEST_DELETE_${quest.id}`}
-                        variant="subtle"
-                        color={colors.danger}
-                        size="sm"
+                      <IconButtonWidget
+                        label={DELETE_QUEST_LABEL}
+                        testId={testIdContract.parse(`QUEST_DELETE_${String(quest.id)}`)}
+                        icon={IconSkull}
+                        variant={DANGER_VARIANT}
                         onClick={(event) => {
                           event.stopPropagation();
                           onConfirmingQuestIdChange({
                             questId: confirmingQuestId === quest.id ? null : quest.id,
                           });
                         }}
-                      >
-                        <IconSkull size={14} />
-                      </ActionIcon>
+                      />
                     </Popover.Target>
                     <Popover.Dropdown
                       data-testid={`QUEST_DELETE_POPOVER_${quest.id}`}

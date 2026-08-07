@@ -19,6 +19,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { useCommentQueueBindingProxy } from '../../bindings/use-comment-queue/use-comment-queue-binding.proxy';
+import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import type { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentBatchSendResultStub } from '../../contracts/comment-batch-send-result/comment-batch-send-result.stub';
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
@@ -61,6 +62,9 @@ export const CommentQueueBarWidgetProxy = (): {
 } => {
   const queueProxy = useCommentQueueBindingProxy();
   const notificationsProxy = mantineNotificationsShowAdapterProxy();
+  // Clear and Send are IconButtonWidgets. Its proxy mocks nothing, so this constructs it for the
+  // child-proxy rule only — this proxy addresses both buttons by their own queue-bar testids.
+  IconButtonWidgetProxy();
   const user = userEvent.setup();
 
   // The widget calls onSend exactly one way — a single `{ comments }` payload object — so the

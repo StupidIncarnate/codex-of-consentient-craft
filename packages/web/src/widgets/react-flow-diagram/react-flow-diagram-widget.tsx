@@ -9,7 +9,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ActionIcon, Group } from '@mantine/core';
+import { Group } from '@mantine/core';
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
@@ -36,12 +36,17 @@ import { contractCountContract } from '../../contracts/contract-count/contract-c
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
+import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
+import { iconButtonSizeContract } from '../../contracts/icon-button-size/icon-button-size-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
+import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
 import { boxCommentsTransformer } from '../../transformers/box-comments/box-comments-transformer';
 import { flowCrossFlowPortalsTransformer } from '../../transformers/flow-cross-flow-portals/flow-cross-flow-portals-transformer';
+import { IconButtonWidget } from '../icon-button/icon-button-widget';
 import { FlowNodeCardLayerWidget } from './flow-node-card-layer-widget';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
@@ -66,7 +71,18 @@ export interface ReactFlowDiagramWidgetProps {
 
 const MAX_HEIGHT = 800;
 const EXPANDED_HEIGHT = 'calc(100vh - 160px)';
-const ICON_SIZE = 20;
+// The canvas controls are the one place in the app that takes the large size — they float over the
+// diagram rather than sitting inside a row of text, so they are sized to be hit without aiming.
+const CONTROL_SIZE = iconButtonSizeContract.parse(iconButtonStatics.sizes.large);
+const ZOOM_IN_LABEL = buttonLabelContract.parse('Zoom in');
+const ZOOM_IN_TEST_ID = testIdContract.parse('ZOOM_IN_BUTTON');
+const ZOOM_OUT_LABEL = buttonLabelContract.parse('Zoom out');
+const ZOOM_OUT_TEST_ID = testIdContract.parse('ZOOM_OUT_BUTTON');
+const FIT_VIEW_LABEL = buttonLabelContract.parse('Fit diagram to view');
+const FIT_VIEW_TEST_ID = testIdContract.parse('FIT_VIEW_BUTTON');
+const FULLSCREEN_LABEL = buttonLabelContract.parse('Toggle fullscreen diagram');
+const COLLAPSE_LABEL = buttonLabelContract.parse('Collapse fullscreen diagram');
+const FULLSCREEN_TEST_ID = testIdContract.parse('FULLSCREEN_BUTTON');
 
 const NODE_TYPES = {
   state: FlowNodeCardLayerWidget as React.ComponentType<never>,
@@ -86,11 +102,6 @@ const EDGE_TYPES = {
 };
 
 const { colors } = emberDepthsThemeStatics;
-
-const controlStyles = {
-  bg: colors['bg-raised'],
-  border: `1px solid ${colors.border}`,
-};
 
 export const ReactFlowDiagramWidget = ({
   flow,
@@ -437,55 +448,43 @@ export const ReactFlowDiagramWidget = ({
         mt={8}
         style={{ position: 'absolute', bottom: 8, left: 8, zIndex: 10 }}
       >
-        <ActionIcon
-          variant="filled"
-          size={32}
-          data-testid="ZOOM_IN_BUTTON"
+        <IconButtonWidget
+          label={ZOOM_IN_LABEL}
+          testId={ZOOM_IN_TEST_ID}
+          icon={IconZoomIn}
+          size={CONTROL_SIZE}
           onClick={() => {
             clickNativeControl('react-flow__controls-zoomin');
           }}
-          style={{ background: controlStyles.bg, border: controlStyles.border }}
-        >
-          <IconZoomIn size={ICON_SIZE} />
-        </ActionIcon>
-        <ActionIcon
-          variant="filled"
-          size={32}
-          data-testid="ZOOM_OUT_BUTTON"
+        />
+        <IconButtonWidget
+          label={ZOOM_OUT_LABEL}
+          testId={ZOOM_OUT_TEST_ID}
+          icon={IconZoomOut}
+          size={CONTROL_SIZE}
           onClick={() => {
             clickNativeControl('react-flow__controls-zoomout');
           }}
-          style={{ background: controlStyles.bg, border: controlStyles.border }}
-        >
-          <IconZoomOut size={ICON_SIZE} />
-        </ActionIcon>
-        <ActionIcon
-          variant="filled"
-          size={32}
-          data-testid="FIT_VIEW_BUTTON"
+        />
+        <IconButtonWidget
+          label={FIT_VIEW_LABEL}
+          testId={FIT_VIEW_TEST_ID}
+          icon={IconFocusCentered}
+          size={CONTROL_SIZE}
           onClick={() => {
             clickNativeControl('react-flow__controls-fitview');
           }}
-          style={{ background: controlStyles.bg, border: controlStyles.border }}
-        >
-          <IconFocusCentered size={ICON_SIZE} />
-        </ActionIcon>
-        <ActionIcon
-          variant="filled"
-          size={32}
-          data-testid="FULLSCREEN_BUTTON"
-          data-expanded={expanded}
+        />
+        <IconButtonWidget
+          label={expanded ? COLLAPSE_LABEL : FULLSCREEN_LABEL}
+          testId={FULLSCREEN_TEST_ID}
+          icon={expanded ? IconArrowsMinimize : IconArrowsMaximize}
+          size={CONTROL_SIZE}
+          expanded={expanded}
           onClick={() => {
             setExpanded((prev) => !prev);
           }}
-          style={{ background: controlStyles.bg, border: controlStyles.border }}
-        >
-          {expanded ? (
-            <IconArrowsMinimize size={ICON_SIZE} />
-          ) : (
-            <IconArrowsMaximize size={ICON_SIZE} />
-          )}
-        </ActionIcon>
+        />
       </Group>
     </div>
   );

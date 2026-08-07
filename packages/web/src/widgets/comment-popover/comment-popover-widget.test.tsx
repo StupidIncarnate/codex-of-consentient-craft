@@ -8,6 +8,7 @@ import {
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
+import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
 
 import { CommentPopoverWidget } from './comment-popover-widget';
 import { CommentPopoverWidgetProxy } from './comment-popover-widget.proxy';
@@ -22,6 +23,12 @@ const OBSERVABLE_ID = ObservableIdStub({ value: 'login-redirects-to-dashboard' }
 // clipped. A slash-separated path would NOT reproduce it: UAX#14 permits a break after a solidus.
 const LONG_TOKEN_TEXT =
   'rename boxCommentsTransformerFiltersByFlowIdAndNodeIdAndObservableIdNewestFirst please';
+const SECOND_NODE_ID = FlowNodeIdStub({ value: 'login-submit' });
+// The two glyphs the bubble can paint — the only thing that separates "this box owes a SEND" from
+// "this box is clean" on a canvas of otherwise identical cards. These are the tabler component
+// names, which the icon mock stamps as each rendered glyph's testid.
+const HOLLOW_BUBBLE = 'IconMessageCircle';
+const FILLED_BUBBLE = 'IconMessageCircleFilled';
 
 describe('CommentPopoverWidget', () => {
   describe('comment button', () => {
@@ -327,6 +334,194 @@ describe('CommentPopoverWidget', () => {
           },
         ]),
       );
+    });
+  });
+
+  describe('bubble fill', () => {
+    it('EMPTY: {box with no queued comment and the popover closed} => COMMENT_BUTTON renders the hollow bubble', () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+
+      expect(proxy.commentButtonIcons()).toStrictEqual([HOLLOW_BUBBLE]);
+    });
+
+    it('VALID: {box holding a queued comment with the popover closed} => COMMENT_BUTTON renders the filled bubble', () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ text: 'already queued' })],
+      });
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+
+      expect(proxy.commentButtonIcons()).toStrictEqual([FILLED_BUBBLE]);
+      expect(proxy.hasPopover()).toBe(false);
+    });
+
+    it('VALID: {popover opened on an uncommented box with an empty textarea} => COMMENT_BUTTON renders the filled bubble', async () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+      await proxy.clickCommentButton();
+
+      // Filled the moment the popover opens, before a character is typed — the fill marks the box
+      // under edit as well as the box that owes a SEND.
+      expect(proxy.getTextareaValue()).toBe('');
+      expect(proxy.commentButtonIcons()).toStrictEqual([FILLED_BUBBLE]);
+    });
+
+    it('VALID: {two uncommented boxes, popover opened on the first} => only the first COMMENT_BUTTON is filled', async () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: (
+          <div>
+            <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />
+            <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={SECOND_NODE_ID} />
+          </div>
+        ),
+      });
+      await proxy.clickFirstCommentButton();
+
+      expect(proxy.commentButtonIcons()).toStrictEqual([FILLED_BUBBLE, HOLLOW_BUBBLE]);
+    });
+
+    it('VALID: {queue text then close the popover} => COMMENT_BUTTON stays filled with no reload', async () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+      await proxy.clickCommentButton();
+      await proxy.typeIntoTextarea({ text: 'this step is wrong' });
+      await proxy.clickQueue();
+      await proxy.clickCommentButton();
+
+      // The popover is shut and nothing re-mounted — the fill is read back from the stored queue.
+      expect(proxy.hasPopover()).toBe(false);
+      expect(proxy.commentButtonIcons()).toStrictEqual([FILLED_BUBBLE]);
+    });
+
+    it('VALID: {type text then Cancel without queueing} => COMMENT_BUTTON returns to the hollow bubble', async () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+      await proxy.clickCommentButton();
+      await proxy.typeIntoTextarea({ text: 'abandoned text' });
+      await proxy.clickCancel();
+
+      // Nothing was stored, so there is nothing to mark — a filled bubble here would claim a SEND
+      // is owed for a comment that does not exist.
+      expect(proxy.hasStoredQueue({ questId: QUEST_ID })).toBe(false);
+      expect(proxy.commentButtonIcons()).toStrictEqual([HOLLOW_BUBBLE]);
+    });
+
+    it('VALID: {delete the queued comment} => COMMENT_BUTTON returns to the hollow bubble', async () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ text: 'already queued' })],
+      });
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+      await proxy.clickCommentButton();
+      await proxy.clickDelete();
+
+      expect(proxy.commentButtonIcons()).toStrictEqual([HOLLOW_BUBBLE]);
+    });
+
+    it('VALID: {observable card holding a queued comment} => its COMMENT_BUTTON renders the filled bubble', () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [
+          CommentQueueEntryStub({ observableId: OBSERVABLE_ID, text: 'this assertion is wrong' }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <CommentPopoverWidget
+            questId={QUEST_ID}
+            flowId={FLOW_ID}
+            nodeId={NODE_ID}
+            observableId={OBSERVABLE_ID}
+          />
+        ),
+      });
+
+      expect(proxy.commentButtonIcons()).toStrictEqual([FILLED_BUBBLE]);
+    });
+
+    it('EMPTY: {observable card whose queued comment belongs to its parent node} => its COMMENT_BUTTON stays hollow', () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ text: 'a note on the node, not the assertion' })],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <CommentPopoverWidget
+            questId={QUEST_ID}
+            flowId={FLOW_ID}
+            nodeId={NODE_ID}
+            observableId={OBSERVABLE_ID}
+          />
+        ),
+      });
+
+      // The node-card entry carries no observableId, so it anchors a DIFFERENT box — the assertion
+      // card must not borrow its parent's fill.
+      expect(proxy.commentButtonIcons()).toStrictEqual([HOLLOW_BUBBLE]);
+    });
+  });
+
+  describe('bubble presentation', () => {
+    it('VALID: {rendered on a box} => the bubble row declares flex-end so the bubble sits at the box right edge', () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+
+      expect(proxy.commentButtonAlignment()).toBe('flex-end');
+    });
+
+    it('VALID: {rendered on a box} => the bubble carries the shared small size and the default brown treatment', () => {
+      const proxy = CommentPopoverWidgetProxy();
+      proxy.setupEmptyQueue();
+
+      mantineRenderAdapter({
+        ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
+      });
+
+      // The bubble is one instance of the shared icon button, so its size and colours come from
+      // that base rather than from props hand-tuned on this widget.
+      expect(proxy.commentButtonSize()).toBe(`var(--ai-size-${iconButtonStatics.sizes.small})`);
+      expect(proxy.commentButtonBackground()).toBe('rgb(42, 26, 20)');
+      expect(proxy.commentButtonForeground()).toBe('rgb(224, 207, 192)');
     });
   });
 

@@ -94,6 +94,45 @@ verbatim as the synthetic entry — so the optimistic entry and the replayed one
 The broker still owns the HTTP round-trip; the binding owns the panel entry, the
 quest-scoped subscription, and the running state.
 
+## `IconButtonWidget` is the only place this package constructs a Mantine `ActionIcon`
+
+Every icon-only control goes through `widgets/icon-button/` — the comment bubble, the popover's
+queue/cancel/edit/delete, the queue bar's Clear/Send, the quest-delete skull, the detail-panel
+close, and the four diagram controls. Do NOT hand-roll an `ActionIcon`; a second construction site
+is how the eleven call sites drifted into eleven different variant/size/colour combinations in the
+first place. A grep for `ActionIcon` under `packages/web/src/**` must return exactly one widget.
+
+- **Size** reuses Mantine's own ActionIcon enum (`xs`/`sm`/`md`/`lg`/`xl`) via
+  `iconButtonSizeContract`, and `iconButtonStatics` pins which members the app uses: `sm` for
+  everything, `lg` for the four floating canvas controls. Mantine's scale is 18/22/28/34/44px, so
+  neither design target (20px, 32px) lands exactly — that judgement lives in the statics, with the
+  glyph size for each member, so a call site picks a size and nothing else.
+- **Colour** reuses `buttonVariantContract`. Omitting `variant` means `ghost`: the brown
+  raised-surface fill the ABANDON text button carries. `primary` is the orange on PLAY and SEND;
+  `danger` is the STOP red. Assignment follows the icon's MEANING, not its host widget — delete and
+  destructive icons are `danger`, send/queue are `primary`, close and X are default.
+- **Popover targets** pass through `ref`, `id`, `className` and the `aria-haspopup`/`-expanded`/
+  `-controls` trio, because `Popover.Target` clones its child and injects exactly those. Drop any
+  of them and the dropdown loses the element it anchors to.
+
+## A filled comment bubble means "queued and unsent", never "has ever been commented on"
+
+`CommentPopoverWidget` fills its bubble when the popover is open OR the box carries a queued
+comment, and is hollow otherwise. Both conditions are derived on every render — `queued` comes
+straight from `useCommentQueueBinding`, which every box on the canvas shares — so queueing fills
+that box, deleting empties it, and SEND or CLEAR flushing the queue empties every bubble at once,
+all with no reload.
+
+**Do not give the bubble fill state of its own.** A local `hasComment` flag would go stale the
+moment the queue changed anywhere else on the canvas: the queue bar's SEND and CLEAR empty the
+store without touching any individual bubble, and only a derived read follows them. The same
+reasoning rules out persisting "this box was commented on" — the diagram reports outstanding work,
+not history, so a box whose comment was already delivered is clean.
+
+Guarded by `flows/quest-chat/comment-bubble-fill.e2e.ts`, which counts filled vs hollow bubbles
+across the WHOLE canvas rather than checking one card: a rule that fills every box, or none, passes
+a single-card check and fails the count.
+
 ## `readOnly` is the ONLY thing that suppresses a diagram's comment button
 
 A comment anchors on **flowId + nodeId (+ observableId)** — all spec data. So `QuestSpecPanelWidget`
