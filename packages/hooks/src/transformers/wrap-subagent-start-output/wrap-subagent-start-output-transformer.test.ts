@@ -1,4 +1,4 @@
-import { ExecResultStub } from '../../contracts/exec-result/exec-result.stub';
+import { ExecResultStub } from '@dungeonmaster/shared/contracts';
 import { wrapSubagentStartOutputTransformer } from './wrap-subagent-start-output-transformer';
 
 describe('wrapSubagentStartOutputTransformer', () => {

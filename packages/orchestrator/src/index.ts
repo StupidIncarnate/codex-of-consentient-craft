@@ -35,6 +35,12 @@ export type {
 export { questSectionContract } from '@dungeonmaster/shared/contracts';
 export type { QuestSection } from '@dungeonmaster/shared/contracts';
 
+// Quest summary contract — what `StartOrchestrator.getQuestSummary` returns. Defined in
+// `@dungeonmaster/shared` because the web renders the same shape and depends on shared alone;
+// re-exported here so the MCP package keeps one import source for orchestrator result types.
+export { questSummaryContract } from '@dungeonmaster/shared/contracts';
+export type { QuestSummary } from '@dungeonmaster/shared/contracts';
+
 // Agent prompt contracts - exported for MCP package
 export { agentPromptResultContract } from '@dungeonmaster/shared/contracts';
 export type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
@@ -55,10 +61,11 @@ export type { DispatchPlayResponse } from './contracts/dispatch-play-response/di
 export { dumpsterCreatePromptStatics } from './statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 export { codeweaverPromptStatics } from './statics/codeweaver-prompt/codeweaver-prompt-statics';
 export { siegemasterPromptStatics } from './statics/siegemaster-prompt/siegemaster-prompt-statics';
-export { siegemasterMinionStatics } from './statics/siegemaster-minion/siegemaster-minion-statics';
+export { siegemasterWalkerMinionStatics } from './statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 export { siegemasterTestAuditMinionStatics } from './statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
 export { flowriderPromptStatics } from './statics/flowrider-prompt/flowrider-prompt-statics';
-export { flowriderMinionStatics } from './statics/flowrider-minion/flowrider-minion-statics';
+export { flowriderAuthoringMinionStatics } from './statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
+export { flowriderCoverageMinionStatics } from './statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
 export { spiritmenderPromptStatics } from './statics/spiritmender-prompt/spiritmender-prompt-statics';
 export { toolDisplayConfigStatics } from './statics/tool-display-config/tool-display-config-statics';
 
@@ -82,11 +89,11 @@ export type { AgentRole } from './contracts/agent-role/agent-role-contract';
 export { isoTimestampContract } from './contracts/iso-timestamp/iso-timestamp-contract';
 export type { IsoTimestamp } from './contracts/iso-timestamp/iso-timestamp-contract';
 
-export { slotCountContract } from './contracts/slot-count/slot-count-contract';
-export type { SlotCount } from './contracts/slot-count/slot-count-contract';
+export { slotCountContract } from '@dungeonmaster/shared/contracts';
+export type { SlotCount } from '@dungeonmaster/shared/contracts';
 
-export { slotIndexContract } from './contracts/slot-index/slot-index-contract';
-export type { SlotIndex } from './contracts/slot-index/slot-index-contract';
+export { slotIndexContract } from '@dungeonmaster/shared/contracts';
+export type { SlotIndex } from '@dungeonmaster/shared/contracts';
 
 export { slotManagerResultContract } from './contracts/slot-manager-result/slot-manager-result-contract';
 export type { SlotManagerResult } from './contracts/slot-manager-result/slot-manager-result-contract';

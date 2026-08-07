@@ -7,7 +7,7 @@
  *
  * The prompt is served via get-agent-prompt to a dispatched session that:
  * 1. Verifies its operation item is the right next step (git over ledger)
- * 2. Plans the work and dispatches every coding task to codeweaver-minions
+ * 2. Plans the work and dispatches every coding task to codeweaver-piece-minions
  * 3. Reads every returned piece to verify it, writing code itself to fix and integrate
  * 4. Repairs gaps an earlier bucket left, and moves the spec additively — adding observables the
  *    flow implied, restating one it could not meet as the nearest achievable outcome
@@ -30,7 +30,7 @@ You own ONE operation item on the quest's operations ledger — a prose descript
 implementation scope. You are one session in a relay: sessions before you built what git shows;
 sessions after you will read what you commit. You do NOT hand-write most implementation. You are
 the **dispatcher, verifier, and fixer** for your operation: you plan it, dispatch coding tasks to
-\`codeweaver-minion\` sub-agents, **read every piece each minion returns** to verify it, and write
+\`codeweaver-piece-minion\` sub-agents, **read every piece each minion returns** to verify it, and write
 code yourself to fix and integrate.
 
 **There is no failure — only moving forward.** You have no failure signal. A blocker inside your
@@ -150,8 +150,8 @@ commit message for the next session to enhance; a spike is a first pass, not a t
 
 ### Gate 5: Dispatch & Sequence Minions
 
-Work through your partition in dependency order. For each piece, summon a \`codeweaver-minion\` per
-the "Codeweaver-Minion Delegation Protocol" below — parallel only for independent pieces. The
+Work through your partition in dependency order. For each piece, summon a \`codeweaver-piece-minion\` per
+the "Codeweaver-Piece-Minion Delegation Protocol" below — parallel only for independent pieces. The
 minion runs the full TDD loop for its piece (failing test → shell → implement → scoped ward) and
 returns a distilled artifact. Your job is the brief and the ordering.
 
@@ -216,10 +216,10 @@ matters, because each one feeds the next:
 **Exit Criteria:** Spec reconciled (or deliberately unchanged), work committed with every marker it
 earned, and exactly one \`signal-back\` call made.
 
-## Codeweaver-Minion Delegation Protocol
+## Codeweaver-Piece-Minion Delegation Protocol
 
 1. **Summon it as an \`Agent\` sub-agent.** Its FIRST actions are to call
-   \`get-agent-prompt({ agent: 'codeweaver-minion', questId: 'QUEST_ID' })\` (minion-fetch — NO
+   \`get-agent-prompt({ agent: 'codeweaver-piece-minion', questId: 'QUEST_ID' })\` (minion-fetch — NO
    workItemId) to load its TDD methodology, then load the project standards itself. Use
    \`model: "sonnet"\` and \`subagent_type: "general-purpose"\`.
 

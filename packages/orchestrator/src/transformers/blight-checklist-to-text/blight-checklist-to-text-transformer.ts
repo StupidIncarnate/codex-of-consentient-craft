@@ -7,10 +7,10 @@
  * blightChecklistToTextTransformer({ checklist });
  * // Returns ContentText — the body the get-blight-checklist MCP tool returns
  *
- * A unit's itemId is `<implPath>:<concern>` — never restated on its own line. Rendering it once
- * per unit, the way an earlier version of this transformer did, repeats a ~70-char impl path once
- * per concern crossing it (up to seven times per file); at real-quest scale (170 changed files,
- * 1,190 units) that alone measured 3x over `mcpToolResultStatics.maxVerbatimChars`. Grouping by
+ * A unit's itemId is `<implPath>:<concern>` — never restated on its own line. Rendering it once per
+ * unit repeats a ~70-char impl path once per concern crossing it (up to four times per file); at
+ * real-quest scale (170 changed files, 680 units) that alone overflows
+ * `mcpToolResultStatics.maxVerbatimChars`. Grouping by
  * file so the path appears ONCE — in the `### {implPath}` heading — and reducing each unit to just
  * its concern name on a `[x]`/`[ ]` line is what brings that back under budget. Because the id can
  * no longer be read off its own line, the header states the grammar for reconstructing it

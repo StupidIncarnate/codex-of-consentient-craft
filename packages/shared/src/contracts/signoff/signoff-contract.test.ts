@@ -1,0 +1,110 @@
+import { signoffContract } from './signoff-contract';
+import { SignoffStub } from './signoff.stub';
+
+describe('signoffContract', () => {
+  describe('confirmed verdict', () => {
+    it('VALID: {confirmed with evidence} => parses the complete sign-off', () => {
+      expect(SignoffStub()).toStrictEqual({
+        verdict: 'confirmed',
+        evidence:
+          'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
+        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('VALID: {confirmed without question} => parses, because a question is only owed when confirmation failed', () => {
+      expect(
+        signoffContract.parse({
+          verdict: 'confirmed',
+          evidence: 'COMMENT_COUNT_BADGE rendered the string "2"',
+          workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+          at: '2026-01-01T00:00:00.000Z',
+        }),
+      ).toStrictEqual({
+        verdict: 'confirmed',
+        evidence: 'COMMENT_COUNT_BADGE rendered the string "2"',
+        workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+    });
+  });
+
+  describe('unconfirmable verdict', () => {
+    it('VALID: {unconfirmable with question} => parses the complete sign-off', () => {
+      expect(
+        SignoffStub({
+          verdict: 'unconfirmable',
+          evidence: 'no browser bridge is reachable from this session, so the DOM cannot be read',
+          question: 'does the badge re-render on a websocket push, or only on a route change?',
+        }),
+      ).toStrictEqual({
+        verdict: 'unconfirmable',
+        evidence: 'no browser bridge is reachable from this session, so the DOM cannot be read',
+        question: 'does the badge re-render on a websocket push, or only on a route change?',
+        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('INVALID: {unconfirmable without question} => throws, so "could not confirm" is never a shrug', () => {
+      expect(() =>
+        SignoffStub({
+          verdict: 'unconfirmable',
+          evidence: 'fault injection needs a hook the repo does not ship',
+        }),
+      ).toThrow(
+        /question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed/u,
+      );
+    });
+
+    // superRefine rather than refine: the issue must name the ONE missing field. A form-level issue
+    // (path: []) would tell a reader the whole sign-off is malformed when only `question` is absent.
+    it('INVALID: {unconfirmable without question} => raises exactly one issue, scoped to the question field', () => {
+      const result = signoffContract.safeParse({
+        verdict: 'unconfirmable',
+        evidence: 'fault injection needs a hook the repo does not ship',
+        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        at: '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.issues).toStrictEqual([
+        {
+          code: 'custom',
+          path: ['question'],
+          message:
+            'question is required when verdict is unconfirmable — say what was tried and why it could not be confirmed',
+        },
+      ]);
+    });
+  });
+
+  describe('evidence is mandatory on every verdict', () => {
+    it('INVALID: {evidence: ""} => throws, so no verdict can be recorded with nothing behind it', () => {
+      expect(() => SignoffStub({ evidence: '' as never })).toThrow(
+        /String must contain at least 1 character/u,
+      );
+    });
+  });
+
+  describe('invalid input', () => {
+    it('INVALID: {at: "2026-01-01"} => throws, because a date without a time cannot order two sign-offs', () => {
+      expect(() => SignoffStub({ at: '2026-01-01' as never })).toThrow(/Invalid datetime/u);
+    });
+
+    it('INVALID: {workItemId: "work-item-1"} => throws', () => {
+      expect(() => SignoffStub({ workItemId: 'work-item-1' as never })).toThrow(/Invalid uuid/u);
+    });
+
+    it('EMPTY: {workItemId missing entirely} => throws', () => {
+      expect(() =>
+        signoffContract.parse({
+          verdict: 'confirmed',
+          evidence: 'COMMENT_COUNT_BADGE rendered the string "2"',
+          at: '2026-01-01T00:00:00.000Z',
+        }),
+      ).toThrow(/Required/u);
+    });
+  });
+});

@@ -52,6 +52,49 @@ describe('QaChecklistLayerResponder', () => {
         questId: 'add-auth',
       });
     });
+
+    it.each(['flowrider', 'siegemaster'])(
+      'VALID: {questId, track: %s} => forwards track to the orchestrator',
+      async (track) => {
+        const proxy = QaChecklistLayerResponderProxy();
+        proxy.setupReturns({
+          questId: 'add-auth',
+          result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+        });
+
+        await QaChecklistLayerResponder({ args: { questId: 'add-auth', track } });
+
+        expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+          questId: 'add-auth',
+          track,
+        });
+      },
+    );
+
+    it('VALID: {questId, no track} => omits track from the call', async () => {
+      const proxy = QaChecklistLayerResponderProxy();
+      proxy.setupReturns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+      });
+
+      await QaChecklistLayerResponder({ args: { questId: 'add-auth', flowId: 'login-flow' } });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        flowId: 'login-flow',
+      });
+    });
+  });
+
+  describe('track validation', () => {
+    it('INVALID: {track: "blightwarden"} => throws on the shared sign-off track enum', async () => {
+      QaChecklistLayerResponderProxy();
+
+      await expect(
+        QaChecklistLayerResponder({ args: { questId: 'add-auth', track: 'blightwarden' } }),
+      ).rejects.toThrow(/invalid_enum_value/u);
+    });
   });
 
   describe('unsuccessful checklist', () => {

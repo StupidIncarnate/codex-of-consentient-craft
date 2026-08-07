@@ -8,9 +8,9 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { SlotCount } from '../../contracts/slot-count/slot-count-contract';
-import { slotCountContract } from '../../contracts/slot-count/slot-count-contract';
-import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import type { SlotCount } from '@dungeonmaster/shared/contracts';
+import { slotCountContract } from '@dungeonmaster/shared/contracts';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { agentOutputConfigStatics } from '../../statics/agent-output-config/agent-output-config-statics';
 
 const state = {

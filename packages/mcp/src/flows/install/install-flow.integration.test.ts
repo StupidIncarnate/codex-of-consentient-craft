@@ -87,6 +87,8 @@ describe('InstallFlow', () => {
                 'mcp__dungeonmaster__get-next-step',
                 'mcp__dungeonmaster__run-ward',
                 'mcp__dungeonmaster__get-server-config',
+                'mcp__dungeonmaster__reset-flow-signoffs',
+                'mcp__dungeonmaster__get-quest-summary',
                 'Bash(git status:*)',
                 'Bash(git log:*)',
                 'Bash(git diff:*)',

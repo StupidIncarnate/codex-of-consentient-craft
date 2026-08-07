@@ -1,14 +1,16 @@
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
 import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
-import { blightwardenMinionStatics } from '../../statics/blightwarden-minion/blightwarden-minion-statics';
+import { blightwardenDeadcodeMinionStatics } from '../../statics/blightwarden-deadcode-minion/blightwarden-deadcode-minion-statics';
+import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group-minion/blightwarden-group-minion-statics';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
+import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderMinionStatics } from '../../statics/flowrider-minion/flowrider-minion-statics';
+import { flowriderCoverageMinionStatics } from '../../statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
+import { flowriderAuthoringMinionStatics } from '../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { siegemasterMinionStatics } from '../../statics/siegemaster-minion/siegemaster-minion-statics';
+import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
@@ -38,15 +40,15 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
-  it('VALID: {agent: "codeweaver-minion"} => returns codeweaver-minion prompt data on sonnet', () => {
-    const agent = AgentPromptNameStub({ value: 'codeweaver-minion' });
+  it('VALID: {agent: "codeweaver-piece-minion"} => returns codeweaver-piece-minion prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'codeweaver-piece-minion' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'codeweaver-minion',
+      name: 'codeweaver-piece-minion',
       model: 'sonnet',
-      prompt: codeweaverMinionStatics.prompt.template,
+      prompt: codeweaverPieceMinionStatics.prompt.template,
     });
   });
 
@@ -86,27 +88,39 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
-  it('VALID: {agent: "flowrider-minion"} => returns flowrider-minion prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'flowrider-minion' });
+  it('VALID: {agent: "flowrider-authoring-minion"} => returns flowrider-authoring-minion prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'flowrider-authoring-minion' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'flowrider-minion',
+      name: 'flowrider-authoring-minion',
       model: 'sonnet',
-      prompt: flowriderMinionStatics.prompt.template,
+      prompt: flowriderAuthoringMinionStatics.prompt.template,
     });
   });
 
-  it('VALID: {agent: "siegemaster-minion"} => returns siegemaster-minion prompt data', () => {
-    const agent = AgentPromptNameStub({ value: 'siegemaster-minion' });
+  it('VALID: {agent: "flowrider-coverage-minion"} => returns flowrider-coverage-minion prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'flowrider-coverage-minion' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'siegemaster-minion',
+      name: 'flowrider-coverage-minion',
       model: 'sonnet',
-      prompt: siegemasterMinionStatics.prompt.template,
+      prompt: flowriderCoverageMinionStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "siegemaster-walker-minion"} => returns siegemaster-walker-minion prompt data', () => {
+    const agent = AgentPromptNameStub({ value: 'siegemaster-walker-minion' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'siegemaster-walker-minion',
+      model: 'sonnet',
+      prompt: siegemasterWalkerMinionStatics.prompt.template,
     });
   });
 
@@ -122,15 +136,15 @@ describe('agentNameToPromptTransformer', () => {
     });
   });
 
-  it('VALID: {agent: "blightwarden-minion"} => returns blightwarden-minion prompt data on sonnet', () => {
-    const agent = AgentPromptNameStub({ value: 'blightwarden-minion' });
+  it('VALID: {agent: "blightwarden-group-minion"} => returns blightwarden-group-minion prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'blightwarden-group-minion' });
 
     const result = agentNameToPromptTransformer({ agent });
 
     expect(result).toStrictEqual({
-      name: 'blightwarden-minion',
+      name: 'blightwarden-group-minion',
       model: 'sonnet',
-      prompt: blightwardenMinionStatics.prompt.template,
+      prompt: blightwardenGroupMinionStatics.prompt.template,
     });
   });
 
@@ -143,6 +157,18 @@ describe('agentNameToPromptTransformer', () => {
       name: 'blightwarden-crosscut-minion',
       model: 'sonnet',
       prompt: blightwardenCrosscutMinionStatics.prompt.template,
+    });
+  });
+
+  it('VALID: {agent: "blightwarden-deadcode-minion"} => returns blightwarden-deadcode-minion prompt data on sonnet', () => {
+    const agent = AgentPromptNameStub({ value: 'blightwarden-deadcode-minion' });
+
+    const result = agentNameToPromptTransformer({ agent });
+
+    expect(result).toStrictEqual({
+      name: 'blightwarden-deadcode-minion',
+      model: 'sonnet',
+      prompt: blightwardenDeadcodeMinionStatics.prompt.template,
     });
   });
 

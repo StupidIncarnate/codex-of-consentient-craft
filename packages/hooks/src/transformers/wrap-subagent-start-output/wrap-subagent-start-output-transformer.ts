@@ -8,8 +8,8 @@
  * WHEN-TO-USE: When a session snippet hook is invoked for a SubagentStart event
  */
 
-import type { ExecResult } from '../../contracts/exec-result/exec-result-contract';
-import { execResultContract } from '../../contracts/exec-result/exec-result-contract';
+import type { ExecResult } from '@dungeonmaster/shared/contracts';
+import { execResultContract } from '@dungeonmaster/shared/contracts';
 
 export const wrapSubagentStartOutputTransformer = ({
   content,

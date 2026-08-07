@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, get-server-config)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, create-quest, get-next-step, run-ward, get-server-config, reset-flow-signoffs, get-quest-summary)
  *
  * USAGE:
  * const registrations = QuestFlow();
- * // Returns 13 ToolRegistration objects that delegate to QuestHandleResponder
+ * // Returns 15 ToolRegistration objects that delegate to QuestHandleResponder
  */
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -19,8 +19,10 @@ import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-pl
 // published schema forbids.
 import { getQuestInputContract } from '../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestStatusInputContract } from '../../contracts/get-quest-status-input/get-quest-status-input-contract';
+import { getQuestSummaryInputContract } from '../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { resetFlowSignoffsInputContract } from '../../contracts/reset-flow-signoffs-input/reset-flow-signoffs-input-contract';
 import { runWardInputContract } from '../../contracts/run-ward-input/run-ward-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
@@ -51,6 +53,14 @@ const getBlightChecklistSchema = zodToJsonSchema(
 const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jsonSchemaOptions);
 const getNextStepSchema = zodToJsonSchema(getNextStepInputContract as never, jsonSchemaOptions);
 const runWardSchema = zodToJsonSchema(runWardInputContract as never, jsonSchemaOptions);
+const resetFlowSignoffsSchema = zodToJsonSchema(
+  resetFlowSignoffsInputContract as never,
+  jsonSchemaOptions,
+);
+const getQuestSummarySchema = zodToJsonSchema(
+  getQuestSummaryInputContract as never,
+  jsonSchemaOptions,
+);
 
 export const QuestFlow = (): ToolRegistration[] => [
   {
@@ -102,7 +112,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     name: 'get-qa-checklist' as never,
     description:
-      "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units still carry no disposition in the QA ledger. Siegemaster calls this instead of reading the spec and enumerating by hand. `remainingItemIds` empty is the only state in which a siegemaster item may signal done." as never,
+      "Returns a quest's COMPLETE QA surface, enumerated deterministically from its flow graphs: every terminal, every labelled decision branch, every observable with its verbatim text and the surface to check it at, every off-map probe family, plus the walk paths — and which units are still outstanding. Flowrider and Siegemaster call this instead of reading the spec and enumerating by hand. Pass `track` ('flowrider' | 'siegemaster') and REMAINING counts the units awaiting YOUR sign-off field, which is exactly what the signal-back completion gate refuses `done` on; 'flowrider' also narrows to the quest's runtime flows, the only set that track is measured over." as never,
     inputSchema: getQaChecklistSchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-qa-checklist' as never, args }),
   },
@@ -148,5 +158,20 @@ export const QuestFlow = (): ToolRegistration[] => [
       'Returns the dungeonmaster server config { baseUrl, port } so slash commands can point the browser at the running server.' as never,
     inputSchema: emptySchema as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-server-config' as never, args }),
+  },
+  {
+    name: 'reset-flow-signoffs' as never,
+    description:
+      "Clears Siegemaster's walk sign-offs across ONE flow so the walk can be redone honestly: every observable, node, edge and off-map probe family on that flow loses its `siegemasterSignoff`. Flowrider's track is never touched. Call this after fixing a defect the walk exposed — the sign-offs already written measured a system that has changed underneath them. The flow must be declared by the calling work item's operation item, and a `walk-reset` note carrying your reason and the cleared count is appended to quest.planningNotes.questNotes." as never,
+    inputSchema: resetFlowSignoffsSchema as never,
+    handler: async ({ args }) =>
+      QuestHandleResponder({ tool: 'reset-flow-signoffs' as never, args }),
+  },
+  {
+    name: 'get-quest-summary' as never,
+    description:
+      'Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track sign-off coverage (confirmed / unconfirmable / outstanding); every observable added AFTER the user approved the spec, with the role that added it; every `unconfirmable` verdict with its evidence AND the question that would close it AND the work item that raised it; and the durable `questNotes` grouped by kind, open questions first. A quest reaches `complete` when both tracks have SIGNED every unit — and `unconfirmable` signs a unit exactly as `confirmed` does — so a green quest can carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do.' as never,
+    inputSchema: getQuestSummarySchema as never,
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest-summary' as never, args }),
   },
 ];

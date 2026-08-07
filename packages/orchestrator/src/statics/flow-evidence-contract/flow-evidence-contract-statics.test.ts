@@ -61,31 +61,76 @@ describe('flowEvidenceContractStatics', () => {
       );
     });
 
-    it('VALID: judgingMarkdown => keeps DEFECT and GAP as distinct evidentiary states', () => {
+    it('VALID: judgingMarkdown => defines exactly two per-track verdicts, both of which clear the gate', () => {
       const { judgingMarkdown } = flowEvidenceContractStatics;
 
       expect({
-        neverCollapsed: judgingMarkdown.includes('must never be\ncollapsed into one label'),
-        defectHasAProvingTest: judgingMarkdown.includes(
-          'the behaviour is wrong and a test **proves it, left red**',
+        heading: /^## Verdicts — every unit carries TWO independent sign-offs$/mu.test(
+          judgingMarkdown,
         ),
-        defectInstruction: judgingMarkdown.includes("The reader's instruction is *fix\n  this*."),
-        gapHasNoTest: judgingMarkdown.includes(
-          '**cannot be proven at any layer available here**, so no test exists',
+        perTrack: judgingMarkdown.includes(
+          'A unit is settled PER TRACK, never once for everybody.',
         ),
-        gapInstruction: judgingMarkdown.includes(
-          "reader's instruction is *go verify this yourself*.",
+        bothTracksMustSign: judgingMarkdown.includes(
+          'a unit is done only when BOTH tracks have signed it',
         ),
-        gapIsNotUnfinishedWork: judgingMarkdown.includes(
-          'A `GAP:` is never a place to put something\n  that was simply not reached',
+        bothVerdictsClear: judgingMarkdown.includes(
+          'Both verdicts CLEAR the completion\ngate; what the gate refuses is the ABSENCE of a sign-off.',
+        ),
+        confirmedNeedsAFailure: judgingMarkdown.includes(
+          'a test `file:line` PLUS what makes that test fail',
+        ),
+        confirmedIsMeasuredForSiegemaster: judgingMarkdown.includes(
+          'Siegemaster: the value measured off the\n  running system',
+        ),
+        unconfirmableNeedsAQuestion: judgingMarkdown.includes(
+          'the contract refuses an `unconfirmable` that carries none',
         ),
       }).toStrictEqual({
-        neverCollapsed: true,
-        defectHasAProvingTest: true,
-        defectInstruction: true,
-        gapHasNoTest: true,
-        gapInstruction: true,
-        gapIsNotUnfinishedWork: true,
+        heading: true,
+        perTrack: true,
+        bothTracksMustSign: true,
+        bothVerdictsClear: true,
+        confirmedNeedsAFailure: true,
+        confirmedIsMeasuredForSiegemaster: true,
+        unconfirmableNeedsAQuestion: true,
+      });
+    });
+
+    // A defect is the INVERSE of an observable, so recording it as a verdict would leave the unit's
+    // own positive expectation unanswered. It goes into the spec as its own observable and carries
+    // its own two sign-offs, which is why no third verdict exists to hold it.
+    it('VALID: judgingMarkdown => routes a measured defect to a new observable rather than a third verdict', () => {
+      const { judgingMarkdown } = flowEvidenceContractStatics;
+
+      expect({
+        newObservable: judgingMarkdown.includes(
+          '**A measured defect is a NEW observable, not a third verdict.**',
+        ),
+        inverseExpectation: judgingMarkdown.includes(
+          'is the INVERSE\nexpectation and it belongs in the spec',
+        ),
+        carriesItsOwnSignoffs: judgingMarkdown.includes(
+          'it arrives unsigned and then\ncarries its own two sign-offs like every other unit',
+        ),
+        noOtherVerdicts: judgingMarkdown.includes(
+          'There is no `defect`, `deferred`, `gap` or `recorded`\nverdict.',
+        ),
+        provenanceIsSeparate: judgingMarkdown.includes('**Provenance is a SEPARATE axis.**'),
+        unsignedIsARealState: judgingMarkdown.includes(
+          '**A unit nobody can settle stays UNSIGNED.**',
+        ),
+        unconfirmableIsNotForMissingTests: judgingMarkdown.includes(
+          'Never reach for `unconfirmable` to\nclear a unit that simply needs a test nobody has written yet.',
+        ),
+      }).toStrictEqual({
+        newObservable: true,
+        inverseExpectation: true,
+        carriesItsOwnSignoffs: true,
+        noOtherVerdicts: true,
+        provenanceIsSeparate: true,
+        unsignedIsARealState: true,
+        unconfirmableIsNotForMissingTests: true,
       });
     });
 
@@ -106,10 +151,33 @@ describe('flowEvidenceContractStatics', () => {
         operationalStillNeedsBrowser: authoringMarkdown.includes(
           'an `operational` flow carrying `ui-state` observables still needs a\nbrowser for those',
         ),
+        // Journey-vs-matrix and checkSurface answer different questions. Read as competing, a
+        // session picks one and drops the other: a "journey" e2e that never asserts at the layer
+        // the claim lives on, or a matrix that flattens a branchy flow into one parameterized case.
+        shapeVersusLayer: authoringMarkdown.includes(
+          '**Two rules compose here, and they never compete. Journey-vs-matrix chooses the test SHAPE;\n`checkSurface` chooses the LAYER.**',
+        ),
+        journeyIsOneTestPerPath: authoringMarkdown.includes(
+          'a branchy flow is a JOURNEY — one test per path, driven end to end',
+        ),
+        matrixIsParameterized: authoringMarkdown.includes(
+          'a set of\nindependent input combinations is a MATRIX, one parameterized test over the combinations',
+        ),
+        journeyRendersPerSurface: authoringMarkdown.includes(
+          'a branchy flow is a\njourney rendered as e2e for a web surface and as integration for a non-web one; a combination matrix\nis integration',
+        ),
+        neitherOverridesTheOther: authoringMarkdown.includes(
+          'Picking the shape never licenses asserting at the wrong layer, and picking the layer\nnever collapses a journey into a matrix.',
+        ),
       }).toStrictEqual({
         heading: true,
         flowTypeIsOnlyAHint: true,
         operationalStillNeedsBrowser: true,
+        shapeVersusLayer: true,
+        journeyIsOneTestPerPath: true,
+        matrixIsParameterized: true,
+        journeyRendersPerSurface: true,
+        neitherOverridesTheOther: true,
       });
     });
 

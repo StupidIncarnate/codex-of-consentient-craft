@@ -13,10 +13,16 @@ describe('qaOffMapProbeStatics', () => {
         'Kill the process mid-action, drop the network mid-request, cancel halfway. Partial files? Half-written state? Orphaned records? A stuck spinner?',
       );
     });
+
+    it('VALID: {perf} => names elapsed time, the per-action request count, and a realistic data volume', () => {
+      expect(qaOffMapProbeStatics.byFamily.perf).toBe(
+        'Time the slowest realistic path end to end, count the requests or queries ONE user action fires, and drive it at a realistic data volume rather than a one-row fixture. Does the work per action climb with the number of rows on screen?',
+      );
+    });
   });
 
   describe('full exported value', () => {
-    // Pins all six keys 1:1 with qaOffMapFamilyContract's options. A statics file (and its test)
+    // Pins all seven keys 1:1 with qaOffMapFamilyContract's options. A statics file (and its test)
     // cannot import a contract, so this literal IS the coverage assertion.
     it('VALID: {statics} => matches the complete probe map', () => {
       expect(qaOffMapProbeStatics).toStrictEqual({
@@ -33,6 +39,7 @@ describe('qaOffMapProbeStatics', () => {
             'Break the config, point at the wrong port, remove a dependency. Does the failure mode match what the flow claims, or does it fail silently?',
           'hostile-input':
             'Empty, whitespace-only, oversized, malformed, duplicate, and injection-shaped input (path traversal, script- or SQL-shaped payloads wherever the flow carries untrusted input toward a dangerous sink). Does it reject safely?',
+          perf: 'Time the slowest realistic path end to end, count the requests or queries ONE user action fires, and drive it at a realistic data volume rather than a one-row fixture. Does the work per action climb with the number of rows on screen?',
         },
       });
     });

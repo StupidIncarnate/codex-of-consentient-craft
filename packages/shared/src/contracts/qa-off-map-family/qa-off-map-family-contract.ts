@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Defines the six off-map probe families every quest flow is checked against — the
+ * PURPOSE: Defines the seven off-map probe families every quest flow is checked against — the
  * breakage classes a flow graph structurally cannot draw, because a graph only shows the paths its
  * author imagined
  *
@@ -20,6 +20,7 @@ export const qaOffMapFamilyContract = z.enum([
   'staleness',
   'configuration',
   'hostile-input',
+  'perf',
 ]);
 
 export type QaOffMapFamily = z.infer<typeof qaOffMapFamilyContract>;

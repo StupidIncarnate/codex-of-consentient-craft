@@ -6,9 +6,9 @@
  * // Returns validated get-agent-prompt input
  *
  * WHEN-TO-USE: `workItemId` is optional because a parent-summoned sub-agent minion (e.g.
- * chaoswhisperer-gap-minion, pathseeker-surface, codeweaver-minion) has no work item of its own —
- * it fetches its served methodology with `{ agent, questId }` only. The orchestrator broker enforces
- * that role names (dispatched as their own work item) DO supply a workItemId.
+ * chaoswhisperer-gap-minion, pathseeker-surface, codeweaver-piece-minion) has no work item of its
+ * own — it fetches its served methodology with `{ agent, questId }` only. The orchestrator broker
+ * enforces that role names (dispatched as their own work item) DO supply a workItemId.
  */
 import { z } from 'zod';
 

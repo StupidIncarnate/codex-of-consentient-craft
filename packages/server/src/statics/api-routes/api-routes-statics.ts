@@ -25,6 +25,7 @@ export const apiRoutesStatics = {
     abandon: '/api/quests/:questId/abandon',
     delete: '/api/quests/:questId',
     wardDetail: '/api/quests/:questId/ward-results/:wardResultId',
+    summary: '/api/quests/:questId/summary',
     signalBack: '/api/quests/:questId/signal-back',
   },
   process: {

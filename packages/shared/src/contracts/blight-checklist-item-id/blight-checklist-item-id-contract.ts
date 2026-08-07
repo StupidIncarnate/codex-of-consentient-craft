@@ -3,7 +3,7 @@
  * `<repo-relative-impl-path>:<concern>`, a changed file crossed with one BlightConcern
  *
  * USAGE:
- * blightChecklistItemIdContract.parse('packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage');
+ * blightChecklistItemIdContract.parse('packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft');
  * // Returns: BlightChecklistItemId branded string
  *
  * This id is DERIVED from the changed-file set, never minted or authored — re-deriving it against

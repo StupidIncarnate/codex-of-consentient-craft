@@ -16,6 +16,9 @@ import {
   QuestIdStub,
   QuestListItemStub,
   QuestStub,
+  QuestSummaryFlowStub,
+  QuestSummaryStub,
+  QuestSummaryTrackCountsStub,
   QuestWorkItemIdStub,
   ToolingRequirementStub,
   UrlSlugStub,
@@ -992,7 +995,7 @@ describe('QuestHandleResponder', () => {
         questId: 'test-quest-id',
         result: {
           success: true,
-          data: { blightReports: [], qaLedger: [], blightLedger: [] },
+          data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
         },
       });
 
@@ -1008,7 +1011,7 @@ describe('QuestHandleResponder', () => {
             text: JSON.stringify(
               {
                 success: true,
-                data: { blightReports: [], qaLedger: [], blightLedger: [] },
+                data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
               },
               null,
               JSON_INDENT_SPACES,
@@ -1165,6 +1168,193 @@ describe('QuestHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-blight-checklist' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Quest not found' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('reset-flow-signoffs', () => {
+    it('VALID: {questId, workItemId, flowId, reason} => dispatches to the reset layer responder and returns the report VERBATIM', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupResetFlowSignoffsReturns({
+        questId: 'test-quest-id',
+        flowId: 'login-flow',
+        result: {
+          success: true,
+          data: ContentTextStub({
+            value:
+              'Siegemaster walk reset for flow login-flow.\nCleared 4 siegemasterSignoff value(s).',
+          }),
+        },
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'reset-flow-signoffs' }),
+        args: {
+          questId: 'test-quest-id',
+          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          reason: 'Fixed the redirect guard the walk exposed.',
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: 'Siegemaster walk reset for flow login-flow.\nCleared 4 siegemasterSignoff value(s).',
+          },
+        ],
+      });
+    });
+
+    it('VALID: {all four fields} => forwards every one to the reset layer responder', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupResetFlowSignoffsReturns({
+        questId: 'test-quest-id',
+        flowId: 'login-flow',
+        result: { success: true, data: ContentTextStub({ value: 'ok' }) },
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'reset-flow-signoffs' }),
+        args: {
+          questId: 'test-quest-id',
+          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          reason: 'Fixed the redirect guard the walk exposed.',
+        },
+      });
+
+      expect(
+        proxy.getLastResetFlowSignoffsInput({ questId: 'test-quest-id', flowId: 'login-flow' }),
+      ).toStrictEqual({
+        questId: 'test-quest-id',
+        workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        flowId: 'login-flow',
+        reason: 'Fixed the redirect guard the walk exposed.',
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupResetFlowSignoffsThrows({
+        questId: 'test-quest-id',
+        flowId: 'login-flow',
+        error: new Error('Quest not found'),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'reset-flow-signoffs' }),
+        args: {
+          questId: 'test-quest-id',
+          workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          flowId: 'login-flow',
+          reason: 'Fixed the redirect guard the walk exposed.',
+        },
+      });
+
+      expect(result).toStrictEqual({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { success: false, error: 'Quest not found' },
+              null,
+              JSON_INDENT_SPACES,
+            ),
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('get-quest-summary', () => {
+    it('VALID: {questId} => dispatches to the summary layer responder and returns the RENDERED text', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetQuestSummaryReturns({
+        questId: 'test-quest-id',
+        summary: QuestSummaryStub({
+          questId: 'test-quest-id',
+          flows: [
+            QuestSummaryFlowStub({
+              id: 'login-flow',
+              name: 'Login Flow',
+              flowType: 'runtime',
+              tracks: [
+                QuestSummaryTrackCountsStub({
+                  id: 'flowrider',
+                  confirmed: 9,
+                  unconfirmable: 2,
+                  outstanding: 4,
+                }),
+              ],
+            }),
+          ],
+          midQuestObservables: [],
+          unconfirmable: [],
+          noteGroups: [],
+        }),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest-summary' }),
+        args: { questId: 'test-quest-id' },
+      });
+      const lines = String(result.content[0]?.text).split('\n');
+
+      expect({
+        isError: result.isError,
+        title: lines[0],
+        trackRow: lines.find((line) => line.startsWith('    flowrider:')),
+      }).toStrictEqual({
+        isError: undefined,
+        title: '# QUEST SUMMARY — `test-quest-id`',
+        trackRow: '    flowrider: confirmed 9 / unconfirmable 2 / outstanding 4',
+      });
+    });
+
+    it('VALID: {questId} => forwards it to the summary layer responder', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetQuestSummaryReturns({
+        questId: 'test-quest-id',
+        summary: QuestSummaryStub({ questId: 'test-quest-id' }),
+      });
+
+      await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest-summary' }),
+        args: { questId: 'test-quest-id' },
+      });
+
+      expect(proxy.getLastGetQuestSummaryInput({ questId: 'test-quest-id' })).toStrictEqual({
+        questId: 'test-quest-id',
+      });
+    });
+
+    it('ERROR: {adapter throws} => returns error response', async () => {
+      const proxy = QuestHandleResponderProxy();
+      proxy.setupGetQuestSummaryThrows({
+        questId: 'test-quest-id',
+        error: new Error('Quest not found'),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-quest-summary' }),
         args: { questId: 'test-quest-id' },
       });
 

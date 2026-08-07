@@ -37,7 +37,7 @@ describe('flowriderPromptStatics', () => {
   // The operator judges artifacts, so it carries the criteria it judges by — verbatim, so a change
   // to the shared block cannot land on one side only. It does NOT carry the authoring method: the
   // minion that produced the artifact does, the same way codeweaver leaves the TDD method to
-  // codeweaver-minion and siegemaster leaves browser-driving to its walkers.
+  // codeweaver-piece-minion and siegemaster leaves browser-driving to its walkers.
   it('VALID: template => embeds the shared judging criteria verbatim', () => {
     expect(has(flowEvidenceContractStatics.judgingMarkdown)).toBe(true);
   });
@@ -114,7 +114,7 @@ describe('flowriderPromptStatics', () => {
       noFixedLogWindow: has(
         'far enough back to cover the whole quest, not a\n  fixed number of lines',
       ),
-      namesTheDefaultWindowTrap: has('more\n  commits than a default `-15` window shows'),
+      namesTheDefaultWindowTrap: has('has more commits than a default `-15` window shows'),
       readsBodies: has('read the BODIES'),
     }).toStrictEqual({
       splitsTheTwoAuthorities: true,
@@ -140,12 +140,17 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => sources the inventory from get-qa-checklist rather than building it by hand', () => {
     expect({
       forbidsHandBuilding: has('**Do NOT hand-build the inventory from `get-quest`.**'),
-      wholeQuestCall: has('`get-qa-checklist({ questId })`'),
-      omitFlowIdIsWholeQuest: has(
-        'omit `flowId` and it enumerates EVERY flow on the quest, which is\nexactly your scope',
+      wholeQuestCall: has("`get-qa-checklist({ questId, track: 'flowrider' })`"),
+      omitFlowIdIsRuntimeOnly: has(
+        'omit `flowId` and, on the `flowrider`\ntrack, it enumerates every RUNTIME flow on the quest, which is exactly your scope',
       ),
+      operationalIsNotMine: has('**Operational\nflows are not yours**'),
+      namesWhatOperationalIsAndWhoOwnsIt: has(
+        'an operational flow is a one-time task sequence — a refactor sweep, an infra\nsetup, a lint-rule registration — whose final state Siegemaster hand-checks.',
+      ),
+      doesNotAddThemBack: has('The track filter drops them for you; do not add them back.'),
       noModelInTheLoop: has(
-        'It walks the flow graph with no model in the loop, so unlike a session reading a\nspec it cannot summarise, skip a long tail, or paraphrase.',
+        'It walks the flow graph with no model in the loop, so unlike a session reading a spec it cannot\nsummarise, skip a long tail, or paraphrase.',
       ),
       itemsAreTheDenominator: has('**`items` is your denominator**'),
       itemsAreWiderThanObservables: has(
@@ -166,7 +171,10 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({
       forbidsHandBuilding: true,
       wholeQuestCall: true,
-      omitFlowIdIsWholeQuest: true,
+      omitFlowIdIsRuntimeOnly: true,
+      operationalIsNotMine: true,
+      namesWhatOperationalIsAndWhoOwnsIt: true,
+      doesNotAddThemBack: true,
       noModelInTheLoop: true,
       itemsAreTheDenominator: true,
       itemsAreWiderThanObservables: true,
@@ -179,20 +187,55 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  // remainingItemIds is the diff against planningNotes.qaLedger, which ONLY siegemaster writes.
-  // Flowrider writing into that ledger would pre-satisfy siegemaster's completion gate — the gate
-  // would pass with every unit already dispositioned by a role that never walked anything.
-  it('VALID: template => tells flowrider to ignore remainingItemIds and stay out of the qaLedger', () => {
+  // With `track` threaded through, remainingItemIds is the per-track sign-off difference — the same
+  // set the completion gate recomputes from the quest file. A session told to ignore it walks into
+  // the exact recall failure the gate exists to close.
+  it('VALID: template => makes remainingItemIds flowrider’s own gate count rather than something to ignore', () => {
     expect({
-      ignoreIt: has('`remainingItemIds` — **ignore this.**'),
-      namesWhoWritesTheLedger: has('which only Siegemaster writes'),
-      namesTheHazard: has(
-        "writing into that ledger\n  would pre-satisfy Siegemaster's completion gate",
+      isTheGateCount: has(
+        '`remainingItemIds` — **this is YOUR gate count, and you work it to zero.**',
+      ),
+      isThePerTrackDifference: has(
+        "With\n  `track: 'flowrider'` it is the per-track sign-off difference: every unit in scope carrying no\n  `flowriderSignoff` yet.",
+      ),
+      gateRecomputesIt: has(
+        'the completion\n  gate recomputes exactly this set from the quest file and refuses `done` while it is non-empty',
+      ),
+      ignoringItIsTheFailure: has('Ignoring it is the recall failure the gate exists to close.'),
+    }).toStrictEqual({
+      isTheGateCount: true,
+      isThePerTrackDifference: true,
+      gateRecomputesIt: true,
+      ignoringItIsTheFailure: true,
+    });
+  });
+
+  // An all-operational quest HAS flows, so the "no flows at all" case never fires for it — the
+  // flowrider-track checklist just returns none of them. Without its own sibling case a session
+  // reads the empty result as a tooling failure and re-fetches untracked to find something to cover.
+  it('VALID: template => gives a quest with no RUNTIME flows its own real-state case', () => {
+    expect({
+      noFlowsAtAll: has('**A quest with no flows at all is a real state, not an error.**'),
+      noRuntimeFlows: has(
+        '**A quest with no RUNTIME flows is the same real state, reached a different way.**',
+      ),
+      theQuestStillHasFlows: has(
+        'An\nall-operational quest HAS flows — the checklist on the `flowrider` track just returns none of them',
+      ),
+      gateStillBinds: has(
+        'Your gate still binds and it still\nrecomputes, it simply yields zero units, so `done` is honest the moment you say so.',
+      ),
+      noUntrackedRefetch: has('Do NOT reach for\nthe untracked call to find something to cover'),
+      noSigningOperationalUnits: has(
+        'do NOT sign units on an operational flow: they\nare outside your denominator, so a signature there proves nothing and clears nothing',
       ),
     }).toStrictEqual({
-      ignoreIt: true,
-      namesWhoWritesTheLedger: true,
-      namesTheHazard: true,
+      noFlowsAtAll: true,
+      noRuntimeFlows: true,
+      theQuestStillHasFlows: true,
+      gateStillBinds: true,
+      noUntrackedRefetch: true,
+      noSigningOperationalUnits: true,
     });
   });
 
@@ -363,26 +406,26 @@ describe('flowriderPromptStatics', () => {
 
   // Retyping a full quest's rows from memory is how a session drops the ones it forgot. A set
   // difference over ids can actually be completed, and it is what catches an unbundled flow.
-  it('VALID: template => assembles the ledger from artifacts and reconciles it by set difference', () => {
+  it('VALID: template => reconciles the flowrider track by set difference rather than from memory', () => {
     expect({
-      gate: has('### Gate 7: The Whole-Quest Observable Ledger'),
-      assembleNotRetype: has('**Assemble it; do not retype it.**'),
-      reconcileById: has('reconcile **by checklist item id** against Gate 3'),
+      gate: has('### Gate 7: The Whole-Quest Sign-Off Reconcile'),
+      assembleNotRetype: has('**Assemble the reconcile; do not retype it.**'),
+      reconcileById: has('reconcile **by checklist item id** against\nGate 3'),
       differenceMustBeEmpty: has('must be EMPTY'),
       // Graph-derived ids reproduce byte-identically, so re-fetching diffs against the same list
       // rather than the session's recollection of it.
       refetchRatherThanRecall: has(
-        'a second call reproduces them byte-identically\nand you diff against the same list rather than your memory of it',
+        'a second call reproduces them byte-identically and\nyou diff against the same list rather than your memory of it',
       ),
-      catchesUnbundledFlow: has('the check that catches a\nflow nobody bundled'),
+      catchesUnbundledFlow: has('the check that catches a flow\nnobody bundled'),
       // Terminals and branches are exactly what a happy-path-only suite omits, and they are
       // invisible to an observable-only reconciliation.
       includesTerminalsAndBranches: has('**Terminals and branches are units too**'),
       namesTheHappyPathFailure: has(
-        '"I covered the happy path and stopped" shows up here as\nterminal ids with no disposition',
+        '"I covered the happy path and stopped" shows up here as\nterminal ids with no signature',
       ),
-      offMapIsSiegemasters: has("Off-map families are Siegemaster's territory"),
-      hostileInputStaysMine: has('`hostile-input` is already your\nfixture rule'),
+      offMapIsSiegemasters: has("Off-map families are Siegemaster's charter"),
+      hostileInputStaysMine: has('`hostile-input` is\nalready your fixture rule'),
       exitIsTheDifference: has('**Exit Criteria:** The set difference is empty.'),
     }).toStrictEqual({
       gate: true,
@@ -399,23 +442,83 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  // GAP: (no test can reach it) and DEFECT: (a red test proves it) are opposite evidentiary states.
-  // Collapsing them tells Siegemaster to hand-check something that already has a failing test.
-  it('VALID: template => keeps DEFECT and GAP separate and refuses to bank unreached scope in either', () => {
+  // The authoring minion that wrote a test believes it proves the observable; a signature from it
+  // would satisfy the gate the instant authoring returned. Only the coverage audit signs, and the
+  // operator signs whatever it adds afterwards, because nothing runs after the operator's spec gate.
+  it('VALID: template => routes the track to the coverage minion and keeps the operator signing its own additions', () => {
     expect({
-      dispositionsListed: has('`COVERED`, `DEFECT:`, `GAP:`, or `ADJUSTED:`/`ADDED:`'),
-      unreachedIsRemainingScope: has(
-        'A unit with no disposition is not a `GAP:` — it is remaining scope',
+      auditWritesTheTrack: has(
+        '**A `flowrider-coverage-minion` writes the track; the authoring minions never sign their own\nwork.**',
       ),
-      unreachedForcesPartial: has('so you signal `partial` and\nname it'),
+      dispatchedAfterAuthoring: has(
+        'Dispatch it once the authoring bundles are back and their tests have landed, before this\nreconcile.',
+      ),
+      selfSigningPreSatisfies: has(
+        'letting it sign\nwould pre-satisfy the gate the instant authoring returned',
+      ),
+      operatorSignsItsAdditions: has('**You sign too, and you must.**'),
+      addedAfterTheAudit: has(
+        'You can ADD observables at your own spec gate below, AFTER the audit\npass has already run.',
+      ),
+      sameEvidenceBar: has('a test `file:line` plus what makes that\ntest fail'),
+    }).toStrictEqual({
+      auditWritesTheTrack: true,
+      dispatchedAfterAuthoring: true,
+      selfSigningPreSatisfies: true,
+      operatorSignsItsAdditions: true,
+      addedAfterTheAudit: true,
+      sameEvidenceBar: true,
+    });
+  });
+
+  // An observable delete is refused by the additive guard, so "move it" is not an available move.
+  // A session that believes it is silently loses the observable it thought it relocated.
+  it('VALID: template => replaces "move the observable" with a restate-plus-add pair', () => {
+    expect({
+      impossible: has('**"Move the observable to the runtime flow" is IMPOSSIBLE.**'),
+      guardRefusesDeletes: has('The additive guard refuses every\nobservable delete by design'),
+      twoAdditiveMoves: has('Make TWO additive moves instead'),
+      restateNamesTheRuntimeFlow: has(
+        'RESTATE the operational observable so its text names the runtime\nflow that proves it, and ADD the covering observable on that runtime flow',
+      ),
+      bothExistAfterwards: has(
+        'Both observables exist\nafterwards, `addedBy` links the added one to this pass',
+      ),
+    }).toStrictEqual({
+      impossible: true,
+      guardRefusesDeletes: true,
+      twoAdditiveMoves: true,
+      restateNamesTheRuntimeFlow: true,
+      bothExistAfterwards: true,
+    });
+  });
+
+  // A permanently unprovable unit handed to a pt continuation burns the chain to maxAttempts on
+  // sessions that provably cannot close it, and the quest blocks with the unit still open. The
+  // `unconfirmable` signature closes it honestly in one pass instead.
+  it('VALID: template => signs an unclosable unit unconfirmable instead of pt-chaining it', () => {
+    expect({
+      signedNotChained: has(
+        '**A unit you genuinely cannot close is signed `unconfirmable` — it is NOT a reason to signal\n`partial`.**',
+      ),
+      // What an `unconfirmable` must carry is stated once, in the shared evidence contract the
+      // template embeds above; the gate paragraph points at it rather than restating it.
+      evidenceAndQuestion: has(
+        '`evidence` says\n  what was TRIED and why each attempt could not reach it, and a `question` naming what someone else\n  would need is REQUIRED',
+      ),
+      namesTheChainCost: has(
+        'burns the chain to `maxAttempts` on sessions that provably\ncannot close it, and then blocks the quest',
+      ),
+      partialIsForRealRemainder: has('`partial` is for scope a fresh session really could\nfinish'),
       architecturalIsADefect: has('is scope you hand on as a `DEFECT:`, not scope\n  you take'),
       trivialFixIsNotADefect: has(
         'defect you could have fixed in a line is not a `DEFECT:`, it is a fix you skipped.',
       ),
     }).toStrictEqual({
-      dispositionsListed: true,
-      unreachedIsRemainingScope: true,
-      unreachedForcesPartial: true,
+      signedNotChained: true,
+      evidenceAndQuestion: true,
+      namesTheChainCost: true,
+      partialIsForRealRemainder: true,
       architecturalIsADefect: true,
       trivialFixIsNotADefect: true,
     });
@@ -440,9 +543,9 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => requires an added observable be covered in the same pass at an observing layer', () => {
     expect({
       coverItNow: has(
-        '**cover it in this same session, at a layer that can observe\nwhat it claims.**',
+        '**cover it in this same session, at a layer that can observe\nwhat it claims, then sign it.**',
       ),
-      namesTheCost: has('hands your successor a\nmanufactured gap'),
+      namesTheCost: has('hands your\nsuccessor a manufactured hole'),
     }).toStrictEqual({ coverItNow: true, namesTheCost: true });
   });
 
@@ -474,7 +577,7 @@ describe('flowriderPromptStatics', () => {
       mostAreClosedNotLeftRed: has(
         'Most defects\nyou close yourself, and a closed defect leaves no red behind',
       ),
-      wasRedIsNotADisposition: has('"It was red when I got here" is not a disposition'),
+      wasRedIsNotAVerdict: has('"It was red when I got here" is not a verdict'),
       noForbiddenFraming: !has('You are forbidden from\nfixing implementation'),
       neverWeakenForGreen: has('Never weaken, skip, or delete such a test to buy a green.'),
       everyOtherRedIsYours: has('**Every OTHER red\nis yours to fix before you signal**'),
@@ -485,7 +588,7 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({
       onlyAllowedRed: true,
       mostAreClosedNotLeftRed: true,
-      wasRedIsNotADisposition: true,
+      wasRedIsNotAVerdict: true,
       noForbiddenFraming: true,
       neverWeakenForGreen: true,
       everyOtherRedIsYours: true,
@@ -568,11 +671,11 @@ describe('flowriderPromptStatics', () => {
 
   it('VALID: template => dispatches minions by minion-fetch with no workItemId and no signal-back', () => {
     expect({
-      protocol: /^## Flowrider-Minion Delegation Protocol$/mu.test(
+      protocol: /^## Flowrider-Authoring-Minion Delegation Protocol$/mu.test(
         flowriderPromptStatics.prompt.template,
       ),
       minionFetch: has(
-        "`get-agent-prompt({ agent: 'flowrider-minion', questId: 'QUEST_ID' })` (minion-fetch — NO\n   workItemId)",
+        "`get-agent-prompt({ agent: 'flowrider-authoring-minion', questId: 'QUEST_ID' })` (minion-fetch — NO\n   workItemId)",
       ),
       model: has('`model: "sonnet"`'),
       subagentType: has('`subagent_type: "general-purpose"`'),
@@ -664,15 +767,17 @@ describe('flowriderPromptStatics', () => {
       ),
       testsAreBaseUrlRelative: has('your tests navigate `baseURL`-relative'),
       siegemasterOwnsIt: has("Standing a long-lived server up by hand is Siegemaster's job"),
-      missingWebServerIsAGap: has('record it as a `GAP:` and hand it on'),
-      neverAuthorsIt: has('Neither you\nnor a minion authors a `webServer` block'),
+      missingWebServerIsUnconfirmable: has(
+        'sign every unit it blocks `unconfirmable`, with the\nmissing piece as the evidence and the question',
+      ),
+      neverAuthorsIt: has('Neither you nor a minion authors a `webServer`\nblock'),
       namesTheParallelRace: has('two of them editing it is a last-write-wins race'),
     }).toStrictEqual({
       neverTouchesOne: true,
       playwrightConfigOwnsIt: true,
       testsAreBaseUrlRelative: true,
       siegemasterOwnsIt: true,
-      missingWebServerIsAGap: true,
+      missingWebServerIsUnconfirmable: true,
       neverAuthorsIt: true,
       namesTheParallelRace: true,
     });
@@ -831,10 +936,10 @@ describe('flowriderPromptStatics', () => {
       namesTheStaleMcpCause: has("the running MCP server's schema is older than the agent name"),
       namesTheAdvertisedTrap: has('including `flowrider`, YOUR role, whose prompt mandates'),
       literalFallbackBlock: has(
-        "IF get-agent-prompt REJECTS 'flowrider-minion' (stale enum on the running MCP server):",
+        "IF get-agent-prompt REJECTS 'flowrider-authoring-minion' (stale enum on the running MCP server):",
       ),
       tellsItToReadTheStatics: has(
-        'Read packages/orchestrator/src/statics/flowrider-minion/flowrider-minion-statics.ts and follow',
+        'Read packages/orchestrator/src/statics/flowrider-authoring-minion/flowrider-authoring-minion-statics.ts and follow',
       ),
       forbidsSubstitution: has("Do NOT substitute another agent name. 'flowrider' is MY role"),
       forbidsSignalBack: has('Do NOT call signal-back, ever'),
@@ -883,7 +988,7 @@ describe('flowriderPromptStatics', () => {
       namesTheMechanism: has("ward's typecheck compiles the whole repo regardless of file scope"),
       unverified: has('Treat every such claim as UNVERIFIED'),
       checkAfterTheTreeIsStill: has('once all bundles are back and the tree is still'),
-      notADisposition: has('"a minion said it was\npre-existing" is not a disposition'),
+      notAVerdict: has('"a minion said it was\npre-existing" is not a verdict'),
       decliningWasStillCorrect: has(
         'declining was\ncorrect, the diagnosis attached to it was a guess',
       ),
@@ -892,7 +997,7 @@ describe('flowriderPromptStatics', () => {
       namesTheMechanism: true,
       unverified: true,
       checkAfterTheTreeIsStill: true,
-      notADisposition: true,
+      notAVerdict: true,
       decliningWasStillCorrect: true,
     });
   });
@@ -904,7 +1009,7 @@ describe('flowriderPromptStatics', () => {
     expect({
       suspect: has('treat everything it produced as suspect and re-read it in full'),
       namesWhatItLacked: has(
-        'it ran with no evidence\ncontract, no disposition vocabulary, and no prohibition on `signal-back` or `git`',
+        'it ran with no evidence\ncontract, no verdict vocabulary, and no prohibition on `signal-back` or `git`',
       ),
       checksForARogueCommit: has('check the branch\nfor a commit it should never have made'),
     }).toStrictEqual({
@@ -949,14 +1054,16 @@ describe('flowriderPromptStatics', () => {
       everyFlow: has('2. **Every flow is your scope**'),
       modalityPerObservable: has('5. **Match the modality to each OBSERVABLE**'),
       noSilentCaps: has('11. **No fabrication, no silent caps**'),
-      doneIsRight: has('13. **No ledger writes** — outcome rides on signal-back as done|partial'),
+      trackMustBeWritten: has(
+        '13. **The track must be written** — the coverage audit signs the units it settles, you sign the ones\n    you add at your own spec gate, and the outcome rides on signal-back as done|partial',
+      ),
     }).toStrictEqual({
       rules: true,
       gitAndLedger: true,
       everyFlow: true,
       modalityPerObservable: true,
       noSilentCaps: true,
-      doneIsRight: true,
+      trackMustBeWritten: true,
     });
   });
 });

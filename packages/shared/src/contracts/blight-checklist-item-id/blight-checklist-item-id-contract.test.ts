@@ -6,17 +6,17 @@ describe('blightChecklistItemIdContract', () => {
     it('VALID: {impl path + concern} => parses', () => {
       expect(
         BlightChecklistItemIdStub({
-          value: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+          value: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
         }),
-      ).toBe('packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage');
+      ).toBe('packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft');
     });
 
     it('VALID: {deeply nested impl path} => parses', () => {
       expect(
         BlightChecklistItemIdStub({
-          value: 'packages/orchestrator/src/brokers/quest/execute/quest-execute-broker.ts:security',
+          value: 'packages/orchestrator/src/brokers/quest/execute/quest-execute-broker.ts:perf',
         }),
-      ).toBe('packages/orchestrator/src/brokers/quest/execute/quest-execute-broker.ts:security');
+      ).toBe('packages/orchestrator/src/brokers/quest/execute/quest-execute-broker.ts:perf');
     });
   });
 

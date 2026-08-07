@@ -25,6 +25,7 @@ import { QuestPauseResponder } from '../../responders/quest/pause/quest-pause-re
 import { QuestResumeResponder } from '../../responders/quest/resume/quest-resume-responder';
 import { QuestSignalBackResponder } from '../../responders/quest/signal-back/quest-signal-back-responder';
 import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
+import { QuestSummaryResponder } from '../../responders/quest/summary/quest-summary-responder';
 import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestWardDetailResponder } from '../../responders/quest/ward-detail/quest-ward-detail-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
@@ -68,6 +69,13 @@ export const QuestFlow = (): Hono => {
         questId: c.req.param('questId'),
         wardResultId: c.req.param('wardResultId'),
       },
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.get(apiRoutesStatics.quests.summary, async (c) => {
+    const result = await QuestSummaryResponder({
+      params: { questId: c.req.param('questId') },
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

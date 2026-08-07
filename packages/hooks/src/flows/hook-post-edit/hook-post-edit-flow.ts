@@ -6,10 +6,7 @@
  * // Returns ExecResult with stdout, stderr, exitCode
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPostEditResponder } from '../../responders/hook/post-edit/hook-post-edit-responder';
 
 export const HookPostEditFlow = async ({

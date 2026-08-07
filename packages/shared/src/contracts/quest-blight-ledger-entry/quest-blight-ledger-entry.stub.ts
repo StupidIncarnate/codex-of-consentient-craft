@@ -7,9 +7,9 @@ export const QuestBlightLedgerEntryStub = ({
   ...props
 }: StubArgument<QuestBlightLedgerEntry> = {}): QuestBlightLedgerEntry =>
   questBlightLedgerEntryContract.parse({
-    itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+    itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
     disposition: 'reviewed',
-    evidence: 'every branch in handleSubmit has a test: success, validation error, network error',
+    evidence: 'handleSubmit rethrows the network error with the request url attached',
     observedBy: 'blightwarden',
     rippleSites: [],
     workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',

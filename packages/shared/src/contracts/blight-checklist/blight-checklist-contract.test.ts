@@ -8,7 +8,7 @@ describe('blightChecklistContract', () => {
       expect(BlightChecklistStub()).toStrictEqual({
         baseRef: 'a1b2c3d4e5f6',
         items: [BlightChecklistItemStub()],
-        remainingItemIds: ['packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage'],
+        remainingItemIds: ['packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft'],
       });
     });
 

@@ -1,7 +1,7 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AgentSpawnStreamingResultStub } from '../agent-spawn-streaming-result/agent-spawn-streaming-result.stub';
-import { SlotIndexStub } from '../slot-index/slot-index.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 import { WorkItemIdStub } from '../work-item-id/work-item-id.stub';
 import { ActiveAgentStub } from './active-agent.stub';
 import { activeAgentContract } from './active-agent-contract';

@@ -7,10 +7,7 @@
  * //   `{"decision":"block","reason":...}` stdout to force a signal-back
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { subagentStopHookDataContract } from '../../../contracts/subagent-stop-hook-data/subagent-stop-hook-data-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';

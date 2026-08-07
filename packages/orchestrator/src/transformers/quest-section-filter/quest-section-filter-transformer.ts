@@ -38,6 +38,7 @@ export const questSectionFilterTransformer = ({
         blightReports: [],
         qaLedger: [],
         blightLedger: [],
+        questNotes: [],
       } as Quest['planningNotes'];
       continue;
     }

@@ -20,6 +20,6 @@ export const QuestStub = ({ ...props }: StubArgument<Quest> = {}): Quest =>
     userRequest: 'Add authentication to the application',
     workItems: [],
     wardResults: [],
-    planningNotes: { blightReports: [], qaLedger: [] },
+    planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
     ...props,
   });

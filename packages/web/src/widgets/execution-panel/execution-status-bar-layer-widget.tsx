@@ -8,8 +8,8 @@
 
 import { Group, Text } from '@mantine/core';
 
-import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
-import type { TotalCount } from '../../contracts/total-count/total-count-contract';
+import type { CompletedCount } from '@dungeonmaster/shared/contracts';
+import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface ExecutionStatusBarLayerWidgetProps {

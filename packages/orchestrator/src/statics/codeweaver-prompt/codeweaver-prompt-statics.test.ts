@@ -25,7 +25,7 @@ describe('codeweaverPromptStatics', () => {
     expect(template.indexOf('### Gate 9: Reconcile the Spec')).toBeGreaterThan(
       template.indexOf('### Gate 8: Verify with Ward'),
     );
-    expect(template.indexOf('## Codeweaver-Minion Delegation Protocol')).toBeGreaterThan(
+    expect(template.indexOf('## Codeweaver-Piece-Minion Delegation Protocol')).toBeGreaterThan(
       template.indexOf('### Gate 9: Reconcile the Spec'),
     );
     expect(template.indexOf('### Gate 10')).toBe(-1);
@@ -174,14 +174,14 @@ describe('codeweaverPromptStatics', () => {
     expect(codeweaverPromptStatics.prompt.template).toMatch(/^### Gate 7: Fix & Integrate$/mu);
   });
 
-  it('VALID: prompt template => has a Codeweaver-Minion Delegation Protocol section', () => {
+  it('VALID: prompt template => has a Codeweaver-Piece-Minion Delegation Protocol section', () => {
     expect(codeweaverPromptStatics.prompt.template).toMatch(
-      /^## Codeweaver-Minion Delegation Protocol$/mu,
+      /^## Codeweaver-Piece-Minion Delegation Protocol$/mu,
     );
   });
 
-  it('VALID: prompt template => summons codeweaver-minions via minion-fetch get-agent-prompt', () => {
-    const needle = "get-agent-prompt({ agent: 'codeweaver-minion', questId: 'QUEST_ID' })";
+  it('VALID: prompt template => summons codeweaver-piece-minions via minion-fetch get-agent-prompt', () => {
+    const needle = "get-agent-prompt({ agent: 'codeweaver-piece-minion', questId: 'QUEST_ID' })";
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

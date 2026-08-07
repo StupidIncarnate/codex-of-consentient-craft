@@ -160,7 +160,7 @@ describe('qaChecklistBuildTransformer', () => {
   });
 
   describe('off-map units', () => {
-    it('VALID: {any flow} => emits all six probe families unconditionally', () => {
+    it('VALID: {any flow} => emits all seven probe families unconditionally', () => {
       const flow = FlowStub({ id: 'a-flow', nodes: [], edges: [] });
 
       expect(
@@ -174,6 +174,7 @@ describe('qaChecklistBuildTransformer', () => {
         'staleness',
         'configuration',
         'hostile-input',
+        'perf',
       ]);
     });
 
@@ -219,6 +220,7 @@ describe('qaChecklistBuildTransformer', () => {
         'a-flow:off-map:staleness',
         'a-flow:off-map:configuration',
         'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
       ]);
     });
 
@@ -242,6 +244,7 @@ describe('qaChecklistBuildTransformer', () => {
         'a-flow:off-map:staleness',
         'a-flow:off-map:configuration',
         'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
       ]);
     });
 
@@ -325,7 +328,7 @@ describe('qaChecklistBuildTransformer', () => {
   });
 
   describe('empty flows', () => {
-    it('EMPTY: {no nodes or edges} => emits only the six off-map families', () => {
+    it('EMPTY: {no nodes or edges} => emits only the seven off-map families', () => {
       expect(
         qaChecklistBuildTransformer({
           flow: FlowStub({ id: 'a-flow', nodes: [], edges: [] }),
@@ -337,6 +340,7 @@ describe('qaChecklistBuildTransformer', () => {
         'a-flow:off-map:staleness',
         'a-flow:off-map:configuration',
         'a-flow:off-map:hostile-input',
+        'a-flow:off-map:perf',
       ]);
     });
   });

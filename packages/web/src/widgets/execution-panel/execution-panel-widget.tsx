@@ -23,7 +23,7 @@ import type {
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { CompletedCount } from '../../contracts/completed-count/completed-count-contract';
+import type { CompletedCount } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
@@ -31,7 +31,7 @@ import type { ExecutionRole } from '../../contracts/execution-role/execution-rol
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
-import type { TotalCount } from '../../contracts/total-count/total-count-contract';
+import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import {
   isAnyAgentRunningQuestStatusGuard,
   isCompletedSuccessfullyQuestStatusGuard,

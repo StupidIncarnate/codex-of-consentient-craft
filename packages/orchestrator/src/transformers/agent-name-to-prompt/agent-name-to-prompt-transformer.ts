@@ -9,15 +9,17 @@
 import { agentPromptResultContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import type { AgentPromptName } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
-import { blightwardenMinionStatics } from '../../statics/blightwarden-minion/blightwarden-minion-statics';
+import { blightwardenDeadcodeMinionStatics } from '../../statics/blightwarden-deadcode-minion/blightwarden-deadcode-minion-statics';
+import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group-minion/blightwarden-group-minion-statics';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
+import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
-import { flowriderMinionStatics } from '../../statics/flowrider-minion/flowrider-minion-statics';
+import { flowriderCoverageMinionStatics } from '../../statics/flowrider-coverage-minion/flowrider-coverage-minion-statics';
+import { flowriderAuthoringMinionStatics } from '../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
-import { siegemasterMinionStatics } from '../../statics/siegemaster-minion/siegemaster-minion-statics';
+import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 import { siegemasterTestAuditMinionStatics } from '../../statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
@@ -40,11 +42,11 @@ export const agentNameToPromptTransformer = ({
         model: 'opus',
         prompt: codeweaverPromptStatics.prompt.template,
       });
-    case 'codeweaver-minion':
+    case 'codeweaver-piece-minion':
       return agentPromptResultContract.parse({
-        name: 'codeweaver-minion',
+        name: 'codeweaver-piece-minion',
         model: 'sonnet',
-        prompt: codeweaverMinionStatics.prompt.template,
+        prompt: codeweaverPieceMinionStatics.prompt.template,
       });
     case 'spiritmender':
       return agentPromptResultContract.parse({
@@ -58,11 +60,17 @@ export const agentNameToPromptTransformer = ({
         model: 'opus',
         prompt: flowriderPromptStatics.prompt.template,
       });
-    case 'flowrider-minion':
+    case 'flowrider-authoring-minion':
       return agentPromptResultContract.parse({
-        name: 'flowrider-minion',
+        name: 'flowrider-authoring-minion',
         model: 'sonnet',
-        prompt: flowriderMinionStatics.prompt.template,
+        prompt: flowriderAuthoringMinionStatics.prompt.template,
+      });
+    case 'flowrider-coverage-minion':
+      return agentPromptResultContract.parse({
+        name: 'flowrider-coverage-minion',
+        model: 'sonnet',
+        prompt: flowriderCoverageMinionStatics.prompt.template,
       });
     case 'siegemaster':
       return agentPromptResultContract.parse({
@@ -70,11 +78,11 @@ export const agentNameToPromptTransformer = ({
         model: 'opus',
         prompt: siegemasterPromptStatics.prompt.template,
       });
-    case 'siegemaster-minion':
+    case 'siegemaster-walker-minion':
       return agentPromptResultContract.parse({
-        name: 'siegemaster-minion',
+        name: 'siegemaster-walker-minion',
         model: 'sonnet',
-        prompt: siegemasterMinionStatics.prompt.template,
+        prompt: siegemasterWalkerMinionStatics.prompt.template,
       });
     case 'siegemaster-test-audit-minion':
       return agentPromptResultContract.parse({
@@ -94,17 +102,23 @@ export const agentNameToPromptTransformer = ({
         model: 'opus',
         prompt: pesteaterPromptStatics.prompt.template,
       });
-    case 'blightwarden-minion':
+    case 'blightwarden-group-minion':
       return agentPromptResultContract.parse({
-        name: 'blightwarden-minion',
+        name: 'blightwarden-group-minion',
         model: 'sonnet',
-        prompt: blightwardenMinionStatics.prompt.template,
+        prompt: blightwardenGroupMinionStatics.prompt.template,
       });
     case 'blightwarden-crosscut-minion':
       return agentPromptResultContract.parse({
         name: 'blightwarden-crosscut-minion',
         model: 'sonnet',
         prompt: blightwardenCrosscutMinionStatics.prompt.template,
+      });
+    case 'blightwarden-deadcode-minion':
+      return agentPromptResultContract.parse({
+        name: 'blightwarden-deadcode-minion',
+        model: 'sonnet',
+        prompt: blightwardenDeadcodeMinionStatics.prompt.template,
       });
     default: {
       const exhaustiveCheck: never = agent;

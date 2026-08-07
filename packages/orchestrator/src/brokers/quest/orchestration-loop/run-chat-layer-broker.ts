@@ -24,7 +24,7 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
-import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';

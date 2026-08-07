@@ -60,16 +60,38 @@ describe('siegemasterTestAuditMinionStatics', () => {
     }).toStrictEqual({ noWard: true, neverPoll: true, hangingStrands: true });
   });
 
-  it('VALID: template => may add tests but never edits implementation, because the walks are already done', () => {
+  // Authoring a test and then grading it is the self-grading loop the two-track sign-off model
+  // exists to break, so this pass reaches its verdict by mutation alone and hands every hole back.
+  it('VALID: template => adds no tests and reaches its verdict by mutation, because a session cannot grade its own test', () => {
     expect({
-      mayAdd: has('**You MAY add tests.**'),
-      mayNotEdit: has('**You may NOT edit implementation, and you may NOT weaken a test.**'),
+      addsNothing: has('**You add NO tests. You prove the tests that exist.**'),
+      mutationNeedsNoAuthoring: has(
+        'Mutation gives you a verdict on a test without\nauthoring a line',
+      ),
+      namesTheSelfGradingLoop: has(
+        'a session that writes a test\nand then grades it has graded its own homework',
+      ),
+      authoringIsFlowriders: has("Authoring belongs to Flowrider's lane."),
+      holesAreReported: has('**A coverage hole you find is REPORTED**'),
+      holesBecomeQuestNotes: has('for the operator to file as a `questNotes` entry'),
+      onlyEditsAreMutations: has(
+        'The only file edits you make at all are the mutations themselves, and you revert every one.',
+      ),
+      mayNotEdit: has(
+        '**You may NOT edit implementation as a fix, and you may NOT weaken a test.**',
+      ),
       walksAlreadyDone: has('**The walks are already done.**'),
       defectsReportedNotFixed: has(
         '**a suspected behaviour defect is REPORTED, never fixed here.**',
       ),
     }).toStrictEqual({
-      mayAdd: true,
+      addsNothing: true,
+      mutationNeedsNoAuthoring: true,
+      namesTheSelfGradingLoop: true,
+      authoringIsFlowriders: true,
+      holesAreReported: true,
+      holesBecomeQuestNotes: true,
+      onlyEditsAreMutations: true,
       mayNotEdit: true,
       walksAlreadyDone: true,
       defectsReportedNotFixed: true,
@@ -118,23 +140,43 @@ describe('siegemasterTestAuditMinionStatics', () => {
     });
   });
 
-  it('VALID: template => requires every added test to be watched failing first', () => {
-    expect(has('A test you never saw fail is a test you have not verified.')).toBe(true);
+  // A hole named only in a returned message dies with the turn. Naming it with the shape the
+  // missing test would take is what lets the operator file it as a durable questNotes entry.
+  it('VALID: template => names the holes it does not fill, with the test shape and the reason', () => {
+    expect({
+      step: /^## Step 4: Name the Holes You Are Not Filling$/mu.test(
+        siegemasterTestAuditMinionStatics.prompt.template,
+      ),
+      doesNotWriteIt: has('Where a unit has no honest test, you do NOT write one.'),
+      reentersThePlan: has(
+        'so the operator can file it as a `questNotes` entry and\nit re-enters the plan rather than dying in this turn',
+      ),
+      namesTheShapes: has('painted geometry, real rendering, real navigation → **e2e**'),
+      demandsAWhy: has('"Needs more coverage" is not a hole, it is a shrug.'),
+    }).toStrictEqual({
+      step: true,
+      doesNotWriteIt: true,
+      reentersThePlan: true,
+      namesTheShapes: true,
+      demandsAWhy: true,
+    });
   });
 
-  it('VALID: template => defines a report with false greens, added tests, and reported-not-fixed defects', () => {
+  it('VALID: template => defines a report with false greens, coverage holes, and reported-not-fixed defects', () => {
     expect({
       falseGreens: has('FALSE GREENS (tests that pass while the behaviour is broken):'),
-      addedTests: has('TESTS I ADDED:'),
+      coverageHoles: has('COVERAGE HOLES (for you to file as questNotes — I author nothing):'),
       suspected: has(
         'SUSPECTED BEHAVIOUR DEFECTS (reported, NOT fixed — for the operator to re-walk):',
       ),
       honestTests: has('HONEST TESTS:'),
+      noAddedTestsBlock: !has('TESTS I ADDED:'),
     }).toStrictEqual({
       falseGreens: true,
-      addedTests: true,
+      coverageHoles: true,
       suspected: true,
       honestTests: true,
+      noAddedTestsBlock: true,
     });
   });
 

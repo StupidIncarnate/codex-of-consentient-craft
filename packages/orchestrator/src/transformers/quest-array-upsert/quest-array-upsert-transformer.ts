@@ -1,6 +1,9 @@
 /**
  * PURPOSE: Deep recursive upsert of items into an existing array based on ID matching
  *
+ * This is the single implementation of the modify-quest merge; `packages/mcp` reaches it through
+ * `StartOrchestrator.modifyQuest` rather than holding its own copy.
+ *
  * USAGE:
  * questArrayUpsertTransformer({ existing: [{id: '1', name: 'A', nodes: [{id: 'n1'}]}], updates: [{id: '1', nodes: [{id: 'n2'}]}] });
  * // Returns: [{id: '1', name: 'A', nodes: [{id: 'n1'}, {id: 'n2'}]}]

@@ -45,6 +45,7 @@ import type {
   QuestWorkItemId,
   RateLimitsSnapshot,
   SessionId,
+  SignoffTrack,
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
 
@@ -194,14 +195,29 @@ export const StartOrchestrator = {
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getPlanningNotes>>> =>
     QuestFlow.getPlanningNotes({ questId, ...(section !== undefined && { section }) }),
 
+  // The quest's whole verification state: per-flow/per-track sign-off counts, the observables added
+  // after approval, every `unconfirmable` verdict with its question, and the side-channel notes.
+  getQuestSummary: async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.getSummary>>> =>
+    QuestFlow.getSummary({ questId }),
+
   getQaChecklist: async ({
     questId,
     flowId,
+    track,
   }: {
     questId: string;
     flowId?: string;
+    track?: SignoffTrack;
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getQaChecklist>>> =>
-    QuestFlow.getQaChecklist({ questId, ...(flowId !== undefined && { flowId }) }),
+    QuestFlow.getQaChecklist({
+      questId,
+      ...(flowId !== undefined && { flowId }),
+      ...(track !== undefined && { track }),
+    }),
 
   getBlightChecklist: async ({
     questId,
@@ -209,6 +225,21 @@ export const StartOrchestrator = {
     questId: string;
   }): Promise<Awaited<ReturnType<typeof QuestFlow.getBlightChecklist>>> =>
     QuestFlow.getBlightChecklist({ questId }),
+
+  // MCP-driven reset-flow-signoffs — clears Siegemaster's sign-offs across ONE flow so the walk
+  // can be redone honestly after a fix. Flowrider's track is never touched.
+  resetFlowSignoffs: async ({
+    questId,
+    workItemId,
+    flowId,
+    reason,
+  }: {
+    questId: string;
+    workItemId: string;
+    flowId: string;
+    reason: string;
+  }): Promise<Awaited<ReturnType<typeof QuestFlow.resetFlowSignoffs>>> =>
+    QuestFlow.resetFlowSignoffs({ questId, workItemId, flowId, reason }),
 
   modifyQuest: async ({
     questId,

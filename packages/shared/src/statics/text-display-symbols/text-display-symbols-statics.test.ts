@@ -29,12 +29,35 @@ describe('textDisplaySymbolsStatics', () => {
         contracts: '## Contracts',
         tooling: '## Tooling',
         operations: '## Operations',
+        questNotes: '## Quest Notes',
       },
       none: '(none)',
       terminal: '(terminal)',
       backRef: '\u21A9',
       crossFlow: '\u2197 cross-flow',
       merge: '\u2190 MERGE',
+      signoffTrackMarks: {
+        flowrider: 'F',
+        siegemaster: 'S',
+      },
+      signoffVerdictMarks: {
+        confirmed: '\u2713',
+        unconfirmable: '?',
+      },
+      offMapLabel: 'off-map:',
+      observableOriginPrefix: '+',
     });
+  });
+
+  // Every mark is exactly one character. The flow graph carries one marker per signed unit inside
+  // `mcpToolResultStatics.maxVerbatimChars`, so a two-character mark doubles the cost of the
+  // feature on a big quest.
+  it('VALID: {marker glyphs} => every track and verdict mark is one character', () => {
+    expect([
+      textDisplaySymbolsStatics.signoffTrackMarks.flowrider.length,
+      textDisplaySymbolsStatics.signoffTrackMarks.siegemaster.length,
+      textDisplaySymbolsStatics.signoffVerdictMarks.confirmed.length,
+      textDisplaySymbolsStatics.signoffVerdictMarks.unconfirmable.length,
+    ]).toStrictEqual([1, 1, 1, 1]);
   });
 });

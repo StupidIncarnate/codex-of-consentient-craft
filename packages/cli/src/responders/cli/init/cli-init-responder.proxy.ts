@@ -2,7 +2,7 @@ import type { InstallResultStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installRunBrokerProxy } from '../../../brokers/install/run/install-run-broker.proxy';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 import { CliInitResponder } from './cli-init-responder';
 
 type InstallResult = ReturnType<typeof InstallResultStub>;

@@ -19,10 +19,7 @@ import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { askUserQuestionResponseContract } from '@dungeonmaster/shared/contracts';
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { postToolUseHookDataContract } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data-contract';
 import { questBySessionResponseContract } from '../../../contracts/quest-by-session-response/quest-by-session-response-contract';
 import { fetchGetWithStatusAdapter } from '../../../adapters/fetch/get-with-status/fetch-get-with-status-adapter';

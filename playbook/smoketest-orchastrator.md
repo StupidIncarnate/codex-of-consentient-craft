@@ -637,12 +637,13 @@ spiritmender path is Phase 2.3).
     (declaration order) and names no flow id in its text; the ledger row lists every flow NAME. A second flowrider row
     appearing for a 2-flow quest is a regression — file it.
   - The session reads all its flows, groups them into bundles by shared surface/harness/layer, dispatches a
-    `flowrider-minion` per bundle via the `Agent` tool (visible as sub-agent chains inside the flowrider's own row —
+    `flowrider-authoring-minion` per bundle via the `Agent` tool (visible as sub-agent chains inside the flowrider's own row —
     minions are NOT work items), then verifies the returned work by opening the files itself — the verification IS the
     job. It is a test writer and reviewer FIRST — coverage is what its operation item buys — but it and its minions also
     close the implementation holes their testing exposes, red-first. Only an architectural fix, or one needing a product
-    decision, is left as a red test plus a `GAP:` for Siegemaster. It prefers extending the suites Codeweaver left over
-    starting fresh, and it does not rebuild what Codeweaver already built.
+    decision, is left as a red test plus an `unconfirmable` `flowriderSignoff` carrying the question Siegemaster picks
+    up. It prefers extending the suites Codeweaver left over starting fresh, and it does not rebuild what Codeweaver
+    already built.
     - For a **runtime** flow it controls its own dev server (Playwright `webServer` config from `.dungeonmaster.json`).
       Confirm the prod server on 4800/4801 stays LISTEN throughout; a dev server (4750/4751) comes up and goes down
       within the session. For an **operational** flow, no dev server is needed.
@@ -668,7 +669,7 @@ port resolution behind a Flowrider e2e run. Restart 1.5.
       ledger order.
     - ONE siegemaster work item PER quest flow, each operation item carrying a single-element `flowIds` and text
       suffixed `— flow: <id>`. Each session walks its ONE flow, grouping it into walk-bundles, stands up ONE dev
-      server, dispatches a `siegemaster-minion` per bundle (every DRIVING bundle strictly one at a time; only
+      server, dispatches a `siegemaster-walker-minion` per bundle (every DRIVING bundle strictly one at a time; only
       mutate-nothing inspection runs in parallel), then verifies what came back. A minion records a defect's broken
       state before it may close a small local hole, and a `READ-ONLY`-lane one edits nothing. Siegemaster is the LAST
       role that fixes BEHAVIOUR and has the widest fix authority on the quest — it reviews the suites and TDD-fixes
@@ -688,7 +689,7 @@ port resolution behind a Flowrider e2e run. Restart 1.5.
     1. Dispatched only after every siegemaster item signals `done`. First action:
        `get-blight-checklist({ questId })` — the deterministic file × concern review surface of the WHOLE quest diff,
        measured from the quest's pinned `baseRef` (never a hand-rolled `git diff`).
-    2. Parallel Agent-tool dispatches: one `blightwarden-minion` per disjoint group of changed impl+test file pairs —
+    2. Parallel Agent-tool dispatches: one `blightwarden-group-minion` per disjoint group of changed impl+test file pairs —
        summoned via the Agent tool, briefed inline, NOT work items. Each reviews all seven concerns (coverage, craft,
        security, dedup, perf, integrity, dead-code) against its group, FIXES violations in place, and writes a
        disposition per unit into `planningNotes.blightLedger` via `modify-quest` as it goes.
@@ -838,7 +839,7 @@ must keep identity + a resume marker and set `pending`, not stay `in_progress`).
       NOTHING is persisted (the work item and operation item are untouched, so the session can act and signal again).
     - Dispositioning the rest (or signalling `partial` instead) then succeeds: `done` advances to `ward(full)`;
       `partial` appends a `pt N` blightwarden continuation (2.2).
-    - A `blightwarden-minion`'s or `blightwarden-crosscut-minion`'s own finding never blocks the quest by itself — a
+    - A `blightwarden-group-minion`'s or `blightwarden-crosscut-minion`'s own finding never blocks the quest by itself — a
       minion is not a work item and never signals back; only the parent blightwarden session's `signal-back` call is
       gated.
 

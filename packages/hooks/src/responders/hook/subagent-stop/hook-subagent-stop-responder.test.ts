@@ -45,7 +45,7 @@ const minionLine = JSON.stringify({
         type: 'tool_use',
         id: 't1',
         name: 'mcp__dungeonmaster__get-agent-prompt',
-        input: { agent: 'codeweaver-minion', questId: 'q1' },
+        input: { agent: 'codeweaver-piece-minion', questId: 'q1' },
       },
     ],
   },

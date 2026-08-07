@@ -59,12 +59,12 @@ describe('workItemRoleContract', () => {
       expect(result).toBe('siegemaster');
     });
 
-    it('VALID: blightwarden-minion => parses successfully', () => {
-      const role = WorkItemRoleStub({ value: 'blightwarden-minion' });
+    it('VALID: blightwarden-group-minion => parses successfully', () => {
+      const role = WorkItemRoleStub({ value: 'blightwarden-group-minion' });
 
       const result = workItemRoleContract.parse(role);
 
-      expect(result).toBe('blightwarden-minion');
+      expect(result).toBe('blightwarden-group-minion');
     });
 
     it('VALID: blightwarden-crosscut-minion => parses successfully', () => {

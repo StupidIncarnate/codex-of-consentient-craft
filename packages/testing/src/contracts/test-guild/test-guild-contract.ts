@@ -13,7 +13,7 @@ import type { FileName } from '../file-name/file-name-contract';
 import type { FileContent } from '../file-content/file-content-contract';
 import type { DungeonmasterConfig } from '../dungeonmaster-config/dungeonmaster-config-contract';
 import type { PackageJson } from '../package-json/package-json-contract';
-import type { ExecResult } from '../exec-result/exec-result-contract';
+import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
 export const testGuildContract = z.object({
   guildPath: z.string().brand<'GuildPath'>(),

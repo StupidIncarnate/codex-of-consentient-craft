@@ -82,6 +82,9 @@ describe('questArrayUpsertTransformer', () => {
       const result = questArrayUpsertTransformer({ existing, updates });
 
       const { nodes } = result[0]!;
+
+      expect(nodes).toStrictEqual([FlowNodeStub({ id: 'n1', observables: [existingObs, newObs] })]);
+
       const { observables } = nodes[0]!;
 
       expect(observables).toStrictEqual([existingObs, newObs]);
@@ -177,6 +180,39 @@ describe('questArrayUpsertTransformer', () => {
       const result = questArrayUpsertTransformer({ existing, updates });
 
       expect(result).toStrictEqual([flowAUpdated, flowC, flowD]);
+    });
+
+    it('VALID: {existing: [a, b], updates: [a updated, c new]} => updates a, keeps b, adds c', () => {
+      const flowA = FlowStub({
+        id: 'flow-a',
+        name: 'Item A',
+        entryPoint: '/a',
+        exitPoints: ['/done'],
+      });
+      const flowB = FlowStub({
+        id: 'flow-b',
+        name: 'Item B',
+        entryPoint: '/b',
+        exitPoints: ['/done'],
+      });
+      const flowAUpdated = FlowStub({
+        id: 'flow-a',
+        name: 'Item A Updated',
+        entryPoint: '/a-updated',
+        exitPoints: ['/done'],
+      });
+      const flowC = FlowStub({
+        id: 'flow-c',
+        name: 'Item C',
+        entryPoint: '/c',
+        exitPoints: ['/done'],
+      });
+      const existing = [flowA, flowB];
+      const updates = [flowAUpdated, flowC];
+
+      const result = questArrayUpsertTransformer({ existing, updates });
+
+      expect(result).toStrictEqual([flowAUpdated, flowB, flowC]);
     });
   });
 

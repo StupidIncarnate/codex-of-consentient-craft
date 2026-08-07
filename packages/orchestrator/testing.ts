@@ -16,11 +16,12 @@ export {
   AddQuestResultStub,
   GetQuestResultStub,
   ModifyQuestResultStub,
+  QuestSummaryStub,
 } from '@dungeonmaster/shared/contracts';
 export { AgentRoleStub } from './src/contracts/agent-role/agent-role.stub';
 export { IsoTimestampStub } from './src/contracts/iso-timestamp/iso-timestamp.stub';
-export { SlotCountStub } from './src/contracts/slot-count/slot-count.stub';
-export { SlotIndexStub } from './src/contracts/slot-index/slot-index.stub';
+export { SlotCountStub } from '@dungeonmaster/shared/contracts';
+export { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 export { SlotManagerResultStub } from './src/contracts/slot-manager-result/slot-manager-result.stub';
 export { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
 export { StreamSignalStub } from './src/contracts/stream-signal/stream-signal.stub';

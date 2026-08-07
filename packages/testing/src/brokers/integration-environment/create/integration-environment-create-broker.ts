@@ -32,7 +32,7 @@ import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exe
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
-import { execResultContract } from '../../../contracts/exec-result/exec-result-contract';
+import { execResultContract } from '@dungeonmaster/shared/contracts';
 import { testGuildContract } from '../../../contracts/test-guild/test-guild-contract';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
@@ -41,7 +41,7 @@ import type { ProcessOutput } from '../../../contracts/process-output/process-ou
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { CommandName } from '../../../contracts/command-name/command-name-contract';
-import type { ExecResult } from '../../../contracts/exec-result/exec-result-contract';
+import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';

@@ -15,7 +15,7 @@ import * as readline from 'readline';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { ExecResultStub } from '../../../src/contracts/exec-result/exec-result.stub';
+import { ExecResultStub } from '@dungeonmaster/shared/contracts';
 
 type HookName =
   | 'start-pre-bash-hook'

@@ -19,7 +19,10 @@
  *     'forbidden'                -> any flows presence is rejected (defensive — usually flows is also out of allowedFields)
  *     'full'                     -> any flow shape is allowed
  *     'no-observables'           -> flows OK, but flows[].nodes[].observables must not contain entries (length 0)
- *     'additive-only'            -> delegates to questFlowAdditiveOnlyViolationsTransformer
+ *     'additive-only'            -> delegates to questFlowAdditiveOnlyViolationsTransformer (what the
+ *                                   payload may change) AND questSignoffUnknownUnitViolationsTransformer
+ *                                   (that every unit it signs already exists). Both return offenders,
+ *                                   and both sets are appended.
  */
 import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
@@ -32,6 +35,7 @@ import {
   type QuestStatusFlowsRule,
 } from '../../statics/quest-status-input-allowlist/quest-status-input-allowlist-statics';
 import { questFlowAdditiveOnlyViolationsTransformer } from '../quest-flow-additive-only-violations/quest-flow-additive-only-violations-transformer';
+import { questSignoffUnknownUnitViolationsTransformer } from '../quest-signoff-unknown-unit-violations/quest-signoff-unknown-unit-violations-transformer';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -159,5 +163,12 @@ export const questInputForbiddenFieldsTransformer = ({
     currentQuest,
     currentStatus,
   });
-  return [...offenders, ...additiveViolations];
+  // The additive rule polices what a payload may CHANGE; this one polices what it may ADDRESS. A
+  // sign-off against an id the graph does not hold would be appended as a new unit by the upsert,
+  // giving one logical unit a second, phantom home the completion gate then counts forever.
+  const unknownUnitViolations = questSignoffUnknownUnitViolationsTransformer({
+    inputFlows,
+    currentQuest,
+  });
+  return [...offenders, ...additiveViolations, ...unknownUnitViolations];
 };

@@ -4,10 +4,11 @@ import {
   QuestIdStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  SlotIndexStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { SlotIndexStub } from '../slot-index/slot-index.stub';
 import { chatOutputEmitPayloadContract } from './chat-output-emit-payload-contract';
+import { ChatOutputEmitPayloadStub } from './chat-output-emit-payload.stub';
 
 describe('chatOutputEmitPayloadContract', () => {
   it('VALID: {full payload with sessionId + chatProcessId} => parses', () => {
@@ -78,5 +79,19 @@ describe('chatOutputEmitPayloadContract', () => {
     expect(() =>
       chatOutputEmitPayloadContract.parse({ processId, slotIndex, entries, questId }),
     ).toThrow(/Required/u);
+  });
+
+  it('VALID: {stub defaults} => parses to the stub payload', () => {
+    const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'stub entry' })];
+
+    const parsed = chatOutputEmitPayloadContract.parse(ChatOutputEmitPayloadStub({ entries }));
+
+    expect(parsed).toStrictEqual({
+      processId: ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' }),
+      slotIndex: SlotIndexStub({ value: 0 }),
+      entries,
+      questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
+      workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
+    });
   });
 });

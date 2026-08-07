@@ -47,11 +47,14 @@ export const operationItemContract = z.object({
         'For most roles this is a NON-BINDING pointer and not a permission boundary — the flows ' +
         'are the acceptance target for the whole quest and every session reads all of them. A ' +
         'foundational item that serves the whole spec legitimately carries none, and one flow may ' +
-        'be referenced by several items when its layers are built in separate sessions. The one ' +
-        'exception is a `siegemaster` item, where this list is also its COVERAGE SCOPE: the ' +
-        'signal-back completion gate refuses `done` while any verification unit on these flows ' +
-        'carries no entry in quest.planningNotes.qaLedger. An item declaring no flows is never ' +
-        'gated.',
+        'be referenced by several items when its layers are built in separate sessions. Two roles ' +
+        'read it harder. On a `siegemaster` item this list IS its COVERAGE SCOPE: the signal-back ' +
+        'completion gate refuses `done` while any verification unit on these flows carries no ' +
+        '`siegemasterSignoff`, and an item declaring no flows is never gated. On a `flowrider` ' +
+        'item the list is the RUNTIME flows only — an operational flow is verified by hand-checking ' +
+        "its final state, which is Siegemaster's question — and it is ADVISORY: that gate " +
+        'computes its own denominator from every runtime flow on the quest rather than from this ' +
+        'list, so an item declaring none is still gated.',
     ),
 });
 

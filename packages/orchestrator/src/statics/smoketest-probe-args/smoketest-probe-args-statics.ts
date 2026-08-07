@@ -112,9 +112,9 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-get-qa-checklist-probe-ok',
   },
   'get-blight-checklist': {
-    mode: 'skip-from-suite',
-    summary: 'mcp-get-blight-checklist-not-in-mcp-suite',
-    note: 'get-blight-checklist is not yet wired into the MCP tool registration (packages/mcp/src/flows/quest/quest-flow.ts) — a later wave of this refactor adds the registration and can flip this to a call probe.',
+    mode: 'call',
+    args: { questId: '{{questId}}' },
+    summary: 'mcp-get-blight-checklist-probe-ok',
   },
   'get-project-inventory': {
     mode: 'call',
@@ -140,5 +140,15 @@ export const smoketestProbeArgsStatics = {
     mode: 'call',
     args: {},
     summary: 'mcp-get-server-config-probe-ok',
+  },
+  'reset-flow-signoffs': {
+    mode: 'skip-from-suite',
+    summary: 'mcp-reset-flow-signoffs-not-in-mcp-suite',
+    note: "reset-flow-signoffs DESTROYS sign-offs on a live flow, and it only succeeds for a siegemaster work item whose operation item declares that flow — a shape the single-agent MCP probe harness (one quest, one throwaway work item, no flow graph) cannot build. The walk lifecycle it belongs to is the orchestration suite's.",
+  },
+  'get-quest-summary': {
+    mode: 'call',
+    args: { questId: '{{questId}}' },
+    summary: 'mcp-get-quest-summary-probe-ok',
   },
 } as const;

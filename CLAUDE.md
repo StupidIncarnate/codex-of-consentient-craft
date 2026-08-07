@@ -21,6 +21,13 @@ rationale, state the rationale in present tense ("keys on toolUseId because…")
 contrast with a deleted implementation. When you remove code, remove every comment that
 refers to what was removed.
 
+**Critical:** A file header's `PURPOSE:` line carries what the code cannot state about itself —
+why the file exists, and when to reach for THIS one rather than its nearest sibling. It must NOT
+restate the return shape, the throwing behaviour, the parameters, what a contract validates, or
+the file's own name; all of that is derivable from the file, so prose restating it can only drift.
+Write `PURPOSE` LAST, after the implementation it summarizes. Full rule, with worked examples from
+this repo, in the `get-syntax-rules` MCP tool ("What Belongs in PURPOSE").
+
 ## What This Repo Is
 
 This is a **published npm package** (`dungeonmaster`). When users install it in their projects and run

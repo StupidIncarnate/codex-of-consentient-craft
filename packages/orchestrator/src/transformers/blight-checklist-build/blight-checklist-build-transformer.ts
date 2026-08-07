@@ -63,16 +63,16 @@ import type {
 // TypeScript checks: a concern missing its entry here shrinks this object's inferred key set below
 // `BlightConcern`, and the indexed lookup fails to compile. Adding a concern to `blightConcernContract`
 // without adding its description here is therefore still a compile error, not a blank label.
+// The reverse does NOT hold: an EXTRA key here typechecks fine, so a key whose concern is not in
+// `blightConcernContract` survives as dead weight until someone deletes it by hand.
 const blightConcernDescriptions = {
-  coverage: 'every branch in {file} has a real test',
   craft:
-    "{file}'s logic matches its signature, its error handling carries real context, and nothing needless remains",
-  security: 'no untrusted input in {file} reaches a dangerous sink without a validating contract',
+    "{file}'s logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
+  perf: '{file} has no quadratic loops, N+1 queries, sync I/O in async code, or unbounded work, and does nothing it need not do at all',
   dedup:
     '{file} introduces no semantic duplication, within this diff or against existing repo code',
-  perf: '{file} has no quadratic loops, N+1 queries, sync I/O in async code, or unbounded work',
-  integrity: "every consumer of {file}'s changed exports still works",
-  'dead-code': '{file} carries no orphan exports or unreachable branches',
+  integrity:
+    "{file}'s changed exports still MEAN to their consumers what they did, and no stub, fixture, or `.default(...)` papers over a break",
 };
 
 export const blightChecklistBuildTransformer = ({

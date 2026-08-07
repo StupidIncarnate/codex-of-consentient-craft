@@ -5,11 +5,11 @@
  *
  * USAGE:
  * blightChecklistItemContract.parse({
- *   id: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+ *   id: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
  *   implPath: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx',
- *   concern: 'coverage',
+ *   concern: 'craft',
  *   pairedFiles: ['packages/web/src/widgets/quest-chat/quest-chat-widget.test.tsx'],
- *   label: 'coverage — every branch in quest-chat-widget.tsx has a real test',
+ *   label: "craft — quest-chat-widget.tsx's logic matches its signature",
  * });
  * // Returns: BlightChecklistItem
  *
@@ -41,7 +41,7 @@ export const blightChecklistItemContract = z.object({
     .min(1)
     .brand<'BlightChecklistLabel'>()
     .describe(
-      'The human-readable statement of what this unit asserts, e.g. "coverage — every branch in comment-queue-state.ts has a real test".',
+      'The human-readable statement of what this unit asserts, e.g. "craft — comment-queue-state.ts\'s logic matches its signature".',
     ),
 });
 

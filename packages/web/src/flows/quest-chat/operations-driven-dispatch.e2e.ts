@@ -67,6 +67,11 @@ test.describe('Operations-driven dispatch', () => {
         { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
       firstWorkItemId: FIRST_WORK_ITEM_ID,
+      // The flowrider item is driven to `done`, and signal-back refuses that while any verification
+      // unit on the quest's runtime flows carries no `flowriderSignoff`. Seed the sign-offs a real
+      // flowrider session writes before it signals, so the ledger this spec is about is reached
+      // through the same gate production reaches it through.
+      flowriderScopeSignedOff: true,
     });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });

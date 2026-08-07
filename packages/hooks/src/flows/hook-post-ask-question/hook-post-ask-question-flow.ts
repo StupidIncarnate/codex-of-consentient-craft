@@ -6,10 +6,7 @@
  * // Returns ExecResult with stdout, stderr, exitCode (0 on success, 2 on failure).
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPostAskQuestionResponder } from '../../responders/hook/post-ask-question/hook-post-ask-question-responder';
 import { hookExitCodeStatics } from '../../statics/hook-exit-code/hook-exit-code-statics';
 

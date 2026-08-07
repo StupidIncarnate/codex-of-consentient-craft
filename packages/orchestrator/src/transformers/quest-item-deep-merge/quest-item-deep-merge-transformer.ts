@@ -1,13 +1,18 @@
 /**
  * PURPOSE: Deep merges two items with id fields, recursing into arrays of id-bearing objects
  *
+ * This is the single implementation of the modify-quest merge; `packages/mcp` reaches it through
+ * `StartOrchestrator.modifyQuest` rather than holding its own copy.
+ *
  * USAGE:
  * questItemDeepMergeTransformer({ existing: {id: '1', nodes: [{id: 'n1'}]}, update: {id: '1', nodes: [{id: 'n2'}]} });
  * // Returns: {id: '1', nodes: [{id: 'n1'}, {id: 'n2'}]}
  *
  * MERGE SEMANTICS:
  * - Scalar fields: overwrite with update value
- * - Scalar fields explicitly set to `null`: removed from the merged result (clear semantics)
+ * - Fields explicitly set to null: the key is REMOVED, so the whole-quest re-parse sees it absent
+ *   rather than null. An optional field's clear marker has to survive `questContract.parse`, and
+ *   `.optional()` rejects `null`, so removal is the only spelling that round-trips.
  * - Array fields containing items with `id`: recurse via questArrayUpsertTransformer
  * - Array fields without `id` items: replace entirely
  */

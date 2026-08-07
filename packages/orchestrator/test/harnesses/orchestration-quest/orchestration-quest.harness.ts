@@ -90,6 +90,10 @@ export const orchestrationQuestHarness = (): {
     // Present only for tests seeding quest.planningNotes.blightLedger / qaLedger dispositions
     // ahead of a signal-back — omitted, planningNotes stays whatever create-quest seeded.
     planningNotes?: PlanningNotes;
+    // Present only for tests exercising the flowrider/siegemaster completion gates, which
+    // recompute outstanding verification units from the flow graph and the sign-offs carried on
+    // it — omitted, flows stay whatever create-quest seeded (empty).
+    flows?: readonly Flow[];
   }) => Promise<void>;
   // Real `git init` + one commit at repoPath (an integration testbed dir, NOT this repo), so the
   // blightwarden completion gate's `questGetBlightChecklistBroker` has a real commit to diff
@@ -150,12 +154,14 @@ export const orchestrationQuestHarness = (): {
     workItems,
     baseRef,
     planningNotes,
+    flows,
   }: {
     questId: QuestId;
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
     baseRef?: GitBaseRef;
     planningNotes?: PlanningNotes;
+    flows?: readonly Flow[];
   }): Promise<void> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = filePathContract.parse(
@@ -170,6 +176,7 @@ export const orchestrationQuestHarness = (): {
       workItems: [...workItems],
       ...(baseRef === undefined ? {} : { baseRef }),
       ...(planningNotes === undefined ? {} : { planningNotes }),
+      ...(flows === undefined ? {} : { flows: [...flows] }),
       updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,
     };
 

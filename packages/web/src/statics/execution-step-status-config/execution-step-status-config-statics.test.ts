@@ -1,6 +1,18 @@
+import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
+
 import { executionStepStatusConfigStatics } from './execution-step-status-config-statics';
 
 describe('executionStepStatusConfigStatics', () => {
+  it('VALID: roleColors => is keyed by exactly the shared work-item role tuple, in order', () => {
+    const colorsInStaticsOrder = workItemRoleStatics.names.map(
+      (role) => executionStepStatusConfigStatics.roleColors[role],
+    );
+
+    expect(colorsInStaticsOrder).toStrictEqual(
+      Object.values(executionStepStatusConfigStatics.roleColors),
+    );
+  });
+
   it('VALID: exported value => matches expected shape', () => {
     expect(executionStepStatusConfigStatics).toStrictEqual({
       roleColors: {
@@ -12,7 +24,7 @@ describe('executionStepStatusConfigStatics', () => {
         spiritmender: 'primary',
         flowrider: 'primary',
         siegemaster: 'primary',
-        'blightwarden-minion': 'primary',
+        'blightwarden-group-minion': 'primary',
         'blightwarden-crosscut-minion': 'primary',
         blightwarden: 'primary',
         pesteater: 'primary',

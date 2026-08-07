@@ -27,7 +27,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { questResumeRearmWorkItemsTransformer } from '../../../transformers/quest-resume-rearm-work-items/quest-resume-rearm-work-items-transformer';
 import {

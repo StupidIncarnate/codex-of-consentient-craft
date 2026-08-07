@@ -4,12 +4,19 @@ import {
   BlockedReasonStub,
   CommentBatchEntryStub,
   FileContentsStub,
+  FlowEdgeStub,
+  FlowNodeStub,
+  FlowObservableStub,
+  FlowOffMapSignoffStub,
+  FlowStub,
   GuildNameStub,
   GuildPathStub,
   OperationItemIdStub,
   OperationItemStub,
+  QuestNoteStub,
   QuestWorkItemIdStub,
   RepoRelativePathStub,
+  SignoffStub,
   WardRunIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -34,6 +41,151 @@ describe('QuestFlow', () => {
 
       expect(result.success).toBe(false);
     });
+  });
+
+  // getSummary reads a real quest.json off disk and recomputes coverage from the flow graph, so the
+  // only way to prove the numbers survive a persist/reload round trip — and that provenance and
+  // flow-type exclusions are applied to the PERSISTED shape rather than an in-memory stub — is to
+  // drive it against a seeded quest file.
+  describe('getSummary — verification state of a persisted quest', () => {
+    it('VALID: {runtime flow with one signed terminal, one siegemaster-added observable, an operational flow and two notes} => coverage, drift, debt and note groups all come back off disk', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-get-summary' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const flowriderConfirmed = SignoffStub({
+        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
+      });
+      const siegemasterUnconfirmable = SignoffStub({
+        verdict: 'unconfirmable',
+        evidence: 'the dev server refuses to bind port 3737 inside this sandbox',
+        question: 'Which port should the sandbox dev server use?',
+        at: '2026-01-02T00:00:00.000Z',
+      });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        operations: [],
+        workItems: [],
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [
+            QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' }),
+            QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' }),
+          ],
+        },
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                observables: [
+                  FlowObservableStub({
+                    id: 'crash-on-bleh',
+                    type: 'api-call',
+                    description: 'POST /api/auth/login returns 400 for a non-JSON body',
+                    addedBy: 'siegemaster',
+                  }),
+                ],
+              }),
+              FlowNodeStub({
+                id: 'dashboard',
+                label: 'Dashboard',
+                flowriderSignoff: flowriderConfirmed,
+                siegemasterSignoff: siegemasterUnconfirmable,
+              }),
+            ],
+            edges: [
+              FlowEdgeStub({
+                id: 'e-success',
+                from: 'login-page',
+                to: 'dashboard',
+                label: 'success',
+              }),
+            ],
+          }),
+          FlowStub({
+            id: 'deploy-lint-rule',
+            name: 'Deploy the lint rule',
+            flowType: 'operational',
+            entryPoint: 'register-rule',
+            exitPoints: ['/done'],
+            nodes: [FlowNodeStub({ id: 'register-rule', label: 'Register the rule' })],
+            edges: [],
+          }),
+        ],
+      });
+
+      const summary = await QuestFlow.getSummary({ questId });
+
+      testbed.cleanup();
+
+      // login-flow: 1 terminal + 1 branch + 1 observable + 7 off-map = 10 siegemaster units, of
+      // which the terminal is unconfirmable. Flowrider sheds the off-map families AND the
+      // Siegemaster-added observable, leaving the terminal (confirmed) + the branch (outstanding).
+      // deploy-lint-rule is operational, so it carries a siegemaster row alone: 1 terminal + 7
+      // off-map = 8.
+      expect(summary).toStrictEqual({
+        questId,
+        flows: [
+          {
+            id: 'login-flow',
+            name: 'Login Flow',
+            flowType: 'runtime',
+            tracks: [
+              { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+              { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
+            ],
+          },
+          {
+            id: 'deploy-lint-rule',
+            name: 'Deploy the lint rule',
+            flowType: 'operational',
+            tracks: [{ id: 'siegemaster', confirmed: 0, unconfirmable: 0, outstanding: 8 }],
+          },
+        ],
+        midQuestObservables: [
+          {
+            id: 'login-flow:observable:crash-on-bleh',
+            flowId: 'login-flow',
+            nodeId: 'login-page',
+            observableId: 'crash-on-bleh',
+            addedBy: 'siegemaster',
+            observableType: 'api-call',
+            description: 'POST /api/auth/login returns 400 for a non-JSON body',
+          },
+        ],
+        unconfirmable: [
+          {
+            id: 'login-flow:terminal:dashboard:siegemaster',
+            unitId: 'login-flow:terminal:dashboard',
+            flowId: 'login-flow',
+            kind: 'terminal',
+            track: 'siegemaster',
+            signoff: siegemasterUnconfirmable,
+          },
+        ],
+        noteGroups: [
+          {
+            id: 'open-question',
+            notes: [QuestNoteStub({ id: 'open-question-anchor-scope', kind: 'open-question' })],
+          },
+          {
+            id: 'tooling-error',
+            notes: [QuestNoteStub({ id: 'tooling-error-ward-oom', kind: 'tooling-error' })],
+          },
+          { id: 'out-of-scope', notes: [] },
+          { id: 'walk-reset', notes: [] },
+        ],
+      });
+    }, 30_000);
   });
 
   // The operations relay: an agent session ends with signal-back complete carrying an
@@ -612,6 +764,216 @@ describe('QuestFlow', () => {
         workItemId: wardWorkItem!.id,
         mode: 'full',
       });
+    }, 30_000);
+  });
+
+  // The walk-reset lever. It is a read-modify-write OUTSIDE questModifyBroker, so the only way to
+  // prove it takes the lock and persists (rather than mutating an in-memory copy nobody re-reads)
+  // is to drive it against a real quest.json and reload from disk.
+  describe('reset-flow-signoffs — Siegemaster clears its own track on ONE flow', () => {
+    it('VALID: {siegemaster item declaring the flow} => the reloaded quest has no siegemasterSignoff on that flow, keeps every flowriderSignoff, leaves a second flow untouched, and carries a walk-reset note', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-walk-reset' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d1' });
+      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      const flowriderSignoff = SignoffStub({
+        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
+      });
+      const siegemasterSignoff = SignoffStub({
+        evidence: 'walked it against the dev server — landed on /dashboard',
+        workItemId: siegeWorkItemId,
+        at: '2026-01-02T00:00:00.000Z',
+      });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page',
+                label: 'Login Page',
+                flowriderSignoff,
+                siegemasterSignoff,
+                observables: [
+                  FlowObservableStub({
+                    id: 'login-redirects-to-dashboard',
+                    flowriderSignoff,
+                    siegemasterSignoff,
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+            offMapSignoffs: [
+              FlowOffMapSignoffStub({ id: 'concurrency', flowriderSignoff, siegemasterSignoff }),
+            ],
+          }),
+          FlowStub({
+            id: 'signup-flow',
+            name: 'Signup Flow',
+            entryPoint: '/signup',
+            exitPoints: ['/welcome'],
+            nodes: [
+              FlowNodeStub({
+                id: 'signup-page',
+                label: 'Signup Page',
+                flowriderSignoff,
+                siegemasterSignoff,
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: siegeOpId,
+            role: 'siegemaster',
+            text: 'Siegemaster: manual QA — flow: login-flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: siegeWorkItemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(siegeOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.resetFlowSignoffs({
+        questId,
+        workItemId: siegeWorkItemId,
+        flowId: 'login-flow',
+        reason: 'Fixed the redirect guard the walk exposed, so every sign-off here is stale.',
+      });
+
+      const afterReset = await questHelper.reload({ questId });
+      const loginFlow = afterReset.flows.find((flow) => String(flow.id) === 'login-flow')!;
+      const signupFlow = afterReset.flows.find((flow) => String(flow.id) === 'signup-flow')!;
+      const loginNode = loginFlow.nodes[0]!;
+
+      testbed.cleanup();
+
+      expect(result.success).toBe(true);
+      expect({
+        loginNodeSiegemaster: loginNode.siegemasterSignoff,
+        loginNodeFlowrider: loginNode.flowriderSignoff,
+        loginObservableSiegemaster: loginNode.observables[0]!.siegemasterSignoff,
+        loginObservableFlowrider: loginNode.observables[0]!.flowriderSignoff,
+        loginOffMapSiegemaster: loginFlow.offMapSignoffs[0]!.siegemasterSignoff,
+        loginOffMapFlowrider: loginFlow.offMapSignoffs[0]!.flowriderSignoff,
+        signupNodeSiegemaster: signupFlow.nodes[0]!.siegemasterSignoff,
+        signupNodeFlowrider: signupFlow.nodes[0]!.flowriderSignoff,
+        notes: afterReset.planningNotes.questNotes.map((note) => ({
+          id: String(note.id),
+          kind: note.kind,
+          flowId: String(note.flowId),
+          detail: String(note.detail),
+        })),
+      }).toStrictEqual({
+        loginNodeSiegemaster: undefined,
+        loginNodeFlowrider: flowriderSignoff,
+        loginObservableSiegemaster: undefined,
+        loginObservableFlowrider: flowriderSignoff,
+        loginOffMapSiegemaster: undefined,
+        loginOffMapFlowrider: flowriderSignoff,
+        signupNodeSiegemaster: siegemasterSignoff,
+        signupNodeFlowrider: flowriderSignoff,
+        notes: [
+          {
+            id: 'walk-reset-login-flow-1',
+            kind: 'walk-reset',
+            flowId: 'login-flow',
+            detail: 'Fixed the redirect guard the walk exposed, so every sign-off here is stale.',
+          },
+        ],
+      });
+    }, 30_000);
+
+    it('INVALID: {flow the operation item does not declare} => refused, and the quest file is byte-identical afterwards', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-walk-reset-scope' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
+      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const siegemasterSignoff = SignoffStub({
+        evidence: 'walked the signup path by hand',
+        workItemId: siegeWorkItemId,
+        at: '2026-01-02T00:00:00.000Z',
+      });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'signup-flow',
+            name: 'Signup Flow',
+            entryPoint: '/signup',
+            exitPoints: ['/welcome'],
+            nodes: [FlowNodeStub({ id: 'signup-page', label: 'Signup Page', siegemasterSignoff })],
+            edges: [],
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: siegeOpId,
+            role: 'siegemaster',
+            text: 'Siegemaster: manual QA — flow: login-flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: siegeWorkItemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(siegeOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const before = await questHelper.readQuestFileRaw({ questId });
+
+      const result = await QuestFlow.resetFlowSignoffs({
+        questId,
+        workItemId: siegeWorkItemId,
+        flowId: 'signup-flow',
+        reason: 'Trying to reset a flow this session does not own.',
+      });
+
+      const after = await questHelper.readQuestFileRaw({ questId });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({
+        success: false,
+        error: `reset-flow-signoffs: flow signup-flow is outside the scope of work item ${String(siegeWorkItemId)}, whose operation item ${String(siegeOpId)} covers login-flow — nothing was reset`,
+      });
+      expect(String(after)).toBe(String(before));
     }, 30_000);
   });
 

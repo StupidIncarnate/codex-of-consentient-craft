@@ -32,9 +32,9 @@ describe('blightwardenCrosscutMinionStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => runs after every pair-minion has finished and their edits have landed on disk', () => {
+  it('VALID: template => runs after every group minion has finished and their edits have landed on disk', () => {
     const needle =
-      'after every pair-minion has finished reviewing and fixing its own group of file pairs, and their edits have landed on disk. You run ALONE: no other minion is active, so there is nothing left to collide with.';
+      'after every group minion has finished reviewing and fixing its own group of file pairs, and their edits have landed on disk. You run ALONE: no other minion is active, so there is nothing left to collide with.';
     const { template } = blightwardenCrosscutMinionStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -57,7 +57,7 @@ describe('blightwardenCrosscutMinionStatics', () => {
 
   it('VALID: template => states the reasoning a pair-scoped minion structurally cannot do: cross-pair duplication', () => {
     const needle =
-      "**Duplication across pairs** — two NEW files in this diff, assigned to DIFFERENT pair-minion groups, that do the same thing. Neither group's minion had both files loaded, so neither could catch it.";
+      "**Duplication across pairs** — two NEW files in this diff, assigned to DIFFERENT group minions, that do the same thing. Neither group's minion had both files loaded, so neither could catch it.";
     const { template } = blightwardenCrosscutMinionStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),
@@ -91,9 +91,9 @@ describe('blightwardenCrosscutMinionStatics', () => {
     expect(found).toBe(needle);
   });
 
-  it('VALID: template => does NOT write planningNotes.blightLedger, that stays with the pair minions', () => {
+  it('VALID: template => does NOT write planningNotes.blightLedger, that stays with the group minions', () => {
     const needle =
-      'You do NOT write `quest.planningNotes.blightLedger` — those per-unit dispositions belong to the pair minions that owned each `(pair, concern)`.';
+      'You do NOT write `quest.planningNotes.blightLedger` — those per-unit dispositions belong to the group minions that owned each `(pair, concern)`.';
     const { template } = blightwardenCrosscutMinionStatics.prompt;
     const found = template.slice(
       template.indexOf(needle),

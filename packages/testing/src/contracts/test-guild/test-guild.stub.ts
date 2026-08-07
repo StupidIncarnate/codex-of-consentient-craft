@@ -4,7 +4,7 @@ import type { TestGuild } from './test-guild-contract';
 import { processOutputContract } from '../process-output/process-output-contract';
 import { fileContentContract } from '../file-content/file-content-contract';
 import { packageJsonContract } from '../package-json/package-json-contract';
-import { execResultContract } from '../exec-result/exec-result-contract';
+import { execResultContract } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '../file-name/file-name-contract';
 
 export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestGuild => {

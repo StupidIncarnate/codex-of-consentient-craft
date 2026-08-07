@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { CompletedCountStub } from '../../contracts/completed-count/completed-count.stub';
-import { TotalCountStub } from '../../contracts/total-count/total-count.stub';
+import { CompletedCountStub } from '@dungeonmaster/shared/contracts';
+import { TotalCountStub } from '@dungeonmaster/shared/contracts';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 

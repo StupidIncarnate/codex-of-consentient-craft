@@ -123,8 +123,8 @@ export const questMonitorJsonlWatcherBroker = ({
 
   // Sub-agents whose tail exists because their realAgentId is stamped on an in-progress work
   // item. ONLY these are eligible for pruning. A parent-summoned minion (blightwarden-*-minion,
-  // codeweaver-minion, flowrider-minion) and any nested sub-agent own no work item, so
-  // `isAgentIdActive` is false for them from the moment their tail starts — pruning on that
+  // codeweaver-piece-minion, flowrider-authoring-minion) and any nested sub-agent own no work item,
+  // so `isAgentIdActive` is false for them from the moment their tail starts — pruning on that
   // predicate alone would stop them on the very next refresh tick.
   const workItemBackedAgentIds = new Set<AgentId>();
 

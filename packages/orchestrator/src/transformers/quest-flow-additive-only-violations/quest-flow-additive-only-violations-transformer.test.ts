@@ -2,9 +2,11 @@ import {
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
+  FlowOffMapSignoffStub,
   FlowStub,
   ModifyQuestInputStub,
   QuestStub,
+  SignoffStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questFlowAdditiveOnlyViolationsTransformer } from './quest-flow-additive-only-violations-transformer';
@@ -218,5 +220,357 @@ describe('questFlowAdditiveOnlyViolationsTransformer', () => {
       "Node delete not allowed in status 'in_progress' (attempted to delete node 'login' from flow 'login-flow')",
       "Edge delete not allowed in status 'in_progress' (attempted to delete edge 'self' from flow 'login-flow')",
     ]);
+  });
+
+  describe('sign-off scoping: an element that signs may write nothing else about itself', () => {
+    it('INVALID: {observable patch carrying a siegemasterSignoff AND a description edit} => rejected, naming the observable and the description field', () => {
+      const existingObservable = FlowObservableStub({ id: 'redirects' as never });
+      const existingNode = FlowNodeStub({
+        id: 'login' as never,
+        observables: [existingObservable],
+      });
+      const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                observables: [
+                  {
+                    id: 'redirects',
+                    description: 'redirects to /home instead',
+                    siegemasterSignoff: SignoffStub(),
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map(String)).toStrictEqual([
+        "Observable edit alongside a sign-off not allowed in status 'in_progress' (attempted to write field 'description' on observable 'redirects' from node 'login' in flow 'login-flow' in the same patch as a sign-off) — a sign-off patch may carry only 'id' and the sign-off fields",
+      ]);
+    });
+
+    it('VALID: {observable patch carrying only id and flowriderSignoff} => returns empty array', () => {
+      const existingObservable = FlowObservableStub({ id: 'redirects' as never });
+      const existingNode = FlowNodeStub({
+        id: 'login' as never,
+        observables: [existingObservable],
+      });
+      const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                observables: [{ id: 'redirects', flowriderSignoff: SignoffStub() }],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {observable patch carrying BOTH sign-off fields and nothing else} => returns empty array, the two tracks may land together', () => {
+      const existingObservable = FlowObservableStub({ id: 'redirects' as never });
+      const existingNode = FlowNodeStub({
+        id: 'login' as never,
+        observables: [existingObservable],
+      });
+      const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                observables: [
+                  {
+                    id: 'redirects',
+                    flowriderSignoff: SignoffStub(),
+                    siegemasterSignoff: SignoffStub({
+                      evidence: 'walked it against the dev server',
+                    }),
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {one flow patch signing three observables across two nodes AND adding a brand-new observable on a third node} => returns empty array, the rule is scoped per element not per payload', () => {
+      const nodeA = FlowNodeStub({
+        id: 'node-a' as never,
+        observables: [
+          FlowObservableStub({ id: 'obs-a-one' as never }),
+          FlowObservableStub({ id: 'obs-a-two' as never }),
+        ],
+      });
+      const nodeB = FlowNodeStub({
+        id: 'node-b' as never,
+        observables: [FlowObservableStub({ id: 'obs-b-one' as never })],
+      });
+      const nodeC = FlowNodeStub({ id: 'node-c' as never, observables: [] });
+      const existingFlow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [nodeA, nodeB, nodeC],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'node-a',
+                observables: [
+                  { id: 'obs-a-one', flowriderSignoff: SignoffStub() },
+                  { id: 'obs-a-two', flowriderSignoff: SignoffStub() },
+                ],
+              },
+              {
+                id: 'node-b',
+                observables: [{ id: 'obs-b-one', flowriderSignoff: SignoffStub() }],
+              },
+              {
+                id: 'node-c',
+                observables: [
+                  {
+                    id: 'obs-c-new',
+                    type: 'ui-state',
+                    description: 'shows the retry banner after a failed submit',
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('INVALID: {node patch carrying a sign-off plus a label edit} => rejected, naming the node and the label field', () => {
+      const existingNode = FlowNodeStub({ id: 'login' as never });
+      const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [{ id: 'login', label: 'Renamed Login', siegemasterSignoff: SignoffStub() }],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map(String)).toStrictEqual([
+        "Node edit alongside a sign-off not allowed in status 'in_progress' (attempted to write field 'label' on node 'login' in flow 'login-flow' in the same patch as a sign-off) — a sign-off patch may carry only 'id' and the sign-off fields",
+      ]);
+    });
+
+    it('VALID: {node patch carrying a sign-off plus its observables container} => returns empty array, the container is not content of the node being signed', () => {
+      const existingObservable = FlowObservableStub({ id: 'redirects' as never });
+      const existingNode = FlowNodeStub({
+        id: 'login' as never,
+        observables: [existingObservable],
+      });
+      const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                flowriderSignoff: SignoffStub(),
+                observables: [{ id: 'redirects', flowriderSignoff: SignoffStub() }],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('INVALID: {edge patch carrying a sign-off plus a label edit} => rejected, naming the edge and the label field', () => {
+      const existingNode = FlowNodeStub({ id: 'login' as never });
+      const existingEdge = FlowEdgeStub({
+        id: 'self' as never,
+        from: 'login' as never,
+        to: 'login' as never,
+      });
+      const existingFlow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [existingNode],
+        edges: [existingEdge],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            edges: [{ id: 'self', label: 'retry', siegemasterSignoff: SignoffStub() }],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map(String)).toStrictEqual([
+        "Edge edit alongside a sign-off not allowed in status 'in_progress' (attempted to write field 'label' on edge 'self' from flow 'login-flow' in the same patch as a sign-off) — a sign-off patch may carry only 'id' and the sign-off fields",
+      ]);
+    });
+
+    it('INVALID: {offMapSignoffs entry carrying a sign-off plus an extra field} => rejected, naming the family and the extra field', () => {
+      const existingFlow = FlowStub({
+        id: 'login-flow' as never,
+        offMapSignoffs: [FlowOffMapSignoffStub({ id: 'concurrency' })],
+      });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      // The input contract strips unknown keys, so the only way to hand this element an extra field
+      // is to build the flows array directly — the rule is what keeps the element defensible if a
+      // future field lands on the off-map shape.
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: [
+          {
+            id: 'login-flow',
+            offMapSignoffs: [
+              {
+                id: 'concurrency',
+                note: 'double-submitted twice',
+                siegemasterSignoff: SignoffStub(),
+              },
+            ],
+          },
+        ] as never,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders.map(String)).toStrictEqual([
+        "Off-map family edit alongside a sign-off not allowed in status 'in_progress' (attempted to write field 'note' on off-map family 'concurrency' in flow 'login-flow' in the same patch as a sign-off) — a sign-off patch may carry only 'id' and the sign-off fields",
+      ]);
+    });
+
+    it('VALID: {offMapSignoffs entry carrying only id and a sign-off} => returns empty array', () => {
+      const existingFlow = FlowStub({ id: 'login-flow' as never });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: SignoffStub() }],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
+
+    it('VALID: {payload rewording an observable with NO sign-off anywhere} => returns empty array, the reword allowance is untouched', () => {
+      const existingObservable = FlowObservableStub({ id: 'redirects' as never });
+      const existingNode = FlowNodeStub({
+        id: 'login' as never,
+        observables: [existingObservable],
+      });
+      const existingFlow = FlowStub({ id: 'login-flow' as never, nodes: [existingNode] });
+      const currentQuest = QuestStub({ status: 'in_progress', flows: [existingFlow] });
+
+      const input = ModifyQuestInputStub({
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'login',
+                label: 'Renamed Login',
+                observables: [{ id: 'redirects', description: 'redirects to /home instead' }],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const offenders = questFlowAdditiveOnlyViolationsTransformer({
+        inputFlows: input.flows!,
+        currentQuest,
+        currentStatus: 'in_progress',
+      });
+
+      expect(offenders).toStrictEqual([]);
+    });
   });
 });

@@ -42,8 +42,8 @@ import { commentBatchSendResultContract } from '../../contracts/comment-batch-se
 import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
-import { slotIndexContract } from '../../contracts/slot-index/slot-index-contract';
-import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';

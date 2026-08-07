@@ -6,7 +6,7 @@ import {
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from './build-orchestration-loop-on-agent-entry-transformer';
 
 type SlotIndex = ReturnType<typeof SlotIndexStub>;

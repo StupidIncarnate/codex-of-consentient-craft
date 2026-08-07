@@ -3,7 +3,7 @@ import { QaOffMapFamilyStub } from './qa-off-map-family.stub';
 
 describe('qaOffMapFamilyContract', () => {
   describe('enum membership', () => {
-    it('VALID: {options} => exposes exactly the six off-map probe families', () => {
+    it('VALID: {options} => exposes exactly the seven off-map probe families', () => {
       expect(qaOffMapFamilyContract.options).toStrictEqual([
         're-entry',
         'concurrency',
@@ -11,6 +11,7 @@ describe('qaOffMapFamilyContract', () => {
         'staleness',
         'configuration',
         'hostile-input',
+        'perf',
       ]);
     });
 

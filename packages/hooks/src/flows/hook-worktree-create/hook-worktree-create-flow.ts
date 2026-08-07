@@ -6,10 +6,7 @@
  * // Returns ExecResult with worktree path on stdout
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { worktreeCreateHookDataContract } from '../../contracts/worktree-create-hook-data/worktree-create-hook-data-contract';
 import { HookWorktreeCreateResponder } from '../../responders/hook/worktree-create/hook-worktree-create-responder';
 

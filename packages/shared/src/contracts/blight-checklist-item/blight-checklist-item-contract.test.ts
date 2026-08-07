@@ -5,11 +5,12 @@ describe('blightChecklistItemContract', () => {
   describe('valid items', () => {
     it('VALID: {full item} => parses id, implPath, concern, pairedFiles, and label', () => {
       expect(BlightChecklistItemStub()).toStrictEqual({
-        id: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+        id: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
         implPath: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx',
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: ['packages/web/src/widgets/quest-chat/quest-chat-widget.test.tsx'],
-        label: 'coverage — every branch in quest-chat-widget.tsx has a real test',
+        label:
+          "craft — quest-chat-widget.tsx's logic matches its signature and its error handling carries real context",
       });
     });
 

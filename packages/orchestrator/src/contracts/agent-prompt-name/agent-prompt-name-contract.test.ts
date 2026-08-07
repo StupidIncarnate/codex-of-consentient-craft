@@ -50,12 +50,12 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('blightwarden');
   });
 
-  it('VALID: {value: "blightwarden-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'blightwarden-minion' });
+  it('VALID: {value: "blightwarden-group-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'blightwarden-group-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('blightwarden-minion');
+    expect(result).toBe('blightwarden-group-minion');
   });
 
   it('VALID: {value: "blightwarden-crosscut-minion"} => parses successfully', () => {
@@ -82,20 +82,20 @@ describe('agentPromptNameContract', () => {
     expect(result).toBe('chaoswhisperer-gap-minion');
   });
 
-  it('VALID: {value: "flowrider-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'flowrider-minion' });
+  it('VALID: {value: "flowrider-authoring-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'flowrider-authoring-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('flowrider-minion');
+    expect(result).toBe('flowrider-authoring-minion');
   });
 
-  it('VALID: {value: "siegemaster-minion"} => parses successfully', () => {
-    const name = AgentPromptNameStub({ value: 'siegemaster-minion' });
+  it('VALID: {value: "siegemaster-walker-minion"} => parses successfully', () => {
+    const name = AgentPromptNameStub({ value: 'siegemaster-walker-minion' });
 
     const result = agentPromptNameContract.parse(name);
 
-    expect(result).toBe('siegemaster-minion');
+    expect(result).toBe('siegemaster-walker-minion');
   });
 
   it('INVALID: {value: "unknown-agent"} => throws validation error', () => {

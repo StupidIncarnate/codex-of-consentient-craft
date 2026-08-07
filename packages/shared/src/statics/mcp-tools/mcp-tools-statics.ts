@@ -38,6 +38,8 @@ export const mcpToolsStatics = {
       'get-next-step',
       'run-ward',
       'get-server-config',
+      'reset-flow-signoffs',
+      'get-quest-summary',
     ] as const,
   },
 } as const;

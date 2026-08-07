@@ -8,7 +8,7 @@
 import { useCallback, useState } from 'react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { agentOutputState } from '../../state/agent-output/agent-output-state';
 
 export const useAgentOutputBinding = (): {

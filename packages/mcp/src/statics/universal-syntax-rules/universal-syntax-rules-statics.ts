@@ -69,6 +69,42 @@ export const universalSyntaxRulesStatics = {
     examples: [
       '/** * PURPOSE: Validates if a user has permission to perform an action * * USAGE: * hasPermissionGuard({user, permission: "admin:delete"}); * // Returns true if user has permission, false otherwise * * WHEN-TO-USE: Before executing privileged operations * WHEN-NOT-TO-USE: For public endpoints that don\'t require authorization */',
     ],
+    purposeContent: {
+      rule: 'PURPOSE carries what the code cannot state about itself',
+      mustNotContainIntro:
+        'MUST NOT contain — every item here is derivable from the file, so prose restating it can only drift:',
+      mustNotContain: [
+        'What the function returns, or its return shape ("returns the value or undefined", "returns a discriminated result")',
+        'Whether it throws, and on what',
+        'What a contract validates or enforces — absoluteness, non-empty, format, enum membership. The zod chain IS the spec, and .refine() already carries a human-readable message',
+        'Parameter names, types, or shapes',
+        'A restatement of the file or function name',
+      ],
+      mustContainIntro: 'MUST contain, in one or two sentences:',
+      mustContain: [
+        'Why this exists — the problem it solves',
+        'When to reach for THIS one rather than its nearest sibling',
+        'Any non-obvious rationale, in present tense',
+      ],
+      siblingDisambiguation:
+        'The when-to-reach-for-THIS-one sentence is the highest-value line in the header and the one most often missing. A reader scanning discover output already has the name and the signature; what it cannot get anywhere else is which of several similar files is the right one — absoluteFilePathContract vs repoRelativePathContract vs pathSegmentContract, or flowrider-authoring-minion vs flowrider-coverage-minion.',
+      writeLast:
+        'Write PURPOSE LAST. Author the implementation first, then write PURPOSE as a summary of code that already exists. A PURPOSE written before the body describes intent, and intent and implementation diverge silently in the same authoring pass.',
+      usageUnchanged: 'USAGE is unchanged — a concrete call and what comes back.',
+      workedExamples: [
+        'packages/orchestrator/src/transformers/safe-json-parse/safe-json-parse-transformer.ts carries "PURPOSE: Safely parses a JSON string, returning the parsed value or undefined on parse failure" above a function whose return type is { ok: true; value: unknown } | { ok: false }. Its own USAGE line two lines below reads "Returns { ok: true, value: { a: 1 } } or { ok: false } if parsing fails" — one header, contradicting both the code and itself. Naming the return shape is what creates the contradiction; omit it and there is nothing left to drift.',
+        'packages/shared/src/contracts/file-path/file-path-contract.ts says "validating any file path (absolute or relative)" and "accepts both absolute and relative paths", while its union requires a ./ or ../ prefix — the colocated test asserts filePathContract.parse("relative/path.ts") throws. The zod chain already states what is accepted; what the header owes the reader instead is when to reach for repoRelativePathContract or pathSegmentContract.',
+      ],
+      examples: [
+        '/** * PURPOSE: Accepts a path already known to live inside the repo. Reach for this over pathSegmentContract when the value must reject an absolute prefix, and over absoluteFilePathContract when the value is persisted to a quest file that has to stay portable across machines. */',
+      ],
+      violations: [
+        '/** * PURPOSE: Parses a JSON string and returns the parsed value or undefined on failure */ // Return shape - derivable, and it drifts the day the function returns a discriminated result instead',
+        '/** * PURPOSE: Zod schema for validating absolute file paths; throws when the path is empty or not absolute */ // The zod chain IS the spec, and .refine() already carries the message',
+        '/** * PURPOSE: Transformer that transforms a quest into quest rows */ // Restates the file name and says nothing else',
+        '/** * PURPOSE: Takes {questId, flowId} and returns a QaChecklist */ // Parameter names and return type - both already in the signature',
+      ],
+    },
   },
 
   functionParameters: {
@@ -421,6 +457,8 @@ export const universalSyntaxRulesStatics = {
       'File uses kebab-case naming',
       'Function uses export const with arrow syntax',
       'File has PURPOSE/USAGE metadata comment at top',
+      'PURPOSE says why the file exists and when to pick it over its nearest sibling - never its return shape, throwing behaviour, parameters, or what its contract validates',
+      'PURPOSE was written after the implementation, as a summary of code that already exists',
       'Function parameters use object destructuring',
       'All imports are at the top of the file',
       'Exported function has explicit return type using contracts',

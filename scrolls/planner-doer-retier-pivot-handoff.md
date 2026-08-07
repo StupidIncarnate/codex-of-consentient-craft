@@ -1,7 +1,7 @@
 # The Planner/Doer split (ChaosWhisperer → Codeweaver → minions)
 
 Why planning authority sits where it does in the operations-ledger model: ChaosWhisperer plans the **seams**;
-Codeweaver plans and builds the **interiors** at build time and summons `codeweaver-minion` sub-agents for isolation.
+Codeweaver plans and builds the **interiors** at build time and summons `codeweaver-piece-minion` sub-agents for isolation.
 This doc captures the *why* so the design isn't re-litigated. Wiring reference: `packages/orchestrator/CLAUDE.md` +
 `docs/quest-role-paths.md`.
 
@@ -38,7 +38,7 @@ mechanic prose, so they enter the enforced channel. Then **move planning authori
   interfaces, novelty, must-hold constraints), shallow everywhere there's sibling precedent. It does NOT prescribe
   intra-file logic; that belongs to the doer, the only actor that runs the file and proves choices with tests.
 - **Codeweaver (the doer / synthesizing parent)** reads its handed operation item + git + the ledger, verifies it's the
-  right next step, writes the logic-to-logic plan against the real files, **summons `codeweaver-minion` sub-agents** for
+  right next step, writes the logic-to-logic plan against the real files, **summons `codeweaver-piece-minion` sub-agents** for
   isolated pieces, verifies their output, edits code inline, commits a prose handoff, and signals `done` or `partial`.
   A first-pass "spike" is allowed and kept — committed and noted in the commit message for the next session.
 
@@ -63,7 +63,7 @@ ledger — the orchestrator marks status and (on `partial`) appends a `pt N` con
 
 - **Visible at plan time** (an inventory shows the control is novel) → ChaosWhisperer scopes it as its own `codeweaver`
   operation item; downstream scopes mirror it.
-- **Discovered at run time** (the jsdom recipe surfaces mid-build) → Codeweaver quarantines it to a `codeweaver-minion`
+- **Discovered at run time** (the jsdom recipe surfaces mid-build) → Codeweaver quarantines it to a `codeweaver-piece-minion`
   that returns a distilled artifact (working file + usage examples). The rabbit-hole defense lives at the doer
   (delegation), not in a tighter plan — you cannot plan your way out of the unanticipated.
 
@@ -92,7 +92,7 @@ ledger — the orchestrator marks status and (on `partial`) appends a `pt N` con
   agent's `modify-quest{operations}` at `in_progress` is rejected.
 - **Prompt statics** live in `packages/orchestrator/src/statics/*-prompt-statics.ts` (relay roles) and
   `*-minion-statics.ts` (parent-summoned minions), served via the `get-agent-prompt` MCP tool. Codeweaver's prompt is
-  `codeweaver-prompt-statics.ts`; its minion is `codeweaver-minion-statics.ts`. There are no `.claude/agents/*.md` files
+  `codeweaver-prompt-statics.ts`; its minion is `codeweaver-piece-minion-statics.ts`. There are no `.claude/agents/*.md` files
   for these agents. Statics get colocated `.test.ts` (`@dungeonmaster/enforce-implementation-colocation`).
 - **Model tiers** live in `role-to-model-statics.ts` — the single source of truth for each role's `--model` flag.
 - **Sub-agent correlation:** `chat-line-process-transformer.ts` keeps `agentIdMap` (toolUseId→realAgentId) +
@@ -111,5 +111,5 @@ ledger — the orchestrator marks status and (on `partial`) appends a `pt N` con
 Run a live `/dumpster-create` → play button (or `/dumpster-launch`) on a novel multi-package feature and confirm:
 (a) ChaosWhisperer captures the lifecycle constraint as an observable and scopes the novel control as its own
 `codeweaver` operation item; (b) dispatch advances one session at a time down the ledger; (c) Codeweaver delegates a
-discovered-novelty piece to a `codeweaver-minion` and the minion renders as a chain in the quest UI; (d) the operations
+discovered-novelty piece to a `codeweaver-piece-minion` and the minion renders as a chain in the quest UI; (d) the operations
 ledger is readable on the quest (execution panel + QUEST SPEC tab).

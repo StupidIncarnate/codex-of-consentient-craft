@@ -2,6 +2,8 @@ import { FlowStub } from '../../contracts/flow/flow.stub';
 import { FlowNodeStub } from '../../contracts/flow-node/flow-node.stub';
 import { FlowEdgeStub } from '../../contracts/flow-edge/flow-edge.stub';
 import { FlowObservableStub } from '../../contracts/flow-observable/flow-observable.stub';
+import { FlowOffMapSignoffStub } from '../../contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
+import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { flowGraphToTextTransformer } from './flow-graph-to-text-transformer';
 
 describe('flowGraphToTextTransformer', () => {
@@ -189,6 +191,281 @@ describe('flowGraphToTextTransformer', () => {
       const result = flowGraphToTextTransformer({ flow });
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('sign-off markers', () => {
+    it('VALID: {node signed by flowrider alone} => node line carries the flowrider mark only', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            flowriderSignoff: SignoffStub(),
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual(['[#login-page] Login (state) [F✓]', '  (terminal)']);
+    });
+
+    it('VALID: {node signed by both tracks} => node line carries both marks', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            flowriderSignoff: SignoffStub(),
+            siegemasterSignoff: SignoffStub(),
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual(['[#login-page] Login (state) [F✓ S✓]', '  (terminal)']);
+    });
+
+    it('VALID: {node unconfirmable on siegemaster} => renders the verdict mark, never the evidence', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            siegemasterSignoff: SignoffStub({
+              verdict: 'unconfirmable',
+              evidence: 'the dev server refuses to bind port 3737 in this sandbox',
+              question: 'Which port should the sandbox dev server use?',
+            }),
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual(['[#login-page] Login (state) [S?]', '  (terminal)']);
+    });
+
+    it('VALID: {observable signed and added mid-quest} => observable line carries provenance then marks', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                id: 'crash-on-bleh' as never,
+                description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
+                type: 'api-call',
+                addedBy: 'siegemaster',
+                siegemasterSignoff: SignoffStub(),
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state)',
+        '  > #crash-on-bleh: POST /api/auth/login returns 400 for a non-JSON body [api-call] +siegemaster [S✓]',
+        '  (terminal)',
+      ]);
+    });
+
+    it('VALID: {spec observable} => no provenance marker, so the line is unchanged', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login' as never,
+            type: 'state',
+            observables: [
+              FlowObservableStub({
+                id: 'shows-form' as never,
+                description: 'shows login form' as never,
+                type: 'ui-state',
+              }),
+            ],
+          }),
+        ],
+        edges: [],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state)',
+        '  > #shows-form: shows login form [ui-state]',
+        '  (terminal)',
+      ]);
+    });
+
+    it('VALID: {labelled edge signed by one track} => edge line carries the mark after the target', () => {
+      const flow = FlowStub({
+        entryPoint: 'check' as never,
+        nodes: [
+          FlowNodeStub({ id: 'check' as never, label: 'Check' as never, type: 'decision' }),
+          FlowNodeStub({ id: 'success' as never, label: 'Success' as never, type: 'terminal' }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'e-one' as never,
+            from: 'check' as never,
+            to: 'success' as never,
+            label: 'yes' as never,
+            flowriderSignoff: SignoffStub(),
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#check] Check (decision)',
+        '  →"yes" [#success] [F✓]',
+        '  [#success] Success (terminal)',
+        '    (terminal)',
+      ]);
+    });
+
+    it('VALID: {back-reference edge signed by both tracks} => back-ref line carries both marks', () => {
+      const flow = FlowStub({
+        entryPoint: 'start' as never,
+        nodes: [
+          FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' }),
+          FlowNodeStub({ id: 'middle' as never, label: 'Middle' as never, type: 'action' }),
+        ],
+        edges: [
+          FlowEdgeStub({ id: 'e-one' as never, from: 'start' as never, to: 'middle' as never }),
+          FlowEdgeStub({
+            id: 'e-two' as never,
+            from: 'middle' as never,
+            to: 'start' as never,
+            flowriderSignoff: SignoffStub(),
+            siegemasterSignoff: SignoffStub({
+              verdict: 'unconfirmable',
+              evidence: 'the retry path needs a seeded failure the lever cannot produce',
+              question: 'How should the reset lever seed a failed submit?',
+            }),
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#start] Start (state)',
+        '  →[#middle]',
+        '  [#middle] Middle (action)',
+        '    → [#start] ↩ [F✓ S?]',
+      ]);
+    });
+
+    it('VALID: {off-map families signed} => a trailing off-map line lists only the signed families', () => {
+      const flow = FlowStub({
+        entryPoint: 'login-page' as never,
+        nodes: [
+          FlowNodeStub({ id: 'login-page' as never, label: 'Login' as never, type: 'state' }),
+        ],
+        edges: [],
+        offMapSignoffs: [
+          FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
+          FlowOffMapSignoffStub({ id: 'perf' }),
+          FlowOffMapSignoffStub({
+            id: 'hostile-input',
+            flowriderSignoff: SignoffStub(),
+            siegemasterSignoff: SignoffStub({
+              verdict: 'unconfirmable',
+              evidence: 'no fuzzing harness is wired for this endpoint',
+              question: 'Which fuzzing harness should cover the login endpoint?',
+            }),
+          }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#login-page] Login (state)',
+        '  (terminal)',
+        'off-map: concurrency [S✓] | hostile-input [F✓ S?]',
+      ]);
+    });
+  });
+
+  describe('regression: a flow with zero sign-offs renders unchanged', () => {
+    it('EMPTY: {no sign-offs anywhere} => no markers, no provenance, no off-map line', () => {
+      const flow = FlowStub({
+        entryPoint: 'check' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'check' as never,
+            label: 'Check' as never,
+            type: 'decision',
+            observables: [
+              FlowObservableStub({
+                id: 'shows-form' as never,
+                description: 'shows login form' as never,
+                type: 'ui-state',
+              }),
+            ],
+          }),
+          FlowNodeStub({ id: 'success' as never, label: 'Success' as never, type: 'terminal' }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'e-one' as never,
+            from: 'check' as never,
+            to: 'success' as never,
+            label: 'yes' as never,
+          }),
+        ],
+        offMapSignoffs: [
+          FlowOffMapSignoffStub({ id: 'concurrency' }),
+          FlowOffMapSignoffStub({ id: 'perf' }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual([
+        '[#check] Check (decision)',
+        '  > #shows-form: shows login form [ui-state]',
+        '  →"yes" [#success]',
+        '  [#success] Success (terminal)',
+        '    (terminal)',
+      ]);
+    });
+
+    it('EMPTY: {no sign-offs, cross-flow edge} => the cross-flow line is unchanged', () => {
+      const flow = FlowStub({
+        entryPoint: 'start' as never,
+        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' })],
+        edges: [
+          FlowEdgeStub({ id: 'e-one' as never, from: 'start' as never, to: 'other-node' as never }),
+        ],
+      });
+
+      const result = flowGraphToTextTransformer({ flow });
+
+      expect(result).toStrictEqual(['[#start] Start (state)', '  → other-node ↗ cross-flow']);
     });
   });
 });

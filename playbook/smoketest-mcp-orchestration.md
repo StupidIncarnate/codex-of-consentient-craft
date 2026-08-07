@@ -99,8 +99,8 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
   EVERY quest flow id in `flowIds` (a flow-less quest gets `[]`); `blightwarden` self-scopes over the whole diff via
   the quest's pinned `baseRef`, with no `flowIds` at all. `siegemaster` is also an **operator**, but fans out to ONE
   operation item PER quest flow, each carrying a single `flowId` (a flow-less quest still gets exactly one). Each
-  operator session reads its scope, dispatches minions (`flowrider-minion` / `siegemaster-minion` /
-  `blightwarden-minion` + `blightwarden-crosscut-minion`) via the `Agent` tool, then verifies the returned work by
+  operator session reads its scope, dispatches minions (`flowrider-authoring-minion` / `siegemaster-walker-minion` /
+  `blightwarden-group-minion` + `blightwarden-crosscut-minion`) via the `Agent` tool, then verifies the returned work by
   opening the files — `flowrider` and `blightwarden` each hold exactly ONE pt-continuation chain for the entire quest;
   `siegemaster` holds one chain PER FLOW.
 - **bug-hunt** (`questType: bug-hunt`): Start Quest seeds a single `pesteater` implementation item + the tail
@@ -302,11 +302,11 @@ the MCP `get-quest` view strips `workItems`/`wardResults`).
   review_observables, approved, explore_design, review_design, design_approved, in_progress, paused, blocked, complete,
   abandoned`. Terminal = {complete, abandoned}. **`blocked` is NOT terminal** (resumable → in_progress). There are NO
   `seek_*` statuses.
-- **roles** (`workItemRoleContract`): `codeweaver, ward, flowrider, siegemaster, blightwarden, blightwarden-minion,
-  blightwarden-crosscut-minion, spiritmender, pesteater` (+ chat `chaoswhisperer`/`glyphsmith`). `blightwarden-minion`
+- **roles** (`workItemRoleContract`): `codeweaver, ward, flowrider, siegemaster, blightwarden, blightwarden-group-minion,
+  blightwarden-crosscut-minion, spiritmender, pesteater` (+ chat `chaoswhisperer`/`glyphsmith`). `blightwarden-group-minion`
   and `blightwarden-crosscut-minion` are valid roles but never appear on the ledger — the relay tail seeds only ONE
   `blightwarden` operation item, and that session summons the minions itself via the `Agent` tool.
-  `flowrider-minion`, `siegemaster-minion`, and `codeweaver-minion` are
+  `flowrider-authoring-minion`, `siegemaster-walker-minion`, and `codeweaver-piece-minion` are
   `agentPromptNameContract` names only, never roles — a parent summons them via the `Agent` tool, so they are never
   work items and never appear on the ledger.
 - **ward retry budget** = `slotManagerStatics.ward.maxRetries` (the red-ward chain of a `wardMode` since the last green
@@ -543,8 +543,9 @@ actually regress.
 4. Abandon the quest — Flow 1 needs a clean FIFO.
 
 **Repeat once with a ZERO-flow quest** (same seed, `flows: []`): the flowrider item still exists with `flowIds: []`;
-the siegemaster role still gets exactly ONE item (the flow-less fallback, so inbound `GAP:` work keeps an owner) with
-`flowIds: []`; both ledger rows render no flows element at all.
+the siegemaster role still gets exactly ONE item (the flow-less fallback, so the off-map probe families — the quest's
+only security and performance coverage — keep an owner) with `flowIds: []`; both ledger rows render no flows element
+at all.
 
 **PASS:** one flowrider item regardless of flow count, carrying the complete flow list; one siegemaster item PER quest
 flow (or exactly one, on a flow-less quest), each carrying its own single flow id.
@@ -703,19 +704,19 @@ Verify each agent prompt still gives an LLM enough to do its job — every capab
 Every static under `packages/orchestrator/src/statics/` ending in `-prompt` or `-minion`: `codeweaver-prompt`,
 `flowrider-prompt`, `siegemaster-prompt`, `blightwarden-prompt`, `spiritmender-prompt`,
 `pesteater-prompt`, `glyphsmith-prompt`, `dumpster-create-prompt`, `dumpster-hunt-prompt`; the minions
-`codeweaver-minion`, `flowrider-minion`, `siegemaster-minion`, `siegemaster-test-audit-minion`,
-`blightwarden-minion`, `blightwarden-crosscut-minion`, `chaoswhisperer-gap-minion`.
+`codeweaver-piece-minion`, `flowrider-authoring-minion`, `siegemaster-walker-minion`, `siegemaster-test-audit-minion`,
+`blightwarden-group-minion`, `blightwarden-crosscut-minion`, `chaoswhisperer-gap-minion`.
 
 ### Procedure (per prompt)
 
 1. **Read** the static.
 2. **Enumerate the role's required capabilities** (e.g. Codeweaver: read its operation item + git + ledger, verify it's
-   the right next step, dispatch + verify `codeweaver-minion`s, edit inline, commit a prose handoff, signal
-   `done`/`partial`; Flowrider: read every flow in its `flowIds`, bundle them, dispatch a `flowrider-minion` per bundle,
+   the right next step, dispatch + verify `codeweaver-piece-minion`s, edit inline, commit a prose handoff, signal
+   `done`/`partial`; Flowrider: read every flow in its `flowIds`, bundle them, dispatch a `flowrider-authoring-minion` per bundle,
    verify the returned work by opening the files, own its dev server, signal on remaining scope; Siegemaster: same
-   operator shape with `siegemaster-minion` walk-bundles; Spiritmender: read the failed ward result + detail, fix,
+   operator shape with `siegemaster-walker-minion` walk-bundles; Spiritmender: read the failed ward result + detail, fix,
    signal
-   `done`/`partial`; Blightwarden: call `get-blight-checklist`, dispatch `blightwarden-minion` per disjoint file-pair
+   `done`/`partial`; Blightwarden: call `get-blight-checklist`, dispatch `blightwarden-group-minion` per disjoint file-pair
    group plus one `blightwarden-crosscut-minion` alone and last, judge every artifact, record dispositions in
    `planningNotes.blightLedger`, signal `done`/`partial` on remaining checklist scope).
 3. **Trace each capability to a real mechanism:** does the prompt name the exact MCP tool / command / file path /

@@ -2,14 +2,21 @@ import {
   QaChecklistItemStub,
   QaChecklistStub,
   QaWalkPathStub,
+  SignoffTrackStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 
+import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { qaChecklistToTextTransformer } from './qa-checklist-to-text-transformer';
+
+// The two verification tracks, derived from the eligibility statics whose keys the colocated
+// signoff-track-eligibility test pins 1:1 with signoffTrackContract's options — a test file cannot
+// import the contract itself, so this is the honest source for the list.
+const SIGNOFF_TRACKS = Object.keys(signoffTrackEligibilityStatics.byTrack);
 
 describe('qaChecklistToTextTransformer', () => {
   describe('header', () => {
-    it('VALID: {checklist} => names the flow, its entry point, and the per-kind unit counts', () => {
+    it('VALID: {checklist, no track} => names the flow, its entry point, the per-kind counts, and an unattributed REMAINING', () => {
       const lines = qaChecklistToTextTransformer({
         checklist: QaChecklistStub({
           flowId: 'a-flow',
@@ -32,8 +39,57 @@ describe('qaChecklistToTextTransformer', () => {
         '# QA CHECKLIST — flow `a-flow` "A Flow"',
         'Entry point: /entry',
         'Units: 2 (1 terminal, 0 branch, 1 observable, 0 off-map)',
-        'REMAINING (no disposition in quest.planningNotes.qaLedger): 1 of 2',
+        'REMAINING (no sign-off yet on the track you are signing): 1 of 2',
       ]);
+    });
+
+    it.each(SIGNOFF_TRACKS)(
+      "VALID: {track: %s} => REMAINING names that track's own sign-off field",
+      (trackName) => {
+        const track = SignoffTrackStub({ value: trackName });
+        const lines = qaChecklistToTextTransformer({
+          track,
+          checklist: QaChecklistStub({
+            flowId: 'a-flow',
+            flowName: 'A Flow',
+            entryPoint: '/entry',
+            items: [
+              QaChecklistItemStub({ id: 'a-flow:observable:check-one' }),
+              QaChecklistItemStub({
+                id: 'a-flow:terminal:end-node',
+                kind: 'terminal',
+                label: 'The end',
+              }),
+            ],
+            remainingItemIds: ['a-flow:observable:check-one'],
+            paths: [],
+          }),
+        }).split('\n');
+
+        expect(lines[3]).toBe(`REMAINING (awaiting your \`${track}Signoff\`): 1 of 2`);
+      },
+    );
+
+    it("VALID: {any checklist} => states that the other track's sign-off never settles yours", () => {
+      const lines = qaChecklistToTextTransformer({
+        track: 'flowrider',
+        checklist: QaChecklistStub({ items: [], remainingItemIds: [], paths: [] }),
+      }).split('\n');
+
+      expect(lines.find((line) => line.startsWith('The two tracks are measured'))).toBe(
+        'The two tracks are measured separately: your sign-off field is the only one counted here, and',
+      );
+    });
+
+    it('VALID: {any checklist} => states that both verdicts close a unit', () => {
+      const lines = qaChecklistToTextTransformer({
+        track: 'siegemaster',
+        checklist: QaChecklistStub({ items: [], remainingItemIds: [], paths: [] }),
+      }).split('\n');
+
+      expect(lines.find((line) => line.startsWith('`confirmed`'))).toBe(
+        '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `question`.',
+      );
     });
   });
 
@@ -133,7 +189,7 @@ describe('qaChecklistToTextTransformer', () => {
         '## BRANCH SURFACE',
         '## OFF-MAP SURFACE',
         '## WALK PATHS (0)',
-        '## UNITS — [ ] no disposition yet, [x] already dispositioned in the ledger',
+        '## UNITS — [ ] outstanding on your track, [x] already settled on it',
       ]);
     });
 
@@ -153,7 +209,7 @@ describe('qaChecklistToTextTransformer', () => {
         '## BRANCH SURFACE',
         '## OFF-MAP SURFACE',
         '## WALK PATHS (0)',
-        '## UNITS — [ ] no disposition yet, [x] already dispositioned in the ledger',
+        '## UNITS — [ ] outstanding on your track, [x] already settled on it',
       ]);
     });
   });
@@ -229,6 +285,28 @@ describe('qaChecklistToTextTransformer', () => {
         '## WALK PATHS (0) — TRUNCATED at the enumeration cap; this list is INCOMPLETE',
       );
     });
+  });
+
+  describe('the units legend', () => {
+    it.each(SIGNOFF_TRACKS)(
+      "VALID: {track: %s} => the legend names that track's field on both marks",
+      (trackName) => {
+        const track = SignoffTrackStub({ value: trackName });
+        const lines = qaChecklistToTextTransformer({
+          track,
+          checklist: QaChecklistStub({
+            flowId: 'a-flow',
+            items: [QaChecklistItemStub({ id: 'a-flow:observable:check-one' })],
+            remainingItemIds: [],
+            paths: [],
+          }),
+        }).split('\n');
+
+        expect(lines.find((line) => line.startsWith('## UNITS'))).toBe(
+          `## UNITS — [ ] awaiting your \`${track}Signoff\`, [x] already settled on the ${track} track`,
+        );
+      },
+    );
   });
 
   describe('unit sections', () => {

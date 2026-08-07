@@ -49,6 +49,41 @@ describe('orchestratorGetQaChecklistAdapter', () => {
     });
   });
 
+  describe('track-scoped', () => {
+    it.each(['flowrider', 'siegemaster'] as const)(
+      'VALID: {questId, track: %s} => forwards track to the orchestrator',
+      async (track) => {
+        const proxy = orchestratorGetQaChecklistAdapterProxy();
+        proxy.returns({
+          questId: 'add-auth',
+          result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+        });
+
+        await orchestratorGetQaChecklistAdapter({ questId: 'add-auth', track });
+
+        expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+          questId: 'add-auth',
+          track,
+        });
+      },
+    );
+
+    it('VALID: {questId, no track} => omits track from the call', async () => {
+      const proxy = orchestratorGetQaChecklistAdapterProxy();
+      proxy.returns({
+        questId: 'add-auth',
+        result: { success: true, data: ContentTextStub({ value: '# QA CHECKLIST' }) },
+      });
+
+      await orchestratorGetQaChecklistAdapter({ questId: 'add-auth', flowId: 'login-flow' });
+
+      expect(proxy.getLastCalledInputFor({ questId: 'add-auth' })).toStrictEqual({
+        questId: 'add-auth',
+        flowId: 'login-flow',
+      });
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {orchestrator throws} => rejects with error', async () => {
       const proxy = orchestratorGetQaChecklistAdapterProxy();

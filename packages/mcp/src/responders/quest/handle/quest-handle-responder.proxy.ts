@@ -14,6 +14,8 @@ import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
 import { QaChecklistLayerResponderProxy } from './qa-checklist-layer-responder.proxy';
+import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';
+import { ResetFlowSignoffsLayerResponderProxy } from './reset-flow-signoffs-layer-responder.proxy';
 import { orchestratorGetServerConfigAdapterProxy } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter.proxy';
 import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
 import { orchestratorRunWardAdapterProxy } from '../../../adapters/orchestrator/run-ward/orchestrator-run-ward-adapter.proxy';
@@ -46,6 +48,8 @@ type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPlanningNotes>>;
 type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
+type ResetFlowSignoffsResult = Awaited<ReturnType<typeof StartOrchestrator.resetFlowSignoffs>>;
+type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
 type NextStep = ReturnType<typeof NextStepStub>;
 type QuestRunWardResult = ReturnType<typeof QuestRunWardResultStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
@@ -80,6 +84,19 @@ export const QuestHandleResponderProxy = (): {
   }) => void;
   setupGetBlightChecklistThrows: (params: { questId: string; error: Error }) => void;
   getLastGetBlightChecklistInput: (params: { questId: string }) => unknown;
+  setupResetFlowSignoffsReturns: (params: {
+    questId: string;
+    flowId: string;
+    result: ResetFlowSignoffsResult;
+  }) => void;
+  setupResetFlowSignoffsThrows: (params: { questId: string; flowId: string; error: Error }) => void;
+  getLastResetFlowSignoffsInput: (params: { questId: string; flowId: string }) => unknown;
+  setupGetQuestSummaryReturns: (params: {
+    questId: string;
+    summary: GetQuestSummaryResult;
+  }) => void;
+  setupGetQuestSummaryThrows: (params: { questId: string; error: Error }) => void;
+  getLastGetQuestSummaryInput: (params: { questId: string }) => unknown;
   setupCreateQuestReturns: (params: {
     userRequest: string;
     questId: QuestId;
@@ -132,6 +149,8 @@ export const QuestHandleResponderProxy = (): {
   const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
   QaChecklistLayerResponderProxy();
   const blightChecklistProxy = BlightChecklistLayerResponderProxy();
+  const resetFlowSignoffsProxy = ResetFlowSignoffsLayerResponderProxy();
+  const questSummaryProxy = QuestSummaryLayerResponderProxy();
   const createQuestProxy = orchestratorCreateQuestAdapterProxy();
   const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
   const runWardProxy = orchestratorRunWardAdapterProxy();
@@ -258,6 +277,55 @@ export const QuestHandleResponderProxy = (): {
 
     getLastGetBlightChecklistInput: ({ questId }: { questId: string }): unknown =>
       blightChecklistProxy.getLastCalledInputFor({ questId }),
+
+    setupResetFlowSignoffsReturns: ({
+      questId,
+      flowId,
+      result,
+    }: {
+      questId: string;
+      flowId: string;
+      result: ResetFlowSignoffsResult;
+    }): void => {
+      resetFlowSignoffsProxy.setupReturns({ questId, flowId, result });
+    },
+
+    setupResetFlowSignoffsThrows: ({
+      questId,
+      flowId,
+      error,
+    }: {
+      questId: string;
+      flowId: string;
+      error: Error;
+    }): void => {
+      resetFlowSignoffsProxy.setupThrows({ questId, flowId, error });
+    },
+
+    getLastResetFlowSignoffsInput: ({
+      questId,
+      flowId,
+    }: {
+      questId: string;
+      flowId: string;
+    }): unknown => resetFlowSignoffsProxy.getLastCalledInputFor({ questId, flowId }),
+
+    setupGetQuestSummaryReturns: ({
+      questId,
+      summary,
+    }: {
+      questId: string;
+      summary: GetQuestSummaryResult;
+    }): void => {
+      questSummaryProxy.setupReturns({ questId, summary });
+    },
+
+    setupGetQuestSummaryThrows: ({ questId, error }: { questId: string; error: Error }): void => {
+      questSummaryProxy.setupThrows({ questId, error });
+    },
+
+    getLastGetQuestSummaryInput: ({ questId }: { questId: string }): unknown =>
+      questSummaryProxy.getLastCalledInputFor({ questId }),
 
     setupCreateQuestReturns: ({
       userRequest,

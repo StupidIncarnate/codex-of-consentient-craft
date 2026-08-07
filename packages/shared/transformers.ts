@@ -40,6 +40,12 @@ export * from './src/transformers/quest-to-text-display/quest-to-text-display-tr
 // Flow Graph to Text
 export * from './src/transformers/flow-graph-to-text/flow-graph-to-text-transformer';
 
+// Sign-off Markers to Text (the compact per-track verdict suffix every graph line carries)
+export * from './src/transformers/signoff-markers-to-text/signoff-markers-to-text-transformer';
+
+// Quest Summary to Text (the get-quest-summary MCP tool body)
+export * from './src/transformers/quest-summary-to-text/quest-summary-to-text-transformer';
+
 // Quest Contract Properties to Text
 export * from './src/transformers/quest-contract-properties-to-text/quest-contract-properties-to-text-transformer';
 

@@ -35,9 +35,9 @@ describe('roleToPromptTemplateTransformer', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('VALID: {role: blightwarden-minion} => returns blightwarden-minion prompt template', () => {
+    it('VALID: {role: blightwarden-group-minion} => returns blightwarden-group-minion prompt template', () => {
       const result = roleToPromptTemplateTransformer({
-        role: AgentRoleStub({ value: 'blightwarden-minion' }),
+        role: AgentRoleStub({ value: 'blightwarden-group-minion' }),
       });
 
       expect(result.length).toBeGreaterThan(0);

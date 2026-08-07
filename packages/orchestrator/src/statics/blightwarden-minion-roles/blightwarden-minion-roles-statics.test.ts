@@ -3,7 +3,7 @@ import { blightwardenMinionRolesStatics } from './blightwarden-minion-roles-stat
 describe('blightwardenMinionRolesStatics', () => {
   it('VALID: exports the two minion roles in dispatch order', () => {
     expect(blightwardenMinionRolesStatics).toStrictEqual({
-      roles: ['blightwarden-minion', 'blightwarden-crosscut-minion'],
+      roles: ['blightwarden-group-minion', 'blightwarden-crosscut-minion'],
     });
   });
 });

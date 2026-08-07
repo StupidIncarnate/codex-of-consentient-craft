@@ -7,9 +7,9 @@
  *
  * USAGE:
  * blightwardenMinionRolesStatics.roles;
- * // Returns ['blightwarden-minion', 'blightwarden-crosscut-minion']
+ * // Returns ['blightwarden-group-minion', 'blightwarden-crosscut-minion']
  */
 
 export const blightwardenMinionRolesStatics = {
-  roles: ['blightwarden-minion', 'blightwarden-crosscut-minion'],
+  roles: ['blightwarden-group-minion', 'blightwarden-crosscut-minion'],
 } as const;

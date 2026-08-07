@@ -4,6 +4,7 @@ import { PlanningBlightReportStub } from '../planning-blight-report/planning-bli
 import { QuestBlightLedgerEntryStub } from '../quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestCommentStub } from '../quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '../quest-contract-entry/quest-contract-entry.stub';
+import { QuestNoteStub } from '../quest-note/quest-note.stub';
 import { SmoketestCaseResultStub } from '../smoketest-case-result/smoketest-case-result.stub';
 import { ToolingRequirementStub } from '../tooling-requirement/tooling-requirement.stub';
 import { WardResultStub } from '../ward-result/ward-result.stub';
@@ -36,7 +37,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
 
@@ -67,7 +68,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
 
@@ -98,7 +99,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
 
@@ -214,7 +215,7 @@ describe('questContract', () => {
         userRequest: 'Add authentication to the application',
         workItems: [],
         wardResults: [],
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [] },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
 
@@ -323,15 +324,16 @@ describe('questContract', () => {
         blightReports: [firstReport, secondReport],
         qaLedger: [],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
     it('VALID: quest with populated blightLedger => parses successfully', () => {
       const firstEntry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
       });
       const secondEntry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/shared/src/index.ts:dead-code',
+        itemId: 'packages/shared/src/index.ts:integrity',
         disposition: 'gap',
         evidence: 'no browser bridge is reachable from this session',
       });
@@ -349,10 +351,42 @@ describe('questContract', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [firstEntry, secondEntry],
+        questNotes: [],
       });
     });
 
-    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports, qaLedger, and blightLedger', () => {
+    it('VALID: quest with two questNotes => round-trips both entries', () => {
+      const openQuestion = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope',
+        kind: 'open-question',
+      });
+      const toolingError = QuestNoteStub({
+        id: 'tooling-error-browser-bridge',
+        kind: 'tooling-error',
+        role: 'flowrider',
+        summary: 'The browser bridge never attached on this host.',
+        detail: 'Chrome launched but the extension port stayed closed, so no walk could be driven.',
+      });
+      const quest = QuestStub({
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [openQuestion, toolingError],
+        },
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [],
+        questNotes: [openQuestion, toolingError],
+      });
+    });
+
+    it('VALID: quest without planningNotes field => backward compat defaults to empty blightReports, qaLedger, blightLedger, and questNotes', () => {
       const result = questContract.parse({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -368,6 +402,7 @@ describe('questContract', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [],
+        questNotes: [],
       });
     });
 

@@ -48,6 +48,44 @@ const DEFAULT_FLOWS: FlowInput[] = [
   },
 ];
 
+// DEFAULT_FLOWS with the Flowrider track's scope already signed — the state a quest is in by the
+// time its flowrider session signals `done`. `signal-back` recomputes that scope and REFUSES
+// `operationStatus: 'done'` from a flowrider operation item while any verification unit on the
+// quest's runtime flows carries no `flowriderSignoff`, so a seeded ledger driving a flowrider to
+// `done` has to carry the sign-offs that session would have written; without them the refusal
+// throws, the work item ends `failed` and the quest goes `blocked`.
+//
+// On this flow the Flowrider denominator is exactly ONE unit — the `end` node. A terminal unit is a
+// node with NO OUTGOING EDGE (not one typed `terminal`), the single edge carries no label so it is
+// no branch unit, no node carries an observable, and the off-map probe families belong to the
+// Siegemaster track alone.
+const DEFAULT_FLOWS_FLOWRIDER_SIGNED: FlowInput[] = [
+  {
+    id: 'harness-flow',
+    name: 'Harness Flow',
+    flowType: 'runtime',
+    entryPoint: 'start',
+    exitPoints: ['end'],
+    nodes: [
+      { id: 'start', label: 'Start', type: 'state', observables: [] },
+      {
+        id: 'end',
+        label: 'End',
+        type: 'terminal',
+        observables: [],
+        flowriderSignoff: {
+          verdict: 'confirmed',
+          evidence:
+            'packages/web/test/harnesses/quest/quest.harness.ts — seeded flow signed at quest-write time so the completion gate measures a settled scope',
+          workItemId: 'e2e00000-0000-4000-8000-0000000000f9',
+          at: '2026-01-01T00:00:00.000Z',
+        },
+      },
+    ],
+    edges: [{ id: 'start-to-end', from: 'start', to: 'end' }],
+  },
+];
+
 export const questHarness = ({
   request,
 }: {
@@ -150,6 +188,7 @@ export const questHarness = ({
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
     firstWorkItemSessionId?: string;
+    flowriderScopeSignedOff?: boolean;
   }) => void;
 } => {
   const createQuest = async ({
@@ -508,6 +547,7 @@ export const questHarness = ({
     firstWorkItemId,
     firstWorkItemStatus = 'pending',
     firstWorkItemSessionId,
+    flowriderScopeSignedOff = false,
   }: {
     questId: string;
     questFolder: string;
@@ -527,6 +567,10 @@ export const questHarness = ({
     // agent died mid-flight. Deliberately seeded WITHOUT a `resume` marker, because that is the
     // state that used to fresh-spawn and overwrite the session.
     firstWorkItemSessionId?: string;
+    // Seeds the quest's runtime flow with a `flowriderSignoff` on every unit the Flowrider track
+    // measures. Set this whenever the ledger carries a `flowrider` item the spec drives to `done`:
+    // signal-back recomputes that scope and refuses `done` while any unit is unsigned.
+    flowriderScopeSignedOff?: boolean;
   }): void => {
     const [firstOp] = operations;
     if (firstOp === undefined) {
@@ -540,6 +584,7 @@ export const questHarness = ({
       ...(title === undefined ? {} : { title }),
       status: 'in_progress',
       operations,
+      ...(flowriderScopeSignedOff ? { flows: DEFAULT_FLOWS_FLOWRIDER_SIGNED } : {}),
       workItems: [
         {
           id: firstWorkItemId,

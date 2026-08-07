@@ -1,7 +1,12 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type {
+  OrchestrationMode,
+  ProcessId,
+  QuestId,
+  QuestSummaryStub,
+} from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
 
 import { useCommentQueueSweepBindingProxy } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.proxy';
@@ -30,6 +35,7 @@ import { FormDropdownWidgetProxy } from '../form-dropdown/form-dropdown-widget.p
 import { QuestApprovedModalWidgetProxy } from '../quest-approved-modal/quest-approved-modal-widget.proxy';
 import { QuestLoadErrorWidgetProxy } from '../quest-load-error/quest-load-error-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
+import { QuestSummaryWidgetProxy } from '../quest-summary/quest-summary-widget.proxy';
 
 export const QuestChatContentLayerWidgetProxy = (): {
   setupConnectedChannel: () => void;
@@ -40,6 +46,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupMode: (params: { mode: OrchestrationMode }) => void;
   setupNewQuest: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   setupNewQuestError: () => void;
+  setupQuestSummary: (params: { summary: ReturnType<typeof QuestSummaryStub> }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
@@ -53,6 +60,12 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getNewQuestRequestBodies: () => Promise<unknown[]>;
   selectQuestType: (params: { label: string }) => Promise<void>;
 } => {
+  // Created BEFORE the chat binding proxy: both compose webSocketChannelStateProxy, whose WebSocket
+  // spy is addressed on the same url, so the LAST registration owns the created socket. The chat
+  // binding must win, because every WS frame these tests deliver goes through binding.deliverWsMessage
+  // — and the summary binding's own subscription still sees those frames, since the channel state is
+  // one singleton.
+  const summary = QuestSummaryWidgetProxy();
   const binding = useQuestChatBindingProxy();
   // Every rendering test must call setupMode before render to configure the declared-mode endpoint.
   const mode = useOrchestrationModeBindingProxy();
@@ -87,6 +100,9 @@ export const QuestChatContentLayerWidgetProxy = (): {
     },
     setupNewQuestError: () => {
       questNew.setupError();
+    },
+    setupQuestSummary: ({ summary: nextSummary }) => {
+      summary.setupSummary({ summary: nextSummary });
     },
     getNewQuestRequestCount: () => questNew.getRequestCount(),
     getNewQuestRequestBodies: async () => questNew.getRequestBodies(),

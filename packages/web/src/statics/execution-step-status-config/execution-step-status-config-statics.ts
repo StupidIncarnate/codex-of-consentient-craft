@@ -16,7 +16,7 @@ export const executionStepStatusConfigStatics = {
     spiritmender: 'primary',
     flowrider: 'primary',
     siegemaster: 'primary',
-    'blightwarden-minion': 'primary',
+    'blightwarden-group-minion': 'primary',
     'blightwarden-crosscut-minion': 'primary',
     blightwarden: 'primary',
     pesteater: 'primary',

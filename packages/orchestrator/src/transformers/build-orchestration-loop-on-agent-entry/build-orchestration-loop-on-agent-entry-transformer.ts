@@ -33,7 +33,7 @@ import {
   chatOutputEmitPayloadContract,
   type ChatOutputEmitPayload,
 } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
-import type { SlotIndex } from '../../contracts/slot-index/slot-index-contract';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 
 export const buildOrchestrationLoopOnAgentEntryTransformer = ({
   processId,

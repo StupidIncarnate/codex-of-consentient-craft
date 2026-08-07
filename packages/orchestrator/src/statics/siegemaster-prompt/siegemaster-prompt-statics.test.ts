@@ -66,7 +66,7 @@ describe('siegemasterPromptStatics', () => {
       ),
       gateRefuses: has("refuses `operationStatus: 'done'` while any unit on"),
       askTheTool: has('Ask the tool what is left; do not consult your memory of what you did.'),
-      priorFailure: has('walked part of a flow across a long serial run and reported'),
+      priorFailure: has('walked part of a flow across a long serial run\nand reported'),
     }).toStrictEqual({
       heading: true,
       gateRefuses: true,
@@ -75,25 +75,76 @@ describe('siegemasterPromptStatics', () => {
     });
   });
 
-  it('VALID: template => lists every disposition and says all of them clear a unit', () => {
+  it('VALID: template => lists exactly two verdicts, both of which clear a unit', () => {
     expect({
-      walked: has('| `walked` |'),
-      fixed: has('| `fixed` |'),
-      routed: has('| `routed` |'),
-      recorded: has('| `recorded` |'),
-      gap: has('| `gap` |'),
-      unconfirmed: has('| `unconfirmed` |'),
-      allClear: has('**Every one of these clears a unit.**'),
-      refusesAbsence: has('What it refuses is a unit with NO entry at all.'),
+      confirmed: has('| `confirmed` |'),
+      unconfirmable: has('| `unconfirmable` |'),
+      unconfirmableNeedsAQuestion: has(
+        'a `question` naming what someone else would need is REQUIRED',
+      ),
+      bothClear: has('**Both verdicts CLEAR a unit**'),
+      refusesAbsence: has('What it refuses is a\nunit with NO sign-off at all.'),
+      trackIsItsOwn: has('**Your track is yours alone.**'),
+      neverWritesTheOtherTrack: has(
+        'Never read a\n`flowriderSignoff` as licence to skip a walk, and never write one.',
+      ),
     }).toStrictEqual({
-      walked: true,
-      fixed: true,
-      routed: true,
-      recorded: true,
-      gap: true,
-      unconfirmed: true,
-      allClear: true,
+      confirmed: true,
+      unconfirmable: true,
+      unconfirmableNeedsAQuestion: true,
+      bothClear: true,
       refusesAbsence: true,
+      trackIsItsOwn: true,
+      neverWritesTheOtherTrack: true,
+    });
+  });
+
+  // A defect is the inverse of an observable, so it cannot be a verdict on one. Without this rule a
+  // session reaches for a `gap`/`recorded` label that no longer exists and stalls at the gate.
+  it('VALID: template => names all seven off-map families and routes a measured defect to a new observable', () => {
+    expect({
+      sevenFamilies: has(
+        'seven off-map probe families — `re-entry`, `concurrency`, `interruption`, `staleness`,\n`configuration`, `hostile-input`, `perf`',
+      ),
+      defectIsANewObservable: has('**A defect you MEASURE is a NEW observable, not a verdict.**'),
+      addedBySiegemaster: has("ADD it to the flow via `modify-quest` (`addedBy: 'siegemaster'`)"),
+      noOtherVerdicts: has('There is no `gap`, `recorded`, `routed` or `deferred` verdict'),
+      unclosableIsUnconfirmable: has(
+        'a\ndefect you cannot close this session is an added observable sitting `unconfirmable`',
+      ),
+    }).toStrictEqual({
+      sevenFamilies: true,
+      defectIsANewObservable: true,
+      addedBySiegemaster: true,
+      noOtherVerdicts: true,
+      unclosableIsUnconfirmable: true,
+    });
+  });
+
+  // Siegemaster is the only role that runs the system, so nothing else establishes these two: a
+  // static reviewer cannot prove an injection-shaped payload is rejected, and a duration only exists
+  // once something is actually executed.
+  it('VALID: template => gives siegemaster the security and performance charter for the quest', () => {
+    expect({
+      charter: has('**Security and performance are YOURS.**'),
+      nobodyProvesThemStatically: has('Nobody proves them statically for this quest'),
+      hostileInputOwnsSecurity: has(
+        "`hostile-input` off-map family is where this quest's security is established",
+      ),
+      namesTheProbes: has(
+        'malformed payloads,\ninjection-shaped values, oversized and empty and control-character inputs, an authorisation boundary\ndriven from the wrong side',
+      ),
+      perfIsMeasuredOffTheSystem: has(
+        'the `perf` family is where its performance is MEASURED, off the\nrunning system, with an instrument named beside every number',
+      ),
+      unprobedIsUncovered: has('A concern nobody probes here is a\nconcern nobody covers at all.'),
+    }).toStrictEqual({
+      charter: true,
+      nobodyProvesThemStatically: true,
+      hostileInputOwnsSecurity: true,
+      namesTheProbes: true,
+      perfIsMeasuredOffTheSystem: true,
+      unprobedIsUncovered: true,
     });
   });
 
@@ -102,9 +153,19 @@ describe('siegemasterPromptStatics', () => {
       gate: /^### Gate 3: Get the Checklist \(BLOCKING\)$/mu.test(
         siegemasterPromptStatics.prompt.template,
       ),
-      toolCall: has("get-qa-checklist({ questId: 'QUEST_ID', flowId: 'FLOW_ID' })"),
+      toolCall: has(
+        "get-qa-checklist({ questId: 'QUEST_ID', flowId: 'FLOW_ID', track: 'siegemaster' })",
+      ),
+      remainingIsPerTrack: has(
+        'because you passed `track` — a `remainingItemIds` measured against **your** track\nalone: every unit carrying no `siegemasterSignoff` yet',
+      ),
       doNotEnumerateByHand: has('**Do NOT read the quest spec and enumerate by hand**'),
-    }).toStrictEqual({ gate: true, toolCall: true, doNotEnumerateByHand: true });
+    }).toStrictEqual({
+      gate: true,
+      toolCall: true,
+      remainingIsPerTrack: true,
+      doNotEnumerateByHand: true,
+    });
   });
 
   it('VALID: template => warns that paths and units are different sizes, so slicing by path under-covers', () => {
@@ -115,18 +176,30 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({ itineraryVsDone: true, flatFlowTrap: true, sliceByUnits: true });
   });
 
-  it('VALID: template => collects inbound GAPs from git as its own work', () => {
+  it('VALID: template => takes the units flowrider could not settle as its own inbound work', () => {
     expect({
-      gate: /^### Gate 2: Git, and Your Inbound GAPs \(BLOCKING\)$/mu.test(
+      gate: /^### Gate 2: Git, and What Flowrider Could Not Settle \(BLOCKING\)$/mu.test(
         siegemasterPromptStatics.prompt.template,
       ),
-      trustGit: has('**Trust git over the ledger.**'),
-      gapsAreInbound: has('**`GAP:` lines naming YOUR flow are inbound work.**'),
+      trustGitForExistence: has(
+        '**Trust git for what EXISTS; trust the graph for what is SETTLED.**',
+      ),
+      unconfirmablesAreInbound: has(
+        '**An `unconfirmable` `flowriderSignoff` on your flow is inbound work.**',
+      ),
+      structuredNotProse: has(
+        'It is a structured\n  field on the unit itself, not a string in a commit body',
+      ),
+      stillWalkedByHand: has('every one still gets walked by hand\n  rather than taken on trust'),
+      addedByIsAReviewTarget: has('**An observable whose `addedBy` is not `spec`**'),
       doNotRederive: has('**Do not re-derive its pass**'),
     }).toStrictEqual({
       gate: true,
-      trustGit: true,
-      gapsAreInbound: true,
+      trustGitForExistence: true,
+      unconfirmablesAreInbound: true,
+      structuredNotProse: true,
+      stillWalkedByHand: true,
+      addedByIsAReviewTarget: true,
       doNotRederive: true,
     });
   });
@@ -168,6 +241,34 @@ describe('siegemasterPromptStatics', () => {
       freshWalkerIsTheVerification: true,
       neverGradesItsOwn: true,
       nonConvergenceGuard: true,
+    });
+  });
+
+  // A sign-off written before a repair describes a system that no longer exists. Without the reset
+  // the flow ships a track full of measurements of deleted behaviour, and the gate reads as green.
+  it('VALID: template => resets its own track after a mid-walk fix and re-walks, leaving flowrider alone', () => {
+    expect({
+      resetAfterAFix: has(
+        "**After a fix lands mid-walk, RESET this flow's track before you re-walk.**",
+      ),
+      namesWhy: has('each is now a claim about a system that no longer exists'),
+      toolCall: has(
+        "reset-flow-signoffs({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', flowId: 'FLOW_ID', reason: '<the fix that invalidated these walks>' })",
+      ),
+      scopedToOwnTrackAndFlow: has('It clears **only your track** on **only this flow**'),
+      writesAWalkResetNote: has('appends a `walk-reset` note to\n`quest.planningNotes.questNotes`'),
+      flowriderUntouched: has("**Flowrider's track is untouched by it**"),
+      resetsAreFree: has('**Resets are FREE within a session.**'),
+      costsNoPtAttempt: has('They cost no pt-chain attempt'),
+    }).toStrictEqual({
+      resetAfterAFix: true,
+      namesWhy: true,
+      toolCall: true,
+      scopedToOwnTrackAndFlow: true,
+      writesAWalkResetNote: true,
+      flowriderUntouched: true,
+      resetsAreFree: true,
+      costsNoPtAttempt: true,
     });
   });
 
@@ -215,20 +316,44 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({ crossCheck: true, diffTheFile: true, verifyByMutation: true });
   });
 
-  it('VALID: template => writes dispositions as it goes rather than batching to the end', () => {
+  it('VALID: template => writes batched per-unit sign-offs as it goes rather than at the end', () => {
     expect({
-      gate: /^### Gate 8: Record Dispositions As You Go \(do NOT batch to the end\)$/mu.test(
+      gate: /^### Gate 8: Record Sign-Offs As You Go \(do NOT batch to the end\)$/mu.test(
         siegemasterPromptStatics.prompt.template,
       ),
-      ledgerWrite: has('planningNotes: { qaLedger: ['),
-      whyNotBatch: has('a session that dies at slice four loses every'),
-      deferralNeedsDestination: has('**Deferral needs a DESTINATION.**'),
+      oneCallPerArtifact: has(
+        "ONE `modify-quest` call\ncarrying every sign-off from that artifact, patching the units' own elements",
+      ),
+      signoffWrite: has("{ id: 'OBS_1', siegemasterSignoff: { verdict: 'confirmed',"),
+      unconfirmableCarriesAQuestion: has(
+        "{ id: 'OBS_2', siegemasterSignoff: { verdict: 'unconfirmable',",
+      ),
+      offMapIdIsTheFamily: has(
+        "offMapSignoffs: [{ id: 'hostile-input', siegemasterSignoff: { ... } }]",
+      ),
+      idPlusSignoffOnly: has(
+        '**A signing element carries ONLY its `id` plus the sign-off field.**',
+      ),
+      transformerRejectsExtras: has('A transformer REJECTS anything\nelse on it'),
+      transformerRejectsUnknownUnits: has(
+        'REJECTS a sign-off written against a unit id that does not already exist',
+      ),
+      batchNeverDrip: has('**Batch, never drip.**'),
+      whyNotBatch: has('a session that dies at slice\nfour loses every sign-off it earned'),
+      findingNeedsDestination: has('**A finding needs a DESTINATION.**'),
       askUserQuestionCaveat: has('does NOT apply to you.**'),
     }).toStrictEqual({
       gate: true,
-      ledgerWrite: true,
+      oneCallPerArtifact: true,
+      signoffWrite: true,
+      unconfirmableCarriesAQuestion: true,
+      offMapIdIsTheFamily: true,
+      idPlusSignoffOnly: true,
+      transformerRejectsExtras: true,
+      transformerRejectsUnknownUnits: true,
+      batchNeverDrip: true,
       whyNotBatch: true,
-      deferralNeedsDestination: true,
+      findingNeedsDestination: true,
       askUserQuestionCaveat: true,
     });
   });
@@ -240,10 +365,31 @@ describe('siegemasterPromptStatics', () => {
       ),
       minionName: has('`siegemaster-test-audit-minion`'),
       parallelSafe: has('These may run in PARALLEL'),
+      mutationOnly: has('**They are MUTATION-ONLY and they author nothing.**'),
+      authoringIsFlowriders: has(
+        "Test authoring is Flowrider's lane, and a\nsession that writes a test and then grades it has graded its own homework.",
+      ),
+      holesBecomeNotes: has(
+        "**`COVERAGE HOLES`** — a unit with no honest test. Record each as a `questNotes` entry\n  (`kind: 'out-of-scope'`, or `'open-question'` when what the test should assert is genuinely\n  unsettled)",
+      ),
+      defectsReenterTheLoop: has(
+        '**Suspected behaviour defects** — these re-enter the walk loop like any other finding',
+      ),
+      noteNeverClosesAUnit: has('**A `questNotes` entry never closes a unit.**'),
       protocol: /^## Test-Audit Minion Delegation Protocol$/mu.test(
         siegemasterPromptStatics.prompt.template,
       ),
-    }).toStrictEqual({ gate: true, minionName: true, parallelSafe: true, protocol: true });
+    }).toStrictEqual({
+      gate: true,
+      minionName: true,
+      parallelSafe: true,
+      mutationOnly: true,
+      authoringIsFlowriders: true,
+      holesBecomeNotes: true,
+      defectsReenterTheLoop: true,
+      noteNeverClosesAUnit: true,
+      protocol: true,
+    });
   });
 
   it('VALID: template => ends by recomputing the checklist and letting that decide the signal', () => {
@@ -251,7 +397,10 @@ describe('siegemasterPromptStatics', () => {
       gate: /^### Gate 10: Ward, Teardown, Commit, Signal \(BLOCKING\)$/mu.test(
         siegemasterPromptStatics.prompt.template,
       ),
-      oneLastCall: has('Call `get-qa-checklist` ONE LAST TIME'),
+      oneLastCall: has("Call `get-qa-checklist` ONE LAST TIME **with `track: 'siegemaster'`**"),
+      countIsPerTrack: has(
+        "It is measured against your track alone — Flowrider's sign-offs neither raise nor\nlower it.",
+      ),
       numberDecides: has('your recollection, decides your signal.'),
       gateIsNotABug: has('not a bug to work around — it is the gate doing its job.'),
       allowEmpty: has('`git commit --allow-empty`'),
@@ -259,6 +408,7 @@ describe('siegemasterPromptStatics', () => {
     }).toStrictEqual({
       gate: true,
       oneLastCall: true,
+      countIsPerTrack: true,
       numberDecides: true,
       gateIsNotABug: true,
       allowEmpty: true,
@@ -271,7 +421,9 @@ describe('siegemasterPromptStatics', () => {
       protocol: /^## Walker Minion Delegation Protocol$/mu.test(
         siegemasterPromptStatics.prompt.template,
       ),
-      minionFetch: has("get-agent-prompt({ agent: 'siegemaster-minion', questId: 'QUEST_ID' })"),
+      minionFetch: has(
+        "get-agent-prompt({ agent: 'siegemaster-walker-minion', questId: 'QUEST_ID' })",
+      ),
       noWorkItemId: has('minion-fetch, **NO'),
       onlyContext: has('**Your spawn message is the ONLY quest context it gets.**'),
       quoteVerbatim: has('**Quote the unit text verbatim from the checklist**'),
@@ -301,11 +453,15 @@ describe('siegemasterPromptStatics', () => {
       heading: /^## Rules$/mu.test(siegemasterPromptStatics.prompt.template),
       askTheTool: has('1. **Ask the tool, do not enumerate**'),
       freshWalkerRule: has('7. **A fresh walker verifies a fix, never the walker that made it**'),
-      signalRule: has('14. **Your signal is what the checklist says, not what you remember**'),
+      resetRule: has("12. **Reset the flow's track after a fix, then re-walk**"),
+      signalRule: has(
+        '15. **Your signal is the remaining count on YOUR track, not what you remember**',
+      ),
     }).toStrictEqual({
       heading: true,
       askTheTool: true,
       freshWalkerRule: true,
+      resetRule: true,
       signalRule: true,
     });
   });

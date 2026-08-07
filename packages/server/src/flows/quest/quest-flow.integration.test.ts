@@ -1,11 +1,15 @@
 import {
+  FlowEdgeStub,
   FlowNodeStub,
+  FlowObservableStub,
   FlowStub,
   QuestCommentStub,
   QuestIdStub,
+  QuestNoteStub,
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
+  SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -112,6 +116,173 @@ describe('QuestFlow', () => {
       const response = await app.request(`/api/quests/${questId}/ward-results/${wardResultId}`);
 
       expect(response.status).toBe(404);
+    });
+  });
+
+  // The summary is COMPUTED from the persisted flow graph, not stored — so the only way to prove
+  // the route returns real numbers (rather than an empty envelope that happens to be 200) is to
+  // drive a real HTTP request against a real quest.json whose graph the counts can be derived from
+  // by hand. The seeded flow is deliberately mixed: a Siegemaster-added observable (which Flowrider
+  // can never sign, so it must be absent from Flowrider's three numbers and present in
+  // midQuestObservables), a confirmed terminal, an unconfirmable terminal on the other track, an
+  // unsigned labelled branch, and one note of each of two kinds.
+  describe('GET /api/quests/:questId/summary', () => {
+    it('VALID: {quest with one signed terminal, one siegemaster-added observable, an unsigned branch and two notes} => 200 carrying per-track counts, the drift row, the unconfirmable debt and every note group', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-summary-get' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const questId = 'server-http-summary-quest';
+      const questFolder = '001-server-http-summary-quest';
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
+      const flowriderConfirmed = SignoffStub({
+        evidence: 'packages/web/src/flows/login/login.e2e.ts:31 — red without the redirect',
+      });
+      const siegemasterUnconfirmable = SignoffStub({
+        verdict: 'unconfirmable',
+        evidence: 'the sandbox refuses to bind port 3737, so no browser can reach the app',
+        question: 'Which port should the sandbox dev server use?',
+        at: '2026-01-02T00:00:00.000Z',
+      });
+      const openQuestionNote = QuestNoteStub({
+        id: 'open-question-anchor-scope',
+        kind: 'open-question',
+      });
+      const toolingErrorNote = QuestNoteStub({
+        id: 'tooling-error-ward-oom',
+        kind: 'tooling-error',
+      });
+
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [
+          FlowNodeStub({
+            id: 'login-page' as never,
+            label: 'Login Page' as never,
+            observables: [
+              FlowObservableStub({
+                id: 'crash-on-bleh' as never,
+                type: 'api-call' as never,
+                description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
+                addedBy: 'siegemaster' as never,
+              }),
+            ],
+          }),
+          FlowNodeStub({
+            id: 'dashboard' as never,
+            label: 'Dashboard' as never,
+            flowriderSignoff: flowriderConfirmed,
+            siegemasterSignoff: siegemasterUnconfirmable,
+          }),
+        ],
+        edges: [
+          FlowEdgeStub({
+            id: 'e-success' as never,
+            from: 'login-page' as never,
+            to: 'dashboard' as never,
+            label: 'success' as never,
+          }),
+        ],
+      });
+      const quest = QuestStub({
+        id: questId as never,
+        folder: questFolder as never,
+        status: 'in_progress' as never,
+        flows: [flow],
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [openQuestionNote, toolingErrorNote],
+        },
+      });
+
+      harness.seedQuest({ dungeonmasterHome, guildId, questFolder, quest });
+
+      const app = QuestFlow();
+      const response = await app.request(`/api/quests/${questId}/summary`);
+      const body: unknown = await response.json();
+
+      restore();
+
+      // login-flow is runtime, so both tracks measure it. Units: 1 terminal (dashboard, the only
+      // node with no outgoing edge) + 1 labelled branch (e-success) + 1 observable + 7 off-map
+      // families. Flowrider sheds the off-map families AND the siegemaster-added observable,
+      // leaving terminal (confirmed) + branch (outstanding). Siegemaster keeps all 10, of which
+      // the terminal is unconfirmable and the other 9 are outstanding.
+      expect(response.status).toBe(200);
+      expect(harness.toPlain(body)).toStrictEqual({
+        questId,
+        flows: [
+          {
+            id: 'login-flow',
+            name: 'Login Flow',
+            flowType: 'runtime',
+            tracks: [
+              { id: 'flowrider', confirmed: 1, unconfirmable: 0, outstanding: 1 },
+              { id: 'siegemaster', confirmed: 0, unconfirmable: 1, outstanding: 9 },
+            ],
+          },
+        ],
+        midQuestObservables: [
+          {
+            id: 'login-flow:observable:crash-on-bleh',
+            flowId: 'login-flow',
+            nodeId: 'login-page',
+            observableId: 'crash-on-bleh',
+            addedBy: 'siegemaster',
+            observableType: 'api-call',
+            description: 'POST /api/auth/login returns 400 for a non-JSON body',
+          },
+        ],
+        unconfirmable: [
+          {
+            id: 'login-flow:terminal:dashboard:siegemaster',
+            unitId: 'login-flow:terminal:dashboard',
+            flowId: 'login-flow',
+            kind: 'terminal',
+            track: 'siegemaster',
+            signoff: harness.toPlain(siegemasterUnconfirmable),
+          },
+        ],
+        noteGroups: [
+          { id: 'open-question', notes: [harness.toPlain(openQuestionNote)] },
+          { id: 'tooling-error', notes: [harness.toPlain(toolingErrorNote)] },
+          { id: 'out-of-scope', notes: [] },
+          { id: 'walk-reset', notes: [] },
+        ],
+      });
+    });
+
+    // A REAL guilds tree holding a REAL other quest, so the 404 proves "this quest is in no guild"
+    // rather than "the home dir does not exist" — those are different failures and only the first
+    // one is what a browser asking for a deleted quest actually hits.
+    it('VALID: {questId absent from a populated guilds tree} => delegates to QuestSummaryResponder and returns 404 rather than an empty summary', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-summary-missing' });
+      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
+      harness.seedQuest({
+        dungeonmasterHome,
+        guildId,
+        questFolder: '001-server-http-summary-decoy',
+        quest: QuestStub({
+          id: 'server-http-summary-decoy' as never,
+          folder: '001-server-http-summary-decoy' as never,
+        }),
+      });
+
+      const app = QuestFlow();
+      const questId = QuestIdStub({ value: 'server-http-summary-gone' });
+
+      const response = await app.request(`/api/quests/${questId}/summary`);
+      const body: unknown = await response.json();
+
+      restore();
+
+      expect(response.status).toBe(404);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'Quest with id "server-http-summary-gone" not found in any guild',
+      });
     });
   });
 

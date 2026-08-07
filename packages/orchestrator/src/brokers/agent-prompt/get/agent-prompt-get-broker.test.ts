@@ -10,8 +10,8 @@ import {
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { chaoswhispererGapMinionStatics } from '../../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { flowriderMinionStatics } from '../../../statics/flowrider-minion/flowrider-minion-statics';
-import { siegemasterMinionStatics } from '../../../statics/siegemaster-minion/siegemaster-minion-statics';
+import { flowriderAuthoringMinionStatics } from '../../../statics/flowrider-authoring-minion/flowrider-authoring-minion-statics';
+import { siegemasterWalkerMinionStatics } from '../../../statics/siegemaster-walker-minion/siegemaster-walker-minion-statics';
 import { codeweaverPromptStatics } from '../../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../../statics/flowrider-prompt/flowrider-prompt-statics';
 import { siegemasterPromptStatics } from '../../../statics/siegemaster-prompt/siegemaster-prompt-statics';
@@ -429,8 +429,8 @@ describe('agentPromptGetBroker', () => {
     });
 
     it.each([
-      ['flowrider-minion', flowriderMinionStatics] as const,
-      ['siegemaster-minion', siegemasterMinionStatics] as const,
+      ['flowrider-authoring-minion', flowriderAuthoringMinionStatics] as const,
+      ['siegemaster-walker-minion', siegemasterWalkerMinionStatics] as const,
     ])(
       'VALID: {agent: %s, questId, no workItemId} => resolves as a minion instead of demanding a workItemId',
       async (agent, statics) => {

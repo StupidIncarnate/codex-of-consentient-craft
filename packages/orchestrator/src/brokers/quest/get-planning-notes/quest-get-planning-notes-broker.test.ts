@@ -14,7 +14,12 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({ blightLedger: [], blightReports: [], qaLedger: [] });
+      expect(result).toStrictEqual({
+        blightLedger: [],
+        blightReports: [],
+        qaLedger: [],
+        questNotes: [],
+      });
     });
 
     it('VALID: {questId, fully populated planningNotes} => returns full object', async () => {
@@ -31,7 +36,12 @@ describe('questGetPlanningNotesBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(result).toStrictEqual({ blightLedger: [], blightReports: [blight], qaLedger: [] });
+      expect(result).toStrictEqual({
+        blightLedger: [],
+        blightReports: [blight],
+        qaLedger: [],
+        questNotes: [],
+      });
     });
   });
 

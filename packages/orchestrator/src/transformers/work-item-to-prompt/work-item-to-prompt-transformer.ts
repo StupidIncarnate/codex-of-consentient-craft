@@ -2,15 +2,20 @@
  * PURPOSE: Builds the fully-substituted agent prompt the MCP `get-agent-prompt` tool serves
  * for a dispatched agent session. Resolves the work item's `operations/<id>` ref into its
  * operation item and substitutes `$ARGUMENTS` in the role's prompt template with the operation
- * context: the item being worked, the full operations ledger (the agent verifies it is the right
+ * context: the item being worked, the operations ledger (the agent verifies it is the right
  * next step against git before trusting it), and role-specific extras (dev server for siegemaster,
  * the failed ward result for spiritmender).
  *
+ * The ledger render is bounded by `operationsLedgerRenderStatics` so the served MCP block stays
+ * under `mcpToolResultStatics.maxVerbatimChars`. Oldest COMPLETED items are elided first and
+ * replaced by one notice line naming the exact count and pointing at `get-quest`; the agent's own
+ * item and every `in_progress` / `pending` item are always rendered.
+ *
  * **Path discrimination — minion vs role:** the agent name is run through
  * `workItemRoleContract.safeParse`. If it fails (e.g. `chaoswhisperer-gap-minion`,
- * `codeweaver-minion`, `flowrider-minion`, `siegemaster-minion`), the agent is parent-dispatched via
- * the Agent tool and receives a minimal "Quest ID + Work Item ID" substitution; the parent briefs
- * task context inline. Blightwarden minions and pesteater own their work items but read the
+ * `codeweaver-piece-minion`, `flowrider-authoring-minion`, `siegemaster-walker-minion`), the agent
+ * is parent-dispatched via the Agent tool and receives a minimal "Quest ID + Work Item ID"
+ * substitution; the parent briefs task context inline. Blightwarden minions and pesteater own their work items but read the
  * quest/diff themselves, so they also take the minimal branch.
  *
  * Every parent prompt instructs its minion to fetch with `{ agent, questId }` and NO `workItemId`,
@@ -39,6 +44,7 @@ import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentRoleContract } from '../../contracts/agent-role/agent-role-contract';
 import { isBlightwardenMinionRoleGuard } from '../../guards/is-blightwarden-minion-role/is-blightwarden-minion-role-guard';
+import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
 import type { DevCommand } from '../../contracts/dev-command/dev-command-contract';
 import type { DevServerUrl } from '../../contracts/dev-server-url/dev-server-url-contract';
 import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name-to-prompt-transformer';
@@ -112,14 +118,55 @@ export const workItemToPromptTransformer = ({
     );
   }
 
-  const ledgerLines = quest.operations.map((operation, index) => {
+  // Bound the ledger render. The ledger is the one term in this block that grows without bound —
+  // every `operationStatus: 'partial'` outcome appends a `pt N` continuation — and the block ships
+  // through MCP, which SPILLS a tool result over `mcpToolResultStatics.maxVerbatimChars` to a file
+  // and hands the agent an error stub instead. A prompt that loses its tail loses its gates and
+  // numbered rules, so an over-budget block de-gates the agent silently.
+  //
+  // Elision runs from the OLDEST COMPLETED end only, and never touches the agent's own item or any
+  // `in_progress` / `pending` item: a long tail of settled work from earlier in the relay carries
+  // the least decision value, while an agent that cannot see the work still ahead of it cannot
+  // verify it is the right next step. What survives keeps its original ordering AND its original
+  // 1-based position, so the gap in the numbering is itself visible.
+  const elidableCompletedIndexes = quest.operations.flatMap((operation, index) =>
+    operation.status === 'complete' && operation.id !== linkedOperation.id ? [index] : [],
+  );
+  const alwaysRenderedCount = quest.operations.length - elidableCompletedIndexes.length;
+  const recentCompletedSlots = Math.max(
+    operationsLedgerRenderStatics.maxRenderedItems - alwaysRenderedCount,
+    operationsLedgerRenderStatics.minRecentCompleteItems,
+  );
+  const elidedIndexes = elidableCompletedIndexes.slice(
+    0,
+    Math.max(elidableCompletedIndexes.length - recentCompletedSlots, 0),
+  );
+  const elidedIndexSet = new Set(elidedIndexes);
+  const [firstElidedIndex] = elidedIndexes;
+
+  const ledgerLines = quest.operations.flatMap((operation, index) => {
+    // One notice stands in for the whole elided run, at the position of its first item. It names the
+    // exact count and where the rest lives: a silent gap reads to an agent as "this is the whole
+    // ledger", which is how a session concludes that work it never saw does not exist.
+    if (elidedIndexSet.has(index)) {
+      return index === firstElidedIndex
+        ? [
+            contentTextContract.parse(
+              `... ${String(elidedIndexes.length)} earlier complete operation item${elidedIndexes.length === 1 ? '' : 's'} elided to fit the prompt budget — call get-quest({ questId, stage: 'implementation' }) for the full ledger.`,
+            ),
+          ]
+        : [];
+    }
+
     const marker =
       operation.status === 'complete' ? '[x]' : operation.status === 'in_progress' ? '[>]' : '[ ]';
     const wardMode = operation.wardMode === undefined ? '' : ` ${operation.wardMode}`;
     const yours = operation.id === linkedOperation.id ? '  <-- YOUR OPERATION ITEM' : '';
-    return contentTextContract.parse(
-      `${String(index + 1)}. ${marker} [${operation.role}${wardMode}] ${String(operation.text)}${yours}`,
-    );
+    return [
+      contentTextContract.parse(
+        `${String(index + 1)}. ${marker} [${operation.role}${wardMode}] ${String(operation.text)}${yours}`,
+      ),
+    ];
   });
 
   const parts: ContentText[] = [

@@ -16,6 +16,7 @@ export const webConfigStatics = {
       questsQueue: '/api/quests/queue',
       questById: '/api/quests/:questId',
       questWardDetail: '/api/quests/:questId/ward-results/:wardResultId',
+      questSummary: '/api/quests/:questId/summary',
       guildSessions: '/api/guilds/:guildId/sessions',
       sessionChatHistory: '/api/sessions/:sessionId/chat/history',
       questNew: '/api/guilds/:guildId/quests',

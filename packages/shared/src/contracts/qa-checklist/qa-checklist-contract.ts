@@ -12,9 +12,10 @@
  *
  * This is the shape the `get-qa-checklist` MCP tool returns. `items` is produced by walking
  * `quest.flows` with no model in the loop, so it cannot summarise, skip a long tail, or lose
- * fidelity on a 45-observable flow. `remainingItemIds` is the difference between that list and
- * `quest.planningNotes.qaLedger`, which is what makes completion a computed fact: a session asks
- * what is left rather than recalling what it did.
+ * fidelity on a 45-observable flow. `remainingItemIds` is what that list still owes the CALLING
+ * verification track — the units carrying no sign-off in that track's own field — which is what
+ * makes completion a computed fact: a session asks what is left rather than recalling what it did,
+ * and reads the very number that will refuse its `done`.
  */
 
 import { z } from 'zod';
@@ -48,7 +49,7 @@ export const qaChecklistContract = z.object({
     .array(qaChecklistItemIdContract)
     .default([])
     .describe(
-      'The units carrying no entry in quest.planningNotes.qaLedger. Empty is the only state in which a siegemaster operation item may report `done`.',
+      "The units still outstanding for the track that asked. Named a `track` and these are the units carrying no `flowriderSignoff` / `siegemasterSignoff` — the two tracks are independent, so a unit the other track has signed is still outstanding for yours. Empty is the only state in which that track's operation item may report `done`; `confirmed` and `unconfirmable` both clear a unit, so it always empties honestly.",
     ),
 });
 

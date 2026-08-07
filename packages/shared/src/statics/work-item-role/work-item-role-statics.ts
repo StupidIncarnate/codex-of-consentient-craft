@@ -25,7 +25,7 @@
  * - `flowrider` — verify operator that authors the flow-perspective test suites.
  * - `siegemaster` — verify operator that hand-walks each flow; one item per flow.
  * - `blightwarden` — verify operator running the whole-diff standards audit.
- * - `blightwarden-minion` / `blightwarden-crosscut-minion` — blightwarden's sub-agents.
+ * - `blightwarden-group-minion` / `blightwarden-crosscut-minion` — blightwarden's sub-agents.
  * - `pesteater` — bug-hunt implementation: writes a failing test first, then fixes it.
  */
 
@@ -39,7 +39,7 @@ export const workItemRoleStatics = {
     'spiritmender',
     'flowrider',
     'siegemaster',
-    'blightwarden-minion',
+    'blightwarden-group-minion',
     'blightwarden-crosscut-minion',
     'blightwarden',
     'pesteater',

@@ -9,7 +9,7 @@
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
-import type { SlotIndex } from '../../../contracts/slot-index/slot-index-contract';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';

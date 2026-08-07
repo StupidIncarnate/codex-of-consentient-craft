@@ -63,11 +63,18 @@ reached only when a bounded loop is spent.
   ward continuation (with a spiritmender spliced in ahead of it — see "The sad paths in detail" § (b)); a run that
   comes back green ends the chain. Convergence IS the verdict: a fresh run that came back green is acceptance.
 - **Operator convergence** — `flowrider`, `siegemaster`, and `blightwarden` do NOT use the fixpoint. They signal on
-  remaining SCOPE: `done` once every unit in scope carries a disposition (an observable on a flow for
-  flowrider/siegemaster; a changed-file × concern unit on the diff for blightwarden), `partial` only when a named
-  remainder is left. An operator delegates to minions and then re-reads the files they wrote, so it already IS the
-  fresh pair of eyes a `pt N` session would supply — authoring a test, walking a path, or landing a fix is the job,
-  not a reason to respawn the role.
+  remaining SCOPE, measured **per track**: `done` once every unit in scope is settled on that role's OWN track
+  (`flowriderSignoff` for flowrider, `siegemasterSignoff` for siegemaster, a `blightLedger` disposition for
+  blightwarden), `partial` only when a named remainder is left. Verdicts are per role; **there is no aggregate
+  status** and no unit-level "done" that both roles share. An operator delegates to minions and then re-reads the
+  files they wrote, so it already IS the fresh pair of eyes a `pt N` session would supply — authoring a test, walking
+  a path, or landing a fix is the job, not a reason to respawn the role.
+- **Sign-off** — `{ verdict, evidence, question?, workItemId, at }` on a verification unit, where `verdict` is
+  `confirmed | unconfirmable`. Two independent top-level fields per unit, one per track. See "The two verification
+  tracks" below.
+- **Quest note** (`quest.planningNotes.questNotes[]`) — `{ id, kind, role, workItemId, flowId?, unitId?, summary,
+  detail, at }` with `kind` one of `open-question | tooling-error | out-of-scope | walk-reset`. A durable side channel
+  beside the tracks. **A note NEVER closes a unit.**
 - **Git is the record of what was built.** The ledger is the plan/status; commit messages are the
   cross-session handoff. A stale ledger self-heals because the next agent verifies against git first.
 
@@ -106,8 +113,13 @@ pesteater
 `flowrider` is an **operator** role: the registry declares one tail entry, and `questBuildRelayGraphBroker` seeds
 exactly ONE operation item carrying EVERY quest flow id in `flowIds` (a quest with no flows gets an empty list). One
 session owns all of a quest's flows and delegates across them internally, so it has exactly one pt-continuation chain.
+Its GATE, though, is narrower than its `flowIds`: the `flowrider` track counts RUNTIME flows only, because an
+operational flow is a one-time task sequence whose end state Siegemaster hand-checks and which no test can assert.
 `siegemaster` is also an **operator**, but fans out to ONE OPERATION ITEM PER FLOW instead — each carries a single
-`flowId`, so each flow gets its own pt-continuation chain (a flow-less quest still gets exactly one siegemaster item).
+`flowId`, so each flow gets its own pt-continuation chain. Its track counts runtime and operational flows alike, plus
+the seven off-map probe families, which Flowrider's denominator excludes. A flow-less quest still gets exactly one
+siegemaster item, because those off-map families — `hostile-input` and `perf` above all — are where the quest's
+security and performance are established at all, and they belong to no drawn flow.
 
 `blightwarden` is also an **operator**, staying **ONE** operation item, self-scoping over the **whole** diff — there
 is no per-package chunking in the ledger. Bug-hunt reuses the same flow/observable spec lifecycle (the reproduction
@@ -203,12 +215,13 @@ Trace one feature quest end to end.
    `quest-run-ward-broker` (see the ward path below).
 
 7. **Verify/review roles** run in tail order — `flowrider`, `siegemaster`, then `blightwarden`. All three are
-   **operators**: `flowrider` and `blightwarden` each run one session over every quest flow / the whole diff and
-   signal `done` once every unit in scope carries a disposition; `siegemaster` runs one session PER flow, each
-   signalling on that flow's own scope. Each role's chain is keyed on role + base text — `flowrider` and
-   `blightwarden` hold exactly one chain for the whole quest, `siegemaster` holds one PER flow. After `blightwarden`
-   converges, `ward(full)` runs; on green, no `pending` operation item remains and the operation-aware status
-   transformer derives `complete`.
+   **operators**: `flowrider` and `blightwarden` each run one session over the quest's runtime flows / the whole diff
+   and signal `done` once every unit in scope is settled on their own track; `siegemaster` runs one session PER flow,
+   each signalling on that flow's own scope and its own track. The two flow tracks are INDEPENDENT — Flowrider
+   signing a unit does nothing to Siegemaster's gate, and vice versa. Each role's chain is keyed on role + base
+   text — `flowrider` and `blightwarden` hold exactly one chain for the whole quest, `siegemaster` holds one PER flow.
+   After `blightwarden` converges, `ward(full)` runs; on green, no `pending` operation item remains and the
+   operation-aware status transformer derives `complete`.
 
 ---
 
@@ -292,29 +305,109 @@ chain is keyed on role + base text. `flowrider` and `blightwarden` each hold exa
 exactly one budget for the whole quest; `siegemaster` holds one tail item PER FLOW (its text carries the flow id), so
 each flow gets its own budget. The continuation carries the same `flowIds`.
 
-All three are **operators** and signal on remaining **scope**, never on whether a pass changed code:
+All three are **operators** and signal on remaining **scope**, never on whether a pass changed code. Each role asks ONE
+question and answers only its own:
 
-- **`flowrider` and `siegemaster`** signal `done` once every observable on their scope carries a disposition — every
-  flow for `flowrider`, the one flow a given `siegemaster` item owns. `partial` only when a named remainder is left.
-  Each delegates bundles/walks to minions and then re-reads the files they wrote, so it already is the fresh pair of
-  eyes a `pt N` session would supply — writing a test, walking a path, or landing a fix is the job, not a reason to
-  respawn the role.
-- **`blightwarden`** signals `done` once every changed-file × concern unit on the quest diff carries a disposition
-  (`get-blight-checklist`, measured from the quest's pinned `baseRef`). `partial` only when a named remainder is left.
-  It dispatches `blightwarden-minion` / `blightwarden-crosscut-minion` sub-agents and re-reads what they wrote before
-  recording a disposition — same shape as the flow operators, closing a finding is not by itself grounds for another
-  pass.
+- **`flowrider` — is every observable proven by a test?** Its scope is the quest's RUNTIME flows. It signals `done`
+  once every unit there carries a `flowriderSignoff`. It delegates each bundle to a `flowrider-authoring-minion`, then dispatches
+  ONE `flowrider-coverage-minion` — the only writer of that track, because the minion that wrote a test cannot be the
+  one that certifies it — and signs, itself, any observable it adds at its own final spec gate, which runs after the
+  audit.
+- **`siegemaster` — does it hold when a human drives the real system, and can I break it?** Its scope is the ONE flow
+  its item names, runtime or operational, plus the SEVEN off-map breakage families it owns: `re-entry`,
+  `concurrency`, `interruption`, `staleness`, `configuration`, `hostile-input`, `perf`. `hostile-input` is where this
+  quest's security is established and `perf` is where its performance is measured, both off the running system. It
+  signals `done` once every unit on that flow carries a `siegemasterSignoff`.
+- **`blightwarden` — is the changed CODE well-made?** Its scope is every changed-file × concern unit on the quest diff
+  (`get-blight-checklist`, measured from the pinned `baseRef`), across FOUR concerns: `craft`, `perf`, `dedup`,
+  `integrity`. It signals `done` once every unit carries a `blightLedger` disposition. It dispatches
+  `blightwarden-group-minion` groups, then `blightwarden-crosscut-minion` alone, then `blightwarden-deadcode-minion` alone
+  and last, and re-reads what each wrote before recording a disposition. Closing a finding is not by itself grounds
+  for another pass.
 
-| Role             | Happy (`done`)                                                                                          | Sad (`partial`)                                                                       |
+| Role             | Happy (`done`)                                                                                            | Sad (`partial`)                                                                       |
 |------------------|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| **Flowrider**    | advance → `siegemaster` (every observable dispositioned)                                                  | `pt N` continuation → fresh flowrider pass, named remainder (bounded)                    |
-| **Siegemaster**  | advance → the next `siegemaster` item, or `blightwarden` on the last one (every observable dispositioned) | `pt N` continuation → fresh siegemaster pass for that flow, named remainder (bounded)    |
+| **Flowrider**    | advance → `siegemaster` (every runtime-flow unit carries a `flowriderSignoff`)                            | `pt N` continuation → fresh flowrider pass, named remainder (bounded)                    |
+| **Siegemaster**  | advance → the next `siegemaster` item, or `blightwarden` on the last one (every unit on that flow carries a `siegemasterSignoff`) | `pt N` continuation → fresh siegemaster pass for that flow, named remainder (bounded)    |
 | **Blightwarden** | advance → `ward(full)` (every review unit dispositioned)                                                  | `pt N` continuation → fresh blightwarden pass, named remainder (bounded)                 |
 
+**`unconfirmable` is not `partial`.** A unit no session of that role could ever settle is signed `unconfirmable` with
+its question and the pass moves on. Handing it to a `pt N` continuation instead burns the chain to
+`slotManagerStatics.<role>.maxAttempts` on sessions that provably cannot close it, and then blocks the quest with the
+unit still open. `partial` is for scope a fresh session really could finish.
+
 > `blightwarden` is a single operation item that audits cross-cutting concerns across the whole diff.
-> (The `work-item-role-contract` additionally defines `blightwarden-minion` and `blightwarden-crosscut-minion` roles;
-> the relay tail seeds only one `blightwarden` operation item, so the minions are not relay stages — they are an
-> in-session concern of the blightwarden prompt, not documented here.)
+> (The `work-item-role-contract` additionally defines the `blightwarden-*-minion` roles; the relay tail seeds only one
+> `blightwarden` operation item, so the minions are not relay stages — they are an in-session concern of the
+> blightwarden prompt, not documented here.)
+
+### The two verification tracks
+
+Every verification unit — each terminal, each labelled branch, each observable, and each off-map probe family — carries
+**two independent top-level sign-offs**:
+
+| Field | Written by | Answers |
+|---|---|---|
+| `flowriderSignoff` | `flowrider-coverage-minion`, plus the Flowrider operator for units it adds at its own spec gate | is this proven by a test? |
+| `siegemasterSignoff` | the Siegemaster operator, per artifact its walkers return | does this hold when a human drives the real system? |
+
+Each is `{ verdict, evidence, question?, workItemId, at }` and each `verdict` is one of exactly TWO values:
+
+- **`confirmed`** — Flowrider: a test `file:line` PLUS what makes that test fail (the production line broken, the
+  assertion that went red). Siegemaster: the value measured off the running system.
+- **`unconfirmable`** — genuinely unable to settle it after real effort. `evidence` says what was tried; a `question`
+  is REQUIRED and the contract refuses the verdict without one.
+
+**A unit is done when BOTH tracks have signed it.** Both verdicts CLEAR the gate; what the gate refuses is the ABSENCE
+of a sign-off. The two denominators differ, and the difference is DATA in `signoffTrackEligibilityStatics` rather than
+role branches in the gate: Flowrider's excludes the off-map families (Siegemaster's charter — breakage classes a flow
+graph cannot draw) and excludes observables whose `addedBy` is `siegemaster` (a role that runs strictly after it).
+
+**A measured defect is a NEW observable, not a third verdict.** An observable is a positive expectation; "send it
+`bleh` and the server crashes instead of returning 400" is the INVERSE expectation, so it is ADDED to the flow through
+the additive spec authority both roles hold, and then carries its own two sign-offs. If it cannot be closed this
+session it sits `unconfirmable` with the reason. There is no `defect`, `deferred`, `gap` or `recorded` verdict.
+
+**Provenance is a separate axis.** `addedBy` on the observable (`spec | chaoswhisperer | codeweaver | flowrider |
+siegemaster | operator`) answers "was this in the spec at approval, or added mid-quest, and by whom" — never whether
+the unit is settled.
+
+**Sign-offs are written via `modify-quest`, batched.** One call patches `{ id, <track>Signoff }` on many elements at
+once — observables, nodes, edges, and `offMapSignoffs` entries (whose `id` IS the probe family). A signing element may
+carry ONLY `id` plus the sign-off field: a transformer rejects anything else on it, and rejects a sign-off written
+against a unit id that does not already exist. One call per unit is refused by policy, not by the schema — a 45-unit
+flow signed singly is 45 quest writes, 45 outbox appends and 45 browser refetches of a growing file.
+
+`get-qa-checklist` takes a `track` param. With `track: 'flowrider'` and no `flowId` it returns RUNTIME flows only, and
+its `remainingItemIds` is the per-track sign-off difference — the same set the completion gate recomputes.
+
+### The reset lever
+
+`reset-flow-signoffs({ questId, workItemId, flowId, reason })` clears **Siegemaster's** track across ONE flow and
+appends a `walk-reset` note to `quest.planningNotes.questNotes`. **Flowrider's track is untouched by it.**
+
+It exists because a sign-off is a measurement of a system at a moment. When Siegemaster fixes a defect mid-walk, every
+sign-off already written on that flow describes the code as it stood BEFORE the repair — each is now a claim about a
+system that no longer exists. The operator resets and re-walks rather than shipping a track full of measurements of
+deleted behaviour.
+
+**Resets are FREE within a session**: they cost no pt-chain attempt and carry no failure semantics. The `walk-reset`
+note is what makes the reset auditable after the session ends.
+
+### `questNotes` — the durable side channel
+
+`quest.planningNotes.questNotes[]` holds `{ id, kind, role, workItemId, flowId?, unitId?, summary, detail, at }`, with
+`kind` one of:
+
+| Kind | For |
+|---|---|
+| `open-question` | something genuinely unsettled that a later session or a human must answer |
+| `tooling-error` | a tool or harness that failed in a way the quest's own code cannot fix |
+| `out-of-scope` | a real finding this role has no authority to close — e.g. a coverage hole a mutation-only audit surfaced |
+| `walk-reset` | appended by `reset-flow-signoffs`, recording that a flow's Siegemaster track was cleared and why |
+
+**A note NEVER closes a unit.** Only a sign-off does. A note is how information that is not a verdict survives the
+session that found it.
 
 ### Command
 
@@ -501,8 +594,18 @@ dispatchable while the wreckage is still in place.
   yet run" window).
 - **REL-6 — Duplicate-on-partial.** `partial` → operation `complete` + a `pt N` continuation → a fresh work item. A
   locked role's chain is bounded. What earns `done` is role-dependent: for `ward` it is a fresh run that came back
-  green; for the operator roles (`flowrider`, `siegemaster`, `blightwarden`) it is a checklist (observable ledger or
-  blight ledger) with no undispositioned unit left.
+  green; for `flowrider` and `siegemaster` it is that role's OWN track carrying a sign-off on every unit in its own
+  denominator; for `blightwarden` it is a blight checklist with no undispositioned unit left. Both verdicts
+  (`confirmed`, `unconfirmable`) satisfy a track — the gate refuses ABSENCE, not honesty.
+- **REL-6a — The two flow tracks are independent.** `flowriderSignoff` and `siegemasterSignoff` gate different
+  operation items, and writing one never advances the other's gate. There is no aggregate per-unit status: a unit
+  signed by one track and not the other is a normal mid-quest state, and a `flowrider` item can be `done` while every
+  `siegemaster` item on the same flows is still outstanding.
+- **REL-6b — A reset clears one track on one flow.** `reset-flow-signoffs` removes `siegemasterSignoff` from every
+  unit of the named flow, leaves `flowriderSignoff` and every other flow untouched, and appends a `walk-reset`
+  `questNotes` entry. It consumes no pt-chain attempt.
+- **REL-6c — A note never closes a unit.** A `questNotes` entry of any `kind` leaves both tracks' remaining sets
+  unchanged; only a sign-off shrinks them.
 - **REL-7 — Idempotent signal.** A redelivered signal for an already-terminal work item is a no-op
   (no second `pt N`, no second advance side effect).
 
@@ -570,8 +673,10 @@ dispatchable while the wreckage is still in place.
 [DISPATCHER] Node/UI play button (or /dumpster-launch)
    ▼ codeweaver ×N (one session each)   → done → advance
    ▼ ward (changed)   [run-ward]        → green → advance
-   ▼ flowrider (all quest flows)        → done → advance     (bundles flows, delegates to minions)
-   ▼ siegemaster (one session per flow) → done → advance     (repeats per flow; walks via minions)
+   ▼ flowrider (all quest flows)        → done → advance     (bundles flows to authoring minions, then
+                                                              one coverage minion signs the flowrider track)
+   ▼ siegemaster (one session per flow) → done → advance     (repeats per flow; walks via minions,
+                                                              resets its own track after each fix)
    ▼ blightwarden                       → done → advance     (operator: get-blight-checklist gate)
    ▼ ward (full)      [run-ward]        → green → advance
    No pending operation item remains → workItemsToQuestStatusTransformer derives complete ✓

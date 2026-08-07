@@ -61,6 +61,11 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
         { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
       firstWorkItemId: FIRST_WORK_ITEM_ID,
+      // The advance target is driven to `done`, and signal-back refuses that while any verification
+      // unit on the quest's runtime flows carries no `flowriderSignoff`. Seed the sign-offs a real
+      // flowrider session writes before it signals, so the ward advance this spec is about is not
+      // masked by a refusal on the item it advances TO.
+      flowriderScopeSignedOff: true,
     });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
@@ -146,6 +151,11 @@ test.describe('Ward as an operation (advance on green, spiritmender-first recove
         { id: FLOW_OP, role: 'flowrider', text: 'verify flows', status: 'pending', locked: true },
       ],
       firstWorkItemId: FIRST_WORK_ITEM_ID,
+      // The tail item is driven to `done`, and signal-back refuses that while any verification unit
+      // on the quest's runtime flows carries no `flowriderSignoff`. Seed the sign-offs a real
+      // flowrider session writes before it signals, so the recovery ordering this spec is about is
+      // not masked by a refusal on the item the chain converges to.
+      flowriderScopeSignedOff: true,
     });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });

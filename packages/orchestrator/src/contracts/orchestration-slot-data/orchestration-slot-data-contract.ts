@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 import { agentRoleContract } from '../agent-role/agent-role-contract';
-import { slotIndexContract } from '../slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { slotStatusContract } from '../slot-status/slot-status-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 

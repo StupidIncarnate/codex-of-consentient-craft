@@ -1,11 +1,11 @@
 /**
- * PURPOSE: True when a work-item role is one of the five Blightwarden minion roles (the parallel
- *          report-only finders), false for the synthesizer `blightwarden` role and everything else.
- *          Used to batch the minions for parallel dispatch and to route their non-blocking failure
- *          semantics in the signal-back handler.
+ * PURPOSE: True when a work-item role is any Blightwarden minion role (the parallel report-only
+ *          finders in `blightwardenMinionRolesStatics`), false for the synthesizer `blightwarden`
+ *          role and everything else. Used to batch the minions for parallel dispatch and to route
+ *          their non-blocking failure semantics in the signal-back handler.
  *
  * USAGE:
- * isBlightwardenMinionRoleGuard({ role: 'blightwarden-security-minion' });
+ * isBlightwardenMinionRoleGuard({ role: 'blightwarden-group-minion' });
  * // Returns true
  * isBlightwardenMinionRoleGuard({ role: 'blightwarden' });
  * // Returns false (the synthesizer, not a minion)

@@ -87,6 +87,74 @@ describe('QuestGetQaChecklistResponder', () => {
     });
   });
 
+  describe('track scoping', () => {
+    it("VALID: {track: 'flowrider', one runtime and one operational flow} => renders the runtime flow alone, measured against flowriderSignoff", async () => {
+      const proxy = QuestGetQaChecklistResponderProxy();
+      const runtime = FlowStub({
+        id: 'walk-flow',
+        name: 'Walk Flow',
+        flowType: 'runtime',
+        nodes: [],
+        edges: [],
+      });
+      const operational = FlowStub({
+        id: 'rollout-flow',
+        name: 'Rollout Flow',
+        flowType: 'operational',
+        nodes: [],
+        edges: [],
+      });
+      const quest = QuestStub({ flows: [runtime, operational] });
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId: quest.id, track: 'flowrider' });
+
+      expect(result).toStrictEqual({
+        success: true,
+        data: qaChecklistToTextTransformer({
+          track: 'flowrider',
+          checklist: qaChecklistBuildTransformer({ flow: runtime, track: 'flowrider' }),
+        }),
+      });
+    });
+
+    it("VALID: {track: 'siegemaster'} => renders every flow, measured against siegemasterSignoff", async () => {
+      const proxy = QuestGetQaChecklistResponderProxy();
+      const runtime = FlowStub({
+        id: 'walk-flow',
+        name: 'Walk Flow',
+        flowType: 'runtime',
+        nodes: [],
+        edges: [],
+      });
+      const operational = FlowStub({
+        id: 'rollout-flow',
+        name: 'Rollout Flow',
+        flowType: 'operational',
+        nodes: [],
+        edges: [],
+      });
+      const quest = QuestStub({ flows: [runtime, operational] });
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId: quest.id, track: 'siegemaster' });
+
+      expect(result).toStrictEqual({
+        success: true,
+        data: [
+          qaChecklistToTextTransformer({
+            track: 'siegemaster',
+            checklist: qaChecklistBuildTransformer({ flow: runtime, track: 'siegemaster' }),
+          }),
+          qaChecklistToTextTransformer({
+            track: 'siegemaster',
+            checklist: qaChecklistBuildTransformer({ flow: operational, track: 'siegemaster' }),
+          }),
+        ].join('\n\n---\n\n'),
+      });
+    });
+  });
+
   describe('nothing to verify', () => {
     it('EMPTY: {quest with no flows} => says so plainly instead of erroring', async () => {
       const proxy = QuestGetQaChecklistResponderProxy();
@@ -97,7 +165,30 @@ describe('QuestGetQaChecklistResponder', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: 'This quest has no flows, so there is nothing to verify. That is a real state, not an error — clear any inbound GAP: work from git, commit the record, and signal done.',
+        data: 'This quest has no flows, so there is nothing to verify. That is a real state, not an error — your track has zero units to sign, so commit the record and signal done.',
+      });
+    });
+
+    it("EMPTY: {track: 'flowrider', every flow operational} => says the flowrider track has nothing to walk, not that the quest has no flows", async () => {
+      const proxy = QuestGetQaChecklistResponderProxy();
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            id: 'rollout-flow',
+            name: 'Rollout Flow',
+            flowType: 'operational',
+            nodes: [],
+            edges: [],
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId: quest.id, track: 'flowrider' });
+
+      expect(result).toStrictEqual({
+        success: true,
+        data: 'This quest has no runtime flows, so the flowrider track has nothing to walk. That is a real state, not an error — operational flows are verified by Siegemaster checking their end state, never by a flow-perspective suite. Your gate still binds and it yields zero units, so commit the record and signal done.',
       });
     });
 

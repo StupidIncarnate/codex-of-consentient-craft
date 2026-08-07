@@ -12,7 +12,7 @@ import { sessionIdContract } from '@dungeonmaster/shared/contracts';
 
 import { agentSpawnStreamingResultContract } from '../agent-spawn-streaming-result/agent-spawn-streaming-result-contract';
 import { followupDepthContract } from '../followup-depth/followup-depth-contract';
-import { slotIndexContract } from '../slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { workItemIdContract } from '../work-item-id/work-item-id-contract';
 
 export const activeAgentContract = z.object({

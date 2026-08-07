@@ -59,7 +59,7 @@ describe('questCreateBroker', () => {
       needsDesign: false,
       workItems: [],
       wardResults: [],
-      planningNotes: { blightLedger: [], blightReports: [], qaLedger: [] },
+      planningNotes: { blightLedger: [], blightReports: [], qaLedger: [], questNotes: [] },
     });
     expect(planOpId).toMatch(UUID_PATTERN);
     expect(planOpRest).toStrictEqual({

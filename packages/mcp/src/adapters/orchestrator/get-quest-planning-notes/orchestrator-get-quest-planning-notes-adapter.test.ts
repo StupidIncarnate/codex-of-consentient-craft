@@ -9,7 +9,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
         questId: 'add-auth',
         result: {
           success: true,
-          data: { blightReports: [], qaLedger: [], blightLedger: [] },
+          data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
         },
       });
 
@@ -17,7 +17,7 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { blightReports: [], qaLedger: [], blightLedger: [] },
+        data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
       });
     });
 
@@ -41,7 +41,10 @@ describe('orchestratorGetQuestPlanningNotesAdapter', () => {
       const proxy = orchestratorGetQuestPlanningNotesAdapterProxy();
       proxy.returns({
         questId: 'add-auth',
-        result: { success: true, data: { blightReports: [], qaLedger: [], blightLedger: [] } },
+        result: {
+          success: true,
+          data: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        },
       });
 
       await orchestratorGetQuestPlanningNotesAdapter({ questId: 'add-auth' });

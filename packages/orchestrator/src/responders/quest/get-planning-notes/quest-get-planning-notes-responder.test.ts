@@ -13,7 +13,7 @@ describe('QuestGetPlanningNotesResponder', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { blightLedger: [], blightReports: [], qaLedger: [] },
+        data: { blightLedger: [], blightReports: [], qaLedger: [], questNotes: [] },
       });
     });
 
@@ -31,7 +31,7 @@ describe('QuestGetPlanningNotesResponder', () => {
 
       expect(result).toStrictEqual({
         success: true,
-        data: { blightLedger: [], blightReports: [blight], qaLedger: [] },
+        data: { blightLedger: [], blightReports: [blight], qaLedger: [], questNotes: [] },
       });
     });
   });

@@ -1,18 +1,22 @@
 import {
   FlowNodeStub,
   FlowObservableStub,
+  FlowOffMapSignoffStub,
   FlowStub,
   ModifyQuestInputStub,
   OperationItemStub,
   PlanningBlightReportStub,
   QuestBlightLedgerEntryStub,
   QuestCommentStub,
+  QuestNoteStub,
   QuestQaLedgerEntryStub,
   QuestStub,
+  SignoffStub,
   ToolingRequirementStub,
   WardResultStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';
@@ -716,6 +720,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [entry],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
@@ -758,6 +763,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [untouched, corrected],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
@@ -790,6 +796,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [existingEntry],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
@@ -833,6 +840,7 @@ describe('questModifyBroker', () => {
         blightReports: [existingReport, newReport],
         qaLedger: [existingEntry, newEntry],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
@@ -869,6 +877,7 @@ describe('questModifyBroker', () => {
         blightReports: [existingReport],
         qaLedger: [existingEntry],
         blightLedger: [],
+        questNotes: [],
       });
     });
   });
@@ -910,6 +919,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [last],
         blightLedger: [],
+        questNotes: [],
       });
     });
   });
@@ -944,6 +954,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [entry],
+        questNotes: [],
       });
     });
 
@@ -986,6 +997,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [untouched, corrected],
+        questNotes: [],
       });
     });
 
@@ -1025,6 +1037,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [last],
+        questNotes: [],
       });
     });
 
@@ -1057,6 +1070,7 @@ describe('questModifyBroker', () => {
         blightReports: [],
         qaLedger: [],
         blightLedger: [existingEntry],
+        questNotes: [],
       });
     });
 
@@ -1120,6 +1134,7 @@ describe('questModifyBroker', () => {
         blightReports: [existingReport, newReport],
         qaLedger: [],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
@@ -1160,6 +1175,7 @@ describe('questModifyBroker', () => {
         blightReports: [updatedReport],
         qaLedger: [],
         blightLedger: [],
+        questNotes: [],
       });
     });
 
@@ -1193,6 +1209,228 @@ describe('questModifyBroker', () => {
         blightReports: [keepReport],
         qaLedger: [],
         blightLedger: [],
+        questNotes: [],
+      });
+    });
+  });
+
+  describe('planningNotes.questNotes handling', () => {
+    it('VALID: {planningNotes.questNotes with a new id} => the note is persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingNote = QuestNoteStub({
+        id: 'tooling-error-ward-e2e-port' as never,
+        kind: 'tooling-error',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [existingNote],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newNote = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope' as never,
+        kind: 'open-question',
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { questNotes: [newNote] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [],
+        questNotes: [existingNote, newNote],
+      });
+    });
+
+    it('VALID: {planningNotes.questNotes re-stating an existing id} => replaces that entry rather than appending a second', async () => {
+      const proxy = questModifyBrokerProxy();
+      const original = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope' as never,
+        summary: 'Should a stale anchor notify per box or once per batch?' as never,
+        detail: 'Asked the operator; no answer landed before the walk ended.' as never,
+      });
+      const untouched = QuestNoteStub({
+        id: 'walk-reset-view-persisted-comments' as never,
+        kind: 'walk-reset',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [original, untouched],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const sharpened = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope' as never,
+        summary: 'Stale anchors notify once per batch — confirm before the next walk' as never,
+        detail:
+          'The operator answered on the second pass: once per batch, keyed on the flow id.' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { questNotes: [sharpened] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [],
+        questNotes: [untouched, sharpened],
+      });
+    });
+
+    it('EDGE: {planningNotes.questNotes: []} with existing notes => leaves existing entries untouched (empty payload does not wipe)', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingNote = QuestNoteStub({
+        id: 'out-of-scope-legacy-spawn-path' as never,
+        kind: 'out-of-scope',
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [],
+          blightLedger: [],
+          questNotes: [existingNote],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { questNotes: [] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [],
+        questNotes: [existingNote],
+      });
+    });
+
+    it('VALID: {planningNotes.questNotes and planningNotes.qaLedger both changing in one call} => both merges land, neither clobbers the other', async () => {
+      const proxy = questModifyBrokerProxy();
+      const existingNote = QuestNoteStub({
+        id: 'tooling-error-ward-e2e-port' as never,
+        kind: 'tooling-error',
+      });
+      const existingEntry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:terminal:logged-in' as never,
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: {
+          blightReports: [],
+          qaLedger: [existingEntry],
+          blightLedger: [],
+          questNotes: [existingNote],
+        },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const newNote = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope' as never,
+        kind: 'open-question',
+      });
+      const newEntry = QuestQaLedgerEntryStub({
+        itemId: 'login-flow:observable:check-redirect' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { questNotes: [newNote], qaLedger: [newEntry] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [existingEntry, newEntry],
+        blightLedger: [],
+        questNotes: [existingNote, newNote],
+      });
+    });
+
+    it('EDGE: {two notes with the same id in ONE payload} => only the last survives', async () => {
+      const proxy = questModifyBrokerProxy();
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const first = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope' as never,
+        summary: 'Superseded within the same payload' as never,
+      });
+      const last = QuestNoteStub({
+        id: 'open-question-comment-anchor-scope' as never,
+        summary: 'Stale anchors notify once per batch — confirm before the next walk' as never,
+      });
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        planningNotes: { questNotes: [first, last] },
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result.success).toBe(true);
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.planningNotes).toStrictEqual({
+        blightReports: [],
+        qaLedger: [],
+        blightLedger: [],
+        questNotes: [last],
       });
     });
   });
@@ -2567,6 +2805,374 @@ describe('questModifyBroker', () => {
         ],
       });
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    });
+  });
+
+  describe('sign-off writes at in_progress', () => {
+    it('VALID: {observable already carrying siegemasterSignoff, one write sets only flowriderSignoff} => both sign-offs survive on the persisted observable', async () => {
+      const proxy = questModifyBrokerProxy();
+      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
+      const flowriderSignoff = SignoffStub({
+        evidence: 'packages/web/src/login.e2e.ts:31 — red without the redirect',
+      });
+      const observable = FlowObservableStub({ id: 'redirects' as never, siegemasterSignoff });
+      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [{ id: 'submit-form', observables: [{ id: 'redirects', flowriderSignoff }] }],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'login-flow' as never,
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'submit-form' as never,
+              observables: [
+                FlowObservableStub({
+                  id: 'redirects' as never,
+                  siegemasterSignoff,
+                  flowriderSignoff,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it('VALID: {one write signs ONE offMapSignoffs family} => the other six families survive untouched', async () => {
+      const proxy = questModifyBrokerProxy();
+      const offMapFamilies = Object.keys(qaOffMapProbeStatics.byFamily);
+      const siegemasterSignoff = SignoffStub({ evidence: 'double-submitted, it serialised' });
+      const flowriderSignoff = SignoffStub({
+        evidence: 'packages/web/src/concurrency.test.ts:9 — red without the lock',
+      });
+      const flow = FlowStub({
+        id: 'login-flow' as never,
+        nodes: [],
+        edges: [],
+        offMapSignoffs: offMapFamilies.map((family) =>
+          FlowOffMapSignoffStub({ id: family as never, siegemasterSignoff }),
+        ),
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          { id: 'login-flow', offMapSignoffs: [{ id: 'concurrency', flowriderSignoff }] },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+      const expectedOffMapSignoffs = offMapFamilies.map((family) =>
+        FlowOffMapSignoffStub({ id: family as never, siegemasterSignoff }),
+      );
+      expectedOffMapSignoffs[offMapFamilies.indexOf('concurrency')] = FlowOffMapSignoffStub({
+        id: 'concurrency',
+        siegemasterSignoff,
+        flowriderSignoff,
+      });
+
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'login-flow' as never,
+          nodes: [],
+          edges: [],
+          offMapSignoffs: expectedOffMapSignoffs,
+        }),
+      ]);
+    });
+
+    it('VALID: {write sets siegemasterSignoff to null on an observable carrying both} => the key is gone from the persisted observable and flowriderSignoff is intact', async () => {
+      const proxy = questModifyBrokerProxy();
+      const siegemasterSignoff = SignoffStub({ evidence: 'walked it against the dev server' });
+      const flowriderSignoff = SignoffStub({
+        evidence: 'packages/web/src/login.e2e.ts:31 — red without the redirect',
+      });
+      const observable = FlowObservableStub({
+        id: 'redirects' as never,
+        siegemasterSignoff,
+        flowriderSignoff,
+      });
+      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              { id: 'submit-form', observables: [{ id: 'redirects', siegemasterSignoff: null }] },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'login-flow' as never,
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'submit-form' as never,
+              observables: [FlowObservableStub({ id: 'redirects' as never, flowriderSignoff })],
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it('EMPTY: {a quest carrying no sign-off keys at all, patched with an observable reword} => the persisted observable has neither sign-off key present', async () => {
+      const proxy = questModifyBrokerProxy();
+      const observable = FlowObservableStub({
+        id: 'redirects' as never,
+        description: 'redirects to dashboard' as never,
+      });
+      const node = FlowNodeStub({ id: 'submit-form' as never, observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'submit-form',
+                observables: [{ id: 'redirects', description: 'redirects to /home instead' }],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      // toStrictEqual is what makes this a real assertion: an absent key and a key holding
+      // undefined/null are different objects to it, so this pins "absent", not "empty".
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'login-flow' as never,
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'submit-form' as never,
+              observables: [
+                FlowObservableStub({
+                  id: 'redirects' as never,
+                  description: 'redirects to /home instead' as never,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it('VALID: {ONE call upserting 50 sign-offs across 3 flows} => every one lands in the single persisted write', async () => {
+      const proxy = questModifyBrokerProxy();
+      const flowriderSignoff = SignoffStub({
+        evidence: 'packages/web/src/a.test.ts:4 — red first',
+      });
+      const flowOne = FlowStub({
+        id: 'flow-one' as never,
+        edges: [],
+        nodes: [
+          FlowNodeStub({
+            id: 'node-one' as never,
+            observables: Array.from({ length: 20 }, (_unused, index) =>
+              FlowObservableStub({ id: `obs-one-${index}` as never }),
+            ),
+          }),
+        ],
+      });
+      const flowTwo = FlowStub({
+        id: 'flow-two' as never,
+        edges: [],
+        nodes: [
+          FlowNodeStub({
+            id: 'node-two' as never,
+            observables: Array.from({ length: 20 }, (_unused, index) =>
+              FlowObservableStub({ id: `obs-two-${index}` as never }),
+            ),
+          }),
+        ],
+      });
+      const flowThree = FlowStub({
+        id: 'flow-three' as never,
+        edges: [],
+        nodes: [
+          FlowNodeStub({
+            id: 'node-three' as never,
+            observables: Array.from({ length: 10 }, (_unused, index) =>
+              FlowObservableStub({ id: `obs-three-${index}` as never }),
+            ),
+          }),
+        ],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flowOne, flowTwo, flowThree],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'flow-one',
+            nodes: [
+              {
+                id: 'node-one',
+                observables: Array.from({ length: 20 }, (_unused, index) => ({
+                  id: `obs-one-${index}`,
+                  flowriderSignoff,
+                })),
+              },
+            ],
+          },
+          {
+            id: 'flow-two',
+            nodes: [
+              {
+                id: 'node-two',
+                observables: Array.from({ length: 20 }, (_unused, index) => ({
+                  id: `obs-two-${index}`,
+                  flowriderSignoff,
+                })),
+              },
+            ],
+          },
+          {
+            id: 'flow-three',
+            nodes: [
+              {
+                id: 'node-three',
+                observables: Array.from({ length: 10 }, (_unused, index) => ({
+                  id: `obs-three-${index}`,
+                  flowriderSignoff,
+                })),
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const expectedFlows = [
+        FlowStub({
+          id: 'flow-one' as never,
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'node-one' as never,
+              observables: Array.from({ length: 20 }, (_unused, index) =>
+                FlowObservableStub({ id: `obs-one-${index}` as never, flowriderSignoff }),
+              ),
+            }),
+          ],
+        }),
+        FlowStub({
+          id: 'flow-two' as never,
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'node-two' as never,
+              observables: Array.from({ length: 20 }, (_unused, index) =>
+                FlowObservableStub({ id: `obs-two-${index}` as never, flowriderSignoff }),
+              ),
+            }),
+          ],
+        }),
+        FlowStub({
+          id: 'flow-three' as never,
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'node-three' as never,
+              observables: Array.from({ length: 10 }, (_unused, index) =>
+                FlowObservableStub({ id: `obs-three-${index}` as never, flowriderSignoff }),
+              ),
+            }),
+          ],
+        }),
+      ];
+
+      // The "single persisted write" half of the title, asserted rather than assumed: mapping EVERY
+      // persisted write to its flows pins the write COUNT — a second write would add a second
+      // element — alongside the content. Batching is the requirement, because N writes are N outbox
+      // appends, N WebSocket broadcasts and N browser refetches of a file that grows with each one.
+      expect(
+        proxy.getAllPersistedContents().map((raw) => parseLatestPersisted([raw]).flows),
+      ).toStrictEqual([expectedFlows]);
     });
   });
 });

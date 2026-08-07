@@ -6,6 +6,9 @@ import {
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
+  QuestSummaryFlowStub,
+  QuestSummaryStub,
+  QuestSummaryTrackCountsStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
@@ -320,10 +323,11 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('CHAT_PANEL')?.getAttribute('data-testid')).toBe('CHAT_PANEL');
     });
 
-    it('VALID: {quest at in_progress} => renders execution panel + dumpster raccoon column (no chat-entry feed)', async () => {
+    it('VALID: {quest at in_progress} => renders execution panel + activity column (no chat-entry feed)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-exec' }) });
       const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-cccccccccccc' });
       const quest = QuestStub({
         id: 'q-exec',
@@ -364,8 +368,67 @@ describe('QuestChatContentLayerWidget', () => {
       expect(queryByTestId('QUEST_CHAT_ACTIVITY')?.getAttribute('data-testid')).toBe(
         'QUEST_CHAT_ACTIVITY',
       );
-      // No chat-entry feed inside the right column — only the dumpster raccoon.
+      // No chat-entry feed inside the right column.
       expect(queryByTestId('CHAT_MESSAGE')).toBe(null);
+    });
+
+    it('VALID: {quest at in_progress} => the verification summary JOINS the dumpster raccoon in the activity column rather than replacing it', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-exec-summary',
+          flows: [
+            QuestSummaryFlowStub({
+              tracks: [
+                QuestSummaryTrackCountsStub({
+                  id: 'siegemaster',
+                  confirmed: 0,
+                  unconfirmable: 1,
+                  outstanding: 9,
+                }),
+              ],
+            }),
+          ],
+        }),
+      });
+      const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-dddddddddddd' });
+      const quest = QuestStub({
+        id: 'q-exec-summary',
+        status: 'in_progress',
+      });
+
+      const { queryByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-exec-summary' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('QUEST_SUMMARY')?.getAttribute('data-testid')).toBe('QUEST_SUMMARY');
+      });
+
+      expect(queryByTestId('dumpster-raccoon-widget')?.getAttribute('data-testid')).toBe(
+        'dumpster-raccoon-widget',
+      );
+      expect(queryByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')?.textContent).toBe('9 outstanding');
     });
 
     it('VALID: {clarification-request WS event} => panel renders questions and submit calls clarify broker', async () => {

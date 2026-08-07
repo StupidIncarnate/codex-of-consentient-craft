@@ -55,6 +55,7 @@ import { FormDropdownWidget } from '../form-dropdown/form-dropdown-widget';
 import { QuestApprovedModalWidget } from '../quest-approved-modal/quest-approved-modal-widget';
 import { QuestLoadErrorWidget } from '../quest-load-error/quest-load-error-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
+import { QuestSummaryWidget } from '../quest-summary/quest-summary-widget';
 
 const NO_QUEST_BANNER_MESSAGE = displayLabelContract.parse(
   'Quests are created in your Claude session. Run this slash command to start a spec conversation:',
@@ -503,7 +504,13 @@ export const QuestChatContentLayerWidget = ({
             flexDirection: 'column',
           }}
         >
-          <DumpsterRaccoonWidget />
+          {/* The summary takes the scrollable share of the column and the raccoon keeps the
+              bottom: wrapping it in a non-flex box neutralises its own `flex: 1`, so it sizes to
+              its sprites instead of splitting the column with the panel above it. */}
+          <QuestSummaryWidget questId={quest.id} />
+          <Box style={{ flexShrink: 0 }}>
+            <DumpsterRaccoonWidget />
+          </Box>
         </Box>
         {beginQuestModal}
       </Box>

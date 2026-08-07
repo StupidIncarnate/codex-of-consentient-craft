@@ -7,7 +7,7 @@
  * blightChecklistContract.parse({
  *   baseRef: 'a1b2c3d4e5f6',
  *   items: [...],
- *   remainingItemIds: ['packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage'],
+ *   remainingItemIds: ['packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft'],
  * });
  * // Returns: BlightChecklist — the answer to "what is left on this quest diff?"
  *

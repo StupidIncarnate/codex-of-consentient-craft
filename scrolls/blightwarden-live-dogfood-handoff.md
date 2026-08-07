@@ -40,7 +40,7 @@ Three causes, all supposedly fixed by `82d2bd77`:
   `partial` bypasses the gate. A refused `done` persists nothing and costs no pt attempt.
 - Dispositions are `reviewed` / `fixed` / `routed` / `recorded` / `gap`. All five clear a unit — the gate refuses
   **absence**, not honesty.
-- Minions: `blightwarden-minion` (a disjoint group of file pairs, all 7 lenses, fixes in place) and
+- Minions: `blightwarden-group-minion` (a disjoint group of file pairs, all 7 lenses, fixes in place) and
   `blightwarden-crosscut-minion` (whole diff, runs last and alone).
 - Feature tail: `ward(changed) → flowrider → siegemaster → blightwarden → ward(full)`.
 

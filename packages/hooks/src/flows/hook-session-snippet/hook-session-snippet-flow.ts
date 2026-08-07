@@ -9,10 +9,7 @@
  * WHEN-TO-USE: Called by start-session-snippet-hook startup to handle snippet key lookup
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { baseHookDataContract } from '../../contracts/base-hook-data/base-hook-data-contract';
 import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 import { isKeyOfGuard } from '@dungeonmaster/shared/guards';

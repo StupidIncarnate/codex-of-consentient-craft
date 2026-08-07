@@ -10,7 +10,7 @@ import { contentTextContract, type ContentText } from '@dungeonmaster/shared/con
 
 import type { AgentRole } from '../../contracts/agent-role/agent-role-contract';
 import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
-import { blightwardenMinionStatics } from '../../statics/blightwarden-minion/blightwarden-minion-statics';
+import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group-minion/blightwarden-group-minion-statics';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
@@ -28,8 +28,8 @@ export const roleToPromptTemplateTransformer = ({ role }: { role: AgentRole }): 
       return contentTextContract.parse(siegemasterPromptStatics.prompt.template);
     case 'spiritmender':
       return contentTextContract.parse(spiritmenderPromptStatics.prompt.template);
-    case 'blightwarden-minion':
-      return contentTextContract.parse(blightwardenMinionStatics.prompt.template);
+    case 'blightwarden-group-minion':
+      return contentTextContract.parse(blightwardenGroupMinionStatics.prompt.template);
     case 'blightwarden-crosscut-minion':
       return contentTextContract.parse(blightwardenCrosscutMinionStatics.prompt.template);
     case 'blightwarden':

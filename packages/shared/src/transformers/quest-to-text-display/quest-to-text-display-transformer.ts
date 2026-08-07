@@ -155,5 +155,33 @@ export const questToTextDisplayTransformer = ({
     }
   }
 
+  // Quest notes are the durable side channel — open questions, tooling errors, out-of-scope
+  // observations, walk resets. Unlike every section above, an EMPTY notes list renders nothing at
+  // all: a note carries no obligation to reconcile, so an empty `## Quest Notes` header would spend
+  // every reader's context stating the absence of something nobody owes an answer to. A section
+  // that only appears when it has content is also how a reader knows a note is worth reading.
+  if (
+    isQuestSectionInStageGuard({ section: 'planningNotes', stage }) &&
+    quest.planningNotes.questNotes.length > 0
+  ) {
+    parts.push(contentTextContract.parse(''));
+    parts.push(contentTextContract.parse(SYM.sectionHeaders.questNotes));
+    parts.push(contentTextContract.parse(''));
+    for (const note of quest.planningNotes.questNotes) {
+      parts.push(
+        contentTextContract.parse(
+          `#${String(note.id)}: [${note.kind}] ${String(note.role)} ${SYM.emDash} ${String(note.summary)}`,
+        ),
+      );
+      parts.push(contentTextContract.parse(`${SYM.indent}Detail: ${String(note.detail)}`));
+      if (note.flowId !== undefined) {
+        parts.push(contentTextContract.parse(`${SYM.indent}Flow: #${String(note.flowId)}`));
+      }
+      if (note.unitId !== undefined) {
+        parts.push(contentTextContract.parse(`${SYM.indent}Unit: ${String(note.unitId)}`));
+      }
+    }
+  }
+
   return contentTextContract.parse(parts.join('\n'));
 };

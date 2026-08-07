@@ -222,7 +222,161 @@ describe('questBuildRelayGraphBroker', () => {
       ]);
     });
 
-    it('EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so inbound GAP work still has an owner', async () => {
+    it('VALID: {feature quest with 2 runtime + 1 operational flow} => flowrider carries ONLY the 2 runtime ids, siegemaster gets one item PER FLOW including the operational one', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
+          '00000000-0000-4000-8000-000000000007',
+          '00000000-0000-4000-8000-000000000008',
+        ],
+      });
+
+      const codeweaverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [codeweaverOp],
+        flows: [
+          FlowStub({ id: 'send-comment', name: 'Send comment', flowType: 'runtime' }),
+          FlowStub({ id: 'view-comments', name: 'View comments', flowType: 'runtime' }),
+          FlowStub({
+            id: 'register-lint-rule',
+            name: 'Register lint rule',
+            flowType: 'operational',
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
+      ).toStrictEqual([
+        {
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          flowIds: ['send-comment', 'view-comments'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: send-comment',
+          flowIds: ['send-comment'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: view-comments',
+          flowIds: ['view-comments'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
+          flowIds: ['register-lint-rule'],
+        },
+        {
+          role: 'blightwarden',
+          text: 'Blightwarden: cross-cutting audit across the whole diff',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
+      ]);
+    });
+
+    // The ungated-quest hole: flowrider's `flowIds` is ADVISORY, so an all-operational quest still
+    // gets a flowrider item — with an EMPTY list — and the Phase-2 gate derives its own denominator
+    // from the quest's runtime flows rather than from this list.
+    it('EMPTY: {feature quest whose every flow is operational} => flowrider item exists with EMPTY flowIds, siegemaster still gets one item per operational flow', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({
+        ids: [
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004',
+          '00000000-0000-4000-8000-000000000005',
+          '00000000-0000-4000-8000-000000000006',
+          '00000000-0000-4000-8000-000000000007',
+        ],
+      });
+
+      const codeweaverOp = OperationItemStub({
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        role: 'codeweaver',
+        status: 'pending',
+      });
+      const quest = QuestStub({
+        operations: [codeweaverOp],
+        flows: [
+          FlowStub({
+            id: 'register-lint-rule',
+            name: 'Register lint rule',
+            flowType: 'operational',
+          }),
+          FlowStub({
+            id: 'sweep-legacy-imports',
+            name: 'Sweep legacy imports',
+            flowType: 'operational',
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, text, flowIds }) => ({ role, text, flowIds })),
+      ).toStrictEqual([
+        {
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (changed files)', flowIds: [] },
+        {
+          role: 'flowrider',
+          text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+          flowIds: [],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: register-lint-rule',
+          flowIds: ['register-lint-rule'],
+        },
+        {
+          role: 'siegemaster',
+          text: 'Siegemaster: manual-QA this flow and review its test suite — flow: sweep-legacy-imports',
+          flowIds: ['sweep-legacy-imports'],
+        },
+        {
+          role: 'blightwarden',
+          text: 'Blightwarden: cross-cutting audit across the whole diff',
+          flowIds: [],
+        },
+        { role: 'ward', text: 'Ward gate (full monorepo)', flowIds: [] },
+      ]);
+    });
+
+    it("EMPTY: {feature quest with no flows} => flowrider+siegemaster still get ONE item each with empty flowIds, so the off-map `hostile-input` and `perf` probe families — this quest's only security and performance coverage — keep an owner", async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({
         ids: [

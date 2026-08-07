@@ -1,28 +1,37 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   FileContentsStub,
+  FlowNodeStub,
+  FlowOffMapSignoffStub,
+  FlowStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestBlightLedgerEntryStub,
   QuestStub,
   QuestWorkItemIdStub,
   RepoRelativePathStub,
+  SignoffStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
 
-// blightwarden was converted from a whole-diff `pt N` fixpoint role into an OPERATOR with a
-// server-computed completion gate: `done` recomputes the outstanding review-unit set from a REAL
-// `git diff quest.baseRef...HEAD` (via questGetBlightChecklistBroker) crossed with the quest's
-// blightLedger, and refuses the signal while any unit carries no disposition. These tests drive
-// the real responder -> real broker chain against a real git repo + real disk (never mocked) to
-// prove the gate's wiring, not just the transformer's logic (already unit-tested in
-// blight-coverage-outstanding-transformer.test.ts and the responder's own unit test, which mock
-// the checklist broker). One changed file crosses all 7 concerns (coverage, craft, security,
-// dedup, perf, integrity, dead-code), so an empty ledger leaves 7 units outstanding.
+// The off-map probe families every flow decomposes into — Siegemaster's charter alone, absent from
+// Flowrider's denominator. Derived from the probe statics, whose colocated test pins its keys 1:1
+// with qaOffMapFamilyContract's options.
+const OFF_MAP_FAMILIES = Object.keys(qaOffMapProbeStatics.byFamily);
+
+// blightwarden is an OPERATOR with a server-computed completion gate: `done` recomputes the
+// outstanding review-unit set from a REAL `git diff quest.baseRef...HEAD` (via
+// questGetBlightChecklistBroker) crossed with the quest's blightLedger, and refuses the signal
+// while any unit carries no disposition. These tests drive the real responder -> real broker chain
+// against a real git repo + real disk (never mocked) to prove the gate's wiring, not just the
+// transformer's logic (already unit-tested in blight-coverage-outstanding-transformer.test.ts and
+// the responder's own unit test, which mock the checklist broker). One changed file crosses all 4
+// concerns (craft, perf, dedup, integrity), so an empty ledger leaves 4 units outstanding.
 describe('QuestHandleSignalBackResponder (integration) — blightwarden completion gate', () => {
   const envHarness = orchestrationEnvironmentHarness();
   const questHelper = orchestrationQuestHarness();
@@ -90,7 +99,7 @@ describe('QuestHandleSignalBackResponder (integration) — blightwarden completi
           operationStatus: 'done',
         }),
       ).rejects.toThrow(
-        /signal-back refused: operationStatus 'done'.*7 still carry none.*packages\/orchestrator\/src\/foo\/foo-broker\.ts:coverage/su,
+        /signal-back refused: operationStatus 'done'.*4 still carry none.*packages\/orchestrator\/src\/foo\/foo-broker\.ts:craft/su,
       );
 
       const after = await questHelper.readQuestFileRaw({ questId });
@@ -107,7 +116,7 @@ describe('QuestHandleSignalBackResponder (integration) — blightwarden completi
       }).toStrictEqual({ workItemStatus: 'in_progress', operationStatus: 'in_progress' });
     }, 30_000);
 
-    it('VALID: {done, every one of the 7 units carries a disposition — mixing reviewed/fixed/gap/recorded} => the gate clears, operation + work item complete', async () => {
+    it('VALID: {done, every one of the 4 units carries a disposition — mixing reviewed/fixed/gap/recorded} => the gate clears, operation + work item complete', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'sb-blight-admit' }),
       });
@@ -138,33 +147,9 @@ describe('QuestHandleSignalBackResponder (integration) — blightwarden completi
       // gap/recorded — the gate refuses absence, not honesty, so this mixes all four on purpose.
       const ledger = [
         QuestBlightLedgerEntryStub({
-          itemId: `${impl}:coverage`,
-          disposition: 'reviewed',
-          evidence: 'every branch in fooBroker has a real test',
-          observedBy: 'blightwarden',
-          workItemId: blightWorkItemId,
-          createdAt,
-        }),
-        QuestBlightLedgerEntryStub({
           itemId: `${impl}:craft`,
           disposition: 'fixed',
           evidence: 'error handling now carries the failing input',
-          observedBy: 'blightwarden',
-          workItemId: blightWorkItemId,
-          createdAt,
-        }),
-        QuestBlightLedgerEntryStub({
-          itemId: `${impl}:security`,
-          disposition: 'reviewed',
-          evidence: 'no untrusted input reaches a sink in fooBroker',
-          observedBy: 'blightwarden',
-          workItemId: blightWorkItemId,
-          createdAt,
-        }),
-        QuestBlightLedgerEntryStub({
-          itemId: `${impl}:dedup`,
-          disposition: 'gap',
-          evidence: 'no equivalent existing implementation to compare against',
           observedBy: 'blightwarden',
           workItemId: blightWorkItemId,
           createdAt,
@@ -178,6 +163,14 @@ describe('QuestHandleSignalBackResponder (integration) — blightwarden completi
           createdAt,
         }),
         QuestBlightLedgerEntryStub({
+          itemId: `${impl}:dedup`,
+          disposition: 'gap',
+          evidence: 'no equivalent existing implementation to compare against',
+          observedBy: 'blightwarden',
+          workItemId: blightWorkItemId,
+          createdAt,
+        }),
+        QuestBlightLedgerEntryStub({
           itemId: `${impl}:integrity`,
           disposition: 'recorded',
           evidence: 'one caller not yet migrated, handed to codeweaver follow-up',
@@ -186,20 +179,12 @@ describe('QuestHandleSignalBackResponder (integration) — blightwarden completi
           workItemId: blightWorkItemId,
           createdAt,
         }),
-        QuestBlightLedgerEntryStub({
-          itemId: `${impl}:dead-code`,
-          disposition: 'fixed',
-          evidence: 'removed the unused export',
-          observedBy: 'blightwarden',
-          workItemId: blightWorkItemId,
-          createdAt,
-        }),
       ];
 
       await questHelper.seedInProgressRelay({
         questId,
         baseRef,
-        planningNotes: { blightReports: [], qaLedger: [], blightLedger: ledger },
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: ledger, questNotes: [] },
         operations: [
           OperationItemStub({
             id: blightOpId,
@@ -406,6 +391,469 @@ describe('QuestHandleSignalBackResponder (integration) — blightwarden completi
       testbed.cleanup();
 
       expect(result).toStrictEqual({ success: true });
+    }, 30_000);
+  });
+});
+
+// flowrider and siegemaster are the two INDEPENDENT verification tracks. `done` from either
+// recomputes the outstanding unit set straight off the persisted flow graph, reading only that
+// role's own sign-off field, and refuses the signal while any unit in its scope carries none. These
+// tests drive the real responder -> real broker -> real disk chain (never mocked) to prove the
+// wiring, not just the transformer's logic — which signoff-outstanding-transformer.test.ts and
+// signoff-flow-outstanding-transformer.test.ts already cover exhaustively.
+describe('QuestHandleSignalBackResponder (integration) — the two sign-off tracks', () => {
+  const envHarness = orchestrationEnvironmentHarness();
+  const questHelper = orchestrationQuestHarness();
+
+  describe("flowrider: 'done' is refused while runtime units carry no flowriderSignoff", () => {
+    it('ERROR: {done, one unsigned runtime terminal} => throws naming the unit and the field, and persists NOTHING', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'sb-flowrider-refuse' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f1' });
+      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
+            edges: [],
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: flowOpId,
+            role: 'flowrider',
+            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: flowWorkItemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(flowOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const before = await questHelper.readQuestFileRaw({ questId });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: flowWorkItemId,
+          signal: 'complete',
+          operationItemId: flowOpId,
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /signal-back refused: operationStatus 'done'.*`flowriderSignoff`.*1 still carry none.*- login-flow:terminal:dashboard/su,
+      );
+
+      const after = await questHelper.readQuestFileRaw({ questId });
+      const afterQuest = await questHelper.reload({ questId });
+      const workItem = afterQuest.workItems.find((wi) => wi.id === flowWorkItemId);
+      const operation = afterQuest.operations.find((op) => op.id === flowOpId);
+
+      testbed.cleanup();
+
+      expect(after).toBe(before);
+      expect({
+        workItemStatus: workItem?.status,
+        operationStatus: operation?.status,
+      }).toStrictEqual({ workItemStatus: 'in_progress', operationStatus: 'in_progress' });
+    }, 30_000);
+
+    it('VALID: {done, one unit `confirmed` and one `unconfirmable`} => both verdicts clear the gate, operation + work item complete', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'sb-flowrider-admit' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f2' });
+      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({
+                id: 'dashboard',
+                label: 'Dashboard',
+                flowriderSignoff: SignoffStub({
+                  workItemId: flowWorkItemId,
+                  evidence:
+                    'packages/web/src/flows/login/login.e2e.ts:42 — red when the redirect is removed',
+                }),
+              }),
+              FlowNodeStub({
+                id: 'rate-limited',
+                label: 'Rate limited',
+                flowriderSignoff: SignoffStub({
+                  verdict: 'unconfirmable',
+                  evidence:
+                    'the rate limiter needs 100 real requests, which the suite cannot issue',
+                  question: 'can the limiter threshold be injected for tests?',
+                  workItemId: flowWorkItemId,
+                }),
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: flowOpId,
+            role: 'flowrider',
+            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: flowWorkItemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(flowOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId,
+        workItemId: flowWorkItemId,
+        signal: 'complete',
+        operationItemId: flowOpId,
+        operationStatus: 'done',
+      });
+
+      const afterQuest = await questHelper.reload({ questId });
+      const workItem = afterQuest.workItems.find((wi) => wi.id === flowWorkItemId);
+      const operation = afterQuest.operations.find((op) => op.id === flowOpId);
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({ success: true });
+      expect({
+        workItemStatus: workItem?.status,
+        operationStatus: operation?.status,
+      }).toStrictEqual({ workItemStatus: 'complete', operationStatus: 'complete' });
+    }, 30_000);
+
+    it('VALID: {done, every flow OPERATIONAL} => accepted, because the flowrider track is measured over runtime flows alone', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'sb-flowrider-operational' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
+      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      // The SAME unsigned node shape the refusal test above uses — only `flowType` differs, so an
+      // accept here can only come from the runtime filter and not from an unsigned node being
+      // overlooked.
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'rollout-flow',
+            name: 'Rollout Flow',
+            flowType: 'operational',
+            nodes: [FlowNodeStub({ id: 'rule-registered', label: 'Rule registered' })],
+            edges: [],
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: flowOpId,
+            role: 'flowrider',
+            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: flowWorkItemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(flowOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId,
+        workItemId: flowWorkItemId,
+        signal: 'complete',
+        operationItemId: flowOpId,
+        operationStatus: 'done',
+      });
+
+      const afterQuest = await questHelper.reload({ questId });
+      const operation = afterQuest.operations.find((op) => op.id === flowOpId);
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({ success: true });
+      expect(operation?.status).toBe('complete');
+    }, 30_000);
+
+    it("ERROR: {done, the same operational flow PLUS one runtime flow} => refused naming the runtime flow's unit, proving the accept above was zero units and not a skipped gate", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'sb-flowrider-mixed' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f4' });
+      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'rollout-flow',
+            name: 'Rollout Flow',
+            flowType: 'operational',
+            nodes: [FlowNodeStub({ id: 'rule-registered', label: 'Rule registered' })],
+            edges: [],
+          }),
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'dashboard', label: 'Dashboard' })],
+            edges: [],
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: flowOpId,
+            role: 'flowrider',
+            text: 'Flowrider: author the flow-perspective test suites across every quest flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: [],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: flowWorkItemId,
+            role: 'flowrider',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(flowOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: flowWorkItemId,
+          signal: 'complete',
+          operationItemId: flowOpId,
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        /signal-back refused: operationStatus 'done'.*1 still carry none.*- login-flow:terminal:dashboard/su,
+      );
+
+      const afterQuest = await questHelper.reload({ questId });
+      const operation = afterQuest.operations.find((op) => op.id === flowOpId);
+
+      testbed.cleanup();
+
+      expect(operation?.status).toBe('in_progress');
+    }, 30_000);
+  });
+
+  describe('the two tracks are gated independently on the SAME persisted units', () => {
+    it("ERROR: {every unit carries a flowriderSignoff only, siegemaster 'done'} => refused, because flowrider's column never settles siegemaster's", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'sb-tracks-independent' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f5' });
+      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({
+                id: 'dashboard',
+                label: 'Dashboard',
+                flowriderSignoff: SignoffStub(),
+              }),
+            ],
+            edges: [],
+            offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
+              FlowOffMapSignoffStub({ id: family as never, flowriderSignoff: SignoffStub() }),
+            ),
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: siegeOpId,
+            role: 'siegemaster',
+            text: 'Siegemaster: manual-QA this flow — flow: login-flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: siegeWorkItemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(siegeOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: siegeWorkItemId,
+          signal: 'complete',
+          operationItemId: siegeOpId,
+          operationStatus: 'done',
+        }),
+      ).rejects.toThrow(
+        new RegExp(
+          `\`siegemasterSignoff\`.*${String(OFF_MAP_FAMILIES.length + 1)} still carry none.*- login-flow:terminal:dashboard`,
+          'su',
+        ),
+      );
+
+      const afterQuest = await questHelper.reload({ questId });
+      const operation = afterQuest.operations.find((op) => op.id === siegeOpId);
+
+      testbed.cleanup();
+
+      expect(operation?.status).toBe('in_progress');
+    }, 30_000);
+
+    it("VALID: {the same units also carry a siegemasterSignoff, siegemaster 'done'} => the gate clears", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'sb-tracks-both-signed' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f6' });
+      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        flows: [
+          FlowStub({
+            id: 'login-flow',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({
+                id: 'dashboard',
+                label: 'Dashboard',
+                flowriderSignoff: SignoffStub(),
+                siegemasterSignoff: SignoffStub({
+                  evidence: 'the dashboard header read "Welcome, ada" in the live tab at :3737',
+                  workItemId: siegeWorkItemId,
+                }),
+              }),
+            ],
+            edges: [],
+            offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
+              FlowOffMapSignoffStub({
+                id: family as never,
+                flowriderSignoff: SignoffStub(),
+                siegemasterSignoff: SignoffStub({ workItemId: siegeWorkItemId }),
+              }),
+            ),
+          }),
+        ],
+        operations: [
+          OperationItemStub({
+            id: siegeOpId,
+            role: 'siegemaster',
+            text: 'Siegemaster: manual-QA this flow — flow: login-flow',
+            status: 'in_progress',
+            locked: true,
+            flowIds: ['login-flow'],
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: siegeWorkItemId,
+            role: 'siegemaster',
+            status: 'in_progress',
+            spawnerType: 'agent',
+            relatedDataItems: [`operations/${String(siegeOpId)}`],
+            dependsOn: [],
+            createdAt: new Date().toISOString(),
+          }),
+        ],
+      });
+
+      const result = await QuestHandleSignalBackResponder({
+        questId,
+        workItemId: siegeWorkItemId,
+        signal: 'complete',
+        operationItemId: siegeOpId,
+        operationStatus: 'done',
+      });
+
+      const afterQuest = await questHelper.reload({ questId });
+      const operation = afterQuest.operations.find((op) => op.id === siegeOpId);
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual({ success: true });
+      expect(operation?.status).toBe('complete');
     }, 30_000);
   });
 });

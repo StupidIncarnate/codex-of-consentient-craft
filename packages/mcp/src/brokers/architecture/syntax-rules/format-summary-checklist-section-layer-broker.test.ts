@@ -17,6 +17,8 @@ describe('formatSummaryChecklistSectionLayerBroker', () => {
         '- [ ] File uses kebab-case naming',
         '- [ ] Function uses export const with arrow syntax',
         '- [ ] File has PURPOSE/USAGE metadata comment at top',
+        '- [ ] PURPOSE says why the file exists and when to pick it over its nearest sibling - never its return shape, throwing behaviour, parameters, or what its contract validates',
+        '- [ ] PURPOSE was written after the implementation, as a summary of code that already exists',
         '- [ ] Function parameters use object destructuring',
         '- [ ] All imports are at the top of the file',
         '- [ ] Exported function has explicit return type using contracts',

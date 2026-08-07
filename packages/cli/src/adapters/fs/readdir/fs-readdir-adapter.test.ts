@@ -1,6 +1,6 @@
 import { fsReaddirAdapter } from './fs-readdir-adapter';
 import { fsReaddirAdapterProxy } from './fs-readdir-adapter.proxy';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 
 describe('fsReaddirAdapter', () => {
   describe('reading directory success', () => {

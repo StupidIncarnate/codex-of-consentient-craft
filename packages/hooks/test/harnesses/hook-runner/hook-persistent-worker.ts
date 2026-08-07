@@ -8,7 +8,7 @@
 import * as readline from 'readline';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
-import type { ExecResult } from '../../../src/contracts/exec-result/exec-result-contract';
+import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
 type AsyncHookFlow = (params: { inputData: string }) => Promise<ExecResult>;
 type SyncHookFlow = (params: { inputData: string }) => ExecResult;

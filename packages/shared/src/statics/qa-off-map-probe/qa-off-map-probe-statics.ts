@@ -6,7 +6,7 @@
  * qaOffMapProbeStatics.byFamily.concurrency;
  * // Returns the sentence describing what to actually DO for the concurrency family
  *
- * A flow graph only shows the paths its author imagined. These six are the breakage classes it
+ * A flow graph only shows the paths its author imagined. These seven are the breakage classes it
  * structurally cannot draw, and an off-map defect is worth more than an on-map one because it is
  * behaviour the flow requires that nobody wrote down.
  *
@@ -28,5 +28,6 @@ export const qaOffMapProbeStatics = {
       'Break the config, point at the wrong port, remove a dependency. Does the failure mode match what the flow claims, or does it fail silently?',
     'hostile-input':
       'Empty, whitespace-only, oversized, malformed, duplicate, and injection-shaped input (path traversal, script- or SQL-shaped payloads wherever the flow carries untrusted input toward a dangerous sink). Does it reject safely?',
+    perf: 'Time the slowest realistic path end to end, count the requests or queries ONE user action fires, and drive it at a realistic data volume rather than a one-row fixture. Does the work per action climb with the number of rows on screen?',
   },
 } as const;

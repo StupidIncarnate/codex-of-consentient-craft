@@ -1,10 +1,17 @@
 /**
  * PURPOSE: Renders one flow's QA checklist as compact text — a coverage header, a check-surface
- * legend, the walk paths, and every unit marked `[ ]` remaining or `[x]` dispositioned
+ * legend, the walk paths, and every unit marked `[ ]` outstanding or `[x]` settled on the calling
+ * verification track
  *
  * USAGE:
- * qaChecklistToTextTransformer({ checklist });
+ * qaChecklistToTextTransformer({ checklist, track: 'flowrider' });
  * // Returns ContentText — the body the get-qa-checklist MCP tool returns
+ *
+ * THE TRACK IS NAMED IN THE TEXT BECAUSE THE TWO TRACKS ARE MEASURED SEPARATELY. `flowriderSignoff`
+ * and `siegemasterSignoff` are independent fields and neither settles the other, so a bare
+ * "remaining" count would read as one shared number and let a session take a predecessor's column
+ * for its own. When the caller named no track the wording stays deliberately unattributed rather
+ * than guessing one.
  *
  * The legend exists to keep this affordable. A check surface is one or two sentences, and repeating
  * it against each of a 45-observable flow's units would cost more than the units themselves; stated
@@ -17,13 +24,15 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, QaChecklist } from '@dungeonmaster/shared/contracts';
+import type { ContentText, QaChecklist, SignoffTrack } from '@dungeonmaster/shared/contracts';
 import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 
 export const qaChecklistToTextTransformer = ({
   checklist,
+  track,
 }: {
   checklist: QaChecklist;
+  track?: SignoffTrack;
 }): ContentText => {
   const remaining = new Set(checklist.remainingItemIds.map(String));
   const byKind = {
@@ -41,15 +50,27 @@ export const qaChecklistToTextTransformer = ({
     ),
   ];
 
+  const remainingCaption =
+    track === undefined
+      ? 'no sign-off yet on the track you are signing'
+      : `awaiting your \`${track}Signoff\``;
+  const unitsCaption =
+    track === undefined
+      ? '## UNITS — [ ] outstanding on your track, [x] already settled on it'
+      : `## UNITS — [ ] awaiting your \`${track}Signoff\`, [x] already settled on the ${track} track`;
+
   const header = [
     `# QA CHECKLIST — flow \`${String(checklist.flowId)}\` "${String(checklist.flowName)}"`,
     `Entry point: ${String(checklist.entryPoint)}`,
     `Units: ${checklist.items.length} (${byKind.terminal.length} terminal, ${byKind.branch.length} branch, ${byKind.observable.length} observable, ${byKind['off-map'].length} off-map)`,
-    `REMAINING (no disposition in quest.planningNotes.qaLedger): ${checklist.remainingItemIds.length} of ${checklist.items.length}`,
+    `REMAINING (${remainingCaption}): ${checklist.remainingItemIds.length} of ${checklist.items.length}`,
     '',
     'This list IS the definition of done for this flow. Paths are the itinerary; units are the',
     'coverage. A flow can be two paths carrying twenty observables, so walking every path proves',
     'nothing on its own.',
+    'The two tracks are measured separately: your sign-off field is the only one counted here, and',
+    "the other track's sign-off on a unit never settles yours. Both verdicts close a unit —",
+    '`confirmed` with evidence, or `unconfirmable` with what you tried plus a `question`.',
   ].join('\n');
 
   const surfaceLegend =
@@ -109,14 +130,6 @@ export const qaChecklistToTextTransformer = ({
     .join('\n');
 
   return contentTextContract.parse(
-    [
-      header,
-      surfaceLegend,
-      kindSurfaces,
-      paths,
-      '',
-      '## UNITS — [ ] no disposition yet, [x] already dispositioned in the ledger',
-      unitBlock,
-    ].join('\n'),
+    [header, surfaceLegend, kindSurfaces, paths, '', unitsCaption, unitBlock].join('\n'),
   );
 };

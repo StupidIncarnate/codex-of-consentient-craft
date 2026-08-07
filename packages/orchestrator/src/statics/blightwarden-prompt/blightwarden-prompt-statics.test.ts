@@ -1,6 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { agentOperatingRulesStatics } from '../agent-operating-rules/agent-operating-rules-statics';
+import { blightPartitionStatics } from '../blight-partition/blight-partition-statics';
 
 import { blightwardenPromptStatics } from './blightwarden-prompt-statics';
 
@@ -81,9 +82,33 @@ describe('blightwardenPromptStatics', () => {
       heading: /^## Completion is COMPUTED, not remembered$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
-      sevenConcerns: has('every changed impl file crossed with each of seven concerns'),
+      fourConcerns: has('every changed impl file crossed with each of four concerns'),
+      concernList: has('`craft`, `perf`, `dedup`,\n`integrity`'),
       derivedIds: has('The ids are DERIVED'),
-    }).toStrictEqual({ heading: true, sevenConcerns: true, derivedIds: true });
+    }).toStrictEqual({
+      heading: true,
+      fourConcerns: true,
+      concernList: true,
+      derivedIds: true,
+    });
+  });
+
+  it('VALID: template => excludes dead code from the per-file concerns and routes it to its own whole-diff wave', () => {
+    expect({
+      notAConcern: has('Dead code is NOT one of them, deliberately:'),
+      why: has(
+        'whether an export has a consumer is a property of the\nwhole import graph, and no per-file unit can answer it',
+      ),
+      ownsNoUnit: has('whose findings you fix and report but which owns no checklist unit.'),
+      coverageCut: blightwardenPromptStatics.prompt.template.indexOf('`coverage`'),
+      securityCut: blightwardenPromptStatics.prompt.template.indexOf('`security`'),
+    }).toStrictEqual({
+      notAConcern: true,
+      why: true,
+      ownsNoUnit: true,
+      coverageCut: -1,
+      securityCut: -1,
+    });
   });
 
   it('VALID: template => lists every disposition and says all of them clear a unit', () => {
@@ -124,17 +149,19 @@ describe('blightwardenPromptStatics', () => {
     }).toStrictEqual({ gate: true, toolCall: true, doNotRederive: true, realState: true });
   });
 
-  it('VALID: template => partitions remaining units into disjoint file groups and dispatches blightwarden-minion in parallel', () => {
+  it('VALID: template => partitions remaining units into disjoint file groups and dispatches blightwarden-group-minion in parallel', () => {
     expect({
-      gate: /^### Gate 3: Partition & Dispatch blightwarden-minion \(BLOCKING\)$/mu.test(
+      gate: /^### Gate 3: Partition & Dispatch blightwarden-group-minion \(BLOCKING\)$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
       disjointRule: has('**Groups MUST be disjoint by file**'),
       phantomFailures: has('typecheck failures that get misdiagnosed as stale dist.'),
       singleMessage: has(
-        'Summon one `blightwarden-minion` per group, ALL in a SINGLE message with multiple `Agent` tool calls',
+        'Summon one `blightwarden-group-minion` per group, ALL in a SINGLE message with multiple `Agent` tool calls',
       ),
-      minionFetch: has("get-agent-prompt({ agent: 'blightwarden-minion', questId: 'QUEST_ID' })"),
+      minionFetch: has(
+        "get-agent-prompt({ agent: 'blightwarden-group-minion', questId: 'QUEST_ID' })",
+      ),
       mustNeverCall: has('must never call'),
       noStandardsDigest: has('**Do NOT paste a standards digest into its brief**'),
     }).toStrictEqual({
@@ -148,9 +175,24 @@ describe('blightwardenPromptStatics', () => {
     });
   });
 
+  it('VALID: template => sizes groups and caps the wave from blightPartitionStatics, not from prose', () => {
+    expect({
+      target: has(
+        `**Target ${blightPartitionStatics.targetFilesPerGroup} changed files per group** — roughly three impl+test pairs`,
+      ),
+      cap: has(
+        `**never more than ${blightPartitionStatics.maxConcurrentMinions} minions in flight at once**`,
+      ),
+      nextWave: has('dispatch the cap, wait for that wave to return, then dispatch the next.'),
+      rulesRecap: has(
+        `3. **Disjoint groups by file, ~${blightPartitionStatics.targetFilesPerGroup} files each, at most ${blightPartitionStatics.maxConcurrentMinions} in flight**`,
+      ),
+    }).toStrictEqual({ target: true, cap: true, nextWave: true, rulesRecap: true });
+  });
+
   it('VALID: template => dispatches ONE blightwarden-crosscut-minion alone over the whole diff', () => {
     expect({
-      gate: /^### Gate 4: Second Wave — blightwarden-crosscut-minion \(BLOCKING\)$/mu.test(
+      gate: /^### Gate 4: Second Wave — blightwarden-crosscut-minion, ALONE \(BLOCKING\)$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
       summonsOne: has('summon ONE `blightwarden-crosscut-minion`,'),
@@ -158,9 +200,39 @@ describe('blightwardenPromptStatics', () => {
     }).toStrictEqual({ gate: true, summonsOne: true, alone: true });
   });
 
+  it('VALID: template => dispatches ONE blightwarden-deadcode-minion alone, third, over the whole diff', () => {
+    expect({
+      gate: /^### Gate 5: Third Wave — blightwarden-deadcode-minion, ALONE \(BLOCKING\)$/mu.test(
+        blightwardenPromptStatics.prompt.template,
+      ),
+      summonsOne: has('summon ONE `blightwarden-deadcode-minion`, ALONE, over the'),
+      neverSplit: has('WHOLE diff — never split this wave either.'),
+      whyWholeGraph: has(
+        '**a file cannot tell you whether its own export has a consumer**, so orphan detection\nneeds the whole import graph at once.',
+      ),
+      ownsNoUnit: has('and why it owns no checklist unit.'),
+      whyThird: has(
+        'It runs THIRD, not second, because every fix the earlier waves landed can itself orphan something',
+      ),
+      showsItsWork: has('a claimed orphan with no search behind it is not evidence.'),
+      rulesRecap: has(
+        '4. **Both whole-diff waves run ALONE, after the groups: crosscut, then dead code**',
+      ),
+    }).toStrictEqual({
+      gate: true,
+      summonsOne: true,
+      neverSplit: true,
+      whyWholeGraph: true,
+      ownsNoUnit: true,
+      whyThird: true,
+      showsItsWork: true,
+      rulesRecap: true,
+    });
+  });
+
   it('VALID: template => makes verifying every artifact the core job, never trusting a summary alone', () => {
     expect({
-      gate: /^### Gate 5: Verify Every Artifact \(THIS IS YOUR CORE JOB\)$/mu.test(
+      gate: /^### Gate 6: Verify Every Artifact \(THIS IS YOUR CORE JOB\)$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
       artifactIsClaim: has('An artifact is a claim.'),
@@ -170,7 +242,7 @@ describe('blightwardenPromptStatics', () => {
 
   it('VALID: template => records dispositions as it goes rather than batching to the end', () => {
     expect({
-      gate: /^### Gate 6: Record Dispositions As You Go \(do NOT batch to the end\)$/mu.test(
+      gate: /^### Gate 7: Record Dispositions As You Go \(do NOT batch to the end\)$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
       ledgerWrite: has("modify-quest({ questId: 'QUEST_ID', planningNotes: { blightLedger: ["),
@@ -186,7 +258,7 @@ describe('blightwardenPromptStatics', () => {
 
   it('VALID: template => runs one scoped ward over every file touched, never a bare directory', () => {
     expect({
-      gate: /^### Gate 7: Ward \(BLOCKING\)$/mu.test(blightwardenPromptStatics.prompt.template),
+      gate: /^### Gate 8: Ward \(BLOCKING\)$/mu.test(blightwardenPromptStatics.prompt.template),
       wardCommand: has('npm run ward -- -- <the files changed>'),
       neverBareDirectory: has('paths, never a bare directory:'),
     }).toStrictEqual({ gate: true, wardCommand: true, neverBareDirectory: true });
@@ -194,7 +266,7 @@ describe('blightwardenPromptStatics', () => {
 
   it('VALID: template => owns the single commit, forbids minions from git, and carries the DO NOT STASH rule', () => {
     expect({
-      gate: /^### Gate 8: Commit and Signal \(BLOCKING — do not end your turn before this\)$/mu.test(
+      gate: /^### Gate 9: Commit and Signal \(BLOCKING — do not end your turn before this\)$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
       ownsCommit: has("**You own the session's single commit.**"),
@@ -240,18 +312,20 @@ describe('blightwardenPromptStatics', () => {
       protocol: /^## Minion Delegation Protocol$/mu.test(blightwardenPromptStatics.prompt.template),
       minionFetch: has("get-agent-prompt({ agent: '<minion-name>', questId: 'QUEST_ID' })"),
       onlyContext: has('**Your spawn message is the ONLY quest context it gets.**'),
-      crosscutBrief: has(
-        'For `blightwarden-crosscut-minion`, replace `YOUR GROUP` / `UNITS TO REVIEW` with the whole',
+      wholeDiffBrief: has(
+        "For the two whole-diff minions — `blightwarden-crosscut-minion` and\n   `blightwarden-deadcode-minion` — replace `YOUR GROUP` / `UNITS TO REVIEW` with the whole\n   diff's file list.",
       ),
-      minionName: has('blightwarden-minion'),
+      minionName: has('blightwarden-group-minion'),
       crosscutMinionName: has('blightwarden-crosscut-minion'),
+      deadcodeMinionName: has('blightwarden-deadcode-minion'),
     }).toStrictEqual({
       protocol: true,
       minionFetch: true,
       onlyContext: true,
-      crosscutBrief: true,
+      wholeDiffBrief: true,
       minionName: true,
       crosscutMinionName: true,
+      deadcodeMinionName: true,
     });
   });
 

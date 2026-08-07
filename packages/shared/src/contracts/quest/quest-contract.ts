@@ -16,6 +16,7 @@ import { planningBlightReportContract } from '../planning-blight-report/planning
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
+import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
@@ -116,7 +117,7 @@ export const questContract = z.object({
         .array(questQaLedgerEntryContract)
         .default([])
         .describe(
-          "Siegemaster's per-unit QA dispositions, keyed on the derived QaChecklistItemId so coverage is computed rather than remembered. The signal-back completion gate reads this: a siegemaster item cannot report `done` while any checklist unit on its flow has no entry here.",
+          "Siegemaster's per-unit QA dispositions, keyed on the derived QaChecklistItemId so coverage is computed rather than remembered. A track-less `get-qa-checklist` measures its flow-wide remainder against these entries. The signal-back completion gate reads the per-unit `flowriderSignoff` / `siegemasterSignoff` on each flow element instead — an entry here settles no verification unit for either track.",
         ),
       blightLedger: z
         .array(questBlightLedgerEntryContract)
@@ -124,10 +125,16 @@ export const questContract = z.object({
         .describe(
           "Blightwarden's per-unit review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. The signal-back completion gate reads this: a blightwarden item cannot report `done` while any changed-file/concern unit has no entry here.",
         ),
+      questNotes: z
+        .array(questNoteContract)
+        .default([])
+        .describe(
+          'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a blightwarden review unit by its blightLedger disposition.',
+        ),
     })
-    .default({ blightReports: [], qaLedger: [], blightLedger: [] })
+    .default({ blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] })
     .describe(
-      'Blightwarden blight reports (cross-cutting whole-diff findings written by the blightwarden-minion and blightwarden-crosscut-minion sub-agents, judged by the blightwarden operator), the per-unit blightwarden review ledger, and the Siegemaster QA coverage ledger',
+      'Blightwarden blight reports (cross-cutting whole-diff findings written by the blightwarden-group-minion and blightwarden-crosscut-minion sub-agents, judged by the blightwarden operator), the per-unit blightwarden review ledger, the Siegemaster QA coverage ledger, and the durable side-channel quest notes',
     ),
   questSource: questSourceContract
     .optional()

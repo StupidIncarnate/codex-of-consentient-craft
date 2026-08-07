@@ -20,7 +20,7 @@ import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/
 
 import { questNodeDispatchLoopBroker } from '../../../brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker';
 import { chatOutputEmitPayloadContract } from '../../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
-import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { wardLineToChatEntryTransformer } from '../../../transformers/ward-line-to-chat-entry/ward-line-to-chat-entry-transformer';
 import { questNodeDispatchRunnerBroker } from '../../../brokers/quest/node-dispatch-runner/quest-node-dispatch-runner-broker';
 import type { NodeDispatchRunnerController } from '../../../contracts/node-dispatch-runner/node-dispatch-runner-contract';

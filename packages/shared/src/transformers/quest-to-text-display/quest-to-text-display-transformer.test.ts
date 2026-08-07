@@ -3,9 +3,13 @@ import { DesignDecisionStub } from '../../contracts/design-decision/design-decis
 import { FlowStub } from '../../contracts/flow/flow.stub';
 import { FlowNodeStub } from '../../contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '../../contracts/flow-observable/flow-observable.stub';
+import { FlowOffMapSignoffStub } from '../../contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
 import { OperationItemStub } from '../../contracts/operation-item/operation-item.stub';
 import { QuestContractEntryStub } from '../../contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestNoteStub } from '../../contracts/quest-note/quest-note.stub';
+import { SignoffStub } from '../../contracts/signoff/signoff.stub';
 import { ToolingRequirementStub } from '../../contracts/tooling-requirement/tooling-requirement.stub';
+import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 import { questToTextDisplayTransformer } from './quest-to-text-display-transformer';
 
 describe('questToTextDisplayTransformer', () => {
@@ -206,6 +210,188 @@ describe('questToTextDisplayTransformer', () => {
     });
   });
 
+  // `format: 'text'` is what every get-quest returns by default, so this composed render is where
+  // an agent reads its own track. A verdict that only exists in the JSON is invisible to it.
+  describe('sign-offs and observable provenance', () => {
+    it('VALID: {node signed by one track} => the node line carries that track mark alone', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            entryPoint: 'login-page' as never,
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page' as never,
+                label: 'Login Page' as never,
+                type: 'state',
+                flowriderSignoff: SignoffStub(),
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(/^\[#login-page\] Login Page \(state\) \[F\u2713\]$/mu);
+    });
+
+    it('VALID: {node signed by both tracks} => the node line carries both marks', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            entryPoint: 'login-page' as never,
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page' as never,
+                label: 'Login Page' as never,
+                type: 'state',
+                flowriderSignoff: SignoffStub(),
+                siegemasterSignoff: SignoffStub(),
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(/^\[#login-page\] Login Page \(state\) \[F\u2713 S\u2713\]$/mu);
+    });
+
+    it('VALID: {observable unconfirmable and added mid-quest} => provenance then the verdict mark', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            entryPoint: 'login-page' as never,
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page' as never,
+                label: 'Login Page' as never,
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'crash-on-bleh' as never,
+                    description: 'returns 400 for a non-JSON body' as never,
+                    type: 'api-call',
+                    addedBy: 'siegemaster',
+                    siegemasterSignoff: SignoffStub({
+                      verdict: 'unconfirmable',
+                      evidence: 'the endpoint 500s before any validation runs',
+                      question: 'Should the router reject a non-JSON body before the handler?',
+                    }),
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(
+        /^ {2}> #crash-on-bleh: returns 400 for a non-JSON body \[api-call\] \+siegemaster \[S\?\]$/mu,
+      );
+    });
+
+    it('VALID: {signed off-map family} => the flow section ends with an off-map line', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            entryPoint: 'login-page' as never,
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page' as never,
+                label: 'Login Page' as never,
+                type: 'state',
+              }),
+            ],
+            edges: [],
+            offMapSignoffs: [
+              FlowOffMapSignoffStub({ id: 'concurrency', siegemasterSignoff: SignoffStub() }),
+              FlowOffMapSignoffStub({ id: 'perf' }),
+            ],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toMatch(/^off-map: concurrency \[S\u2713\]$/mu);
+    });
+  });
+
+  // The regression guard for the whole feature: a quest that has recorded no sign-offs must render
+  // byte-for-byte as it does without one. No markers, no empty brackets, no provenance suffix on a
+  // spec observable, and no off-map line for families nobody signed.
+  describe('regression: a quest with zero sign-offs renders unchanged', () => {
+    it('EMPTY: {no sign-offs anywhere} => the complete render carries no marker of any kind', () => {
+      const quest = QuestStub({
+        flows: [
+          FlowStub({
+            entryPoint: 'login-page' as never,
+            nodes: [
+              FlowNodeStub({
+                id: 'login-page' as never,
+                label: 'Login Page' as never,
+                type: 'state',
+                observables: [
+                  FlowObservableStub({
+                    id: 'shows-form' as never,
+                    description: 'shows login form' as never,
+                    type: 'ui-state',
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+            offMapSignoffs: [
+              FlowOffMapSignoffStub({ id: 'concurrency' }),
+              FlowOffMapSignoffStub({ id: 'perf' }),
+            ],
+          }),
+        ],
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+
+      expect(result).toBe(
+        [
+          ...textDisplaySymbolsStatics.legendLines,
+          '',
+          '# Quest: Add Authentication',
+          'Status: in_progress',
+          '',
+          '## Design Decisions',
+          '',
+          '(none)',
+          '',
+          '## Contracts',
+          '',
+          '(none)',
+          '',
+          '## Tooling',
+          '',
+          '(none)',
+          '',
+          '## Flow: #login-flow \u2014 "Login Flow"',
+          'Entry: login-page | Exits: /dashboard',
+          '',
+          '[#login-page] Login Page (state)',
+          '  > #shows-form: shows login form [ui-state]',
+          '  (terminal)',
+          '',
+          '## Operations',
+          '',
+          '(none)',
+        ].join('\n'),
+      );
+    });
+  });
+
   describe('operations', () => {
     it('EMPTY: {quest: no operations} => shows (none)', () => {
       const quest = QuestStub({ operations: [] });
@@ -253,6 +439,91 @@ describe('questToTextDisplayTransformer', () => {
       expect(result).toMatch(
         /^#a1b2c3d4-58cc-4372-a567-0e02b2c3d479: \[ward \(changed\)\] ward gate — in_progress \[locked\]$/mu,
       );
+    });
+  });
+
+  describe('quest notes', () => {
+    it('VALID: {quest: two notes of different kinds} => renders both, scope lines only on the scoped one', () => {
+      const quest = QuestStub({
+        planningNotes: {
+          questNotes: [
+            QuestNoteStub({
+              id: 'open-question-anchor-scope',
+              kind: 'open-question',
+              role: 'siegemaster',
+              flowId: 'view-comments',
+              unitId: 'view-comments:observable:badge-count',
+              summary: 'Notify per box or once per batch',
+              detail: 'The batch send drops stale boxes',
+            }),
+            QuestNoteStub({
+              id: 'tooling-error-browser-bridge',
+              kind: 'tooling-error',
+              role: 'flowrider',
+              flowId: undefined,
+              unitId: undefined,
+              summary: 'Browser bridge never attached',
+              detail: 'Chrome launched but the port stayed closed',
+            }),
+          ],
+        },
+      });
+
+      const result = questToTextDisplayTransformer({ quest });
+      const flowLines = result.split('\n').filter((line) => line.startsWith('  Flow: '));
+      const unitLines = result.split('\n').filter((line) => line.startsWith('  Unit: '));
+
+      expect(result).toMatch(
+        /^## Quest Notes\n\n#open-question-anchor-scope: \[open-question\] siegemaster — Notify per box or once per batch\n {2}Detail: The batch send drops stale boxes\n {2}Flow: #view-comments\n {2}Unit: view-comments:observable:badge-count\n#tooling-error-browser-bridge: \[tooling-error\] flowrider — Browser bridge never attached\n {2}Detail: Chrome launched but the port stayed closed$/mu,
+      );
+      // The regex's `$` is end-of-LINE under /m, so it alone would still match if the unscoped note
+      // emitted its own Flow/Unit lines. These two assert the whole render carries exactly one of
+      // each — the second note contributed neither.
+      expect(flowLines).toStrictEqual(['  Flow: #view-comments']);
+      expect(unitLines).toStrictEqual(['  Unit: view-comments:observable:badge-count']);
+    });
+
+    it('EMPTY: {quest: no quest notes} => renders no Quest Notes header at all', () => {
+      const quest = QuestStub();
+
+      const result = questToTextDisplayTransformer({ quest });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual([
+        '## Design Decisions',
+        '## Contracts',
+        '## Tooling',
+        '## Flow: #login-flow — "Login Flow"',
+        '## Operations',
+      ]);
+    });
+
+    it('VALID: {stage: spec, notes present} => omits Quest Notes because spec excludes planningNotes', () => {
+      const quest = QuestStub({
+        planningNotes: { questNotes: [QuestNoteStub({ id: 'open-question-anchor-scope' })] },
+      });
+
+      const result = questToTextDisplayTransformer({ quest, stage: 'spec' });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual([
+        '## Design Decisions',
+        '## Contracts',
+        '## Tooling',
+        '## Flow: #login-flow — "Login Flow"',
+        '## Operations',
+      ]);
+    });
+
+    it('VALID: {stage: planning, notes present} => renders Quest Notes alongside the planning sections', () => {
+      const quest = QuestStub({
+        planningNotes: { questNotes: [QuestNoteStub({ id: 'open-question-anchor-scope' })] },
+      });
+
+      const result = questToTextDisplayTransformer({ quest, stage: 'planning' });
+      const headers = result.split('\n').filter((line) => line.startsWith('## '));
+
+      expect(headers).toStrictEqual(['## Contracts', '## Operations', '## Quest Notes']);
     });
   });
 

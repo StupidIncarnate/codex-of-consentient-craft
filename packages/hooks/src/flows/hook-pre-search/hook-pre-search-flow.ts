@@ -6,10 +6,7 @@
  * // Returns ExecResult with stdout, stderr, exitCode (2 if blocked)
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPreSearchResponder } from '../../responders/hook/pre-search/hook-pre-search-responder';
 
 const EXIT_CODE_BLOCK = 2;

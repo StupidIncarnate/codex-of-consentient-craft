@@ -6,10 +6,7 @@
  * // Returns ExecResult with stdout (block decision JSON or empty), stderr, exitCode
  */
 
-import {
-  execResultContract,
-  type ExecResult,
-} from '../../contracts/exec-result/exec-result-contract';
+import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookSubagentStopResponder } from '../../responders/hook/subagent-stop/hook-subagent-stop-responder';
 
 export const HookSubagentStopFlow = async ({

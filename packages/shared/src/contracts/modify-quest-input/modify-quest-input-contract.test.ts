@@ -1,3 +1,5 @@
+import { QuestNoteStub } from '../quest-note/quest-note.stub';
+import { SignoffStub } from '../signoff/signoff.stub';
 import { modifyQuestInputContract } from './modify-quest-input-contract';
 import { ModifyQuestInputStub } from './modify-quest-input.stub';
 
@@ -136,9 +138,9 @@ describe('modifyQuestInputContract', () => {
       planningNotes: {
         blightLedger: [
           {
-            itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+            itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
             disposition: 'reviewed',
-            evidence: 'every branch in handleSubmit has a test',
+            evidence: 'handleSubmit rethrows with the request url attached',
             observedBy: 'blightwarden',
             rippleSites: [],
             workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -153,9 +155,9 @@ describe('modifyQuestInputContract', () => {
       planningNotes: {
         blightLedger: [
           {
-            itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+            itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
             disposition: 'reviewed',
-            evidence: 'every branch in handleSubmit has a test',
+            evidence: 'handleSubmit rethrows with the request url attached',
             observedBy: 'blightwarden',
             rippleSites: [],
             workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
@@ -470,6 +472,169 @@ describe('modifyQuestInputContract', () => {
         },
       ],
     });
+  });
+
+  // The persisted flow contracts declare the two sign-offs `.optional()`, which can only say "leave
+  // this alone" by omission. The input side widens them to `.nullish()` so a reset can send the
+  // explicit `null` clear marker that questItemDeepMergeTransformer turns into key removal.
+  it('VALID: {flows patch clearing an observable siegemasterSignoff to null} => keeps null in the parsed output as the clear marker', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'end',
+              observables: [{ id: 'login-redirects-to-dashboard', siegemasterSignoff: null }],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'end',
+              observables: [{ id: 'login-redirects-to-dashboard', siegemasterSignoff: null }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {flows patch with a full flowriderSignoff on an observable} => parses the whole sign-off through', () => {
+    const signoff = SignoffStub();
+
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'end',
+              observables: [{ id: 'login-redirects-to-dashboard', flowriderSignoff: signoff }],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          nodes: [
+            {
+              id: 'end',
+              observables: [
+                {
+                  id: 'login-redirects-to-dashboard',
+                  flowriderSignoff: {
+                    verdict: 'confirmed',
+                    evidence:
+                      'packages/x/src/a-transformer.test.ts:42 — flips to red when the guard returns true',
+                    workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                    at: '2026-01-01T00:00:00.000Z',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {flows patch clearing an offMapSignoffs siegemasterSignoff to null} => keeps null in the parsed output as the clear marker', () => {
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: null }],
+        },
+      ],
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      flows: [
+        {
+          id: 'login-flow',
+          offMapSignoffs: [{ id: 'concurrency', siegemasterSignoff: null }],
+        },
+      ],
+    });
+  });
+
+  it('VALID: {planningNotes with a questNote} => survives parsing instead of being stripped', () => {
+    const note = QuestNoteStub();
+
+    const result = modifyQuestInputContract.parse({
+      questId: 'add-auth',
+      planningNotes: { questNotes: [note] },
+    });
+
+    expect(result).toStrictEqual({
+      questId: 'add-auth',
+      planningNotes: {
+        questNotes: [
+          {
+            id: 'open-question-comment-anchor-scope',
+            kind: 'open-question',
+            role: 'siegemaster',
+            workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            flowId: 'view-persisted-comments',
+            unitId: 'view-persisted-comments:observable:check-badge-count-text',
+            summary: 'Should a stale anchor notify per box or once per batch?',
+            detail:
+              'The batch send drops boxes whose node id no longer exists in the flow. Asked the operator; no answer landed before the walk ended.',
+            at: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+    });
+  });
+
+  // signoffContract carries its rule in a superRefine, and this contract reaches it through both
+  // .extend() and .nullish(). Either wrapper silently dropping the effect would let an
+  // `unconfirmable` verdict land with no routable question behind it.
+  it('INVALID: {observable flowriderSignoff: unconfirmable verdict with no question} => throws the superRefine error', () => {
+    expect(() => {
+      return modifyQuestInputContract.parse({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'login-flow',
+            nodes: [
+              {
+                id: 'end',
+                observables: [
+                  {
+                    id: 'login-redirects-to-dashboard',
+                    flowriderSignoff: {
+                      verdict: 'unconfirmable',
+                      evidence: 'no browser bridge was reachable from this session',
+                      workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                      at: '2026-01-01T00:00:00.000Z',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+    }).toThrow(/question is required when verdict is unconfirmable/u);
   });
 
   it('VALID: {workItems entry with only id} => parses successfully (every other field optional for upsert)', () => {

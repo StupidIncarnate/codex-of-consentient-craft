@@ -12,7 +12,7 @@ describe('workItemRoleStatics', () => {
         'spiritmender',
         'flowrider',
         'siegemaster',
-        'blightwarden-minion',
+        'blightwarden-group-minion',
         'blightwarden-crosscut-minion',
         'blightwarden',
         'pesteater',

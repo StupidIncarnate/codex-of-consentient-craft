@@ -17,7 +17,7 @@ import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { questRunWardBroker } from '../../../brokers/quest/run-ward/quest-run-ward-broker';
 import { chatOutputEmitPayloadContract } from '../../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
 import type { QuestRunWardResult } from '../../../contracts/quest-run-ward-result/quest-run-ward-result-contract';
-import { slotIndexContract } from '../../../contracts/slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { wardLineToChatEntryTransformer } from '../../../transformers/ward-line-to-chat-entry/ward-line-to-chat-entry-transformer';
 

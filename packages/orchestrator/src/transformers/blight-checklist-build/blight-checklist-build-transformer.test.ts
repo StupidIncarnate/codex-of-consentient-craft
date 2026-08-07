@@ -8,7 +8,7 @@ import { blightChecklistBuildTransformer } from './blight-checklist-build-transf
 
 describe('blightChecklistBuildTransformer', () => {
   describe('pairing: impl + test + proxy', () => {
-    it('VALID: {impl.ts + impl.test.ts + impl.proxy.ts} => one group, 7 units, pairedFiles holds the two companions', () => {
+    it('VALID: {impl.ts + impl.test.ts + impl.proxy.ts} => one group, one unit per concern, pairedFiles holds the two companions', () => {
       const implPath = RepoRelativePathStub({
         value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
       });
@@ -27,27 +27,20 @@ describe('blightChecklistBuildTransformer', () => {
 
       expect(result.items).toStrictEqual([
         {
-          id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:coverage',
-          implPath,
-          concern: 'coverage',
-          pairedFiles: [proxyPath, testPath],
-          label: 'coverage — every branch in foo-broker.ts has a real test',
-        },
-        {
           id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:craft',
           implPath,
           concern: 'craft',
           pairedFiles: [proxyPath, testPath],
           label:
-            "craft — foo-broker.ts's logic matches its signature, its error handling carries real context, and nothing needless remains",
+            "craft — foo-broker.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
         },
         {
-          id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:security',
+          id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:perf',
           implPath,
-          concern: 'security',
+          concern: 'perf',
           pairedFiles: [proxyPath, testPath],
           label:
-            'security — no untrusted input in foo-broker.ts reaches a dangerous sink without a validating contract',
+            'perf — foo-broker.ts has no quadratic loops, N+1 queries, sync I/O in async code, or unbounded work, and does nothing it need not do at all',
         },
         {
           id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:dedup',
@@ -58,26 +51,12 @@ describe('blightChecklistBuildTransformer', () => {
             'dedup — foo-broker.ts introduces no semantic duplication, within this diff or against existing repo code',
         },
         {
-          id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:perf',
-          implPath,
-          concern: 'perf',
-          pairedFiles: [proxyPath, testPath],
-          label:
-            'perf — foo-broker.ts has no quadratic loops, N+1 queries, sync I/O in async code, or unbounded work',
-        },
-        {
           id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:integrity',
           implPath,
           concern: 'integrity',
           pairedFiles: [proxyPath, testPath],
-          label: "integrity — every consumer of foo-broker.ts's changed exports still works",
-        },
-        {
-          id: 'packages/orchestrator/src/brokers/foo/foo-broker.ts:dead-code',
-          implPath,
-          concern: 'dead-code',
-          pairedFiles: [proxyPath, testPath],
-          label: 'dead-code — foo-broker.ts carries no orphan exports or unreachable branches',
+          label:
+            "integrity — foo-broker.ts's changed exports still MEAN to their consumers what they did, and no stub, fixture, or `.default(...)` papers over a break",
         },
       ]);
     });
@@ -93,11 +72,12 @@ describe('blightChecklistBuildTransformer', () => {
       const result = blightChecklistBuildTransformer({ changedFiles: [testTsxPath], baseRef });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/web/src/widgets/foo/foo-widget.tsx:coverage',
+        id: 'packages/web/src/widgets/foo/foo-widget.tsx:craft',
         implPath: 'packages/web/src/widgets/foo/foo-widget.tsx',
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [testTsxPath],
-        label: 'coverage — every branch in foo-widget.tsx has a real test',
+        label:
+          "craft — foo-widget.tsx's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
 
@@ -113,11 +93,12 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/web/src/widgets/bar/bar-widget.tsx:coverage',
+        id: 'packages/web/src/widgets/bar/bar-widget.tsx:craft',
         implPath: 'packages/web/src/widgets/bar/bar-widget.tsx',
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [proxyTsxPath],
-        label: 'coverage — every branch in bar-widget.tsx has a real test',
+        label:
+          "craft — bar-widget.tsx's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
   });
@@ -141,15 +122,16 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:coverage',
+        id: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:craft',
         implPath: contractPath,
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [contractTestPath, stubPath],
-        label: 'coverage — every branch in torch-fuel-contract.ts has a real test',
+        label:
+          "craft — torch-fuel-contract.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
 
-    it('VALID: {contract + its test + its stub} => ONE group of 7 units, not two groups of 14', () => {
+    it('VALID: {contract + its test + its stub} => ONE group of one unit per concern, not two groups', () => {
       const contractPath = RepoRelativePathStub({
         value: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts',
       });
@@ -167,13 +149,10 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.items.map((item) => String(item.id))).toStrictEqual([
-        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:coverage',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:craft',
-        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:security',
-        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:dedup',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:perf',
+        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:dedup',
         'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:integrity',
-        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:dead-code',
       ]);
     });
 
@@ -186,11 +165,12 @@ describe('blightChecklistBuildTransformer', () => {
       const result = blightChecklistBuildTransformer({ changedFiles: [stubPath], baseRef });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:coverage',
+        id: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts:craft',
         implPath: 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts',
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [stubPath],
-        label: 'coverage — every branch in torch-fuel-contract.ts has a real test',
+        label:
+          "craft — torch-fuel-contract.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
 
@@ -235,11 +215,12 @@ describe('blightChecklistBuildTransformer', () => {
       const result = blightChecklistBuildTransformer({ changedFiles: [path], baseRef });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/orchestrator/src/startup/start-thing.ts:coverage',
+        id: 'packages/orchestrator/src/startup/start-thing.ts:craft',
         implPath: 'packages/orchestrator/src/startup/start-thing.ts',
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [path],
-        label: 'coverage — every branch in start-thing.ts has a real test',
+        label:
+          "craft — start-thing.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
   });
@@ -254,11 +235,12 @@ describe('blightChecklistBuildTransformer', () => {
       const result = blightChecklistBuildTransformer({ changedFiles: [e2ePath], baseRef });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/web/src/flows/quest-chat/foo.e2e.ts:coverage',
+        id: 'packages/web/src/flows/quest-chat/foo.e2e.ts:craft',
         implPath: e2ePath,
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [],
-        label: 'coverage — every branch in foo.e2e.ts has a real test',
+        label:
+          "craft — foo.e2e.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
 
@@ -271,11 +253,12 @@ describe('blightChecklistBuildTransformer', () => {
       const result = blightChecklistBuildTransformer({ changedFiles: [harnessPath], baseRef });
 
       expect(result.items[0]).toStrictEqual({
-        id: 'packages/web/test/harnesses/quest/quest.harness.ts:coverage',
+        id: 'packages/web/test/harnesses/quest/quest.harness.ts:craft',
         implPath: harnessPath,
-        concern: 'coverage',
+        concern: 'craft',
         pairedFiles: [],
-        label: 'coverage — every branch in quest.harness.ts has a real test',
+        label:
+          "craft — quest.harness.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
       });
     });
   });
@@ -323,19 +306,16 @@ describe('blightChecklistBuildTransformer', () => {
         changedFiles: [implPath],
         ledger: [
           QuestBlightLedgerEntryStub({
-            itemId: 'packages/orchestrator/src/guards/foo/foo-guard.ts:coverage',
+            itemId: 'packages/orchestrator/src/guards/foo/foo-guard.ts:craft',
           }),
         ],
         baseRef,
       });
 
       expect(result.remainingItemIds).toStrictEqual([
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:craft',
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:security',
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
+        'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:dead-code',
       ]);
     });
 
@@ -349,20 +329,17 @@ describe('blightChecklistBuildTransformer', () => {
         changedFiles: [implPath],
         ledger: [
           QuestBlightLedgerEntryStub({
-            itemId: 'packages/orchestrator/src/guards/other/other-guard.ts:coverage',
+            itemId: 'packages/orchestrator/src/guards/other/other-guard.ts:craft',
           }),
         ],
         baseRef,
       });
 
       expect(result.remainingItemIds).toStrictEqual([
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:coverage',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:craft',
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:security',
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
+        'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
         'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
-        'packages/orchestrator/src/guards/foo/foo-guard.ts:dead-code',
       ]);
     });
 
@@ -383,6 +360,49 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.remainingItemIds).toStrictEqual([]);
+    });
+  });
+
+  describe('a persisted ledger id naming a concern the contract no longer carries is INERT', () => {
+    // `blightChecklistItemIdContract` is a plain branded string, so a ledger persisted by an older
+    // session still parses ids like `<implPath>:coverage`. Those ids simply match no unit: they
+    // must not throw, must not appear among the enumerated items, and must not clear a unit that
+    // genuinely still needs a disposition.
+    it('VALID: {ledger holding a stale <implPath>:coverage entry beside a live <implPath>:craft one} => the stale id is ignored and only craft clears', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/guards/foo/foo-guard.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        ledger: [
+          QuestBlightLedgerEntryStub({
+            itemId: 'packages/orchestrator/src/guards/foo/foo-guard.ts:coverage',
+          }),
+          QuestBlightLedgerEntryStub({
+            itemId: 'packages/orchestrator/src/guards/foo/foo-guard.ts:craft',
+          }),
+        ],
+        baseRef,
+      });
+
+      expect({
+        itemIds: result.items.map((item) => String(item.id)),
+        remainingItemIds: result.remainingItemIds.map((itemId) => String(itemId)),
+      }).toStrictEqual({
+        itemIds: [
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:craft',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
+        ],
+        remainingItemIds: [
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:perf',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:dedup',
+          'packages/orchestrator/src/guards/foo/foo-guard.ts:integrity',
+        ],
+      });
     });
   });
 
@@ -409,12 +429,6 @@ describe('blightChecklistBuildTransformer', () => {
         fileA,
         fileA,
         fileA,
-        fileA,
-        fileA,
-        fileA,
-        fileB,
-        fileB,
-        fileB,
         fileB,
         fileB,
         fileB,

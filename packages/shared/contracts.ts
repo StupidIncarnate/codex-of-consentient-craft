@@ -74,6 +74,10 @@ export * from './src/contracts/user-input/user-input.stub';
 export * from './src/contracts/exit-code/exit-code-contract';
 export * from './src/contracts/exit-code/exit-code.stub';
 
+// Exec Result Contracts
+export * from './src/contracts/exec-result/exec-result-contract';
+export * from './src/contracts/exec-result/exec-result.stub';
+
 export * from './src/contracts/network-port/network-port-contract';
 export * from './src/contracts/network-port/network-port.stub';
 
@@ -200,6 +204,19 @@ export * from './src/contracts/process-id/process-id.stub';
 
 export * from './src/contracts/orchestration-slot/orchestration-slot-contract';
 export * from './src/contracts/orchestration-slot/orchestration-slot.stub';
+
+export * from './src/contracts/slot-index/slot-index-contract';
+export * from './src/contracts/slot-index/slot-index.stub';
+
+export * from './src/contracts/slot-count/slot-count-contract';
+export * from './src/contracts/slot-count/slot-count.stub';
+
+// Execution Progress Count Contracts
+export * from './src/contracts/completed-count/completed-count-contract';
+export * from './src/contracts/completed-count/completed-count.stub';
+
+export * from './src/contracts/total-count/total-count-contract';
+export * from './src/contracts/total-count/total-count.stub';
 
 export * from './src/contracts/orchestration-status/orchestration-status-contract';
 export * from './src/contracts/orchestration-status/orchestration-status.stub';
@@ -455,6 +472,58 @@ export * from './src/contracts/blight-checklist/blight-checklist.stub';
 
 export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 export * from './src/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+
+// Sign-off Contracts (two independent verification tracks — Flowrider at the test layer,
+// Siegemaster off the running system — each recorded on its own top-level field, with provenance
+// carried on a separate axis so a track is never charged for units it could not have reached)
+export * from './src/contracts/signoff-verdict/signoff-verdict-contract';
+export * from './src/contracts/signoff-verdict/signoff-verdict.stub';
+
+export * from './src/contracts/signoff-track/signoff-track-contract';
+export * from './src/contracts/signoff-track/signoff-track.stub';
+
+export * from './src/contracts/observable-origin/observable-origin-contract';
+export * from './src/contracts/observable-origin/observable-origin.stub';
+
+export * from './src/contracts/signoff/signoff-contract';
+export * from './src/contracts/signoff/signoff.stub';
+
+export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff-contract';
+export * from './src/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
+
+// Quest Note Contracts (the durable side channel on quest.planningNotes.questNotes — open
+// questions, tooling failures, out-of-scope observations and walk resets, none of which close a
+// unit)
+export * from './src/contracts/quest-note-id/quest-note-id-contract';
+export * from './src/contracts/quest-note-id/quest-note-id.stub';
+
+export * from './src/contracts/quest-note-kind/quest-note-kind-contract';
+export * from './src/contracts/quest-note-kind/quest-note-kind.stub';
+
+export * from './src/contracts/quest-note/quest-note-contract';
+export * from './src/contracts/quest-note/quest-note.stub';
+
+// Quest Summary Contracts (what actually happened on a quest: per-flow/per-track sign-off coverage,
+// the observables added after approval, every `unconfirmable` verdict the completion gate let
+// through, and the side-channel notes grouped by kind. Shared rather than orchestrator-local
+// because the web renders the same shape the orchestrator computes)
+export * from './src/contracts/quest-summary-track-counts/quest-summary-track-counts-contract';
+export * from './src/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
+
+export * from './src/contracts/quest-summary-flow/quest-summary-flow-contract';
+export * from './src/contracts/quest-summary-flow/quest-summary-flow.stub';
+
+export * from './src/contracts/quest-summary-observable/quest-summary-observable-contract';
+export * from './src/contracts/quest-summary-observable/quest-summary-observable.stub';
+
+export * from './src/contracts/quest-summary-unconfirmable/quest-summary-unconfirmable-contract';
+export * from './src/contracts/quest-summary-unconfirmable/quest-summary-unconfirmable.stub';
+
+export * from './src/contracts/quest-summary-note-group/quest-summary-note-group-contract';
+export * from './src/contracts/quest-summary-note-group/quest-summary-note-group.stub';
+
+export * from './src/contracts/quest-summary/quest-summary-contract';
+export * from './src/contracts/quest-summary/quest-summary.stub';
 
 // Chat Entry Contracts
 export * from './src/contracts/chat-entry/chat-entry-contract';

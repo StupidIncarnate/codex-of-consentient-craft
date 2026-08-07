@@ -72,6 +72,11 @@ export const dispatchHarness = ({
     firstWorkItemId: string;
     firstWorkItemStatus?: string;
     firstWorkItemSessionId?: string;
+    // Seeds the quest's runtime flow with the Flowrider track's sign-offs already written — the
+    // state a real flowrider session reaches before it signals. Required whenever the ledger
+    // carries a `flowrider` item this spec drives to `done`, because signal-back recomputes that
+    // scope and refuses `done` while any verification unit on it is unsigned.
+    flowriderScopeSignedOff?: boolean;
   }) => Promise<{ questId: QuestId; questFolder: QuestId; questFilePath: FilePath }>;
   queueScript: (params: {
     script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
@@ -145,6 +150,7 @@ export const dispatchHarness = ({
       firstWorkItemId,
       firstWorkItemStatus,
       firstWorkItemSessionId,
+      flowriderScopeSignedOff,
     }) => {
       const created = await quests.createQuest({ guildId, title, userRequest });
       quests.seedInProgressWithOperations({
@@ -156,6 +162,7 @@ export const dispatchHarness = ({
         firstWorkItemId,
         ...(firstWorkItemStatus === undefined ? {} : { firstWorkItemStatus }),
         ...(firstWorkItemSessionId === undefined ? {} : { firstWorkItemSessionId }),
+        ...(flowriderScopeSignedOff === undefined ? {} : { flowriderScopeSignedOff }),
       });
       return {
         questId: created.questId,

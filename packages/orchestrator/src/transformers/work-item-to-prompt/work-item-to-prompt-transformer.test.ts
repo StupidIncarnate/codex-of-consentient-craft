@@ -18,12 +18,13 @@ import { agentNameToPromptTransformer } from '../agent-name-to-prompt/agent-name
 import { DevCommandStub } from '../../contracts/dev-command/dev-command.stub';
 import { DevServerUrlStub } from '../../contracts/dev-server-url/dev-server-url.stub';
 import { blightwardenCrosscutMinionStatics } from '../../statics/blightwarden-crosscut-minion/blightwarden-crosscut-minion-statics';
-import { blightwardenMinionStatics } from '../../statics/blightwarden-minion/blightwarden-minion-statics';
+import { blightwardenGroupMinionStatics } from '../../statics/blightwarden-group-minion/blightwarden-group-minion-statics';
 import { blightwardenPromptStatics } from '../../statics/blightwarden-prompt/blightwarden-prompt-statics';
 import { chaoswhispererGapMinionStatics } from '../../statics/chaoswhisperer-gap-minion/chaoswhisperer-gap-minion-statics';
-import { codeweaverMinionStatics } from '../../statics/codeweaver-minion/codeweaver-minion-statics';
+import { codeweaverPieceMinionStatics } from '../../statics/codeweaver-piece-minion/codeweaver-piece-minion-statics';
 import { codeweaverPromptStatics } from '../../statics/codeweaver-prompt/codeweaver-prompt-statics';
 import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider-prompt-statics';
+import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
@@ -56,6 +57,19 @@ const BUDGET_USER_REQUEST =
     ' Keep the queue visible while the batch is in flight.',
   );
 
+// A pathological pt-chain ledger: 34 settled scopes (the authored relay plus every `pt N`
+// continuation it accumulated), the 35th in flight — the dispatched agent's own — and five still
+// pending behind it. Two or three retries on a real quest reach this shape, and at relay scale it
+// overflows the MCP verbatim budget unless the render is bounded.
+const PATHOLOGICAL_COMPLETE_COUNT = 34;
+const PATHOLOGICAL_OWN_INDEX = 34;
+const PATHOLOGICAL_PENDING_COUNT = 5;
+const LEDGER_ITEM_TEXT = 'core: config load+validate adapter';
+const ELISION_NOTICE_PLURAL =
+  "... 24 earlier complete operation items elided to fit the prompt budget — call get-quest({ questId, stage: 'implementation' }) for the full ledger.";
+const ELISION_NOTICE_SINGULAR =
+  "... 1 earlier complete operation item elided to fit the prompt budget — call get-quest({ questId, stage: 'implementation' }) for the full ledger.";
+
 // Names that are served but own no work item, so their $ARGUMENTS is the two-line minimal form.
 const SUMMONED_ONLY_MINION_NAMES = agentPromptClassificationStatics.promptNames.filter(
   (promptName) =>
@@ -83,7 +97,7 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    it('VALID: {agent: codeweaver-minion, workItem.role: siegemaster} => minimal substitution regardless of workItem.role', () => {
+    it('VALID: {agent: codeweaver-piece-minion, workItem.role: siegemaster} => minimal substitution regardless of workItem.role', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const workItem = WorkItemStub({ id: workItemId, role: 'siegemaster' });
@@ -92,34 +106,34 @@ describe('workItemToPromptTransformer', () => {
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'codeweaver-minion' }),
+        agentName: AgentPromptNameStub({ value: 'codeweaver-piece-minion' }),
       });
 
       const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
 
       expect(result.prompt).toBe(
-        codeweaverMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        codeweaverPieceMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
   });
 
   describe('blightwarden minion roles and pesteater (minimal substitution)', () => {
-    it('VALID: {agent + role: blightwarden-minion} => substitutes Quest ID + Work Item ID', () => {
+    it('VALID: {agent + role: blightwarden-group-minion} => substitutes Quest ID + Work Item ID', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-6666-4222-9333-444444444444' });
-      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden-minion' });
+      const workItem = WorkItemStub({ id: workItemId, role: 'blightwarden-group-minion' });
       const quest = QuestStub({ id: questId, workItems: [workItem] });
 
       const result = workItemToPromptTransformer({
         quest,
         workItem,
-        agentName: AgentPromptNameStub({ value: 'blightwarden-minion' }),
+        agentName: AgentPromptNameStub({ value: 'blightwarden-group-minion' }),
       });
 
       const expectedArgs = `Quest ID: ${String(questId)}\nWork Item ID: ${String(workItemId)}`;
 
       expect(result.prompt).toBe(
-        blightwardenMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        blightwardenGroupMinionStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
       );
     });
 
@@ -831,6 +845,209 @@ describe('workItemToPromptTransformer', () => {
     });
   });
 
+  describe('bounded operations-ledger render', () => {
+    it('EDGE: {ledger of exactly maxRenderedItems items} => renders every line and emits no elision notice', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-4444-4222-9333-444444444444' });
+      const ownOperationId = OperationItemIdStub({
+        value: `aaaaaaaa-4444-4222-9333-4444444444${String(operationsLedgerRenderStatics.maxRenderedItems - 1).padStart(2, '0')}`,
+      });
+      const operations = [
+        ...Array.from(
+          { length: operationsLedgerRenderStatics.maxRenderedItems - 1 },
+          (_unused, index) =>
+            OperationItemStub({
+              id: OperationItemIdStub({
+                value: `aaaaaaaa-4444-4222-9333-4444444444${String(index).padStart(2, '0')}`,
+              }),
+              role: 'codeweaver',
+              text: LEDGER_ITEM_TEXT,
+              status: 'complete',
+            }),
+        ),
+        OperationItemStub({
+          id: ownOperationId,
+          role: 'codeweaver',
+          text: LEDGER_ITEM_TEXT,
+          status: 'in_progress',
+        }),
+      ];
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations, workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(ownOperationId)}`,
+        `Your operation item: [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        '',
+        'Operations ledger (in order):',
+        ...Array.from(
+          { length: 15 },
+          (_unused, offset) => `${String(1 + offset)}. [x] [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        ),
+        `16. [>] [codeweaver] ${LEDGER_ITEM_TEXT}  <-- YOUR OPERATION ITEM`,
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('EDGE: {ledger one item over maxRenderedItems} => elides the single oldest complete item and names it in the singular', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5555-4222-9333-444444444444' });
+      const ownOperationId = OperationItemIdStub({
+        value: `aaaaaaaa-5555-4222-9333-4444444444${String(operationsLedgerRenderStatics.maxRenderedItems).padStart(2, '0')}`,
+      });
+      const operations = [
+        ...Array.from(
+          { length: operationsLedgerRenderStatics.maxRenderedItems },
+          (_unused, index) =>
+            OperationItemStub({
+              id: OperationItemIdStub({
+                value: `aaaaaaaa-5555-4222-9333-4444444444${String(index).padStart(2, '0')}`,
+              }),
+              role: 'codeweaver',
+              text: LEDGER_ITEM_TEXT,
+              status: 'complete',
+            }),
+        ),
+        OperationItemStub({
+          id: ownOperationId,
+          role: 'codeweaver',
+          text: LEDGER_ITEM_TEXT,
+          status: 'in_progress',
+        }),
+      ];
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations, workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      // The notice stands where item 1 was; the surviving lines keep their original 1-based
+      // positions, so the numbering opens at 2 and the gap is visible.
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(ownOperationId)}`,
+        `Your operation item: [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        '',
+        'Operations ledger (in order):',
+        ELISION_NOTICE_SINGULAR,
+        ...Array.from(
+          { length: 15 },
+          (_unused, offset) => `${String(2 + offset)}. [x] [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        ),
+        `17. [>] [codeweaver] ${LEDGER_ITEM_TEXT}  <-- YOUR OPERATION ITEM`,
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+
+    it('VALID: {40-item pt-chain ledger} => elides the oldest complete run only, keeping the own item and every non-complete item', () => {
+      const questId = QuestIdStub({ value: 'my-quest' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-6161-4222-9333-444444444444' });
+      const ownOperationId = OperationItemIdStub({
+        value: `bbbbbbbb-6161-4222-9333-4444444444${String(PATHOLOGICAL_OWN_INDEX).padStart(2, '0')}`,
+      });
+      const operations = [
+        ...Array.from({ length: PATHOLOGICAL_COMPLETE_COUNT }, (_unused, index) =>
+          OperationItemStub({
+            id: OperationItemIdStub({
+              value: `bbbbbbbb-6161-4222-9333-4444444444${String(index).padStart(2, '0')}`,
+            }),
+            role: 'codeweaver',
+            text: LEDGER_ITEM_TEXT,
+            status: 'complete',
+          }),
+        ),
+        OperationItemStub({
+          id: ownOperationId,
+          role: 'codeweaver',
+          text: LEDGER_ITEM_TEXT,
+          status: 'in_progress',
+        }),
+        ...Array.from({ length: PATHOLOGICAL_PENDING_COUNT }, (_unused, offset) =>
+          OperationItemStub({
+            id: OperationItemIdStub({
+              value: `bbbbbbbb-6161-4222-9333-4444444444${String(PATHOLOGICAL_OWN_INDEX + 1 + offset).padStart(2, '0')}`,
+            }),
+            role: 'codeweaver',
+            text: LEDGER_ITEM_TEXT,
+            status: 'pending',
+          }),
+        ),
+      ];
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` })],
+      });
+      const quest = QuestStub({ id: questId, operations, workItems: [workItem] });
+
+      const result = workItemToPromptTransformer({
+        quest,
+        workItem,
+        agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+      });
+
+      // 34 elidable complete items, 6 that are never elidable (the in-flight own item plus five
+      // pending), so 16 - 6 = 10 recent complete items survive and the oldest 24 are elided.
+      const expectedArgs = [
+        `Quest ID: ${String(questId)}`,
+        `Work Item ID: ${String(workItemId)}`,
+        `Operation Item ID: ${String(ownOperationId)}`,
+        `Your operation item: [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        '',
+        'Operations ledger (in order):',
+        ELISION_NOTICE_PLURAL,
+        ...Array.from(
+          { length: 10 },
+          (_unused, offset) => `${String(25 + offset)}. [x] [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        ),
+        `35. [>] [codeweaver] ${LEDGER_ITEM_TEXT}  <-- YOUR OPERATION ITEM`,
+        ...Array.from(
+          { length: PATHOLOGICAL_PENDING_COUNT },
+          (_unused, offset) => `${String(36 + offset)}. [ ] [codeweaver] ${LEDGER_ITEM_TEXT}`,
+        ),
+        '',
+        'Original user request (the intent behind the flows):',
+        'Add authentication to the application',
+      ].join('\n');
+
+      expect(result.prompt).toBe(
+        codeweaverPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
+      );
+    });
+  });
+
   describe('errors', () => {
     it('ERROR: {agent: unknown name} => throws ZodError', () => {
       const workItem = WorkItemStub();
@@ -866,6 +1083,90 @@ describe('workItemToPromptTransformer', () => {
           role: agentName,
           relatedDataItems: [
             RelatedDataItemStub({ value: `operations/${String(operations[0]?.id)}` }),
+          ],
+        });
+        const quest = QuestStub({
+          operations,
+          workItems: [workItem],
+          packagesAffected: BUDGET_PACKAGES_AFFECTED,
+          userRequest: BUDGET_USER_REQUEST,
+          wardResults: [
+            WardResultStub({
+              runId: WardRunIdStub({ value: '1785341050718-63d2' }),
+              exitCode: 1,
+              wardMode: 'changed',
+            }),
+          ],
+        });
+
+        const { model, name } = agentNameToPromptTransformer({
+          agent: AgentPromptNameStub({ value: agentName }),
+        });
+        const { prompt } = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName,
+          devServer: {
+            devCommand: DevCommandStub({ value: 'npm run dev' }),
+            devServerUrl: DevServerUrlStub({ value: 'http://localhost:3737' }),
+          },
+        });
+
+        const servedBlock = JSON.stringify(
+          { name, model, prompt },
+          null,
+          mcpToolResultStatics.jsonIndentSpaces,
+        );
+
+        expect(servedBlock.length).toBeLessThanOrEqual(mcpToolResultStatics.maxVerbatimChars);
+      },
+    );
+
+    // The ledger is the one term in the served block that grows without bound: a quest that takes
+    // two or three retries accumulates `pt N` continuations until the block overflows and the MCP
+    // layer spills it to a file, leaving the agent holding a path instead of its gates and rules.
+    it.each(agentPromptClassificationStatics.roleNames)(
+      'VALID: {agent: %s, relay-scale quest with a 40-item pt-chain ledger} => served MCP block stays within the verbatim budget',
+      (agentName) => {
+        const ownOperationId = OperationItemIdStub({
+          value: `cccccccc-3333-4222-9333-4444444444${String(PATHOLOGICAL_OWN_INDEX).padStart(2, '0')}`,
+        });
+        const operations = [
+          ...Array.from({ length: PATHOLOGICAL_COMPLETE_COUNT }, (_unused, index) =>
+            OperationItemStub({
+              id: OperationItemIdStub({
+                value: `cccccccc-3333-4222-9333-4444444444${String(index).padStart(2, '0')}`,
+              }),
+              role: agentName,
+              text: BUDGET_OPERATION_TEXT,
+              status: 'complete',
+              flowIds: BUDGET_FLOW_IDS,
+            }),
+          ),
+          OperationItemStub({
+            id: ownOperationId,
+            role: agentName,
+            text: BUDGET_OPERATION_TEXT,
+            status: 'in_progress',
+            flowIds: BUDGET_FLOW_IDS,
+          }),
+          ...Array.from({ length: PATHOLOGICAL_PENDING_COUNT }, (_unused, offset) =>
+            OperationItemStub({
+              id: OperationItemIdStub({
+                value: `cccccccc-3333-4222-9333-4444444444${String(PATHOLOGICAL_OWN_INDEX + 1 + offset).padStart(2, '0')}`,
+              }),
+              role: agentName,
+              text: BUDGET_OPERATION_TEXT,
+              status: 'pending',
+              flowIds: BUDGET_FLOW_IDS,
+            }),
+          ),
+        ];
+        const workItem = WorkItemStub({
+          id: QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' }),
+          role: agentName,
+          relatedDataItems: [
+            RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` }),
           ],
         });
         const quest = QuestStub({

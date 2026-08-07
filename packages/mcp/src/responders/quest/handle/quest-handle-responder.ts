@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist)
+ * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-qa-checklist, get-blight-checklist, reset-flow-signoffs, get-quest-summary)
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
@@ -23,8 +23,11 @@ import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/li
 import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { QaChecklistLayerResponder } from './qa-checklist-layer-responder';
+import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
+import { ResetFlowSignoffsLayerResponder } from './reset-flow-signoffs-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
+import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { createQuestInputContract } from '../../../contracts/create-quest-input/create-quest-input-contract';
 import { createQuestOutputContract } from '../../../contracts/create-quest-output/create-quest-output-contract';
@@ -38,6 +41,20 @@ import { runWardInputContract } from '../../../contracts/run-ward-input/run-ward
 import { startQuestInputContract } from '../../../contracts/start-quest-input/start-quest-input-contract';
 
 const JSON_INDENT_SPACES = 2;
+
+// The tools whose whole body is a colocated layer responder. They live in a lookup rather than one
+// `if` per tool because this function's cyclomatic complexity sits at its ceiling: each such tool
+// added as its own branch costs one, and the branches are identical apart from which layer they
+// call.
+const layerResponders = new Map<
+  ToolName,
+  (params: { args: Record<string, unknown> }) => Promise<ToolResponse>
+>([
+  [toolNameContract.parse('get-qa-checklist'), QaChecklistLayerResponder],
+  [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
+  [toolNameContract.parse('reset-flow-signoffs'), ResetFlowSignoffsLayerResponder],
+  [toolNameContract.parse('get-quest-summary'), QuestSummaryLayerResponder],
+]);
 
 export const QuestHandleResponder = async ({
   tool,
@@ -293,12 +310,9 @@ export const QuestHandleResponder = async ({
     }
   }
 
-  if (tool === 'get-qa-checklist') {
-    return QaChecklistLayerResponder({ args });
-  }
-
-  if (tool === 'get-blight-checklist') {
-    return BlightChecklistLayerResponder({ args });
+  const layerResponder = layerResponders.get(tool);
+  if (layerResponder !== undefined) {
+    return layerResponder({ args });
   }
 
   if (tool === 'get-quest-planning-notes') {

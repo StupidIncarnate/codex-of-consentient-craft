@@ -6,7 +6,7 @@ import {
   QuestWorkItemIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { SlotIndexStub } from '../slot-index/slot-index.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 import {
   chatOutputEmitPayloadContract,
   type ChatOutputEmitPayload,

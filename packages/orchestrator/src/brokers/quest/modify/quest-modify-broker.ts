@@ -192,6 +192,7 @@ export const questModifyBroker = async ({
           const current = quest.planningNotes;
           const incomingLedger = incoming.qaLedger;
           const incomingBlightLedger = incoming.blightLedger;
+          const incomingQuestNotes = incoming.questNotes;
 
           quest.planningNotes = {
             ...current,
@@ -232,6 +233,21 @@ export const questModifyBroker = async ({
                   ...new Map(incomingBlightLedger.map((entry) => [entry.itemId, entry])).values(),
                 ],
               ] as typeof current.blightLedger,
+            }),
+            // Mirrors the two ledger branches above, keyed on the note's `id`: re-stating a note
+            // REPLACES its prior entry rather than appending a second, so a later pass that sharpens
+            // an earlier note leaves one entry, not two. The incoming batch is collapsed by id first
+            // (last one wins) so one payload carrying the same id twice cannot smuggle a duplicate
+            // past the same rule. An empty `questNotes: []` payload takes this branch (incoming
+            // !== undefined) but the filter+collapse over an empty array is a no-op, so existing
+            // notes survive.
+            ...(incomingQuestNotes !== undefined && {
+              questNotes: [
+                ...current.questNotes.filter(
+                  (entry) => !incomingQuestNotes.some((update) => update.id === entry.id),
+                ),
+                ...[...new Map(incomingQuestNotes.map((entry) => [entry.id, entry])).values()],
+              ] as typeof current.questNotes,
             }),
           };
         }

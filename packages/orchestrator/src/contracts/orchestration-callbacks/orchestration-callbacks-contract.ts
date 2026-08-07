@@ -22,8 +22,8 @@ import type {
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
 import { agentRoleContract } from '../agent-role/agent-role-contract';
-import { slotIndexContract } from '../slot-index/slot-index-contract';
-import type { SlotIndex } from '../slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
+import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { workItemIdContract } from '../work-item-id/work-item-id-contract';
 import type { WorkItemId } from '../work-item-id/work-item-id-contract';
 

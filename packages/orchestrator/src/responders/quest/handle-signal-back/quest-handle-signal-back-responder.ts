@@ -5,13 +5,17 @@
  * patch the ledger, because agents never write the ledger at all):
  *
  * - `operationStatus: 'done'` (or absent) → the linked operation item is marked `complete`. For a
- *   `siegemaster` item declaring `flowIds`, or a `blightwarden` item, this is GATED: the responder
- *   recomputes the flow's QA checklist (siegemaster) or the quest diff's blight checklist
- *   (blightwarden, via questGetBlightChecklistBroker) and refuses `done` (by throwing, so the agent
- *   sees why) while any unit carries no entry in `quest.planningNotes.qaLedger` /
- *   `blightLedger` respectively. Completion is a computed fact rather than the agent's
- *   recollection of its own pass. Every disposition clears a unit, `gap` and `recorded` included,
- *   so the gate is always satisfiable honestly; it refuses absence, not honesty.
+ *   `flowrider` or `siegemaster` item, or a `blightwarden` item, this is GATED: the responder
+ *   recomputes the signalling role's own scope — the flow graph's verification units measured
+ *   against THAT role's sign-off track (`flowriderSignoff` / `siegemasterSignoff`), or the quest
+ *   diff's blight checklist (blightwarden, via questGetBlightChecklistBroker) — and refuses `done`
+ *   (by throwing, so the agent sees why) while any unit carries no sign-off on that track / no
+ *   entry in `quest.planningNotes.blightLedger` respectively. Completion is a computed fact rather
+ *   than the agent's recollection of its own pass. The two sign-off tracks are INDEPENDENT: neither
+ *   reads the other's field, so one unit can be outstanding for one track and settled for the
+ *   other. Both verdicts clear a unit — `confirmed` and `unconfirmable` alike — as does every
+ *   blight disposition, so the gate is always satisfiable honestly; it refuses absence, not
+ *   honesty.
  * - `operationStatus: 'partial'` → the linked operation item is marked `complete` AND a
  *   "pt N: {text}" continuation item (same role, locked flag preserved) is appended immediately
  *   after it — duplicate-on-partial keeps the strict 1:1 operation-item↔work-item invariant and an
@@ -65,7 +69,7 @@ import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight
 import { questOperationsUpdateBroker } from '../../../brokers/quest/operations-update/quest-operations-update-broker';
 import { blightCoverageOutstandingTransformer } from '../../../transformers/blight-coverage-outstanding/blight-coverage-outstanding-transformer';
 import { operationPtChainTransformer } from '../../../transformers/operation-pt-chain/operation-pt-chain-transformer';
-import { qaCoverageOutstandingTransformer } from '../../../transformers/qa-coverage-outstanding/qa-coverage-outstanding-transformer';
+import { signoffOutstandingTransformer } from '../../../transformers/signoff-outstanding/signoff-outstanding-transformer';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 
 // How many outstanding unit ids to name inline before deferring to get-qa-checklist / the blight
@@ -124,15 +128,24 @@ export const QuestHandleSignalBackResponder = async ({
   // COMPLETION GATE — runs BEFORE any mutation, so a refused `done` leaves the work item and its
   // operation item exactly as they were and the session can carry on and signal again.
   //
-  // `done` from a siegemaster item means "every unit on my flow has been dealt with"; `done` from a
-  // blightwarden item means "every changed-file/concern unit on this quest diff has been dealt
-  // with". Both claims used to be the agent's memory of its own pass, which is precisely what
-  // failed: a session walked part of its scope across a long serial run and reported done. Here
-  // both are recomputed — the flow graph + qaLedger for siegemaster, the git diff (via
-  // questGetBlightChecklistBroker) + blightLedger for blightwarden. Every disposition clears a
-  // unit — `gap` and `recorded` included — so the gate is always satisfiable honestly; what it
-  // refuses is scope with no entry at all. An operation item is never both roles at once, so at
-  // most one of the two transformers below ever contributes.
+  // `done` from a flowrider or siegemaster item means "every verification unit in my scope carries
+  // MY track's sign-off"; `done` from a blightwarden item means "every changed-file/concern unit on
+  // this quest diff has been dealt with". A session's memory of its own coverage is precisely what
+  // fails: a pass walks part of its scope across a long serial run and reports done. Both claims are
+  // therefore recomputed here — the flow graph read against the signalling role's own sign-off field
+  // for the two verification tracks, the git diff (via questGetBlightChecklistBroker) + blightLedger
+  // for blightwarden.
+  //
+  // ONE call covers BOTH verification tracks. `signoffOutstandingTransformer` keys on the linked
+  // item's role internally (flowrider → `flowriderSignoff`, siegemaster → `siegemasterSignoff`,
+  // every other role → nothing outstanding), so a second per-track branch here would only restate
+  // what it already decides — and the two tracks are independent, so the same unit can be
+  // outstanding for one and settled for the other.
+  //
+  // Both sign-off verdicts clear a unit — `confirmed` and `unconfirmable` alike — as does every
+  // blight disposition, `gap` and `recorded` included, so the gate is always satisfiable honestly;
+  // what it refuses is scope with no sign-off at all. An operation item is never both a verification
+  // track and blightwarden, so at most one of the two transformers below ever contributes.
   //
   // The blight branch is gated on the linked operation's role so a git diff does not run on every
   // signal-back from every role — only a blightwarden item ever calls questGetBlightChecklistBroker.
@@ -148,7 +161,7 @@ export const QuestHandleSignalBackResponder = async ({
     const linkedOperation = result.quest.operations.find((operation) => operation.id === linkedId);
 
     if (linkedOperation !== undefined) {
-      const qaOutstanding = qaCoverageOutstandingTransformer({
+      const signoffOutstanding = signoffOutstandingTransformer({
         quest: result.quest,
         operationItem: linkedOperation,
       });
@@ -160,16 +173,35 @@ export const QuestHandleSignalBackResponder = async ({
         operationItem: linkedOperation,
         checklist: blightChecklist,
       });
-      const outstanding = [...qaOutstanding, ...blightOutstanding];
+      const outstanding = [...signoffOutstanding, ...blightOutstanding];
 
       if (outstanding.length > 0) {
-        const scopeNoun = isBlightwarden ? 'this quest diff' : 'your flow';
-        const ledgerField = isBlightwarden ? 'blightLedger' : 'qaLedger';
-        const checklistTool = isBlightwarden ? 'get-blight-checklist' : 'get-qa-checklist';
+        // The signalling role IS the track: the list above was measured against that role's own
+        // sign-off field and nothing else, so the remedy can name the exact field to write.
+        const track = linkedOperation.role === 'flowrider' ? 'flowrider' : 'siegemaster';
+        const checklistTool = isBlightwarden
+          ? 'get-blight-checklist'
+          : `get-qa-checklist({ track: '${track}' })`;
+
+        const headline = isBlightwarden
+          ? `signal-back refused: operationStatus 'done' means every review unit on this quest diff carries a disposition, and ${String(outstanding.length)} still carry none.`
+          : `signal-back refused: operationStatus 'done' means every verification unit in your scope carries YOUR OWN track's sign-off (\`${track}Signoff\`), and ${String(outstanding.length)} still carry none. The other track is measured separately and is never read here, so its sign-offs cannot settle yours.`;
+
+        const remedy = isBlightwarden
+          ? [
+              '  1. Deal with each remaining unit and record it in quest.planningNotes.blightLedger (a `gap` or `recorded` entry with a real reason counts — this gate refuses absence, not honesty).',
+              "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
+            ]
+          : [
+              `  1. Write a \`${track}Signoff\` on each remaining unit via modify-quest — \`confirmed\` with \`evidence\` (a test file:line plus what makes that test fail, or the value you measured off the running system), or \`unconfirmable\` with \`evidence\` of what you tried and why it was out of reach plus a \`question\` someone else can pick up. BOTH verdicts clear this gate; what it refuses is the ABSENCE of a sign-off, never an honest one.`,
+              '     BATCH the writes: ONE modify-quest call carrying many sign-offs, never one call per unit.',
+              "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
+              '     A unit you genuinely cannot close is `unconfirmable`, not pt work — pt-chaining a permanently unprovable unit only burns the chain to its maxAttempts and blocks the quest.',
+            ];
 
         throw new Error(
           [
-            `signal-back refused: operationStatus 'done' means every verification unit on ${scopeNoun} carries a disposition, and ${String(outstanding.length)} still carry none.`,
+            headline,
             '',
             'Outstanding units:',
             ...outstanding.slice(0, OUTSTANDING_PREVIEW_LIMIT).map((id) => `  - ${String(id)}`),
@@ -180,8 +212,7 @@ export const QuestHandleSignalBackResponder = async ({
               : []),
             '',
             'Do ONE of these, then signal again:',
-            `  1. Deal with each remaining unit and record it in quest.planningNotes.${ledgerField} (a \`gap\` or \`recorded\` entry with a real reason counts — this gate refuses absence, not honesty).`,
-            "  2. Signal operationStatus: 'partial' instead, which hands the named remainder to a fresh session of your role.",
+            ...remedy,
           ].join('\n'),
         );
       }

@@ -1,5 +1,5 @@
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
-import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 
 import { agentOutputState } from './agent-output-state';
 import { agentOutputStateProxy } from './agent-output-state.proxy';

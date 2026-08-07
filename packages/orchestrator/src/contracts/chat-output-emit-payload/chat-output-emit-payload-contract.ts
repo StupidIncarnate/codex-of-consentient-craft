@@ -16,7 +16,7 @@ import {
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { slotIndexContract } from '../slot-index/slot-index-contract';
+import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 
 export const chatOutputEmitPayloadContract = z.object({
   processId: processIdContract,

@@ -20,8 +20,8 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
-import type { SlotCount } from '../../../contracts/slot-count/slot-count-contract';
-import { slotCountContract } from '../../../contracts/slot-count/slot-count-contract';
+import type { SlotCount } from '@dungeonmaster/shared/contracts';
+import { slotCountContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,

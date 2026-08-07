@@ -11,12 +11,16 @@ import { blightConcernLegendStatics } from '../../statics/blight-concern-legend/
 import { blightChecklistBuildTransformer } from '../blight-checklist-build/blight-checklist-build-transformer';
 import { blightChecklistToTextTransformer } from './blight-checklist-to-text-transformer';
 
-// A real quest in this repo touched 173 changed files; 170 crossed with every BlightConcern is
-// ~1,190 review units — the scale get-blight-checklist must actually render at. Realistic DEEP
-// paths (this repo's own `packages/<pkg>/src/<folderType>/<domain>/<domain>-<suffix>.ts`
+// A real quest in this repo touched 173 changed files; 170 impl groups crossed with every
+// BlightConcern is 680 review units — the scale get-blight-checklist must actually render at.
+// Realistic DEEP paths (this repo's own `packages/<pkg>/src/<folderType>/<domain>/<domain>-<suffix>.ts`
 // convention), not short fake ones — a short-path fixture would pass this test while a real diff
-// still overflows the MCP tool-result ceiling.
+// still overflows the MCP tool-result ceiling. Every SCALE_TEST_COMPANION_EVERY-th impl file also
+// carries a `.test.ts` and a `.proxy.ts` in the changed-file list, so the fixture drives the
+// companion-collapse that makes the group count smaller than the changed-file count — a fixture of
+// bare impl paths never exercises it, and the unit count would be measured against the wrong number.
 const SCALE_TEST_CHANGED_FILE_COUNT = 170;
+const SCALE_TEST_COMPANION_EVERY = 10;
 const SCALE_TEST_PACKAGE_NAMES = [
   'orchestrator',
   'web',
@@ -61,17 +65,17 @@ describe('blightChecklistToTextTransformer', () => {
           baseRef: 'a1b2c3d4',
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
             }),
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:security',
+              id: 'packages/a/a.ts:perf',
               implPath: 'packages/a/a.ts',
-              concern: 'security',
+              concern: 'perf',
             }),
           ],
-          remainingItemIds: ['packages/a/a.ts:security'],
+          remainingItemIds: ['packages/a/a.ts:perf'],
         }),
       }).split('\n');
 
@@ -125,47 +129,9 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
-              implPath: 'packages/a/a.ts',
-              concern: 'coverage',
-            }),
-            BlightChecklistItemStub({
-              id: 'packages/a/a.ts:security',
-              implPath: 'packages/a/a.ts',
-              concern: 'security',
-            }),
-          ],
-          remainingItemIds: ['packages/a/a.ts:security'],
-        }),
-      }).split('\n');
-
-      expect(lines.find((line) => line.startsWith('    [x] '))).toBe('    [x] coverage');
-      expect(lines.find((line) => line.startsWith('    [ ] '))).toBe('    [ ] security');
-    });
-
-    it('VALID: {three concerns dispositioned, two remaining, same file} => each line lists only its own concerns, in crossing order', () => {
-      const lines = blightChecklistToTextTransformer({
-        checklist: BlightChecklistStub({
-          items: [
-            BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
-              implPath: 'packages/a/a.ts',
-              concern: 'coverage',
-            }),
-            BlightChecklistItemStub({
               id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
               concern: 'craft',
-            }),
-            BlightChecklistItemStub({
-              id: 'packages/a/a.ts:security',
-              implPath: 'packages/a/a.ts',
-              concern: 'security',
-            }),
-            BlightChecklistItemStub({
-              id: 'packages/a/a.ts:dedup',
-              implPath: 'packages/a/a.ts',
-              concern: 'dedup',
             }),
             BlightChecklistItemStub({
               id: 'packages/a/a.ts:perf',
@@ -173,14 +139,45 @@ describe('blightChecklistToTextTransformer', () => {
               concern: 'perf',
             }),
           ],
-          remainingItemIds: ['packages/a/a.ts:dedup', 'packages/a/a.ts:perf'],
+          remainingItemIds: ['packages/a/a.ts:perf'],
         }),
       }).split('\n');
 
-      expect(lines.find((line) => line.startsWith('    [x] '))).toBe(
-        '    [x] coverage craft security',
-      );
-      expect(lines.find((line) => line.startsWith('    [ ] '))).toBe('    [ ] dedup perf');
+      expect(lines.find((line) => line.startsWith('    [x] '))).toBe('    [x] craft');
+      expect(lines.find((line) => line.startsWith('    [ ] '))).toBe('    [ ] perf');
+    });
+
+    it('VALID: {three concerns dispositioned, one remaining, same file} => each line lists only its own concerns, in crossing order', () => {
+      const lines = blightChecklistToTextTransformer({
+        checklist: BlightChecklistStub({
+          items: [
+            BlightChecklistItemStub({
+              id: 'packages/a/a.ts:craft',
+              implPath: 'packages/a/a.ts',
+              concern: 'craft',
+            }),
+            BlightChecklistItemStub({
+              id: 'packages/a/a.ts:perf',
+              implPath: 'packages/a/a.ts',
+              concern: 'perf',
+            }),
+            BlightChecklistItemStub({
+              id: 'packages/a/a.ts:dedup',
+              implPath: 'packages/a/a.ts',
+              concern: 'dedup',
+            }),
+            BlightChecklistItemStub({
+              id: 'packages/a/a.ts:integrity',
+              implPath: 'packages/a/a.ts',
+              concern: 'integrity',
+            }),
+          ],
+          remainingItemIds: ['packages/a/a.ts:integrity'],
+        }),
+      }).split('\n');
+
+      expect(lines.find((line) => line.startsWith('    [x] '))).toBe('    [x] craft perf dedup');
+      expect(lines.find((line) => line.startsWith('    [ ] '))).toBe('    [ ] integrity');
     });
 
     it('VALID: {all concerns on a file dispositioned} => only the [x] line renders, no [ ] line', () => {
@@ -188,18 +185,16 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
             }),
           ],
           remainingItemIds: [],
         }),
       }).split('\n');
 
-      expect(lines.filter((line) => line.startsWith('    [x] '))).toStrictEqual([
-        '    [x] coverage',
-      ]);
+      expect(lines.filter((line) => line.startsWith('    [x] '))).toStrictEqual(['    [x] craft']);
       expect(lines.filter((line) => line.startsWith('    [ ] '))).toStrictEqual([]);
     });
 
@@ -208,19 +203,17 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
             }),
           ],
-          remainingItemIds: ['packages/a/a.ts:coverage'],
+          remainingItemIds: ['packages/a/a.ts:craft'],
         }),
       }).split('\n');
 
       expect(lines.filter((line) => line.startsWith('    [x] '))).toStrictEqual([]);
-      expect(lines.filter((line) => line.startsWith('    [ ] '))).toStrictEqual([
-        '    [ ] coverage',
-      ]);
+      expect(lines.filter((line) => line.startsWith('    [ ] '))).toStrictEqual(['    [ ] craft']);
     });
 
     it('VALID: {unit carrying a label} => the label text never renders, so a large diff stays under the tool-result ceiling', () => {
@@ -228,27 +221,25 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
-              label: 'coverage — every branch in a.ts has a real test',
+              concern: 'craft',
+              label: "craft — a.ts's logic matches its signature",
             }),
           ],
           remainingItemIds: [],
         }),
       }).split('\n');
 
-      expect(lines.some((line) => line.includes('every branch in a.ts has a real test'))).toBe(
-        false,
-      );
+      expect(lines.some((line) => line.includes("a.ts's logic matches its signature"))).toBe(false);
     });
 
     it('VALID: {one unit per concern across 40 files} => renders one heading plus one [x] line per file, scaling linearly with file count', () => {
       const items = Array.from({ length: 40 }, (_, index) =>
         BlightChecklistItemStub({
-          id: `packages/a/file-${String(index)}.ts:coverage`,
+          id: `packages/a/file-${String(index)}.ts:craft`,
           implPath: `packages/a/file-${String(index)}.ts`,
-          concern: 'coverage',
+          concern: 'craft',
           pairedFiles: [],
         }),
       );
@@ -264,7 +255,7 @@ describe('blightChecklistToTextTransformer', () => {
         ),
       );
       expect(lines.filter((line) => line.startsWith('    [x] '))).toStrictEqual(
-        Array.from({ length: 40 }, () => '    [x] coverage'),
+        Array.from({ length: 40 }, () => '    [x] craft'),
       );
     });
   });
@@ -275,15 +266,15 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
               pairedFiles: ['packages/a/a.test.ts', 'packages/a/a.proxy.ts'],
             }),
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:security',
+              id: 'packages/a/a.ts:perf',
               implPath: 'packages/a/a.ts',
-              concern: 'security',
+              concern: 'perf',
               pairedFiles: ['packages/a/a.test.ts', 'packages/a/a.proxy.ts'],
             }),
           ],
@@ -303,15 +294,15 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
               pairedFiles: [],
             }),
             BlightChecklistItemStub({
-              id: 'packages/b/b.ts:coverage',
+              id: 'packages/b/b.ts:craft',
               implPath: 'packages/b/b.ts',
-              concern: 'coverage',
+              concern: 'craft',
               pairedFiles: [],
             }),
           ],
@@ -347,19 +338,19 @@ describe('blightChecklistToTextTransformer', () => {
   });
 
   describe('concern legend', () => {
-    it('VALID: {coverage and security present} => the legend lists only those two concerns, not all seven', () => {
+    it('VALID: {craft and perf present} => the legend lists only those two concerns, not all four', () => {
       const lines = blightChecklistToTextTransformer({
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
             }),
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:security',
+              id: 'packages/a/a.ts:perf',
               implPath: 'packages/a/a.ts',
-              concern: 'security',
+              concern: 'perf',
             }),
           ],
           remainingItemIds: [],
@@ -367,8 +358,8 @@ describe('blightChecklistToTextTransformer', () => {
       }).split('\n');
 
       expect(lines.filter((line) => line.startsWith('- '))).toStrictEqual([
-        `- coverage → ${blightConcernLegendStatics.byConcern.coverage}`,
-        `- security → ${blightConcernLegendStatics.byConcern.security}`,
+        `- craft → ${blightConcernLegendStatics.byConcern.craft}`,
+        `- perf → ${blightConcernLegendStatics.byConcern.perf}`,
       ]);
     });
 
@@ -387,9 +378,9 @@ describe('blightChecklistToTextTransformer', () => {
         checklist: BlightChecklistStub({
           items: [
             BlightChecklistItemStub({
-              id: 'packages/a/a.ts:coverage',
+              id: 'packages/a/a.ts:craft',
               implPath: 'packages/a/a.ts',
-              concern: 'coverage',
+              concern: 'craft',
             }),
           ],
           remainingItemIds: [],
@@ -424,7 +415,7 @@ describe('blightChecklistToTextTransformer', () => {
   // checklist the real transformer produces for a real-quest-sized diff and renders it through
   // the real text transformer, measuring the actual output — not a short-path stand-in.
   describe('scale — a real quest-sized diff', () => {
-    it('VALID: {170 changed files at realistic deep repo paths, crossed with every concern} => rendered text stays under mcpToolResultStatics.maxVerbatimChars and the REMAINING header line is present', () => {
+    it('VALID: {170 impl files at realistic deep repo paths, some with test+proxy companions, crossed with every concern} => companions collapse onto their impl, and rendered text stays under mcpToolResultStatics.maxVerbatimChars', () => {
       const { baseRef } = BlightChecklistStub();
 
       // One file's worth of units tells us how many concerns the real transformer crosses per
@@ -438,7 +429,80 @@ describe('blightChecklistToTextTransformer', () => {
       });
       const concernsPerFile = singleFileProbe.items.length;
 
-      const changedFiles = Array.from({ length: SCALE_TEST_CHANGED_FILE_COUNT }, (_, index) => {
+      const implFiles = Array.from({ length: SCALE_TEST_CHANGED_FILE_COUNT }, (_, index) => {
+        const packageName = SCALE_TEST_PACKAGE_NAMES[index % SCALE_TEST_PACKAGE_NAMES.length]!;
+        const folderType = SCALE_TEST_FOLDER_TYPES[index % SCALE_TEST_FOLDER_TYPES.length]!;
+        const suffix = folderType.slice(0, -1);
+        const domain = `${SCALE_TEST_DOMAIN_STEMS[index % SCALE_TEST_DOMAIN_STEMS.length]!}-${String(index)}`;
+        return RepoRelativePathStub({
+          value: `packages/${packageName}/src/${folderType}/${domain}/${domain}-${suffix}.ts`,
+        });
+      });
+      const companionFiles = implFiles
+        .filter((_implFile, index) => index % SCALE_TEST_COMPANION_EVERY === 0)
+        .flatMap((implFile) => [
+          RepoRelativePathStub({
+            value: `${String(implFile).slice(0, -'.ts'.length)}.test.ts`,
+          }),
+          RepoRelativePathStub({
+            value: `${String(implFile).slice(0, -'.ts'.length)}.proxy.ts`,
+          }),
+        ]);
+      const changedFiles = [...implFiles, ...companionFiles];
+
+      const checklist = blightChecklistBuildTransformer({ changedFiles, baseRef });
+      const rendered = blightChecklistToTextTransformer({ checklist });
+      const renderedLength = rendered.length;
+      const lines = rendered.split('\n');
+      const remainingLine = lines.find((line) => line.startsWith('REMAINING'));
+      const groupCount = new Set(checklist.items.map((item) => String(item.implPath))).size;
+      const unitCount = checklist.items.length;
+      const expectedUnitCount = groupCount * concernsPerFile;
+      const firstImplBase = String(implFiles[0]!).slice(0, -'.ts'.length);
+      const firstImplPairedFiles = checklist.items
+        .filter((item) => String(item.implPath) === String(implFiles[0]!))
+        .map((item) => item.pairedFiles.map(String));
+
+      // 34 companion files collapse onto 17 of the impl files, so the group count is strictly
+      // smaller than the changed-file count — that gap is what the unit count must be measured
+      // against, and what a companion-free fixture would silently skip.
+      expect({ changedFileCount: changedFiles.length, groupCount }).toStrictEqual({
+        changedFileCount: 204,
+        groupCount: SCALE_TEST_CHANGED_FILE_COUNT,
+      });
+      expect(firstImplPairedFiles).toStrictEqual(
+        Array.from({ length: concernsPerFile }, () => [
+          `${firstImplBase}.proxy.ts`,
+          `${firstImplBase}.test.ts`,
+        ]),
+      );
+      expect(unitCount).toBe(expectedUnitCount);
+      expect(remainingLine).toBe(
+        `REMAINING (no disposition in quest.planningNotes.blightLedger): ${String(checklist.remainingItemIds.length)} of ${String(unitCount)}`,
+      );
+      expect(renderedLength).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
+    });
+
+    // This is the assertion `blightChecklistLimitsStatics.maxUnits` is actually sized against: a
+    // diff sitting AT the cap, in the most expensive per-file shape the transformer renders (every
+    // file's disposition status alternates, so every heading carries BOTH a `[x]` line and a `[ ]`
+    // line instead of just one). The test above measures the cheaper all-remaining shape at a
+    // smaller real-world scale (680 units) — this measures the shape and scale the cap's own
+    // headroom is computed from, which is the invariant that let the cap drift out of budget when
+    // the concern count last changed without anything catching it.
+    it('VALID: {blightChecklistLimitsStatics.maxUnits files at real repo path depth, disposition alternating per file so every heading renders BOTH a [x] and a [ ] line} => the render still fits under mcpToolResultStatics.maxVerbatimChars', () => {
+      const { baseRef } = BlightChecklistStub();
+
+      const singleFileProbe = blightChecklistBuildTransformer({
+        changedFiles: [
+          RepoRelativePathStub({ value: 'packages/orchestrator/src/probe/probe-broker.ts' }),
+        ],
+        baseRef,
+      });
+      const concernsPerFile = singleFileProbe.items.length;
+      const fileCount = blightChecklistLimitsStatics.maxUnits / concernsPerFile;
+
+      const implFiles = Array.from({ length: fileCount }, (_, index) => {
         const packageName = SCALE_TEST_PACKAGE_NAMES[index % SCALE_TEST_PACKAGE_NAMES.length]!;
         const folderType = SCALE_TEST_FOLDER_TYPES[index % SCALE_TEST_FOLDER_TYPES.length]!;
         const suffix = folderType.slice(0, -1);
@@ -448,27 +512,35 @@ describe('blightChecklistToTextTransformer', () => {
         });
       });
 
-      const checklist = blightChecklistBuildTransformer({ changedFiles, baseRef });
-      const rendered = blightChecklistToTextTransformer({ checklist });
-      const renderedLength = rendered.length;
-      const lines = rendered.split('\n');
-      const remainingLine = lines.find((line) => line.startsWith('REMAINING'));
-      const unitCount = checklist.items.length;
-      const expectedUnitCount = SCALE_TEST_CHANGED_FILE_COUNT * concernsPerFile;
+      const baseline = blightChecklistBuildTransformer({ changedFiles: implFiles, baseRef });
+      // Disposition exactly ONE concern per file, leaving the rest remaining — every file heading
+      // therefore renders both an `[x]` line and a `[ ]` line, the most expensive per-file shape.
+      const ledger = implFiles.map((implFile) => {
+        const firstItemForFile = baseline.items.find(
+          (item) => String(item.implPath) === String(implFile),
+        )!;
+        return QuestBlightLedgerEntryStub({ itemId: firstItemForFile.id });
+      });
 
-      expect(unitCount).toBe(expectedUnitCount);
-      expect(remainingLine).toBe(
-        `REMAINING (no disposition in quest.planningNotes.blightLedger): ${String(checklist.remainingItemIds.length)} of ${String(unitCount)}`,
-      );
+      const checklist = blightChecklistBuildTransformer({
+        changedFiles: implFiles,
+        baseRef,
+        ledger,
+      });
+      const rendered = blightChecklistToTextTransformer({ checklist });
+      const unitCount = checklist.items.length;
+      const renderedLength = rendered.length;
+
+      expect(unitCount).toBe(blightChecklistLimitsStatics.maxUnits);
       expect(renderedLength).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
     });
   });
 
   describe('truncation — a diff past the unit cap', () => {
-    it('VALID: {350 dispositioned units + 1,400 remaining units, past blightChecklistLimitsStatics.maxUnits} => renders a loud truncation notice, keeps the full REMAINING header count, and shows every remaining file plus only as many dispositioned files as fit the cap', () => {
+    it('VALID: {240 dispositioned units + 1,000 remaining units, past blightChecklistLimitsStatics.maxUnits} => renders a loud truncation notice, keeps the full REMAINING header count, and shows every remaining file plus only as many dispositioned files as fit the cap', () => {
       const { baseRef } = BlightChecklistStub();
-      const remainFileCount = 200;
-      const dispFileCount = 50;
+      const remainFileCount = 250;
+      const dispFileCount = 60;
 
       const remainFiles = Array.from({ length: remainFileCount }, (_, index) => {
         const label = `remain-${String(index).padStart(3, '0')}`;

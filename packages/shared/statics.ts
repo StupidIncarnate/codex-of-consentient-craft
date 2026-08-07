@@ -41,6 +41,10 @@ export * from './src/statics/qa-check-surface/qa-check-surface-statics';
 export * from './src/statics/qa-off-map-probe/qa-off-map-probe-statics';
 export * from './src/statics/qa-checklist-limits/qa-checklist-limits-statics';
 
+// Quest summary render bounds — how many entries per section questSummaryToTextTransformer shows
+// before it truncates with a stated count.
+export * from './src/statics/quest-summary-limits/quest-summary-limits-statics';
+
 // Execution dungeon floor config — the canonical role/floor pipeline order shared by the web floor
 // view and the orchestrator dispatcher.
 export * from './src/statics/execution-floor-config/execution-floor-config-statics';

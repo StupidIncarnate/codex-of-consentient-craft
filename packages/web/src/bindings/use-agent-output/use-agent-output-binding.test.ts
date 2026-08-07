@@ -1,7 +1,7 @@
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
 import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
-import { SlotIndexStub } from '../../contracts/slot-index/slot-index.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 
 import { useAgentOutputBinding } from './use-agent-output-binding';
 import { useAgentOutputBindingProxy } from './use-agent-output-binding.proxy';

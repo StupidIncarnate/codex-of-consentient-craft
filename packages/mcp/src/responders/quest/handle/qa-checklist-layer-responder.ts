@@ -22,12 +22,13 @@ export const QaChecklistLayerResponder = async ({
 }: {
   args: Record<string, unknown>;
 }): Promise<ToolResponse> => {
-  const { questId, flowId } = getQaChecklistInputContract.parse(args);
+  const { questId, flowId, track } = getQaChecklistInputContract.parse(args);
 
   try {
     const checklist = await orchestratorGetQaChecklistAdapter({
       questId,
       ...(flowId !== undefined && { flowId }),
+      ...(track !== undefined && { track }),
     });
 
     // The checklist is already rendered text. JSON-stringifying it would escape every newline and

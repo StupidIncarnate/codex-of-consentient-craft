@@ -31,8 +31,8 @@ describe('blightCoverageOutstandingTransformer', () => {
     it('VALID: {remaining units on the checklist} => returns those ids', () => {
       const checklist = BlightChecklistStub({
         remainingItemIds: [
-          'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
-          'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dead-code',
+          'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+          'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:integrity',
         ],
       });
 
@@ -42,8 +42,8 @@ describe('blightCoverageOutstandingTransformer', () => {
           checklist,
         }),
       ).toStrictEqual([
-        'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
-        'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dead-code',
+        'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+        'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:integrity',
       ]);
     });
 

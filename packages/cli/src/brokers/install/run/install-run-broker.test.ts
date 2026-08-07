@@ -10,7 +10,7 @@ import {
   FilePathStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts';
 
 describe('installRunBroker', () => {
   describe('running installation', () => {

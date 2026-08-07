@@ -5,11 +5,12 @@
  *
  * USAGE:
  * flowEvidenceContractStatics.judgingMarkdown;
- * // Returns the evidence contract, false-green catalogue and disposition vocabulary
+ * // Returns the evidence contract, false-green catalogue and the two-verdict sign-off vocabulary
  *
- * The Flowrider operator embeds ONLY `judgingMarkdown`; the Flowrider-Minion embeds both. That split
- * matches every other operator family — `codeweaver-minion` owns the TDD method its parent never
- * restates, and `siegemaster-minion` owns the browser-driving knowledge its parent never carries.
+ * The Flowrider operator embeds ONLY `judgingMarkdown`; the Flowrider-Authoring-Minion embeds both.
+ * That split matches every other operator family — `codeweaver-piece-minion` owns the TDD method its
+ * parent never restates, and `siegemaster-walker-minion` owns the browser-driving knowledge its
+ * parent never carries.
  * The operator judges a finished artifact; it does not need the method that produced it, and
  * carrying both put the same 8,281 characters into two prompts at once.
  *
@@ -81,21 +82,36 @@ Every pattern below is a real false green that shipped in this repo.
 - **A guard for an input the product cannot produce.** Legitimate only when it says plainly that it
   is defensive. It must never be counted as covering a user-facing observable.
 
-## Dispositions — every observable gets exactly one
+## Verdicts — every unit carries TWO independent sign-offs
 
-\`COVERED\`, \`DEFECT:\` and \`GAP:\` are three different evidentiary states and must never be
-collapsed into one label. The next role reads them as different instructions.
+A unit is settled PER TRACK, never once for everybody. \`flowriderSignoff\` answers *is this proven
+by a test?* and \`siegemasterSignoff\` answers *does it hold when a human drives the real system?*
+Each is \`{ verdict, evidence, question?, workItemId, at }\`, each carries one of exactly TWO
+verdicts, and a unit is done only when BOTH tracks have signed it. Both verdicts CLEAR the completion
+gate; what the gate refuses is the ABSENCE of a sign-off.
 
-- **\`COVERED\`** — a passing test with all five evidence items.
-- **\`DEFECT:\`** — the behaviour is wrong and a test **proves it, left red**. Carries: which
-  observable, what is wrong, the test that reds, and why it was handed on rather than fixed
-  (architectural, out of bounds, or needs a product decision). The reader's instruction is *fix
-  this*.
-- **\`GAP:\`** — the observable **cannot be proven at any layer available here**, so no test exists.
-  Carries precisely why the layer cannot reach it and what must be checked by hand instead. The
-  reader's instruction is *go verify this yourself*. A \`GAP:\` is never a place to put something
-  that was simply not reached — that is remaining scope, and it is reported as remaining scope.
-- **\`ADJUSTED:\` / \`ADDED:\`** — the spec itself was moved via \`modify-quest\`.`,
+- **\`confirmed\`** — Flowrider: a test \`file:line\` PLUS what makes that test fail, which is the
+  production line you broke and the assertion that went red. Siegemaster: the value measured off the
+  running system. A test nobody has watched fail is not evidence, and an adjective never is.
+- **\`unconfirmable\`** — genuinely unable to settle this unit after real effort. \`evidence\` says
+  what was TRIED and why each attempt could not reach it, and a \`question\` naming what someone else
+  would need is REQUIRED — the contract refuses an \`unconfirmable\` that carries none.
+
+**A measured defect is a NEW observable, not a third verdict.** An observable is a positive
+expectation, so "send it \`bleh\` and the server crashes instead of returning 400" is the INVERSE
+expectation and it belongs in the spec. Write down what you actually measured and ADD it to the flow
+through the additive spec authority both roles hold (\`modify-quest\`); it arrives unsigned and then
+carries its own two sign-offs like every other unit. If it cannot be closed this session it sits
+\`unconfirmable\` with that reason. There is no \`defect\`, \`deferred\`, \`gap\` or \`recorded\`
+verdict.
+
+**Provenance is a SEPARATE axis.** \`addedBy\` on the observable (\`spec\`, \`chaoswhisperer\`,
+\`codeweaver\`, \`flowrider\`, \`siegemaster\`, \`operator\`) answers "was this in the spec at approval,
+or added mid-quest, and by whom" — it never answers whether the unit is settled.
+
+**A unit nobody can settle stays UNSIGNED.** That is a real state and the gate is built for it: an
+unsigned unit is what routes the work back to another pass. Never reach for \`unconfirmable\` to
+clear a unit that simply needs a test nobody has written yet.`,
 
   authoringMarkdown: `## Modality — chosen per OBSERVABLE, never per flow
 
@@ -105,6 +121,15 @@ exactly one of those layers. Read each unit's \`checkSurface\` off the checklist
 flow's \`flowType\` is a hint about where its centre of gravity sits — it never overrides the
 per-observable choice, and an \`operational\` flow carrying \`ui-state\` observables still needs a
 browser for those.
+
+**Two rules compose here, and they never compete. Journey-vs-matrix chooses the test SHAPE;
+\`checkSurface\` chooses the LAYER.** The shape decides how many tests there are and what each one
+walks: a branchy flow is a JOURNEY — one test per path, driven end to end — while a set of
+independent input combinations is a MATRIX, one parameterized test over the combinations. The
+surface decides where each assertion inside that shape reads its value from. So a branchy flow is a
+journey rendered as e2e for a web surface and as integration for a non-web one; a combination matrix
+is integration. Picking the shape never licenses asserting at the wrong layer, and picking the layer
+never collapses a journey into a matrix.
 
 **The wrong proof each type attracts.** The \`checkSurface\` says where to look; these are the
 shortcuts that look like looking:

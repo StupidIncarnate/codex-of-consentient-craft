@@ -4,9 +4,9 @@
  *
  * USAGE:
  * questBlightLedgerEntryContract.parse({
- *   itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
+ *   itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
  *   disposition: 'reviewed',
- *   evidence: 'every branch in handleSubmit has a test: success, validation error, network error',
+ *   evidence: 'handleSubmit rethrows the network error with the request url attached',
  *   observedBy: 'blightwarden',
  *   workItemId: '...', createdAt: '...',
  * });
@@ -14,7 +14,7 @@
  *
  * This exists so completion is COMPUTED rather than remembered, mirroring
  * `quest.planningNotes.qaLedger`. Blightwarden's review unit is one changed file crossed with one of
- * seven concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
+ * four concern families; keying dispositions on the derived `BlightChecklistItemId` means a later
  * session resumes against what a predecessor actually landed instead of re-reviewing the whole diff
  * from a fixpoint pass whose accuracy degrades as context fills.
  *

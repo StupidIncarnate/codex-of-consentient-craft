@@ -11,6 +11,14 @@
  *   3. Delete marker — { id, _delete: true }. Removes the entry.
  * The server-side merge (questItemDeepMergeTransformer) only touches fields present in the update, so partial-patch
  * is the safe shape for editing entries another minion may have written.
+ *
+ * The two sign-off fields on the flow shapes — `flowriderSignoff` and `siegemasterSignoff` on an observable, a node,
+ * an edge, and on each `offMapSignoffs` entry — are `.nullish()` HERE while the persisted contracts keep them
+ * `.optional()`. `null` is the clear marker a reset writes: `{ id, siegemasterSignoff: null }` says "take this track's
+ * sign-off off this unit", which `.optional()` alone cannot express, because omitting the key is how a patch says
+ * "leave it alone". questItemDeepMergeTransformer reads an update value of `null` as "remove this key" rather than
+ * storing it, so the persisted quest only ever sees the key present or absent. Making the persisted contracts nullable
+ * too would invent a third state — a stored `null` — that no reader distinguishes from absent.
  */
 import { z } from 'zod';
 
@@ -23,6 +31,7 @@ import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
+import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
@@ -33,8 +42,10 @@ import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
+import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { signoffContract } from '../signoff/signoff-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
@@ -42,7 +53,11 @@ import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for
 
 const deleteMarker = z.literal(true);
 
-const fullFlowObservable = flowObservableContract.extend({ _delete: z.boolean().optional() });
+const fullFlowObservable = flowObservableContract.extend({
+  flowriderSignoff: signoffContract.nullish(),
+  siegemasterSignoff: signoffContract.nullish(),
+  _delete: z.boolean().optional(),
+});
 const deletableObservableContract = z.union([
   fullFlowObservable,
   fullFlowObservable.partial().required({ id: true }),
@@ -51,6 +66,8 @@ const deletableObservableContract = z.union([
 
 const fullFlowNode = flowNodeContract.extend({
   observables: z.array(deletableObservableContract).optional(),
+  flowriderSignoff: signoffContract.nullish(),
+  siegemasterSignoff: signoffContract.nullish(),
   _delete: z.boolean().optional(),
 });
 const deletableNodeContract = z.union([
@@ -59,7 +76,11 @@ const deletableNodeContract = z.union([
   z.object({ id: flowNodeIdContract, _delete: deleteMarker }),
 ]);
 
-const fullFlowEdge = flowEdgeContract.extend({ _delete: z.boolean().optional() });
+const fullFlowEdge = flowEdgeContract.extend({
+  flowriderSignoff: signoffContract.nullish(),
+  siegemasterSignoff: signoffContract.nullish(),
+  _delete: z.boolean().optional(),
+});
 const deletableEdgeContract = z.union([
   fullFlowEdge,
   fullFlowEdge.partial().required({ id: true }),
@@ -69,6 +90,14 @@ const deletableEdgeContract = z.union([
 const fullFlow = flowContract.extend({
   nodes: z.array(deletableNodeContract).optional(),
   edges: z.array(deletableEdgeContract).optional(),
+  offMapSignoffs: z
+    .array(
+      flowOffMapSignoffContract.extend({
+        flowriderSignoff: signoffContract.nullish(),
+        siegemasterSignoff: signoffContract.nullish(),
+      }),
+    )
+    .optional(),
   _delete: z.boolean().optional(),
 });
 const deletableFlowContract = z.union([
@@ -206,7 +235,7 @@ export const modifyQuestInputContract = z
         qaLedger: z
           .array(questQaLedgerEntryContract)
           .describe(
-            'QA checklist dispositions to merge into quest.planningNotes.qaLedger, keyed on itemId — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a pt-N session can correct a predecessor. This is the only write path for the ledger the get-qa-checklist tool reads and the signal-back completion gate enforces.',
+            'QA checklist dispositions to merge into quest.planningNotes.qaLedger, keyed on itemId — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a pt-N session can correct a predecessor. This is the only write path for the ledger a track-less get-qa-checklist measures its flow-wide remainder against. The signal-back completion gate enforces the per-unit `flowriderSignoff` / `siegemasterSignoff`, which are written through `flows` on the element that carries them — an entry here settles no verification unit for either track.',
           )
           .optional(),
         blightLedger: z
@@ -215,10 +244,16 @@ export const modifyQuestInputContract = z
             'Blight checklist dispositions to merge into quest.planningNotes.blightLedger, keyed on itemId (changed file crossed with concern) — re-dispositioning a unit REPLACES its prior entry rather than appending a second one, so a continuation session can correct a predecessor. This is the only write path for the ledger the completion gate enforces.',
           )
           .optional(),
+        questNotes: z
+          .array(questNoteContract)
+          .describe(
+            'Durable side-channel notes appended to quest.planningNotes.questNotes, keyed on id — re-stating a note UPSERTS its prior entry rather than appending a duplicate, so a continuation session can sharpen a note it already left. These NEVER close a verification unit: they carry open questions, tooling failures, out-of-scope observations, and walk resets. A flow unit is closed by its own `flowriderSignoff` / `siegemasterSignoff`, and a blightwarden review unit by its blightLedger disposition.',
+          )
+          .optional(),
       })
       .partial()
       .describe(
-        'Blightwarden blight reports, the blightwarden per-unit review ledger, and the Siegemaster QA ledger dispositions to merge into quest.planningNotes',
+        'Blightwarden blight reports, the blightwarden per-unit review ledger, the Siegemaster QA ledger dispositions, and the durable side-channel quest notes to merge into quest.planningNotes',
       )
       .optional(),
   })

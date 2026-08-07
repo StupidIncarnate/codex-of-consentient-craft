@@ -33,10 +33,31 @@ export const textDisplaySymbolsStatics = {
     contracts: '## Contracts',
     tooling: '## Tooling',
     operations: '## Operations',
+    questNotes: '## Quest Notes',
   },
   none: '(none)',
   terminal: '(terminal)',
   backRef: '\u21A9',
   crossFlow: '\u2197 cross-flow',
   merge: '\u2190 MERGE',
+  // Sign-off markers: one letter per verification track, one glyph per verdict. The graph render is
+  // the surface an agent reads by DEFAULT (`format: 'text'`), and a whole quest has to fit inside
+  // `mcpToolResultStatics.maxVerbatimChars`, so a marker is two characters per track and carries
+  // the verdict alone. Evidence and questions belong to `get-quest-summary`; inlining them here
+  // would scale the render by the length of the prose instead of the size of the graph.
+  // A marker is emitted ONLY where a sign-off exists, so an unsigned unit's line carries no marker
+  // and no placeholder column.
+  signoffTrackMarks: {
+    flowrider: 'F',
+    siegemaster: 'S',
+  },
+  signoffVerdictMarks: {
+    confirmed: '\u2713',
+    unconfirmable: '?',
+  },
+  // Prefixes the off-map probe families that carry a sign-off, one line per flow.
+  offMapLabel: 'off-map:',
+  // Prefixes an observable's `addedBy` when it is not `spec`: only a mid-quest addition is marked,
+  // so a spec observable's line carries no origin.
+  observableOriginPrefix: '+',
 } as const;
