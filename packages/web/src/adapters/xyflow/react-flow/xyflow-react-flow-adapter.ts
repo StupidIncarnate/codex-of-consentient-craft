@@ -40,10 +40,10 @@ export interface XyflowReactFlowAdapterProps {
   edgeTypes?: EdgeTypes;
   onNodeClick?: (node: XyflowReactFlowAdapterNode) => void;
   onPaneClick?: () => void;
-  // When true, frame the graph top-anchored on load — the entry (first) node horizontally centered
-  // near the top — instead of React Flow's fit-everything-and-center. The spec panel's diagram sets
-  // this, so switching flow tabs starts the reader at the entry node zoomed-in rather than shrinking
-  // a tall graph until every card is a speck. Omitted leaves React Flow's fit-the-whole-graph.
+  // When true, frame the graph on the entry (first) node — horizontally centered near the top, at
+  // natural card size — instead of React Flow's fit-everything-and-center. The spec panel's diagram
+  // sets this, so switching flow tabs starts the reader AT the first step rather than shrinking a
+  // tall graph until every card is a speck. Omitted leaves React Flow's fit-the-whole-graph.
   topAlign?: boolean;
 }
 
@@ -77,15 +77,24 @@ export const xyflowReactFlowAdapter = ({
     // fit-view frame the whole graph and center it.
     fitView: !shouldTopAlign,
     onInit: (instance) => {
-      // Frame the diagram top-anchored and horizontally centered on the ENTRY node (the topmost
-      // flow card — the single first step every flow starts with). The entry sits in the horizontal
-      // middle near the top, so the first node is the reading start and the rest scrolls down — a
-      // tall assertion-rich graph is no longer shrunk until the entry node is a speck in the middle.
-      // Zoom fits the WIDER half-span around the entry (its distance to the far left vs far right
-      // edge) so nothing clips on either side. Bounds come from the ELK node positions (the exact
-      // boxes ELK reserved) + the static card widths, so this does not race React Flow's async node
-      // measurement. `onInit` fires once per mount; the widget remounts on a flow-tab switch, so
-      // every top-aligned load re-frames.
+      // Frame the diagram ON the ENTRY node (the topmost flow card — the single first step every
+      // flow starts with): horizontally centered, `topPadding` below the canvas top, at natural
+      // card size. The rest of the graph runs off the bottom for the reader to scroll to.
+      //
+      // Zoom is sized to ONE STEP of the flow — from the entry card's center out to the right edge
+      // of the assertion column branching off it, which is the farther side of a centered card and
+      // so the one that decides the fit. That span is the same whether the graph is four nodes or
+      // forty. Sizing to the whole graph's span instead is what shrank a wide assertion-rich flow
+      // until its labels were unreadable, and made the load zoom depend on how much of the flow
+      // happened to sit off to one side. Sizing to the card ALONE is the opposite failure: it pushes
+      // the entry's own assertions past the canvas edge in a narrow panel, where a reader cannot
+      // reach them — this canvas pans rather than scrolls, so just-off-screen reads as absent.
+      // `maxZoom` caps it, so a panel with room renders 1:1 and only a panel too narrow for a single
+      // step zooms out at all.
+      //
+      // Geometry comes from the ELK node positions (the exact boxes ELK reserved) + the static card
+      // widths, so this does not race React Flow's async node measurement. `onInit` fires once per
+      // mount; the widget remounts on a flow-tab switch, so every top-aligned load re-frames.
       const container = containerRef.current;
       const canvasWidth = container?.clientWidth ?? 0;
       const [firstFlowNode, ...restFlowNodes] = nodes.filter(
@@ -105,26 +114,17 @@ export const xyflowReactFlowAdapter = ({
         (topmost, node) => (node.position.y < topmost.position.y ? node : topmost),
         firstFlowNode,
       );
-      const entryCenterX = entryNode.position.x + elkLayoutStatics.node.width / centerDivisor;
-      const minX = Math.min(...nodes.map((node) => node.position.x));
-      const minY = Math.min(...nodes.map((node) => node.position.y));
-      const maxRight = Math.max(
-        ...nodes.map(
-          (node) =>
-            node.position.x +
-            (node.type === 'observable'
-              ? elkLayoutStatics.observable.width
-              : elkLayoutStatics.node.width),
-        ),
-      );
-      const halfSpan = Math.max(entryCenterX - minX, maxRight - entryCenterX);
+      const halfStep =
+        elkLayoutStatics.node.width / centerDivisor +
+        elkLayoutStatics.observable.gap +
+        elkLayoutStatics.observable.width;
       const halfCanvas = canvasWidth / centerDivisor - sidePadding;
-      const fitZoom = halfSpan > 0 ? halfCanvas / halfSpan : maxZoom;
-      const zoom = Math.min(maxZoom, Math.max(minZoom, fitZoom));
+      const zoom = Math.min(maxZoom, Math.max(minZoom, halfCanvas / halfStep));
+      const entryCenterX = entryNode.position.x + elkLayoutStatics.node.width / centerDivisor;
       instance
         .setViewport({
           x: canvasWidth / centerDivisor - entryCenterX * zoom,
-          y: topPadding - minY * zoom,
+          y: topPadding - entryNode.position.y * zoom,
           zoom,
         })
         .catch((viewportError: unknown) => {

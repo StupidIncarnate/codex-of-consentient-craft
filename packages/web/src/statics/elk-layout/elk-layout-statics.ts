@@ -76,16 +76,18 @@ export const elkLayoutStatics = {
   loop: {
     detour: 60,
   },
-  // React Flow viewport knobs. On load the diagram frames itself top-anchored and horizontally
-  // centered on the entry node: the first step (the single node every flow starts with) sits in the
-  // horizontal middle near the top, and the reviewer scrolls down for the rest — instead of the
-  // whole tall graph being shrunk to fit and vertically centered (which reads as "zoomed way out,
-  // first node lost in the middle").
-  //   - `minZoom` is the zoom floor for both the user's manual zoom-out and the top-align fit, so a
+  // React Flow viewport knobs. On load the diagram frames itself ON the entry node: the first step
+  // (the single node every flow starts with) sits in the horizontal middle near the top at natural
+  // card size, and the reviewer scrolls down for the rest — instead of the whole tall graph being
+  // shrunk to fit and vertically centered (which reads as "zoomed way out, first node lost in the
+  // middle"). The load zoom is sized to ONE step of the flow — the entry card's center out to the
+  // right edge of its assertion column — so it does not shrink as the graph grows, and the entry's
+  // own assertions never sit past the canvas edge, where a pan-only canvas puts them out of reach.
+  //   - `minZoom` is the zoom floor for both the user's manual zoom-out and the load framing, so a
   //     very wide graph can still shrink into the canvas. React Flow's default 0.5 is too high for
   //     wide assertion-rich graphs.
-  //   - `maxZoom` caps the top-align fit so a narrow graph renders its cards at natural size instead
-  //     of being blown up.
+  //   - `maxZoom` is what the load framing uses whenever the canvas can afford a whole step, so a
+  //     panel with room renders its cards 1:1 rather than blown up or shrunk.
   //   - `topPadding` / `sidePadding` are the px gaps kept above the entry node and on each side.
   //   - `centerDivisor` halves spans/dimensions when centering the entry node (named so the layout
   //     math carries no bare `2`, mirroring `edgeLabel.midpointDivisor`).

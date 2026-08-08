@@ -60,6 +60,16 @@ export const FlowNodeDetailPanelLayerWidget = ({
     <div
       data-testid="FLOW_NODE_DETAIL_PANEL"
       style={{
+        // Floats OVER the canvas's right edge rather than taking width beside it. A flex sibling
+        // takes 280-400px out of a spec panel that may only be ~600px wide, and the canvas keeps
+        // whatever viewport it was already showing — so opening a panel shoved the graph out of the
+        // strip that was left, and the reader was looking at a blank canvas with a panel on it. Out
+        // of flow, the graph does not move at all when a box is selected.
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        maxHeight: '100%',
+        zIndex: 5,
         background: colors['bg-raised'],
         border: `1px solid ${colors.border}`,
         borderRadius: 8,

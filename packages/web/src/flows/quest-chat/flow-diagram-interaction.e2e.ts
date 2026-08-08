@@ -177,9 +177,14 @@ test.describe('Flow Diagram Interaction', () => {
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
     await diagram.seedAndOpen({ guildName: 'Diagram Large Guild' });
+    await diagram.captureLoadZoom();
     await diagram.switchToLargeFlowTab();
 
     expect(await diagram.hasExpectedLargeFlowNodeCount()).toBe(true);
+    // The load zoom frames ONE step of the flow, so this wide assertion-heavy graph loads at the
+    // SAME zoom as the small flow above. A framing sized to the whole graph shrinks with every node
+    // added, which is how a real quest flow ended up loading as a field of unreadable specks.
+    expect(await diagram.loadZoomMatchesCapture()).toBe(true);
     // On load the collapsed canvas frames the graph top-anchored, horizontally centered on the
     // entry (first) node: the entry sits near the top AND on the canvas center line, so the reader
     // starts there. It must NOT be shrunk to fit the whole tall graph — the graph is zoomed-in and
@@ -226,6 +231,8 @@ test.describe('Flow Diagram Interaction', () => {
     // diagram-only terminal: no detail panel before any node is clicked.
     await expect(page.getByTestId('FLOW_NODE_DETAIL_PANEL')).toHaveCount(0);
 
+    await diagram.captureNodeGeometry();
+
     // click-node branch: click the open-page node to open its detail panel.
     const openPageNode = page
       .getByTestId('FLOW_NODE')
@@ -238,6 +245,10 @@ test.describe('Flow Diagram Interaction', () => {
 
     await expect(panel).toBeVisible({ timeout: PANEL_TIMEOUT });
     await expect(panel).toContainText(FLOW_DIAGRAM_OPEN_PAGE_LABEL);
+
+    // The panel floats over the canvas, so the graph is exactly where the reviewer left it — the
+    // next box they want is still under the cursor rather than shoved off the narrowed canvas.
+    expect(await diagram.nodeGeometryMatchesCapture()).toBe(true);
 
     // selected-node-highlight: the clicked node is marked selected.
     await expect(openPageNode).toHaveAttribute('data-selected', 'true');

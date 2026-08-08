@@ -43,6 +43,10 @@ const TOP_ANCHOR_MAX_PX = 100;
 const HORIZONTAL_CENTER_MAX_PX = 40;
 // Halves a dimension when computing a box center (named so the assertion math carries no bare `2`).
 const HALF_DIVISOR = 2;
+// Two load framings are "the same zoom" within this much. The framing math derives both from the
+// same canvas width, so any real difference is orders of magnitude larger than the rounding the
+// computed CSS matrix introduces.
+const ZOOM_MATCH_EPSILON = 0.01;
 
 // Node labels / assertion text the scenario file asserts on. Exported as plain string
 // constants (not signature types) so the scenario can reference them without inlining.
@@ -272,7 +276,17 @@ export const flowDiagramHarness = ({
   firstNodeNearCanvasTop: (params: { label: string }) => Promise<boolean>;
   firstNodeHorizontallyCentered: (params: { label: string }) => Promise<boolean>;
   graphExceedsCanvasHeight: () => Promise<boolean>;
+  captureLoadZoom: () => Promise<void>;
+  loadZoomMatchesCapture: () => Promise<boolean>;
+  captureNodeGeometry: () => Promise<void>;
+  nodeGeometryMatchesCapture: () => Promise<boolean>;
 } => {
+  // The viewport scale the last captureLoadZoom() saw, so a later flow's load framing can be
+  // compared against it without the harness handing a raw number back to the scenario.
+  let capturedLoadZoom = 0;
+  // Every FLOW_NODE box as captureNodeGeometry() last saw it, serialized so the harness holds no
+  // raw-number structure and the comparison is one equality.
+  let capturedNodeGeometry = '';
   // Internal (non-exported) helpers: return types are inferred from Playwright APIs so the
   // signature carries no raw-primitive annotation. The factory's public methods below all
   // return Promise<boolean> | Promise<void>.
@@ -289,6 +303,11 @@ export const flowDiagramHarness = ({
       }),
     );
   };
+
+  const serializeBoxes = (boxes: Awaited<ReturnType<typeof getBoundingBoxes>>) =>
+    boxes
+      .map((box) => `${Math.round(box.x)},${Math.round(box.y)},${Math.round(box.w)}x${box.h}`)
+      .join('|');
 
   const currentScale = async () => {
     const transform = await page
@@ -719,5 +738,30 @@ export const flowDiagramHarness = ({
       const maxBottom = Math.max(...boxes.map((box) => box.y + box.h));
       return maxBottom > canvasBox.y + canvasBox.height + FRAMING_EPSILON_PX;
     },
+
+    captureLoadZoom: async (): Promise<void> => {
+      capturedLoadZoom = await currentScale();
+    },
+
+    // The load framing is sized to ONE step of the flow — a card plus its assertion column — so it
+    // is the same zoom whatever the graph's overall span. Framing to the graph instead makes a wide
+    // assertion-heavy flow load far more zoomed-out than a small one, which is the "everything is a
+    // speck" complaint; comparing two flows in the same panel is what catches that, where any
+    // single-flow zoom assertion would need a magic number to compare against.
+    loadZoomMatchesCapture: async (): Promise<boolean> =>
+      Math.abs((await currentScale()) - capturedLoadZoom) <= ZOOM_MATCH_EPSILON,
+
+    captureNodeGeometry: async (): Promise<void> => {
+      capturedNodeGeometry = serializeBoxes(await getBoundingBoxes());
+    },
+
+    // The graph must not move when a box is selected. The detail panel floats OVER the canvas
+    // instead of taking width beside it, because a spec panel narrow enough to matter loses most of
+    // its canvas to a 280-400px sibling — and the viewport does not re-frame, so the graph the
+    // reviewer was reading slides out of the strip that is left and the canvas goes blank under an
+    // open panel. Measured as "every card is exactly where it was", which a resized canvas fails
+    // even when a card or two happens to survive inside it.
+    nodeGeometryMatchesCapture: async (): Promise<boolean> =>
+      serializeBoxes(await getBoundingBoxes()) === capturedNodeGeometry,
   };
 };

@@ -1149,7 +1149,7 @@ describe('ReactFlowDiagramWidget', () => {
     });
   });
 
-  describe('selection resolved against the live flow', () => {
+  describe('selection resolved against the flow on the canvas', () => {
     it('VALID: {selected node removed from the flow while its panel is open} => the panel closes instead of stranding on a box that no longer exists', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
@@ -1202,8 +1202,10 @@ describe('ReactFlowDiagramWidget', () => {
       expect(proxy.getPanelCommentTexts()).toStrictEqual(['note on the doomed node']);
 
       // An agent turn deletes the selected node from the spec. The comment stays on the quest
-      // (orphan cleanup is a write-time concern), so nothing but the live-flow lookup stops the
-      // panel from stranding on a box the canvas no longer draws.
+      // (orphan cleanup is a write-time concern), so nothing but resolving the selection against
+      // the flow the canvas is drawing stops the panel stranding on a box that is no longer there.
+      proxy.setupPositions({ children: [{ id: 'dashboard', x: 0, y: 0 }] });
+
       rendered.rerender(
         <ReactFlowDiagramWidget
           flow={FlowStub({ id: 'login-flow', nodes: [survivor], edges: [] })}
@@ -1211,9 +1213,12 @@ describe('ReactFlowDiagramWidget', () => {
         />,
       );
 
-      expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
-        'Dashboard',
-      ]);
+      await waitFor(() => {
+        expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+          'Dashboard',
+        ]);
+      });
+
       expect(proxy.hasDetailPanel()).toBe(false);
       expect(proxy.getPanelCommentTexts()).toStrictEqual([]);
     });
@@ -1275,6 +1280,8 @@ describe('ReactFlowDiagramWidget', () => {
       // The assertion disappears but its PARENT NODE survives, so the dangerous failure is a
       // silent fallback to the node's panel — the reader would be shown another box's comments
       // under a heading they never clicked.
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
       rendered.rerender(
         <ReactFlowDiagramWidget
           flow={FlowStub({
@@ -1291,6 +1298,10 @@ describe('ReactFlowDiagramWidget', () => {
           comments={comments}
         />,
       );
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_OBSERVABLE_NODE')).toBe(null);
+      });
 
       expect(proxy.hasDetailPanel()).toBe(false);
       expect(proxy.getPanelCommentTexts()).toStrictEqual([]);
@@ -1454,15 +1465,16 @@ describe('ReactFlowDiagramWidget', () => {
 
       const wrapper = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
 
-      // `alignSelf: stretch` is the whole height mechanism. The parent sets `alignItems:
-      // flex-start` to keep the detail panel at its natural height, which leaves the canvas at
-      // content height (0px, since React Flow's own canvas is height:100%) unless it opts back in.
-      // Any `height` of its own here would override whatever the spec panel handed down.
+      // The wrapper is the ONLY in-flow child of FLOW_DIAGRAM, so the flex default stretches it to
+      // the height the spec panel handed down and gives it the full width. Any `height` of its own
+      // would override that, and any `alignSelf` here would mean something above had opted out of
+      // stretching — the state that leaves the canvas at content height, which is 0px because React
+      // Flow's own canvas is height:100%.
       expect({
         height: wrapper.style.height,
         minHeight: wrapper.style.minHeight,
         alignSelf: wrapper.style.alignSelf,
-      }).toStrictEqual({ height: '', minHeight: '', alignSelf: 'stretch' });
+      }).toStrictEqual({ height: '', minHeight: '', alignSelf: '' });
     });
 
     it('VALID: {diagram rendered} => FLOW_DIAGRAM claims its container leftover but stops at a usable floor', async () => {
@@ -1522,8 +1534,12 @@ describe('ReactFlowDiagramWidget', () => {
     });
   });
 
-  describe('useEffect hasRun guard', () => {
-    it('VALID: {layout resolves once then flow re-renders} => no second layout call, diagram stays visible', async () => {
+  // The canvas paints the flow ELK last laid out, and re-lays out whenever the flow's CONTENT
+  // changes. Both halves matter while an agent is rewriting the spec: without the re-layout the new
+  // nodes never get coordinates, and without the content check the quest refresh (a fresh but
+  // identical flow object several times a second) would re-run ELK continuously.
+  describe('re-layout on flow change', () => {
+    it('VALID: {same flow content re-rendered} => no second layout call, diagram stays visible', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -1532,9 +1548,8 @@ describe('ReactFlowDiagramWidget', () => {
       });
       const flow = FlowStub({ nodes: [node], edges: [] });
 
-      // Only one positions response is queued. If the guard is absent a second effect
-      // run would call the mock a second time with no configured return, reject, and
-      // flip the component to FLOW_DIAGRAM_ERROR.
+      // Only one positions response is queued. If the content check is absent a second effect
+      // run would call the mock a second time with no configured return, reject, and log.
       proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
 
       const { rerender } = mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
@@ -1545,9 +1560,152 @@ describe('ReactFlowDiagramWidget', () => {
 
       rerender(<ReactFlowDiagramWidget flow={flow} />);
 
-      // Diagram remains visible; no error shown means the layout mock was not called again.
-      expect(screen.queryByTestId('FLOW_DIAGRAM_ERROR')).toBe(null);
+      // Diagram remains visible; zero rejected passes means the layout mock was not called again.
+      expect(proxy.countLayoutErrorLogs()).toBe(0);
       expect(screen.getByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+    });
+
+    it('VALID: {flow gains a node} => the canvas re-lays out and paints the new card', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const loginNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        type: 'state',
+        observables: [],
+      });
+      const dashboardNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'dashboard' }),
+        label: 'Dashboard',
+        type: 'action',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [loginNode], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      const { rerender } = mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'dashboard', x: 0, y: 200 },
+        ],
+      });
+
+      rerender(
+        <ReactFlowDiagramWidget
+          flow={FlowStub({ nodes: [loginNode, dashboardNode], edges: [] })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+          'Login Page',
+          'Dashboard',
+        ]);
+      });
+
+      expect(proxy.countLayoutErrorLogs()).toBe(0);
+    });
+
+    it('EDGE: {flow gains a node, layout still pending} => the canvas keeps the previous graph rather than dropping the new card at 0,0', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const loginNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        type: 'state',
+        observables: [],
+      });
+      const dashboardNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'dashboard' }),
+        label: 'Dashboard',
+        type: 'action',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [loginNode], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      const { rerender } = mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      proxy.setupPositions({
+        children: [
+          { id: 'login-page', x: 0, y: 0 },
+          { id: 'dashboard', x: 0, y: 200 },
+        ],
+      });
+
+      // The second layout resolves on a microtask, so nothing has awaited it yet at this point —
+      // exactly the frame in which the widget used to hand React Flow a card with no ELK position.
+      rerender(
+        <ReactFlowDiagramWidget
+          flow={FlowStub({ nodes: [loginNode, dashboardNode], edges: [] })}
+        />,
+      );
+
+      expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+        'Login Page',
+      ]);
+
+      // Drain the pending pass so the swap lands inside act() rather than after the test ends.
+      await waitFor(() => {
+        expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+          'Login Page',
+          'Dashboard',
+        ]);
+      });
+
+      expect(proxy.countLayoutErrorLogs()).toBe(0);
+    });
+
+    it('ERROR: {re-layout rejects over a graph already on screen} => that graph stays, no error card', async () => {
+      const proxy = ReactFlowDiagramWidgetProxy();
+      const loginNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'login-page' }),
+        label: 'Login Page',
+        type: 'state',
+        observables: [],
+      });
+      const dashboardNode = FlowNodeStub({
+        id: FlowNodeIdStub({ value: 'dashboard' }),
+        label: 'Dashboard',
+        type: 'action',
+        observables: [],
+      });
+      const flow = FlowStub({ nodes: [loginNode], edges: [] });
+
+      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
+
+      const { rerender } = mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
+      });
+
+      proxy.setupLayoutError({ error: new Error('elk: unresolvable endpoint') });
+
+      rerender(
+        <ReactFlowDiagramWidget
+          flow={FlowStub({ nodes: [loginNode, dashboardNode], edges: [] })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(proxy.countLayoutErrorLogs()).toBe(1);
+      });
+
+      expect(proxy.hasError()).toBe(false);
+      expect(screen.getAllByTestId('FLOW_NODE_LABEL').map((el) => el.textContent)).toStrictEqual([
+        'Login Page',
+      ]);
     });
   });
 

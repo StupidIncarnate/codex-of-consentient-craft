@@ -57,6 +57,35 @@ describe('FlowNodeDetailPanelLayerWidget', () => {
 
       expect(proxy.getEmpty()?.textContent).toBe('No contracts or comments for this box');
     });
+
+    it('VALID: {panel rendered} => floats over the canvas rather than taking width beside it', () => {
+      const proxy = FlowNodeDetailPanelLayerWidgetProxy();
+      const node = FlowNodeStub({ id: FlowNodeIdStub({ value: 'login-page' }), observables: [] });
+      const onClose = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <FlowNodeDetailPanelLayerWidget
+            node={node}
+            contracts={[]}
+            comments={[]}
+            onClose={onClose}
+          />
+        ),
+      });
+
+      // In flow, this panel's 280-400px comes out of the canvas beside it, and a React Flow viewport
+      // does not re-frame when its container narrows — so selecting a box slid the graph out of the
+      // strip that was left. jsdom resolves no layout, so this pins the RULE and
+      // `nodeGeometryMatchesCapture` in the e2e measures the consequence.
+      const panel = proxy.getPanel();
+
+      expect({
+        position: panel?.style.position,
+        top: panel?.style.top,
+        right: panel?.style.right,
+      }).toStrictEqual({ position: 'absolute', top: '0px', right: '0px' });
+    });
   });
 
   describe('contracts', () => {

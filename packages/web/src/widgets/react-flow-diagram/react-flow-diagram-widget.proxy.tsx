@@ -28,6 +28,7 @@ interface ReactFlowDiagramWidgetProxyResult {
   hasDiagram: () => boolean;
   hasCanvas: () => boolean;
   hasError: () => boolean;
+  countLayoutErrorLogs: () => HTMLElement['childElementCount'];
   hasDetailPanel: () => boolean;
   getControlTestIds: () => HTMLElement['textContent'][];
   setupEmptyQueue: () => void;
@@ -61,9 +62,12 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   // React), so any test that triggers that path would otherwise throw here. passthrough: true —
   // console.error is a shared sink; React's own internal warnings (e.g. act() warnings) also flow
   // through it and must keep printing normally, not throw for being unstaged.
-  registerSpyOn({ object: globalThis.console, method: 'error', passthrough: true })
-    .calledWith(['[react-flow-diagram]'])
-    .returns(undefined);
+  const consoleErrorHandle = registerSpyOn({
+    object: globalThis.console,
+    method: 'error',
+    passthrough: true,
+  });
+  consoleErrorHandle.calledWith(['[react-flow-diagram]']).returns(undefined);
 
   return {
     setupEmptyQueue: (): void => {
@@ -172,6 +176,11 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     hasDiagram: (): boolean => screen.queryByTestId('FLOW_DIAGRAM') !== null,
     hasCanvas: (): boolean => screen.queryByTestId('REACT_FLOW_CANVAS') !== null,
     hasError: (): boolean => screen.queryByTestId('FLOW_DIAGRAM_ERROR') !== null,
+    // How many layout passes have rejected. A failed re-layout over a graph already on screen paints
+    // nothing new — the canvas deliberately keeps the last good graph — so this log is the only
+    // signal a test can wait on before asserting what survived.
+    countLayoutErrorLogs: (): HTMLElement['childElementCount'] =>
+      consoleErrorHandle.callsMatching(['[react-flow-diagram]']).length,
     hasDetailPanel: (): boolean => screen.queryByTestId('FLOW_NODE_DETAIL_PANEL') !== null,
     // Direct children of the floating control cluster, in DOM order. Scoped because the comment
     // bubbles on the cards are buttons on this canvas too; direct children rather than a descendant

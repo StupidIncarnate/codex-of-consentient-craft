@@ -1,8 +1,10 @@
 /**
  * PURPOSE: The quest flow as a browsable graph — ELK lays it out, React Flow paints it, and the
- * cards carry the comment and detail affordances a reviewer works through. Sized entirely BY its
- * container: it pins no height of its own, so mount it only inside a parent that resolves a
- * definite one (see the height chain in packages/web/CLAUDE.md) or the canvas paints at 0px.
+ * cards carry the comment and detail affordances a reviewer works through. Safe to leave mounted
+ * while an agent rewrites the spec underneath it: every edit re-lays out and swaps in whole, so the
+ * canvas never paints a half-positioned graph. Sized entirely BY its container: it pins no height
+ * of its own, so mount it only inside a parent that resolves a definite one (see the height chain
+ * in packages/web/CLAUDE.md) or the canvas paints at 0px.
  *
  * USAGE:
  * <ReactFlowDiagramWidget flow={flow} contracts={contracts} />
@@ -34,6 +36,8 @@ import type { CommentCount } from '../../contracts/comment-count/comment-count-c
 import { contractCountContract } from '../../contracts/contract-count/contract-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
+import { flowLayoutSignatureContract } from '../../contracts/flow-layout-signature/flow-layout-signature-contract';
+import type { FlowLayoutSignature } from '../../contracts/flow-layout-signature/flow-layout-signature-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { iconButtonSizeContract } from '../../contracts/icon-button-size/icon-button-size-contract';
@@ -109,6 +113,13 @@ export const ReactFlowDiagramWidget = ({
   commentQuestId,
   comments = [],
 }: ReactFlowDiagramWidgetProps): React.JSX.Element | null => {
+  // The flow the canvas is painting, held apart from the `flow` PROP: it is the last one ELK
+  // actually laid out, swapped in together with its positions and routes. An agent editing the spec
+  // hands over new nodes and edges a frame before there is any layout for them, and rendering that
+  // prop directly is what put every new card at {0,0} with its edges routed along the old graph's
+  // bend points — the flicker of piled-up boxes and crossed lines mid-edit. Holding the snapshot
+  // costs one ELK pass (single-digit ms) of staleness and never shows a half-laid-out graph.
+  const [laidOutFlow, setLaidOutFlow] = useState<Flow | null>(null);
   const [positions, setPositions] = useState<ElkPositionMap | null>(null);
   const [routes, setRoutes] = useState<FlowEdgeRouteMap | null>(null);
   const [error, setError] = useState<boolean>(false);
@@ -117,7 +128,10 @@ export const ReactFlowDiagramWidget = ({
   // single value is what makes them mutually exclusive by construction, so the detail panel can
   // never open for a node and an assertion at once.
   const [selectedAnchor, setSelectedAnchor] = useState<CommentAnchor | null>(null);
-  const hasRun = useRef(false);
+  // Content-identity of the flow the in-flight layout pass was started for. The `flow` PROP is a
+  // fresh object on every quest refresh, so keying the pass on reference would re-run ELK several
+  // times a second on a spec nobody touched.
+  const laidOutSignature = useRef<FlowLayoutSignature | null>(null);
   const diagramRef = useRef<HTMLDivElement>(null);
 
   const clickNativeControl = useCallback((controlClass: string): void => {
@@ -126,16 +140,28 @@ export const ReactFlowDiagramWidget = ({
 
   useEffect(() => {
     if (flow.nodes.length === 0) return;
-    if (hasRun.current) return;
-    hasRun.current = true;
+    // The signature covers the WHOLE flow, not just the fields ELK reads, precisely because the
+    // canvas paints the laid-out snapshot: an edit that did not bump this would never reach the
+    // screen. ELK on a spec-sized graph is single-digit ms, so re-laying out for a renamed label
+    // costs less than the bookkeeping to decide it did not need to.
+    const signature = flowLayoutSignatureContract.parse(JSON.stringify(flow));
+    if (laidOutSignature.current === signature) return;
+    laidOutSignature.current = signature;
 
     // Portals stand in for edges whose endpoint lives in another flow — ELK needs them as graph
     // children or it throws on the unresolvable endpoint.
     const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
     elkLayoutAdapter({ nodes: flow.nodes, edges: flow.edges, portals })
       .then((layout) => {
+        // A newer edit already started its own pass, so this result is for a flow the reviewer has
+        // moved past. Dropping it is what stops a slow older layout landing on top of a newer one.
+        if (laidOutSignature.current !== signature) return;
+        // One batch: the flow, its positions and its routes always reach the canvas together, so
+        // there is no render where a node has no position or an edge has no route.
+        setLaidOutFlow(flow);
         setPositions(layout.positions);
         setRoutes(layout.routes);
+        setError(false);
       })
       .catch((layoutError: unknown) => {
         globalThis.console.error('[react-flow-diagram]', layoutError);
@@ -160,7 +186,11 @@ export const ReactFlowDiagramWidget = ({
     return null;
   }
 
-  if (error) {
+  // The error card is for having NOTHING to show. A re-layout that fails over a graph already on
+  // screen keeps that graph instead: a spec caught mid-edit is a state the next edit resolves, and
+  // trading a readable canvas for "could not render" reports less than it destroys. The failure is
+  // on the console either way.
+  if (error && positions === null) {
     return (
       <div
         data-testid="FLOW_DIAGRAM_ERROR"
@@ -171,14 +201,14 @@ export const ReactFlowDiagramWidget = ({
     );
   }
 
-  if (positions === null) {
+  if (positions === null || laidOutFlow === null) {
     return null;
   }
 
   // Anchor context for the comment affordance. Spread into each card's data only when composing is
   // allowed, so the cards themselves need no separate visibility flag to check.
   const commentAnchorData =
-    commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: flow.id };
+    commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: laidOutFlow.id };
 
   // `comments` spans the WHOLE quest across every flow (see the prop doc above), so scope down to
   // THIS flow and count per box in one pass here, rather than letting boxCommentsTransformer
@@ -188,7 +218,7 @@ export const ReactFlowDiagramWidget = ({
   const nodeCommentCounts = new Map<FlowNodeId, CommentCount>();
   const observableCommentCounts = new Map<FlowNodeId, Map<ObservableId, CommentCount>>();
   comments
-    .filter((c) => c.flowId === flow.id)
+    .filter((c) => c.flowId === laidOutFlow.id)
     .forEach((c) => {
       if (c.observableId === undefined) {
         const priorCount = nodeCommentCounts.get(c.nodeId);
@@ -225,7 +255,7 @@ export const ReactFlowDiagramWidget = ({
   // never "unmeasured", so it paints from the first frame whatever the measurement does. The box is
   // the SAME estimate `elkLayoutAdapter` laid the graph out with (elkLayoutStatics.labelEstimate),
   // so the pre-measurement size matches the rectangle ELK reserved for the card.
-  const flowNodes = flow.nodes.map((n) => {
+  const flowNodes = laidOutFlow.nodes.map((n) => {
     const { labelEstimate } = elkLayoutStatics;
     const labelLines = Math.max(1, Math.ceil(String(n.label).length / labelEstimate.charsPerLine));
     const cardHeight =
@@ -260,7 +290,7 @@ export const ReactFlowDiagramWidget = ({
   // Each observable becomes its own card stacked into a column to the RIGHT of its flow node, so a
   // reviewer reads every assertion on the canvas. Positions are computed relative to the flow
   // node's ELK position; ELK reserves each node enough height to clear its whole column.
-  const observableNodes = flow.nodes.flatMap((n) => {
+  const observableNodes = laidOutFlow.nodes.flatMap((n) => {
     const base = positions[String(n.id)] ?? { x: 0, y: 0 };
     const { observable } = elkLayoutStatics;
     const columnX = base.x + elkLayoutStatics.node.width + observable.gap;
@@ -298,7 +328,10 @@ export const ReactFlowDiagramWidget = ({
   // Portal stand-ins for edges that hand off to a node in another flow. Their id is the raw
   // `flowId:nodeId` reference so the cross-flow edge (source/target = String(e.to)) resolves to
   // this node instead of dangling. Clicking one is a no-op — onNodeClick only matches flow.nodes.
-  const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
+  const portals = flowCrossFlowPortalsTransformer({
+    nodes: laidOutFlow.nodes,
+    edges: laidOutFlow.edges,
+  });
   const portalNodes = portals.map((portal) => {
     const { labelEstimate } = elkLayoutStatics;
     const portalLines = Math.max(
@@ -318,7 +351,7 @@ export const ReactFlowDiagramWidget = ({
 
   const nodes = [...flowNodes, ...observableNodes, ...portalNodes];
 
-  const flowEdges = flow.edges.map((e) => {
+  const flowEdges = laidOutFlow.edges.map((e) => {
     // type 'flow' selects the custom edge (xyflowEdgeAdapter). `data.route` is the ELK-computed
     // path the edge draws itself along (routed clear of the cards); `data.label` is the wrapping
     // label box. The top-level `label` is kept only so the jsdom test mock (which renders
@@ -347,7 +380,7 @@ export const ReactFlowDiagramWidget = ({
   // These are the ONE edge kind that stays on React Flow's built-in edge component rather than
   // xyflowEdgeAdapter, so they need the palette stroke applied here or they alone paint in the
   // library's cool default grey while every flow edge is warm.
-  const observableEdges = flow.nodes.flatMap((n) =>
+  const observableEdges = laidOutFlow.nodes.flatMap((n) =>
     n.observables.map((obs) => ({
       id: `obs-edge:${String(n.id)}:${String(obs.id)}`,
       source: String(n.id),
@@ -359,12 +392,13 @@ export const ReactFlowDiagramWidget = ({
 
   const edges = [...flowEdges, ...observableEdges];
 
-  // Resolve the selection against the LIVE flow every render, so a selected box that disappears
-  // from the spec (an agent turn deleting a node) closes its panel instead of stranding it.
+  // Resolve the selection against the flow on the canvas every render, so a selected box that
+  // disappears from the spec (an agent turn deleting a node) closes its panel instead of stranding
+  // it — one layout pass after the deletion, when the canvas stops drawing that box.
   const selectedNode: FlowNode | undefined =
     selectedAnchor === null
       ? undefined
-      : flow.nodes.find((n) => String(n.id) === String(selectedAnchor.nodeId));
+      : laidOutFlow.nodes.find((n) => String(n.id) === String(selectedAnchor.nodeId));
 
   const selectedObservable: FlowObservable | undefined =
     selectedAnchor?.observableId === undefined
@@ -385,7 +419,7 @@ export const ReactFlowDiagramWidget = ({
       ? []
       : boxCommentsTransformer({
           comments,
-          flowId: flow.id,
+          flowId: laidOutFlow.id,
           nodeId: panelNode.id,
           ...(selectedAnchor.observableId === undefined
             ? {}
@@ -398,8 +432,9 @@ export const ReactFlowDiagramWidget = ({
       data-testid="FLOW_DIAGRAM"
       style={{
         display: 'flex',
-        gap: 16,
-        alignItems: 'flex-start',
+        // The positioning context for the two things that float over the canvas: the detail panel
+        // (top right) and the zoom controls (bottom left). Neither takes width from it, so the
+        // graph is framed once and stays put for the whole review.
         position: 'relative',
         // Claims whatever height the spec panel left over, and passes a DEFINITE one down: React
         // Flow's canvas is height:100%, which resolves against the parent's `height` (NOT
@@ -415,9 +450,6 @@ export const ReactFlowDiagramWidget = ({
         data-testid="FLOW_DIAGRAM_CANVAS_WRAPPER"
         style={{
           flex: 1,
-          // `alignItems: flex-start` above keeps the detail panel at its natural height, so the
-          // canvas has to opt back into the full cross size to get a height at all.
-          alignSelf: 'stretch',
           overflow: 'hidden',
         }}
       >
@@ -428,16 +460,17 @@ export const ReactFlowDiagramWidget = ({
             edges,
             nodeTypes: NODE_TYPES,
             edgeTypes: EDGE_TYPES,
-            // Top-anchor rather than fit-to-graph, so switching flow tabs starts the reader at the
-            // entry node zoomed-in instead of shrinking a tall graph until every card is a speck.
+            // Frame on the entry node rather than fitting the graph, so switching flow tabs starts
+            // the reader at the first step at natural size instead of shrinking a tall graph until
+            // every card is a speck.
             topAlign: true,
             onNodeClick: (node: (typeof nodes)[0]) => {
               // A flow card resolves by id. An assertion card does not — its React Flow id is a
               // composite (`obs:node:observable`), so its anchor is read off the node DATA, which
               // is the only place both ids survive independently of that string's shape.
-              const clicked = flow.nodes.find((fn) => String(fn.id) === node.id);
+              const clicked = laidOutFlow.nodes.find((fn) => String(fn.id) === node.id);
               if (clicked !== undefined) {
-                setSelectedAnchor({ flowId: flow.id, nodeId: clicked.id });
+                setSelectedAnchor({ flowId: laidOutFlow.id, nodeId: clicked.id });
                 return;
               }
               const observableData = flowObservableNodeDataContract.safeParse(node.data);
@@ -447,7 +480,7 @@ export const ReactFlowDiagramWidget = ({
                 return;
               }
               setSelectedAnchor({
-                flowId: flow.id,
+                flowId: laidOutFlow.id,
                 nodeId: observableData.data.nodeId,
                 observableId: observableData.data.observableId,
               });

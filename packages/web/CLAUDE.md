@@ -370,9 +370,9 @@ Relevant files: `transformers/compute-token-annotations/`,
 `widgets/tool-row/`, `widgets/context-divider/`,
 `widgets/chat-entry-list/`, `widgets/subagent-chain/`.
 
-## React Flow diagram sizing — four gotchas a jsdom mock hides
+## React Flow diagram sizing — five gotchas a jsdom mock hides
 
-All four are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts` +
+All five are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts` +
 `test/harnesses/flow-diagram/` are what actually cover them.
 
 1. **Node overlap vs. full labels.** Cards show the whole label wrapped (no clamp) at
@@ -396,15 +396,23 @@ All four are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.t
    `FLOW_DIAGRAM` → `FLOW_DIAGRAM_CANVAS_WRAPPER`. Every link is `flex: 1` + `minHeight: 0` (the
    `minHeight` is what lets it shrink — a flex item's default `min-height: auto` floors it at content
    height, so the canvas would size the panel instead) EXCEPT `FLOW_DIAGRAM`, which carries
-   `minHeight: MIN_CANVAS_HEIGHT` and is the one link that refuses to shrink, and the wrapper ends the chain with
-   `alignSelf: stretch` because `FLOW_DIAGRAM` sets `alignItems: flex-start` to keep the detail panel
-   at its natural height. **Do not give the wrapper a `height` of its own** — that is what re-pins the
-   canvas to a fixed box and stops the panel deciding. Guarded by `canvasFillsPanelBelowRequest` in
-   `test/harnesses/flow-diagram/`, which measures the canvas against the panel's own bottom edge; a
-   jsdom assertion on the style alone cannot tell you the chain resolved.
+   `minHeight: MIN_CANVAS_HEIGHT` and is the one link that refuses to shrink. **Do not give the
+   wrapper a `height` of its own** — that is what re-pins the canvas to a fixed box and stops the
+   panel deciding. Guarded by `canvasFillsPanelBelowRequest` in `test/harnesses/flow-diagram/`, which
+   measures the canvas against the panel's own bottom edge; a jsdom assertion on the style alone
+   cannot tell you the chain resolved.
 4. **Duplicate controls.** The adapter's `<Controls>` are the actuators the custom RPG buttons
    `.click()`; keep them mounted but `display: none`. Programmatic clicks still fire on a hidden
    button.
+5. **Everything that floats over the canvas is `position: absolute` against `FLOW_DIAGRAM`** — the
+   node detail panel (top right) and the zoom/fit controls (bottom left). The canvas wrapper is the
+   only in-flow child, so it always has the full width. A detail panel rendered as a flex SIBLING
+   takes 280-400px out of a spec panel that may only be ~600px wide, and the React Flow viewport does
+   not re-frame when its container narrows — so the graph the reviewer was reading slides out of the
+   strip that is left and they are looking at a blank canvas with a panel on it. Guarded by
+   `nodeGeometryMatchesCapture`, which asserts every card is at the SAME coordinates after a box is
+   selected; a check that some card is still visible passes on the arrangement that loses most of
+   them.
 
 Assertions branch RIGHT as their own always-visible `FLOW_OBSERVABLE_NODE` cards. ELK has no native
 "satellite to the right" in layered/DOWN mode (edge-connected children get pushed to the next layer),
