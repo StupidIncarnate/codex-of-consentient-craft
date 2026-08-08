@@ -243,6 +243,102 @@ describe('ToolRowWidget', () => {
 
       expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
     });
+
+    it('VALID: {defaultExpanded true then false} => closes itself when the call stops being the one in flight', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput: '{"file_path":"/src/index.ts"}',
+      });
+      const toolResult = AssistantToolResultChatEntryStub({
+        toolName: 'use_1',
+        content: 'file contents here',
+      });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            isLoading={true}
+            defaultExpanded={true}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL')).toBeInTheDocument();
+
+      rerender(
+        <ToolRowWidget
+          toolUse={toolUse as ToolUseEntry}
+          toolResult={toolResult as ToolResultEntry}
+        />,
+      );
+
+      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
+    });
+
+    it('VALID: {defaultExpanded true, reader collapses, still defaultExpanded on re-render} => stays collapsed', async () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput: '{"file_path":"/src/index.ts"}',
+      });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            isLoading={true}
+            defaultExpanded={true}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
+
+      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
+
+      rerender(
+        <ToolRowWidget toolUse={toolUse as ToolUseEntry} isLoading={true} defaultExpanded={true} />,
+      );
+
+      expect(screen.queryByTestId('TOOL_ROW_DETAIL')).toBe(null);
+    });
+
+    it('VALID: {reader expands a settled row, then it re-renders} => stays open', async () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput: '{"file_path":"/src/index.ts"}',
+      });
+      const toolResult = AssistantToolResultChatEntryStub({
+        toolName: 'use_1',
+        content: 'file contents here',
+      });
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            toolResult={toolResult as ToolResultEntry}
+          />
+        ),
+      });
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL')).toBeInTheDocument();
+
+      rerender(
+        <ToolRowWidget
+          toolUse={toolUse as ToolUseEntry}
+          toolResult={toolResult as ToolResultEntry}
+          resultTokenBadgeLabel={FormattedTokenLabelStub({ value: '~1.2k est' })}
+        />,
+      );
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL')).toBeInTheDocument();
+    });
   });
 
   describe('expanded detail content', () => {

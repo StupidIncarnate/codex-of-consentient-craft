@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Computes token annotations (context deltas, estimates, badges) for an array of merged chat items
+ * PURPOSE: Decides which items in a transcript are worth putting a token number on, and what
+ * that number is measured against. The session and sub-agent streams are counted separately,
+ * and a run of back-to-back tool calls collapses onto a single cumulative at the end of the
+ * run, so the reader sees what the run cost rather than a rule between every call.
  *
  * USAGE:
  * computeTokenAnnotationsTransformer({items: mergedChatItems});
@@ -26,17 +29,31 @@ export const computeTokenAnnotationsTransformer = ({
   let prevSessionContext: ContextTokenCount | null = null;
   let prevSubagentContext: ContextTokenCount | null = null;
 
-  return items.map((item): TokenAnnotation => {
+  return items.map((item, index): TokenAnnotation => {
     if (item.kind === 'tool-pair') {
       const { toolUse, toolResult } = item;
       const source: 'session' | 'subagent' =
         'source' in toolUse && toolUse.source === 'subagent' ? 'subagent' : 'session';
       const totalContext = computeEntryContextTransformer({ entry: toolUse });
 
+      // A run of back-to-back tool calls carries ONE cumulative, on the call that ends the
+      // run — a rule between every call in a ten-call run is noise, and what the reader wants
+      // is the cost of the run before the model speaks again. The calls that give theirs up
+      // leave `prev` where it was, so the surviving delta spans the whole run instead of the
+      // last hop; advancing it here would silently drop the run's earlier consumption.
+      const nextItem = items[index + 1];
+      const nextToolUse =
+        nextItem !== undefined && nextItem.kind === 'tool-pair' ? nextItem.toolUse : null;
+      const nextSource: 'session' | 'subagent' =
+        nextToolUse !== null && 'source' in nextToolUse && nextToolUse.source === 'subagent'
+          ? 'subagent'
+          : 'session';
+      const isMidToolRun = nextToolUse !== null && nextSource === source;
+
       let cumulativeContext: ContextTokenCount | null = null;
       let contextDelta: TokenAnnotation['contextDelta'] = null;
 
-      if (totalContext !== null) {
+      if (totalContext !== null && !isMidToolRun) {
         const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
         cumulativeContext = totalContext;
         contextDelta =

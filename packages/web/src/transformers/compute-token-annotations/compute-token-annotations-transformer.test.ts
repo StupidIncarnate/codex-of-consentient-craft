@@ -446,7 +446,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       ]);
     });
 
-    it('VALID: {items: [two tool-pairs with usage]} => both have null tokenBadgeLabel; second tracks contextDelta', () => {
+    it('VALID: {items: [two tool-pairs with usage]} => the mid-run call gives up its cumulative; only the call ending the run keeps one', () => {
       const items = [
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -486,7 +486,102 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
+          cumulativeContext: null,
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          resultTokenBadgeLabel: null,
+          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+      ]);
+    });
+
+    it('VALID: {items: [text, three tool-pairs, text]} => the run keeps one cumulative and its delta spans every call in the run', () => {
+      const items = [
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+        }),
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_1',
+            usage: {
+              inputTokens: 600,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({ toolName: 'use_1', content: '' }),
+        }),
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_2',
+            usage: {
+              inputTokens: 800,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({ toolName: 'use_2', content: '' }),
+        }),
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_3',
+            usage: {
+              inputTokens: 900,
+              outputTokens: 100,
+              cacheCreationInputTokens: 200,
+              cacheReadInputTokens: 100,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({ toolName: 'use_3', content: '' }),
+        }),
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({
+            usage: {
+              inputTokens: 1000,
+              outputTokens: 100,
+              cacheCreationInputTokens: 200,
+              cacheReadInputTokens: 100,
+            },
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      // 500 (text) -> run of 700/900/1200 -> 1300 (text). The run's surviving delta is
+      // 1200 - 500 = 700: the whole run, not the 1200 - 900 = 300 last hop.
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          resultTokenBadgeLabel: null,
+          cumulativeContext: null,
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          resultTokenBadgeLabel: null,
+          cumulativeContext: null,
           contextDelta: null,
           source: 'session',
         }),
@@ -497,10 +592,16 @@ describe('computeTokenAnnotationsTransformer', () => {
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
         }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: FormattedTokenLabelStub({ value: '+100 context' }),
+          cumulativeContext: ContextTokenCountStub({ value: 1300 }),
+          contextDelta: ContextTokenDeltaStub({ value: 100 }),
+          source: 'session',
+        }),
       ]);
     });
 
-    it('EDGE: {items: [two tool-pairs with identical usage]} => null tokenBadgeLabel and zero contextDelta', () => {
+    it('EDGE: {items: [tool-pair, entry without usage, tool-pair with identical usage]} => the non-tool item ends the run, so both calls keep a cumulative and the second delta is zero', () => {
       const items = [
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -516,6 +617,9 @@ describe('computeTokenAnnotationsTransformer', () => {
             toolName: 'use_1',
             content: '',
           }),
+        }),
+        MergedEntryItemStub({
+          entry: AssistantTextChatEntryStub({ content: 'thinking out loud' }),
         }),
         MergedToolPairItemStub({
           toolUse: AssistantToolUseChatEntryStub({
@@ -544,12 +648,69 @@ describe('computeTokenAnnotationsTransformer', () => {
           contextDelta: null,
           source: 'session',
         }),
+        TokenAnnotationStub(),
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: ContextTokenCountStub({ value: 500 }),
           contextDelta: ContextTokenDeltaStub({ value: 0 }),
           source: 'session',
+        }),
+      ]);
+    });
+
+    it('VALID: {items: [session tool-pair, subagent tool-pair]} => neither is mid-run, because the two streams are counted apart', () => {
+      const items = [
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_1',
+            source: 'session',
+            usage: {
+              inputTokens: 400,
+              outputTokens: 50,
+              cacheCreationInputTokens: 60,
+              cacheReadInputTokens: 40,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({
+            toolName: 'use_1',
+            content: '',
+          }),
+        }),
+        MergedToolPairItemStub({
+          toolUse: AssistantToolUseChatEntryStub({
+            toolUseId: 'use_2',
+            source: 'subagent',
+            usage: {
+              inputTokens: 900,
+              outputTokens: 100,
+              cacheCreationInputTokens: 200,
+              cacheReadInputTokens: 100,
+            },
+          }),
+          toolResult: AssistantToolResultChatEntryStub({
+            toolName: 'use_2',
+            content: '',
+          }),
+        }),
+      ];
+
+      const result = computeTokenAnnotationsTransformer({ items });
+
+      expect(result).toStrictEqual([
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          resultTokenBadgeLabel: null,
+          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          contextDelta: null,
+          source: 'session',
+        }),
+        TokenAnnotationStub({
+          tokenBadgeLabel: null,
+          resultTokenBadgeLabel: null,
+          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          contextDelta: null,
+          source: 'subagent',
         }),
       ]);
     });

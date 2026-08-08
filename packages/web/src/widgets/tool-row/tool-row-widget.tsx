@@ -3,6 +3,8 @@
  * label, summary, token estimate, and status all share the header — so a reader skimming a long
  * run counts calls by counting lines. Anything that would add a second line belongs behind the
  * disclosure instead, where the untruncated, unelided values live for the reader who stops.
+ * The disclosure follows the stream rather than latching, so a settled transcript is one line
+ * per call whether the reader watched it arrive or opened it after the fact.
  *
  * USAGE:
  * <ToolRowWidget toolUse={toolUseEntry} toolResult={resultEntry} isLoading={false} />
@@ -35,6 +37,8 @@ export interface ToolRowWidgetProps {
   // estimate is per-tool and accurate enough for relative comparison.
   // See packages/web/CLAUDE.md - "Per-tool context numbers".
   resultTokenBadgeLabel?: FormattedTokenLabel;
+  // Holds the row open for as long as it is true, not merely on the first render: the caller
+  // raises it while this is the call in flight and drops it when the result lands.
   defaultExpanded?: boolean;
 }
 
@@ -55,7 +59,13 @@ export const ToolRowWidget = ({
   defaultExpanded,
 }: ToolRowWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
-  const [expanded, setExpanded] = useState(defaultExpanded === true);
+  // The stream owns the disclosure until the reader takes it: `defaultExpanded` holds only
+  // while this is the call in flight, so the detail closes itself the moment the result lands
+  // and a screen of finished calls stays one line each. Storing the auto-expand in state
+  // instead would latch every call open for the rest of the session — the reader would have
+  // to close each one by hand to get the scannable list back.
+  const [readerExpanded, setReaderExpanded] = useState<boolean | null>(null);
+  const expanded = readerExpanded ?? defaultExpanded === true;
   const [resultExpanded, setResultExpanded] = useState(false);
   const [expandedFields, setExpandedFields] = useState<Record<PropertyKey, boolean>>({});
 
@@ -129,7 +139,7 @@ export const ToolRowWidget = ({
       <UnstyledButton
         data-testid="TOOL_ROW_HEADER"
         onClick={() => {
-          setExpanded(!expanded);
+          setReaderExpanded(!expanded);
         }}
         style={{
           width: '100%',

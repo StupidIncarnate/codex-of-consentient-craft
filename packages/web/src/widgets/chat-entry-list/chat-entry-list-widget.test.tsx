@@ -204,6 +204,123 @@ describe('ChatEntryListWidget', () => {
       expect(screen.getByTestId('CONTEXT_DIVIDER')).toBeInTheDocument();
       expect(screen.getByTestId('TOOL_ROW')).toBeInTheDocument();
     });
+
+    it('VALID: {text, two back-to-back tool calls, text} => one divider for the whole tool run, carrying its combined delta', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantTextChatEntryStub({
+                content: 'Looking',
+                usage: {
+                  inputTokens: 400,
+                  outputTokens: 50,
+                  cacheCreationInputTokens: 60,
+                  cacheReadInputTokens: 40,
+                },
+              }),
+              AssistantToolUseChatEntryStub({
+                toolUseId: 'use_1',
+                usage: {
+                  inputTokens: 600,
+                  outputTokens: 50,
+                  cacheCreationInputTokens: 100,
+                  cacheReadInputTokens: 50,
+                },
+              }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+              AssistantToolUseChatEntryStub({
+                toolUseId: 'use_2',
+                usage: {
+                  inputTokens: 900,
+                  outputTokens: 100,
+                  cacheCreationInputTokens: 200,
+                  cacheReadInputTokens: 100,
+                },
+              }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_2' }),
+              AssistantTextChatEntryStub({
+                content: 'Found it',
+                usage: {
+                  inputTokens: 1000,
+                  outputTokens: 100,
+                  cacheCreationInputTokens: 200,
+                  cacheReadInputTokens: 100,
+                },
+              }),
+            ]}
+            isStreaming={false}
+            showContextDividers={true}
+          />
+        ),
+      });
+
+      // No rule between use_1 and use_2; the one after use_2 spans both (1200 - 500).
+      expect(screen.queryAllByTestId('CONTEXT_DIVIDER').map((d) => d.textContent)).toStrictEqual([
+        '500 context',
+        '1.2k context (+700)',
+        '1.3k context (+100)',
+      ]);
+    });
+  });
+
+  describe('tool row disclosure', () => {
+    it('VALID: {two settled tool pairs while streaming} => every row is collapsed', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_2', toolName: 'Grep' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_2' }),
+              AssistantTextChatEntryStub({ content: 'Still going' }),
+            ]}
+            isStreaming={true}
+            showEndStreamingIndicator={true}
+          />
+        ),
+      });
+
+      const rows = screen.queryAllByTestId('TOOL_ROW');
+      const openToolNames = rows
+        .filter((row) => row.querySelector('[data-testid="TOOL_ROW_DETAIL"]') !== null)
+        .map((row) => row.querySelector('[data-testid="TOOL_ROW_NAME"]')?.textContent);
+
+      expect(screen.queryAllByTestId('TOOL_ROW_NAME').map((n) => n.textContent)).toStrictEqual([
+        'Read',
+        'Grep',
+      ]);
+      expect(openToolNames).toStrictEqual([]);
+    });
+
+    it('VALID: {settled pair then an unpaired tool call while streaming} => only the call in flight is open', () => {
+      ChatEntryListWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: (
+          <ChatEntryListWidget
+            entries={[
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
+              AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
+              AssistantToolUseChatEntryStub({ toolUseId: 'use_2', toolName: 'Grep' }),
+            ]}
+            isStreaming={true}
+          />
+        ),
+      });
+
+      const rows = screen.queryAllByTestId('TOOL_ROW');
+      const openToolNames = rows
+        .filter((row) => row.querySelector('[data-testid="TOOL_ROW_DETAIL"]') !== null)
+        .map((row) => row.querySelector('[data-testid="TOOL_ROW_NAME"]')?.textContent);
+
+      expect(openToolNames).toStrictEqual(['Grep']);
+    });
   });
 
   describe('swapTrailingEmptyThinkingForIndicator', () => {

@@ -244,6 +244,17 @@ counting lines, so anything wanting a second line goes behind the disclosure ins
 `widgets/tool-row/tool-row-widget.test.tsx`, which asserts the row's ONLY child is
 `TOOL_ROW_HEADER` — a check on badge placement alone passes on a row that grew a third element.
 
+**The disclosure follows the stream; it does not latch.** `ChatEntryListWidget` raises
+`defaultExpanded` on the ONE call that is currently in flight (`isLastUnpaired`), and `ToolRowWidget`
+derives `expanded` from that prop every render — the reader's click is the only thing stored. So the
+row opens while the call runs, closes itself when the result lands, and a screen of finished calls is
+one line each whether the reader watched them arrive or opened the transcript afterwards. Storing the
+auto-expand in `useState` instead is the bug this shape exists to prevent: `useState` only reads its
+argument on mount, so every call that ever streamed stays open for the rest of the session and the
+chat becomes a wall of expanded tool detail. Guarded in both places — the widget test rerenders
+`defaultExpanded` true → false, and `chat-entry-list-widget.test.tsx` asserts that in a streaming
+list only the in-flight row carries a `TOOL_ROW_DETAIL`.
+
 The bold slot shows what the agent DID, not which harness tool carried it, because the raw name
 mostly does not distinguish anything: every shell call is `Bash` and every MCP call is
 `mcp__server__tool`, so a screen of either reads as one repeated word.
@@ -325,6 +336,16 @@ with a `ContextDividerWidget` after each entry that has `usage` (text or tool_us
 collapsible "tool group" wrapper. Sub-agent activity is the one exception: it stays
 grouped via `SubagentChainWidget` because the Task tool_use lifecycle is a meaningful
 unit, not a per-turn collapse.
+
+**A run of back-to-back tool calls carries ONE divider, at the end of the run.** A rule between
+every call in a ten-call run is noise; what the reader is after is what the run cost before the
+model spoke again. `computeTokenAnnotationsTransformer` implements this by handing a `null`
+`cumulativeContext` to every call whose next item is a tool-pair on the same source — a null
+cumulative is what the list widget reads as "no divider here" — and, crucially, by NOT advancing
+`prevSessionContext` / `prevSubagentContext` for those calls. That second half is the whole point:
+advance it and the surviving divider reports only the last hop (`+250`) while the run actually
+consumed `+700`, so the cumulative jumps by an amount the delta never explains. The two sources are
+compared before collapsing, so a sub-agent call never ends a session run.
 
 Tool rows show `~X est` from chars/4 of `tool_result.content` — a per-tool estimate, NOT
 a context delta. We do not put a context delta on tool rows because when one assistant
