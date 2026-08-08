@@ -124,7 +124,6 @@ export const commentQueueSendHarness = ({
   observableCard: () => Locator;
   filledBubbles: () => Locator;
   hollowBubbles: () => Locator;
-  specPanelContent: () => Locator;
   actionBar: () => Locator;
   queueBar: () => Locator;
   queueCount: () => Locator;
@@ -133,7 +132,7 @@ export const commentQueueSendHarness = ({
   queueCommentOn: (params: { card: Locator; text: string }) => Promise<void>;
   clickClearButton: () => Promise<void>;
   clickSendButton: () => Promise<void>;
-  scrollSpecPanelContentToBottom: () => Promise<void>;
+  scrollDetailsTabToBottom: () => Promise<void>;
   readQueue: () => Promise<QueueEntryRecord[]>;
   hasQueueKey: () => Promise<boolean>;
   waitForCommentsPostRequest: () => Promise<unknown>;
@@ -289,7 +288,6 @@ export const commentQueueSendHarness = ({
     hollowBubbles: (): Locator =>
       page.locator('[data-testid="COMMENT_BUTTON"] svg.tabler-icon-message-circle'),
 
-    specPanelContent: (): Locator => page.getByTestId('QUEST_SPEC_PANEL_CONTENT'),
     actionBar: (): Locator => page.getByTestId('ACTION_BAR'),
     queueBar: (): Locator => page.getByTestId('COMMENT_QUEUE_BAR'),
     queueCount: (): Locator => page.getByTestId('COMMENT_QUEUE_COUNT'),
@@ -316,8 +314,14 @@ export const commentQueueSendHarness = ({
       await page.getByTestId('COMMENT_SEND_BUTTON').click();
     },
 
-    scrollSpecPanelContentToBottom: async (): Promise<void> => {
-      await page.getByTestId('QUEST_SPEC_PANEL_CONTENT').evaluate((el) => {
+    // DETAILS is the spec panel's scrolling surface — SPEC hands its whole leftover height to the
+    // flow canvas and never scrolls, so scrolling THERE would be a no-op that reports the queue
+    // bar as pinned without ever having moved anything under it.
+    scrollDetailsTabToBottom: async (): Promise<void> => {
+      await page.getByTestId('QUEST_SPEC_TAB_details').click();
+      const details = page.getByTestId('QUEST_SPEC_DETAILS_CONTENT');
+      await details.waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+      await details.evaluate((el) => {
         el.scrollTop = el.scrollHeight;
       });
     },

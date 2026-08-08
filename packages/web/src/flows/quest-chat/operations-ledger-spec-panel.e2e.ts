@@ -69,7 +69,9 @@ test.describe('Operations ledger in the quest spec panel', () => {
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // The ledger renders inside the spec panel's OPERATIONS section (not the execution panel).
+    // The ledger renders on the spec panel's DETAILS tab (not the execution panel).
+    await specPanel.getByTestId('QUEST_SPEC_TAB_details').click();
+
     await expect(specPanel.getByTestId('OPERATIONS_SECTION')).toBeVisible();
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER')).toBeVisible();
 

@@ -156,6 +156,9 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
     const abandonBar = specPanel.getByTestId('QUEST_TITLE_BAR').getByTestId('ABANDON_BAR');
     await expect(abandonBar.getByTestId('PIXEL_BTN')).toHaveText(['ABANDON QUEST']);
 
+    // Both read-mode lists live on the DETAILS tab; SPEC carries the user request and flow view.
+    await specPanel.getByTestId('QUEST_SPEC_TAB_details').click();
+
     // Design decisions read-mode list, scoped to its OWN layer container — PLAN_SECTION and
     // PIXEL_BTN are single unscoped testids shared with the tooling layer below, so an unscoped
     // selector here would silently read the wrong section's items.
@@ -376,6 +379,8 @@ test.describe('Spec panel edit mode removed — surviving surfaces stay intact',
 
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
+
+    await specPanel.getByTestId('QUEST_SPEC_TAB_details').click();
 
     const designDecisionsLayer = specPanel.getByTestId('DESIGN_DECISIONS_LAYER');
     await expect(designDecisionsLayer.getByTestId('PLAN_SECTION')).toHaveCount(1);

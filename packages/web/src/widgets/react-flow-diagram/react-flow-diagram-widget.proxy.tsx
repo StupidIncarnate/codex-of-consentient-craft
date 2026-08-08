@@ -21,7 +21,6 @@ interface ReactFlowDiagramWidgetProxyResult {
   clickNode: ({ nodeId }: { nodeId: string }) => Promise<void>;
   clickPane: () => Promise<void>;
   pressEsc: () => Promise<void>;
-  clickFullscreen: () => Promise<void>;
   getDetailPanelHeading: () => HTMLElement | null;
   getObservableNodes: () => HTMLElement[];
   getObservableTypeTags: () => HTMLElement[];
@@ -30,7 +29,7 @@ interface ReactFlowDiagramWidgetProxyResult {
   hasCanvas: () => boolean;
   hasError: () => boolean;
   hasDetailPanel: () => boolean;
-  isExpanded: () => boolean;
+  getControlTestIds: () => HTMLElement['textContent'][];
   setupEmptyQueue: () => void;
   countCommentButtons: () => HTMLElement['childElementCount'];
   countCommentButtonsOn: (params: { testId: string }) => HTMLElement['childElementCount'];
@@ -50,8 +49,8 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   const elkProxy = elkLayoutAdapterProxy();
   xyflowReactFlowAdapterProxy();
   xyflowEdgeAdapterProxy();
-  // The four canvas controls are IconButtonWidgets. Its proxy mocks nothing, so this constructs
-  // it for the child-proxy rule only — the controls are addressed here by their own testids.
+  // The canvas controls are IconButtonWidgets. Its proxy mocks nothing, so this constructs it for
+  // the child-proxy rule only — the controls are addressed here by their own testids.
   IconButtonWidgetProxy();
   const nodeCardProxy = FlowNodeCardLayerWidgetProxy();
   FlowNodeDetailPanelLayerWidgetProxy();
@@ -163,9 +162,6 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     pressEsc: async (): Promise<void> => {
       await user.keyboard('{Escape}');
     },
-    clickFullscreen: async (): Promise<void> => {
-      await user.click(screen.getByTestId('FULLSCREEN_BUTTON'));
-    },
     getDetailPanelHeading: (): HTMLElement | null =>
       screen.queryByTestId('FLOW_DETAIL_PANEL_HEADING'),
     getObservableNodes: (): HTMLElement[] => screen.queryAllByTestId('FLOW_OBSERVABLE_NODE'),
@@ -177,7 +173,12 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     hasCanvas: (): boolean => screen.queryByTestId('REACT_FLOW_CANVAS') !== null,
     hasError: (): boolean => screen.queryByTestId('FLOW_DIAGRAM_ERROR') !== null,
     hasDetailPanel: (): boolean => screen.queryByTestId('FLOW_NODE_DETAIL_PANEL') !== null,
-    isExpanded: (): boolean =>
-      screen.getByTestId('FULLSCREEN_BUTTON').getAttribute('data-expanded') === 'true',
+    // Direct children of the floating control cluster, in DOM order. Scoped because the comment
+    // bubbles on the cards are buttons on this canvas too; direct children rather than a descendant
+    // query because the mocked glyphs carry testids of their own and would each read as a control.
+    getControlTestIds: (): HTMLElement['textContent'][] =>
+      Array.from(screen.getByTestId('FLOW_DIAGRAM_CONTROLS').children).map((element) =>
+        element.getAttribute('data-testid'),
+      ),
   };
 };

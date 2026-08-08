@@ -399,7 +399,7 @@ describe('QuestChatContentLayerWidget', () => {
         status: 'in_progress',
       });
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId, getByTestId } = mantineRenderAdapter({
         ui: (
           <MemoryRouter>
             <QuestChatContentLayerWidget
@@ -429,6 +429,17 @@ describe('QuestChatContentLayerWidget', () => {
         'dumpster-raccoon-widget',
       );
       expect(queryByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING')?.textContent).toBe('9 outstanding');
+
+      // ORDER, not just presence. Both were already rendered when the raccoon sat underneath a
+      // summary tall enough that reaching it meant scrolling past every flow the quest has — so an
+      // assertion that only checks membership passes in either arrangement.
+      // Siblings, so this is an exact code rather than a flag set: FOLLOWING alone (4) means the
+      // summary comes after the raccoon and is not nested inside it.
+      expect(
+        getByTestId('dumpster-raccoon-widget').compareDocumentPosition(
+          getByTestId('QUEST_SUMMARY'),
+        ),
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 
     it('VALID: {clarification-request WS event} => panel renders questions and submit calls clarify broker', async () => {

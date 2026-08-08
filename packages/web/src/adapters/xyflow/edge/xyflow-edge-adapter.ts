@@ -18,6 +18,7 @@ import type { EdgeProps } from '@xyflow/react';
 
 import { elkLayoutStatics } from '../../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../../statics/ember-depths-theme/ember-depths-theme-statics';
+import { flowNodeStyleStatics } from '../../../statics/flow-node-style/flow-node-style-statics';
 
 const { colors } = emberDepthsThemeStatics;
 
@@ -116,7 +117,12 @@ export const xyflowEdgeAdapter = ({
     React.createElement(BaseEdge, {
       path: edgePath,
       ...(markerEnd === undefined ? {} : { markerEnd }),
-      ...(isBackEdge ? { style: { strokeDasharray: '6 4' } } : {}),
+      // Stroke is set explicitly because React Flow's CSS default (#b1b1b7) is a cool light grey
+      // that reads brighter than any card it connects. The dash marks a back-edge as a return path.
+      style: {
+        stroke: flowNodeStyleStatics.edgeStroke,
+        ...(isBackEdge ? { strokeDasharray: '6 4' } : {}),
+      },
     }),
     label === undefined
       ? null

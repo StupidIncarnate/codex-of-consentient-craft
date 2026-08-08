@@ -22,6 +22,10 @@ export const QuestSpecPanelWidgetProxy = (): {
   setupPositions: (args: SetupPositionsArgs) => void;
   setupEmptyQueue: () => void;
   setupQueuedComments: (args: SetupQueuedCommentsArgs) => void;
+  clickDetailsTab: () => Promise<void>;
+  clickSpecTab: () => Promise<void>;
+  getTabLabels: () => HTMLElement['textContent'][];
+  getActiveTabLabel: () => HTMLElement['textContent'];
   hasQueueBar: () => boolean;
   getQueueBarCountText: () => HTMLElement['textContent'];
   isQueueBarPreviousSiblingOfActionBar: () => boolean;
@@ -70,6 +74,21 @@ export const QuestSpecPanelWidgetProxy = (): {
     setupQueuedComments: (args: SetupQueuedCommentsArgs): void => {
       queueBarProxy.setupQueuedComments(args);
     },
+    clickDetailsTab: async (): Promise<void> => {
+      await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_details'));
+    },
+    clickSpecTab: async (): Promise<void> => {
+      await userEvent.click(screen.getByTestId('QUEST_SPEC_TAB_spec'));
+    },
+    getTabLabels: (): HTMLElement['textContent'][] =>
+      Array.from(screen.getByTestId('QUEST_SPEC_TAB_BAR').children).map(
+        (element) => element.textContent,
+      ),
+    // Reads the tab bar's own marker rather than re-deriving "active" from the underline colour,
+    // so a test asserting which tab is showing cannot pass on a tab that merely looks selected.
+    getActiveTabLabel: (): HTMLElement['textContent'] =>
+      screen.getByTestId('QUEST_SPEC_TAB_BAR').querySelector('[data-active="true"]')?.textContent ??
+      null,
     hasQueueBar: (): boolean => queueBarProxy.hasBar(),
     getQueueBarCountText: (): HTMLElement['textContent'] => queueBarProxy.getCountText(),
     clickQueueSend: async (): Promise<void> => queueBarProxy.clickSend(),

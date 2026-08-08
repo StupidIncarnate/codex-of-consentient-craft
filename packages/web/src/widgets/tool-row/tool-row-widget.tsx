@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Renders a compact, collapsible tool call row with inline params summary and expandable input/result detail
+ * PURPOSE: The unit of a scannable transcript. Collapsed, a call occupies exactly ONE line —
+ * label, summary, token estimate, and status all share the header — so a reader skimming a long
+ * run counts calls by counting lines. Anything that would add a second line belongs behind the
+ * disclosure instead, where the untruncated, unelided values live for the reader who stops.
  *
  * USAGE:
  * <ToolRowWidget toolUse={toolUseEntry} toolResult={resultEntry} isLoading={false} />
@@ -15,6 +18,8 @@ import { shouldTruncateContentGuard } from '../../guards/should-truncate-content
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { formatToolInputTransformer } from '../../transformers/format-tool-input/format-tool-input-transformer';
+import { toolDisplayLabelTransformer } from '../../transformers/tool-display-label/tool-display-label-transformer';
+import { toolRowSummaryTransformer } from '../../transformers/tool-row-summary/tool-row-summary-transformer';
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
 
 type ToolUseEntry = Extract<ChatEntry, { type: 'tool_use' }>;
@@ -41,9 +46,6 @@ const STATUS_SKIP = '\u2298';
 const TOOL_NAME_FONT_SIZE = 11;
 const PARAM_FONT_SIZE = 10;
 const DETAIL_FONT_SIZE = 10;
-const INLINE_SUMMARY_LIMIT = 200;
-
-const SINGLE_VALUE_TOOLS = new Set(['Bash', 'Read', 'Write', 'Edit', 'Glob']);
 
 export const ToolRowWidget = ({
   toolUse,
@@ -69,36 +71,8 @@ export const ToolRowWidget = ({
 
   const formatted = formatToolInputTransformer({ toolName, toolInput });
 
-  const displayName = isSkill
-    ? (() => {
-        const skillField = formatted?.fields.find((f) => f.key === 'skill');
-        return `Skill: ${skillField ? String(skillField.value) : 'unknown'}`;
-      })()
-    : toolName;
-
-  const inlineSummary = (() => {
-    if (formatted === null || formatted.fields.length === 0) {
-      if (toolInput === '{}' || toolInput === '') return '';
-      const raw = String(toolInput);
-      return raw.length > INLINE_SUMMARY_LIMIT ? `${raw.slice(0, INLINE_SUMMARY_LIMIT)}...` : raw;
-    }
-
-    let { fields } = formatted;
-    if (isSkill) {
-      fields = fields.filter((f) => f.key !== 'skill');
-    }
-
-    const [firstField] = fields;
-    if (!isSkill && SINGLE_VALUE_TOOLS.has(toolName) && firstField !== undefined) {
-      const val = String(firstField.value);
-      return val.length > INLINE_SUMMARY_LIMIT ? `${val.slice(0, INLINE_SUMMARY_LIMIT)}...` : val;
-    }
-
-    const joined = fields.map((f) => `${f.key}: ${f.value}`).join(', ');
-    return joined.length > INLINE_SUMMARY_LIMIT
-      ? `${joined.slice(0, INLINE_SUMMARY_LIMIT)}...`
-      : joined;
-  })();
+  const displayName = toolDisplayLabelTransformer({ toolName, toolInput });
+  const inlineSummary = String(toolRowSummaryTransformer({ toolName, toolInput }));
 
   const detailFields = isSkill
     ? (formatted?.fields.filter((f) => f.key !== 'skill') ?? [])
@@ -210,6 +184,20 @@ export const ToolRowWidget = ({
           <Box style={{ flex: 1 }} />
         )}
 
+        {resultTokenBadgeLabel === undefined ? null : (
+          <Text
+            ff="monospace"
+            data-testid="RESULT_TOKEN_BADGE"
+            style={{
+              color: colors['text-dim'],
+              fontSize: DETAIL_FONT_SIZE,
+              flexShrink: 0,
+            }}
+          >
+            {resultTokenBadgeLabel}
+          </Text>
+        )}
+
         {statusIcon === null ? null : (
           <Text
             ff="monospace"
@@ -226,26 +214,6 @@ export const ToolRowWidget = ({
           </Text>
         )}
       </UnstyledButton>
-
-      {resultTokenBadgeLabel === undefined ? null : (
-        <Box
-          data-testid="TOOL_ROW_TOKENS"
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: 8,
-            padding: '0 8px 4px 17px',
-          }}
-        >
-          <Text
-            ff="monospace"
-            data-testid="RESULT_TOKEN_BADGE"
-            style={{ color: colors['text-dim'], fontSize: DETAIL_FONT_SIZE }}
-          >
-            {resultTokenBadgeLabel}
-          </Text>
-        </Box>
-      )}
 
       {expanded ? (
         <Box

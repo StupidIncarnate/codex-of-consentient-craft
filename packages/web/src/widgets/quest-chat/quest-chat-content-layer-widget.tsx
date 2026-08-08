@@ -504,13 +504,12 @@ export const QuestChatContentLayerWidget = ({
             flexDirection: 'column',
           }}
         >
-          {/* The summary takes the scrollable share of the column and the raccoon keeps the
-              bottom: wrapping it in a non-flex box neutralises its own `flex: 1`, so it sizes to
-              its sprites instead of splitting the column with the panel above it. */}
+          {/* The raccoon rides above the panel rather than inside it, and the panel takes every
+              remaining pixel. `ornament` is what keeps them separate surfaces: unset, the raccoon
+              paints the same `bg-surface` the summary does and the two fuse into one box with
+              sprites floating in its header. */}
+          <DumpsterRaccoonWidget ornament />
           <QuestSummaryWidget questId={quest.id} />
-          <Box style={{ flexShrink: 0 }}>
-            <DumpsterRaccoonWidget />
-          </Box>
         </Box>
         {beginQuestModal}
       </Box>

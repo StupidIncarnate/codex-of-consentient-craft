@@ -20,11 +20,21 @@ import type { sessionHarness } from '../session/session.harness';
 const PANEL_TIMEOUT = 5_000;
 const CANVAS_TIMEOUT = 10_000;
 const FRAMING_EPSILON_PX = 1;
-// Expanded (fullscreen) canvas must resolve a tall definite height. The black-screen bug
-// collapses it to 0px, so any threshold well above 0 and below the real expanded height
-// (≈ viewport − 160px) distinguishes the bug from the fix across viewport sizes.
-const EXPANDED_CANVAS_MIN_PX = 300;
-// When the collapsed canvas top-anchors a flow, the entry node's top sits ~topPadding (24px) below
+// Slack between the canvas bottom and the spec panel's bottom edge: the tab's own 16px padding
+// lives in there, plus borders and subpixel rounding. Tight enough that the old fixed-height
+// canvas — which missed the panel edge by hundreds of pixels either way — still fails.
+const PANEL_FILL_TOLERANCE_PX = 28;
+// Mirrors MIN_CANVAS_HEIGHT in react-flow-diagram-widget.tsx. Restated rather than imported: a
+// harness may not import widgets, and the number is the observable being asserted anyway — if the
+// widget's floor drops, this must fail rather than follow it down.
+const MIN_CANVAS_HEIGHT_PX = 420;
+// Chrome reports an unset/transparent background as rgba(0, 0, 0, 0) — React Flow's own default is
+// the light rgba(255, 255, 255, 0.5) chip, so these are never confusable.
+const TRANSPARENT_COMPUTED = 'rgba(0, 0, 0, 0)';
+// The `text-dim` token (#8a7260) as Chrome reports it. Restated rather than imported: a harness may
+// not import app statics, and the computed value is the observable being asserted.
+const ATTRIBUTION_LINK_COMPUTED = 'rgb(138, 114, 96)';
+// When the canvas top-anchors a flow, the entry node's top sits ~topPadding (24px) below
 // the canvas top. This bound is generous enough to absorb borders/subpixels across zoom levels yet
 // tight enough to prove the entry node is pinned near the top, not centered.
 const TOP_ANCHOR_MAX_PX = 100;
@@ -243,6 +253,8 @@ export const flowDiagramHarness = ({
   zoomInGrowsScale: () => Promise<boolean>;
   zoomOutShrinksScale: () => Promise<boolean>;
   canvasHasRenderableHeight: () => Promise<boolean>;
+  canvasFillsPanelBelowRequest: () => Promise<boolean>;
+  canvasKeepsFloorWhileSpecTabScrolls: () => Promise<boolean>;
   allEdgesRendered: () => Promise<boolean>;
   branchLabelRendered: (params: { label: string }) => Promise<boolean>;
   branchLabelsDoNotOverlap: () => Promise<boolean>;
@@ -252,8 +264,7 @@ export const flowDiagramHarness = ({
   clickPaneBackground: () => Promise<void>;
   nativeControlsPresentButHidden: () => Promise<boolean>;
   customControlsVisible: () => Promise<boolean>;
-  expandToFullscreen: () => Promise<void>;
-  expandedCanvasIsTall: () => Promise<boolean>;
+  attributionIsDimmedNotHidden: () => Promise<boolean>;
   switchToSecondFlowTab: () => Promise<void>;
   hasExpectedSecondFlowNodeCount: () => Promise<boolean>;
   switchToLargeFlowTab: () => Promise<void>;
@@ -441,6 +452,43 @@ export const flowDiagramHarness = ({
       return box.height >= EXPECTED_NODE_COUNT;
     },
 
+    // "User request pinned at the top, flow view taking the rest of the container" is a geometric
+    // claim, so it is measured as one: the canvas starts below the request block and ends flush
+    // with the panel's bottom edge. A canvas carrying a height of its own satisfies neither half —
+    // it falls short in a tall panel and overruns a short one, and only the browser knows which.
+    canvasFillsPanelBelowRequest: async (): Promise<boolean> => {
+      const [canvas, content, userRequest] = await Promise.all([
+        page.getByTestId('REACT_FLOW_CANVAS').boundingBox(),
+        page.getByTestId('QUEST_SPEC_PANEL_CONTENT').boundingBox(),
+        page.getByTestId('USER_REQUEST_SECTION').boundingBox(),
+      ]);
+      if (canvas === null || content === null || userRequest === null) {
+        throw new Error(
+          'Spec panel geometry unavailable: REACT_FLOW_CANVAS, QUEST_SPEC_PANEL_CONTENT or USER_REQUEST_SECTION has no bounding box',
+        );
+      }
+      const startsBelowRequest = canvas.y >= userRequest.y + userRequest.height;
+      // Positive gap only — a negative one means the canvas overran the panel and the spec tab is
+      // scrolling, which is the arrangement the SPEC/DETAILS split exists to remove.
+      const bottomGap = content.y + content.height - (canvas.y + canvas.height);
+      return startsBelowRequest && bottomGap >= 0 && bottomGap <= PANEL_FILL_TOLERANCE_PX;
+    },
+
+    // The other half of the sizing rule, in the window that CANNOT satisfy it: the canvas stops
+    // shrinking at its floor and the SPEC tab starts scrolling. Without the floor the canvas keeps
+    // giving ground until it shows one row of cards and clips the rest out of reach — reachable by
+    // no scroll, because a React Flow canvas pans instead of scrolling.
+    canvasKeepsFloorWhileSpecTabScrolls: async (): Promise<boolean> => {
+      const canvas = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
+      if (canvas === null) {
+        throw new Error('REACT_FLOW_CANVAS has no bounding box');
+      }
+      const specTabScrolls = await page
+        .getByTestId('QUEST_SPEC_PANEL_CONTENT')
+        .evaluate((el) => el.scrollHeight > el.clientHeight);
+      return canvas.height >= MIN_CANVAS_HEIGHT_PX && specTabScrolls;
+    },
+
     // Edges only render when the custom node card exposes React Flow connection handles.
     // Without handles React Flow drops every edge ("source handle id: null"). One path renders
     // per flow edge PLUS one connector per observable (flow card right handle -> assertion card).
@@ -545,36 +593,37 @@ export const flowDiagramHarness = ({
     },
 
     customControlsVisible: async (): Promise<boolean> => {
-      const [zoomIn, zoomOut, fitView, fullscreen] = await Promise.all([
+      const [zoomIn, zoomOut, fitView] = await Promise.all([
         page.getByTestId('ZOOM_IN_BUTTON').isVisible(),
         page.getByTestId('ZOOM_OUT_BUTTON').isVisible(),
         page.getByTestId('FIT_VIEW_BUTTON').isVisible(),
-        page.getByTestId('FULLSCREEN_BUTTON').isVisible(),
       ]);
-      return zoomIn && zoomOut && fitView && fullscreen;
+      return zoomIn && zoomOut && fitView;
     },
 
-    // Toggles the fullscreen (expand) control and waits for the canvas to resolve its tall
-    // definite height. The black-screen bug leaves the canvas at 0px, so this wait would time
-    // out against unfixed source.
-    expandToFullscreen: async (): Promise<void> => {
-      await page.getByTestId('FULLSCREEN_BUTTON').click();
-      await page.waitForFunction(
-        (minPx) => {
-          const canvas = document.querySelector('[data-testid="REACT_FLOW_CANVAS"]');
-          return canvas !== null && canvas.getBoundingClientRect().height > minPx;
+    // The attribution stays on screen, dimmed onto the palette. Both halves matter and both are
+    // measured off COMPUTED style in a real browser: the jsdom mock never renders the panel at all,
+    // so a unit test here would pass against a rule that does nothing. Visible-and-quiet is a
+    // narrow target — asserting only presence passes on the untouched light chip, and asserting
+    // only the colours passes on a panel that was hidden outright.
+    attributionIsDimmedNotHidden: async (): Promise<boolean> => {
+      const attribution = page.locator('.react-flow__attribution').first();
+      await attribution.waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+      return attribution.evaluate(
+        (element, expected) => {
+          const link = element.querySelector('a');
+          if (link === null) {
+            return false;
+          }
+          const panelStyle = window.getComputedStyle(element);
+          const linkStyle = window.getComputedStyle(link);
+          return (
+            panelStyle.backgroundColor === expected.transparent &&
+            linkStyle.color === expected.linkColor
+          );
         },
-        EXPANDED_CANVAS_MIN_PX,
-        { timeout: CANVAS_TIMEOUT },
+        { transparent: TRANSPARENT_COMPUTED, linkColor: ATTRIBUTION_LINK_COMPUTED },
       );
-    },
-
-    expandedCanvasIsTall: async (): Promise<boolean> => {
-      const box = await page.getByTestId('REACT_FLOW_CANVAS').boundingBox();
-      if (box === null) {
-        throw new Error('REACT_FLOW_CANVAS has no bounding box');
-      }
-      return box.height > EXPANDED_CANVAS_MIN_PX;
     },
 
     // Clicks the second flow's tab and waits for its diagram to re-lay-out and paint (the second

@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
@@ -427,6 +428,124 @@ describe('ToolRowWidget', () => {
       const result = screen.getByTestId('TOOL_ROW_RESULT');
 
       expect(result.textContent).toBe(`RESULT${'x'.repeat(2000)}Collapse`);
+    });
+  });
+
+  describe('scannable label', () => {
+    it('VALID: {toolName: Bash, git command} => names the command instead of "Bash"', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Bash',
+        toolInput:
+          '{"command":"git diff -- packages/web/src/widgets/tool-row/tool-row-widget.tsx"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_NAME').textContent).toBe('git diff');
+      expect(screen.getByTestId('TOOL_ROW_SUMMARY').textContent).toBe(
+        'git diff -- web/…/tool-row-widget.tsx',
+      );
+    });
+
+    it('VALID: {toolName: mcp__dungeonmaster__discover} => strips the MCP server prefix', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'mcp__dungeonmaster__discover',
+        toolInput: '{"glob":"packages/web/src/widgets/app/**"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_NAME').textContent).toBe('discover');
+      expect(screen.getByTestId('TOOL_ROW_SUMMARY').textContent).toBe('glob: web/…/app/**');
+    });
+
+    it('VALID: {toolName: Read, deep repo path} => elides the directory spine in the summary', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput:
+          '{"file_path":"packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
+      });
+
+      expect(screen.getByTestId('TOOL_ROW_SUMMARY').textContent).toBe(
+        'web/…/use-quest-chat-binding.ts',
+      );
+    });
+
+    it('VALID: {toolName: Read, expanded} => detail keeps the untouched path', async () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({
+        toolName: 'Read',
+        toolInput:
+          '{"file_path":"packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts"}',
+      });
+
+      mantineRenderAdapter({
+        ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
+      });
+
+      await userEvent.click(screen.getByTestId('TOOL_ROW_HEADER'));
+
+      expect(screen.getByTestId('TOOL_ROW_DETAIL').textContent).toBe(
+        'file_path: packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
+      );
+    });
+  });
+
+  describe('single-line header', () => {
+    it('VALID: {resultTokenBadgeLabel} => badge sits inside the header, not on a second row', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+      const toolResult = AssistantToolResultChatEntryStub({ toolName: 'use_1' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            toolResult={toolResult as ToolResultEntry}
+            resultTokenBadgeLabel={FormattedTokenLabelStub({ value: '~808 est' })}
+          />
+        ),
+      });
+
+      const header = screen.getByTestId('TOOL_ROW_HEADER');
+      const badge = screen.getByTestId('RESULT_TOKEN_BADGE');
+
+      expect(header.contains(badge)).toBe(true);
+      expect(header.textContent).toBe('▸Read/test~808 est✓');
+    });
+
+    it('VALID: {resultTokenBadgeLabel} => collapsed row renders the header as its only child', () => {
+      ToolRowWidgetProxy();
+      const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
+      const toolResult = AssistantToolResultChatEntryStub({ toolName: 'use_1' });
+
+      mantineRenderAdapter({
+        ui: (
+          <ToolRowWidget
+            toolUse={toolUse as ToolUseEntry}
+            toolResult={toolResult as ToolResultEntry}
+            resultTokenBadgeLabel={FormattedTokenLabelStub({ value: '~808 est' })}
+          />
+        ),
+      });
+
+      const row = screen.getByTestId('TOOL_ROW');
+      const childTestIds = Array.from(row.children).map((child) =>
+        child.getAttribute('data-testid'),
+      );
+
+      expect(childTestIds).toStrictEqual(['TOOL_ROW_HEADER']);
     });
   });
 });

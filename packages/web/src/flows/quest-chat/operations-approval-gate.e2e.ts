@@ -60,7 +60,10 @@ test.describe('Operations ledger approval gate (Gate #2)', () => {
     // Still in observables review — the header proves the quest never transitioned.
     await expect(specPanel.getByTestId('PANEL_HEADER')).toHaveText('OBSERVABLES APPROVAL');
 
-    // Empty ledger renders nothing (the widget returns null on an empty operations array).
+    // Empty ledger renders nothing (the widget returns null on an empty operations array). Asserted
+    // on the tab that WOULD show it — on SPEC its absence proves only which tab was open.
+    await specPanel.getByTestId('QUEST_SPEC_TAB_details').click();
+
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER')).toHaveCount(0);
 
     // The APPROVE button is present but disabled (the gate wired `disabled` onto it), so the quest
@@ -112,7 +115,10 @@ test.describe('Operations ledger approval gate (Gate #2)', () => {
     const specPanel = page.getByTestId('QUEST_SPEC_PANEL');
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    // The codeweaver operation renders in the ledger and the gate enables APPROVE.
+    // The codeweaver operation renders in the DETAILS tab's ledger and the gate enables APPROVE.
+    // The action bar is a sibling of the tab content, so APPROVE stays reachable from either tab.
+    await specPanel.getByTestId('QUEST_SPEC_TAB_details').click();
+
     await expect(specPanel.getByTestId('OPERATIONS_LEDGER_ROW_ROLE')).toHaveText(['[CODEWEAVER]']);
     const approveBtn = specPanel
       .getByTestId('ACTION_BAR')

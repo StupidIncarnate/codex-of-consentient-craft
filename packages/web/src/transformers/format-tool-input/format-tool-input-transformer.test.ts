@@ -38,6 +38,63 @@ describe('formatToolInputTransformer', () => {
     });
   });
 
+  describe('camelCase input keys', () => {
+    // The Edit shape that reaches this app from the orchestrator is camelCase and leads with a
+    // flag. Matched only against `file_path`, the priority map misses entirely and JSON order
+    // stands — putting `replaceAll` first, which a single-value tool then renders as "false".
+    it('VALID: {toolName: Edit, camelCase filePath after a flag} => hoists filePath over replaceAll', () => {
+      formatToolInputTransformerProxy();
+
+      const result = formatToolInputTransformer({
+        toolName: 'Edit',
+        toolInput:
+          '{"replaceAll":false,"filePath":"/src/a.ts","oldString":"before","newString":"after"}',
+      });
+
+      expect(result).toStrictEqual({
+        fields: [
+          { key: 'filePath', value: '/src/a.ts', isLong: false },
+          { key: 'replaceAll', value: 'false', isLong: false },
+          { key: 'oldString', value: 'before', isLong: false },
+          { key: 'newString', value: 'after', isLong: false },
+        ],
+      });
+    });
+
+    it('VALID: {toolName: Task, camelCase subagentType} => orders description then subagentType', () => {
+      formatToolInputTransformerProxy();
+
+      const result = formatToolInputTransformer({
+        toolName: 'Task',
+        toolInput: '{"prompt":"go","subagentType":"Explore","description":"find it"}',
+      });
+
+      expect(result).toStrictEqual({
+        fields: [
+          { key: 'description', value: 'find it', isLong: false },
+          { key: 'subagentType', value: 'Explore', isLong: false },
+          { key: 'prompt', value: 'go', isLong: false },
+        ],
+      });
+    });
+
+    it('VALID: {toolName: Read, snake_case file_path} => still hoists the snake_case spelling', () => {
+      formatToolInputTransformerProxy();
+
+      const result = formatToolInputTransformer({
+        toolName: 'Read',
+        toolInput: '{"limit":10,"file_path":"/src/a.ts"}',
+      });
+
+      expect(result).toStrictEqual({
+        fields: [
+          { key: 'file_path', value: '/src/a.ts', isLong: false },
+          { key: 'limit', value: '10', isLong: false },
+        ],
+      });
+    });
+  });
+
   describe('Grep tool', () => {
     it('VALID: {toolName: Grep, pattern and path fields} => returns pattern first then path', () => {
       formatToolInputTransformerProxy();

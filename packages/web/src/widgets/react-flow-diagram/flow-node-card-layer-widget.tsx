@@ -53,7 +53,9 @@ export const FlowNodeCardLayerWidget = ({
       data-selected={selected ? 'true' : undefined}
       data-accent-color={accentColor}
       style={{
-        background: '#1a110d',
+        // Raised above the canvas, where the assertion and portal cards sit on `bg-deep` — the one
+        // shade of separation is what makes the spine read as the primary column.
+        background: colors['bg-surface'],
         border: `1px solid ${accentColor}`,
         borderRadius: 6,
         padding: '8px 12px',
@@ -62,7 +64,7 @@ export const FlowNodeCardLayerWidget = ({
         // and adjacent cards can't overlap.
         width: elkLayoutStatics.node.width,
         boxSizing: 'border-box',
-        color: '#e0cfc0',
+        color: colors.text,
         fontFamily: 'monospace',
         ...ringStyle,
       }}
@@ -91,7 +93,7 @@ export const FlowNodeCardLayerWidget = ({
           title="contracts"
           style={{
             background: accentColor,
-            color: '#0d0907',
+            color: colors['bg-deep'],
             borderRadius: 10,
             fontSize: 10,
             padding: '1px 6px',

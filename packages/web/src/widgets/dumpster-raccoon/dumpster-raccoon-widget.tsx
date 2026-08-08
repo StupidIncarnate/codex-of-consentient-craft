@@ -1,9 +1,16 @@
 /**
- * PURPOSE: Displays raccoon wizard and dumpster fire sprites side-by-side with idle animations as a loading placeholder
+ * PURPOSE: Displays raccoon wizard and dumpster fire sprites side-by-side with idle animations, in
+ * one of two roles. By default it stands in for a panel that has nothing to show yet: it fills the
+ * space and says so. As an `ornament` it sits above a panel that DOES have content, so it claims
+ * only its sprites' height and drops both the caption (nothing is loading) and the surface fill
+ * (sharing `bg-surface` with the panel below is what made the two read as a single box).
  *
  * USAGE:
  * <DumpsterRaccoonWidget />
- * // Renders raccoon sprite flipping every 2500ms next to a dumpster fire with alternating flame frames
+ * // Fills its parent on bg-surface, captioned, as a loading placeholder
+ *
+ * <DumpsterRaccoonWidget ornament />
+ * // Sprites only, transparent, sized to content — a header above a populated panel
  */
 
 import { Box, Group, Text } from '@mantine/core';
@@ -20,6 +27,7 @@ const RACCOON_FLIP_INTERVAL_MS = 2500;
 const FLAME_FRAME_INTERVAL_MS = 300;
 const RACCOON_SCALE = 8;
 const FIRE_SCALE = 6;
+const ORNAMENT_PADDING = 12;
 
 const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
   pixelCoordinateContract.parse(p),
@@ -29,7 +37,13 @@ const fireFrameA = dumpsterFirePixelsStatics.frameA.map((p) => pixelCoordinateCo
 
 const fireFrameB = dumpsterFirePixelsStatics.frameB.map((p) => pixelCoordinateContract.parse(p));
 
-export const DumpsterRaccoonWidget = (): React.JSX.Element => {
+export interface DumpsterRaccoonWidgetProps {
+  ornament?: boolean;
+}
+
+export const DumpsterRaccoonWidget = ({
+  ornament = false,
+}: DumpsterRaccoonWidgetProps = {}): React.JSX.Element => {
   const [flipped, setFlipped] = useState(false);
   const [flameFrame, setFlameFrame] = useState(false);
 
@@ -55,12 +69,16 @@ export const DumpsterRaccoonWidget = (): React.JSX.Element => {
     <Box
       data-testid="dumpster-raccoon-widget"
       style={{
-        flex: 1,
+        // As an ornament it must NOT stretch and must NOT paint a surface: it is stacked directly
+        // above a `bg-surface` panel, and matching that fill is exactly what made the pair read as
+        // one box with the sprites floating inside it.
+        flex: ornament ? '0 0 auto' : 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: emberDepthsThemeStatics.colors['bg-surface'],
+        backgroundColor: ornament ? 'transparent' : emberDepthsThemeStatics.colors['bg-surface'],
+        padding: ornament ? ORNAMENT_PADDING : 0,
         gap: 8,
       }}
     >
@@ -81,17 +99,19 @@ export const DumpsterRaccoonWidget = (): React.JSX.Element => {
           height={dumpsterFirePixelsStatics.dimensions.height as PixelDimension}
         />
       </Group>
-      <Text
-        ff="monospace"
-        data-testid="DUMPSTER_RACCOON_LOADING"
-        style={{
-          fontSize: 11,
-          color: emberDepthsThemeStatics.colors['text-dim'],
-          marginTop: 8,
-        }}
-      >
-        Loading dumpster dungeon visuals...
-      </Text>
+      {ornament ? null : (
+        <Text
+          ff="monospace"
+          data-testid="DUMPSTER_RACCOON_LOADING"
+          style={{
+            fontSize: 11,
+            color: emberDepthsThemeStatics.colors['text-dim'],
+            marginTop: 8,
+          }}
+        >
+          Loading dumpster dungeon visuals...
+        </Text>
+      )}
     </Box>
   );
 };

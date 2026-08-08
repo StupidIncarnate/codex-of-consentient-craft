@@ -36,8 +36,6 @@ export interface IconButtonWidgetProps {
   variant?: ButtonVariant;
   size?: IconButtonSize;
   disabled?: boolean;
-  /** Toggle state for a button that opens and closes something, published as `data-expanded`. */
-  expanded?: boolean;
   /**
    * Popover.Target clones its child and injects these; without them the dropdown loses the element
    * it anchors to and the aria wiring that ties the two together.
@@ -58,7 +56,6 @@ export const IconButtonWidget = ({
   variant,
   size,
   disabled,
-  expanded,
   ref,
   id,
   className,
@@ -88,7 +85,6 @@ export const IconButtonWidget = ({
       {...(ariaExpanded === undefined ? {} : { 'aria-expanded': ariaExpanded })}
       {...(ariaControls === undefined ? {} : { 'aria-controls': ariaControls })}
       {...(disabled === undefined ? {} : { disabled })}
-      {...(expanded === undefined ? {} : { 'data-expanded': expanded })}
       onClick={onClick}
       // `filled` keeps Mantine from resolving its own palette on top of the theme colours set
       // below — the variant prop on THIS widget is the app's own brown/orange/red scale, which has

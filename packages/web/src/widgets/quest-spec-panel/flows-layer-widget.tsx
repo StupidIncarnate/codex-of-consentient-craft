@@ -18,7 +18,6 @@ import type {
   QuestId,
 } from '@dungeonmaster/shared/contracts';
 
-import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -27,7 +26,6 @@ import { SectionHeaderWidget } from '../section-header/section-header-widget';
 
 const FLOWS_LABEL = 'FLOWS' as SectionLabel;
 const FIELD_MARGIN_TOP_PX = 2;
-const FIELD_MARGIN_TOP = FIELD_MARGIN_TOP_PX as CssSpacing;
 const HEADER_FONT_SIZE = 'xs' as const;
 const LABEL_FONT_SIZE = 10;
 const BADGE_FONT_SIZE = 9;
@@ -65,6 +63,19 @@ const TAB_STYLE_ACTIVE = {
   border: `1px solid ${colors.primary}`,
 } as const;
 
+// One link each in the chain that carries a definite height from the spec panel down to the
+// canvas: the section takes what the pinned user request left over, the tab panel takes what the
+// section header and flow tabs left, and the diagram takes what the flow metadata left.
+// `minHeight: 0` is what lets each one SHRINK — a flex item's default `min-height: auto` floors it
+// at content height, so the canvas would decide the panel's height instead of the other way round.
+const FILL_COLUMN_STYLE = {
+  display: 'flex',
+  flexDirection: 'column' as const,
+  flex: 1,
+  minHeight: 0,
+};
+const DIAGRAM_STYLE = { ...FILL_COLUMN_STYLE, marginTop: FIELD_MARGIN_TOP_PX };
+
 export interface FlowsLayerWidgetProps {
   flows: Flow[];
   contracts?: readonly QuestContractEntry[];
@@ -90,7 +101,7 @@ export const FlowsLayerWidget = ({
   const activeFlow = flows[activeIndex];
 
   return (
-    <Box data-testid="FLOWS_LAYER" mb="sm">
+    <Box data-testid="FLOWS_LAYER" style={FILL_COLUMN_STYLE}>
       <SectionHeaderWidget label={FLOWS_LABEL} count={flows.length as SectionCount} />
 
       {flows.length > 1 ? (
@@ -124,7 +135,7 @@ export const FlowsLayerWidget = ({
       ) : null}
 
       {activeFlow ? (
-        <Box data-testid="FLOW_TAB_PANEL">
+        <Box data-testid="FLOW_TAB_PANEL" style={FILL_COLUMN_STYLE}>
           <Group gap={BADGE_GROUP_GAP_PX} align="center" wrap="nowrap">
             <Text
               ff="monospace"
@@ -176,7 +187,7 @@ export const FlowsLayerWidget = ({
             exit: {activeFlow.exitPoints.join(', ')}
           </Text>
           {activeFlow.nodes.length > 0 ? (
-            <Box mt={FIELD_MARGIN_TOP}>
+            <Box style={DIAGRAM_STYLE}>
               {/* key per flow: switching tabs mounts a fresh diagram so ELK re-lays out the new
                   flow and fit-view re-frames it (a reused instance keeps the old positions). */}
               <ReactFlowDiagramWidget

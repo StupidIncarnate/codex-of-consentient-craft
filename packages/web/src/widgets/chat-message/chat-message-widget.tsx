@@ -13,11 +13,13 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
+import { markdownSourceContract } from '../../contracts/markdown-source/markdown-source-contract';
 import { shouldTruncateContentGuard } from '../../guards/should-truncate-content/should-truncate-content-guard';
 import { contentTruncationConfigStatics } from '../../statics/content-truncation-config/content-truncation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 import { truncateContentTransformer } from '../../transformers/truncate-content/truncate-content-transformer';
+import { MarkdownTextWidget } from '../markdown-text/markdown-text-widget';
 import { ThinkingRowWidget } from '../thinking-row/thinking-row-widget';
 import { ToolRowWidget } from '../tool-row/tool-row-widget';
 import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';
@@ -256,9 +258,7 @@ export const ChatMessageWidget = ({
             </Text>
           ) : null}
         </Text>
-        <Text ff="monospace" size="xs" style={{ color: colors.text, whiteSpace: 'pre-wrap' }}>
-          {entry.content}
-        </Text>
+        <MarkdownTextWidget content={markdownSourceContract.parse(entry.content)} />
         {tokenBadgeElement}
       </Box>
     );

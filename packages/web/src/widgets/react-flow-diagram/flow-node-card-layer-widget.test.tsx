@@ -32,7 +32,7 @@ describe('FlowNodeCardLayerWidget', () => {
   });
 
   describe('accent color by type', () => {
-    it('VALID: {decision node} => accent color is #f5a623', () => {
+    it('VALID: {decision node} => accent color is the palette gold', () => {
       FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({
         nodeId: FlowNodeIdStub({ value: 'branch-node' }),
@@ -52,7 +52,7 @@ describe('FlowNodeCardLayerWidget', () => {
       expect(card.getAttribute('data-accent-color')).toBe(flowNodeStyleStatics.accent.decision);
     });
 
-    it('VALID: {action node} => accent color is #4aa3df', () => {
+    it('VALID: {action node} => accent color is the palette orange', () => {
       FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({
         nodeId: FlowNodeIdStub({ value: 'fetch-node' }),
@@ -70,7 +70,7 @@ describe('FlowNodeCardLayerWidget', () => {
       expect(card.getAttribute('data-accent-color')).toBe(flowNodeStyleStatics.accent.action);
     });
 
-    it('VALID: {state node} => accent color is #8b9bb4', () => {
+    it('VALID: {state node} => accent color is the palette dim brown', () => {
       FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({
         nodeId: FlowNodeIdStub({ value: 'state-node' }),
@@ -88,7 +88,7 @@ describe('FlowNodeCardLayerWidget', () => {
       expect(card.getAttribute('data-accent-color')).toBe(flowNodeStyleStatics.accent.state);
     });
 
-    it('VALID: {terminal node} => accent color is #5bbf8a', () => {
+    it('VALID: {terminal node} => accent color is the palette green', () => {
       FlowNodeCardLayerWidgetProxy();
       const data = ReactFlowNodeDataStub({
         nodeId: FlowNodeIdStub({ value: 'end-node' }),

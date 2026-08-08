@@ -133,6 +133,37 @@ Guarded by `flows/quest-chat/comment-bubble-fill.e2e.ts`, which counts filled vs
 across the WHOLE canvas rather than checking one card: a rule that fills every box, or none, passes
 a single-card check and fails the count.
 
+## The spec panel is two tabs: SPEC is a sized surface, DETAILS is a scrolling one
+
+`QuestSpecPanelWidget` owns its own SPEC / DETAILS tab bar, and both mounts get it — quest making
+(`QuestChatContentLayerWidget`) and execution (`ExecutionPanelWidget`'s QUEST SPEC tab, which
+therefore stacks two tab rows). One tab bar in the widget is what keeps the two surfaces identical;
+hoisting the split into the execution panel's own row would give the making surface no counterpart.
+
+- **SPEC** = the pinned user request plus the flow view. It hands its whole remaining height down to
+  the canvas (see React Flow gotcha 3 for the chain), so in a window with room it does not scroll at
+  all. It carries `overflowY: auto` anyway, for the window that has NO room: the diagram refuses to
+  shrink past `MIN_CANVAS_HEIGHT`, and that refusal has to become a scrollbar rather than a canvas
+  clipped off the bottom of the panel. **The floor is not optional.** The panel's chrome — title
+  bar, two tab rows, status line, pinned request, flow metadata, queue bar, action bar — can eat
+  almost a 720px viewport, and "fill what's left" of that is one row of cards with every box below
+  it unreachable, because a React Flow canvas pans instead of scrolling. Both halves are covered in
+  `flow-diagram-interaction.e2e.ts`, the fill case under an explicitly taller `test.use` viewport
+  because the default 1280x720 only ever exercises the floor.
+- **DETAILS** = design decisions, operations, tooling — the prose a reviewer consults once. This is
+  the panel's scrolling surface, and the only one; anything asserting scroll behaviour belongs here.
+- **The queue bar and action bar are siblings of the tab content, not children.** Switching to
+  DETAILS must never strand a queued comment batch or take APPROVE away mid-review.
+
+The user request block is capped (`maxHeight` + `overflowY: auto`, `flexShrink: 0`) rather than
+free-growing. Uncapped, a long request pushes the diagram — the thing the tab exists to show — off
+the bottom, and the failure only appears for the quests whose request is long enough.
+
+**The diagram has no fullscreen control.** It already fills its container, so a button offering to
+resize it would be offering something the container already decided. `react-flow-diagram-widget.test`
+asserts the control set EXACTLY (`getControlTestIds`), not as a subset, so a re-added fourth control
+fails rather than slipping past a `toBeInTheDocument` check on the other three.
+
 ## `readOnly` is the ONLY thing that suppresses a diagram's comment button
 
 A comment anchors on **flowId + nodeId (+ observableId)** — all spec data. So `QuestSpecPanelWidget`
@@ -205,6 +236,75 @@ arrived — which IS the defect.
   operational RPG-themed interface, not a product page. Pixel art RPG dungeon raid aesthetic
   is the core visual identity.
 
+## A collapsed tool row is ONE line, and its label names the action
+
+`ToolRowWidget` puts the label, the params summary, the `~X est` token badge and the status glyph
+all in the header button. That is the invariant: a reader skimming a long run counts calls by
+counting lines, so anything wanting a second line goes behind the disclosure instead. Guarded by
+`widgets/tool-row/tool-row-widget.test.tsx`, which asserts the row's ONLY child is
+`TOOL_ROW_HEADER` — a check on badge placement alone passes on a row that grew a third element.
+
+The bold slot shows what the agent DID, not which harness tool carried it, because the raw name
+mostly does not distinguish anything: every shell call is `Bash` and every MCP call is
+`mcp__server__tool`, so a screen of either reads as one repeated word.
+`toolDisplayLabelTransformer` derives `git diff` / `npm run ward` from the command, strips the MCP
+server prefix, and leaves everything else alone.
+
+The dim slot is `toolRowSummaryTransformer`, which shortens paths before truncating — elision is
+what buys the width, so `git diff -- a b c` shows three arguments where the raw form was cut off
+inside the first. **Shortening is collapsed-only.** `web/…/tool-row-widget.tsx` names a file to a
+human and no longer resolves to one, so the expanded detail renders `formatToolInputTransformer`
+output untouched. Do not shorten in the detail, and do not feed `ShortenedPathText` to anything
+that opens, compares, or resolves a path.
+
+## `MarkdownTextWidget` is the only place agent-authored markdown is rendered
+
+Models emit markdown, so the assistant `text` branch of `ChatMessageWidget` renders through
+`MarkdownTextWidget`. Everything the APP itself composes stays plain `<Text>` — there, markdown
+characters are literal and formatting them would misreport what the agent said.
+
+The dialect is closed on purpose (headings, fences, lists, quotes, rules; code / bold / italic /
+link inline) and is parsed in this package rather than by a markdown npm package, because
+`widgets/` may only import the packages in `folderConfigStatics`. Adding a renderer library means
+editing that allowlist in `@dungeonmaster/shared` plus a jsdom mock — at which point the widget
+tests assert against the mock, not the rendering.
+
+Two rules the parsers exist to hold, both covered in their `.test.ts`:
+
+1. **Code claims its content before any other mark sees it.** `parseMarkdownSpansTransformer`
+   scans code → link → bold → italic in one pass, so a backticked glob full of asterisks renders
+   as a glob. Reordering the alternation turns it into a bold run.
+2. **Paragraphs buffer across lines.** `parseMarkdownBlocksTransformer` rejoins consecutive prose
+   lines, so a model that hard-wraps does not render with a break at every wrap point. Per-line
+   parsing looks correct on unwrapped output and shreds wrapped output — only something holding a
+   buffer can tell a wrap from a deliberate blank line.
+
+An unterminated fence renders as a code block rather than being dropped: that is the normal shape
+of a message still streaming.
+
+**Inline code is marked by its chip, not by colour — and the chip is LIGHTER than the message.**
+Agents backtick constantly (identifiers, paths, file:line refs, flags), so an accent on the code
+span fires a dozen times per message and the prose reads as highlighter. `bg-raised` carrying body
+text does the marking instead. Both halves are asserted in `markdown-span-layer-widget.test.tsx`,
+because each has an obvious-but-wrong instinct behind it: "make code stand out" gives you the
+highlighter, and "code sits in a well, so use `bg-deep`" gives you a chip a single shade off the
+`bg-surface` it renders over — invisible in the browser while every test still passes. Links keep
+`primary`; those are rare enough to earn a colour.
+
+## `AppRootWidget` is where global CSS lives, because inline styles cannot express a pseudo-element
+
+This package has no stylesheet — every surface is a React inline style. That works until a rule has
+no element to hang off, at which point `AppRootWidget` renders a `<style>` built from
+`emberDepthsThemeStatics`, so the palette stays the single source of truth. Put a rule there only
+when it genuinely has no element: `::selection`, `::-webkit-scrollbar`, `@keyframes`. Anything that
+could be an inline style on a widget belongs on that widget.
+
+`::selection` is the current occupant. Undeclared, Chrome paints its own blue — off-palette against
+every warm surface here, and it recolours the FOREGROUND too, so body text lands on saturated blue
+and the identifier you were trying to copy becomes the least legible thing on screen. Both halves
+are set (primary fill, `bg-deep` glyphs) and both are asserted, because fixing only the background
+leaves the contrast problem untouched.
+
 ## Per-tool context numbers
 
 The Claude API does NOT return a per-tool token count for tool results. The `usage`
@@ -268,10 +368,19 @@ All four are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.t
    edge labels have no detail panel, so chopping loses the only copy of the condition. The jsdom
    mock's `getBezierPath` must be a PLAIN function, not `jest.fn` — the global auto-reset wipes a
    `jest.fn` implementation and the custom edge's `const [path] = getBezierPath()` reads undefined.
-3. **Fullscreen renders black** because React Flow's canvas is `height: 100%`, which resolves against
-   the parent's `height`, NOT `minHeight`. Pin a DEFINITE height in BOTH states. A live React Flow
-   instance also does not re-fit when its container resizes — remount it via a `key` that flips on the
-   expand toggle.
+3. **The canvas renders black whenever any link above it has an indefinite height**, because React
+   Flow's canvas is `height: 100%`, which resolves against the parent's `height` — NOT `minHeight`,
+   and NOT a flex-basis. The diagram is sized BY its container, so the whole chain is load-bearing:
+   `QUEST_SPEC_PANEL` → the SPEC tab → `FLOWS_LAYER` → `FLOW_TAB_PANEL` → the diagram box →
+   `FLOW_DIAGRAM` → `FLOW_DIAGRAM_CANVAS_WRAPPER`. Every link is `flex: 1` + `minHeight: 0` (the
+   `minHeight` is what lets it shrink — a flex item's default `min-height: auto` floors it at content
+   height, so the canvas would size the panel instead) EXCEPT `FLOW_DIAGRAM`, which carries
+   `minHeight: MIN_CANVAS_HEIGHT` and is the one link that refuses to shrink, and the wrapper ends the chain with
+   `alignSelf: stretch` because `FLOW_DIAGRAM` sets `alignItems: flex-start` to keep the detail panel
+   at its natural height. **Do not give the wrapper a `height` of its own** — that is what re-pins the
+   canvas to a fixed box and stops the panel deciding. Guarded by `canvasFillsPanelBelowRequest` in
+   `test/harnesses/flow-diagram/`, which measures the canvas against the panel's own bottom edge; a
+   jsdom assertion on the style alone cannot tell you the chain resolved.
 4. **Duplicate controls.** The adapter's `<Controls>` are the actuators the custom RPG buttons
    `.click()`; keep them mounted but `display: none`. Programmatic clicks still fire on a hidden
    button.

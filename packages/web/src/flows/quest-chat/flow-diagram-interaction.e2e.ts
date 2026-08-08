@@ -65,7 +65,7 @@ test.describe('Flow Diagram Interaction', () => {
     expect(await diagram.nodesDoNotOverlap()).toBe(true);
   });
 
-  test('VALID: {diagram rendered} => only the custom controls paint; native React Flow controls stay hidden', async ({
+  test('VALID: {diagram rendered} => only the custom controls paint; native React Flow chrome stays out of the canvas', async ({
     page,
     request,
   }) => {
@@ -77,21 +77,41 @@ test.describe('Flow Diagram Interaction', () => {
     // two control clusters overlap.
     expect(await diagram.customControlsVisible()).toBe(true);
     expect(await diagram.nativeControlsPresentButHidden()).toBe(true);
+    // The attribution is the other piece of library chrome. It stays — dimmed onto the palette
+    // rather than removed, so the credit is still there and still clickable.
+    expect(await diagram.attributionIsDimmedNotHidden()).toBe(true);
   });
 
-  test('VALID: {FULLSCREEN_BUTTON clicked} => canvas grows to a tall definite height with nodes still framed', async ({
+  // The floor case, at the suite's default 1280x720. After the page header, title bar, tab row,
+  // pinned request, flow metadata and action bar there is nowhere near 420px left — so this is the
+  // window where the diagram must refuse to shrink and hand the overflow to the tab's scrollbar.
+  test('VALID: {spec panel opened in a short window} => the canvas holds its floor and the SPEC tab scrolls', async ({
     page,
     request,
   }) => {
     const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
-    await diagram.seedAndOpen({ guildName: 'Diagram Fullscreen Guild' });
+    await diagram.seedAndOpen({ guildName: 'Diagram Floor Guild' });
 
-    await diagram.expandToFullscreen();
+    expect(await diagram.canvasKeepsFloorWhileSpecTabScrolls()).toBe(true);
+  });
 
-    // Expanding must resolve a tall definite canvas height (the black-screen bug collapses it to
-    // 0px) and re-fit so every node stays inside the now-taller viewport.
-    expect(await diagram.expandedCanvasIsTall()).toBe(true);
-    expect(await diagram.allNodesWithinCanvas()).toBe(true);
+  test.describe('in a window with room to spare', () => {
+    // Tall enough that the leftover beats the canvas floor, which is the only way to observe the
+    // fill rule at all — at 720px the floor wins and the measurement below would describe it.
+    test.use({ viewport: { width: 1280, height: 1100 } });
+
+    test('VALID: {spec panel opened} => the canvas starts below the pinned user request and ends at the panel bottom', async ({
+      page,
+      request,
+    }) => {
+      const diagram = flowDiagramHarness({ page, request, guildPath: GUILD_PATH, sessions });
+      await diagram.seedAndOpen({ guildName: 'Diagram Fill Guild' });
+
+      // The SPEC tab's whole layout contract in one measurement: request on top, diagram taking
+      // every remaining pixel. A canvas that pins its own height lands short of the panel edge or
+      // past it, and neither shows up in jsdom — only a real browser resolves this chain.
+      expect(await diagram.canvasFillsPanelBelowRequest()).toBe(true);
+    });
   });
 
   test('VALID: {ZOOM_IN then ZOOM_OUT} => viewport scale grows on zoom-in and shrinks on zoom-out', async ({

@@ -41,9 +41,9 @@ export interface XyflowReactFlowAdapterProps {
   onNodeClick?: (node: XyflowReactFlowAdapterNode) => void;
   onPaneClick?: () => void;
   // When true, frame the graph top-anchored on load — the entry (first) node horizontally centered
-  // near the top — instead of React Flow's fit-everything-and-center. The collapsed diagram sets
-  // this so switching flow tabs starts the reader at the entry node zoomed-in; the fullscreen
-  // overview leaves it off to frame the whole graph.
+  // near the top — instead of React Flow's fit-everything-and-center. The spec panel's diagram sets
+  // this, so switching flow tabs starts the reader at the entry node zoomed-in rather than shrinking
+  // a tall graph until every card is a speck. Omitted leaves React Flow's fit-the-whole-graph.
   topAlign?: boolean;
 }
 
@@ -84,8 +84,8 @@ export const xyflowReactFlowAdapter = ({
       // Zoom fits the WIDER half-span around the entry (its distance to the far left vs far right
       // edge) so nothing clips on either side. Bounds come from the ELK node positions (the exact
       // boxes ELK reserved) + the static card widths, so this does not race React Flow's async node
-      // measurement. `onInit` fires once per mount; the widget remounts on flow-tab switch and
-      // collapse/expand, so every top-aligned load re-frames.
+      // measurement. `onInit` fires once per mount; the widget remounts on a flow-tab switch, so
+      // every top-aligned load re-frames.
       const container = containerRef.current;
       const canvasWidth = container?.clientWidth ?? 0;
       const [firstFlowNode, ...restFlowNodes] = nodes.filter(
@@ -132,8 +132,8 @@ export const xyflowReactFlowAdapter = ({
         });
     },
     // Lower the zoom floor below React Flow's 0.5 default so the top-align fit-width (and the manual
-    // fit-view button) can shrink a wide graph's full width into the collapsed canvas, and so the
-    // user's manual zoom-out can go lower.
+    // fit-view button) can shrink a wide graph's full width into the canvas, and so the user's
+    // manual zoom-out can go lower.
     minZoom: elkLayoutStatics.viewport.minZoom,
     fitViewOptions: { minZoom: elkLayoutStatics.viewport.minZoom },
   };

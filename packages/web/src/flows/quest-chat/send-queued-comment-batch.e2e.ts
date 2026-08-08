@@ -80,7 +80,7 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
   });
 
   // #check-bar-stays-visible-when-scrolled
-  test('VALID: {spec panel content scrolled to its bottom} => COMMENT_QUEUE_BAR remains visible', async ({
+  test('VALID: {DETAILS tab scrolled to its bottom} => COMMENT_QUEUE_BAR remains visible', async ({
     page,
     request,
   }) => {
@@ -98,7 +98,9 @@ test.describe('Send the Queued Comment Batch (browser side)', () => {
     });
     await expect(send.queueBar()).toBeVisible();
 
-    await send.scrollSpecPanelContentToBottom();
+    // The queue bar sits outside the tab content entirely, so neither switching tabs nor scrolling
+    // the one that DOES scroll may take a pending batch off screen.
+    await send.scrollDetailsTabToBottom();
 
     await expect(send.queueBar()).toBeVisible();
   });

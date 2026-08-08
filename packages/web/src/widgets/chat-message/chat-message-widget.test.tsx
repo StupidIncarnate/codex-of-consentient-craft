@@ -93,6 +93,37 @@ describe('ChatMessageWidget', () => {
       ]);
     });
 
+    it('VALID: {role: assistant, type: text, markdown in content} => renders the markdown formatted', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({
+        content: 'Both harnesses import `navigationHarness`. Claims **verified**.',
+      });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      expect({
+        code: screen.queryAllByTestId('MARKDOWN_CODE').map((node) => node.textContent),
+        bold: screen.queryAllByTestId('MARKDOWN_BOLD').map((node) => node.textContent),
+        message: screen.getByTestId('CHAT_MESSAGE').textContent,
+      }).toStrictEqual({
+        code: ['navigationHarness'],
+        bold: ['verified'],
+        message: 'CHAOSWHISPERERBoth harnesses import navigationHarness. Claims verified.',
+      });
+    });
+
+    it('VALID: {role: assistant, type: text, heading and list} => renders block structure', () => {
+      ChatMessageWidgetProxy();
+      const entry = AssistantTextChatEntryStub({ content: '## Gate 5\n\n- first\n- second' });
+
+      mantineRenderAdapter({ ui: <ChatMessageWidget entry={entry} /> });
+
+      expect({
+        headings: screen.queryAllByTestId('MARKDOWN_HEADING').map((node) => node.textContent),
+        items: screen.queryAllByTestId('MARKDOWN_LIST_ITEM').map((node) => node.textContent),
+      }).toStrictEqual({ headings: ['Gate 5'], items: ['•first', '•second'] });
+    });
+
     it('VALID: {role: assistant, type: text} => renders with textAlign left and a little paddingLeft', () => {
       ChatMessageWidgetProxy();
       const entry = AssistantTextChatEntryStub();

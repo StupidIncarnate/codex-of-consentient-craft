@@ -1,6 +1,8 @@
 /**
- * PURPOSE: Renders an interactive React Flow diagram for a quest flow with node selection,
- * detail panel, zoom/fullscreen controls, and ELK auto-layout.
+ * PURPOSE: The quest flow as a browsable graph — ELK lays it out, React Flow paints it, and the
+ * cards carry the comment and detail affordances a reviewer works through. Sized entirely BY its
+ * container: it pins no height of its own, so mount it only inside a parent that resolves a
+ * definite one (see the height chain in packages/web/CLAUDE.md) or the canvas paints at 0px.
  *
  * USAGE:
  * <ReactFlowDiagramWidget flow={flow} contracts={contracts} />
@@ -10,13 +12,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Group } from '@mantine/core';
-import {
-  IconArrowsMaximize,
-  IconArrowsMinimize,
-  IconFocusCentered,
-  IconZoomIn,
-  IconZoomOut,
-} from '@tabler/icons-react';
+import { IconFocusCentered, IconZoomIn, IconZoomOut } from '@tabler/icons-react';
 
 import type {
   Flow,
@@ -46,6 +42,7 @@ import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
+import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
 import { boxCommentsTransformer } from '../../transformers/box-comments/box-comments-transformer';
 import { flowCrossFlowPortalsTransformer } from '../../transformers/flow-cross-flow-portals/flow-cross-flow-portals-transformer';
@@ -72,8 +69,11 @@ export interface ReactFlowDiagramWidgetProps {
   comments?: readonly QuestComment[];
 }
 
-const MAX_HEIGHT = 800;
-const EXPANDED_HEIGHT = 'calc(100vh - 160px)';
+// The floor under "fill the container". A short window leaves the spec panel very little after the
+// title bar, tabs, pinned request and flow metadata — squeezed to that, the canvas shows one row of
+// cards and everything below it is clipped out of reach. Below this the diagram stops shrinking and
+// the SPEC tab scrolls instead, which is the same trade a reader would make by hand.
+const MIN_CANVAS_HEIGHT = 420;
 // The canvas controls are the one place in the app that takes the large size — they float over the
 // diagram rather than sitting inside a row of text, so they are sized to be hit without aiming.
 const CONTROL_SIZE = iconButtonSizeContract.parse(iconButtonStatics.sizes.large);
@@ -83,9 +83,6 @@ const ZOOM_OUT_LABEL = buttonLabelContract.parse('Zoom out');
 const ZOOM_OUT_TEST_ID = testIdContract.parse('ZOOM_OUT_BUTTON');
 const FIT_VIEW_LABEL = buttonLabelContract.parse('Fit diagram to view');
 const FIT_VIEW_TEST_ID = testIdContract.parse('FIT_VIEW_BUTTON');
-const FULLSCREEN_LABEL = buttonLabelContract.parse('Toggle fullscreen diagram');
-const COLLAPSE_LABEL = buttonLabelContract.parse('Collapse fullscreen diagram');
-const FULLSCREEN_TEST_ID = testIdContract.parse('FULLSCREEN_BUTTON');
 
 const NODE_TYPES = {
   state: FlowNodeCardLayerWidget as React.ComponentType<never>,
@@ -120,7 +117,6 @@ export const ReactFlowDiagramWidget = ({
   // single value is what makes them mutually exclusive by construction, so the detail panel can
   // never open for a node and an assertion at once.
   const [selectedAnchor, setSelectedAnchor] = useState<CommentAnchor | null>(null);
-  const [expanded, setExpanded] = useState<boolean>(false);
   const hasRun = useRef(false);
   const diagramRef = useRef<HTMLDivElement>(null);
 
@@ -348,12 +344,16 @@ export const ReactFlowDiagramWidget = ({
 
   // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so the
   // column reads as branching off that node. No label, so the jsdom mock (label-only) skips them.
+  // These are the ONE edge kind that stays on React Flow's built-in edge component rather than
+  // xyflowEdgeAdapter, so they need the palette stroke applied here or they alone paint in the
+  // library's cool default grey while every flow edge is warm.
   const observableEdges = flow.nodes.flatMap((n) =>
     n.observables.map((obs) => ({
       id: `obs-edge:${String(n.id)}:${String(obs.id)}`,
       source: String(n.id),
       sourceHandle: flowHandleStatics.observableSourceId,
       target: `obs:${String(n.id)}:${String(obs.id)}`,
+      style: { stroke: flowNodeStyleStatics.edgeStroke },
     })),
   );
 
@@ -396,35 +396,41 @@ export const ReactFlowDiagramWidget = ({
     <div
       ref={diagramRef}
       data-testid="FLOW_DIAGRAM"
-      style={{ display: 'flex', gap: 16, alignItems: 'flex-start', position: 'relative' }}
+      style={{
+        display: 'flex',
+        gap: 16,
+        alignItems: 'flex-start',
+        position: 'relative',
+        // Claims whatever height the spec panel left over, and passes a DEFINITE one down: React
+        // Flow's canvas is height:100%, which resolves against the parent's `height` (NOT
+        // minHeight or flex-basis), so an indefinite link anywhere in this chain collapses the
+        // canvas to 0px and the diagram paints as an empty black panel. Every ancestor carries
+        // `minHeight: 0` so it can shrink; this is the ONE link that refuses to, which is what
+        // turns "not enough room" into a scroll on the SPEC tab rather than a clipped canvas.
+        flex: 1,
+        minHeight: MIN_CANVAS_HEIGHT,
+      }}
     >
       <div
         data-testid="FLOW_DIAGRAM_CANVAS_WRAPPER"
         style={{
           flex: 1,
-          // React Flow's canvas is height:100%, which resolves against the parent's `height`
-          // (NOT minHeight). The wrapper must therefore pin a DEFINITE height in BOTH states —
-          // a minHeight-only expanded wrapper leaves `height` auto, so the canvas collapses to
-          // 0px and the diagram renders as an empty (black) panel. Collapsed pins MAX_HEIGHT;
-          // expanded pins a near-viewport definite height.
-          height: expanded ? EXPANDED_HEIGHT : MAX_HEIGHT,
+          // `alignItems: flex-start` above keeps the detail panel at its natural height, so the
+          // canvas has to opt back into the full cross size to get a height at all.
+          alignSelf: 'stretch',
           overflow: 'hidden',
         }}
       >
         {React.createElement(
           xyflowReactFlowAdapter as unknown as React.ComponentType<Record<PropertyKey, unknown>>,
           {
-            // Remount React Flow when the canvas size changes (collapse <-> expand). A live
-            // instance does not re-frame when its container resizes, so it would keep the old
-            // framing in the resized viewport; a fresh mount re-frames against the new size.
-            key: expanded ? 'rf-expanded' : 'rf-collapsed',
             nodes,
             edges,
             nodeTypes: NODE_TYPES,
             edgeTypes: EDGE_TYPES,
-            // Collapsed: top-anchor so switching flow tabs starts the reader at the entry node,
-            // zoomed-in. Fullscreen: fit the whole graph as an overview.
-            topAlign: !expanded,
+            // Top-anchor rather than fit-to-graph, so switching flow tabs starts the reader at the
+            // entry node zoomed-in instead of shrinking a tall graph until every card is a speck.
+            topAlign: true,
             onNodeClick: (node: (typeof nodes)[0]) => {
               // A flow card resolves by id. An assertion card does not — its React Flow id is a
               // composite (`obs:node:observable`), so its anchor is read off the node DATA, which
@@ -469,6 +475,7 @@ export const ReactFlowDiagramWidget = ({
         gap={8}
         justify="center"
         mt={8}
+        data-testid="FLOW_DIAGRAM_CONTROLS"
         style={{ position: 'absolute', bottom: 8, left: 8, zIndex: 10 }}
       >
         <IconButtonWidget
@@ -496,16 +503,6 @@ export const ReactFlowDiagramWidget = ({
           size={CONTROL_SIZE}
           onClick={() => {
             clickNativeControl('react-flow__controls-fitview');
-          }}
-        />
-        <IconButtonWidget
-          label={expanded ? COLLAPSE_LABEL : FULLSCREEN_LABEL}
-          testId={FULLSCREEN_TEST_ID}
-          icon={expanded ? IconArrowsMinimize : IconArrowsMaximize}
-          size={CONTROL_SIZE}
-          expanded={expanded}
-          onClick={() => {
-            setExpanded((prev) => !prev);
           }}
         />
       </Group>

@@ -502,7 +502,7 @@ describe('QuestSpecPanelWidget', () => {
   });
 
   describe('operations section', () => {
-    it('VALID: {quest with operations} => renders OPERATIONS section with ledger rows in order', () => {
+    it('VALID: {quest with operations, DETAILS tab} => renders OPERATIONS section with ledger rows in order', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         operations: [
@@ -532,6 +532,8 @@ describe('QuestSpecPanelWidget', () => {
         ),
       });
 
+      await proxy.clickDetailsTab();
+
       expect(proxy.hasOperationsSection()).toBe(true);
       expect(proxy.getOperationsLedgerRows().map((r) => r.textContent)).toStrictEqual([
         '[x][CODEWEAVER]build the broker',
@@ -539,7 +541,7 @@ describe('QuestSpecPanelWidget', () => {
       ]);
     });
 
-    it('EMPTY: {quest with no operations} => does not render OPERATIONS section', () => {
+    it('EMPTY: {quest with no operations, DETAILS tab} => does not render OPERATIONS section', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ operations: [] });
 
@@ -553,13 +555,199 @@ describe('QuestSpecPanelWidget', () => {
         ),
       });
 
+      // On the tab that WOULD show it — otherwise "absent" only proves the SPEC tab was showing.
+      await proxy.clickDetailsTab();
+
       expect(proxy.hasOperationsSection()).toBe(false);
       expect(proxy.getOperationsLedgerRows()).toStrictEqual([]);
     });
   });
 
+  describe('spec / details tabs', () => {
+    it('VALID: {panel rendered} => SPEC and DETAILS are the whole tab set, SPEC active', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      expect(proxy.getTabLabels()).toStrictEqual(['SPEC', 'DETAILS']);
+      expect(proxy.getActiveTabLabel()).toBe('SPEC');
+    });
+
+    it('VALID: {SPEC tab active} => user request and flows render, design decisions and tooling do not', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        userRequest: 'Fill the bubble when a comment is queued',
+        designDecisions: [
+          DesignDecisionStub({
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('USER_REQUEST_TEXT').textContent).toBe(
+        'Fill the bubble when a comment is queued',
+      );
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+      expect(screen.queryByTestId('DESIGN_DECISIONS_LAYER')).toBe(null);
+      expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
+    });
+
+    it('VALID: {DETAILS tab clicked} => design decisions and tooling render, flows and user request do not', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        userRequest: 'Fill the bubble when a comment is queued',
+        designDecisions: [
+          DesignDecisionStub({
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      await proxy.clickDetailsTab();
+
+      expect(proxy.getActiveTabLabel()).toBe('DETAILS');
+      expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
+      expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
+      // The flow view is unmounted rather than hidden — it is what the SPEC tab gives its whole
+      // remaining height to, so a DETAILS tab that kept it mounted would still be paying for it.
+      expect(screen.queryByTestId('FLOWS_LAYER')).toBe(null);
+      expect(screen.queryByTestId('USER_REQUEST_SECTION')).toBe(null);
+    });
+
+    it('VALID: {DETAILS tab then SPEC tab} => the flow view comes back', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      await proxy.clickDetailsTab();
+      await proxy.clickSpecTab();
+
+      expect(proxy.getActiveTabLabel()).toBe('SPEC');
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+      expect(screen.queryByTestId('DESIGN_DECISIONS_LAYER')).toBe(null);
+    });
+
+    it('VALID: {DETAILS tab clicked} => APPROVE and the queue bar stay reachable', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'review_flows' });
+      proxy.setupQueuedComments({
+        questId: quest.id,
+        entries: [CommentQueueEntryStub({ text: 'still queued while reading DETAILS' })],
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      await proxy.clickDetailsTab();
+
+      // Both bars are siblings of the tab content, not children of it, so switching tabs must not
+      // strand a queued batch or take the gate control away mid-review.
+      expect(proxy.getActionBarButtonLabels()).toStrictEqual(['APPROVE']);
+      expect(proxy.hasQueueBar()).toBe(true);
+    });
+
+    it('VALID: {readOnly panel, DETAILS tab clicked} => the execution surface splits the same way', async () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        designDecisions: [
+          DesignDecisionStub({
+            id: 'c23bc10b-58cc-4372-a567-0e02b2c3d479',
+            title: 'Use JWT',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({ ui: <QuestSpecPanelWidget quest={quest} readOnly={true} /> });
+
+      expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
+      expect(screen.getByTestId('DECISION_TITLE').textContent).toBe('Use JWT');
+      expect(screen.queryByTestId('FLOWS_LAYER')).toBe(null);
+    });
+
+    it('VALID: {long user request} => the request block is capped and scrolls instead of growing', () => {
+      const proxy = QuestSpecPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'in_progress',
+        userRequest: 'a very long request '.repeat(50),
+      });
+
+      mantineRenderAdapter({
+        ui: (
+          <QuestSpecPanelWidget
+            quest={quest}
+            onModify={jest.fn()}
+            onSendComments={proxy.onSendComments}
+          />
+        ),
+      });
+
+      // The cap is what keeps "request on top, flow view taking the rest" true for a request of
+      // any length — uncapped, a long one pushes the diagram off the bottom of the panel.
+      const userRequest = screen.getByTestId('USER_REQUEST_SECTION');
+
+      expect({
+        maxHeight: userRequest.style.maxHeight,
+        overflowY: userRequest.style.overflowY,
+        flexShrink: userRequest.style.flexShrink,
+      }).toStrictEqual({ maxHeight: '120px', overflowY: 'auto', flexShrink: '0' });
+    });
+  });
+
   describe('gate visibility', () => {
-    it('VALID: {status: created} => shows flows and design decisions, hides contracts', () => {
+    it('VALID: {status: created} => SPEC shows flows, DETAILS shows design decisions and hides contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'created',
@@ -576,11 +764,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
-    it('VALID: {status: pending} => shows flows and design decisions, hides contracts', () => {
+    it('VALID: {status: pending} => SPEC shows flows, DETAILS shows design decisions and hides contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'pending' });
 
@@ -595,11 +786,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
-    it('VALID: {status: explore_flows} => shows flows and design decisions, hides contracts', () => {
+    it('VALID: {status: explore_flows} => SPEC shows flows, DETAILS shows design decisions and hides contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_flows' });
 
@@ -614,11 +808,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
-    it('VALID: {status: review_flows} => shows flows and design decisions, hides contracts', () => {
+    it('VALID: {status: review_flows} => SPEC shows flows, DETAILS shows design decisions and hides contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_flows' });
 
@@ -633,11 +830,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.queryByTestId('CONTRACTS_LAYER')).toBe(null);
     });
 
-    it('VALID: {status: flows_approved} => shows flows, design decisions, and contracts', () => {
+    it('VALID: {status: flows_approved} => SPEC shows flows, DETAILS shows design decisions and contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         status: 'flows_approved',
@@ -654,11 +854,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
     });
 
-    it('VALID: {status: explore_observables} => shows flows, design decisions, and contracts', () => {
+    it('VALID: {status: explore_observables} => SPEC shows flows, DETAILS shows design decisions and contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'explore_observables' });
 
@@ -673,11 +876,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
     });
 
-    it('VALID: {status: review_observables} => shows flows, design decisions, and contracts', () => {
+    it('VALID: {status: review_observables} => SPEC shows flows, DETAILS shows design decisions and contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'review_observables' });
 
@@ -692,11 +898,14 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
     });
 
-    it('VALID: {status: in_progress} => shows all sections', () => {
+    it('VALID: {status: in_progress} => SPEC shows flows, DETAILS shows design decisions and contracts', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
@@ -711,13 +920,16 @@ describe('QuestSpecPanelWidget', () => {
       });
 
       expect(screen.getByTestId('FLOWS_LAYER')).toBeInTheDocument();
+
+      await proxy.clickDetailsTab();
+
       expect(screen.getByTestId('DESIGN_DECISIONS_LAYER')).toBeInTheDocument();
       expect(screen.getByTestId('CONTRACTS_LAYER')).toBeInTheDocument();
     });
   });
 
   describe('design decisions layer', () => {
-    it('VALID: {quest with design decisions} => renders design decisions', () => {
+    it('VALID: {quest with design decisions, DETAILS tab} => renders design decisions', async () => {
       const proxy = QuestSpecPanelWidgetProxy();
       const quest: Quest = QuestStub({
         designDecisions: [
@@ -737,6 +949,8 @@ describe('QuestSpecPanelWidget', () => {
           />
         ),
       });
+
+      await proxy.clickDetailsTab();
 
       expect(screen.getByTestId('DECISION_TITLE').textContent).toBe('Use JWT');
     });

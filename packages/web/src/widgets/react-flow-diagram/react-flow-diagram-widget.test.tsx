@@ -1409,7 +1409,7 @@ describe('ReactFlowDiagramWidget', () => {
   });
 
   describe('controls', () => {
-    it('VALID: {diagram rendered} => ZOOM_IN, ZOOM_OUT, FIT_VIEW, FULLSCREEN buttons present', async () => {
+    it('VALID: {diagram rendered} => ZOOM_IN, ZOOM_OUT and FIT_VIEW are the whole control set', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -1426,13 +1426,16 @@ describe('ReactFlowDiagramWidget', () => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
       });
 
-      expect(screen.getByTestId('ZOOM_IN_BUTTON')).toBeInTheDocument();
-      expect(screen.getByTestId('ZOOM_OUT_BUTTON')).toBeInTheDocument();
-      expect(screen.getByTestId('FIT_VIEW_BUTTON')).toBeInTheDocument();
-      expect(screen.getByTestId('FULLSCREEN_BUTTON')).toBeInTheDocument();
+      // The exact set, not a subset: the diagram sizes itself from its container, so a fourth
+      // control offering to resize it would be offering something the container already decided.
+      expect(proxy.getControlTestIds()).toStrictEqual([
+        'ZOOM_IN_BUTTON',
+        'ZOOM_OUT_BUTTON',
+        'FIT_VIEW_BUTTON',
+      ]);
     });
 
-    it('VALID: {fullscreen clicked} => canvas wrapper pins a DEFINITE near-viewport height', async () => {
+    it('VALID: {diagram rendered} => canvas wrapper takes its height from the container, pinning none of its own', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -1448,57 +1451,21 @@ describe('ReactFlowDiagramWidget', () => {
       await waitFor(() => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
       });
-
-      const wrapperBefore = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
-
-      // Collapsed state pins a DEFINITE height so the React Flow canvas can size itself; a
-      // bare maxHeight collapses the canvas to 0px.
-      expect({
-        height: wrapperBefore.style.height,
-        minHeight: wrapperBefore.style.minHeight,
-      }).toStrictEqual({ height: '800px', minHeight: '' });
-
-      await proxy.clickFullscreen();
-
-      const wrapperAfter = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
-
-      // Expanded must ALSO pin a definite `height` (not minHeight) — React Flow's height:100%
-      // canvas resolves against `height`, so a minHeight-only wrapper collapses it to 0px.
-      expect({
-        minHeight: wrapperAfter.style.minHeight,
-        height: wrapperAfter.style.height,
-      }).toStrictEqual({ minHeight: '', height: 'calc(100vh - 160px)' });
-    });
-
-    it('VALID: {fullscreen clicked twice} => canvas wrapper restores definite height 400', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'login-page' }),
-        type: 'state',
-        observables: [],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
-
-      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
-
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
-      });
-
-      await proxy.clickFullscreen();
-      await proxy.clickFullscreen();
 
       const wrapper = screen.getByTestId('FLOW_DIAGRAM_CANVAS_WRAPPER');
 
+      // `alignSelf: stretch` is the whole height mechanism. The parent sets `alignItems:
+      // flex-start` to keep the detail panel at its natural height, which leaves the canvas at
+      // content height (0px, since React Flow's own canvas is height:100%) unless it opts back in.
+      // Any `height` of its own here would override whatever the spec panel handed down.
       expect({
         height: wrapper.style.height,
         minHeight: wrapper.style.minHeight,
-      }).toStrictEqual({ height: '800px', minHeight: '' });
+        alignSelf: wrapper.style.alignSelf,
+      }).toStrictEqual({ height: '', minHeight: '', alignSelf: 'stretch' });
     });
 
-    it('VALID: {diagram collapsed} => FULLSCREEN_BUTTON data-expanded is false', async () => {
+    it('VALID: {diagram rendered} => FLOW_DIAGRAM claims its container leftover but stops at a usable floor', async () => {
       const proxy = ReactFlowDiagramWidgetProxy();
       const node = FlowNodeStub({
         id: FlowNodeIdStub({ value: 'login-page' }),
@@ -1515,29 +1482,16 @@ describe('ReactFlowDiagramWidget', () => {
         expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
       });
 
-      expect(proxy.isExpanded()).toBe(false);
-    });
+      const diagram = screen.getByTestId('FLOW_DIAGRAM');
 
-    it('VALID: {fullscreen clicked} => FULLSCREEN_BUTTON data-expanded is true', async () => {
-      const proxy = ReactFlowDiagramWidgetProxy();
-      const node = FlowNodeStub({
-        id: FlowNodeIdStub({ value: 'login-page' }),
-        type: 'state',
-        observables: [],
-      });
-      const flow = FlowStub({ nodes: [node], edges: [] });
-
-      proxy.setupPositions({ children: [{ id: 'login-page', x: 0, y: 0 }] });
-
-      mantineRenderAdapter({ ui: <ReactFlowDiagramWidget flow={flow} /> });
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('FLOW_DIAGRAM')).toBeInTheDocument();
-      });
-
-      await proxy.clickFullscreen();
-
-      expect(proxy.isExpanded()).toBe(true);
+      // The floor is the load-bearing half. `flex: 1` alone lets a short window squeeze the canvas
+      // to one row of cards with everything below it clipped out of reach — the panel's chrome
+      // (title bar, two tab rows, pinned request, flow metadata, queue and action bars) can eat
+      // almost the whole viewport before the diagram gets any. Past this the SPEC tab scrolls.
+      expect({
+        flex: diagram.style.flex,
+        minHeight: diagram.style.minHeight,
+      }).toStrictEqual({ flex: '1 1 0%', minHeight: '420px' });
     });
   });
 

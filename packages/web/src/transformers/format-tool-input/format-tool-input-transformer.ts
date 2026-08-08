@@ -1,5 +1,10 @@
 /**
- * PURPOSE: Formats tool input JSON into structured fields with priority ordering per tool name
+ * PURPOSE: Orders a tool's input so the argument a reader cares about comes first, which is what
+ * lets a caller take field[0] as "the interesting one" rather than whatever key JSON happened to
+ * serialise first. Matching is naming-convention insensitive on purpose: the same tool reaches this
+ * app as `file_path` from one harness and `filePath` from another, and a map that knows only one
+ * spelling silently falls back to JSON order — which is how a row ends up summarising an Edit as
+ * its `replaceAll` flag.
  *
  * USAGE:
  * formatToolInputTransformer({toolName: 'Bash', toolInput: '{"command":"ls -la"}'});
@@ -11,6 +16,7 @@ import type { FormattedToolInput } from '../../contracts/formatted-tool-input/fo
 import { parsedToolInputContract } from '../../contracts/parsed-tool-input/parsed-tool-input-contract';
 
 const LONG_VALUE_THRESHOLD = 120;
+const NON_ALPHANUMERIC = /[^a-z0-9]/gu;
 
 const priorityFieldsMap = new Map([
   ['Write', ['file_path']],
@@ -53,10 +59,19 @@ export const formatToolInputTransformer = ({
 
   const allKeys = Object.keys(parsed);
   const priorityKeys = priorityFieldsMap.get(toolName) ?? [];
+  const priorityRanks = priorityKeys.map((key) => key.toLowerCase().replace(NON_ALPHANUMERIC, ''));
 
   const orderedKeys = [
-    ...priorityKeys.filter((key) => allKeys.includes(key)),
-    ...allKeys.filter((key) => !priorityKeys.includes(key)),
+    ...allKeys
+      .filter((key) => priorityRanks.includes(key.toLowerCase().replace(NON_ALPHANUMERIC, '')))
+      .sort(
+        (left, right) =>
+          priorityRanks.indexOf(left.toLowerCase().replace(NON_ALPHANUMERIC, '')) -
+          priorityRanks.indexOf(right.toLowerCase().replace(NON_ALPHANUMERIC, '')),
+      ),
+    ...allKeys.filter(
+      (key) => !priorityRanks.includes(key.toLowerCase().replace(NON_ALPHANUMERIC, '')),
+    ),
   ];
 
   const fields = orderedKeys.map((key) => {
