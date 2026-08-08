@@ -23,6 +23,7 @@ import type { FlowObservableNodeData } from '../../../contracts/flow-observable-
 import type { FlowPortalNodeData } from '../../../contracts/flow-portal-node-data/flow-portal-node-data-contract';
 import type { ReactFlowNodeData } from '../../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../../statics/elk-layout/elk-layout-statics';
+import { nodeMeasureLayerAdapter } from './node-measure-layer-adapter';
 
 // The canvas holds three node shapes: flow cards (ReactFlowNodeData), the assertion cards that
 // branch off to their right (FlowObservableNodeData), and portal stand-ins for cross-flow edge
@@ -151,7 +152,13 @@ export const xyflowReactFlowAdapter = ({
       // Controls stays mounted (the diagram widget's custom RPG buttons drive zoom/fit by
       // clicking its actuator buttons) but is hidden so it doesn't paint a second control
       // cluster on top of the custom one.
-      React.createElement(Controls, { style: { display: 'none' } }),
+      React.createElement(Controls, { key: 'controls', style: { display: 'none' } }),
+      // Renders nothing; it is here for its effect, which needs React Flow's store and so has to be
+      // a CHILD of <ReactFlow> rather than a call in this component.
+      React.createElement(nodeMeasureLayerAdapter, {
+        key: 'node-measure',
+        nodeIds: nodes.map((node) => node.id).join('\n'),
+      }),
     ),
   );
 };

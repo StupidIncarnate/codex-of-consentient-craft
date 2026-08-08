@@ -370,9 +370,9 @@ Relevant files: `transformers/compute-token-annotations/`,
 `widgets/tool-row/`, `widgets/context-divider/`,
 `widgets/chat-entry-list/`, `widgets/subagent-chain/`.
 
-## React Flow diagram sizing — five gotchas a jsdom mock hides
+## React Flow diagram sizing — six gotchas a jsdom mock hides
 
-All five are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts` +
+All six are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.ts` +
 `test/harnesses/flow-diagram/` are what actually cover them.
 
 1. **Node overlap vs. full labels.** Cards show the whole label wrapped (no clamp) at
@@ -404,7 +404,18 @@ All five are real-browser only; `flows/quest-chat/flow-diagram-interaction.e2e.t
 4. **Duplicate controls.** The adapter's `<Controls>` are the actuators the custom RPG buttons
    `.click()`; keep them mounted but `display: none`. Programmatic clicks still fire on a hidden
    button.
-5. **Everything that floats over the canvas is `position: absolute` against `FLOW_DIAGRAM`** — the
+5. **A node's measurement is taken ONCE, and losing it costs you every edge.** `adoptUserNodes` keeps
+   `measured` + `internals.handleBounds` only while the node OBJECT stays reference-identical; a fresh
+   object resets both. A card is a fixed box, so its ResizeObserver delivers one initial notification
+   and never fires again. An unmeasured node has no handle bounds, and React Flow drops every edge
+   touching one — silently. The symptom is therefore "the cards are fine, the LINES are missing", which
+   points nowhere near measurement. Two things hold it: `nodes`/`edges` are `useMemo`d in
+   `react-flow-diagram-widget.tsx` (which is why the early returns sit BELOW the memos, and why the
+   empty-array prop defaults are module constants), and `node-measure-layer-adapter.ts` re-measures
+   from the DOM whenever React Flow reports `nodesInitialized === false`. The memo alone is not enough:
+   a `quest-modified` over the websocket is a genuine content change, so it busts any memo, and it
+   arrives during exactly the frame the first measurement lands in.
+6. **Everything that floats over the canvas is `position: absolute` against `FLOW_DIAGRAM`** — the
    node detail panel (top right) and the zoom/fit controls (bottom left). The canvas wrapper is the
    only in-flow child, so it always has the full width. A detail panel rendered as a flex SIBLING
    takes 280-400px out of a spec panel that may only be ~600px wide, and the React Flow viewport does

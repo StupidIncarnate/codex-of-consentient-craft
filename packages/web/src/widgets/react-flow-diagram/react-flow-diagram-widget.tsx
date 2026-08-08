@@ -11,7 +11,7 @@
  * // Renders the flow graph with node cards, edges, detail panel, and controls
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Group } from '@mantine/core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut } from '@tabler/icons-react';
@@ -107,11 +107,18 @@ const EDGE_TYPES = {
 
 const { colors } = emberDepthsThemeStatics;
 
+// The empty defaults live out here because `contracts = []` in the signature mints a FRESH array on
+// every render the prop is omitted, and these two are dependencies of the node memo below — a new
+// array each render is a changed dependency, which rebuilds the very node objects React Flow needs
+// to stay identical to keep its measurement.
+const NO_CONTRACTS: readonly QuestContractEntry[] = [];
+const NO_COMMENTS: readonly QuestComment[] = [];
+
 export const ReactFlowDiagramWidget = ({
   flow,
-  contracts = [],
+  contracts = NO_CONTRACTS,
   commentQuestId,
-  comments = [],
+  comments = NO_COMMENTS,
 }: ReactFlowDiagramWidgetProps): React.JSX.Element | null => {
   // The flow the canvas is painting, held apart from the `flow` PROP: it is the last one ELK
   // actually laid out, swapped in together with its positions and routes. An agent editing the spec
@@ -182,6 +189,225 @@ export const ReactFlowDiagramWidget = ({
     };
   }, [handleKeydown]);
 
+  // The node card is the selected box only when the selection names no observable — an assertion
+  // card's selection leaves its parent card unringed, because the panel is showing the assertion.
+  const selectedCardNodeId =
+    selectedAnchor !== null && selectedAnchor.observableId === undefined
+      ? selectedAnchor.nodeId
+      : undefined;
+
+  // MEMOIZED, and that is load-bearing rather than an optimisation. React Flow keeps a node's
+  // measurement only while the OBJECT it measured stays identical — `adoptUserNodes` discards
+  // `internals`, and with it `handleBounds`, for any node object it has not seen before. A card
+  // never changes size after it mounts, so its ResizeObserver fires exactly once; lose that one
+  // measurement to a rebuild landing in the same frame and the node is unmeasured for the rest of
+  // its life. The visible symptom is EVERY EDGE MISSING — an edge whose endpoints have no handle
+  // bounds has nowhere to attach, so React Flow drops it silently — over a canvas of cards that all
+  // look fine, which is why this reads as "the lines don't render" rather than as a measurement bug.
+  // Rebuilding on every render loses that race whenever anything re-renders this widget in the
+  // mount frame, and on a live quest the websocket delivering chat does exactly that.
+  //
+  // `initialWidth`/`initialHeight` is the OTHER half and does not replace this one: it stops React
+  // Flow painting the card `visibility: hidden` while unmeasured, so the cards show either way. The
+  // box is the SAME estimate `elkLayoutAdapter` laid the graph out with, so the pre-measurement size
+  // matches the rectangle ELK reserved.
+  const nodes = useMemo(() => {
+    if (laidOutFlow === null || positions === null) {
+      return [];
+    }
+
+    // Anchor context for the comment affordance. Spread into each card's data only when composing
+    // is allowed, so the cards themselves need no separate visibility flag to check.
+    const commentAnchorData =
+      commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: laidOutFlow.id };
+
+    // `comments` spans the WHOLE quest across every flow (see the prop doc above), so scope down to
+    // THIS flow and count per box in one pass here, rather than letting boxCommentsTransformer
+    // re-scan the full array once per node AND once per observable below — that repeated full-array
+    // filter, multiplied by every box the canvas draws, is exactly the nested-scan shape a Map
+    // lookup replaces with a single O(comments) pass plus O(1) reads.
+    const nodeCommentCounts = new Map<FlowNodeId, CommentCount>();
+    const observableCommentCounts = new Map<FlowNodeId, Map<ObservableId, CommentCount>>();
+    comments
+      .filter((c) => c.flowId === laidOutFlow.id)
+      .forEach((c) => {
+        if (c.observableId === undefined) {
+          const priorCount = nodeCommentCounts.get(c.nodeId);
+          nodeCommentCounts.set(
+            c.nodeId,
+            commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
+          );
+          return;
+        }
+        const perObservable =
+          observableCommentCounts.get(c.nodeId) ?? new Map<ObservableId, CommentCount>();
+        const priorCount = perObservable.get(c.observableId);
+        perObservable.set(
+          c.observableId,
+          commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
+        );
+        observableCommentCounts.set(c.nodeId, perObservable);
+      });
+    const zeroCommentCount = commentCountContract.parse(0);
+
+    const flowNodes = laidOutFlow.nodes.map((n) => {
+      const { labelEstimate } = elkLayoutStatics;
+      const labelLines = Math.max(
+        1,
+        Math.ceil(String(n.label).length / labelEstimate.charsPerLine),
+      );
+      const cardHeight =
+        labelEstimate.chromeHeight +
+        labelLines * labelEstimate.lineHeight +
+        labelEstimate.badgeHeight +
+        labelEstimate.buffer;
+      return {
+        id: String(n.id),
+        type: n.type,
+        position: positions[String(n.id)] ?? { x: 0, y: 0 },
+        initialWidth: elkLayoutStatics.node.width,
+        initialHeight: cardHeight,
+        selected: selectedCardNodeId !== undefined && String(selectedCardNodeId) === String(n.id),
+        data: reactFlowNodeDataContract.parse({
+          ...commentAnchorData,
+          nodeId: n.id,
+          label: n.label,
+          nodeType: n.type,
+          // Badge counts the contracts anchored to this node — the same nodeId match the detail
+          // panel uses. Contract arrays are small, so a per-node filter is fine.
+          contractCount: contractCountContract.parse(
+            contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
+          ),
+          // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong
+          // to those cards' own badges, so the badge here always agrees with the panel's list.
+          commentCount: nodeCommentCounts.get(n.id) ?? zeroCommentCount,
+        }),
+      };
+    });
+
+    // Each observable becomes its own card stacked into a column to the RIGHT of its flow node, so
+    // a reviewer reads every assertion on the canvas. Positions are computed relative to the flow
+    // node's ELK position; ELK reserves each node enough height to clear its whole column.
+    const observableNodes = laidOutFlow.nodes.flatMap((n) => {
+      const base = positions[String(n.id)] ?? { x: 0, y: 0 };
+      const { observable } = elkLayoutStatics;
+      const columnX = base.x + elkLayoutStatics.node.width + observable.gap;
+      let cursorY = 0;
+      return n.observables.map((obs) => {
+        const obsLines = Math.max(
+          1,
+          Math.ceil(String(obs.description).length / observable.labelEstimate.charsPerLine),
+        );
+        const obsCardHeight =
+          observable.labelEstimate.chromeHeight +
+          obsLines * observable.labelEstimate.lineHeight +
+          observable.labelEstimate.buffer;
+        const y = base.y + cursorY;
+        cursorY += obsCardHeight + observable.rowGap;
+        return {
+          id: `obs:${String(n.id)}:${String(obs.id)}`,
+          type: 'observable',
+          position: { x: columnX, y },
+          initialWidth: observable.width,
+          initialHeight: obsCardHeight,
+          data: flowObservableNodeDataContract.parse({
+            ...commentAnchorData,
+            observableId: obs.id,
+            // The parent node, so an observable comment stays findable from the node it branches
+            // off.
+            nodeId: n.id,
+            outcomeType: obs.type,
+            description: obs.description,
+            commentCount: observableCommentCounts.get(n.id)?.get(obs.id) ?? zeroCommentCount,
+          }),
+        };
+      });
+    });
+
+    // Portal stand-ins for edges that hand off to a node in another flow. Their id is the raw
+    // `flowId:nodeId` reference so the cross-flow edge (source/target = String(e.to)) resolves to
+    // this node instead of dangling. Clicking one is a no-op — onNodeClick only matches flow nodes.
+    const portals = flowCrossFlowPortalsTransformer({
+      nodes: laidOutFlow.nodes,
+      edges: laidOutFlow.edges,
+    });
+    const portalNodes = portals.map((portal) => {
+      const { labelEstimate } = elkLayoutStatics;
+      const portalLines = Math.max(
+        1,
+        Math.ceil(String(portal.label).length / labelEstimate.charsPerLine),
+      );
+      return {
+        id: String(portal.reference),
+        type: 'portal',
+        position: positions[String(portal.reference)] ?? { x: 0, y: 0 },
+        initialWidth: elkLayoutStatics.node.width,
+        initialHeight:
+          labelEstimate.chromeHeight +
+          portalLines * labelEstimate.lineHeight +
+          labelEstimate.buffer,
+        data: portal,
+      };
+    });
+
+    return [...flowNodes, ...observableNodes, ...portalNodes];
+  }, [laidOutFlow, positions, contracts, comments, commentQuestId, selectedCardNodeId]);
+
+  // Memoized for the same reason as `nodes`: a fresh edge array on every render re-adopts every
+  // edge, and an edge re-adopted while its endpoints are still unmeasured is dropped.
+  const edges = useMemo(() => {
+    if (laidOutFlow === null || positions === null) {
+      return [];
+    }
+
+    const flowEdges = laidOutFlow.edges.map((e) => {
+      // type 'flow' selects the custom edge (xyflowEdgeAdapter). `data.route` is the ELK-computed
+      // path the edge draws itself along (routed clear of the cards); `data.label` is the wrapping
+      // label box. The top-level `label` is kept only so the jsdom test mock (which renders
+      // FLOW_EDGE_LABEL from `edge.label`) still works.
+      const id = String(e.id);
+      const route = routes?.[id];
+      const routeData = route === undefined ? {} : { route };
+      // A back-edge (target laid out ABOVE the source) is a loop; attach it to the side loop
+      // handles so it exits/re-enters from the RIGHT of the cards instead of the top/bottom.
+      const isLoop = (positions[String(e.to)]?.y ?? 0) < (positions[String(e.from)]?.y ?? 0);
+      const loopHandles = isLoop
+        ? {
+            sourceHandle: flowHandleStatics.loopSourceId,
+            targetHandle: flowHandleStatics.loopTargetId,
+          }
+        : {};
+      const base = {
+        id,
+        source: String(e.from),
+        target: String(e.to),
+        type: 'flow',
+        ...loopHandles,
+      };
+      if (e.label === undefined) {
+        return { ...base, data: routeData };
+      }
+      return { ...base, label: e.label, data: { label: e.label, ...routeData } };
+    });
+
+    // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so
+    // the column reads as branching off that node. No label, so the jsdom mock (label-only) skips
+    // them. These are the ONE edge kind that stays on React Flow's built-in edge component rather
+    // than xyflowEdgeAdapter, so they need the palette stroke applied here or they alone paint in
+    // the library's cool default grey while every flow edge is warm.
+    const observableEdges = laidOutFlow.nodes.flatMap((n) =>
+      n.observables.map((obs) => ({
+        id: `obs-edge:${String(n.id)}:${String(obs.id)}`,
+        source: String(n.id),
+        sourceHandle: flowHandleStatics.observableSourceId,
+        target: `obs:${String(n.id)}:${String(obs.id)}`,
+        style: { stroke: flowNodeStyleStatics.edgeStroke },
+      })),
+    );
+
+    return [...flowEdges, ...observableEdges];
+  }, [laidOutFlow, positions, routes]);
+
   if (flow.nodes.length === 0) {
     return null;
   }
@@ -204,193 +430,6 @@ export const ReactFlowDiagramWidget = ({
   if (positions === null || laidOutFlow === null) {
     return null;
   }
-
-  // Anchor context for the comment affordance. Spread into each card's data only when composing is
-  // allowed, so the cards themselves need no separate visibility flag to check.
-  const commentAnchorData =
-    commentQuestId === undefined ? {} : { questId: commentQuestId, flowId: laidOutFlow.id };
-
-  // `comments` spans the WHOLE quest across every flow (see the prop doc above), so scope down to
-  // THIS flow and count per box in one pass here, rather than letting boxCommentsTransformer
-  // re-scan the full array once per node AND once per observable below — that repeated full-array
-  // filter, multiplied by every box the canvas draws, is exactly the nested-scan shape a Map lookup
-  // replaces with a single O(comments) pass plus O(1) reads.
-  const nodeCommentCounts = new Map<FlowNodeId, CommentCount>();
-  const observableCommentCounts = new Map<FlowNodeId, Map<ObservableId, CommentCount>>();
-  comments
-    .filter((c) => c.flowId === laidOutFlow.id)
-    .forEach((c) => {
-      if (c.observableId === undefined) {
-        const priorCount = nodeCommentCounts.get(c.nodeId);
-        nodeCommentCounts.set(
-          c.nodeId,
-          commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
-        );
-        return;
-      }
-      const perObservable =
-        observableCommentCounts.get(c.nodeId) ?? new Map<ObservableId, CommentCount>();
-      const priorCount = perObservable.get(c.observableId);
-      perObservable.set(
-        c.observableId,
-        commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
-      );
-      observableCommentCounts.set(c.nodeId, perObservable);
-    });
-  const zeroCommentCount = commentCountContract.parse(0);
-
-  // The node card is the selected box only when the selection names no observable — an assertion
-  // card's selection leaves its parent card unringed, because the panel is showing the assertion.
-  const selectedCardNodeId =
-    selectedAnchor !== null && selectedAnchor.observableId === undefined
-      ? selectedAnchor.nodeId
-      : undefined;
-
-  // React Flow paints a node `visibility: hidden` until its own ResizeObserver has measured it, and
-  // it DISCARDS that measurement every time a render hands it a fresh node object (`adoptUserNodes`
-  // keeps internals only for an identical object reference). This widget rebuilds its node objects
-  // on every render, so a discard that lands in the same React batch as the measurement leaves the
-  // node permanently unmeasured — a blank canvas with the cards in the DOM but invisible.
-  // `initialWidth`/`initialHeight` is React Flow's answer: a node that already knows its box is
-  // never "unmeasured", so it paints from the first frame whatever the measurement does. The box is
-  // the SAME estimate `elkLayoutAdapter` laid the graph out with (elkLayoutStatics.labelEstimate),
-  // so the pre-measurement size matches the rectangle ELK reserved for the card.
-  const flowNodes = laidOutFlow.nodes.map((n) => {
-    const { labelEstimate } = elkLayoutStatics;
-    const labelLines = Math.max(1, Math.ceil(String(n.label).length / labelEstimate.charsPerLine));
-    const cardHeight =
-      labelEstimate.chromeHeight +
-      labelLines * labelEstimate.lineHeight +
-      labelEstimate.badgeHeight +
-      labelEstimate.buffer;
-    return {
-      id: String(n.id),
-      type: n.type,
-      position: positions[String(n.id)] ?? { x: 0, y: 0 },
-      initialWidth: elkLayoutStatics.node.width,
-      initialHeight: cardHeight,
-      selected: selectedCardNodeId !== undefined && String(selectedCardNodeId) === String(n.id),
-      data: reactFlowNodeDataContract.parse({
-        ...commentAnchorData,
-        nodeId: n.id,
-        label: n.label,
-        nodeType: n.type,
-        // Badge counts the contracts anchored to this node — the same nodeId match the detail panel
-        // uses. Contract arrays are small, so a per-node filter is fine.
-        contractCount: contractCountContract.parse(
-          contracts.filter((c) => String(c.nodeId) === String(n.id)).length,
-        ),
-        // Only the comments anchored to the node ITSELF — the ones on its assertion cards belong to
-        // those cards' own badges, so the badge here always agrees with the list the panel shows.
-        commentCount: nodeCommentCounts.get(n.id) ?? zeroCommentCount,
-      }),
-    };
-  });
-
-  // Each observable becomes its own card stacked into a column to the RIGHT of its flow node, so a
-  // reviewer reads every assertion on the canvas. Positions are computed relative to the flow
-  // node's ELK position; ELK reserves each node enough height to clear its whole column.
-  const observableNodes = laidOutFlow.nodes.flatMap((n) => {
-    const base = positions[String(n.id)] ?? { x: 0, y: 0 };
-    const { observable } = elkLayoutStatics;
-    const columnX = base.x + elkLayoutStatics.node.width + observable.gap;
-    let cursorY = 0;
-    return n.observables.map((obs) => {
-      const obsLines = Math.max(
-        1,
-        Math.ceil(String(obs.description).length / observable.labelEstimate.charsPerLine),
-      );
-      const obsCardHeight =
-        observable.labelEstimate.chromeHeight +
-        obsLines * observable.labelEstimate.lineHeight +
-        observable.labelEstimate.buffer;
-      const y = base.y + cursorY;
-      cursorY += obsCardHeight + observable.rowGap;
-      return {
-        id: `obs:${String(n.id)}:${String(obs.id)}`,
-        type: 'observable',
-        position: { x: columnX, y },
-        initialWidth: observable.width,
-        initialHeight: obsCardHeight,
-        data: flowObservableNodeDataContract.parse({
-          ...commentAnchorData,
-          observableId: obs.id,
-          // The parent node, so an observable comment stays findable from the node it branches off.
-          nodeId: n.id,
-          outcomeType: obs.type,
-          description: obs.description,
-          commentCount: observableCommentCounts.get(n.id)?.get(obs.id) ?? zeroCommentCount,
-        }),
-      };
-    });
-  });
-
-  // Portal stand-ins for edges that hand off to a node in another flow. Their id is the raw
-  // `flowId:nodeId` reference so the cross-flow edge (source/target = String(e.to)) resolves to
-  // this node instead of dangling. Clicking one is a no-op — onNodeClick only matches flow.nodes.
-  const portals = flowCrossFlowPortalsTransformer({
-    nodes: laidOutFlow.nodes,
-    edges: laidOutFlow.edges,
-  });
-  const portalNodes = portals.map((portal) => {
-    const { labelEstimate } = elkLayoutStatics;
-    const portalLines = Math.max(
-      1,
-      Math.ceil(String(portal.label).length / labelEstimate.charsPerLine),
-    );
-    return {
-      id: String(portal.reference),
-      type: 'portal',
-      position: positions[String(portal.reference)] ?? { x: 0, y: 0 },
-      initialWidth: elkLayoutStatics.node.width,
-      initialHeight:
-        labelEstimate.chromeHeight + portalLines * labelEstimate.lineHeight + labelEstimate.buffer,
-      data: portal,
-    };
-  });
-
-  const nodes = [...flowNodes, ...observableNodes, ...portalNodes];
-
-  const flowEdges = laidOutFlow.edges.map((e) => {
-    // type 'flow' selects the custom edge (xyflowEdgeAdapter). `data.route` is the ELK-computed
-    // path the edge draws itself along (routed clear of the cards); `data.label` is the wrapping
-    // label box. The top-level `label` is kept only so the jsdom test mock (which renders
-    // FLOW_EDGE_LABEL from `edge.label`) still works.
-    const id = String(e.id);
-    const route = routes?.[id];
-    const routeData = route === undefined ? {} : { route };
-    // A back-edge (target laid out ABOVE the source) is a loop; attach it to the side loop handles
-    // so it exits/re-enters from the RIGHT of the cards instead of the top/bottom.
-    const isLoop = (positions[String(e.to)]?.y ?? 0) < (positions[String(e.from)]?.y ?? 0);
-    const loopHandles = isLoop
-      ? {
-          sourceHandle: flowHandleStatics.loopSourceId,
-          targetHandle: flowHandleStatics.loopTargetId,
-        }
-      : {};
-    const base = { id, source: String(e.from), target: String(e.to), type: 'flow', ...loopHandles };
-    if (e.label === undefined) {
-      return { ...base, data: routeData };
-    }
-    return { ...base, label: e.label, data: { label: e.label, ...routeData } };
-  });
-
-  // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so the
-  // column reads as branching off that node. No label, so the jsdom mock (label-only) skips them.
-  // These are the ONE edge kind that stays on React Flow's built-in edge component rather than
-  // xyflowEdgeAdapter, so they need the palette stroke applied here or they alone paint in the
-  // library's cool default grey while every flow edge is warm.
-  const observableEdges = laidOutFlow.nodes.flatMap((n) =>
-    n.observables.map((obs) => ({
-      id: `obs-edge:${String(n.id)}:${String(obs.id)}`,
-      source: String(n.id),
-      sourceHandle: flowHandleStatics.observableSourceId,
-      target: `obs:${String(n.id)}:${String(obs.id)}`,
-      style: { stroke: flowNodeStyleStatics.edgeStroke },
-    })),
-  );
-
-  const edges = [...flowEdges, ...observableEdges];
 
   // Resolve the selection against the flow on the canvas every render, so a selected box that
   // disappears from the spec (an agent turn deleting a node) closes its panel instead of stranding

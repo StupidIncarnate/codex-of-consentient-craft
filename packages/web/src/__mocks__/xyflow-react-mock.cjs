@@ -106,6 +106,33 @@ const MarkerType = {
   ArrowClosed: 'arrowclosed',
 };
 
+// Node measurement is a real-browser concern (layout + ResizeObserver), so jsdom stands in for it
+// through the DOM: the proxy states the answer by setting an attribute on <body>, and every forced
+// re-measure appends the ids it asked for to another. Routing both through the DOM rather than
+// mock-only module exports keeps the proxy importing the SAME `@xyflow/react` surface the adapter
+// does — a mock-only export would not exist on the real package's types. The separators are chosen
+// to be characters no node id can hold: ids are kebab-case, `flowId:nodeId` or `obs:node:assertion`.
+const NODES_INITIALIZED_ATTR = 'data-nodes-initialized';
+const FORCED_MEASURE_ATTR = 'data-forced-measure-ids';
+const CALL_SEPARATOR = '|';
+const ID_SEPARATOR = '\n';
+
+const useNodesInitialized = () => document.body.getAttribute(NODES_INITIALIZED_ATTR) === 'true';
+
+// One shared function, because the real hook returns a `useCallback(..., [])` — a fresh arrow per
+// render would change identity every render and re-fire any effect depending on it, which is the
+// exact churn the consumer's effect is written to avoid.
+const recordForcedMeasure = (ids) => {
+  const recorded = Array.isArray(ids) ? ids.join(ID_SEPARATOR) : String(ids);
+  const prior = document.body.getAttribute(FORCED_MEASURE_ATTR);
+  document.body.setAttribute(
+    FORCED_MEASURE_ATTR,
+    prior === null || prior === '' ? recorded : prior + CALL_SEPARATOR + recorded,
+  );
+};
+
+const useUpdateNodeInternals = () => recordForcedMeasure;
+
 const useReactFlow = jest.fn(() => ({
   getNodes: jest.fn(() => []),
   getEdges: jest.fn(() => []),
@@ -132,6 +159,8 @@ module.exports = {
   Position,
   MarkerType,
   useReactFlow,
+  useNodesInitialized,
+  useUpdateNodeInternals,
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,

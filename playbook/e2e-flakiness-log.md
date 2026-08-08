@@ -199,11 +199,15 @@ on the first navigation.
   matters. It also cannot be added without hoisting a
   `useMemo` above the widget's three early returns. Still worth doing for churn/perf — see below.
 
-**Still open (not fixed here):** `ReactFlowDiagramWidget` hands React Flow a brand-new `nodes` array of brand-new node
-objects on every render, so React Flow re-adopts and re-measures the entire graph on every render (and resets
-`handleBounds` each time). `initialWidth`/`initialHeight` makes the user-visible failure mode unreachable but does not
-stop the churn; a lost measurement still leaves
-`handleBounds` undefined, which can drop the assertion-card connector edges for that mount.
+**Closed by the measure-recovery layer.** The remaining half of this — `ReactFlowDiagramWidget` handing React Flow
+brand-new node objects, so `adoptUserNodes` re-adopts and resets `handleBounds` on every render — is now covered from
+both ends. `useMemo` on `nodes`/`edges` removes the churn (the early returns were moved BELOW the memos to allow it),
+and `adapters/xyflow/react-flow/node-measure-layer-adapter.ts` recovers the case a memo cannot: when React Flow reports
+`nodesInitialized === false` with cards on screen it calls `updateNodeInternals`, which re-measures from the DOM on the
+next frame. That is what makes the memo's blind spot — a genuine `flow`-identity change from the WS `quest-modified`
+landing in the measurement frame — survivable rather than terminal. Symptom when it was not: a canvas of correct cards
+with NO EDGES AT ALL, since an edge whose endpoints have no handle bounds is dropped silently, and remounting the
+diagram (switching flow tabs) was the only way back.
 
 **Reproducer:**
 
