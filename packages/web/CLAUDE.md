@@ -72,10 +72,17 @@ The binding does three things a bare broker call does not:
 1. **Appends a synthetic user entry** to the chat panel immediately, so the message the
    user just sent is visible without a browser refresh.
 2. **Owns the `questId`-scoped subscription** the reply arrives on. There is one
-   `chatOutput$` subscription per bound quest, filtered by
-   `p.questId === questIdRef.current || p.questId === undefined` (the second arm carries the
-   `/dumpster-create` monitor-session path, which emits untagged). The send actions discard
-   the broker's result entirely — routing is by quest, not by a per-send handle.
+   `chatOutput$` subscription per bound quest, filtered by `p.questId === questIdRef.current`
+   and nothing else. The send actions discard the broker's result entirely — routing is by
+   quest, not by a per-send handle.
+
+   **Never widen that predicate to accept an untagged payload.** Two tabs open on the same
+   guild are two sockets onto one server, so a frame this binding accepts without checking
+   the id is another quest's transcript rendering in this one's panel — and because every
+   accepted frame calls `setStreamingFromOutput(true)`, a quest parked on an approval gate
+   also starts reporting itself as streaming. The server resolves the owning quest before it
+   delivers (`server-init-responder`'s `workItemQuestIdCache`), so a frame arriving on a
+   quest subscription always carries its id; one that does not is not addressed here.
 3. **Arms the running indicator**, so the control reads STOP while the turn is in flight
    rather than PLAY.
 

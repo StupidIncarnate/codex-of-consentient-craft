@@ -124,6 +124,19 @@ export const ServerInitResponder = ({
   // viewer page would hang on the loading state forever. The entry is removed when
   // chat-history-complete fires for that chatProcessId, or when the client disconnects.
   const replayClientByChatProcessId = new Map<ProcessId, WsClient>();
+  // workItemId → owning questId. The quest-driven watchers emit chat-output tagged with a
+  // workItemId but no questId (one watcher can serve work items across several quests, so
+  // there is no single id to stamp at the source), and a frame this map cannot answer for
+  // is deliverable to nobody — see the per-quest fan-out below.
+  //
+  // It is filled from the quest loads this server already performs: every `subscribe-quest`
+  // and every outbox `quest-modified`. Both carry the full `workItems[]`, and the outbox
+  // fires on the very persist that mints a work item or stamps its session, so the mapping
+  // for a work item lands before that work item's agent can produce a line. That ordering
+  // is what keeps resolution synchronous — an async lookup per frame would deliver the
+  // opening frames of a transcript after later ones. Entries last the process lifetime; a
+  // work item's owning quest never changes.
+  const workItemQuestIdCache = new Map<QuestWorkItemId, QuestId>();
 
   app.get(
     '/ws',
@@ -223,6 +236,9 @@ export const ServerInitResponder = ({
             // Replay-on-subscribe — load the quest, replay each work item's session JSONL.
             orchestratorLoadQuestAdapter({ questId: subQuestId })
               .then(async (quest) => {
+                for (const wi of quest.workItems) {
+                  workItemQuestIdCache.set(wi.id, quest.id);
+                }
                 // Send current quest state to the subscribing client BEFORE replay.
                 // Without this, completed quests (no longer being modified) would
                 // never deliver quest data to a freshly subscribed client.
@@ -513,11 +529,6 @@ export const ServerInitResponder = ({
   // shape) can pass through; everything else session-sourced is dropped.
   const monitorTaskToolUseIds = new Set<ToolName>();
 
-  // Cache of workItemId → questId resolved via the orchestrator. The first chat-output
-  // emit for a given workItemId may broadcast without questId (lookup pending); subsequent
-  // emits stamp it from this map. Hits last for the server process lifetime.
-  const workItemQuestIdCache = new Map<QuestWorkItemId, QuestId>();
-
   // Per-chatProcessId latched questId. The /dumpster-create monitor-session path emits
   // chat-output with no workItemId — ChaosWhisperer runs inside the user's own Claude Code
   // session, not a Task-dispatched sub-agent. To route those emits to the right per-quest
@@ -573,11 +584,16 @@ export const ServerInitResponder = ({
           effectivePayload = filterResult.payload;
         }
 
-        // Resolve questId via workItemId lookup when the payload carries a workItemId but
-        // no questId — used by the /dumpster-launch monitor session's emits, where the
-        // active-quest singleton is gone. Cache hits stamp synchronously; cache misses
-        // broadcast without questId and trigger a background lookup that populates the
-        // cache for the next emit.
+        // Stamp the owning quest onto a payload that carries only a workItemId — the shape
+        // every quest-driven watcher emit has. A hit stamps synchronously, which is the
+        // whole point: routing has to be decided on this tick or the frame would have to be
+        // held, and held frames arrive out of order behind the ones that resolved instantly.
+        //
+        // A miss means the quest's persist has not reached this process yet. The frame is
+        // NOT delivered — an unroutable frame has no subscriber it can be proven to belong
+        // to — and the lookup below fills the cache so the rest of that work item's
+        // transcript routes. The subscribe-quest replay reads the same lines back off disk,
+        // so nothing said before the mapping landed is lost to the reader.
         let resolvedQuestId = originalPayloadQuestId;
         if (
           resolvedQuestId === undefined &&
@@ -643,29 +659,13 @@ export const ServerInitResponder = ({
           const serializedQuestMsg = JSON.stringify(envelope);
           const delivered = new Set<WsClient>();
 
-          // Monitor-session chat-output fallback: when no questId could be derived (no
-          // workItemId on the payload AND no questId latched from prior entries), fan
-          // the chat-output out to every currently-subscribed client. ChaosWhisperer in
-          // the /dumpster-create flow runs inside the user's Claude Code session — its
-          // tool_uses have no work item and the watcher tails from 'end' after server
-          // restart so the questId latch may be cold. Without this fallback the events
-          // never reach the web. The web-side binding filters chat-output entries by
-          // questId-match-or-null and only renders the ones meant for its current view.
-          // We do NOT return after this — the readonly-replay direct-send path below
-          // still needs to fire for replay clients that subscribed via replay-history,
-          // and `delivered` dedupes any client that was reached both ways.
-          if (payloadQuestId === undefined && type === 'chat-output') {
-            for (const client of clientSubscriptions.keys()) {
-              try {
-                client.send(serializedQuestMsg);
-                delivered.add(client);
-              } catch {
-                clientSubscriptions.delete(client);
-                clients.delete(client);
-              }
-            }
-          }
-
+          // A per-quest event whose questId could not be resolved is addressed to nobody.
+          // Every quest subscription is keyed by id, so the only way to deliver such a
+          // frame through this path would be to send it to EVERY subscriber — which puts
+          // one quest's transcript into another quest's panel, and arms that panel's
+          // streaming indicator while it sits on an approval gate. It still falls through
+          // to the readonly-replay direct-send below, which routes orphan-session frames
+          // by chatProcessId to the SessionViewWidget that asked for them.
           if (payloadQuestId) {
             for (const [client, subs] of clientSubscriptions) {
               if (!subs.has(payloadQuestId)) continue;
@@ -803,6 +803,12 @@ export const ServerInitResponder = ({
     onQuestChanged: ({ questId }) => {
       orchestratorLoadQuestAdapter({ questId })
         .then((quest) => {
+          // The outbox fires on every quest persist, so this is where a newly-minted work
+          // item's owning quest becomes known — before its agent has a session to write
+          // from, and regardless of whether any browser is subscribed to that quest.
+          for (const wi of quest.workItems) {
+            workItemQuestIdCache.set(wi.id, questId);
+          }
           const outboxEnvelope = wsMessageContract.parse({
             type: 'quest-modified',
             payload: { questId, quest },

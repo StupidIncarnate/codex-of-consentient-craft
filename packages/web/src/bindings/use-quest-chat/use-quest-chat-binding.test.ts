@@ -225,8 +225,73 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 workItemId: QuestWorkItemIdStub(),
+                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d480' }),
                 chatProcessId: ProcessIdStub({ value: 'proc-orphan' }),
-                entries: [{ role: 'assistant', type: 'text', content: 'orphan' }],
+                // Fully-formed entries: the payload must be rejected by the questId filter,
+                // not by chatEntryContract. Entries missing uuid/timestamp are dropped as
+                // unparseable before the filter is ever consulted, which passes this
+                // assertion even with no quest scoping at all.
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'orphan',
+                    uuid: '00000000-0000-4000-8000-0000000000a1',
+                    timestamp: '2025-01-01T00:00:00.000Z',
+                  },
+                ],
+              },
+              timestamp: '2025-01-01T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current).toStrictEqual({
+        entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
+        slotEntries: new Map(),
+        quest: null,
+        loadError: null,
+        pendingClarification: null,
+        isStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
+        sendMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+      });
+    });
+
+    it('EDGE: {chat-output tagged with a DIFFERENT questId} => is ignored, leaving this quest idle', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-being-viewed' });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-running-in-another-tab',
+                workItemId: QuestWorkItemIdStub(),
+                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d481' }),
+                chatProcessId: ProcessIdStub({ value: 'proc-other-quest' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'work belonging to the other quest',
+                    uuid: '00000000-0000-4000-8000-0000000000a2',
+                    timestamp: '2025-01-01T00:00:00.000Z',
+                  },
+                ],
               },
               timestamp: '2025-01-01T00:00:00.000Z',
             }),
