@@ -15,6 +15,7 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsExistsAdapter } from '../../../adapters/fs/exists/fs-exists-adapter';
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
+import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
@@ -33,6 +34,7 @@ import type { FileContent } from '../../../contracts/file-content/file-content-c
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
+import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const installTestbedCreateBroker = ({
   baseName,
@@ -107,6 +109,15 @@ export const installTestbedCreateBroker = ({
       }
       const content = fsReadFileAdapter({ filePath: fullPath });
       return fileContentContract.parse(content);
+    },
+
+    listDir: ({ relativePath }: { relativePath: RelativePath }): readonly FileName[] | null => {
+      const fullPath = pathJoinAdapter({ paths: [projectPath, relativePath] });
+      if (!fsExistsAdapter({ filePath: fullPath })) {
+        return null;
+      }
+      const entries = fsReaddirAdapter({ dirPath: fullPath });
+      return entries.sort();
     },
 
     getClaudeSettings: (): unknown => {
