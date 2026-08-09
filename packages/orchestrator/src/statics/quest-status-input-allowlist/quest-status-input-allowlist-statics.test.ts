@@ -131,7 +131,7 @@ describe('questStatusInputAllowlistStatics', () => {
         allowedPlanningNotesFields: [],
       },
       complete: {
-        allowedFields: [],
+        allowedFields: ['status'],
         flowsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
@@ -213,6 +213,24 @@ describe('questStatusInputAllowlistStatics', () => {
 
   it("VALID: in_progress => allowedPlanningNotesFields is 'all' (no per-phase sub-field gating; execution agents write blightReports)", () => {
     expect(questStatusInputAllowlistStatics.in_progress.allowedPlanningNotesFields).toBe('all');
+  });
+
+  describe("'status' allowlist at the terminal statuses (the merge edge)", () => {
+    it("VALID: {status: complete} => allowedFields includes 'status', so the merge route can move a finished quest to merging", () => {
+      expect(questStatusInputAllowlistStatics.complete.allowedFields).toStrictEqual(['status']);
+    });
+
+    it("VALID: {status: blocked} => allowedFields includes 'status', so the merge route can move a halted quest to merging", () => {
+      expect(questStatusInputAllowlistStatics.blocked.allowedFields).toStrictEqual(['status']);
+    });
+
+    it('VALID: {status: merged} => allowedFields is empty, since nothing transitions out of a merged quest', () => {
+      expect(questStatusInputAllowlistStatics.merged.allowedFields).toStrictEqual([]);
+    });
+
+    it('VALID: {status: abandoned} => allowedFields is empty, since nothing transitions out of an abandoned quest', () => {
+      expect(questStatusInputAllowlistStatics.abandoned.allowedFields).toStrictEqual([]);
+    });
   });
 
   describe("'comments' allowlist (compose controls render only before approved)", () => {

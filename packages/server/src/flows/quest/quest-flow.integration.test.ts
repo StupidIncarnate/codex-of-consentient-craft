@@ -335,6 +335,23 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('POST /api/quests/:questId/merge', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestMergeResponder and returns 400 quest-not-found', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/merge`, {
+        method: 'POST',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: 'Quest not found',
+      });
+    });
+  });
+
   describe('POST /api/quests/:questId/followup', () => {
     it('VALID: {questId without matching quest} => delegates to QuestFollowupResponder and returns 500 quest-not-found', async () => {
       const app = QuestFlow();

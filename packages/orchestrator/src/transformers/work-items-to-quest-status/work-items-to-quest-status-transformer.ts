@@ -83,7 +83,18 @@ export const workItemsToQuestStatusTransformer = ({
   // work item whose operation item chain continued (spiritmender + fresh ward appended on the
   // ledger) is resolved by the pendingOperations check below keeping the quest in_progress.
   const dependedOnIds = new Set(derivationWorkItems.flatMap((item) => item.dependsOn));
-  const hasUnresolvedSinkFailure = derivationWorkItems.some(
+  // At `merging` the ONLY failure that can halt the quest is the merge's own. A quest that was
+  // `blocked` when Merge was pressed still carries the failed work item that halted it, and
+  // pressing Merge is a deliberate choice to send the work home despite that blocker — scanning it
+  // again would pin the quest short of `merged` forever. Narrowing the scan rather than skipping it
+  // is what keeps a FAILED merge honest: a `warpgate` item left failed still derives `blocked`, so
+  // a merge that could not land never reads as merged. Sink-ness itself is a property of the whole
+  // graph, so `supersededIds` and `dependedOnIds` are still computed over every item.
+  const failureCarryingItems =
+    currentStatus === 'merging'
+      ? derivationWorkItems.filter((item) => item.role === 'warpgate')
+      : derivationWorkItems;
+  const hasUnresolvedSinkFailure = failureCarryingItems.some(
     (item) =>
       isFailureWorkItemStatusGuard({ status: item.status }) &&
       !supersededIds.has(item.id) &&

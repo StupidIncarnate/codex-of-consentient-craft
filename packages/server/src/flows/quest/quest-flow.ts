@@ -17,6 +17,7 @@ import { QuestFindBySessionResponder } from '../../responders/quest/find-by-sess
 import { QuestFollowupResponder } from '../../responders/quest/followup/quest-followup-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
+import { QuestMergeResponder } from '../../responders/quest/merge/quest-merge-responder';
 import { QuestNewResponder } from '../../responders/quest/new/quest-new-responder';
 import { QuestsQueueResponder } from '../../responders/quests/queue/quests-queue-responder';
 import { QuestAbandonResponder } from '../../responders/quest/abandon/quest-abandon-responder';
@@ -106,6 +107,11 @@ export const QuestFlow = (): Hono => {
 
   app.post(apiRoutesStatics.quests.abandon, async (c) => {
     const result = await QuestAbandonResponder({ params: { questId: c.req.param('questId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.merge, async (c) => {
+    const result = await QuestMergeResponder({ params: { questId: c.req.param('questId') } });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 

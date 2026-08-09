@@ -176,8 +176,14 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
+  // `status` is writable at `complete` so the merge route can move a finished quest to `merging`.
+  // The transition guard is what bounds it: `questStatusTransitionsStatics.complete` lists
+  // `merging` alone, so this allowlist entry opens exactly that one edge and nothing else. Without
+  // it the field-level gate rejects the write before the transition guard is ever consulted, and a
+  // complete quest can never be merged. `merged` and `abandoned` stay closed — nothing transitions
+  // out of either.
   complete: {
-    allowedFields: [],
+    allowedFields: ['status'],
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },

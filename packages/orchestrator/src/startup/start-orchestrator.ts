@@ -155,6 +155,9 @@ export const StartOrchestrator = {
   }): Promise<{ resumed: boolean; restoredStatus: QuestStatus }> =>
     OrchestrationFlow.resume({ questId }),
 
+  mergeQuest: async ({ questId }: { questId: QuestId }): Promise<{ merging: boolean }> =>
+    OrchestrationFlow.merge({ questId }),
+
   abandonQuest: async ({ questId }: { questId: QuestId }): Promise<{ abandoned: boolean }> =>
     OrchestrationFlow.abandon({ questId }),
 

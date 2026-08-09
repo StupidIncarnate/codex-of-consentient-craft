@@ -20,6 +20,7 @@ describe('apiRoutesStatics', () => {
         pause: '/api/quests/:questId/pause',
         resume: '/api/quests/:questId/resume',
         abandon: '/api/quests/:questId/abandon',
+        merge: '/api/quests/:questId/merge',
         delete: '/api/quests/:questId',
         wardDetail: '/api/quests/:questId/ward-results/:wardResultId',
         summary: '/api/quests/:questId/summary',

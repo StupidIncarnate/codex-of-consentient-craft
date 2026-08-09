@@ -135,6 +135,51 @@ describe('workItemsToQuestStatusTransformer', () => {
 
       expect(result).toBe('blocked');
     });
+
+    // Regression guard: a quest that was `blocked` when the user pressed Merge still carries the
+    // failed sink work item that blocked it. That failure is precisely what the user chose to merge
+    // past, so it must not pin the quest short of `merged` — only a failed `warpgate` item does.
+    it("VALID: {currentStatus: 'merging', a failed sink work item from the earlier block, warpgate item complete, all operations complete} => merged", () => {
+      const failedSinkId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const failedSink = WorkItemStub({ id: failedSinkId, status: 'failed' });
+      const warpgateItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        role: 'warpgate',
+        status: 'complete',
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [failedSink, warpgateItem],
+        operations: [OperationItemStub({ role: 'warpgate', status: 'complete' })],
+        currentStatus: 'merging',
+      });
+
+      expect(result).toBe('merged');
+    });
+
+    // Pins that the sink-failure-blocks behaviour is untouched OUTSIDE `merging` — the narrowing is
+    // scoped to the one status a merge runs at, not a blanket exemption for every sink failure.
+    it("VALID: {currentStatus: 'in_progress', unresolved sink failure, all operations complete} => blocked", () => {
+      const completeId = QuestWorkItemIdStub({
+        value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+      });
+      const completeItem = WorkItemStub({ id: completeId, status: 'complete' });
+      const failedSink = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' }),
+        status: 'failed',
+        dependsOn: [completeId],
+      });
+
+      const result = workItemsToQuestStatusTransformer({
+        workItems: [completeItem, failedSink],
+        operations: [OperationItemStub({ status: 'complete' })],
+        currentStatus: 'in_progress',
+      });
+
+      expect(result).toBe('blocked');
+    });
   });
 
   describe('all work items terminal — ledger decides the outcome', () => {

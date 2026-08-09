@@ -15,6 +15,7 @@ describe('OrchestrationFlow', () => {
         pause: expect.any(Function),
         resume: expect.any(Function),
         abandon: expect.any(Function),
+        merge: expect.any(Function),
         delete: expect.any(Function),
         getStatus: expect.any(Function),
         recoverActiveQuests: expect.any(Function),
