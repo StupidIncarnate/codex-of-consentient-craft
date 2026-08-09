@@ -18,5 +18,5 @@ export const questStartBroker = async ({
 }): Promise<{ processId: ProcessId }> =>
   fetchPostAdapter<{ processId: ProcessId }>({
     url: webConfigStatics.api.routes.questStart.replace(':questId', questId),
-    body: {},
+    body: undefined,
   });

@@ -19,5 +19,5 @@ export const questMergeBroker = async ({
 }): Promise<{ merging: boolean }> =>
   fetchPostAdapter<{ merging: boolean }>({
     url: webConfigStatics.api.routes.questMerge.replace(':questId', questId),
-    body: {},
+    body: undefined,
   });

@@ -15,6 +15,21 @@ describe('questAbandonBroker', () => {
 
       expect(result).toStrictEqual({ abandoned: true });
     });
+
+    it('VALID: {questId} => sends exactly one bodyless POST to the abandon route', async () => {
+      const proxy = questAbandonBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupAbandon();
+
+      await questAbandonBroker({ questId });
+
+      // The questId travels in the URL, so the POST carries nothing to parse. A `{}` on the wire
+      // records as `{}` here instead of the parse error and fails this assertion.
+      await expect(proxy.getRequestBodies()).resolves.toStrictEqual([
+        { bodyParseError: 'SyntaxError: Unexpected end of JSON input' },
+      ]);
+    });
   });
 
   describe('error handling', () => {

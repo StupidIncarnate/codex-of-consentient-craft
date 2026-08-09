@@ -24,5 +24,5 @@ export const questResumeBroker = async ({
 }): Promise<QuestResumeOutcome> =>
   fetchPostAdapter<QuestResumeOutcome>({
     url: webConfigStatics.api.routes.questResume.replace(':questId', questId),
-    body: {},
+    body: undefined,
   });
