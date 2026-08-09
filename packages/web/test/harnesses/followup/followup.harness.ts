@@ -5,7 +5,9 @@
  * vacuously there) and live transcript state across a real reload. It also owns the tavernkeeper
  * session JSONL, because the FOLLOW-UP transcript is rendered from that file and the fake Claude
  * CLI writes it only once at exit — a spec observing a half-written transcript mid-run has to
- * write the turns itself, at controlled timestamps, or it cannot pin an order at all.
+ * write the turns itself, at controlled timestamps, or it cannot pin an order at all. It also owns
+ * the one precondition no HTTP route offers: moving a quest's status out from under a tab that is
+ * already open, which is the only way a browser reaches the follow-up route's rejection at all.
  *
  * USAGE:
  * const followup = followupHarness({ page, request, guildPath });
@@ -15,7 +17,8 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
-import { readFileSync, writeFileSync } from 'fs';
+import { appendFileSync, readFileSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 
 import type { APIRequestContext, Page } from '@playwright/test';
 
@@ -45,6 +48,10 @@ const ADJACENCY_EPSILON_PX = 1;
 // for the same reason as flow-diagram.harness.ts's MIN_CANVAS_HEIGHT_PX: the floor is the
 // observable itself, so it must not follow the widget's own value down if that value regresses.
 const EXECUTION_FLOOR_MIN_HEIGHT_PX = 160;
+// The label ChatMessageWidget paints above a `role: 'system'` entry's content. It is what
+// separates a failure the user can read from an ordinary transcript turn, so an error read that
+// did not key on it would count the user's own message as an error and never notice a missing one.
+const ERROR_ENTRY_LABEL = 'ERROR';
 
 // Every stream line this harness writes carries an EXPLICIT uuid and timestamp.
 // - timestamp: the FOLLOW-UP transcript is ordered by `sortChatEntriesByTimestampTransformer`,
@@ -85,8 +92,10 @@ export const followupHarness = ({
   }) => Promise<{ questId: QuestId; questFilePath: FilePath; urlSlug: UrlSlug }>;
   reopen: (params: { urlSlug: string; questId: string }) => Promise<void>;
   reloadQuestPage: () => Promise<void>;
+  setQuestStatusOnDisk: (params: { questFilePath: string; status: string }) => void;
   pressFollowup: () => Promise<void>;
   sendFollowupMessage: (params: { text: string }) => Promise<void>;
+  errorMessages: () => Promise<ContentText[]>;
   seedTavernkeeperSession: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
@@ -185,6 +194,35 @@ export const followupHarness = ({
     await page.getByTestId('QUEST_CHAT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
   };
 
+  // Rewrites ONLY the status field of an already-written quest.json, then appends the same
+  // quest-modified outbox line questPersistBroker writes in production so the running server
+  // re-reads the file and the browser learns the new status. This is how a FOLLOW-UP tab is made
+  // STALE: it was opened while the quest was still follow-up-chatable, and the quest moved on
+  // underneath it. It is never the mutation under test — the message that meets the moved status
+  // is always typed into the real composer.
+  const setQuestStatusOnDisk = ({
+    questFilePath,
+    status,
+  }: {
+    questFilePath: string;
+    status: string;
+  }): void => {
+    const questJson = JSON.parse(readFileSync(questFilePath, 'utf8')) as Record<
+      PropertyKey,
+      unknown
+    >;
+    questJson.status = status;
+    writeFileSync(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
+
+    // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json —
+    // four levels up is DUNGEONMASTER_HOME, where the event outbox lives.
+    const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
+    appendFileSync(
+      `${dungeonmasterHome}/event-outbox.jsonl`,
+      `${JSON.stringify({ questId: String(questJson.id), timestamp: new Date().toISOString() })}\n`,
+    );
+  };
+
   const pressFollowup = async (): Promise<void> => {
     await page.getByTestId('EXECUTION_FOLLOWUP_BUTTON').click();
     await page
@@ -267,6 +305,26 @@ export const followupHarness = ({
       .getByTestId('CHAT_MESSAGE')
       .filter({ hasText: text })
       .count()) > 0;
+
+  // Every failure the FOLLOW-UP tab is showing, as the EXACT string its content node carries —
+  // scoped inside the tab's own CHAT_PANEL like every other transcript read here. Returned as a
+  // list rather than a boolean for two reasons: `transcriptHasText` matches a SUBSTRING, which
+  // cannot tell "the exact 400 body text" from a longer string that merely contains it; and an
+  // exact list makes "this failure and no other" assertable, so a tab naming the WRONG quest's
+  // worktree fails instead of passing on a hasText hit.
+  const errorMessages = async (): Promise<ContentText[]> => {
+    const texts = await page
+      .getByTestId('CHAT_PANEL')
+      .getByTestId('CHAT_MESSAGE')
+      .evaluateAll(
+        (elements, label) =>
+          elements
+            .filter((element) => element.children[0]?.textContent === label)
+            .map((element) => element.children[1]?.textContent ?? ''),
+        ERROR_ENTRY_LABEL,
+      );
+    return texts as ContentText[];
+  };
 
   // The candidates, in the order their messages appear in the transcript's DOM — the only read
   // that can fail on a REORDERED transcript. A set of independent `toBeVisible()` calls passes on
@@ -402,8 +460,10 @@ export const followupHarness = ({
     seedAndOpen,
     reopen,
     reloadQuestPage,
+    setQuestStatusOnDisk,
     pressFollowup,
     sendFollowupMessage,
+    errorMessages,
     seedTavernkeeperSession,
     streamAssistantTurn,
     transcriptHasText,
