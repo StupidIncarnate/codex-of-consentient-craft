@@ -449,10 +449,25 @@ describe('OrchestrationResumeResponder', () => {
 
       const result = await proxy.callResponder({ questId });
 
-      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
-      expect(proxy.getStderrWrites()).toStrictEqual([
-        `[orchestration-resume] worktree restore failed for branch ${branchName}: ${output}\n`,
-      ]);
+      // quest-resume-worktree:observable:resume-triggers-all-three — the user-RESUME third. The
+      // argv proves the SHARED restore body ran here (a rev-parse then a bare `checkout <branch>`,
+      // byte-identical to the argv the startup-recovery and dispatcher thirds assert in
+      // recover-guild-layer-responder.test.ts and scan-once-layer-broker.test.ts), and the log
+      // line's `[orchestration-resume]` prefix is the one thing that differs between the three.
+      expect({
+        result,
+        spawnedArgs: proxy.getWorktreeRestoreSpawnedArgs(),
+        stderrWrites: proxy.getStderrWrites(),
+      }).toStrictEqual({
+        result: { resumed: true, restoredStatus: 'in_progress' },
+        spawnedArgs: [
+          ['rev-parse', '--abbrev-ref', 'HEAD'],
+          ['checkout', branchName],
+        ],
+        stderrWrites: [
+          `[orchestration-resume] worktree restore failed for quest ${questId} on branch ${branchName}: ${output}\n`,
+        ],
+      });
     });
   });
 

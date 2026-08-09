@@ -2,11 +2,14 @@ import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePathStub,
   GuildListItem,
+  QuestBranchName,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
+import { worktreeEnsureQuestBranchBrokerProxy } from '../../worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
+import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/quest-resume-trigger.stub';
 import { questActiveQuestsBrokerProxy } from '../active-quests/quest-active-quests-broker.proxy';
 import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -45,9 +48,41 @@ export const scanOnceLayerBrokerProxy = (): {
   // the scan proceeds past the missing-worktree guard for a REAL worktree resolution — not just
   // for the repo-root fallback every other test already exercises.
   setupQuestWorktree: (params: { quest: Quest; worktreeCwd: RepoRootCwd }) => void;
+  // Same `kind: 'worktree'` override as setupQuestWorktree, plus the git spawns underneath the
+  // real worktreeResumeRestoreBroker body: a rev-parse reporting `currentBranchName`, then a
+  // checkout onto the quest branch. Lets a test drive the DRIFTED half of the discrimination.
+  setupQuestWorktreeDrifted: (params: {
+    quest: Quest;
+    worktreeCwd: RepoRootCwd;
+    branchName: QuestBranchName;
+    currentBranchName: string;
+  }) => void;
+  // The drift-free half: rev-parse already reports the quest branch, so the real broker returns
+  // before spawning any checkout at all.
+  setupQuestWorktreeOnBranch: (params: {
+    quest: Quest;
+    worktreeCwd: RepoRootCwd;
+    branchName: QuestBranchName;
+  }) => void;
+  // Drifted, but the checkout itself fails — the branch stays wrong and the shared restore logs
+  // its trigger-prefixed warning instead of halting the scan.
+  setupQuestWorktreeRestoreFails: (params: {
+    quest: Quest;
+    worktreeCwd: RepoRootCwd;
+    branchName: QuestBranchName;
+    currentBranchName: string;
+    output: string;
+  }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Quest;
   getBlockCalls: () => readonly unknown[];
+  // The git argv actually spawned during this scan — empty when the scan never touched git.
+  // Asserting the complete array proves both the checkout's exact branchName AND that nothing
+  // resembling stash/reset/force ever ran.
+  getRestoreSpawnedArgs: () => readonly unknown[];
+  // Only the dispatcher trigger's own restore warnings, in write order — the shared stderr spy
+  // carries every proxy's lines, so it is filtered down to this trigger's prefix.
+  getRestoreStderrWrites: () => readonly unknown[];
 } => {
   const activeQuestsProxy = questActiveQuestsBrokerProxy();
   computeNextStepFromQuestLayerBrokerProxy();
@@ -61,6 +96,10 @@ export const scanOnceLayerBrokerProxy = (): {
   // blockOnMissingWorktreeLayerBroker calls under the hood.
   questCwdResolveBrokerProxy();
   blockOnMissingWorktreeLayerBrokerProxy();
+  // Stages the git spawns beneath the real shared restore step so a scan that reaches it runs for
+  // real all the way down to `child_process.spawn`, instead of being told the answer by a stub.
+  const ensureQuestBranchProxy = worktreeEnsureQuestBranchBrokerProxy();
+  const dispatchScanTrigger = QuestResumeTriggerStub({ value: 'dispatch-scan' });
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
 
@@ -107,6 +146,56 @@ export const scanOnceLayerBrokerProxy = (): {
         .onceFor([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: worktreeCwd }));
     },
+    setupQuestWorktreeDrifted: ({
+      quest,
+      worktreeCwd,
+      branchName,
+      currentBranchName,
+    }: {
+      quest: Quest;
+      worktreeCwd: RepoRootCwd;
+      branchName: QuestBranchName;
+      currentBranchName: string;
+    }): void => {
+      cwdResolveMock
+        .onceFor([{ questId: quest.id }])
+        .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: worktreeCwd }));
+      ensureQuestBranchProxy.setupDrifted({ currentBranchName });
+      ensureQuestBranchProxy.setupCheckoutSucceeds({ branchName });
+    },
+    setupQuestWorktreeOnBranch: ({
+      quest,
+      worktreeCwd,
+      branchName,
+    }: {
+      quest: Quest;
+      worktreeCwd: RepoRootCwd;
+      branchName: QuestBranchName;
+    }): void => {
+      cwdResolveMock
+        .onceFor([{ questId: quest.id }])
+        .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: worktreeCwd }));
+      ensureQuestBranchProxy.setupOnBranch({ branchName });
+    },
+    setupQuestWorktreeRestoreFails: ({
+      quest,
+      worktreeCwd,
+      branchName,
+      currentBranchName,
+      output,
+    }: {
+      quest: Quest;
+      worktreeCwd: RepoRootCwd;
+      branchName: QuestBranchName;
+      currentBranchName: string;
+      output: string;
+    }): void => {
+      cwdResolveMock
+        .onceFor([{ questId: quest.id }])
+        .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: worktreeCwd }));
+      ensureQuestBranchProxy.setupDrifted({ currentBranchName });
+      ensureQuestBranchProxy.setupCheckoutFails({ branchName, output });
+    },
     // Advance self-heal path: questAdvanceBroker runs a real read-modify-write against the stale
     // quest (find → load → persist), then scan re-reads the quest fresh (find → load) — queue one
     // chain per step, in call order.
@@ -125,5 +214,8 @@ export const scanOnceLayerBrokerProxy = (): {
     // Lets a test prove that an escalated (budget-exhausted) orphan blocked the quest AND that
     // the scan stopped there instead of advancing the ledger and dispatching.
     getBlockCalls: recoverProxy.getBlockCalls,
+    getRestoreSpawnedArgs: ensureQuestBranchProxy.getSpawnedArgsList,
+    getRestoreStderrWrites: (): readonly unknown[] =>
+      ensureQuestBranchProxy.getStderrWrites({ trigger: dispatchScanTrigger }),
   };
 };

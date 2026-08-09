@@ -20,7 +20,7 @@ import type {
   QuestId,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
@@ -31,7 +31,8 @@ import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { worktreeResumeRestoreBroker } from '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker';
+import { worktreeEnsureQuestBranchBroker } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
+import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import {
@@ -110,22 +111,16 @@ export const RecoverGuildLayerResponder = async ({
             return null;
           }
 
-          if (resolution.kind === 'worktree' && quest.branchName !== undefined) {
-            // Never throws. The tree is present, so a failed re-checkout is not a reason to
-            // abandon recovery — log and let the resumed session start from whatever branch the
-            // worktree is actually on.
-            const restoreResult = await worktreeResumeRestoreBroker({
-              worktreePath: absoluteFilePathContract.parse(resolution.cwd),
-              branchName: quest.branchName,
-            });
-            if (!restoreResult.restored) {
-              process.stderr.write(
-                `[recover-guild-layer-responder] failed to restore quest ${quest.id} to branch ${quest.branchName}: ${restoreResult.output}\n`,
-              );
-            }
-          }
+          // The startup-recovery trigger's turn at the one shared restore step. WHEN it runs is
+          // what differs per trigger and stays here: inside this quest's own gate, so a restore
+          // failure is contained to one quest instead of aborting the guild-wide sweep. A
+          // `repo-root` resolution (a legacy pre-worktree quest) falls straight through untouched.
+          await worktreeEnsureQuestBranchBroker({
+            quest,
+            cwdResolution: resolution,
+            trigger: questResumeTriggerContract.parse('recover-guild-layer-responder'),
+          });
 
-          // `repo-root` (a legacy pre-worktree quest) falls straight through here untouched.
           return quest;
         } catch (error: unknown) {
           // One quest's worktree resolution or block must not abort recovery for the guild's

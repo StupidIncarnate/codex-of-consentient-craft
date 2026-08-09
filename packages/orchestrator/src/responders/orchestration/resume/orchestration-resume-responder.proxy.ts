@@ -29,7 +29,7 @@ import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
-import { worktreeResumeRestoreBrokerProxy } from '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker.proxy';
+import { worktreeEnsureQuestBranchBrokerProxy } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.proxy';
 import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
@@ -87,7 +87,7 @@ export const OrchestrationResumeResponderProxy = (): {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildGetProxy = guildGetBrokerProxy();
   questOrchestrationLoopBrokerProxy();
-  const worktreeRestoreProxy = worktreeResumeRestoreBrokerProxy();
+  const ensureQuestBranchProxy = worktreeEnsureQuestBranchBrokerProxy();
   // The block-on-failure route is stubbed here (its own proxy's default resolves { blocked: true }
   // without touching fs) so this responder's tests never depend on questBlockOnFailureBroker's own
   // internals — those are covered by its own test suite. Reach around its semantic surface (it
@@ -252,8 +252,8 @@ export const OrchestrationResumeResponderProxy = (): {
       cwdResolveMock
         .onceFor([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd }));
-      worktreeRestoreProxy.setupDrifted({ currentBranchName });
-      worktreeRestoreProxy.setupCheckoutSucceeds({ branchName });
+      ensureQuestBranchProxy.setupDrifted({ currentBranchName });
+      ensureQuestBranchProxy.setupCheckoutSucceeds({ branchName });
     },
 
     // Same override, for the drift-free case: rev-parse already reports branchName, so the real
@@ -270,7 +270,7 @@ export const OrchestrationResumeResponderProxy = (): {
       cwdResolveMock
         .onceFor([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd }));
-      worktreeRestoreProxy.setupOnBranch({ branchName });
+      ensureQuestBranchProxy.setupOnBranch({ branchName });
     },
 
     // Same drift setup as setupWorktreeDrifted, but the checkout itself fails — proves the
@@ -291,12 +291,12 @@ export const OrchestrationResumeResponderProxy = (): {
       cwdResolveMock
         .onceFor([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd }));
-      worktreeRestoreProxy.setupDrifted({ currentBranchName });
-      worktreeRestoreProxy.setupCheckoutFails({ branchName, output });
+      ensureQuestBranchProxy.setupDrifted({ currentBranchName });
+      ensureQuestBranchProxy.setupCheckoutFails({ branchName, output });
     },
 
     getWorktreeRestoreSpawnedArgs: (): readonly unknown[] =>
-      worktreeRestoreProxy.getSpawnedArgsList(),
+      ensureQuestBranchProxy.getSpawnedArgsList(),
 
     getBlockOnFailureCalls: (): readonly unknown[] =>
       blockOnFailureMock.mock.calls.map((call) => call[0]),

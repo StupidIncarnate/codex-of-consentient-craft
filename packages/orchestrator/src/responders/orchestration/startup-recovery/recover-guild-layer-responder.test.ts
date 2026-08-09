@@ -710,6 +710,58 @@ describe('RecoverGuildLayerResponder', () => {
 
       expect(proxy.getWorktreeRestoreCalls()).toStrictEqual([{ worktreePath, branchName }]);
     });
+
+    // quest-resume-worktree:observable:resume-triggers-all-three — the startup-recovery third. The
+    // argv proves the SHARED restore body ran here (a rev-parse then a bare `checkout <branch>`,
+    // byte-identical to the argv the user-resume and dispatcher thirds assert in
+    // orchestration-resume-responder.test.ts and scan-once-layer-broker.test.ts), and the log
+    // line's `[recover-guild-layer-responder]` prefix is the one thing that differs between them.
+    it('EDGE: {worktree drifted and the checkout back onto the quest branch fails} => the quest is still recovered, logging under this triggers own prefix', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-drifted-restore-fails' });
+      const branchName = QuestBranchNameStub({ value: 'quest/drifted-restore-fails-d1e2f3a4' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/drifted-restore-fails-quest',
+      });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-drifted-restore-fails-quest',
+        status: 'in_progress',
+        branchName,
+        worktreePath,
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+      const output =
+        "error: pathspec 'quest/drifted-restore-fails-d1e2f3a4' did not match any file(s) known to git";
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+      proxy.setupWorktreeRestoreFails({
+        quest,
+        worktreePath,
+        branchName,
+        currentBranchName: 'main',
+        output,
+      });
+
+      const recoveredIds = await RecoverGuildLayerResponder({ guildItem });
+
+      expect({
+        recoveredIds,
+        spawnedArgs: proxy.getRestoreSpawnedArgs(),
+        stderrWrites: proxy.getRestoreStderrWrites(),
+      }).toStrictEqual({
+        recoveredIds: [questId],
+        spawnedArgs: [
+          ['rev-parse', '--abbrev-ref', 'HEAD'],
+          ['checkout', branchName],
+        ],
+        stderrWrites: [
+          `[recover-guild-layer-responder] worktree restore failed for quest ${questId} on branch ${branchName}: ${output}\n`,
+        ],
+      });
+    });
   });
 
   describe('legacy quest with no recorded worktreePath', () => {

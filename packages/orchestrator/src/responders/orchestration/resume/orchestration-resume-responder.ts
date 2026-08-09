@@ -27,7 +27,6 @@
 import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import {
-  absoluteFilePathContract,
   errorMessageContract,
   filePathContract,
   getQuestInputContract,
@@ -52,7 +51,8 @@ import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
-import { worktreeResumeRestoreBroker } from '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker';
+import { worktreeEnsureQuestBranchBroker } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
+import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
@@ -111,20 +111,14 @@ export const OrchestrationResumeResponder = async ({
     return { resumed: false, restoredStatus: 'blocked' };
   }
 
-  if (cwdResolution.kind === 'worktree' && quest.branchName !== undefined) {
-    const { restored, output } = await worktreeResumeRestoreBroker({
-      worktreePath: absoluteFilePathContract.parse(cwdResolution.cwd),
-      branchName: quest.branchName,
-    });
-    // A failed re-checkout is not a reason to halt the user's resume — the worktree is present, so
-    // the resumed agent can still work from whatever branch it is actually on. Log instead of
-    // blocking so the mismatch is diagnosable without stopping the resume.
-    if (!restored) {
-      process.stderr.write(
-        `[orchestration-resume] worktree restore failed for branch ${quest.branchName}: ${output}\n`,
-      );
-    }
-  }
+  // The user-RESUME trigger's turn at the one shared restore step. WHEN it runs is what differs
+  // per trigger and stays here: after the missing-worktree block above, before the status flip
+  // below makes the quest dispatchable again.
+  await worktreeEnsureQuestBranchBroker({
+    quest,
+    cwdResolution,
+    trigger: questResumeTriggerContract.parse('orchestration-resume'),
+  });
 
   // A block is not a pause, so it leaves no `pausedAtStatus` snapshot — execution is the only
   // status it can return to. A pause restores whatever it interrupted, spec phases included.

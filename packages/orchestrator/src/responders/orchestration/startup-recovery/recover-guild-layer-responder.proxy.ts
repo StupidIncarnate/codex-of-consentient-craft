@@ -36,8 +36,9 @@ import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modi
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
 import { questPersistBroker } from '../../../brokers/quest/persist/quest-persist-broker';
 import { worktreeResumeRestoreBroker } from '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker';
-import { worktreeResumeRestoreBrokerProxy } from '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker.proxy';
+import { worktreeEnsureQuestBranchBrokerProxy } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
+import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/quest-resume-trigger.stub';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -93,10 +94,21 @@ export const RecoverGuildLayerResponderProxy = (): {
     branchName: QuestBranchName;
     currentBranchName: string;
   }) => void;
+  // Same drift setup as setupWorktreeDrifted, but the checkout itself fails — proves the sweep
+  // logs under this trigger's own prefix and carries on instead of abandoning the guild.
+  setupWorktreeRestoreFails: (params: {
+    quest: Quest;
+    worktreePath: AbsoluteFilePath;
+    branchName: QuestBranchName;
+    currentBranchName: string;
+    output: string;
+  }) => void;
   getRegisteredProcessIds: () => readonly ProcessId[];
   getAllPersistedContents: () => readonly unknown[];
   getRestoreSpawnedArgs: () => readonly unknown[];
   getWorktreeRestoreCalls: () => readonly unknown[];
+  // Only the startup-recovery trigger's own restore warnings, in write order.
+  getRestoreStderrWrites: () => readonly unknown[];
 } => {
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
@@ -107,7 +119,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   orchestrationEventsStateProxy();
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
-  const worktreeRestoreProxy = worktreeResumeRestoreBrokerProxy();
+  const ensureQuestBranchProxy = worktreeEnsureQuestBranchBrokerProxy();
   // Switched to passthrough so the missing-worktree block path still runs questBlockOnFailureBroker's
   // real body (composing the questFindQuestPathBroker/questLoadBroker/questPersistBroker chain
   // mocked above) instead of resolving the proxy's stub default.
@@ -217,8 +229,31 @@ export const RecoverGuildLayerResponderProxy = (): {
           cwd: RepoRootCwdStub({ value: worktreePath }),
         }),
       );
-      worktreeRestoreProxy.setupDrifted({ currentBranchName });
-      worktreeRestoreProxy.setupCheckoutSucceeds({ branchName });
+      ensureQuestBranchProxy.setupDrifted({ currentBranchName });
+      ensureQuestBranchProxy.setupCheckoutSucceeds({ branchName });
+    },
+
+    setupWorktreeRestoreFails: ({
+      quest,
+      worktreePath,
+      branchName,
+      currentBranchName,
+      output,
+    }: {
+      quest: Quest;
+      worktreePath: AbsoluteFilePath;
+      branchName: QuestBranchName;
+      currentBranchName: string;
+      output: string;
+    }): void => {
+      cwdResolveMock.calledWith([{ questId: quest.id }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: RepoRootCwdStub({ value: worktreePath }),
+        }),
+      );
+      ensureQuestBranchProxy.setupDrifted({ currentBranchName });
+      ensureQuestBranchProxy.setupCheckoutFails({ branchName, output });
     },
 
     setupGuildWithExistingProcess: ({
@@ -264,13 +299,18 @@ export const RecoverGuildLayerResponderProxy = (): {
     // The git argv actually spawned during a worktree restore — empty when no quest triggered
     // one. Asserting the complete array proves both the checkout's exact branchName AND that
     // nothing resembling stash/reset/force ever ran.
-    getRestoreSpawnedArgs: (): readonly unknown[] => worktreeRestoreProxy.getSpawnedArgsList(),
+    getRestoreSpawnedArgs: (): readonly unknown[] => ensureQuestBranchProxy.getSpawnedArgsList(),
 
-    // The exact {worktreePath, branchName} this responder passed to worktreeResumeRestoreBroker.
+    // The exact {worktreePath, branchName} the shared restore step was handed for this sweep.
     getWorktreeRestoreCalls: (): readonly unknown[] =>
       worktreeRestoreMock.callsMatching([]).map((call) => {
         const [params] = call as [{ worktreePath: AbsoluteFilePath; branchName: QuestBranchName }];
         return params;
+      }),
+
+    getRestoreStderrWrites: (): readonly unknown[] =>
+      ensureQuestBranchProxy.getStderrWrites({
+        trigger: QuestResumeTriggerStub({ value: 'recover-guild-layer-responder' }),
       }),
   };
 };
