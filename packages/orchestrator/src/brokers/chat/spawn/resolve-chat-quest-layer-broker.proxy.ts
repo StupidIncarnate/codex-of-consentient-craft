@@ -7,6 +7,7 @@ export const resolveChatQuestLayerBrokerProxy = (): {
   setupQuestFound: (params: QuestFoundParams) => void;
   setupQuestNotFound: () => void;
   setupQuestCreationFailure: (params: { error: Error }) => void;
+  wasNewQuestCreated: () => boolean;
 } => {
   const getProxy = questGetBrokerProxy();
   const addProxy = questUserAddBrokerProxy();
@@ -23,5 +24,9 @@ export const resolveChatQuestLayerBrokerProxy = (): {
     setupQuestCreationFailure: ({ error }: { error: Error }): void => {
       addProxy.setupCreateFailure({ error });
     },
+    // questUserAddBroker always seeds exactly one initial work item when it runs, so an empty
+    // list proves the intake-new path (questCreateBroker) never fired — the assertion the
+    // tavernkeeper branch needs to prove it resolves the existing quest instead of minting one.
+    wasNewQuestCreated: (): boolean => addProxy.getLastInitialWorkItems().length > 0,
   };
 };

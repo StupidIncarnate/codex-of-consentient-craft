@@ -335,6 +335,25 @@ describe('QuestFlow', () => {
     });
   });
 
+  describe('POST /api/quests/:questId/followup', () => {
+    it('VALID: {questId without matching quest} => delegates to QuestFollowupResponder and returns 500 quest-not-found', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/followup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'What happened here?' }),
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(harness.toPlain(body)).toStrictEqual({
+        error: `Quest with id "${questId}" not found in any guild`,
+      });
+    });
+  });
+
   describe('POST /api/quests/:questId/signal-back (env-gated)', () => {
     it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, body missing workItemId} => 400 route registered, responder validates before the orchestrator call', async () => {
       process.env.E2E_SIGNAL_BACK_HTTP = '1';

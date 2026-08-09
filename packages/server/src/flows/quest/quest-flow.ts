@@ -14,6 +14,7 @@ import { QuestChatResponder } from '../../responders/quest/chat/quest-chat-respo
 import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clarify-responder';
 import { QuestCommentBatchResponder } from '../../responders/quest/comment-batch/quest-comment-batch-responder';
 import { QuestFindBySessionResponder } from '../../responders/quest/find-by-session/quest-find-by-session-responder';
+import { QuestFollowupResponder } from '../../responders/quest/followup/quest-followup-responder';
 import { QuestListResponder } from '../../responders/quest/list/quest-list-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestNewResponder } from '../../responders/quest/new/quest-new-responder';
@@ -126,6 +127,14 @@ export const QuestFlow = (): Hono => {
 
   app.post(apiRoutesStatics.quests.chat, async (c) => {
     const result = await QuestChatResponder({
+      params: { questId: c.req.param('questId') },
+      body: await c.req.json(),
+    });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  app.post(apiRoutesStatics.quests.followup, async (c) => {
+    const result = await QuestFollowupResponder({
       params: { questId: c.req.param('questId') },
       body: await c.req.json(),
     });

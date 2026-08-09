@@ -75,6 +75,7 @@ export const QuestChatResponderProxy = (): {
   setupResumeQuestError: (params: { questId: QuestId; message: string }) => void;
   getResumeQuestCalls: () => readonly unknown[];
   assertResumeCalledBeforeStartChat: () => boolean;
+  getStartChatCallArgs: (params: { guildId: GuildId }) => unknown;
   callResponder: typeof QuestChatResponder;
 } => {
   const loadProxy = orchestratorLoadQuestAdapterProxy();
@@ -146,6 +147,8 @@ export const QuestChatResponderProxy = (): {
       }
       return resumeOrder < startChatOrder;
     },
+    getStartChatCallArgs: ({ guildId }: { guildId: GuildId }): unknown =>
+      startChatProxy.getLastCalledArgs({ guildId }),
     callResponder: QuestChatResponder,
   };
 };

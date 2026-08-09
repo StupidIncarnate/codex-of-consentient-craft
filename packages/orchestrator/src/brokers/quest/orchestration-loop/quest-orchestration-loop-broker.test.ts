@@ -116,6 +116,71 @@ describe('questOrchestrationLoopBroker', () => {
     });
   });
 
+  describe('chat-role work items with no user message', () => {
+    it('VALID: {ready tavernkeeper item, no userMessage} => spawns nothing and persists nothing', async () => {
+      const proxy = questOrchestrationLoopBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const codeweaverId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const tavernkeeperId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: codeweaverId, role: 'codeweaver', status: 'complete' }),
+          WorkItemStub({
+            id: tavernkeeperId,
+            role: 'tavernkeeper',
+            status: 'pending',
+            dependsOn: [codeweaverId],
+          }),
+        ],
+      });
+      proxy.setupQuestReady({ quest });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).resolves.toStrictEqual({ success: true });
+
+      expect(proxy.getSpawnedArgs()).toBe(undefined);
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
+    });
+
+    it('VALID: {same quest} => the tavernkeeper item IS in the ready set the loop declined to dispatch', () => {
+      const codeweaverId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const tavernkeeperId = QuestWorkItemIdStub({
+        value: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+      });
+      const tavernkeeperItem = WorkItemStub({
+        id: tavernkeeperId,
+        role: 'tavernkeeper',
+        status: 'pending',
+        dependsOn: [codeweaverId],
+      });
+
+      const { ready, questTerminal, questBlocked } = nextReadyWorkItemsTransformer({
+        workItems: [
+          WorkItemStub({ id: codeweaverId, role: 'codeweaver', status: 'complete' }),
+          tavernkeeperItem,
+        ],
+      });
+
+      expect({ ready, questTerminal, questBlocked }).toStrictEqual({
+        ready: [tavernkeeperItem],
+        questTerminal: false,
+        questBlocked: false,
+      });
+    });
+  });
+
   describe('quest not found', () => {
     it('ERROR: {quest missing} => throws not-found error', async () => {
       const proxy = questOrchestrationLoopBrokerProxy();

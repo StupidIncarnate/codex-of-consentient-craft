@@ -1,28 +1,26 @@
 /**
- * PURPOSE: Handles per-quest chat by loading the quest, resuming it if the user paused it, then delegating to the orchestrator startChat adapter (resuming the most-recent chat work item if one exists, else spawning a fresh chat)
+ * PURPOSE: Handles the FOLLOW-UP tab's message to the tavernkeeper by re-reading quest.json
+ * status server-side before delegating to the orchestrator start-followup-chat adapter — the tab
+ * stays open across visits, so a stale browser cannot spawn a session against a quest that moved
+ * back to in_progress or merging since the tab was last loaded
  *
  * USAGE:
- * const result = await QuestChatResponder({ params: { questId }, body: { message } });
+ * const result = await QuestFollowupResponder({ params: { questId }, body: { message } });
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
-import {
-  isChatWorkItemRoleGuard,
-  isPostQuestChatWorkItemRoleGuard,
-  isUserPausedQuestStatusGuard,
-} from '@dungeonmaster/shared/guards';
+import { isFollowupChatableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
-import { orchestratorResumeQuestAdapter } from '../../../adapters/orchestrator/resume-quest/orchestrator-resume-quest-adapter';
-import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
+import { orchestratorStartFollowupChatAdapter } from '../../../adapters/orchestrator/start-followup-chat/orchestrator-start-followup-chat-adapter';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
-export const QuestChatResponder = async ({
+export const QuestFollowupResponder = async ({
   params,
   body,
 }: {
@@ -64,31 +62,23 @@ export const QuestChatResponder = async ({
 
     const quest = await orchestratorLoadQuestAdapter({ questId });
 
-    // Mirror session-chat-broker.ts pause→resume: if the user paused the quest, resume it
-    // BEFORE delegating to chat-start so the user's message lands in a live chat.
-    if (isUserPausedQuestStatusGuard({ status: quest.status })) {
-      await orchestratorResumeQuestAdapter({ questId });
+    // Re-check status against the freshly loaded quest, not anything the browser remembered — a
+    // tab left open across a visit must not be able to spawn a session against a quest that moved
+    // back to in_progress or merging since the tab was last loaded.
+    if (!isFollowupChatableQuestStatusGuard({ status: quest.status })) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'Quest must be blocked, complete or merged for follow-up' },
+      });
     }
-
-    // The main composer resumes the thread it owns — spec intake (chaoswhisperer) or design
-    // (glyphsmith/bughunt) — never the post-quest follow-up thread (tavernkeeper), which has its
-    // own composer in its own tab talking to its own route. That thread is deliberately invisible
-    // here. Chat work items never reach a terminal status, so this keys on role, never on status.
-    const chatItem = quest.workItems.find(
-      (wi) =>
-        isChatWorkItemRoleGuard({ role: wi.role }) &&
-        !isPostQuestChatWorkItemRoleGuard({ role: wi.role }) &&
-        wi.sessionId,
-    );
-    const resolvedSessionId = chatItem?.sessionId;
 
     // Resolve guildId via the quest path adapter — quests do not carry guildId directly.
     const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
 
-    const { chatProcessId } = await orchestratorStartChatAdapter({
+    const { chatProcessId } = await orchestratorStartFollowupChatAdapter({
+      questId,
       guildId,
       message,
-      ...(resolvedSessionId === undefined ? {} : { sessionId: resolvedSessionId }),
     });
 
     return responderResultContract.parse({
@@ -96,7 +86,7 @@ export const QuestChatResponder = async ({
       data: { chatProcessId },
     });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to start quest chat';
+    const errorMessage = error instanceof Error ? error.message : 'Failed to start follow-up chat';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
       data: { error: errorMessage },

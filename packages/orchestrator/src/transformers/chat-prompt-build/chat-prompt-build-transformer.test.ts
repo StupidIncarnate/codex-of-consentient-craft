@@ -1,6 +1,7 @@
 import { QuestIdStub, SessionIdStub, WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { glyphsmithPromptStatics } from '../../statics/glyphsmith-prompt/glyphsmith-prompt-statics';
+import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
 import { chatPromptBuildTransformer } from './chat-prompt-build-transformer';
 import { chatPromptBuildTransformerProxy } from './chat-prompt-build-transformer.proxy';
 
@@ -142,6 +143,89 @@ describe('chatPromptBuildTransformer', () => {
       );
 
       expect(result).toBe(expected);
+    });
+  });
+
+  describe('tavernkeeper role', () => {
+    it('VALID: {tavernkeeper + message + questId} => returns prompt with tavernkeeper template', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const questId = QuestIdStub({ value: 'followup-quest-789' });
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: 'Can you nudge this button color?',
+        questId,
+      });
+
+      const expected = tavernkeeperPromptStatics.prompt.template
+        .replace(
+          tavernkeeperPromptStatics.prompt.placeholders.arguments,
+          'Can you nudge this button color?',
+        )
+        .replace(tavernkeeperPromptStatics.prompt.placeholders.questId, 'followup-quest-789');
+
+      expect(result).toBe(expected);
+    });
+
+    it('VALID: {tavernkeeper + sessionId} => returns raw message as prompt', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const sessionId = SessionIdStub({ value: 'session-789' });
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: 'Continue the follow-up',
+        questId: null,
+        sessionId,
+      });
+
+      expect(result).toBe('Continue the follow-up');
+    });
+
+    it('VALID: {tavernkeeper} => builds from the tavernkeeper template, not the glyphsmith template', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const questId = QuestIdStub({ value: 'followup-quest-789' });
+
+      const result = chatPromptBuildTransformer({
+        role,
+        message: 'Can you nudge this button color?',
+        questId,
+      });
+
+      const tavernkeeperExpected = tavernkeeperPromptStatics.prompt.template
+        .replace(
+          tavernkeeperPromptStatics.prompt.placeholders.arguments,
+          'Can you nudge this button color?',
+        )
+        .replace(tavernkeeperPromptStatics.prompt.placeholders.questId, 'followup-quest-789');
+      const glyphsmithExpected = glyphsmithPromptStatics.prompt.template
+        .replace(
+          glyphsmithPromptStatics.prompt.placeholders.arguments,
+          'Can you nudge this button color?',
+        )
+        .replace(glyphsmithPromptStatics.prompt.placeholders.questId, 'followup-quest-789');
+
+      const matchesGlyphsmithTemplate = result === glyphsmithExpected;
+
+      expect(result).toBe(tavernkeeperExpected);
+      expect(matchesGlyphsmithTemplate).toBe(false);
+    });
+  });
+
+  describe('non-chat role', () => {
+    it('ERROR: {codeweaver} => throws naming the role', () => {
+      chatPromptBuildTransformerProxy();
+      const role = WorkItemRoleStub({ value: 'codeweaver' });
+
+      expect(() =>
+        chatPromptBuildTransformer({
+          role,
+          message: 'Implement the feature',
+          questId: QuestIdStub(),
+        }),
+      ).toThrow(/^chatPromptBuildTransformer has no template for role 'codeweaver'.*$/u);
     });
   });
 });

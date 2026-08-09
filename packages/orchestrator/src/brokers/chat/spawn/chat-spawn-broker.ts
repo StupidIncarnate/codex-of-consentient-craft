@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, or Glyphsmith) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
+ * PURPOSE: Spawns a Claude CLI chat process for a chat role (ChaosWhisperer, BugHunt, Glyphsmith, or Tavernkeeper) with event emission for output streaming and lifecycle tracking. Resolves the quest + chat work item, builds the prompt, then delegates the full spawn lifecycle (chatStreamProcessHandleBroker, agentSpawnUnifiedBroker, chatMainSessionTailBroker, process registration) to `agentLaunchBroker` so chat agents launch identically to every orchestration-loop agent.
  *
  * USAGE:
  * const { chatProcessId, handle } = await chatSpawnBroker({

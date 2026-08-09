@@ -1,10 +1,12 @@
 /**
  * PURPOSE: Layer of chatSpawnBroker — resolves the quest + chat work item id for the spawn. Handles
- * three paths: glyphsmith (lookup quest, validate design-phase status, find glyphsmith work item),
- * intake-resume (lookup quest by id, find the work item matching the spawn's chat role), and
- * intake-new (create a quest of the requested type with its intake seed item, whose id the create
- * returns). Centralizing this lookup outside the spawn broker keeps the launcher call free of nested
- * helpers and gives the resolution logic its own test scope.
+ * four paths: glyphsmith (lookup quest, validate design-phase status, find glyphsmith work item),
+ * tavernkeeper (lookup quest by id, find the tavernkeeper work item by role alone — the calling
+ * responder always creates that item before this ever runs), intake-resume (lookup quest by id, find
+ * the work item matching the spawn's chat role), and intake-new (create a quest of the requested type
+ * with its intake seed item, whose id the create returns). Centralizing this lookup outside the spawn
+ * broker keeps the launcher call free of nested helpers and gives the resolution logic its own test
+ * scope.
  *
  * USAGE:
  * const { questId, workItemId } = await resolveChatQuestLayerBroker({
@@ -64,6 +66,27 @@ export const resolveChatQuestLayerBroker = async ({
       throw new Error(`Quest ${questId} has no glyphsmith work item`);
     }
     return { questId, workItemId: glyphItem.id, createdQuest: false };
+  }
+
+  if (role === 'tavernkeeper') {
+    if (!questId) {
+      throw new Error('questId is required for tavernkeeper role');
+    }
+    const result = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
+    if (!result.success || !result.quest) {
+      throw new Error(`Quest not found: ${questId}`);
+    }
+    // Matches on role alone, ignoring the work item's status. Chat work items are never driven
+    // to a terminal status — a tavernkeeper item sits inert on the quest the same way a
+    // chaoswhisperer item does, so a session killed by a server crash or stopped for a merge
+    // leaves it sitting in_progress (or failed) forever. The next follow-up message must still
+    // resolve to that same item so its sessionId is resumed rather than a second item being
+    // minted, whatever state the session left it in.
+    const tavernkeeperItem = result.quest.workItems.find((wi) => wi.role === 'tavernkeeper');
+    if (!tavernkeeperItem) {
+      throw new Error(`Quest ${questId} has no tavernkeeper work item`);
+    }
+    return { questId, workItemId: tavernkeeperItem.id, createdQuest: false };
   }
 
   if (sessionId && questId) {

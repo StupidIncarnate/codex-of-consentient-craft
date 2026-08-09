@@ -36,6 +36,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupQuestReady: (params: { quest: QuestParam }) => void;
   setupQuestNotFound: () => void;
   setupNoReadyItems: (params: { quest: QuestParam }) => void;
+  getSpawnedArgs: () => unknown;
   getAllPersistedContents: () => readonly unknown[];
   getAllPersistedQuests: () => readonly Quest[];
   getStderrWrites: () => readonly unknown[];
@@ -53,7 +54,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   // Every execution role (codeweaver, ward, flowrider, siegemaster,
   // blightwarden, spiritmender, pesteater) is dispatched by /dumpster-launch
   // via the MCP `get-next-step` tool now.
-  runChatLayerBrokerProxy();
+  const chatLayerProxy = runChatLayerBrokerProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
@@ -91,6 +92,11 @@ export const questOrchestrationLoopBrokerProxy = (): {
     setupNoReadyItems: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
     },
+
+    // The Claude CLI argv the chat layer spawned with, or `undefined` when the loop declined to
+    // dispatch and no child was ever launched. The single piece of evidence that separates
+    // "a chat agent ran" from "the loop stopped short of running one".
+    getSpawnedArgs: (): unknown => chatLayerProxy.getSpawnedArgs(),
 
     getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 

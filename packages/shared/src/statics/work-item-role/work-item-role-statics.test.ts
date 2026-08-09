@@ -21,6 +21,7 @@ describe('workItemRoleStatics', () => {
       ],
       chat: ['chaoswhisperer', 'glyphsmith', 'bughunt', 'tavernkeeper'],
       excludedFromStatusDerivation: ['tavernkeeper'],
+      postQuestChat: ['tavernkeeper'],
     });
   });
 
@@ -40,15 +41,35 @@ describe('workItemRoleStatics', () => {
     expect(unknownExcludedRoles).toStrictEqual([]);
   });
 
-  it('VALID: warpgate => is not a chat role and is not excluded from status derivation', () => {
+  it('VALID: postQuestChat => every post-quest-chat role is also a declared role name', () => {
+    const unknownPostQuestChatRoles = workItemRoleStatics.postQuestChat.filter(
+      (role) => !workItemRoleStatics.names.some((name) => name === role),
+    );
+
+    expect(unknownPostQuestChatRoles).toStrictEqual([]);
+  });
+
+  it('VALID: postQuestChat => every post-quest-chat role is also a chat role', () => {
+    const nonChatPostQuestChatRoles = workItemRoleStatics.postQuestChat.filter(
+      (role) => !workItemRoleStatics.chat.some((chatRole) => chatRole === role),
+    );
+
+    expect(nonChatPostQuestChatRoles).toStrictEqual([]);
+  });
+
+  it('VALID: warpgate => is not a chat role, not excluded from status derivation, and not post-quest chat', () => {
     const warpgateIndex = workItemRoleStatics.names.indexOf('warpgate');
     const role = workItemRoleStatics.names[warpgateIndex];
     const isChatRole = workItemRoleStatics.chat.some((chatRole) => chatRole === role);
     const isExcludedRole = workItemRoleStatics.excludedFromStatusDerivation.some(
       (excludedRole) => excludedRole === role,
     );
+    const isPostQuestChatRole = workItemRoleStatics.postQuestChat.some(
+      (postQuestChatRole) => postQuestChatRole === role,
+    );
 
     expect(isChatRole).toBe(false);
     expect(isExcludedRole).toBe(false);
+    expect(isPostQuestChatRole).toBe(false);
   });
 });

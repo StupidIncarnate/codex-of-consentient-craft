@@ -42,18 +42,20 @@ export const runChatLayerBroker = async ({
 }): Promise<AdapterResult> => {
   const slotIndex = slotIndexContract.parse(0);
 
+  // Refused before the prompt is built, so the caller gets this specific diagnosis rather than
+  // the generic "no template for role" the prompt builder raises for any non-chat role.
+  if (workItem.role === 'ward') {
+    throw new Error(
+      `runChatLayerBroker cannot spawn role '${workItem.role}' — ward is a command, not a Claude agent`,
+    );
+  }
+
   const prompt = chatPromptBuildTransformer({
     role: workItem.role,
     message: userMessage ?? '',
     questId,
     ...(workItem.sessionId === undefined ? {} : { sessionId: workItem.sessionId }),
   });
-
-  if (workItem.role === 'ward') {
-    throw new Error(
-      `runChatLayerBroker cannot spawn role '${workItem.role}' — ward is a command, not a Claude agent`,
-    );
-  }
 
   const model = roleToModelTransformer({ role: workItem.role });
 

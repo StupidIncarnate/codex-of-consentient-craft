@@ -7,8 +7,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import {
   ExitCodeStub,
-  GuildStub,
-  GuildIdStub,
   QuestStub,
   RepoRootCwdStub,
   WorkItemStub,
@@ -18,7 +16,6 @@ import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
 import { chatStreamProcessHandleBrokerProxy } from '../stream-process-handle/chat-stream-process-handle-broker.proxy';
-import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
 import { resolveChatQuestLayerBrokerProxy } from './resolve-chat-quest-layer-broker.proxy';
@@ -27,13 +24,6 @@ type ExitCode = ReturnType<typeof ExitCodeStub>;
 type Quest = ReturnType<typeof QuestStubType>;
 
 type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
-
-// guildGetBroker resolves at most twice per test: once from questRepoRootBroker's internal
-// lookup (only when the resolved quest carries no worktreePath — the legacy cwd path) and
-// once more from the post-exit main-session tail whenever a spawn's stdout extracts a
-// sessionId. Three one-shot answers leaves headroom without meaning anything beyond "more
-// than the two real call sites this file exercises."
-const GUILD_LOOKUP_STAGING_COUNT = 3;
 
 // crypto.randomUUID is mocked sticky to this value below (and questUserAddBroker mints the
 // new quest's id from the same call), so this is the questId chatSpawnBroker's cwd
@@ -60,7 +50,6 @@ export const chatSpawnBrokerProxy = (): {
   }) => void;
   setupQuestNotFound: () => void;
   setupInvalidStatus: (params: { quest: Quest }) => void;
-  refreshGuildConfig: () => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => SpyOnHandle;
@@ -80,6 +69,7 @@ export const chatSpawnBrokerProxy = (): {
     repoRoot: RepoRootCwd;
   }) => void;
   getSpawnedOptions: () => unknown;
+  getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
   // Delegated to agentLaunchBrokerProxy so callers (e.g. chat-start-responder tests) can
   // seed the post-exit main-session-tail mocks the launcher's onComplete starts. The
@@ -99,38 +89,13 @@ export const chatSpawnBrokerProxy = (): {
   // chatSpawnBroker resolves the quest + chat work item via resolveChatQuestLayerBroker;
   // loading its proxy wires up questGetBroker + questUserAddBroker mocks the layer uses.
   const resolveProxy = resolveChatQuestLayerBrokerProxy();
-  const guildProxy = guildGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   // chatSpawnBroker reads the resolved quest's cwd via questCwdResolveBroker; loading its
   // proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
   // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
   const cwdProxy = questCwdResolveBrokerProxy();
 
-  const defaultGuildId = GuildIdStub();
-  const defaultGuild = GuildStub({ id: defaultGuildId });
-
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns(CREATED_QUEST_ID);
-
-  const setupGuild = (): void => {
-    // Resolve guildGetBroker directly to defaultGuild instead of routing through the real
-    // guildConfigReadBroker/guildConfigWriteBroker fs simulation. That simulation stages its
-    // own sticky, zero-argument mock of `dungeonmasterHomeFindBroker`
-    // (guild-config-read-broker.proxy.ts) — the SAME zero-arg function
-    // resolveChatQuestLayerBroker's quest lookup (questFindQuestPathBroker, via the shared
-    // `dungeonmasterHomeFindBrokerProxy`) expects to run for REAL, mocked only at its
-    // osHomedir/pathJoin leaves. `dungeonmasterHomeFindBroker` takes no identifying argument,
-    // so the two composers can't be told apart by address — whichever stages last wins for
-    // EVERY caller in the test, not just its own. Bypassing the guild fs simulation here
-    // sidesteps that collision entirely; see GUILD_LOOKUP_STAGING_COUNT for why this stages
-    // more than once.
-    Array.from({ length: GUILD_LOOKUP_STAGING_COUNT }).forEach(() => {
-      guildProxy.setupDirectGuild({ guild: defaultGuild });
-    });
-  };
-
-  setupGuild();
+  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(CREATED_QUEST_ID);
 
   return {
     setupNewSession: ({
@@ -241,10 +206,6 @@ export const chatSpawnBrokerProxy = (): {
       resolveProxy.setupQuestFound({ quest });
     },
 
-    refreshGuildConfig: (): void => {
-      setupGuild();
-    },
-
     setupSessionLinkQuest: ({ quest }: { quest: Quest }): void => {
       resolveProxy.setupQuestFound({ quest });
     },
@@ -319,6 +280,8 @@ export const chatSpawnBrokerProxy = (): {
     },
 
     getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),
+
+    getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),
 
     getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
 

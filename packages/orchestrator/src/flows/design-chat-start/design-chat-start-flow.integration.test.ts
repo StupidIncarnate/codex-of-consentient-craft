@@ -15,7 +15,10 @@ describe('DesignChatStartFlow', () => {
   });
 
   describe('delegation to responder', () => {
-    it('ERROR: {guildId: nonexistent, questId, message} => throws guild not found', async () => {
+    // A design chat is quest-scoped: the spawn resolves the quest (and, through it, the worktree
+    // it runs in) before the guild is used for anything, so an unknown quest is the first thing
+    // that can fail and its message is what reaches the caller.
+    it('ERROR: {guildId: nonexistent, questId: nonexistent, message} => throws quest not found', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'design-chat-1' }),
       });
@@ -31,9 +34,7 @@ describe('DesignChatStartFlow', () => {
       restore();
 
       expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toBe(
-        'Guild not found: 00000000-0000-0000-0000-000000000000',
-      );
+      expect((error as Error).message).toBe('Quest not found: test-quest');
     });
   });
 });

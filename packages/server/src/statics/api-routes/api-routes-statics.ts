@@ -17,6 +17,7 @@ export const apiRoutesStatics = {
     byId: '/api/quests/:questId',
     new: '/api/guilds/:guildId/quests',
     chat: '/api/quests/:questId/chat',
+    followup: '/api/quests/:questId/followup',
     clarify: '/api/quests/:questId/clarify',
     comments: '/api/quests/:questId/comments',
     start: '/api/quests/:questId/start',
