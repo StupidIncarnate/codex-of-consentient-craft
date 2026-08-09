@@ -74,6 +74,11 @@ export const gitWorktreeFixtureHarness = (): {
     branchName: FileName;
     fromRef?: ErrorMessage;
   }) => Promise<void>;
+  // Runs `git checkout <branchName>` inside repoPath — reach for this against a WORKTREE's own
+  // path to simulate branch drift (something checked the worktree out onto a different existing
+  // branch between sessions), since each worktree carries an independent HEAD and can check out
+  // any branch not already checked out elsewhere without disturbing the main checkout.
+  checkoutBranch: (params: { repoPath: AbsoluteFilePath; branchName: FileName }) => Promise<void>;
   commitFile: (params: {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
@@ -152,6 +157,17 @@ export const gitWorktreeFixtureHarness = (): {
     mkdirSync(repoPath, { recursive: true });
     await runGit({ repoPath, args: ['init', '-b', initialBranchName] });
     writeFileSync(join(repoPath, 'README.md'), '# fixture repo\n');
+    // Mirrors this repo's own .gitignore (worktrees/, node_modules, dist): without it, `git
+    // worktree add` places a real subdirectory INSIDE this fixture's working tree that `git
+    // status --porcelain` would report as untracked (at the repo root for the worktree itself,
+    // and inside the worktree's OWN status for node_modules/build output written after
+    // preparation), corrupting a "this checkout stays clean" assertion for a reason unrelated to
+    // the invariant under test. `.build-pass-count` is this fixture's own marker file, written
+    // only by writeConvergingBuildScript's generated script — not something the real repo needs.
+    writeFileSync(
+      join(repoPath, '.gitignore'),
+      'worktrees/\nnode_modules\ndist\n.build-pass-count\n',
+    );
     for (const packageName of packageNames) {
       const packageDir = join(repoPath, 'packages', packageName);
       mkdirSync(packageDir, { recursive: true });
@@ -222,9 +238,20 @@ export const gitWorktreeFixtureHarness = (): {
     return exitCode === 0 ? errorMessageContract.parse(output.trim()) : null;
   };
 
+  const checkoutBranch = async ({
+    repoPath,
+    branchName,
+  }: {
+    repoPath: AbsoluteFilePath;
+    branchName: FileName;
+  }): Promise<void> => {
+    await runGit({ repoPath, args: ['checkout', branchName] });
+  };
+
   return {
     initRepoWithPackages,
     createBranchAt,
+    checkoutBranch,
     commitFile,
     gitCurrentBranchName,
     dirtyTrackedFile: ({
