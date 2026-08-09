@@ -136,6 +136,33 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     const afterMergeBody = await afterMergeResponse.json();
     expect(afterMergeBody.quest.status).toBe('merging');
 
+    // Quest C: seeded straight to `blocked` — mergeable (its own Merge button would render) but
+    // NOT queueable (isAnyAgentRunning: false, isUserPaused: false on `blocked`), so it must be
+    // ABSENT from the queue bar. Without this quest the suite above only proves "the rows I expect
+    // render", never that the bar filters by queueable status rather than listing every
+    // non-terminal quest — a bug that renders every quest would pass a suite that only checks rows
+    // A and B are present.
+    const createdC = await quests.createQuest({
+      guildId,
+      title: 'Queue Listing Quest C',
+      userRequest: 'Build the feature',
+    });
+    const questIdC = String(createdC.questId);
+    quests.writeQuestFile({
+      questId: questIdC,
+      questFolder: String(createdC.questFolder),
+      questFilePath: String(createdC.filePath),
+      title: 'Queue Listing Quest C',
+      status: 'blocked',
+      workItems: [
+        {
+          id: 'e2e00000-0000-4000-8000-000000000c01',
+          role: 'codeweaver',
+          status: 'skipped',
+        },
+      ],
+    });
+
     await nav.navigateToQuest({ urlSlug, questId: questIdA });
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -155,5 +182,13 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     // FAILS IF the merging quest's row never appears — it is `isAnyAgentRunning: true` and the
     // flow's own observable says a merging quest belongs in this same execution queue.
     await expect(rowB).toBeVisible({ timeout: QUEUE_TIMEOUT });
+
+    const rowC = page.getByTestId(`QUEST_QUEUE_BAR_ROW_${questIdC.toUpperCase()}`);
+
+    // FAILS IF the bar renders every non-terminal quest instead of filtering by queueable status —
+    // rows A and B just proved the selector CAN find a real row, so this absence is not a vacuous
+    // "the selector never matches anything" false pass; a `blocked` quest earning a row here would
+    // mean the bar is not actually keyed on isAnyAgentRunning/isUserPaused at all.
+    await expect(rowC).not.toBeVisible();
   });
 });

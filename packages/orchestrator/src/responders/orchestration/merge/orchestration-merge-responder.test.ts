@@ -181,6 +181,51 @@ describe('OrchestrationMergeResponder', () => {
     });
   });
 
+  // warpgate-merge:observable:warpgate-item-depends-on-nothing — "the minted warpgate work item's
+  // `dependsOn` is empty rather than chained after the quest's most recent work item the way an
+  // advanced relay item is." Every OTHER fixture in this file seeds `workItems: []`, so a prior
+  // pass that chained `dependsOn` off `current.workItems[0]` stayed GREEN against them: with no
+  // prior item, "chained after the last item" and "empty" are the same value ([] either way). This
+  // fixture carries a PRIOR work item — a `skipped` one, the sharpest case the observable itself
+  // names, since a `blocked` quest's trailing work items are `skipped` and `skipped` does NOT
+  // satisfy `dependsOn` — so "empty" and "chained after the prior item" produce visibly different
+  // persisted shapes and this test can actually tell them apart.
+  describe('merge from blocked with a PRIOR (skipped) work item — dependsOn discriminator', () => {
+    it("VALID: {blocked quest already carrying one skipped work item} => the minted warpgate work item's dependsOn is empty, NOT chained after the prior skipped item", async () => {
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const priorSkippedItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'codeweaver',
+        status: 'skipped',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'blocked',
+        operations: [],
+        workItems: [priorSkippedItem],
+      });
+      const proxy = OrchestrationMergeResponderProxy();
+      proxy.setupMerge({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      // FAILS IF the minted work item's dependsOn is chained onto priorSkippedItem.id instead of
+      // left empty — the two fixtures above (workItems: []) cannot distinguish those two values,
+      // this one can.
+      expect(persisted).toStrictEqual(
+        QuestStub({
+          id: questId,
+          status: 'merging',
+          operations: [expectedWarpgateOperation()],
+          workItems: [priorSkippedItem, expectedWarpgateWorkItem()],
+          updatedAt: FIXED_TIMESTAMP,
+        }),
+      );
+    });
+  });
+
   describe('follow-up chat stopped before merge', () => {
     it('VALID: {quest carrying a tavernkeeper work item with a registered running process} => that process is killed before any quest write happens', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
