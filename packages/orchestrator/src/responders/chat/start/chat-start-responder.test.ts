@@ -53,9 +53,11 @@ describe('ChatStartResponder', () => {
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-resume' });
 
-      proxy.setupResumeSession({ exitCode });
-      proxy.setupPendingEmpty();
-
+      // Quest-list staging MUST precede setupResumeSession: both stage entries onto the same
+      // shared sequential mock queues (pathJoin, homedir, readFile — see the composing
+      // proxy's own note above questListProxy), and ChatStartResponder's questListBroker
+      // scan runs BEFORE chatSpawnBroker's own cwd-resolution lookups at runtime. Staging out
+      // of order lets chatSpawnBrokerProxy's entries answer questListBroker's call instead.
       proxy.setupQuestsPath({
         homeDir: '/home/testuser',
         homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
@@ -64,6 +66,9 @@ describe('ChatStartResponder', () => {
         }),
       });
       proxy.setupQuestDirectories({ files: [] });
+
+      proxy.setupResumeSession({ exitCode });
+      proxy.setupPendingEmpty();
 
       const result = await proxy.callResponder({
         guildId,
@@ -79,13 +84,27 @@ describe('ChatStartResponder', () => {
     it('ERROR: {quest lookup fails} => still spawns chat normally', async () => {
       const proxy = ChatStartResponderProxy();
       const exitCode = ExitCodeStub({ value: 0 });
+      const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-quest-fail' });
+
+      // No quest is configured for this guild, so questListBroker's scan finds nothing and
+      // ChatStartResponder's own try/catch swallows the empty result exactly as it would a
+      // thrown lookup failure — staged BEFORE setupResumeSession for the same shared-queue
+      // ordering reason as the "session resumption" test above.
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({
+          value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+        }),
+      });
+      proxy.setupQuestDirectories({ files: [] });
 
       proxy.setupResumeSession({ exitCode });
       proxy.setupPendingEmpty();
 
       const result = await proxy.callResponder({
-        guildId: GuildIdStub(),
+        guildId,
         message: 'Chat despite quest lookup failure',
         sessionId,
       });

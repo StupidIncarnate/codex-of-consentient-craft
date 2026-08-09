@@ -82,6 +82,10 @@ export const ChatReplayResponder = async ({
       sessionId,
       ...(agentId === undefined ? {} : { agentId }),
       guildId,
+      // A linked quest's sessions were spawned with its worktree as cwd, so their JSONL lives
+      // under the worktree-derived session directory. Handing the questId down is what lets
+      // replay look there; an orphan session has no quest and keeps the guild-path resolution.
+      ...questIdFragment,
       onEntries: ({ entries }) => {
         orchestrationEventsState.emit({
           type: 'chat-output',
@@ -97,7 +101,10 @@ export const ChatReplayResponder = async ({
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes('Guild not found')) {
+    if (
+      error instanceof Error &&
+      (error.message.includes('Guild not found') || error.message.includes('worktree not found'))
+    ) {
       throw error;
     }
     // Session JSONL file may not exist — continue to emit chat-history-complete

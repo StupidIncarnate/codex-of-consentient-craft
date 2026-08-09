@@ -30,6 +30,7 @@ import {
   processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
+  AbsoluteFilePathStub,
   adapterResultContract,
   ErrorMessageStub,
   ExitCodeStub,
@@ -37,6 +38,7 @@ import {
   fileNameContract,
   filePathContract,
   questContract,
+  RepoRootCwdStub,
   type ErrorMessage,
   type ExitCode,
   type FileContents,
@@ -57,9 +59,12 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
 import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
 import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-on-failure-broker.proxy';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
+import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
@@ -93,6 +98,10 @@ registerModuleMock({ module: '../../../adapters/fs/append-file/fs-append-file-ad
 registerModuleMock({ module: '../../../adapters/fs/read-file/fs-read-file-adapter' });
 registerModuleMock({ module: '../../../adapters/fs/rename/fs-rename-adapter' });
 registerModuleMock({ module: '../../../adapters/fs/write-file/fs-write-file-adapter' });
+// The ward run's cwd resolution is mocked at the module boundary — questCwdResolveBroker's own
+// worktree / repo-root / missing-worktree branching has its own test suite; here it only supplies
+// the resolved cwd (or the missing path).
+registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 type QuestInput = ReturnType<typeof QuestStub>;
 
@@ -109,10 +118,13 @@ type WorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
 
 export const questRunWardBrokerProxy = (): {
   setupQuest: (params: { quest: QuestInput }) => void;
+  setupQuestWorktree: (params: { worktreePath: string }) => void;
+  setupQuestWorktreeMissing: (params: { worktreePath: string }) => void;
   wardExits: (params: { exitCode: ExitCode; runId: FileName; detailJson: FileContents }) => void;
   wardExitsWithoutRunId: (params: { exitCode: ExitCode }) => void;
   getPersistedQuest: () => Quest;
   getSpawnedWardArgs: () => unknown;
+  getSpawnedWardCwd: () => unknown;
   getDetailWrites: () => readonly { path: unknown; contents: unknown }[];
   getMkdirPaths: () => readonly unknown[];
   getPersistedWorkItemStatusesInWriteOrder: (params: {
@@ -135,6 +147,17 @@ export const questRunWardBrokerProxy = (): {
   questFindQuestPathBrokerProxy();
   questModifyBrokerProxy();
   questOperationsUpdateBrokerProxy();
+  // Wired to satisfy enforce-proxy-child-creation; the module mock above supplies the actual
+  // return values, so this child's own internal fs/broker mocks are never exercised.
+  questCwdResolveBrokerProxy();
+  const cwdMock = registerMock({ fn: questCwdResolveBroker });
+  // Default: the legacy repo-root fallback, matching what every test that never calls
+  // setupQuestWorktree/setupQuestWorktreeMissing already assumes (none of them assert cwd).
+  cwdMock
+    .calledWith([])
+    .resolves(
+      QuestCwdResolutionStub({ kind: 'repo-root', cwd: RepoRootCwdStub({ value: '/project' }) }),
+    );
   const blockProxy = questBlockOnFailureBrokerProxy();
   blockProxy.setupPassthrough();
 
@@ -317,6 +340,26 @@ export const questRunWardBrokerProxy = (): {
       questFilePathRef.value = questFilePath;
     },
 
+    setupQuestWorktree: ({ worktreePath }: { worktreePath: string }): void => {
+      cwdMock
+        .calledWith([])
+        .resolves(
+          QuestCwdResolutionStub({
+            kind: 'worktree',
+            cwd: RepoRootCwdStub({ value: worktreePath }),
+          }),
+        );
+    },
+
+    setupQuestWorktreeMissing: ({ worktreePath }: { worktreePath: string }): void => {
+      cwdMock.calledWith([]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'missing-worktree',
+          worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
+        }),
+      );
+    },
+
     wardExits: ({
       exitCode,
       runId,
@@ -364,6 +407,19 @@ export const questRunWardBrokerProxy = (): {
         return typedParams?.args;
       });
       return argsPerCall[0];
+    },
+
+    // Same reasoning as getSpawnedWardArgs above — one ward spawn per test, so the first call's
+    // cwd is the honest read.
+    getSpawnedWardCwd: (): unknown => {
+      const cwdPerCall = spawnStreamLinesHandle.callsMatching([]).map((call) => {
+        const [params] = call;
+        const typedParams = params as
+          | Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]
+          | undefined;
+        return typedParams?.cwd;
+      });
+      return cwdPerCall[0];
     },
 
     getDetailWrites: (): readonly { path: unknown; contents: unknown }[] =>

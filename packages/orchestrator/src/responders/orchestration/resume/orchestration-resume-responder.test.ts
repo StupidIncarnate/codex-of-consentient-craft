@@ -1,9 +1,12 @@
 import {
+  AbsoluteFilePathStub,
   OperationItemIdStub,
   OperationItemStub,
+  QuestBranchNameStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  RepoRootCwdStub,
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -299,6 +302,218 @@ describe('OrchestrationResumeResponder', () => {
       const processIds = proxy.getRegisteredProcessIds();
 
       expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
+    });
+  });
+
+  describe('resuming a quest whose recorded worktree is missing', () => {
+    it('ERROR: {paused quest whose recorded worktree is missing} => quest is blocked with a reason naming the absolute path, and no orchestration loop is launched', async () => {
+      const questId = QuestIdStub({ value: 'resume-worktree-missing' });
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaa1111-1111-4222-9333-444444444444' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/resume-worktree-missing',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+        worktreePath,
+        workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'in_progress' })],
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupWorktreeMissing({ quest, worktreePath });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: false, restoredStatus: 'blocked' });
+      expect(proxy.getBlockOnFailureCalls()).toStrictEqual([
+        {
+          questId,
+          failedWorkItemId: workItemId,
+          reason: `Worktree not found: ${worktreePath}`,
+        },
+      ]);
+      expect(proxy.getRegisteredProcessIds()).toStrictEqual([]);
+    });
+
+    it('EMPTY: {paused quest with no work items, worktree missing} => writes status blocked directly via questModifyBroker, with no work item to carry the reason', async () => {
+      const questId = QuestIdStub({ value: 'resume-worktree-missing-empty' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/resume-worktree-missing-empty',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+        worktreePath,
+        workItems: [],
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupWorktreeMissing({ quest, worktreePath });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: false, restoredStatus: 'blocked' });
+      expect(proxy.getBlockOnFailureCalls()).toStrictEqual([]);
+      expect(proxy.getLastPersistedQuest().status).toBe('blocked');
+      expect(proxy.getRegisteredProcessIds()).toStrictEqual([]);
+    });
+  });
+
+  describe('resuming a quest whose worktree is present', () => {
+    it('VALID: {worktree present but left on another branch} => the quest branch is re-checked-out before the loop launches', async () => {
+      const questId = QuestIdStub({ value: 'resume-worktree-drifted' });
+      const branchName = QuestBranchNameStub({ value: 'quest/resume-worktree-drifted-a1b2c3d4' });
+      const worktreeCwd = RepoRootCwdStub({ value: '/repo/worktrees/resume-worktree-drifted' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+        branchName,
+        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/resume-worktree-drifted' }),
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeDrifted({
+        quest,
+        cwd: worktreeCwd,
+        branchName,
+        currentBranchName: 'some-other-branch',
+      });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+      expect(proxy.getWorktreeRestoreSpawnedArgs()).toStrictEqual([
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
+        ['checkout', branchName],
+      ]);
+      expect(proxy.getRegisteredProcessIds()).toStrictEqual([
+        'proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      ]);
+    });
+
+    it('VALID: {worktree present and already on the quest branch} => resume proceeds and the loop launches', async () => {
+      const questId = QuestIdStub({ value: 'resume-worktree-on-branch' });
+      const branchName = QuestBranchNameStub({ value: 'quest/resume-worktree-on-branch-a1b2c3d4' });
+      const worktreeCwd = RepoRootCwdStub({ value: '/repo/worktrees/resume-worktree-on-branch' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+        branchName,
+        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/resume-worktree-on-branch' }),
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeOnBranch({ quest, cwd: worktreeCwd, branchName });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+      expect(proxy.getWorktreeRestoreSpawnedArgs()).toStrictEqual([
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
+      ]);
+      expect(proxy.getRegisteredProcessIds()).toStrictEqual([
+        'proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      ]);
+    });
+
+    it('EDGE: {worktree present, checkout back onto the quest branch fails} => resume still proceeds, logging the branch and git output instead of blocking', async () => {
+      const questId = QuestIdStub({ value: 'resume-worktree-restore-fails' });
+      const branchName = QuestBranchNameStub({
+        value: 'quest/resume-worktree-restore-fails-a1b2c3d4',
+      });
+      const worktreeCwd = RepoRootCwdStub({
+        value: '/repo/worktrees/resume-worktree-restore-fails',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'in_progress',
+        branchName,
+        worktreePath: AbsoluteFilePathStub({
+          value: '/repo/worktrees/resume-worktree-restore-fails',
+        }),
+      });
+      const output =
+        "error: pathspec 'quest/resume-worktree-restore-fails-a1b2c3d4' did not match any file(s) known to git";
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeRestoreFails({
+        quest,
+        cwd: worktreeCwd,
+        branchName,
+        currentBranchName: 'main',
+        output,
+      });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+      expect(proxy.getStderrWrites()).toStrictEqual([
+        `[orchestration-resume] worktree restore failed for branch ${branchName}: ${output}\n`,
+      ]);
+    });
+  });
+
+  describe('resuming a quest paused mid-merge', () => {
+    it('VALID: {quest paused at merging} => status after resume is merging, not in_progress', async () => {
+      const questId = QuestIdStub({ value: 'resume-to-merging' });
+      const quest = QuestStub({ id: questId, status: 'paused', pausedAtStatus: 'merging' });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'merging' });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(persisted.status).toBe('merging');
+    });
+
+    it('VALID: {quest paused at merging with an in_progress warpgate work item} => that same work item is reset to pending keeping its id and sessionId, and no second warpgate work item exists', async () => {
+      const questId = QuestIdStub({ value: 'resume-merging-warpgate' });
+      const workItemId = QuestWorkItemIdStub({ value: 'bbbb2222-1111-4222-9333-444444444444' });
+      const sessionId = SessionIdStub({ value: 'cccc3333-1111-4222-9333-444444444444' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'paused',
+        pausedAtStatus: 'merging',
+        workItems: [
+          WorkItemStub({ id: workItemId, role: 'warpgate', status: 'in_progress', sessionId }),
+        ],
+      });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getLastPersistedQuest();
+      const warpgateItems = persisted.workItems.filter((item) => item.role === 'warpgate');
+
+      expect(
+        warpgateItems.map((item) => ({
+          id: item.id,
+          status: item.status,
+          sessionId: item.sessionId,
+          resume: item.resume,
+        })),
+      ).toStrictEqual([{ id: workItemId, status: 'pending', sessionId, resume: true }]);
+    });
+  });
+
+  describe('resuming a legacy quest recorded before worktrees', () => {
+    it('VALID: {quest with no recorded worktreePath} => resume proceeds, is not blocked, and no git command runs', async () => {
+      const questId = QuestIdStub({ value: 'resume-legacy-no-worktree' });
+      const quest = QuestStub({ id: questId, status: 'paused', pausedAtStatus: 'in_progress' });
+      const proxy = OrchestrationResumeResponderProxy();
+      proxy.setupQuestFound({ quest });
+
+      const result = await proxy.callResponder({ questId });
+
+      expect(result).toStrictEqual({ resumed: true, restoredStatus: 'in_progress' });
+      expect(proxy.getWorktreeRestoreSpawnedArgs()).toStrictEqual([]);
     });
   });
 });

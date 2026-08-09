@@ -6,9 +6,11 @@
  */
 
 import {
+  AbsoluteFilePathStub,
   GuildIdStub,
   GuildListItemStub,
   GuildPathStub,
+  QuestBranchNameStub,
   QuestIdStub,
   QuestStub,
   WorkItemStub,
@@ -599,6 +601,142 @@ describe('RecoverGuildLayerResponder', () => {
       const processIds = proxy.getRegisteredProcessIds();
 
       expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
+    });
+  });
+
+  describe('missing worktree', () => {
+    it('ERROR: {recoverable quest whose recorded worktree is missing} => the quest is blocked with a reason naming the absolute path, no loop is launched for it, and it is absent from recoveredIds', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-missing-worktree' });
+      const workItemId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+      const workItem = WorkItemStub({ id: workItemId as never, status: 'pending' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/missing-quest' });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-missing-worktree-quest',
+        status: 'in_progress',
+        workItems: [workItem],
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+      proxy.setupWorktreeMissing({ quest, worktreePath });
+
+      const recoveredIds = await RecoverGuildLayerResponder({ guildItem });
+
+      expect(recoveredIds).toStrictEqual([]);
+
+      const processIds = proxy.getRegisteredProcessIds();
+
+      expect(processIds).toStrictEqual([]);
+
+      const persisted = proxy.getAllPersistedContents();
+      const persistedQuests = persisted.map(
+        (content) => JSON.parse(content as never) as Record<PropertyKey, unknown>,
+      );
+      const blockedQuest = persistedQuests.find((q) => q.id === questId);
+
+      expect(blockedQuest?.status).toBe('blocked');
+
+      const workItems = blockedQuest!.workItems as Record<PropertyKey, unknown>[];
+      const blockedItem = workItems.find((wi) => wi.id === workItemId);
+
+      expect(blockedItem?.errorMessage).toBe(`Worktree not found: ${worktreePath}`);
+    });
+
+    it('VALID: {two recoverable quests, one with a missing worktree} => the other quest is still recovered', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const missingQuestId = QuestIdStub({ value: 'quest-missing-worktree-2' });
+      const okQuestId = QuestIdStub({ value: 'quest-ok-2' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/missing-quest-2' });
+      const missingQuest = QuestStub({
+        id: missingQuestId,
+        folder: '001-missing-worktree-quest-2',
+        status: 'in_progress',
+      });
+      const okQuest = QuestStub({
+        id: okQuestId,
+        folder: '002-ok-quest-2',
+        status: 'in_progress',
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [missingQuest, okQuest] });
+      proxy.setupWorktreeMissing({ quest: missingQuest, worktreePath });
+
+      const recoveredIds = await RecoverGuildLayerResponder({ guildItem });
+
+      expect(recoveredIds).toStrictEqual([okQuestId]);
+    });
+  });
+
+  describe('drifted worktree branch', () => {
+    it('VALID: {worktree present but left on another branch} => the quest branch is re-checked-out before the loop launches', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-drifted-branch' });
+      const branchName = QuestBranchNameStub({ value: 'quest/drifted-branch-quest-drifted-b' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/drifted-branch-quest' });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-drifted-branch-quest',
+        status: 'in_progress',
+        branchName,
+        worktreePath,
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+      proxy.setupWorktreeDrifted({
+        quest,
+        worktreePath,
+        branchName,
+        currentBranchName: 'main',
+      });
+
+      const recoveredIds = await RecoverGuildLayerResponder({ guildItem });
+
+      expect(recoveredIds).toStrictEqual([questId]);
+
+      expect(proxy.getRestoreSpawnedArgs()).toStrictEqual([
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
+        ['checkout', branchName],
+      ]);
+
+      expect(proxy.getWorktreeRestoreCalls()).toStrictEqual([{ worktreePath, branchName }]);
+    });
+  });
+
+  describe('legacy quest with no recorded worktreePath', () => {
+    it('VALID: {quest with no recorded worktreePath} => recovered exactly as before, not blocked, no git command run', async () => {
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const questId = QuestIdStub({ value: 'quest-legacy-no-worktree' });
+      const quest = QuestStub({
+        id: questId,
+        folder: '001-legacy-no-worktree-quest',
+        status: 'in_progress',
+      });
+      const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
+
+      const proxy = RecoverGuildLayerResponderProxy();
+      proxy.setupGuildWithQuests({ guildId, guildPath, quests: [quest] });
+
+      const recoveredIds = await RecoverGuildLayerResponder({ guildItem });
+
+      expect(recoveredIds).toStrictEqual([questId]);
+
+      const processIds = proxy.getRegisteredProcessIds();
+
+      expect(processIds).toStrictEqual(['proc-recovery-f47ac10b-58cc-4372-a567-0e02b2c3d479']);
+
+      expect(proxy.getRestoreSpawnedArgs()).toStrictEqual([]);
+      expect(proxy.getWorktreeRestoreCalls()).toStrictEqual([]);
     });
   });
 });

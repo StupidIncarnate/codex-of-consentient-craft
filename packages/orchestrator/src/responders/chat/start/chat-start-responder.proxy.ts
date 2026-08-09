@@ -123,7 +123,16 @@ export const ChatStartResponderProxy = ({
       spawnProxy.setupNewSession({ exitCode, ...(stdoutLines && { stdoutLines }) });
     },
     setupResumeSession: ({ exitCode, stdoutLines }): void => {
-      spawnProxy.setupResumeSession({ exitCode, ...(stdoutLines && { stdoutLines }) });
+      spawnProxy.setupResumeSession({
+        exitCode,
+        ...(stdoutLines && { stdoutLines }),
+        // A configured quest is the one ChatStartResponder's own questListBroker scan
+        // resolves chatQuestId to, so chatSpawnBrokerProxy must stage its cwd-resolution
+        // lookups (questGetBroker, questRepoRootBroker) against THIS id — the default
+        // 'add-auth' shape it falls back to otherwise never matches the responder's
+        // resolved questId.
+        ...(questSetupParsed !== null && { questId: questSetupParsed.id }),
+      });
       // When a quest is configured in the proxy constructor, also seed questGetMock so
       // resolveChatQuestLayerBroker's questGetBroker call (used to look up the
       // chaoswhisperer work item by questId) returns the expected quest.
@@ -178,6 +187,12 @@ export const ChatStartResponderProxy = ({
       const pending = new Promise<GetQuestResult>((res) => {
         resolveRef.current = res;
       });
+      // The FIRST questGetBroker call is chatSpawnBroker's own synchronous cwd resolution
+      // (questCwdResolveBroker), which runs and must settle BEFORE the spawn even starts —
+      // deferring it here would deadlock the whole responder call before the race this
+      // proxy method exists to exercise (the chaoswhisperer work-item lookup fired from
+      // onQuestCreated, which is the SECOND call) ever gets a chance to race anything.
+      questGetMock.mockResolvedValueOnce(getQuestResultContract.parse({ success: true, quest }));
       questGetMock.mockReturnValue(pending);
       return {
         resolve: (): void => {

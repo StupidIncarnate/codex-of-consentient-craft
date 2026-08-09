@@ -1,16 +1,20 @@
 /**
  * PURPOSE: Halts a quest on a terminal failure — marks the failed work item `failed`, drains every
  *   still-pending work item to `skipped`, and sets the quest status to `blocked` so nothing further
- *   dispatches against the broken state. The returned flag reports whether the block actually
- *   landed, not just whether it was attempted — with merges now running on quests that started
- *   terminal (`complete`), the status write can be rejected by the transition guard, and a caller
- *   that trusted an unconditional `true` would leave a quest carrying a failed merge row while
- *   still looking finished.
+ *   dispatches against the broken state. `reason` exists because `blocked` alone tells the user
+ *   nothing actionable — a quest halted over a deleted worktree is a dead end unless the failed
+ *   item's `errorMessage` names the absolute path that went missing, so the reason rides only on
+ *   the item that failed, never on the pending items drained alongside it. The returned flag
+ *   reports whether the block actually landed, not just whether it was attempted — with merges now
+ *   running on quests that started terminal (`complete`), the status write can be rejected by the
+ *   transition guard, and a caller that trusted an unconditional `true` would leave a quest
+ *   carrying a failed merge row while still looking finished.
  *
  * USAGE:
- * await questBlockOnFailureBroker({ questId, failedWorkItemId });
- * // Loads the quest, marks the failed item `failed` (if not already terminal), skips every pending
- * //   item, flips quest status to `blocked`, and persists via questModifyBroker. Returns { blocked }.
+ * await questBlockOnFailureBroker({ questId, failedWorkItemId, reason });
+ * // Loads the quest, marks the failed item `failed` (carrying `reason` as its `errorMessage` when
+ * //   supplied) if not already terminal, skips every pending item, flips quest status to `blocked`,
+ * //   and persists via questModifyBroker. Returns { blocked }.
  *
  * WHEN-TO-USE: From the three bounded-loop-exhaustion paths that route to BLOCK —
  *   quest-run-ward-broker (ward retry budget spent), quest-handle-signal-back-responder (a
@@ -22,7 +26,12 @@
  *   blocking.
  */
 
-import type { ModifyQuestInput, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type {
+  ErrorMessage,
+  ModifyQuestInput,
+  QuestId,
+  QuestWorkItemId,
+} from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import {
   isPendingWorkItemStatusGuard,
@@ -36,9 +45,11 @@ import { questModifyBroker } from '../modify/quest-modify-broker';
 export const questBlockOnFailureBroker = async ({
   questId,
   failedWorkItemId,
+  reason,
 }: {
   questId: QuestId;
   failedWorkItemId: QuestWorkItemId;
+  reason?: ErrorMessage;
 }): Promise<{ blocked: boolean }> => {
   const getResult = await questGetBroker({
     input: getQuestInputContract.parse({ questId }),
@@ -60,7 +71,11 @@ export const questBlockOnFailureBroker = async ({
     return { blocked: true };
   }
 
-  const updatedWorkItems: { id: QuestWorkItemId; status: 'failed' | 'skipped' }[] = quest.workItems
+  const updatedWorkItems: {
+    id: QuestWorkItemId;
+    status: 'failed' | 'skipped';
+    errorMessage?: ErrorMessage;
+  }[] = quest.workItems
     .filter(
       (workItem) =>
         (workItem.id === failedWorkItemId &&
@@ -70,6 +85,8 @@ export const questBlockOnFailureBroker = async ({
     .map((workItem) => ({
       id: workItem.id,
       status: workItem.id === failedWorkItemId ? ('failed' as const) : ('skipped' as const),
+      // errorMessage rides only on the failed item — the drained pending items are plain skips.
+      ...(workItem.id === failedWorkItemId && reason !== undefined ? { errorMessage: reason } : {}),
     }));
 
   // A rejected status transition (e.g. the quest already moved to a status with no `-> blocked`

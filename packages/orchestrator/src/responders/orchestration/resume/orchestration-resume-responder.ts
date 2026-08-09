@@ -1,7 +1,9 @@
 /**
- * PURPOSE: Resumes a halted quest and re-launches the orchestration loop. Two halts reach here:
- *   a user PAUSE, which restores the status snapshotted in `pausedAtStatus`; and a `blocked` quest,
- *   which has no snapshot (the block is not a pause) and restores to `in_progress`.
+ * PURPOSE: Resumes a halted quest and re-launches the orchestration loop. Three halts reach here:
+ *   a user PAUSE, which restores the status snapshotted in `pausedAtStatus`; a `blocked` quest,
+ *   which has no snapshot (the block is not a pause) and restores to `in_progress`; and a quest
+ *   whose recorded worktree has been deleted out from under it, which this responder blocks
+ *   afresh rather than resuming into a checkout that no longer exists.
  *
  *   A blocked quest also needs its work items REARMED, not just its status flipped. It halted with
  *   the blocking item `failed` at the orphan-recovery budget and everything queued behind it
@@ -10,6 +12,11 @@
  *   nothing. `questResumeRearmWorkItemsTransformer` puts every item whose operation item is still
  *   unfinished back to `pending` with a cleared `retryCount`, keeping `sessionId` + the `resume`
  *   marker so dispatch resumes those Claude sessions instead of discarding their work.
+ *
+ *   The worktree the killed agent was working in is never stashed, reset, or force-checked-out —
+ *   its uncommitted edits are the resumed session's starting point. A branch drifted off the quest
+ *   branch is re-checked-out (no `-f`, no pathspec) so a dirty tree survives untouched; a failed
+ *   re-checkout is logged rather than blocking, since the tree is still present and usable.
  *
  * USAGE:
  * const result = await OrchestrationResumeResponder({ questId });
@@ -20,6 +27,8 @@
 import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import {
+  absoluteFilePathContract,
+  errorMessageContract,
   filePathContract,
   getQuestInputContract,
   modifyQuestInputContract,
@@ -34,12 +43,16 @@ import {
   isActiveWorkItemStatusGuard,
   isQuestBlockedQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
+  isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
+import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
+import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
+import { worktreeResumeRestoreBroker } from '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 
@@ -64,6 +77,53 @@ export const OrchestrationResumeResponder = async ({
 
   if (!isQuestResumableQuestStatusGuard({ status: quest.status })) {
     throw new Error(`Quest is not resumable: ${quest.status}`);
+  }
+
+  // The quest's own recorded worktree, not a guild-path-derived fallback —
+  // `questCwdResolveBroker` reads `quest.worktreePath` from disk instead of recomputing a path
+  // from the guild. A `repo-root` resolution (a legacy pre-worktree quest) falls straight through
+  // unchanged: it is meant to run from the repo root checkout. A `missing-worktree` resolution has
+  // no such fallback — the tree this quest created and then lost is not something a resume can
+  // route around — so the quest blocks HERE, before the status flip below would make it look
+  // dispatchable again.
+  const cwdResolution = await questCwdResolveBroker({ questId });
+
+  if (cwdResolution.kind === 'missing-worktree') {
+    const reason = errorMessageContract.parse(`Worktree not found: ${cwdResolution.worktreePath}`);
+    // Mirrors blockOnMissingWorktreeLayerBroker's carrier rule — the dispatch scan's own halt
+    // route for the same condition — so the two halt routes read identically in the execution
+    // panel: the first still-actionable item carries the reason; once every item is terminal, the
+    // last one is the closest thing to "what this quest was doing" left to carry it. A quest with
+    // no work items yet has nothing to carry it on, so the status write itself is the only way to
+    // stop a resume from leaving the quest looking resumable.
+    const carrier =
+      quest.workItems.find((item) => !isTerminalWorkItemStatusGuard({ status: item.status })) ??
+      quest.workItems[quest.workItems.length - 1];
+
+    if (carrier === undefined) {
+      await questModifyBroker({
+        input: { questId, status: 'blocked' } as ModifyQuestInput,
+      });
+    } else {
+      await questBlockOnFailureBroker({ questId, failedWorkItemId: carrier.id, reason });
+    }
+
+    return { resumed: false, restoredStatus: 'blocked' };
+  }
+
+  if (cwdResolution.kind === 'worktree' && quest.branchName !== undefined) {
+    const { restored, output } = await worktreeResumeRestoreBroker({
+      worktreePath: absoluteFilePathContract.parse(cwdResolution.cwd),
+      branchName: quest.branchName,
+    });
+    // A failed re-checkout is not a reason to halt the user's resume — the worktree is present, so
+    // the resumed agent can still work from whatever branch it is actually on. Log instead of
+    // blocking so the mismatch is diagnosable without stopping the resume.
+    if (!restored) {
+      process.stderr.write(
+        `[orchestration-resume] worktree restore failed for branch ${quest.branchName}: ${output}\n`,
+      );
+    }
   }
 
   // A block is not a pause, so it leaves no `pausedAtStatus` snapshot — execution is the only

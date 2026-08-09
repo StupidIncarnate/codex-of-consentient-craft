@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Names the guild-path-to-repo-root resolution as its own broker so the worktree-prepare
- * piece (and any future caller) has one place to ask "what repo root owns this quest" instead of
- * inlining the five-line cwdResolveBroker-with-fallback shape already duplicated across
- * chat-spawn-broker, quest-get-blight-checklist-broker, spawn-batch-layer-broker,
- * run-chat-layer-broker, and chat-history-replay-broker. Those five call sites are left as-is —
- * a later operation item replaces them with a read of the quest's own recorded worktree path.
+ * PURPOSE: Walks up from a quest's guild path to the nearest `.dungeonmaster.json` ancestor.
+ * questCwdResolveBroker calls this ONLY as its fallback for a quest that predates worktrees and
+ * records no `worktreePath`. Reach for this broker directly only when that same legacy,
+ * no-recorded-worktree case applies outside questCwdResolveBroker's own flow — every other
+ * quest-scoped cwd lookup should call questCwdResolveBroker instead, which prefers the quest's
+ * own recorded worktree when one exists.
  *
  * USAGE:
  * const repoRoot = await questRepoRootBroker({ questId });

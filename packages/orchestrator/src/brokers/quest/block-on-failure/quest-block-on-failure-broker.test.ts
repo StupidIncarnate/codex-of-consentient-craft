@@ -1,4 +1,5 @@
 import {
+  ErrorMessageStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -100,6 +101,159 @@ describe('questBlockOnFailureBroker', () => {
       expect(persisted.status).toBe('blocked');
       expect(persisted.workItems.find((w) => w.id === failedId)?.status).toBe('failed');
       expect(persisted.workItems.find((w) => w.id === pendingId)?.status).toBe('skipped');
+    });
+  });
+
+  describe('reason', () => {
+    it('VALID: {reason supplied} => the failed work item is written with that exact errorMessage', async () => {
+      const proxy = questBlockOnFailureBrokerProxy();
+      proxy.setupPassthrough();
+
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+      const reason = ErrorMessageStub({
+        value: 'quest worktree missing: /home/user/.dungeonmaster/worktrees/quest-42',
+      });
+
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
+          WorkItemStub({
+            id: pendingId,
+            role: 'blightwarden',
+            status: 'pending',
+            dependsOn: [failedId],
+          }),
+        ],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const result = await questBlockOnFailureBroker({
+        questId: QuestIdStub({ value: 'test-quest' }),
+        failedWorkItemId: failedId,
+        reason,
+      });
+
+      expect(result).toStrictEqual({ blocked: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(
+        persisted.workItems.map((w) => ({
+          id: w.id,
+          status: w.status,
+          errorMessage: w.errorMessage,
+        })),
+      ).toStrictEqual([
+        { id: failedId, status: 'failed', errorMessage: reason },
+        { id: pendingId, status: 'skipped', errorMessage: undefined },
+      ]);
+    });
+
+    it('VALID: {reason omitted} => the failed work item is written with no errorMessage key', async () => {
+      const proxy = questBlockOnFailureBrokerProxy();
+      proxy.setupPassthrough();
+
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
+          WorkItemStub({
+            id: pendingId,
+            role: 'blightwarden',
+            status: 'pending',
+            dependsOn: [failedId],
+          }),
+        ],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const result = await questBlockOnFailureBroker({
+        questId: QuestIdStub({ value: 'test-quest' }),
+        failedWorkItemId: failedId,
+      });
+
+      expect(result).toStrictEqual({ blocked: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(
+        persisted.workItems.map((w) => ({
+          id: w.id,
+          status: w.status,
+          errorMessage: w.errorMessage,
+        })),
+      ).toStrictEqual([
+        { id: failedId, status: 'failed', errorMessage: undefined },
+        { id: pendingId, status: 'skipped', errorMessage: undefined },
+      ]);
+    });
+
+    it('VALID: {reason supplied, other pending items present} => only the failed item carries the errorMessage; the drained items are plain skipped patches', async () => {
+      const proxy = questBlockOnFailureBrokerProxy();
+      proxy.setupPassthrough();
+
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const pendingOneId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
+      const pendingTwoId = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c1d-8e2f-3a4b5c6d7e8f' });
+      const reason = ErrorMessageStub({
+        value: 'quest worktree missing: /home/user/.dungeonmaster/worktrees/quest-99',
+      });
+
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        status: 'in_progress',
+        workItems: [
+          WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' }),
+          WorkItemStub({
+            id: pendingOneId,
+            role: 'ward',
+            status: 'pending',
+            dependsOn: [failedId],
+          }),
+          WorkItemStub({
+            id: pendingTwoId,
+            role: 'blightwarden',
+            status: 'pending',
+            dependsOn: [pendingOneId],
+          }),
+        ],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const result = await questBlockOnFailureBroker({
+        questId: QuestIdStub({ value: 'test-quest' }),
+        failedWorkItemId: failedId,
+        reason,
+      });
+
+      expect(result).toStrictEqual({ blocked: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(
+        persisted.workItems.map((w) => ({
+          id: w.id,
+          status: w.status,
+          errorMessage: w.errorMessage,
+        })),
+      ).toStrictEqual([
+        { id: failedId, status: 'failed', errorMessage: reason },
+        { id: pendingOneId, status: 'skipped', errorMessage: undefined },
+        { id: pendingTwoId, status: 'skipped', errorMessage: undefined },
+      ]);
     });
   });
 

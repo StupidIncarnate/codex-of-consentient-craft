@@ -8,6 +8,7 @@ import type {
   FileNameStub,
   FilePath,
   AbsoluteFilePath,
+  QuestId,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 import {
@@ -22,13 +23,21 @@ import {
 } from '@dungeonmaster/shared/transformers';
 
 type FileName = ReturnType<typeof FileNameStub>;
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
+import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
+import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { chatReplayJsonlReadBrokerProxy } from '../replay-jsonl-read/chat-replay-jsonl-read-broker.proxy';
 import { scopeSubagentFilesToDescendantsLayerBrokerProxy } from './scope-subagent-files-to-descendants-layer-broker.proxy';
+
+// The quest-scoped cwd resolution is mocked at the module boundary — questCwdResolveBroker's own
+// worktree / repo-root / missing-worktree branching has its own test suite; here it only supplies
+// the resolved cwd (or the missing path) for the questId a test stages.
+registerModuleMock({ module: '../../quest/cwd-resolve/quest-cwd-resolve-broker' });
 
 type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfig']>[0]['config'];
 
@@ -40,6 +49,9 @@ export const chatHistoryReplayBrokerProxy = (): {
   setupSubagentDirMissing: () => void;
   setupCwdResolveSuccess: (params: { cwd: string }) => void;
   setupCwdResolveReject: (params: { error: Error }) => void;
+  setupQuestWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
+  setupQuestRepoRoot: (params: { questId: QuestId; repoRoot: string }) => void;
+  setupQuestWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
@@ -55,6 +67,10 @@ export const chatHistoryReplayBrokerProxy = (): {
   // Layer broker that scopes per-work-item replay to a sub-agent's descendant closure. Its
   // own proxy sets up claudeLineNormalizeBroker for the real edge-extraction normalize.
   scopeSubagentFilesToDescendantsLayerBrokerProxy();
+  // Wired to satisfy enforce-proxy-child-creation; the module mock above supplies the actual
+  // return values, so this child's own internal fs/broker mocks are never exercised.
+  questCwdResolveBrokerProxy();
+  const questCwdMock = registerMock({ fn: questCwdResolveBroker });
 
   // chat-history-replay-broker walks up from the guild path to the repo root via
   // cwdResolveBroker so the encoded JSONL path matches the spawn cwd of the agent that
@@ -153,6 +169,50 @@ export const chatHistoryReplayBrokerProxy = (): {
       for (const startPath of guildStartPathsRef.value) {
         cwdResolveMock.calledWith([{ startPath, kind: 'repo-root' }]).throws(error);
       }
+    },
+    // The three questCwdResolveBroker scenarios below ALSO drive projectPathOverrideRef, the
+    // same ref setupCwdResolveSuccess uses — the broker computes its JSONL path from whichever
+    // cwd it resolved, regardless of which of the two resolution paths (questId vs guild
+    // walk-up) produced it, so resolveJsonlPath() only needs to know the WINNING cwd.
+    setupQuestWorktree: ({
+      questId,
+      worktreePath,
+    }: {
+      questId: QuestId;
+      worktreePath: string;
+    }): void => {
+      questCwdMock.calledWith([{ questId }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: repoRootCwdContract.parse(worktreePath),
+        }),
+      );
+      projectPathOverrideRef.value = absoluteFilePathContract.parse(worktreePath);
+    },
+    setupQuestRepoRoot: ({ questId, repoRoot }: { questId: QuestId; repoRoot: string }): void => {
+      questCwdMock.calledWith([{ questId }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'repo-root',
+          cwd: repoRootCwdContract.parse(repoRoot),
+        }),
+      );
+      projectPathOverrideRef.value = absoluteFilePathContract.parse(repoRoot);
+    },
+    // No projectPathOverrideRef update — the broker throws before ever computing a JSONL path
+    // for this case, so no session/subagent read needs to be staged against one.
+    setupQuestWorktreeMissing: ({
+      questId,
+      worktreePath,
+    }: {
+      questId: QuestId;
+      worktreePath: string;
+    }): void => {
+      questCwdMock.calledWith([{ questId }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'missing-worktree',
+          worktreePath: absoluteFilePathContract.parse(worktreePath),
+        }),
+      );
     },
   };
 };

@@ -1,27 +1,30 @@
 import {
   questContract,
   RepoRootCwdStub,
+  type ErrorMessage,
   type QuestStub,
   type QuestWorkItemId,
   type RepoRootCwd,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
+import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+
+// Legacy (no-worktreePath) quests resolve their cwd from the guild's repo root. The actual
+// value is opaque to every scenario below except the one that asserts on it directly.
+const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/project' });
 
 export const runChatLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupSpawnSuccess: (params: { quest: Quest; lines: readonly string[] }) => void;
   setupSpawnThrow: (params: { quest: Quest }) => void;
   setupSpawnNonZeroExit: (params: { quest: Quest }) => void;
-  setupCwdResolveSuccess: (params: { repoRoot: ReturnType<typeof RepoRootCwdStub> }) => void;
-  setupCwdResolveReject: (params: { error: Error }) => void;
+  setupWorktreeFound: (params: { quest: Quest }) => void;
+  setupWorktreeMissing: (params: { quest: Quest }) => void;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
@@ -29,51 +32,62 @@ export const runChatLayerBrokerProxy = (): {
   getLastPersistedWorkItemStatus: (params: {
     workItemId: QuestWorkItemId;
   }) => WorkItemStatus | undefined;
+  getLastPersistedWorkItemErrorMessage: (params: {
+    workItemId: QuestWorkItemId;
+  }) => ErrorMessage | undefined;
 } => {
-  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
-  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
-  cwdResolveBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   const launchProxy = agentLaunchBrokerProxy();
+  // run-chat-layer-broker reads the resolved quest's cwd via questCwdResolveBroker; loading
+  // its proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
+  // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
+  const cwdProxy = questCwdResolveBrokerProxy();
 
-  // run-chat-layer-broker walks up from startPath to repo root via cwdResolveBroker.
-  // Stub it directly so tests don't need to seed fs.access expectations for the walk-up.
-  // startPath varies per call but setupCwdResolveSuccess/setupCwdResolveReject below carry no
-  // startPath of their own to key on, so `[]` is the honest address.
-  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
-  cwdResolveMock.calledWith([]).resolves(RepoRootCwdStub({ value: '/project' }));
-
+  // NOTE ON STAGING ORDER: questGetBrokerProxy/questRepoRootBrokerProxy/questModifyBrokerProxy
+  // all compose questFindQuestPathBrokerProxy, whose pathJoin/readFile stand-ins for
+  // zero-argument npm calls (path.join, readFile with no caller-known address) are ONE-SHOT
+  // QUEUES consumed in registration order, shared across every composing proxy in the test —
+  // not argument-addressed. runChatLayerBroker calls questCwdResolveBroker (which composes
+  // questGetBroker, and for a legacy quest questRepoRootBroker) BEFORE questModifyBroker's own
+  // find+load+persist chain, so cwdProxy MUST be staged before modifyProxy here — staging them
+  // in the other order shifts questCwdResolveBroker's real calls onto modifyProxy's
+  // differently-valued persist-path queue entries, producing "Quest not found".
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      cwdProxy.setupLegacyQuest({ quest, repoRoot: DEFAULT_REPO_ROOT });
       modifyProxy.setupQuestFound({ quest });
       launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
     },
 
     setupSpawnSuccess: ({ quest, lines }: { quest: Quest; lines: readonly string[] }): void => {
+      cwdProxy.setupLegacyQuest({ quest, repoRoot: DEFAULT_REPO_ROOT });
       modifyProxy.setupQuestFound({ quest });
       launchProxy.setupSpawnAndEmitLines({ lines, exitCode: 0 });
     },
 
     setupSpawnThrow: ({ quest }: { quest: Quest }): void => {
+      cwdProxy.setupLegacyQuest({ quest, repoRoot: DEFAULT_REPO_ROOT });
       modifyProxy.setupQuestFound({ quest });
       launchProxy.setupSpawnThrow({ error: new Error('spawn claude ENOENT') });
     },
 
     setupSpawnNonZeroExit: ({ quest }: { quest: Quest }): void => {
+      cwdProxy.setupLegacyQuest({ quest, repoRoot: DEFAULT_REPO_ROOT });
       modifyProxy.setupQuestFound({ quest });
       launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 1 });
     },
 
-    setupCwdResolveSuccess: ({
-      repoRoot,
-    }: {
-      repoRoot: ReturnType<typeof RepoRootCwdStub>;
-    }): void => {
-      cwdResolveMock.onceFor([]).resolves(repoRoot);
+    setupWorktreeFound: ({ quest }: { quest: Quest }): void => {
+      cwdProxy.setupWorktreePresent({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      launchProxy.setupSpawnAndEmitLines({ lines: [], exitCode: 0 });
     },
 
-    setupCwdResolveReject: ({ error }: { error: Error }): void => {
-      cwdResolveMock.onceFor([]).rejects(error);
+    // Only questModifyBroker's failure-path write needs staging here — questCwdResolveBroker
+    // throws before agentLaunchBroker is ever reached, so no spawn mock is needed.
+    setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
+      cwdProxy.setupWorktreeMissing({ quest });
+      modifyProxy.setupQuestFound({ quest });
     },
 
     getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),
@@ -98,6 +112,22 @@ export const runChatLayerBrokerProxy = (): {
       const lastQuest = questContract.parse(parsed);
       const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
       return item?.status;
+    },
+
+    getLastPersistedWorkItemErrorMessage: ({
+      workItemId,
+    }: {
+      workItemId: QuestWorkItemId;
+    }): ErrorMessage | undefined => {
+      const persisted = modifyProxy.getAllPersistedContents();
+      if (persisted.length === 0) {
+        return undefined;
+      }
+      const raw = persisted[persisted.length - 1];
+      const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+      const lastQuest = questContract.parse(parsed);
+      const item = lastQuest.workItems.find((wi) => wi.id === workItemId);
+      return item?.errorMessage;
     },
   };
 };

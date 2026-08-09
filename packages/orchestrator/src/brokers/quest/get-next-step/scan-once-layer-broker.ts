@@ -13,7 +13,9 @@ import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/a
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
 import { questActiveQuestsBroker } from '../active-quests/quest-active-quests-broker';
 import { questAdvanceBroker } from '../advance/quest-advance-broker';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questGetBroker } from '../get/quest-get-broker';
+import { blockOnMissingWorktreeLayerBroker } from './block-on-missing-worktree-layer-broker';
 import { computeNextStepFromQuestLayerBroker } from './compute-next-step-from-quest-layer-broker';
 import { questHasIncompleteWorkLayerBroker } from './quest-has-incomplete-work-layer-broker';
 import { recoverOrphanedWorkItemsLayerBroker } from './recover-orphaned-work-items-layer-broker';
@@ -47,6 +49,19 @@ export const scanOnceLayerBroker = async ({
     return null;
   }
   const { quest } = entry;
+
+  // The quest's own recorded worktree, not a guild-path-derived fallback. A `repo-root`
+  // resolution (no worktreePath — a legacy pre-worktree quest) falls straight through: it is
+  // meant to run from the repo root checkout. A `missing-worktree` resolution has no such
+  // fallback — the tree the quest itself created and then lost is not something the dispatcher
+  // can route around, and continuing would dispatch this quest's agents into the repo root
+  // checkout, which is a DIFFERENT branch's source. Block and stop scanning this quest.
+  const cwdResolution = await questCwdResolveBroker({ questId: quest.id });
+  if (cwdResolution.kind === 'missing-worktree') {
+    await blockOnMissingWorktreeLayerBroker({ quest, worktreePath: cwdResolution.worktreePath });
+    activeQuest.clear();
+    return null;
+  }
 
   // Resolution order when the FIFO quest has incomplete work but nothing dispatchable:
   //   1. compute directly — a ready work item exists.

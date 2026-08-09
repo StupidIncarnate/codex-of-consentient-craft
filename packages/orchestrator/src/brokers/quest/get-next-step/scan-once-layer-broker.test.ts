@@ -1,4 +1,5 @@
 import {
+  AbsoluteFilePathStub,
   GuildIdStub,
   GuildListItemStub,
   OperationItemIdStub,
@@ -322,5 +323,86 @@ describe('scanOnceLayerBroker', () => {
       persistedOperationStatuses: ['in_progress'],
     });
     expect(setActive).toHaveBeenCalledWith({ questId });
+  });
+
+  it('VALID: {quest whose recorded worktree is missing} => returns null, blocks the quest naming the path, and dispatches nothing', async () => {
+    const proxy = scanOnceLayerBrokerProxy();
+    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildItem = GuildListItemStub({ id: guildId, valid: true });
+    const questId = QuestIdStub({ value: 'q-scan-missing-worktree' });
+    const pendingId = QuestWorkItemIdStub({ value: 'ddd66666-1111-4222-9333-444444444444' });
+    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-missing' });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      worktreePath,
+      workItems: [WorkItemStub({ id: pendingId, role: 'codeweaver', status: 'pending' })],
+    });
+    proxy.setupGuildsAndQuests({
+      guildItems: [guildItem],
+      questsByGuildId: [{ guildId, quests: [quest] }],
+    });
+    proxy.setupWorktreeMissing({ quest, worktreePath });
+    const clear = jest.fn();
+    const setActive = jest.fn();
+    const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+    const result = await scanOnceLayerBroker({ activeQuest });
+
+    expect({
+      result,
+      blockCalls: proxy.getBlockCalls(),
+      clearCallCount: clear.mock.calls.length,
+      setActiveCallCount: setActive.mock.calls.length,
+    }).toStrictEqual({
+      result: null,
+      blockCalls: [
+        {
+          questId,
+          failedWorkItemId: pendingId,
+          reason: `Worktree not found: ${worktreePath}`,
+        },
+      ],
+      clearCallCount: 1,
+      setActiveCallCount: 0,
+    });
+  });
+
+  it('VALID: {quest with no recorded worktreePath (legacy)} => the scan proceeds and returns its normal step', async () => {
+    const proxy = scanOnceLayerBrokerProxy();
+    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildItem = GuildListItemStub({ id: guildId, valid: true });
+    const questId = QuestIdStub({ value: 'q-scan-legacy' });
+    const cwId = QuestWorkItemIdStub({
+      value: 'eee77777-1111-4222-9333-444444444444',
+    });
+    const quest = QuestStub({
+      id: questId,
+      status: 'in_progress',
+      workItems: [WorkItemStub({ id: cwId, role: 'codeweaver', status: 'pending' })],
+    });
+    proxy.setupGuildsAndQuests({
+      guildItems: [guildItem],
+      questsByGuildId: [{ guildId, quests: [quest] }],
+    });
+    const setActive = jest.fn();
+    const activeQuest = ActiveQuestFacadeStub({ setActive });
+
+    const result = await scanOnceLayerBroker({ activeQuest });
+
+    expect({ result, setActiveCalls: setActive.mock.calls }).toStrictEqual({
+      result: {
+        type: 'spawn-agents',
+        agents: [
+          {
+            questId,
+            role: 'codeweaver',
+            workItemId: cwId,
+            taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
+          },
+        ],
+      },
+      setActiveCalls: [[{ questId }]],
+    });
   });
 });

@@ -262,7 +262,6 @@ export const questOrchestrationLoopBroker = async ({
     await runChatLayerBroker({
       questId,
       workItem: firstItem,
-      startPath,
       guildId,
       ...(userMessage === undefined ? {} : { userMessage }),
       onAgentEntry,

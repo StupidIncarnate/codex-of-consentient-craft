@@ -2,24 +2,20 @@
  * PURPOSE: Spawns chaos/glyph agents from the orchestration loop. Delegates the spawn lifecycle to `agentLaunchBroker` so chat-from-loop launches identically to chat-from-server (chatSpawnBroker) and to every other orchestration agent. Builds the prompt via chatPromptBuildTransformer, resolves cwd, and forwards the launcher's onEntries to the loop's onAgentEntry. Writes sessionId + completion status back to the work item once the spawn exits.
  *
  * USAGE:
- * await runChatLayerBroker({ questId, workItem, startPath, guildId, userMessage, onAgentEntry });
+ * await runChatLayerBroker({ questId, workItem, guildId, userMessage, onAgentEntry });
  */
 
 import {
   adapterResultContract,
-  filePathContract,
-  repoRootCwdContract,
   sessionIdContract,
   type AdapterResult,
   type ExitCode,
-  type FilePath,
   type GuildId,
   type QuestId,
   type SessionId,
   type UserInput,
   type WorkItem,
 } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -28,19 +24,18 @@ import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
+import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
 export const runChatLayerBroker = async ({
   questId,
   workItem,
-  startPath,
   guildId,
   userMessage,
   onAgentEntry,
 }: {
   questId: QuestId;
   workItem: WorkItem;
-  startPath: FilePath;
   guildId: GuildId;
   userMessage?: UserInput;
   onAgentEntry: OnAgentEntryCallback;
@@ -62,21 +57,22 @@ export const runChatLayerBroker = async ({
 
   const model = roleToModelTransformer({ role: workItem.role });
 
-  const parsedStartPath = filePathContract.parse(startPath);
-  const resolvedCwd = await (async () => {
-    try {
-      return await cwdResolveBroker({ startPath: parsedStartPath, kind: 'repo-root' });
-    } catch {
-      return repoRootCwdContract.parse(startPath);
-    }
-  })();
-
   // 'design' is glyphsmith's alone; every spec-intake role (chaoswhisperer, bughunt) is a chat.
   const processIdPrefix = processIdPrefixContract.parse(
     workItem.role === 'glyphsmith' ? 'design' : 'chat',
   );
 
   try {
+    const resolution = await questCwdResolveBroker({ questId });
+
+    if (resolution.kind === 'missing-worktree') {
+      throw new Error(
+        `Cannot start chat for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
+      );
+    }
+
+    const resolvedCwd = resolution.cwd;
+
     const { sessionId, exitCode } = await new Promise<{
       sessionId: SessionId | null;
       exitCode: ExitCode | null;

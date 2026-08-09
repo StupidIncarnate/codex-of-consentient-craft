@@ -115,4 +115,47 @@ describe('questGetBlightChecklistBroker', () => {
       ).rejects.toThrow(/Quest with id "nonexistent" not found/u);
     });
   });
+
+  describe('quest cwd resolution', () => {
+    it('VALID: {quest records a worktreePath} => the diff is computed with that worktree path as cwd', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktree({ quest, worktreePath: '/home/testuser/worktrees/quest-abc12345' });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
+
+      expect(proxy.getGitDiffCwd()).toBe('/home/testuser/worktrees/quest-abc12345');
+    });
+
+    it('VALID: {quest records no worktreePath} => the diff is computed with the resolved repo root as cwd', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
+
+      expect(proxy.getGitDiffCwd()).toBe('/home/testuser/my-guild');
+    });
+
+    it("ERROR: {quest's recorded worktree is missing on disk} => throws naming the absolute path, and no diff is requested", async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      proxy.setupQuestFound({ quest });
+      proxy.setupWorktreeMissing({
+        quest,
+        worktreePath: '/home/testuser/worktrees/quest-missing99',
+      });
+
+      await expect(
+        questGetBlightChecklistBroker({ questId: QuestIdStub({ value: quest.id }) }),
+      ).rejects.toThrow(
+        /Cannot compute the blight checklist for quest .*: worktree not found: \/home\/testuser\/worktrees\/quest-missing99/u,
+      );
+
+      expect(proxy.getGitDiffArgs()).toBe(undefined);
+    });
+  });
 });
