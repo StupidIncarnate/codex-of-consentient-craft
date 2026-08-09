@@ -10,6 +10,9 @@ const REVIEW_FLOWS = 'review_flows';
 // carry a bubble. Every count assertion below is against this total: "one filled" only means
 // anything next to "four hollow".
 const TOTAL_BUBBLES = 5;
+// The seed carries a second flow purely so a FLOW_TABS row exists. Only the active flow's canvas is
+// mounted, so it contributes no bubbles to the total above.
+const TOTAL_FLOWS = 2;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 const sessions = wireHarnessLifecycle({
@@ -233,5 +236,70 @@ test.describe('Queued Comment Fills Its Box Bubble', () => {
     await expect(page.getByTestId('COMMENT_QUEUE_BAR')).toHaveCount(0);
     await expect(comments.filledBubbles()).toHaveCount(0);
     await expect(comments.hollowBubbles()).toHaveCount(TOTAL_BUBBLES);
+  });
+
+  // Only the ACTIVE flow's canvas is mounted, so every bubble above belongs to one flow. The tab
+  // mark is the same "queued and unsent" rule carried to the flow the reader is NOT looking at.
+  test('VALID: {a comment queued on the first flow, then the reader switches to the second flow tab} => the queued flow tab keeps a filled bubble after its truncated label and the other tab carries none', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Bubble Tab Mark Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await expect(comments.flowTabs()).toHaveCount(TOTAL_FLOWS);
+    await expect(comments.markedFlowTabs()).toHaveCount(0);
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: 'this flow needs another pass' });
+    await comments.pressEnter();
+    await comments.closeCommentPopoverOnNode();
+
+    await expect(comments.firstFlowTabMark()).toHaveCount(1);
+    await expect(comments.markedFlowTabs()).toHaveCount(1);
+
+    await comments.switchToSecondFlowTab();
+
+    // The queued flow's own canvas is gone now — the mark is the only thing left saying it owes a
+    // SEND, and it has to have survived the switch that unmounted every bubble it was derived from.
+    await expect(comments.filledBubbles()).toHaveCount(0);
+    await expect(comments.firstFlowTabMark()).toHaveCount(1);
+    await expect(comments.secondFlowTabMark()).toHaveCount(0);
+    await expect(comments.markedFlowTabs()).toHaveCount(1);
+
+    // Painted position, not just presence: the tab is overflow-hidden at a fixed width ceiling, so
+    // a mark that shares the label's text run is cut off by the same ellipsis that shortened it.
+    expect(await comments.firstFlowTabLabelIsEllipsized()).toBe(true);
+    expect(await comments.markSitsAfterLabelInsideFirstFlowTab()).toBe(true);
+  });
+
+  // The other half of the fill rule at tab level: CLEAR empties the queue without touching any tab,
+  // and only a derived mark follows it.
+  test('VALID: {a queued flow tab marked, then CLEAR discards the queue} => the tab mark goes with it', async ({
+    page,
+    request,
+  }) => {
+    const comments = commentBoxHarness({ page, request, guildPath: GUILD_PATH, sessions });
+    await comments.seedAndOpen({
+      guildName: 'Bubble Tab Mark Clear Guild',
+      status: REVIEW_FLOWS,
+      withSession: true,
+    });
+
+    await comments.openCommentPopoverOnNode();
+    await comments.typeComment({ text: 'discard me' });
+    await comments.pressEnter();
+    await comments.closeCommentPopoverOnNode();
+    await comments.switchToSecondFlowTab();
+    await expect(comments.markedFlowTabs()).toHaveCount(1);
+
+    await comments.clickClearButton();
+
+    await expect(page.getByTestId('COMMENT_QUEUE_BAR')).toHaveCount(0);
+    await expect(comments.markedFlowTabs()).toHaveCount(0);
   });
 });

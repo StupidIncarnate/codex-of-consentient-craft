@@ -133,6 +133,17 @@ Guarded by `flows/quest-chat/comment-bubble-fill.e2e.ts`, which counts filled vs
 across the WHOLE canvas rather than checking one card: a rule that fills every box, or none, passes
 a single-card check and fails the count.
 
+**The flow tab carries the same mark, for the flows whose canvas is not mounted.**
+`FlowTabQueueMarkLayerWidget` paints a filled bubble after a tab's label when that flow holds a
+queued comment, derived from the same store on every render. Only the ACTIVE flow's diagram exists
+in the DOM, so a comment queued on a flow the reader has tabbed away from has no bubble left to
+fill, and the queue bar's count names no flow — the tab is the only surface that can say WHERE the
+unsent work is. It is gated on `commentQuestId`, so the readOnly render has no marks, matching the
+bubbles and the queue bar. The mark is a flex SIBLING of the label, never inside it: the tab is
+`overflow: hidden` under a width ceiling, so a mark sharing the label's text run is clipped away by
+the same ellipsis that shortened the name — visible only in a browser, which is why the e2e asserts
+its painted position against the tab's own right edge rather than just its presence.
+
 ## The spec panel is two tabs: SPEC is a sized surface, DETAILS is a scrolling one
 
 `QuestSpecPanelWidget` owns its own SPEC / DETAILS tab bar, and both mounts get it — quest making

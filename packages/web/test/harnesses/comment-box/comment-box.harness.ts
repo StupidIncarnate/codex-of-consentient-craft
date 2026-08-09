@@ -106,7 +106,10 @@ export const COMMENT_BOX_JSON_HOSTILE_TEXT =
 // one canvas: every box kind this flow can render, together.
 const COMMENT_FLOW = {
   id: COMMENT_BOX_FLOW_ID,
-  name: 'Comment Review Flow',
+  // Long enough that the tab bar's 28-character cap truncates it AND the painted tab reaches its
+  // 220px ceiling — the width at which the label has to give way to the queue mark rather than push
+  // it out of the tab. A short name never exercises that.
+  name: 'Comment Review Flow For The Spec Panel',
   flowType: 'runtime',
   entryPoint: COMMENT_BOX_NODE_ID,
   exitPoints: ['accept-spec'],
@@ -144,6 +147,31 @@ const COMMENT_FLOW = {
     // portal stand-in for it — the one box kind that must carry NO comment button.
     { id: 'decision-to-rework', from: 'looks-right', to: 'rework-flow:rework-entry', label: 'no' },
   ],
+};
+
+// A second flow, so the panel paints a FLOW_TABS row at all — the tab queue mark has nowhere to
+// render on a one-flow quest. Deliberately NOT the `rework-flow` the first flow's cross-flow edge
+// points at: that target has to stay unresolved or the portal stand-in stops rendering. Its own
+// node carries a bubble, so a test can queue on either flow and prove the mark names the right tab.
+export const COMMENT_BOX_SECOND_FLOW_ID = 'comment-dispatch-flow';
+export const COMMENT_BOX_SECOND_FLOW_NODE_LABEL = 'Dispatch Spec';
+
+const COMMENT_SECOND_FLOW = {
+  id: COMMENT_BOX_SECOND_FLOW_ID,
+  name: 'Comment Dispatch Flow',
+  flowType: 'runtime',
+  entryPoint: 'dispatch-spec',
+  exitPoints: ['dispatch-done'],
+  nodes: [
+    {
+      id: 'dispatch-spec',
+      label: COMMENT_BOX_SECOND_FLOW_NODE_LABEL,
+      type: 'action',
+      observables: [],
+    },
+    { id: 'dispatch-done', label: 'Dispatch Done', type: 'terminal', observables: [] },
+  ],
+  edges: [{ id: 'dispatch-to-done', from: 'dispatch-spec', to: 'dispatch-done' }],
 };
 
 const FLOW_NODE_COUNT = COMMENT_FLOW.nodes.length;
@@ -214,6 +242,34 @@ const BUBBLE_SQUARE_AT_SMALL_SIZE_BROWSER_FN = (
 // widget test can assert the break-word declaration but never that the row actually fits — only a
 // browser can. Returns a boolean so the harness signature exposes no raw number. One pixel of slack
 // absorbs sub-pixel rounding on the right edge; a real overflow is hundreds of pixels.
+// Browser-evaluated predicate: the queue mark is painted AFTER the label and still entirely inside
+// the tab. Both halves matter and only a browser can check either — the tab is `overflow: hidden`
+// with a width ceiling, so a mark placed inside the label's own text run is silently clipped away
+// by the very ellipsis that shortened the name, and jsdom (no layout engine) reports it present.
+const MARK_AFTER_LABEL_INSIDE_TAB_BROWSER_FN = (tab: Element): boolean => {
+  const mark = tab.querySelector('[data-testid="FLOW_TAB_QUEUE_MARK"]');
+  const label = tab.querySelector('[data-testid="FLOW_TAB_LABEL"]');
+  if (mark === null || label === null) {
+    return false;
+  }
+  const markRect = mark.getBoundingClientRect();
+  const tabRect = tab.getBoundingClientRect();
+  // One pixel absorbs sub-pixel rounding on each edge. A mark clipped by the tab, or painted before
+  // the label, misses by far more than that.
+  return (
+    markRect.width > 0 &&
+    markRect.left >= label.getBoundingClientRect().right - 1 &&
+    markRect.right <= tabRect.right + 1 &&
+    markRect.left >= tabRect.left - 1
+  );
+};
+
+// Browser-evaluated predicate: the label's own box is narrower than the text inside it, which is
+// what makes the CSS ellipsis engage. Proves the mark is being asserted against a tab whose name
+// really did get cut off, rather than one that happened to fit.
+const LABEL_IS_ELLIPSIZED_BROWSER_FN = (label: Element): boolean =>
+  label.scrollWidth > label.clientWidth;
+
 const QUEUED_TEXT_FITS_BROWSER_FN = (el: Element): boolean => {
   const dropdown = el.closest('[data-testid="COMMENT_POPOVER"]');
   if (dropdown === null) {
@@ -255,6 +311,13 @@ export const commentBoxHarness = ({
   bubbleIsSquareAtSharedSmallSize: () => Promise<boolean>;
   reloadQuestRoute: () => Promise<void>;
   clickClearButton: () => Promise<void>;
+  flowTabs: () => Locator;
+  markedFlowTabs: () => Locator;
+  firstFlowTabMark: () => Locator;
+  secondFlowTabMark: () => Locator;
+  switchToSecondFlowTab: () => Promise<void>;
+  firstFlowTabLabelIsEllipsized: () => Promise<boolean>;
+  markSitsAfterLabelInsideFirstFlowTab: () => Promise<boolean>;
   everyFlowNodeHasOneCommentButton: () => Promise<boolean>;
   everyObservableNodeHasOneCommentButton: () => Promise<boolean>;
   portalCardHasNoCommentButton: () => Promise<boolean>;
@@ -317,6 +380,9 @@ export const commentBoxHarness = ({
   };
 
   const textarea = (): Locator => page.getByTestId('COMMENT_TEXTAREA');
+
+  const flowTab = ({ index }: { index: number }): Locator =>
+    page.getByTestId('FLOW_TAB').nth(index);
 
   const nodeCard = (): Locator =>
     page.getByTestId('FLOW_NODE').filter({ has: page.getByText(COMMENT_BOX_NODE_LABEL) });
@@ -432,7 +498,7 @@ export const commentBoxHarness = ({
             ...(withSession ? { sessionId } : {}),
           },
         ],
-        flows: [COMMENT_FLOW],
+        flows: [COMMENT_FLOW, COMMENT_SECOND_FLOW],
       });
 
       if (preQueuedText !== undefined) {
@@ -505,6 +571,32 @@ export const commentBoxHarness = ({
     clickClearButton: async (): Promise<void> => {
       await page.getByTestId('COMMENT_CLEAR_BUTTON').click();
     },
+
+    // Tabs are addressed by position, in the quest file's own flow order: every tab shares one
+    // testid, and the first flow's name is truncated on screen so there is no full label to filter
+    // by. `markedFlowTabs` is the whole-row read — "exactly the queued flows are marked" needs the
+    // count across every tab, the same way the bubble assertions count across the whole canvas.
+    flowTabs: (): Locator => page.getByTestId('FLOW_TAB'),
+    markedFlowTabs: (): Locator =>
+      page.getByTestId('FLOW_TAB').filter({ has: page.getByTestId('FLOW_TAB_QUEUE_MARK') }),
+    firstFlowTabMark: (): Locator => flowTab({ index: 0 }).getByTestId('FLOW_TAB_QUEUE_MARK'),
+    secondFlowTabMark: (): Locator => flowTab({ index: 1 }).getByTestId('FLOW_TAB_QUEUE_MARK'),
+
+    // Switching tabs unmounts the first flow's canvas and lays out the second from scratch, so the
+    // marks left behind are the only remaining record of what the reader queued over there.
+    switchToSecondFlowTab: async (): Promise<void> => {
+      await flowTab({ index: 1 }).click();
+      await page
+        .getByTestId('FLOW_NODE')
+        .filter({ has: page.getByText(COMMENT_BOX_SECOND_FLOW_NODE_LABEL) })
+        .waitFor({ state: 'visible', timeout: CANVAS_TIMEOUT });
+    },
+
+    firstFlowTabLabelIsEllipsized: async (): Promise<boolean> =>
+      flowTab({ index: 0 }).getByTestId('FLOW_TAB_LABEL').evaluate(LABEL_IS_ELLIPSIZED_BROWSER_FN),
+
+    markSitsAfterLabelInsideFirstFlowTab: async (): Promise<boolean> =>
+      flowTab({ index: 0 }).evaluate(MARK_AFTER_LABEL_INSIDE_TAB_BROWSER_FN),
 
     everyFlowNodeHasOneCommentButton: async (): Promise<boolean> => {
       const perCard = await commentButtonsPerCard({ testId: 'FLOW_NODE' });

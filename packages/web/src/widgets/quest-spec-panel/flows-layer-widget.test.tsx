@@ -10,11 +10,17 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FlowsLayerWidget } from './flows-layer-widget';
 import { FlowsLayerWidgetProxy } from './flows-layer-widget.proxy';
 
 type Flow = ReturnType<typeof FlowStub>;
+
+const QUEST_ID = QuestIdStub({ value: 'quest-a' });
+// The tabler component name the icon mock stamps as the rendered glyph's testid. Filled is the
+// signal — the hollow bubble is what a box with nothing owed already paints on the canvas.
+const FILLED_BUBBLE = 'IconMessageCircleFilled';
 
 // A flow an agent wrote with no name yet still reaches the panel, and the tab bar falls back to a
 // positional label for it. FlowStub calls flowContract.parse() which enforces min(1), so the empty
@@ -385,6 +391,146 @@ describe('FlowsLayerWidget', () => {
       });
 
       expect(proxy.getCommentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual([]);
+    });
+  });
+
+  // Only the ACTIVE flow's diagram is mounted, so a comment queued on another flow's box has no
+  // bubble on screen to fill. The tab row is the only place that state can be read from.
+  describe('queued-comment tab marks', () => {
+    it("VALID: {a comment queued on the inactive flow} => only that flow's tab carries the mark, painting the filled bubble", () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
+      });
+      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const checkoutFlow = FlowStub({
+        id: 'checkout-flow' as never,
+        name: 'Checkout Flow',
+        nodes: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
+      });
+
+      expect(proxy.getTabLabels()).toStrictEqual(['Login Flow', 'Checkout Flow']);
+      expect(proxy.getMarkedTabLabels()).toStrictEqual(['Checkout Flow']);
+      expect(proxy.tabQueueMarkGlyphs()).toStrictEqual([FILLED_BUBBLE]);
+    });
+
+    it('VALID: {a comment queued on the active flow} => the active tab carries the mark too', () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' })],
+      });
+      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const checkoutFlow = FlowStub({
+        id: 'checkout-flow' as never,
+        name: 'Checkout Flow',
+        nodes: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
+      });
+
+      expect(proxy.getMarkedTabLabels()).toStrictEqual(['Login Flow']);
+    });
+
+    it('VALID: {both flows queued, then the reader switches tabs} => both marks survive the switch', async () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [
+          CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' }),
+          CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' }),
+        ],
+      });
+      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const checkoutFlow = FlowStub({
+        id: 'checkout-flow' as never,
+        name: 'Checkout Flow',
+        nodes: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
+      });
+      await proxy.clickTab({ index: 1 });
+
+      expect(screen.getByTestId('FLOW_NAME').textContent).toBe('Checkout Flow');
+      expect(proxy.getMarkedTabLabels()).toStrictEqual(['Login Flow', 'Checkout Flow']);
+    });
+
+    it('EMPTY: {nothing queued} => no tab carries a mark', () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const checkoutFlow = FlowStub({
+        id: 'checkout-flow' as never,
+        name: 'Checkout Flow',
+        nodes: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
+      });
+
+      expect(proxy.getMarkedTabLabels()).toStrictEqual([]);
+      expect(proxy.countTabQueueMarks()).toBe(0);
+    });
+
+    // readOnly renders drop commentQuestId, and with it the queue bar and every compose control —
+    // a mark there would point at work the reader can neither see nor discharge from that surface.
+    it('EMPTY: {commentQuestId absent but a comment is queued} => no tab carries a mark', () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
+      });
+      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const checkoutFlow = FlowStub({
+        id: 'checkout-flow' as never,
+        name: 'Checkout Flow',
+        nodes: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} />,
+      });
+
+      expect(proxy.getMarkedTabLabels()).toStrictEqual([]);
+      expect(proxy.countTabQueueMarks()).toBe(0);
+    });
+
+    // The mark is a sibling of the label, not part of it: inside the label's own text run it is the
+    // first thing an over-long name clips off, and the tab caps at a fixed width.
+    it('VALID: {a queued flow whose name exceeds the tab label cap} => the label ellipsizes and the mark still renders', () => {
+      const proxy = FlowsLayerWidgetProxy();
+      proxy.setupEmptyQueue();
+      proxy.setupQueuedComments({
+        questId: QUEST_ID,
+        entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
+      });
+      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const checkoutFlow = FlowStub({
+        id: 'checkout-flow' as never,
+        name: 'C'.repeat(30),
+        nodes: [],
+      });
+
+      mantineRenderAdapter({
+        ui: <FlowsLayerWidget flows={[loginFlow, checkoutFlow]} commentQuestId={QUEST_ID} />,
+      });
+
+      expect(proxy.getMarkedTabLabels()).toStrictEqual([`${'C'.repeat(27)}…`]);
+      expect(proxy.tabQueueMarkGlyphs()).toStrictEqual([FILLED_BUBBLE]);
     });
   });
 });
