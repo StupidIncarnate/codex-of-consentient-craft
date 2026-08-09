@@ -7,6 +7,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  RepoRootCwdStub,
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -403,6 +404,119 @@ describe('scanOnceLayerBroker', () => {
         ],
       },
       setActiveCalls: [[{ questId }]],
+    });
+  });
+
+  // quest-agent-cwd:branch:qac-present — the POSITIVE edge worktree-present --"present"--> item-kind.
+  // A `kind: 'worktree'` resolution (not the repo-root fallback every test above already exercises)
+  // must proceed past the missing-worktree guard exactly like repo-root does, never blocking. The
+  // ward/agent pairing below is quest-agent-cwd:terminal:ward-scoped's other half: it proves the
+  // path the dispatcher actually takes for a 'ward' item is discriminable from the 'agent' item —
+  // the same worktree resolution, two different NextStep shapes.
+  describe('quest-agent-cwd: worktree-present branch (kind: worktree, never missing)', () => {
+    it('VALID: {worktree present, ready ward item} => proceeds past the guard and returns run-ward, never blocking', async () => {
+      const proxy = scanOnceLayerBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-scan-worktree-ward' });
+      const wardId = QuestWorkItemIdStub({ value: 'fff88888-1111-4222-9333-444444444444' });
+      // Hostile fixture member (FIXTURE REQUIREMENTS): a path segment containing a space, and a
+      // value that must be a DIFFERENT string from the default repo-root stub ('/test/repo/root')
+      // so the two resolutions are distinguishable rather than accidentally matching.
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest with spaces-a1b2c3d4',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        workItems: [
+          WorkItemStub({
+            id: wardId,
+            role: 'ward',
+            status: 'pending',
+            spawnerType: 'command',
+            wardMode: 'changed',
+          }),
+        ],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupQuestWorktree({
+        quest,
+        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/quest with spaces-a1b2c3d4' }),
+      });
+      const clear = jest.fn();
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+      const result = await scanOnceLayerBroker({ activeQuest });
+
+      expect({
+        result,
+        blockCalls: proxy.getBlockCalls(),
+        clearCallCount: clear.mock.calls.length,
+        setActiveCalls: setActive.mock.calls,
+      }).toStrictEqual({
+        result: { type: 'run-ward', questId, workItemId: wardId, mode: 'changed' },
+        blockCalls: [],
+        clearCallCount: 0,
+        setActiveCalls: [[{ questId }]],
+      });
+    });
+
+    it('VALID: {worktree present, ready codeweaver item} => proceeds past the guard and returns spawn-agents, never blocking', async () => {
+      const proxy = scanOnceLayerBrokerProxy();
+      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildItem = GuildListItemStub({ id: guildId, valid: true });
+      const questId = QuestIdStub({ value: 'q-scan-worktree-agent' });
+      const cwId = QuestWorkItemIdStub({ value: 'fff99999-1111-4222-9333-444444444444' });
+      const worktreePath = AbsoluteFilePathStub({
+        value: '/repo/worktrees/quest-worktree-agent-a1b2c3d4',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        worktreePath,
+        workItems: [WorkItemStub({ id: cwId, role: 'codeweaver', status: 'pending' })],
+      });
+      proxy.setupGuildsAndQuests({
+        guildItems: [guildItem],
+        questsByGuildId: [{ guildId, quests: [quest] }],
+      });
+      proxy.setupQuestWorktree({
+        quest,
+        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/quest-worktree-agent-a1b2c3d4' }),
+      });
+      const clear = jest.fn();
+      const setActive = jest.fn();
+      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
+
+      const result = await scanOnceLayerBroker({ activeQuest });
+
+      expect({
+        result,
+        blockCalls: proxy.getBlockCalls(),
+        clearCallCount: clear.mock.calls.length,
+        setActiveCalls: setActive.mock.calls,
+      }).toStrictEqual({
+        result: {
+          type: 'spawn-agents',
+          agents: [
+            {
+              questId,
+              role: 'codeweaver',
+              workItemId: cwId,
+              taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "codeweaver",\n  workItemId: "${cwId}",\n  questId: "${questId}"\n}) and follow its instructions exactly. When done, call mcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${cwId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>",\n  operationStatus: "done" | "partial"\n}).`,
+            },
+          ],
+        },
+        blockCalls: [],
+        clearCallCount: 0,
+        setActiveCalls: [[{ questId }]],
+      });
     });
   });
 });

@@ -28,6 +28,7 @@ registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 type Quest = ReturnType<typeof QuestStub>;
 type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
 
 export const scanOnceLayerBrokerProxy = (): {
   setupGuildsAndQuests: (params: {
@@ -38,6 +39,12 @@ export const scanOnceLayerBrokerProxy = (): {
   setupModifyForQuest: (params: { quest: Quest }) => void;
   setupSelfHeal: (params: { staleQuest: Quest; refreshedQuest: Quest }) => void;
   setupWorktreeMissing: (params: { quest: Quest; worktreePath: AbsoluteFilePath }) => void;
+  // The POSITIVE counterpart to setupWorktreeMissing above: overrides the sticky repo-root
+  // default (registered by setupGuildsAndQuests for every quest) with a `kind: 'worktree'`
+  // resolution for exactly this one quest's `questCwdResolveBroker` call, so a test can prove
+  // the scan proceeds past the missing-worktree guard for a REAL worktree resolution — not just
+  // for the repo-root fallback every other test already exercises.
+  setupQuestWorktree: (params: { quest: Quest; worktreeCwd: RepoRootCwd }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Quest;
   getBlockCalls: () => readonly unknown[];
@@ -88,6 +95,17 @@ export const scanOnceLayerBrokerProxy = (): {
       cwdResolveMock
         .onceFor([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'missing-worktree', worktreePath }));
+    },
+    setupQuestWorktree: ({
+      quest,
+      worktreeCwd,
+    }: {
+      quest: Quest;
+      worktreeCwd: RepoRootCwd;
+    }): void => {
+      cwdResolveMock
+        .onceFor([{ questId: quest.id }])
+        .resolves(QuestCwdResolutionStub({ kind: 'worktree', cwd: worktreeCwd }));
     },
     // Advance self-heal path: questAdvanceBroker runs a real read-modify-write against the stale
     // quest (find → load → persist), then scan re-reads the quest fresh (find → load) — queue one
