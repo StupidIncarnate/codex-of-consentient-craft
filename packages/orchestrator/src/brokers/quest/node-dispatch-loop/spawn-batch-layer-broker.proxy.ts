@@ -55,13 +55,7 @@ export const spawnBatchLayerBrokerProxy = (): {
     // the batch share it), so questId is the real, meaningful address — keying on it is what lets
     // a multi-quest batch test stage a DIFFERENT resolution per quest correctly, rather than
     // trusting the resolution order to match staging order.
-    setupQuestContext: ({
-      questId,
-      guildPath,
-    }: {
-      questId: QuestId;
-      guildPath: string;
-    }): void => {
+    setupQuestContext: ({ questId, guildPath }: { questId: QuestId; guildPath: string }): void => {
       cwdMock
         .calledWith([{ questId }])
         .resolves(
@@ -76,14 +70,12 @@ export const spawnBatchLayerBrokerProxy = (): {
       questId: QuestId;
       worktreePath: string;
     }): void => {
-      cwdMock
-        .calledWith([{ questId }])
-        .resolves(
-          QuestCwdResolutionStub({
-            kind: 'worktree',
-            cwd: RepoRootCwdStub({ value: worktreePath }),
-          }),
-        );
+      cwdMock.calledWith([{ questId }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: RepoRootCwdStub({ value: worktreePath }),
+        }),
+      );
     },
 
     setupQuestWorktreeMissing: ({
@@ -125,8 +117,7 @@ export const spawnBatchLayerBrokerProxy = (): {
 
     getModifyCallInputs: (): readonly unknown[] => oneAgentProxy.getModifyCallInputs(),
 
-    getCwdResolveCalls: (): readonly unknown[] =>
-      cwdMock.callsMatching([]).map((call) => call[0]),
+    getCwdResolveCalls: (): readonly unknown[] => cwdMock.callsMatching([]).map((call) => call[0]),
 
     getSpawnedCwd: (): unknown => oneAgentProxy.getSpawnedCwd(),
 

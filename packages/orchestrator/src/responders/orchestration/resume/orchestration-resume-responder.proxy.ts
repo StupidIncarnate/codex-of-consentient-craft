@@ -1,4 +1,9 @@
-import type { AbsoluteFilePathStub, ProcessId, QuestBranchNameStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePathStub,
+  ProcessId,
+  QuestBranchNameStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import {
   FileContentsStub,
   FileNameStub,
@@ -9,12 +14,17 @@ import {
   RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
 import { questBlockOnFailureBrokerProxy } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker.proxy';
 import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
+import { questCwdResolveBrokerProxy } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
@@ -92,6 +102,10 @@ export const OrchestrationResumeResponderProxy = (): {
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
+  // Registered for enforce-proxy-child-creation only: questCwdResolveBroker is module-mocked
+  // above (per-questId addressing, see the comment on that registerModuleMock call), so this
+  // child's own internal fs/broker mocks are never exercised.
+  questCwdResolveBrokerProxy();
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
 
@@ -206,7 +220,13 @@ export const OrchestrationResumeResponderProxy = (): {
     // questGetBroker load needs a real fs slot; the block-via-work-item route is the stubbed
     // questBlockOnFailureBroker composed above. The modify slot below is only consumed on the
     // no-work-items path, which writes `status: 'blocked'` directly via the real questModifyBroker.
-    setupWorktreeMissing: ({ quest, worktreePath }: { quest: Quest; worktreePath: AbsoluteFilePath }): void => {
+    setupWorktreeMissing: ({
+      quest,
+      worktreePath,
+    }: {
+      quest: Quest;
+      worktreePath: AbsoluteFilePath;
+    }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       cwdResolveMock
@@ -275,7 +295,8 @@ export const OrchestrationResumeResponderProxy = (): {
       worktreeRestoreProxy.setupCheckoutFails({ branchName, output });
     },
 
-    getWorktreeRestoreSpawnedArgs: (): readonly unknown[] => worktreeRestoreProxy.getSpawnedArgsList(),
+    getWorktreeRestoreSpawnedArgs: (): readonly unknown[] =>
+      worktreeRestoreProxy.getSpawnedArgsList(),
 
     getBlockOnFailureCalls: (): readonly unknown[] =>
       blockOnFailureMock.mock.calls.map((call) => call[0]),

@@ -26,7 +26,9 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 
 import { guildGetBrokerProxy } from '../../../brokers/guild/get/guild-get-broker.proxy';
+import { questBlockOnFailureBrokerProxy } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker.proxy';
 import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker';
+import { questCwdResolveBrokerProxy } from '../../../brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
 import { questLoadBroker } from '../../../brokers/quest/load/quest-load-broker';
@@ -49,7 +51,8 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 // dungeonmasterHomeFindBrokerProxy().setupHomePath()) goes permanently unconsumed and shifts
 // onto whatever real fs/path call runs next. Addressing each of the three directly by its real
 // argument sidesteps that chain instead of depending on it. questBlockOnFailureBroker (called
-// for a missing-worktree quest) composes the SAME chain for real — it needs no mock of its own.
+// for a missing-worktree quest) composes the SAME chain for real — its own proxy is switched to
+// passthrough below so it keeps running for real instead of resolving the stub default.
 registerModuleMock({
   module: '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker',
 });
@@ -105,6 +108,15 @@ export const RecoverGuildLayerResponderProxy = (): {
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
   const worktreeRestoreProxy = worktreeResumeRestoreBrokerProxy();
+  // Switched to passthrough so the missing-worktree block path still runs questBlockOnFailureBroker's
+  // real body (composing the questFindQuestPathBroker/questLoadBroker/questPersistBroker chain
+  // mocked above) instead of resolving the proxy's stub default.
+  const blockOnFailureProxy = questBlockOnFailureBrokerProxy();
+  blockOnFailureProxy.setupPassthrough();
+  // Registered for enforce-proxy-child-creation only: questCwdResolveBroker is module-mocked
+  // above (per-questId addressing, see the comment on that registerModuleMock call), so this
+  // child's own internal fs/broker mocks are never exercised.
+  questCwdResolveBrokerProxy();
 
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
   const loadMock = registerMock({ fn: questLoadBroker });
@@ -130,11 +142,12 @@ export const RecoverGuildLayerResponderProxy = (): {
   // test that isn't specifically about it. A test that wants a different resolution overrides
   // via setupWorktreeMissing/setupWorktreeDrifted below, addressed by that quest's own id, which
   // wins over this `[]` catch-all on specificity.
-  cwdResolveMock
-    .calledWith([])
-    .resolves(
-      QuestCwdResolutionStub({ kind: 'repo-root', cwd: RepoRootCwdStub({ value: '/test/repo/root' }) }),
-    );
+  cwdResolveMock.calledWith([]).resolves(
+    QuestCwdResolutionStub({
+      kind: 'repo-root',
+      cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
+    }),
+  );
 
   const realWorktreeRestore = requireActual<{
     worktreeResumeRestoreBroker: typeof worktreeResumeRestoreBroker;
@@ -198,14 +211,12 @@ export const RecoverGuildLayerResponderProxy = (): {
       branchName: QuestBranchName;
       currentBranchName: string;
     }): void => {
-      cwdResolveMock
-        .calledWith([{ questId: quest.id }])
-        .resolves(
-          QuestCwdResolutionStub({
-            kind: 'worktree',
-            cwd: RepoRootCwdStub({ value: worktreePath }),
-          }),
-        );
+      cwdResolveMock.calledWith([{ questId: quest.id }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: RepoRootCwdStub({ value: worktreePath }),
+        }),
+      );
       worktreeRestoreProxy.setupDrifted({ currentBranchName });
       worktreeRestoreProxy.setupCheckoutSucceeds({ branchName });
     },

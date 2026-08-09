@@ -1,10 +1,6 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter, Readable } from 'stream';
-import {
-  ExitCodeStub,
-  type ExitCode,
-  type QuestBranchName,
-} from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub, type ExitCode, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { gitCheckoutAdapterProxy } from '../../../adapters/git/checkout/git-checkout-adapter.proxy';
@@ -63,7 +59,10 @@ export const worktreeResumeRestoreBrokerProxy = (): {
   setupRevParseFails: (params: { output: string }) => void;
   setupCheckoutSucceeds: (params: { branchName: QuestBranchName }) => void;
   setupCheckoutFails: (params: { branchName: QuestBranchName; output: string }) => void;
-  setupBranchWithTrailingWarning: (params: { branchName: QuestBranchName; warning: string }) => void;
+  setupBranchWithTrailingWarning: (params: {
+    branchName: QuestBranchName;
+    warning: string;
+  }) => void;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
   const handle = registerMock({ fn: spawn });
@@ -81,7 +80,9 @@ export const worktreeResumeRestoreBrokerProxy = (): {
     setupOnBranch: ({ branchName }: { branchName: QuestBranchName }): void => {
       handle
         .calledWith(['git', REV_PARSE_ARGS])
-        .implement(() => createGitChild({ exitCode: successCode, stdout: `${branchName}\n`, stderr: '' }));
+        .implement(() =>
+          createGitChild({ exitCode: successCode, stdout: `${branchName}\n`, stderr: '' }),
+        );
     },
 
     setupDrifted: ({ currentBranchName }: { currentBranchName: string }): void => {
@@ -129,11 +130,13 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       branchName: QuestBranchName;
       warning: string;
     }): void => {
-      handle
-        .calledWith(['git', REV_PARSE_ARGS])
-        .implement(() =>
-          createGitChild({ exitCode: successCode, stdout: `${branchName}\n`, stderr: `${warning}\n` }),
-        );
+      handle.calledWith(['git', REV_PARSE_ARGS]).implement(() =>
+        createGitChild({
+          exitCode: successCode,
+          stdout: `${branchName}\n`,
+          stderr: `${warning}\n`,
+        }),
+      );
     },
 
     getSpawnedArgsList: (): readonly unknown[] =>

@@ -118,14 +118,12 @@ export const questGetBlightChecklistBrokerProxy = (): {
     },
 
     setupWorktree: ({ quest, worktreePath }: { quest: Quest; worktreePath: string }): void => {
-      cwdMock
-        .onceFor([{ questId: quest.id }])
-        .resolves(
-          QuestCwdResolutionStub({
-            kind: 'worktree',
-            cwd: RepoRootCwdStub({ value: worktreePath }),
-          }),
-        );
+      cwdMock.onceFor([{ questId: quest.id }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: RepoRootCwdStub({ value: worktreePath }),
+        }),
+      );
     },
 
     setupWorktreeMissing: ({

@@ -1,12 +1,18 @@
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePathStub, GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePathStub,
+  GuildListItem,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { questActiveQuestsBrokerProxy } from '../active-quests/quest-active-quests-broker.proxy';
 import { questAdvanceBrokerProxy } from '../advance/quest-advance-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
+import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
+import { blockOnMissingWorktreeLayerBrokerProxy } from './block-on-missing-worktree-layer-broker.proxy';
 import { computeNextStepFromQuestLayerBrokerProxy } from './compute-next-step-from-quest-layer-broker.proxy';
 import { questHasIncompleteWorkLayerBrokerProxy } from './quest-has-incomplete-work-layer-broker.proxy';
 import { recoverOrphanedWorkItemsLayerBrokerProxy } from './recover-orphaned-work-items-layer-broker.proxy';
@@ -42,6 +48,12 @@ export const scanOnceLayerBrokerProxy = (): {
   const recoverProxy = recoverOrphanedWorkItemsLayerBrokerProxy();
   const advanceProxy = questAdvanceBrokerProxy();
   const getProxy = questGetBrokerProxy();
+  // Registered for enforce-proxy-child-creation only: questCwdResolveBroker is module-mocked
+  // below (per-questId addressing, see the comment on that registerModuleMock call), and
+  // recoverProxy already registers questBlockOnFailureBrokerProxy, which is what
+  // blockOnMissingWorktreeLayerBroker calls under the hood.
+  questCwdResolveBrokerProxy();
+  blockOnMissingWorktreeLayerBrokerProxy();
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
 

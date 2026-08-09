@@ -20,14 +20,12 @@ import {
   fsMkdirAdapter,
   fsReaddirWithTypesAdapter,
   pathJoinAdapter,
-  processCwdAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import {
   childProcessSpawnStreamLinesAdapterProxy,
   fsMkdirAdapterProxy,
   pathJoinAdapterProxy,
-  processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
   AbsoluteFilePathStub,
@@ -84,7 +82,6 @@ registerModuleMock({
     fsMkdirAdapter: jest.fn(),
     fsReaddirWithTypesAdapter: jest.fn(),
     pathJoinAdapter: jest.fn(),
-    processCwdAdapter: jest.fn(),
   }),
 });
 registerModuleMock({
@@ -140,7 +137,6 @@ export const questRunWardBrokerProxy = (): {
   childProcessSpawnStreamLinesAdapterProxy();
   fsMkdirAdapterProxy();
   pathJoinAdapterProxy();
-  processCwdAdapterProxy();
   fsWriteFileAdapterProxy();
   wardDetailBrokerProxy();
   questAdvanceBrokerProxy();
@@ -181,10 +177,6 @@ export const questRunWardBrokerProxy = (): {
   const pathJoinImpl = ({ paths }: Parameters<typeof pathJoinAdapter>[0]): FilePath =>
     filePathContract.parse(paths.join('/'));
   pathJoinHandle.calledWith([]).implement(pathJoinImpl as never);
-
-  const processCwdHandle = registerMock({ fn: processCwdAdapter });
-  const processCwdImpl = (): FilePath => filePathContract.parse('/project');
-  processCwdHandle.calledWith([]).implement(processCwdImpl as never);
 
   const dungeonmasterHomeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   const dungeonmasterHomeFindImpl = (): { homePath: FilePath } => ({
@@ -341,14 +333,12 @@ export const questRunWardBrokerProxy = (): {
     },
 
     setupQuestWorktree: ({ worktreePath }: { worktreePath: string }): void => {
-      cwdMock
-        .calledWith([])
-        .resolves(
-          QuestCwdResolutionStub({
-            kind: 'worktree',
-            cwd: RepoRootCwdStub({ value: worktreePath }),
-          }),
-        );
+      cwdMock.calledWith([]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: RepoRootCwdStub({ value: worktreePath }),
+        }),
+      );
     },
 
     setupQuestWorktreeMissing: ({ worktreePath }: { worktreePath: string }): void => {
