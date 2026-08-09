@@ -28,6 +28,8 @@ describe('orchestrator', () => {
     const exportedKeys = Object.keys(orchestrator).sort();
 
     expect(exportedKeys).toStrictEqual([
+      'BaseBranchNotFoundError',
+      'QuestBranchNameTakenError',
       'StartOrchestrator',
       'addQuestInputContract',
       'addQuestResultContract',

@@ -21,6 +21,7 @@ import type { FrameworkPreset } from './src/contracts/framework-presets/framewor
 
 export { configResolveBroker };
 export { DungeonmasterConfigStub } from './src/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+export { configDefaultsStatics } from './src/statics/config-defaults/config-defaults-statics';
 
 export type ArchitectureFolder =
   typeof architectureFolderStatics.folders.all extends readonly (infer U)[] ? U : never;

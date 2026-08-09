@@ -1,5 +1,8 @@
 import {
+  AbsoluteFilePathStub,
+  BaseBranchNameStub,
   OperationItemStub,
+  QuestBranchNameStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
@@ -184,6 +187,310 @@ describe('questOperationsUpdateBroker', () => {
           updatedAt: '2024-01-15T10:00:00.000Z',
         }),
       );
+    });
+  });
+
+  describe('git context fields', () => {
+    describe('branchName', () => {
+      it('VALID: {update returns {branchName}} => persists branchName', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+        });
+        proxy.setupQuestFound({ quest });
+
+        const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({ branchName }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+
+        expect(persisted).toStrictEqual(
+          QuestStub({
+            id: 'add-auth',
+            folder: '001-add-auth',
+            status: 'in_progress',
+            operations: [pendingOp],
+            branchName,
+            updatedAt: '2024-01-15T10:00:00.000Z',
+          }),
+        );
+      });
+
+      it('VALID: {update omits branchName, quest already has one} => preserves existing branchName', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+          branchName,
+        });
+        proxy.setupQuestFound({ quest });
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({
+            operations: [
+              OperationItemStub({
+                id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+                status: 'in_progress',
+              }),
+            ],
+          }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+
+        expect(persisted).toStrictEqual(
+          QuestStub({
+            id: 'add-auth',
+            folder: '001-add-auth',
+            status: 'in_progress',
+            operations: [
+              OperationItemStub({
+                id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+                status: 'in_progress',
+              }),
+            ],
+            branchName,
+            updatedAt: '2024-01-15T10:00:00.000Z',
+          }),
+        );
+      });
+    });
+
+    describe('baseBranch', () => {
+      it('VALID: {update returns {baseBranch}} => persists baseBranch', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+        });
+        proxy.setupQuestFound({ quest });
+
+        const baseBranch = BaseBranchNameStub({ value: 'main' });
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({ baseBranch }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+
+        expect(persisted).toStrictEqual(
+          QuestStub({
+            id: 'add-auth',
+            folder: '001-add-auth',
+            status: 'in_progress',
+            operations: [pendingOp],
+            baseBranch,
+            updatedAt: '2024-01-15T10:00:00.000Z',
+          }),
+        );
+      });
+
+      it('VALID: {update omits baseBranch, quest already has one} => preserves existing baseBranch', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const baseBranch = BaseBranchNameStub({ value: 'master' });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+          baseBranch,
+        });
+        proxy.setupQuestFound({ quest });
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({
+            operations: [
+              OperationItemStub({
+                id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+                status: 'in_progress',
+              }),
+            ],
+          }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+
+        expect(persisted).toStrictEqual(
+          QuestStub({
+            id: 'add-auth',
+            folder: '001-add-auth',
+            status: 'in_progress',
+            operations: [
+              OperationItemStub({
+                id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+                status: 'in_progress',
+              }),
+            ],
+            baseBranch,
+            updatedAt: '2024-01-15T10:00:00.000Z',
+          }),
+        );
+      });
+    });
+
+    describe('worktreePath', () => {
+      it('VALID: {update returns {worktreePath}} => persists worktreePath', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+        });
+        proxy.setupQuestFound({ quest });
+
+        const worktreePath = AbsoluteFilePathStub({
+          value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
+        });
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({ worktreePath }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+
+        expect(persisted).toStrictEqual(
+          QuestStub({
+            id: 'add-auth',
+            folder: '001-add-auth',
+            status: 'in_progress',
+            operations: [pendingOp],
+            worktreePath,
+            updatedAt: '2024-01-15T10:00:00.000Z',
+          }),
+        );
+      });
+
+      it('VALID: {update omits worktreePath, quest already has one} => preserves existing worktreePath', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const worktreePath = AbsoluteFilePathStub({
+          value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
+        });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+          worktreePath,
+        });
+        proxy.setupQuestFound({ quest });
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({
+            operations: [
+              OperationItemStub({
+                id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+                status: 'in_progress',
+              }),
+            ],
+          }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+
+        expect(persisted).toStrictEqual(
+          QuestStub({
+            id: 'add-auth',
+            folder: '001-add-auth',
+            status: 'in_progress',
+            operations: [
+              OperationItemStub({
+                id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+                status: 'in_progress',
+              }),
+            ],
+            worktreePath,
+            updatedAt: '2024-01-15T10:00:00.000Z',
+          }),
+        );
+      });
+    });
+
+    describe('combined', () => {
+      it('VALID: {update returns branchName, baseBranch, worktreePath, baseRef together} => persists all four git-context fields in one write', async () => {
+        const proxy = questOperationsUpdateBrokerProxy();
+        const pendingOp = OperationItemStub({
+          id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+          status: 'pending',
+        });
+        const quest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+        });
+        proxy.setupQuestFound({ quest });
+
+        const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const worktreePath = AbsoluteFilePathStub({
+          value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
+        });
+        const baseRef = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2' as never;
+
+        await questOperationsUpdateBroker({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          update: () => ({ branchName, baseBranch, worktreePath, baseRef }),
+        });
+
+        const persisted = proxy.getLastPersistedQuest();
+        const expectedQuest = QuestStub({
+          id: 'add-auth',
+          folder: '001-add-auth',
+          status: 'in_progress',
+          operations: [pendingOp],
+          branchName,
+          baseBranch,
+          worktreePath,
+          baseRef,
+          updatedAt: '2024-01-15T10:00:00.000Z',
+        });
+
+        expect(persisted).toStrictEqual(expectedQuest);
+        // Proves the four git-context fields landed in ONE persist, not a trailing write.
+        expect(proxy.getAllPersistedQuests()).toStrictEqual([expectedQuest]);
+      });
     });
   });
 

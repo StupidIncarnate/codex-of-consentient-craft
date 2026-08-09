@@ -62,3 +62,5 @@ export * from './src/brokers/locations/rate-limits-snapshot-tmp-path-find/locati
 export * from './src/brokers/locations/rate-limits-history-path-find/locations-rate-limits-history-path-find-broker.proxy';
 export * from './src/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker.proxy';
 export * from './src/brokers/locations/dispatch-state-tmp-path-find/locations-dispatch-state-tmp-path-find-broker.proxy';
+export * from './src/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
+export * from './src/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';

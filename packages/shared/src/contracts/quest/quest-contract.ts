@@ -23,6 +23,7 @@ import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questQaLedgerEntryContract } from '../quest-qa-ledger-entry/quest-qa-ledger-entry-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
+import { questTitleContract } from '../quest-title/quest-title-contract';
 import { questTypeContract } from '../quest-type/quest-type-contract';
 import { smoketestCaseResultContract } from '../smoketest-case-result/smoketest-case-result-contract';
 import { toolingRequirementContract } from '../tooling-requirement/tooling-requirement-contract';
@@ -32,7 +33,7 @@ import { workItemContract } from '../work-item/work-item-contract';
 export const questContract = z.object({
   id: z.string().min(1).brand<'QuestId'>(),
   folder: z.string().min(1).brand<'QuestFolder'>(),
-  title: z.string().min(1).brand<'QuestTitle'>(),
+  title: questTitleContract,
   status: questStatusContract,
   questType: questTypeContract
     .default('feature')

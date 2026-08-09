@@ -1,4 +1,5 @@
 import { GuildNameStub } from '../../contracts/guild-name/guild-name.stub';
+import { QuestTitleStub } from '../../contracts/quest-title/quest-title.stub';
 
 import { nameToUrlSlugTransformer } from './name-to-url-slug-transformer';
 
@@ -70,6 +71,16 @@ describe('nameToUrlSlugTransformer', () => {
       const result = nameToUrlSlugTransformer({ name });
 
       expect(result).toBe('my-guild');
+    });
+  });
+
+  describe('quest titles', () => {
+    it('VALID: quest title with colon and mixed case => returns hyphenated slug', () => {
+      const name = QuestTitleStub({ value: 'Quest git lifecycle: baseRef branching' });
+
+      const result = nameToUrlSlugTransformer({ name });
+
+      expect(result).toBe('quest-git-lifecycle-baseref-branching');
     });
   });
 });

@@ -109,3 +109,8 @@ export type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export { streamSignalContract } from './contracts/stream-signal/stream-signal-contract';
 export type { StreamSignal } from './contracts/stream-signal/stream-signal-contract';
+
+// Quest Start git-lifecycle errors — exported so the server's start responder can
+// `instanceof`-check them and answer 400 instead of the catch-all 500.
+export { BaseBranchNotFoundError } from './errors/base-branch-not-found/base-branch-not-found-error';
+export { QuestBranchNameTakenError } from './errors/quest-branch-name-taken/quest-branch-name-taken-error';
