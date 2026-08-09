@@ -1,8 +1,11 @@
 /**
  * PURPOSE: Seeds a quest at a follow-up-relevant status, opens the quest execution view, and
- * exposes the FOLLOW-UP tab's structural + painted-geometry reads (tab order, active tab,
- * post-quest-bar stacking) that only a real attached browser tab can prove — jsdom has no layout
- * engine, so every width/border/adjacency check here would read 0 or pass vacuously there.
+ * exposes the FOLLOW-UP tab reads that only a real attached browser tab can settle — painted
+ * geometry (jsdom has no layout engine, so every width/border/adjacency check reads 0 or passes
+ * vacuously there) and live transcript state across a real reload. It also owns the tavernkeeper
+ * session JSONL, because the FOLLOW-UP transcript is rendered from that file and the fake Claude
+ * CLI writes it only once at exit — a spec observing a half-written transcript mid-run has to
+ * write the turns itself, at controlled timestamps, or it cannot pin an order at all.
  *
  * USAGE:
  * const followup = followupHarness({ page, request, guildPath });
@@ -16,12 +19,17 @@ import { readFileSync, writeFileSync } from 'fs';
 
 import type { APIRequestContext, Page } from '@playwright/test';
 
-import type { FilePath, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import {
+  AssistantTextStreamLineStub,
+  UserTextStringStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+import type { ContentText, FilePath, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { TestId } from '../../../src/contracts/test-id/test-id-contract';
 import { guildHarness } from '../guild/guild.harness';
 import { navigationHarness } from '../navigation/navigation.harness';
 import { questHarness } from '../quest/quest.harness';
+import { sessionHarness } from '../session/session.harness';
 
 const PANEL_TIMEOUT = 10_000;
 const JSON_INDENT = 2;
@@ -38,10 +46,27 @@ const ADJACENCY_EPSILON_PX = 1;
 // observable itself, so it must not follow the widget's own value down if that value regresses.
 const EXECUTION_FLOOR_MIN_HEIGHT_PX = 160;
 
+// Every stream line this harness writes carries an EXPLICIT uuid and timestamp.
+// - timestamp: the FOLLOW-UP transcript is ordered by `sortChatEntriesByTimestampTransformer`,
+//   so two lines left on a stub's shared default sort as a tie and no ordering assertion over
+//   them can fail.
+// - uuid: the web upserts chat entries keyed by uuid, so a line appended more than once collapses
+//   to one rendered message. `streamAssistantTurn` is called from a poll that re-appends until the
+//   quest-driven tail attaches (it tails from `end`, so anything written before it attaches is
+//   never emitted), and without the stable uuid each retry would render another copy.
+const SESSION_BASE_EPOCH_ISO = '2026-08-09T12:00:00.000Z';
+const SEEDED_TURN_INTERVAL_MS = 1000;
+// Streamed turns sort after every seeded turn, which is what makes "the reply arrived after the
+// transcript already on disk" the order an assertion can pin.
+const STREAMED_TURN_BASE_OFFSET_MS = 60_000;
+const STREAMED_TURN_INTERVAL_MS = 1000;
+
 // Element-type extraction via literal `[0]` rather than `[number]` — both resolve to the same
 // array element type, but `[number]` writes the bare `number` keyword this repo's ban-primitives
 // rule flags on sight, even inside an indexed-access position.
-type WorkItemInput = Parameters<ReturnType<typeof questHarness>['writeQuestFile']>[0]['workItems'][0];
+type WorkItemInput = Parameters<
+  ReturnType<typeof questHarness>['writeQuestFile']
+>[0]['workItems'][0];
 
 export const followupHarness = ({
   page,
@@ -59,10 +84,21 @@ export const followupHarness = ({
     workItems?: WorkItemInput[];
   }) => Promise<{ questId: QuestId; questFilePath: FilePath; urlSlug: UrlSlug }>;
   reopen: (params: { urlSlug: string; questId: string }) => Promise<void>;
+  reloadQuestPage: () => Promise<void>;
   pressFollowup: () => Promise<void>;
+  sendFollowupMessage: (params: { text: string }) => Promise<void>;
+  seedTavernkeeperSession: (params: {
+    sessionId: string;
+    turns: readonly { role: 'user' | 'assistant'; text: string }[];
+  }) => void;
+  streamAssistantTurn: (params: { sessionId: string; text: string; order: number }) => void;
+  transcriptHasText: (params: { text: string }) => Promise<boolean>;
+  transcriptOrder: (params: { candidates: readonly string[] }) => Promise<ContentText[]>;
+  isTurnInFlight: () => Promise<boolean>;
   switchToExecutionTab: () => Promise<void>;
   switchToFollowupTab: () => Promise<void>;
   tabOrder: () => Promise<TestId[]>;
+  hasAnyFollowupTab: () => Promise<boolean>;
   hasExactlyOneFollowupTab: () => Promise<boolean>;
   isTabActive: (params: { testid: string }) => Promise<boolean>;
   postQuestBarVisible: () => Promise<boolean>;
@@ -141,11 +177,127 @@ export const followupHarness = ({
     await page.getByTestId('QUEST_CHAT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
   };
 
+  // A REAL browser reload, not a tab switch: the FOLLOW-UP tab's open state and the whole chat
+  // transcript live in component state, so only a reload proves the turns come back from the
+  // session transcript on disk rather than from a component that never unmounted.
+  const reloadQuestPage = async (): Promise<void> => {
+    await page.reload();
+    await page.getByTestId('QUEST_CHAT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+  };
+
   const pressFollowup = async (): Promise<void> => {
     await page.getByTestId('EXECUTION_FOLLOWUP_BUTTON').click();
     await page
       .getByTestId('execution-panel-tab-followup')
       .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+  };
+
+  const sendFollowupMessage = async ({ text }: { text: string }): Promise<void> => {
+    await page.getByTestId('CHAT_INPUT').fill(text);
+    await page.getByTestId('SEND_BUTTON').click();
+  };
+
+  // Writes the tavernkeeper's session JSONL — the file the FOLLOW-UP transcript is rendered from,
+  // both on replay and while a turn streams. Callers seed it BEFORE navigating, because
+  // subscribe-quest replays it as soon as the browser binds the quest, and because the quest-driven
+  // watcher tails it from `end` (a file that does not exist yet has no `end` to tail from).
+  const seedTavernkeeperSession = ({
+    sessionId,
+    turns,
+  }: {
+    sessionId: string;
+    turns: readonly { role: 'user' | 'assistant'; text: string }[];
+  }): void => {
+    const sessions = sessionHarness({ guildPath });
+    const baseEpoch = new Date(SESSION_BASE_EPOCH_ISO).getTime();
+    sessions.createMultiEntrySessionFile({
+      sessionId,
+      lines: turns.map((turn, index) =>
+        JSON.stringify({
+          ...(turn.role === 'user'
+            ? UserTextStringStreamLineStub({ message: { role: 'user', content: turn.text } })
+            : AssistantTextStreamLineStub({
+                message: { role: 'assistant', content: [{ type: 'text', text: turn.text }] },
+              })),
+          uuid: `${sessionId}-seed-${String(index)}`,
+          timestamp: new Date(baseEpoch + index * SEEDED_TURN_INTERVAL_MS).toISOString(),
+        }),
+      ),
+    });
+  };
+
+  // Appends ONE assistant turn to the live tavernkeeper session JSONL. This is the fake Claude
+  // CLI's transcript-write boundary: the real CLI writes its transcript progressively as the reply
+  // is produced, while `test/harnesses/claude-mock/bin/claude` writes the whole file once at exit —
+  // so a spec that needs a partially-written transcript mid-run has to write the lines itself. The
+  // held-back queue response keeps the child alive around it, so the run really is still going.
+  const streamAssistantTurn = ({
+    sessionId,
+    text,
+    order,
+  }: {
+    sessionId: string;
+    text: string;
+    order: number;
+  }): void => {
+    const sessions = sessionHarness({ guildPath });
+    const streamedAt = new Date(
+      new Date(SESSION_BASE_EPOCH_ISO).getTime() +
+        STREAMED_TURN_BASE_OFFSET_MS +
+        order * STREAMED_TURN_INTERVAL_MS,
+    ).toISOString();
+    sessions.appendMainSessionLine({
+      sessionId,
+      line: JSON.stringify({
+        ...AssistantTextStreamLineStub({
+          message: { role: 'assistant', content: [{ type: 'text', text }] },
+        }),
+        uuid: `${sessionId}-stream-${String(order)}`,
+        timestamp: streamedAt,
+      }),
+    });
+  };
+
+  // Every transcript read is scoped INSIDE the FOLLOW-UP tab's own CHAT_PANEL. Unscoped, a message
+  // rendered on an expanded execution row would answer "is it in the transcript" with yes, and the
+  // absence half of a before/after pair would be reading a surface the observable never named.
+  const transcriptHasText = async ({ text }: { text: string }): Promise<boolean> =>
+    (await page
+      .getByTestId('CHAT_PANEL')
+      .getByTestId('CHAT_MESSAGE')
+      .filter({ hasText: text })
+      .count()) > 0;
+
+  // The candidates, in the order their messages appear in the transcript's DOM — the only read
+  // that can fail on a REORDERED transcript. A set of independent `toBeVisible()` calls passes on
+  // any permutation, and a candidate the transcript dropped drops out of this list entirely.
+  const transcriptOrder = async ({
+    candidates,
+  }: {
+    candidates: readonly string[];
+  }): Promise<ContentText[]> => {
+    const messages = await page
+      .getByTestId('CHAT_PANEL')
+      .getByTestId('CHAT_MESSAGE')
+      .evaluateAll((elements) => elements.map((element) => element.textContent ?? ''));
+    return candidates
+      .map((candidate) => ({
+        candidate,
+        position: messages.findIndex((message) => message.includes(candidate)),
+      }))
+      .filter((entry) => entry.position >= 0)
+      .sort((left, right) => left.position - right.position)
+      .map((entry) => entry.candidate) as ContentText[];
+  };
+
+  // "The tavernkeeper is still running": the composer shows STOP and no longer offers SEND. Both
+  // halves are read, because a surface rendering BOTH controls would satisfy either one alone.
+  const isTurnInFlight = async (): Promise<boolean> => {
+    const [stopVisible, sendVisible] = await Promise.all([
+      page.getByTestId('STOP_BUTTON').isVisible(),
+      page.getByTestId('SEND_BUTTON').isVisible(),
+    ]);
+    return stopVisible && !sendVisible;
   };
 
   const switchToExecutionTab = async (): Promise<void> => {
@@ -164,9 +316,11 @@ export const followupHarness = ({
       .locator('> *')
       .evaluateAll((elements) => elements.map((element) => element.getAttribute('data-testid')))
       .then(
-        (testids) =>
-          testids.filter((id): id is NonNullable<typeof id> => id !== null) as TestId[],
+        (testids) => testids.filter((id): id is NonNullable<typeof id> => id !== null) as TestId[],
       );
+
+  const hasAnyFollowupTab = async (): Promise<boolean> =>
+    (await page.getByTestId('execution-panel-tab-followup').count()) > 0;
 
   const hasExactlyOneFollowupTab = async (): Promise<boolean> =>
     (await page.getByTestId('execution-panel-tab-followup').count()) === 1;
@@ -247,10 +401,18 @@ export const followupHarness = ({
   return {
     seedAndOpen,
     reopen,
+    reloadQuestPage,
     pressFollowup,
+    sendFollowupMessage,
+    seedTavernkeeperSession,
+    streamAssistantTurn,
+    transcriptHasText,
+    transcriptOrder,
+    isTurnInFlight,
     switchToExecutionTab,
     switchToFollowupTab,
     tabOrder,
+    hasAnyFollowupTab,
     hasExactlyOneFollowupTab,
     isTabActive,
     postQuestBarVisible,
