@@ -190,6 +190,63 @@ describe('questOperationsUpdateBroker', () => {
     });
   });
 
+  describe('merging status persists across ledger writes (self-edge)', () => {
+    // warpgate-merge:observable:merging-persists-mid-run — "while the warpgate work item is
+    // in_progress, quest.json status re-derives to `merging` on every ledger write and never
+    // falls through to `in_progress`." A single derivation call proves the transformer's logic
+    // (see work-items-to-quest-status-transformer.test.ts); this proves the FULL broker path —
+    // read real disk state, re-derive, persist, TWICE in a row — never trips the transition
+    // guard's self-edge (questStatusTransitionsStatics.merging includes 'merging') and never
+    // regresses to in_progress on a write that changes nothing about the derivation inputs.
+    it('VALID: {currentStatus: merging, warpgate item in_progress, TWO consecutive ledger writes} => both persists land status "merging"', async () => {
+      const proxy = questOperationsUpdateBrokerProxy();
+      const warpgateOp = OperationItemStub({
+        id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
+        role: 'warpgate',
+        status: 'in_progress',
+        locked: true,
+      });
+      const warpgateItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'warpgate',
+        status: 'in_progress',
+      });
+      const questAtMerging = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'merging',
+        operations: [warpgateOp],
+        workItems: [warpgateItem],
+      });
+      proxy.setupQuestFound({ quest: questAtMerging });
+
+      // First write: a no-op-shaped ledger touch (same operations/workItems back), which still
+      // runs the full read -> derive -> persist path.
+      await questOperationsUpdateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        update: () => ({ operations: [warpgateOp], workItems: [warpgateItem] }),
+      });
+
+      const firstPersisted = proxy.getLastPersistedQuest();
+
+      expect(firstPersisted.status).toBe('merging');
+
+      // Re-stage the broker's read to see what the FIRST write actually persisted (not the
+      // original stale snapshot) before running the SECOND write — proving the self-edge holds
+      // on repeat, not just once.
+      proxy.setupQuestFound({ quest: firstPersisted });
+
+      await questOperationsUpdateBroker({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        update: () => ({ operations: [warpgateOp], workItems: [warpgateItem] }),
+      });
+
+      const allPersisted = proxy.getAllPersistedQuests();
+
+      expect(allPersisted.map(({ status }) => status)).toStrictEqual(['merging', 'merging']);
+    });
+  });
+
   describe('git context fields', () => {
     describe('branchName', () => {
       it('VALID: {update returns {branchName}} => persists branchName', async () => {
