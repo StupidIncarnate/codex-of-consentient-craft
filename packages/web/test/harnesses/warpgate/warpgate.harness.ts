@@ -19,12 +19,7 @@ import {
   AssistantTextStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  FilePath,
-  GuildId,
-  QuestId,
-  UrlSlug,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildId, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -46,20 +41,14 @@ export const warpgateHarness = ({
   request: APIRequestContext;
   guildPath: string;
 }): {
-  setup: (params: {
-    guildName: string;
-    title: string;
-  }) => Promise<{
+  setup: (params: { guildName: string; title: string }) => Promise<{
     guildId: GuildId;
     urlSlug: UrlSlug;
     questId: QuestId;
     questFolder: QuestId;
     questFilePath: FilePath;
   }>;
-  createQuestInGuild: (params: {
-    guildId: GuildId;
-    title: string;
-  }) => Promise<{
+  createQuestInGuild: (params: { guildId: GuildId; title: string }) => Promise<{
     questId: QuestId;
     questFolder: QuestId;
     questFilePath: FilePath;
