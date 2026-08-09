@@ -6,8 +6,10 @@ import {
   SessionListItemStub,
   SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
+import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { SessionFilterStub } from '../../contracts/session-filter/session-filter.stub';
 import { GuildSessionListWidget } from './guild-session-list-widget';
 import { GuildSessionListWidgetProxy } from './guild-session-list-widget.proxy';
@@ -1143,6 +1145,141 @@ describe('GuildSessionListWidget', () => {
       await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
 
       expect(proxy.isBanishButtonDisabled()).toBe(true);
+    });
+  });
+
+  describe('status color coverage', () => {
+    type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
+    const ALL_QUEST_STATUSES = Object.keys(
+      questStatusMetadataStatics.statuses,
+    ) as readonly StatusKey[];
+    // 'abandoned' is the one status the map deliberately paints the same dim-grey as the
+    // fallback, matching the terminal-row opacity fade it already gets (TERMINAL_STATUSES in
+    // the widget). Every OTHER status must land on a color distinct from that fallback, so it
+    // is covered separately below instead of through this membership check.
+    const NON_ABANDONED_STATUSES = ALL_QUEST_STATUSES.filter((status) => status !== 'abandoned');
+
+    const NON_FALLBACK_STATUS_COLORS = new Set(
+      Object.entries(emberDepthsThemeStatics.colors)
+        .filter(([colorKey]) => colorKey !== 'text-dim')
+        .map(([, hexValue]) => {
+          const probe = document.createElement('span');
+          probe.style.color = hexValue;
+          return probe.style.color;
+        }),
+    );
+
+    it.each(NON_ABANDONED_STATUSES)(
+      'VALID: {quest status: %s} => status text renders in a deliberate color, not the dim-grey fallback',
+      (status) => {
+        const proxy = GuildSessionListWidgetProxy();
+        const questId = QuestIdStub({ value: `status-coverage-${status}` });
+        const quest = QuestListItemStub({ id: questId, status: status as never });
+
+        mantineRenderAdapter({
+          ui: (
+            <GuildSessionListWidget
+              quests={[quest]}
+              sessions={[]}
+              skippedQuestFiles={[]}
+              loading={false}
+              filter={SessionFilterStub({ value: 'quests-only' })}
+              onFilterChange={jest.fn()}
+              onSelect={jest.fn()}
+              onSelectQuest={jest.fn()}
+              onAdd={jest.fn()}
+              confirmingQuestId={null}
+              onConfirmingQuestIdChange={jest.fn()}
+              onDeleteQuest={jest.fn()}
+              deletingQuestId={null}
+            />
+          ),
+        });
+
+        const color = proxy.getStatusColor({ testId: `QUEST_STATUS_${questId}` });
+
+        expect(NON_FALLBACK_STATUS_COLORS.has(color)).toBe(true);
+      },
+    );
+
+    it('VALID: {quest status: abandoned} => status text is deliberately painted the same dim-grey as the fallback', () => {
+      const fallbackProbe = document.createElement('span');
+      fallbackProbe.style.color = emberDepthsThemeStatics.colors['text-dim'];
+
+      const proxy = GuildSessionListWidgetProxy();
+      const questId = QuestIdStub({ value: 'status-coverage-abandoned' });
+      const quest = QuestListItemStub({ id: questId, status: 'abandoned' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[quest]}
+            sessions={[]}
+            skippedQuestFiles={[]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.getStatusColor({ testId: `QUEST_STATUS_${questId}` })).toBe(
+        fallbackProbe.style.color,
+      );
+    });
+
+    it('VALID: {merge-flow lifecycle statuses} => paused/merging/merged each render their mirrored lifecycle color', () => {
+      const warningProbe = document.createElement('span');
+      warningProbe.style.color = emberDepthsThemeStatics.colors.warning;
+      const primaryProbe = document.createElement('span');
+      primaryProbe.style.color = emberDepthsThemeStatics.colors.primary;
+      const successProbe = document.createElement('span');
+      successProbe.style.color = emberDepthsThemeStatics.colors.success;
+
+      const proxy = GuildSessionListWidgetProxy();
+      const pausedQuestId = QuestIdStub({ value: 'lifecycle-color-paused' });
+      const mergingQuestId = QuestIdStub({ value: 'lifecycle-color-merging' });
+      const mergedQuestId = QuestIdStub({ value: 'lifecycle-color-merged' });
+      const pausedQuest = QuestListItemStub({ id: pausedQuestId, status: 'paused' as never });
+      const mergingQuest = QuestListItemStub({ id: mergingQuestId, status: 'merging' as never });
+      const mergedQuest = QuestListItemStub({ id: mergedQuestId, status: 'merged' as never });
+
+      mantineRenderAdapter({
+        ui: (
+          <GuildSessionListWidget
+            quests={[pausedQuest, mergingQuest, mergedQuest]}
+            sessions={[]}
+            skippedQuestFiles={[]}
+            loading={false}
+            filter={SessionFilterStub({ value: 'quests-only' })}
+            onFilterChange={jest.fn()}
+            onSelect={jest.fn()}
+            onSelectQuest={jest.fn()}
+            onAdd={jest.fn()}
+            confirmingQuestId={null}
+            onConfirmingQuestIdChange={jest.fn()}
+            onDeleteQuest={jest.fn()}
+            deletingQuestId={null}
+          />
+        ),
+      });
+
+      expect(proxy.getStatusColor({ testId: `QUEST_STATUS_${pausedQuestId}` })).toBe(
+        warningProbe.style.color,
+      );
+      expect(proxy.getStatusColor({ testId: `QUEST_STATUS_${mergingQuestId}` })).toBe(
+        primaryProbe.style.color,
+      );
+      expect(proxy.getStatusColor({ testId: `QUEST_STATUS_${mergedQuestId}` })).toBe(
+        successProbe.style.color,
+      );
     });
   });
 });

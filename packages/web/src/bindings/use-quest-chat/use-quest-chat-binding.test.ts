@@ -6,6 +6,7 @@ import {
   QuestWorkItemIdStub,
   SessionIdStub,
   UserInputStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
@@ -44,6 +45,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -51,6 +53,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -153,6 +156,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: expectedMap,
         entriesByWorkItem: expectedWorkItemMap,
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -160,6 +164,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -196,6 +201,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -203,6 +209,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -238,6 +245,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -245,6 +253,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -279,6 +288,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest,
         loadError: null,
         pendingClarification: null,
@@ -286,6 +296,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -320,6 +331,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -327,6 +339,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -360,6 +373,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: LOAD_FAILURE_REASON,
         pendingClarification: null,
@@ -367,6 +381,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -398,6 +413,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -405,6 +421,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -451,6 +468,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest,
         loadError: null,
         pendingClarification: null,
@@ -458,6 +476,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -583,6 +602,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: expectedMap,
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -590,6 +610,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -636,6 +657,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: expectedMap,
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -643,6 +665,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -1238,6 +1261,7 @@ describe('useQuestChatBinding', () => {
         entriesBySession: new Map(),
         entriesByWorkItem: new Map(),
         slotEntries: new Map(),
+        followupEntries: [],
         quest: null,
         loadError: null,
         pendingClarification: null,
@@ -1245,6 +1269,7 @@ describe('useQuestChatBinding', () => {
         armStreaming: expect.any(Function),
         disarmStreaming: expect.any(Function),
         sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
         sendCommentBatch: expect.any(Function),
         submitClarifyAnswers: expect.any(Function),
         stopChat: expect.any(Function),
@@ -1374,6 +1399,667 @@ describe('useQuestChatBinding', () => {
         { type: 'unsubscribe-quest', questId: 'quest-change-old' },
         { type: 'subscribe-quest', questId: 'quest-change-new' },
       ]);
+    });
+
+    it('VALID: {followup sent, then questId changes} => followupEntries drops the previous quest optimistic entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId1 = QuestIdStub({ value: 'quest-followup-carry-old' });
+      const questId2 = QuestIdStub({ value: 'quest-followup-carry-new' });
+      const message = UserInputStub({ value: 'What did this quest change?' });
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-carry' }) });
+      proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000601'] });
+      proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
+
+      let activeQuestId = questId1;
+
+      const { result, rerender } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      const beforeSwitch = result.current.followupEntries;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          activeQuestId = questId2;
+          rerender();
+        },
+      });
+
+      expect({ beforeSwitch, afterSwitch: result.current.followupEntries }).toStrictEqual({
+        beforeSwitch: [
+          {
+            role: 'user',
+            content: 'What did this quest change?',
+            uuid: '00000000-0000-4000-8000-000000000601',
+            timestamp: '2026-08-09T00:00:00.000Z',
+          },
+        ],
+        afterSwitch: [],
+      });
+    });
+  });
+
+  describe('sendFollowupMessage', () => {
+    it('VALID: {questId, message} => POSTs to questFollowup with body {message} and appends an optimistic user entry', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-post-1' });
+      const message = UserInputStub({ value: 'Show me what changed' });
+      const synthUuid = '00000000-0000-4000-8000-000000000301';
+      const synthTs = '2026-08-09T00:00:00.000Z';
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-post' }) });
+      proxy.setupUuids({ uuids: [synthUuid] });
+      proxy.setupTimestamps({ timestamps: [synthTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({ message });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect({
+        requestBody: proxy.getFollowupRequestBody(),
+        followupEntries: result.current.followupEntries,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        requestBody: { message: 'Show me what changed' },
+        followupEntries: [
+          { role: 'user', content: 'Show me what changed', uuid: synthUuid, timestamp: synthTs },
+        ],
+        isStreaming: true,
+      });
+    });
+
+    it('EMPTY: {questId: null} => is a no-op, no POST and no followup entries', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId: null }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
+        },
+      });
+
+      expect({
+        requestCount: proxy.getFollowupRequestCount(),
+        followupEntries: result.current.followupEntries,
+      }).toStrictEqual({ requestCount: 0, followupEntries: [] });
+    });
+
+    it('ERROR: {400 rejection body} => followupEntries carries the server rejection text verbatim', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-rejected-1' });
+      const synthUuid = '00000000-0000-4000-8000-000000000302';
+      const errorUuid = '00000000-0000-4000-8000-000000000303';
+      const synthTs = '2026-08-09T00:00:01.000Z';
+      const errorTs = '2026-08-09T00:00:02.000Z';
+      proxy.setupFollowupRejected({
+        error: 'Quest must be blocked, complete or merged for follow-up',
+      });
+      proxy.setupUuids({ uuids: [synthUuid, errorUuid] });
+      proxy.setupTimestamps({ timestamps: [synthTs, errorTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Any updates?' }) });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect({
+        followupEntries: result.current.followupEntries,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        followupEntries: [
+          { role: 'user', content: 'Any updates?', uuid: synthUuid, timestamp: synthTs },
+          {
+            role: 'system',
+            type: 'error',
+            content: 'Quest must be blocked, complete or merged for follow-up',
+            uuid: errorUuid,
+            timestamp: errorTs,
+          },
+        ],
+        isStreaming: false,
+      });
+    });
+
+    it('ERROR: {spawn failure reason} => followupEntries names the reason rather than a bare empty transcript', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-spawn-fail-1' });
+      const synthUuid = '00000000-0000-4000-8000-000000000304';
+      const errorUuid = '00000000-0000-4000-8000-000000000305';
+      const synthTs = '2026-08-09T00:00:03.000Z';
+      const errorTs = '2026-08-09T00:00:04.000Z';
+      // The exact catch-all default the real responder returns when starting the tavernkeeper
+      // process itself throws — a distinct failure mode from the 400 status-check rejection above.
+      proxy.setupFollowupRejected({ error: 'Failed to start follow-up chat' });
+      proxy.setupUuids({ uuids: [synthUuid, errorUuid] });
+      proxy.setupTimestamps({ timestamps: [synthTs, errorTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Show me the feature' }),
+          });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.followupEntries).toStrictEqual([
+        { role: 'user', content: 'Show me the feature', uuid: synthUuid, timestamp: synthTs },
+        {
+          role: 'system',
+          type: 'error',
+          content: 'Failed to start follow-up chat',
+          uuid: errorUuid,
+          timestamp: errorTs,
+        },
+      ]);
+    });
+
+    it('VALID: {two sequential sends} => the second send appends rather than replacing the transcript', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-second-press-1' });
+      const firstUuid = '00000000-0000-4000-8000-000000000306';
+      const secondUuid = '00000000-0000-4000-8000-000000000307';
+      const firstTs = '2026-08-09T00:00:05.000Z';
+      const secondTs = '2026-08-09T00:00:06.000Z';
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-first' }) });
+      proxy.setupUuids({ uuids: [firstUuid, secondUuid] });
+      proxy.setupTimestamps({ timestamps: [firstTs, secondTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'First question' }),
+          });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Second question' }),
+          });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      expect(result.current.followupEntries).toStrictEqual([
+        { role: 'user', content: 'First question', uuid: firstUuid, timestamp: firstTs },
+        { role: 'user', content: 'Second question', uuid: secondUuid, timestamp: secondTs },
+      ]);
+    });
+  });
+
+  describe('followupEntries', () => {
+    it('EMPTY: {quest with no tavernkeeper work item} => followupEntries is empty', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-no-workitem-1' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        workItems: [WorkItemStub({ role: 'codeweaver' })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-no-workitem-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.followupEntries).toStrictEqual([]);
+    });
+
+    it('EMPTY: {tavernkeeper work item without sessionId} => followupEntries is empty', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-no-session-1' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        workItems: [WorkItemStub({ role: 'tavernkeeper' })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-no-session-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect(result.current.followupEntries).toStrictEqual([]);
+    });
+
+    it('VALID: {chat-output tagged with the tavernkeeper sessionId} => streams into followupEntries while the turn runs', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-stream-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+      const entryUuid = '00000000-0000-4000-8000-000000000401';
+      const entryTs = '2026-08-09T00:00:00.000Z';
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-stream-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-followup-stream-1',
+                sessionId: tavernkeeperSessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-stream' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'Here is what changed',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
+              },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({
+        followupEntries: result.current.followupEntries,
+        isStreaming: result.current.isStreaming,
+      }).toStrictEqual({
+        followupEntries: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'Here is what changed',
+            uuid: entryUuid,
+            timestamp: entryTs,
+          },
+        ],
+        isStreaming: true,
+      });
+    });
+
+    it('VALID: {chat-complete after tavernkeeper streaming} => isStreaming returns to false so the composer is live for the next turn', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-turn-end-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'blocked',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-turn-end-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-followup-turn-end-1',
+                sessionId: tavernkeeperSessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'Working on it',
+                    uuid: '00000000-0000-4000-8000-000000000402',
+                    timestamp: '2026-08-09T00:00:00.000Z',
+                  },
+                ],
+              },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+      const whileStreaming = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
+                exitCode: 0,
+                sessionId: tavernkeeperSessionId,
+              },
+              timestamp: '2026-08-09T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ whileStreaming, afterTurnEnded: result.current.isStreaming }).toStrictEqual({
+        whileStreaming: true,
+        afterTurnEnded: false,
+      });
+    });
+
+    it('VALID: {quest status complete} => tavernkeeper streaming arms then clears same as any other status', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-complete-status-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-complete-status-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-followup-complete-status-1',
+                sessionId: tavernkeeperSessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'All done',
+                    uuid: '00000000-0000-4000-8000-000000000403',
+                    timestamp: '2026-08-09T00:00:00.000Z',
+                  },
+                ],
+              },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+      const whileStreaming = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
+                exitCode: 0,
+                sessionId: tavernkeeperSessionId,
+              },
+              timestamp: '2026-08-09T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ whileStreaming, afterComplete: result.current.isStreaming }).toStrictEqual({
+        whileStreaming: true,
+        afterComplete: false,
+      });
+    });
+
+    it('VALID: {quest status merged} => tavernkeeper streaming arms then clears same as any other status', () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-merged-status-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'merged',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-merged-status-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-followup-merged-status-1',
+                sessionId: tavernkeeperSessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'Merged and done',
+                    uuid: '00000000-0000-4000-8000-000000000404',
+                    timestamp: '2026-08-09T00:00:00.000Z',
+                  },
+                ],
+              },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+      const whileStreaming = result.current.isStreaming;
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
+                exitCode: 0,
+                sessionId: tavernkeeperSessionId,
+              },
+              timestamp: '2026-08-09T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ whileStreaming, afterComplete: result.current.isStreaming }).toStrictEqual({
+        whileStreaming: true,
+        afterComplete: false,
+      });
+    });
+
+    it('EDGE: {sendMessage vs sendFollowupMessage} => neither writes into the other transcript', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-followup-isolation-1' });
+      const tavernkeeperSessionId = SessionIdStub({
+        value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'blocked',
+        workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
+      });
+      const mainUuid = '00000000-0000-4000-8000-000000000501';
+      const followupUuid = '00000000-0000-4000-8000-000000000502';
+      const mainTs = '2026-08-09T00:00:00.000Z';
+      const followupTs = '2026-08-09T00:00:01.000Z';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-main-isolation' }) });
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-isolation' }) });
+      proxy.setupUuids({ uuids: [mainUuid, followupUuid] });
+      proxy.setupTimestamps({ timestamps: [mainTs, followupTs] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'quest-modified',
+              payload: { questId: 'quest-followup-isolation-1', quest },
+              timestamp: '2026-08-09T00:00:00.000Z',
+            }),
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({
+            message: UserInputStub({ value: 'Main composer message' }),
+          });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Followup composer message' }),
+          });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
+      const expectedMainMap = new Map();
+      expectedMainMap.set(synthKey, [
+        { role: 'user', content: 'Main composer message', uuid: mainUuid, timestamp: mainTs },
+      ]);
+
+      expect({
+        entriesBySession: result.current.entriesBySession,
+        followupEntries: result.current.followupEntries,
+      }).toStrictEqual({
+        entriesBySession: expectedMainMap,
+        followupEntries: [
+          {
+            role: 'user',
+            content: 'Followup composer message',
+            uuid: followupUuid,
+            timestamp: followupTs,
+          },
+        ],
+      });
     });
   });
 });

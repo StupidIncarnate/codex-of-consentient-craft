@@ -35,6 +35,7 @@ import { useCommentQueueSweepBinding } from '../../bindings/use-comment-queue-sw
 import { useOrchestrationModeBinding } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { questAbandonBroker } from '../../brokers/quest/abandon/quest-abandon-broker';
+import { questMergeBroker } from '../../brokers/quest/merge/quest-merge-broker';
 import { questModifyBroker } from '../../brokers/quest/modify/quest-modify-broker';
 import { questNewBroker } from '../../brokers/quest/new/quest-new-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
@@ -103,11 +104,13 @@ export const QuestChatContentLayerWidget = ({
     loadError,
     entriesBySession,
     entriesByWorkItem,
+    followupEntries,
     isStreaming,
     armStreaming,
     disarmStreaming,
     pendingClarification,
     sendMessage,
+    sendFollowupMessage,
     sendCommentBatch,
     submitClarifyAnswers,
     stopChat,
@@ -461,6 +464,15 @@ export const QuestChatContentLayerWidget = ({
             sessionEntries={entriesBySession}
             workItemEntries={entriesByWorkItem}
             guildSlug={guildSlug}
+            followupEntries={followupEntries}
+            isFollowupStreaming={isStreaming}
+            onSendFollowupMessage={sendFollowupMessage}
+            onStopFollowup={handleStop}
+            onMerge={(): void => {
+              questMergeBroker({ questId: quest.id }).catch((mergeError: unknown) => {
+                globalThis.console.error('[quest-chat] merge failed', mergeError);
+              });
+            }}
             onStatusChange={({ status }): void => {
               // Both halts — a user pause and a `blocked` quest — go through the resume endpoint,
               // never a bare status PATCH. Resume is what rearms the work items a block left as

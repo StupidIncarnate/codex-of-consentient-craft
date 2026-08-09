@@ -30,12 +30,16 @@ import {
   chatEntryContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import { isUserPausedQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import {
+  isPostQuestChatWorkItemRoleGuard,
+  isUserPausedQuestStatusGuard,
+} from '@dungeonmaster/shared/guards';
 
 import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
 import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
+import { questFollowupBroker } from '../../brokers/quest/followup/quest-followup-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { commentBatchSendResultContract } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
@@ -44,11 +48,13 @@ import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comm
 import type { QuestLoadFailedPayload } from '../../contracts/quest-load-failed-payload/quest-load-failed-payload-contract';
 import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
+import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { hasPendingQuestionGuard } from '../../guards/has-pending-question/has-pending-question-guard';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { deriveSortedChatEntriesMapTransformer } from '../../transformers/derive-sorted-chat-entries-map/derive-sorted-chat-entries-map-transformer';
 import { extractAskUserQuestionTransformer } from '../../transformers/extract-ask-user-question/extract-ask-user-question-transformer';
 import { replaceEpochChatEntryTimestampTransformer } from '../../transformers/replace-epoch-chat-entry-timestamp/replace-epoch-chat-entry-timestamp-transformer';
+import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { upsertChatEntriesByUuidTransformer } from '../../transformers/upsert-chat-entries-by-uuid/upsert-chat-entries-by-uuid-transformer';
 
 const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
@@ -61,6 +67,7 @@ export const useQuestChatBinding = ({
   entriesBySession: Map<SessionId, ChatEntry[]>;
   entriesByWorkItem: Map<QuestWorkItemId, ChatEntry[]>;
   slotEntries: Map<SlotIndex, ChatEntry[]>;
+  followupEntries: ChatEntry[];
   quest: Quest | null;
   loadError: QuestLoadFailedPayload['error'] | null;
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
@@ -68,6 +75,7 @@ export const useQuestChatBinding = ({
   armStreaming: () => void;
   disarmStreaming: () => void;
   sendMessage: (params: { message: UserInput }) => void;
+  sendFollowupMessage: (params: { message: UserInput }) => void;
   sendCommentBatch: (params: {
     comments: readonly CommentQueueEntry[];
   }) => Promise<CommentBatchSendResult>;
@@ -98,6 +106,11 @@ export const useQuestChatBinding = ({
   const [pendingClarification, setPendingClarification] = useState<{
     questions: AskUserQuestionItem[];
   } | null>(null);
+  // Optimistic entries for the FOLLOW-UP tab's tavernkeeper conversation, kept OUT of
+  // entriesBySessionInternal on purpose: the main composer is not mounted during the execution
+  // phase (blocked/complete/merged), so bleeding a followup entry into the synthetic no-session
+  // bucket sendMessage owns would surface it on a composer the user never touched.
+  const [followupLocalEntries, setFollowupLocalEntries] = useState<ChatEntry[]>([]);
   // Two halves of "a turn is running", because they end on different signals.
   // `pendingTurn` is armed the instant the USER commits a turn (send / clarify answer / comment
   // batch / the first message that creates the quest) and is cleared ONLY by a real `turn-ended`.
@@ -121,6 +134,27 @@ export const useQuestChatBinding = ({
     [slotEntriesInternal],
   );
 
+  // The FOLLOW-UP tab's transcript. Resolved from the tavernkeeper work item's own sessionId
+  // rather than a synthetic bucket, because the tavernkeeper's session is minted by the server on
+  // first send — before that, there is no work item and this is correctly empty. Local entries
+  // that replay has not echoed yet are filtered against the session's own entries the same way
+  // QuestChatContentLayerWidget's flattenedEntries dedupes the create-surface composer.
+  const followupEntries = useMemo<ChatEntry[]>(() => {
+    const tavernkeeperWorkItem = quest?.workItems.find((workItem) =>
+      isPostQuestChatWorkItemRoleGuard({ role: workItem.role }),
+    );
+    const sessionEntries =
+      tavernkeeperWorkItem?.sessionId === undefined
+        ? []
+        : (entriesBySession.get(tavernkeeperWorkItem.sessionId) ?? []);
+    const localFiltered = followupLocalEntries.filter(
+      (entry) => !hasEquivalentChatEntryGuard({ entry, among: sessionEntries }),
+    );
+    return sortChatEntriesByTimestampTransformer({
+      entries: [...localFiltered, ...sessionEntries],
+    });
+  }, [quest, entriesBySession, followupLocalEntries]);
+
   const questIdRef = useRef<QuestId | null>(questId);
   questIdRef.current = questId;
 
@@ -140,6 +174,10 @@ export const useQuestChatBinding = ({
   // A pending turn belongs to the quest it was armed for. Carrying it across a real quest→quest
   // switch would show STOP over an idle workspace. The null→id transition is deliberately NOT a
   // switch: that is the same turn, whose first message just created its own quest.
+  // followupLocalEntries is cleared on the same edge, and unlike the session buckets it HAS to be:
+  // those are keyed by sessionId, so the next quest's follow-up transcript never reads another
+  // quest's bucket, while these optimistic entries carry no key at all and would render the
+  // previous quest's question in the new quest's FOLLOW-UP tab.
   const previousQuestIdRef = useRef<QuestId | null>(questId);
   useEffect(() => {
     const previousQuestId = previousQuestIdRef.current;
@@ -147,6 +185,7 @@ export const useQuestChatBinding = ({
     if (previousQuestId === null || previousQuestId === questId) return;
     setPendingTurn(false);
     setStreamingFromOutput(false);
+    setFollowupLocalEntries([]);
     trackedChatProcessIdRef.current = null;
   }, [questId]);
 
@@ -376,6 +415,46 @@ export const useQuestChatBinding = ({
     [quest],
   );
 
+  // Mirrors sendMessage's shape for the FOLLOW-UP tab's tavernkeeper conversation. Two
+  // deliberate divergences: the optimistic entry lands in followupLocalEntries, never
+  // entriesBySessionInternal (see followupLocalEntries above); and there is no resume-if-paused
+  // step, because the tavernkeeper only ever runs against a quest that has already left the
+  // execution phase (blocked/complete/merged) — that step exists for sendMessage's relay
+  // composer and has no quest state to resume from here.
+  const sendFollowupMessage = useCallback(({ message }: { message: UserInput }): void => {
+    const activeQuestId = questIdRef.current;
+    if (!activeQuestId) return;
+
+    const userEntry = chatEntryContract.parse({
+      role: 'user',
+      content: message,
+      uuid: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+    });
+    setFollowupLocalEntries((prev) => [...prev, userEntry]);
+    setPendingTurn(true);
+    // The previous turn's handle must not outlive it: a late completion for THAT process would
+    // otherwise match and clear the turn just committed.
+    trackedChatProcessIdRef.current = null;
+
+    questFollowupBroker({ questId: activeQuestId, message })
+      .then(({ chatProcessId }) => {
+        trackedChatProcessIdRef.current = chatProcessId;
+      })
+      .catch((err: unknown) => {
+        setPendingTurn(false);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        const errorEntry = chatEntryContract.parse({
+          role: 'system',
+          type: 'error',
+          content: errorMessage,
+          uuid: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
+        });
+        setFollowupLocalEntries((prev) => [...prev, errorEntry]);
+      });
+  }, []);
+
   // Comment-batch send lives HERE rather than in the queue-bar widget because the panel entry is
   // this binding's job: Claude's --resume stream never echoes the prompt back, so a widget that
   // POSTs directly leaves the user's own message invisible until a reload replays the session from
@@ -506,6 +585,7 @@ export const useQuestChatBinding = ({
     entriesBySession,
     entriesByWorkItem,
     slotEntries,
+    followupEntries,
     quest,
     loadError,
     pendingClarification,
@@ -513,6 +593,7 @@ export const useQuestChatBinding = ({
     armStreaming,
     disarmStreaming,
     sendMessage,
+    sendFollowupMessage,
     sendCommentBatch,
     submitClarifyAnswers,
     stopChat,

@@ -6,6 +6,7 @@ import type { RequestCount } from '@dungeonmaster/testing';
 import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker.proxy';
 import { questClarifyBrokerProxy } from '../../brokers/quest/clarify/quest-clarify-broker.proxy';
 import { questCommentBatchBrokerProxy } from '../../brokers/quest/comment-batch/quest-comment-batch-broker.proxy';
+import { questFollowupBrokerProxy } from '../../brokers/quest/followup/quest-followup-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
 import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
@@ -21,6 +22,9 @@ export const useQuestChatBindingProxy = (): {
   setupCommentBatchSentWithoutDeliveredMessage: (params: { chatProcessId: ProcessId }) => void;
   setupCommentBatchStale: (params: { staleAnchors: unknown[] }) => void;
   setupCommentBatchFailed: (params: { error: string }) => void;
+  setupFollowup: (params: { chatProcessId: ProcessId }) => void;
+  setupFollowupRejected: (params: { error: string }) => void;
+  setupFollowupError: () => void;
   setupPause: () => void;
   setupResume: (params: { restoredStatus: QuestStatus }) => void;
   setupUuids: (params: {
@@ -30,6 +34,8 @@ export const useQuestChatBindingProxy = (): {
   getChatRequestCount: () => RequestCount;
   getClarifyRequestCount: () => RequestCount;
   getCommentBatchRequestCount: () => RequestCount;
+  getFollowupRequestBody: () => unknown;
+  getFollowupRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
   getResumeRequestCount: () => RequestCount;
   deliverWsMessage: (params: { data: string }) => void;
@@ -40,6 +46,7 @@ export const useQuestChatBindingProxy = (): {
   const chatProxy = questChatBrokerProxy();
   const clarifyProxy = questClarifyBrokerProxy();
   const commentBatchProxy = questCommentBatchBrokerProxy();
+  const followupProxy = questFollowupBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
   const resumeProxy = questResumeBrokerProxy();
   rxjsFilterAdapterProxy();
@@ -85,6 +92,15 @@ export const useQuestChatBindingProxy = (): {
     setupCommentBatchFailed: ({ error }) => {
       commentBatchProxy.setupServerError({ error });
     },
+    setupFollowup: ({ chatProcessId }) => {
+      followupProxy.setupFollowup({ chatProcessId });
+    },
+    setupFollowupRejected: ({ error }) => {
+      followupProxy.setupRejected({ error });
+    },
+    setupFollowupError: () => {
+      followupProxy.setupError();
+    },
     setupPause: () => {
       pauseProxy.setupPause();
     },
@@ -105,6 +121,8 @@ export const useQuestChatBindingProxy = (): {
     getChatRequestCount: () => chatProxy.getRequestCount(),
     getClarifyRequestCount: () => clarifyProxy.getRequestCount(),
     getCommentBatchRequestCount: () => commentBatchProxy.getRequestCount(),
+    getFollowupRequestBody: () => followupProxy.getRequestBody(),
+    getFollowupRequestCount: () => followupProxy.getRequestCount(),
     getPauseRequestCount: () => pauseProxy.getRequestCount(),
     getResumeRequestCount: () => resumeProxy.getRequestCount(),
     deliverWsMessage: ({ data }) => {

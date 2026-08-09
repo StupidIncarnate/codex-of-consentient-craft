@@ -38,6 +38,17 @@ describe('ExecutionPanelWidget', () => {
       expect(screen.getByTestId('execution-panel-tab-spec').textContent).toBe('QUEST SPEC');
     });
 
+    it('VALID: {in_progress quest} => tab bar holds exactly EXECUTION then QUEST SPEC', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getTabLabels()).toStrictEqual(['EXECUTION', 'QUEST SPEC']);
+    });
+
     it('VALID: {quest} => defaults to EXECUTION tab', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
@@ -1127,20 +1138,20 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('terminal banner', () => {
+  describe('status banner', () => {
     type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
     const PANEL_STATUSES = (
       Object.keys(questStatusMetadataStatics.statuses) as readonly StatusKey[]
     ).filter((s) => questStatusMetadataStatics.statuses[s].shouldRenderExecutionPanel);
-    const TERMINAL_PANEL_STATUSES = PANEL_STATUSES.filter(
-      (s) => questStatusMetadataStatics.statuses[s].isTerminal,
+    const BANNER_STATUSES = PANEL_STATUSES.filter(
+      (s) => questStatusMetadataStatics.statuses[s].shouldRenderStatusBanner,
     );
-    const NON_TERMINAL_PANEL_STATUSES = PANEL_STATUSES.filter(
-      (s) => !questStatusMetadataStatics.statuses[s].isTerminal,
+    const NON_BANNER_STATUSES = PANEL_STATUSES.filter(
+      (s) => !questStatusMetadataStatics.statuses[s].shouldRenderStatusBanner,
     );
 
-    it.each(TERMINAL_PANEL_STATUSES)(
-      'VALID: {status: %s} => terminal banner visible with displayHeader text',
+    it.each(BANNER_STATUSES)(
+      'VALID: {status: %s} => status banner visible with displayHeader text',
       (status) => {
         ExecutionPanelWidgetProxy();
         const quest: Quest = QuestStub({ status });
@@ -1149,15 +1160,15 @@ describe('ExecutionPanelWidget', () => {
           ui: <ExecutionPanelWidget quest={quest} />,
         });
 
-        const banner = screen.getByTestId('execution-panel-terminal-banner');
+        const banner = screen.getByTestId('execution-panel-status-banner');
         const { displayHeader } = questStatusMetadataStatics.statuses[status];
 
         expect(banner.textContent).toBe(displayHeader);
       },
     );
 
-    it.each(TERMINAL_PANEL_STATUSES)(
-      'VALID: {status: %s} => status bar progress count suppressed when terminal',
+    it.each(BANNER_STATUSES)(
+      'VALID: {status: %s} => status bar progress count suppressed when status banner renders',
       (status) => {
         ExecutionPanelWidgetProxy();
         const quest: Quest = QuestStub({ status });
@@ -1170,21 +1181,18 @@ describe('ExecutionPanelWidget', () => {
       },
     );
 
-    it.each(NON_TERMINAL_PANEL_STATUSES)(
-      'VALID: {status: %s} => terminal banner hidden when quest is non-terminal',
-      (status) => {
-        ExecutionPanelWidgetProxy();
-        const quest: Quest = QuestStub({ status });
+    it.each(NON_BANNER_STATUSES)('VALID: {status: %s} => status banner hidden', (status) => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status });
 
-        mantineRenderAdapter({
-          ui: <ExecutionPanelWidget quest={quest} />,
-        });
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
 
-        expect(screen.queryByTestId('execution-panel-terminal-banner')).toBe(null);
-      },
-    );
+      expect(screen.queryByTestId('execution-panel-status-banner')).toBe(null);
+    });
 
-    it('VALID: {status: complete} => terminal banner uses success color (green)', () => {
+    it('VALID: {status: complete} => status banner uses success color (green)', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'complete' });
 
@@ -1192,13 +1200,27 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      const banner = screen.getByTestId('execution-panel-terminal-banner');
+      const banner = screen.getByTestId('execution-panel-status-banner');
 
       // emberDepthsThemeStatics.colors.success = '#4ade80' → rgb(74, 222, 128) in JSDOM
       expect(banner.style.color).toBe('rgb(74, 222, 128)');
     });
 
-    it('VALID: {status: abandoned} => terminal banner uses danger color (red)', () => {
+    it('VALID: {status: merged} => status banner uses success color (green)', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'merged' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const banner = screen.getByTestId('execution-panel-status-banner');
+
+      // emberDepthsThemeStatics.colors.success = '#4ade80' → rgb(74, 222, 128) in JSDOM
+      expect(banner.style.color).toBe('rgb(74, 222, 128)');
+    });
+
+    it('VALID: {status: abandoned} => status banner uses danger color (red)', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'abandoned' });
 
@@ -1206,7 +1228,7 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      const banner = screen.getByTestId('execution-panel-terminal-banner');
+      const banner = screen.getByTestId('execution-panel-status-banner');
 
       // emberDepthsThemeStatics.colors.danger = '#ef4444' → rgb(239, 68, 68) in JSDOM
       expect(banner.style.color).toBe('rgb(239, 68, 68)');
@@ -1271,6 +1293,387 @@ describe('ExecutionPanelWidget', () => {
       await proxy.clickTab({ tabId: 'spec' });
 
       expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
+    });
+  });
+
+  describe('FOLLOW-UP tab', () => {
+    it('VALID: {press FOLLOW-UP} => tab bar holds FOLLOW-UP then EXECUTION then QUEST SPEC, with FOLLOW-UP active', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
+      });
+
+      await proxy.clickFollowupButton();
+
+      expect(proxy.getTabLabels()).toStrictEqual(['FOLLOW-UP', 'EXECUTION', 'QUEST SPEC']);
+      expect(proxy.hasFollowupChat()).toBe(true);
+    });
+
+    it('VALID: {press FOLLOW-UP then click EXECUTION} => FOLLOW-UP tab stays listed first while EXECUTION is active', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
+      });
+
+      await proxy.clickFollowupButton();
+      await proxy.clickTab({ tabId: 'execution' });
+
+      expect(proxy.getTabLabels()).toStrictEqual(['FOLLOW-UP', 'EXECUTION', 'QUEST SPEC']);
+      expect(proxy.hasStatusBar()).toBe(true);
+      expect(proxy.hasFollowupChat()).toBe(false);
+    });
+
+    it('VALID: {press FOLLOW-UP, switch to EXECUTION, press FOLLOW-UP again} => exactly one FOLLOW-UP tab exists and it is active', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
+      });
+
+      await proxy.clickFollowupButton();
+      await proxy.clickTab({ tabId: 'execution' });
+      await proxy.clickFollowupButton();
+
+      expect(proxy.getTabLabels()).toStrictEqual(['FOLLOW-UP', 'EXECUTION', 'QUEST SPEC']);
+      expect(proxy.hasFollowupChat()).toBe(true);
+    });
+
+    it('VALID: {FOLLOW-UP tab active} => mounts the same ChatPanelWidget the spec-phase chat uses, with its input and send button', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
+      });
+
+      await proxy.clickFollowupButton();
+
+      expect(screen.getByTestId('CHAT_PANEL')).toBeInTheDocument();
+      expect(screen.getByTestId('CHAT_INPUT')).toBeInTheDocument();
+      expect(screen.getByTestId('SEND_BUTTON')).toBeInTheDocument();
+    });
+
+    it('VALID: {type message and click SEND on FOLLOW-UP tab} => calls onSendFollowupMessage with the typed text', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
+      });
+
+      await proxy.clickFollowupButton();
+      await proxy.typeFollowupMessage({ text: 'Show me the diagram' });
+      await proxy.clickFollowupSend();
+
+      expect(onSendFollowupMessage).toHaveBeenCalledTimes(1);
+      expect(onSendFollowupMessage).toHaveBeenCalledWith({ message: 'Show me the diagram' });
+    });
+
+    it('EDGE: {onSendFollowupMessage removed while FOLLOW-UP tab is active} => clamps back to EXECUTION without throwing', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+
+      const { rerender } = mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
+      });
+
+      rerender(<ExecutionPanelWidget quest={quest} />);
+
+      expect(proxy.getTabLabels()).toStrictEqual(['EXECUTION', 'QUEST SPEC']);
+    });
+
+    it('VALID: {quest moves blocked => merging with the FOLLOW-UP tab open} => the tab stays listed first and keeps its transcript', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const blockedQuest: Quest = QuestStub({ status: 'blocked' });
+      const mergingQuest: Quest = QuestStub({ status: 'merging' });
+      const onSendFollowupMessage = jest.fn();
+      const entries = [
+        AssistantTextChatEntryStub({
+          uuid: '00000000-0000-4000-8000-0000000007a1',
+          content: 'The quest branched off master.',
+        }),
+      ];
+
+      const { rerender } = mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={blockedQuest}
+            onSendFollowupMessage={onSendFollowupMessage}
+            followupEntries={entries}
+          />
+        ),
+      });
+
+      await proxy.clickFollowupButton();
+
+      rerender(
+        <ExecutionPanelWidget
+          quest={mergingQuest}
+          onSendFollowupMessage={onSendFollowupMessage}
+          followupEntries={entries}
+        />,
+      );
+
+      expect({
+        tabs: proxy.getTabLabels(),
+        followupChatMounted: proxy.hasFollowupChat(),
+        postQuestBar: proxy.hasPostQuestBar(),
+      }).toStrictEqual({
+        tabs: ['FOLLOW-UP', 'EXECUTION', 'QUEST SPEC'],
+        followupChatMounted: true,
+        postQuestBar: false,
+      });
+    });
+  });
+
+  describe('post-quest action bar (FOLLOW-UP / merge)', () => {
+    type PostQuestStatusKey = keyof typeof questStatusMetadataStatics.statuses;
+    const ALL_STATUSES = Object.keys(
+      questStatusMetadataStatics.statuses,
+    ) as readonly PostQuestStatusKey[];
+
+    const FOLLOWUP_VISIBLE_STATUSES = ALL_STATUSES.filter(
+      (s) => questStatusMetadataStatics.statuses[s].isFollowupChatable,
+    );
+    const FOLLOWUP_HIDDEN_STATUSES = ALL_STATUSES.filter(
+      (s) => !questStatusMetadataStatics.statuses[s].isFollowupChatable,
+    );
+    const MERGE_VISIBLE_STATUSES = ALL_STATUSES.filter(
+      (s) => questStatusMetadataStatics.statuses[s].isMergeable,
+    );
+    const MERGE_HIDDEN_STATUSES = ALL_STATUSES.filter(
+      (s) => !questStatusMetadataStatics.statuses[s].isMergeable,
+    );
+
+    describe('FOLLOW-UP segment visibility', () => {
+      it.each(FOLLOWUP_VISIBLE_STATUSES)(
+        'VALID: {status: %s} => FOLLOW-UP segment visible',
+        (status) => {
+          const proxy = ExecutionPanelWidgetProxy();
+          const quest: Quest = QuestStub({ status });
+          const onSendFollowupMessage = jest.fn();
+
+          mantineRenderAdapter({
+            ui: (
+              <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />
+            ),
+          });
+
+          expect(proxy.hasFollowupButton()).toBe(true);
+        },
+      );
+
+      it.each(FOLLOWUP_HIDDEN_STATUSES)(
+        'EMPTY: {status: %s} => FOLLOW-UP segment absent',
+        (status) => {
+          const proxy = ExecutionPanelWidgetProxy();
+          const quest: Quest = QuestStub({ status });
+          const onSendFollowupMessage = jest.fn();
+
+          mantineRenderAdapter({
+            ui: (
+              <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />
+            ),
+          });
+
+          expect(proxy.hasFollowupButton()).toBe(false);
+        },
+      );
+    });
+
+    describe('Teleport with Booty (Merge) segment visibility', () => {
+      it.each(MERGE_VISIBLE_STATUSES)('VALID: {status: %s} => merge segment visible', (status) => {
+        const proxy = ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status });
+        const onMerge = jest.fn();
+
+        mantineRenderAdapter({
+          ui: <ExecutionPanelWidget quest={quest} onMerge={onMerge} />,
+        });
+
+        expect(proxy.hasMergeButton()).toBe(true);
+      });
+
+      it.each(MERGE_HIDDEN_STATUSES)('EMPTY: {status: %s} => merge segment absent', (status) => {
+        const proxy = ExecutionPanelWidgetProxy();
+        const quest: Quest = QuestStub({ status });
+        const onMerge = jest.fn();
+
+        mantineRenderAdapter({
+          ui: <ExecutionPanelWidget quest={quest} onMerge={onMerge} />,
+        });
+
+        expect(proxy.hasMergeButton()).toBe(false);
+      });
+    });
+
+    it('VALID: {status: blocked, both handlers provided} => bar shows both segments with exact labels', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+      const onMerge = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            onSendFollowupMessage={onSendFollowupMessage}
+            onMerge={onMerge}
+          />
+        ),
+      });
+
+      expect(proxy.hasPostQuestBar()).toBe(true);
+      expect(proxy.hasFollowupButton()).toBe(true);
+      expect(proxy.hasMergeButton()).toBe(true);
+    });
+
+    it('EMPTY: {status: in_progress, both handlers provided} => post-quest bar absent', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+      const onSendFollowupMessage = jest.fn();
+      const onMerge = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            onSendFollowupMessage={onSendFollowupMessage}
+            onMerge={onMerge}
+          />
+        ),
+      });
+
+      expect(proxy.hasPostQuestBar()).toBe(false);
+    });
+
+    it('EMPTY: {status: merging, both handlers provided} => post-quest bar absent', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'merging' });
+      const onSendFollowupMessage = jest.fn();
+      const onMerge = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            onSendFollowupMessage={onSendFollowupMessage}
+            onMerge={onMerge}
+          />
+        ),
+      });
+
+      expect(proxy.hasPostQuestBar()).toBe(false);
+    });
+
+    it('VALID: {status: merged, both handlers provided} => FOLLOW-UP present and enabled, merge segment absent so an already-merged quest cannot be merged again', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'merged' });
+      const onSendFollowupMessage = jest.fn();
+      const onMerge = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            onSendFollowupMessage={onSendFollowupMessage}
+            onMerge={onMerge}
+          />
+        ),
+      });
+
+      expect(proxy.hasFollowupButton()).toBe(true);
+      expect(proxy.hasMergeButton()).toBe(false);
+    });
+
+    it('EMPTY: {no handlers provided on a blocked quest} => post-quest bar absent', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.hasPostQuestBar()).toBe(false);
+    });
+
+    it('VALID: {click Teleport with Booty (Merge)} => calls onMerge', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'complete' });
+      const onMerge = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} onMerge={onMerge} />,
+      });
+
+      await proxy.clickMergeButton();
+
+      expect(onMerge).toHaveBeenCalledTimes(1);
+      expect(onMerge).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('scroll container floor', () => {
+    it('VALID: {quest} => floor content carries a pixel minHeight so it cannot be squeezed to nothing', () => {
+      ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'in_progress' });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      const floor = screen.getByTestId('execution-panel-floor-content');
+
+      expect(floor.style.minHeight).toBe('160px');
+    });
+  });
+
+  describe('warpgate row', () => {
+    it('VALID: {merging quest with a warpgate work item} => role badge reads [WARPGATE]', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'merging',
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'warpgate',
+            status: 'in_progress',
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getRoleBadges()).toStrictEqual(['[WARPGATE]']);
+    });
+
+    it('VALID: {status: merging} => PAUSE QUEST button rendered, RESUME QUEST button absent', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'merging' });
+      const onPause = jest.fn();
+      const onStatusChange = jest.fn();
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget quest={quest} onPause={onPause} onStatusChange={onStatusChange} />
+        ),
+      });
+
+      expect(proxy.hasPauseButton()).toBe(true);
+      expect(proxy.hasResumeButton()).toBe(false);
     });
   });
 });

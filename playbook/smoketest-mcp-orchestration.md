@@ -413,9 +413,9 @@ detail breakdown only for a known-**failing** ward run.
 
 - **`skipped` work items are hidden** in the active render branches. A BLOCK shows the failed row as `FAILED` and its
   skipped siblings **vanish** — assert skipped in `quest.json`.
-- **`blocked` does not render the terminal banner** (`execution-panel-terminal-banner` uses `isTerminal` = {complete,
-  abandoned} only). A blocked quest keeps the status bar + the RESUME button; verify `blocked` via `quest.json` status +
-  the failed row.
+- **`blocked` does not render the status banner** (`execution-panel-status-banner` uses
+  `shouldRenderStatusBanner` = {complete, merging, merged, abandoned}). A blocked quest keeps the status bar + the
+  RESUME button; verify `blocked` via `quest.json` status + the failed row.
 - `relatedDataItems` linkage, operation-item `locked`, `pausedAtStatus` value, `questType`, and `resume`/`retryCount`
   are not shown as text (only effects are). Assert in `quest.json`.
 

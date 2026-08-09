@@ -759,6 +759,262 @@ describe('QuestChatContentLayerWidget', () => {
     });
   });
 
+  describe('post-quest FOLLOW-UP + merge (execution phase)', () => {
+    it('VALID: {quest at complete, FOLLOW-UP tab clicked} => QUEST_SUMMARY stays inside QUEST_CHAT_ACTIVITY', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-complete-summary' }) });
+      const guildId = GuildIdStub({ value: 'aaaaaaa1-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-complete-summary', status: 'complete' });
+
+      const { findByTestId, getByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-complete-summary' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_SUMMARY');
+      await proxy.clickFollowupButton();
+      await findByTestId('CHAT_PANEL');
+
+      expect(getByTestId('QUEST_CHAT_ACTIVITY').contains(getByTestId('QUEST_SUMMARY'))).toBe(true);
+    });
+
+    it('VALID: {FOLLOW-UP tab clicked} => mounts the CHAT_PANEL widget with CHAT_INPUT and SEND_BUTTON as descendants', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-chat-panel' }) });
+      const guildId = GuildIdStub({ value: 'aaaaaaa2-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-followup-chat-panel', status: 'complete' });
+
+      const { findByTestId, getByTestId } = mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-followup-chat-panel' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await findByTestId('QUEST_SUMMARY');
+      await proxy.clickFollowupButton();
+
+      const chatPanel = await findByTestId('CHAT_PANEL');
+
+      expect(chatPanel.contains(getByTestId('CHAT_INPUT'))).toBe(true);
+      expect(chatPanel.contains(getByTestId('SEND_BUTTON'))).toBe(true);
+    });
+
+    it('VALID: {FOLLOW-UP tab, message typed and sent} => POSTs followup with the typed message', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-post' }) });
+      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-post' }) });
+      const guildId = GuildIdStub({ value: 'aaaaaaa3-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-followup-post', status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-followup-post' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+      await proxy.clickFollowupButton();
+      await screen.findByTestId('CHAT_PANEL');
+      await proxy.typeFollowupMessage({ text: 'What broke?' });
+      await proxy.clickFollowupSend();
+
+      await waitFor(() => {
+        expect(proxy.getFollowupRequestCount()).toBe(1);
+      });
+
+      expect(proxy.getFollowupRequestBody()).toStrictEqual({ message: 'What broke?' });
+    });
+
+    it('ERROR: {followup POST rejected with 400} => renders the exact server error text inside the FOLLOW-UP tab', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-rejected' }) });
+      proxy.setupFollowupRejected({
+        error: 'Quest must be blocked, complete or merged for follow-up',
+      });
+      const guildId = GuildIdStub({ value: 'aaaaaaa4-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-followup-rejected', status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-followup-rejected' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+      await proxy.clickFollowupButton();
+      await screen.findByTestId('CHAT_PANEL');
+      await proxy.typeFollowupMessage({ text: 'Ping the agent' });
+      await proxy.clickFollowupSend();
+
+      await waitFor(() => {
+        expect(
+          screen.queryAllByTestId('CHAT_MESSAGE').some((m) => m.textContent?.startsWith('ERROR')),
+        ).toBe(true);
+      });
+
+      const errorMessage = screen
+        .queryAllByTestId('CHAT_MESSAGE')
+        .find((m) => m.textContent?.startsWith('ERROR'));
+
+      expect(errorMessage?.textContent).toBe(
+        'ERRORQuest must be blocked, complete or merged for follow-up',
+      );
+    });
+
+    it('VALID: {complete quest, MERGE button clicked} => POSTs quest-merge once', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-merge' }) });
+      proxy.setupMerge({ merging: true });
+      const guildId = GuildIdStub({ value: 'aaaaaaa5-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-merge', status: 'complete' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-merge' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+      await proxy.clickMergeButton();
+
+      await waitFor(() => {
+        expect(proxy.getMergeRequestCount()).toBe(1);
+      });
+
+      expect(proxy.getMergeRequestCount()).toBe(1);
+    });
+
+    it('VALID: {quest at merging} => post-quest bar is gone but ABANDON QUEST stays, so a hung merge has an exit', async () => {
+      const proxy = QuestChatContentLayerWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupMode({ mode: 'claude' });
+      proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-merging' }) });
+      const guildId = GuildIdStub({ value: 'aaaaaaa6-1111-2222-3333-444444444444' });
+      const quest = QuestStub({ id: 'q-merging', status: 'merging' });
+
+      mantineRenderAdapter({
+        ui: (
+          <MemoryRouter>
+            <QuestChatContentLayerWidget
+              questId={'q-merging' as never}
+              guildId={guildId}
+              guildSlug={'test-guild' as never}
+            />
+          </MemoryRouter>
+        ),
+      });
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: quest.id, quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+      });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect({
+        postQuestBar: screen.queryByTestId('execution-panel-post-quest-bar'),
+        abandonVisible: proxy.hasAbandonButton(),
+        header: screen.getByTestId('execution-panel-status-banner').textContent,
+      }).toStrictEqual({ postQuestBar: null, abandonVisible: true, header: 'MERGING' });
+    });
+  });
+
   describe('quest load failure surface', () => {
     it('ERROR: {quest-load-failed for this quest} => renders the parse reason instead of the awaiting surface', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();

@@ -34,6 +34,7 @@ export * from './src/guards/should-show-begin-quest-modal-quest-status/should-sh
 export * from './src/guards/is-before-spec-approved-quest-status/is-before-spec-approved-quest-status-guard';
 export * from './src/guards/is-followup-chatable-quest-status/is-followup-chatable-quest-status-guard';
 export * from './src/guards/is-mergeable-quest-status/is-mergeable-quest-status-guard';
+export * from './src/guards/should-render-status-banner-quest-status/should-render-status-banner-quest-status-guard';
 
 // Quest Chat Session Guards
 export * from './src/guards/is-chat-work-item-role/is-chat-work-item-role-guard';

@@ -1,14 +1,15 @@
 /**
- * PURPOSE: Composes the execution panel with tab bar, status bar, operations ledger, and a flat
- * list of work-item rows for the quest execution view
+ * PURPOSE: Composes the execution panel with tab bar, status bar, operations ledger, work-item
+ * rows, and — once a quest stops running — the follow-up chat tab and the post-quest action bar
+ * (FOLLOW-UP, merge) for the quest execution view
  *
  * USAGE:
  * <ExecutionPanelWidget quest={quest} />
- * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs; the operations ledger renders above
- * // one row per work item in quest.workItems order
+ * // Renders tabbed panel with EXECUTION and QUEST SPEC tabs (FOLLOW-UP joins them once opened);
+ * // the operations ledger renders above one row per work item in quest.workItems order
  */
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Box, Group, Stack, UnstyledButton } from '@mantine/core';
 
@@ -18,6 +19,7 @@ import type {
   QuestWorkItemId,
   SessionId,
   UrlSlug,
+  UserInput,
   WorkItem,
 } from '@dungeonmaster/shared/contracts';
 
@@ -35,14 +37,18 @@ import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import {
   isAnyAgentRunningQuestStatusGuard,
   isCompletedSuccessfullyQuestStatusGuard,
+  isFollowupChatableQuestStatusGuard,
+  isMergeableQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
   isSkippedWorkItemStatusGuard,
   isTerminalQuestStatusGuard,
+  shouldRenderStatusBannerQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { displayHeaderQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
+import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
 import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { OperationsLedgerWidget } from '../operations-ledger/operations-ledger-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -68,12 +74,19 @@ export interface ExecutionPanelWidgetProps {
   onStatusChange?: (params: { status: QuestStatus }) => void;
   onPause?: () => void;
   onAbandon?: () => void;
+  followupEntries?: ChatEntry[];
+  isFollowupStreaming?: boolean;
+  onSendFollowupMessage?: (params: { message: UserInput }) => void;
+  onStopFollowup?: () => void;
+  onMerge?: () => void;
 }
 
 const TABS = [
   { id: 'execution', label: 'EXECUTION' },
   { id: 'spec', label: 'QUEST SPEC' },
 ] as const;
+const FOLLOWUP_TAB = { id: 'followup', label: 'FOLLOW-UP' } as const;
+const DEFAULT_TAB_ID = 'execution' as const;
 
 const TAB_FONT_SIZE = 10;
 const TAB_FONT_WEIGHT = 600;
@@ -81,12 +94,28 @@ const ACTIVE_BORDER_WIDTH = 2;
 const TAB_PADDING_VERTICAL = 5;
 const PAUSE_LABEL = 'PAUSE QUEST' as ButtonLabel;
 const RESUME_LABEL = 'RESUME QUEST' as ButtonLabel;
+const FOLLOWUP_LABEL = 'FOLLOW-UP' as ButtonLabel;
+const MERGE_LABEL = 'Teleport with Booty (Merge)' as ButtonLabel;
 const ACTION_BAR_PADDING = 12;
+// Floors the ledger/rows container so the tab bar, title bar, banner, and (on a blocked
+// quest) both the pause/resume bar and the post-quest bar can never squeeze it to nothing —
+// a flex item's default min-height: auto does not floor it here because its own content
+// scrolls internally.
+const EXECUTION_FLOOR_MIN_HEIGHT = 160;
 const WARD_RESULTS_PREFIX = 'wardResults/';
 const WARD_RESULTS_PREFIX_LENGTH = WARD_RESULTS_PREFIX.length;
 const OPERATIONS_PREFIX = 'operations/';
 const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
 const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
+// ChatPanelWidget's onSendMessage/onStopChat are required props. onSendFollowupMessage is
+// only reachable as undefined for the single render tick between a prop change and the
+// clamp effect below correcting activeTab away from 'followup' — these keep that tick
+// type-safe without allocating a fresh function identity every render.
+const NOOP_FOLLOWUP_HANDLERS = {
+  sendMessage: (): void => undefined,
+  stopChat: (): void => undefined,
+};
+
 export const ExecutionPanelWidget = ({
   quest,
   sessionEntries = new Map(),
@@ -95,11 +124,48 @@ export const ExecutionPanelWidget = ({
   onStatusChange,
   onPause,
   onAbandon,
+  followupEntries,
+  isFollowupStreaming,
+  onSendFollowupMessage,
+  onStopFollowup,
+  onMerge,
 }: ExecutionPanelWidgetProps): React.JSX.Element => {
-  const [activeTab, setActiveTab] = useState<'execution' | 'spec'>('execution');
+  const [activeTab, setActiveTab] = useState<'followup' | 'execution' | 'spec'>('execution');
+  const [followupTabOpen, setFollowupTabOpen] = useState(false);
   const { colors } = emberDepthsThemeStatics;
 
-  const isTerminalQuest = isTerminalQuestStatusGuard({ status: quest.status });
+  const hasFollowupTab = followupTabOpen && onSendFollowupMessage !== undefined;
+  // Memoised so the clamp effect below runs on a real membership change rather than every render.
+  const tabs = useMemo(
+    () => (hasFollowupTab ? [FOLLOWUP_TAB, ...TABS] : [...TABS]),
+    [hasFollowupTab],
+  );
+
+  // The tab list is derived every render from hasFollowupTab; activeTab is a mount-time
+  // useState default that would otherwise dangle on a tab no longer rendered (e.g. once
+  // onSendFollowupMessage stops being passed), leaving the panel selected on nothing. Testing
+  // membership against `tabs` rather than a parallel id list is what keeps the clamp honest as
+  // tabs are added; EXECUTION is the landing tab because it is the one tab always rendered.
+  useEffect(() => {
+    if (!tabs.some((tab) => tab.id === activeTab)) {
+      setActiveTab(DEFAULT_TAB_ID);
+    }
+  }, [activeTab, tabs]);
+
+  const isTerminalQuestStatus = isTerminalQuestStatusGuard({ status: quest.status });
+  const shouldRenderStatusBanner = shouldRenderStatusBannerQuestStatusGuard({
+    status: quest.status,
+  });
+
+  // Each post-quest segment needs BOTH a status that permits the action and the handler that
+  // performs it — the same pairing the pause/resume bar above uses. `mergeSegmentHandler` keeps
+  // the handler rather than a boolean so the click callback narrows without a second check.
+  const showsFollowupSegment =
+    isFollowupChatableQuestStatusGuard({ status: quest.status }) &&
+    onSendFollowupMessage !== undefined;
+  const mergeSegmentHandler = isMergeableQuestStatusGuard({ status: quest.status })
+    ? onMerge
+    : undefined;
 
   // Terminal-quest-with-no-operations is the abandon-early case:
   // OrchestrationAbandonResponder marks every non-terminal work item as
@@ -110,7 +176,7 @@ export const ExecutionPanelWidget = ({
   // could display the chaos transcript, leaving a blank panel even though the
   // server is replaying chat-output for that sessionId. For every other render,
   // skipped items stay hidden so the visible chain reflects what actually ran.
-  const includeSkipped = isTerminalQuest && quest.operations.length === 0;
+  const includeSkipped = isTerminalQuestStatus && quest.operations.length === 0;
 
   const visibleWorkItems = quest.workItems.filter(
     (wi) => includeSkipped || !isSkippedWorkItemStatusGuard({ status: wi.status }),
@@ -141,7 +207,7 @@ export const ExecutionPanelWidget = ({
         data-testid="execution-panel-tab-bar"
         style={{ display: 'flex', borderBottom: `1px solid ${colors.border}`, flexShrink: 0 }}
       >
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <UnstyledButton
             key={tab.id}
             data-testid={`execution-panel-tab-${tab.id}`}
@@ -168,18 +234,27 @@ export const ExecutionPanelWidget = ({
 
       {activeTab === 'spec' ? (
         <QuestSpecPanelWidget quest={quest} readOnly={true} />
+      ) : activeTab === 'followup' ? (
+        <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <ChatPanelWidget
+            entries={followupEntries ?? []}
+            isStreaming={isFollowupStreaming ?? false}
+            onSendMessage={onSendFollowupMessage ?? NOOP_FOLLOWUP_HANDLERS.sendMessage}
+            onStopChat={onStopFollowup ?? NOOP_FOLLOWUP_HANDLERS.stopChat}
+          />
+        </Box>
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
-          {isTerminalQuest ? null : (
+          {isTerminalQuestStatus ? null : (
             <DumpsterCommandBannerWidget
               message={DUMPSTER_LAUNCH_BANNER_MESSAGE}
               command={DUMPSTER_LAUNCH_COMMAND}
             />
           )}
-          {isTerminalQuest ? (
+          {shouldRenderStatusBanner ? (
             <Box
-              data-testid="execution-panel-terminal-banner"
+              data-testid="execution-panel-status-banner"
               style={{
                 padding: '8px 12px',
                 textAlign: 'center',
@@ -205,7 +280,7 @@ export const ExecutionPanelWidget = ({
           )}
           <AutoScrollContainerWidget
             testId={FLOOR_CONTENT_TEST_ID}
-            style={{ flex: 1, padding: '0 12px 12px' }}
+            style={{ flex: 1, padding: '0 12px 12px', minHeight: EXECUTION_FLOOR_MIN_HEIGHT }}
           >
             <OperationsLedgerWidget operations={quest.operations} flows={quest.flows} />
             {visibleWorkItems.map((wi, wiIndex) => {
@@ -302,6 +377,40 @@ export const ExecutionPanelWidget = ({
                       label={RESUME_LABEL}
                       onClick={() => {
                         onStatusChange({ status: 'in_progress' as QuestStatus });
+                      }}
+                    />
+                  </Box>
+                )}
+              </Group>
+            </Box>
+          )}
+          {(showsFollowupSegment || mergeSegmentHandler !== undefined) && (
+            <Box
+              data-testid="execution-panel-post-quest-bar"
+              style={{
+                padding: ACTION_BAR_PADDING,
+                borderTop: `1px solid ${colors.border}`,
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="xs">
+                {showsFollowupSegment && (
+                  <Box data-testid="EXECUTION_FOLLOWUP_BUTTON">
+                    <PixelBtnWidget
+                      label={FOLLOWUP_LABEL}
+                      onClick={() => {
+                        setFollowupTabOpen(true);
+                        setActiveTab('followup');
+                      }}
+                    />
+                  </Box>
+                )}
+                {mergeSegmentHandler !== undefined && (
+                  <Box data-testid="EXECUTION_MERGE_BUTTON">
+                    <PixelBtnWidget
+                      label={MERGE_LABEL}
+                      onClick={() => {
+                        mergeSegmentHandler();
                       }}
                     />
                   </Box>
