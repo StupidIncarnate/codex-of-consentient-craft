@@ -69,6 +69,8 @@ export const questHydrateStrategyStatics = {
     design_approved: null,
     paused: null,
     blocked: null,
+    merging: null,
+    merged: null,
     complete: null,
     abandoned: null,
   },

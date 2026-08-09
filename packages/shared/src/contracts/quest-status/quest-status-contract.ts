@@ -24,6 +24,8 @@ export const questStatusContract = z.enum([
   'paused',
   'blocked',
   'complete',
+  'merging',
+  'merged',
   'abandoned',
 ]);
 

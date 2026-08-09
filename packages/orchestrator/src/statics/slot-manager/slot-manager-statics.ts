@@ -30,6 +30,12 @@ export const slotManagerStatics = {
   spiritmender: {
     maxAttempts: 3,
   },
+  // warpgate needs its own key: the pt-budget ladder's final `else` hands any role it does not
+  // name spiritmender's budget, so a role without a key here is silently mis-budgeted rather
+  // than erroring.
+  warpgate: {
+    maxAttempts: 3,
+  },
   ward: {
     // Red-ward chain budget: the count of ward operation items of one wardMode since the last
     // green ward of that mode. Reaching it blocks the quest instead of appending another

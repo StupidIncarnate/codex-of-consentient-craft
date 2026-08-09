@@ -4,7 +4,7 @@ type StatusKey = keyof typeof questStatusMetadataStatics.statuses;
 
 describe('questStatusMetadataStatics', () => {
   describe('coverage', () => {
-    it('VALID: statuses => covers all 16 quest statuses', () => {
+    it('VALID: statuses => covers all 18 quest statuses', () => {
       const statusKeys = Object.keys(questStatusMetadataStatics.statuses).sort();
 
       expect(statusKeys).toStrictEqual(
@@ -20,6 +20,8 @@ describe('questStatusMetadataStatics', () => {
           'explore_observables',
           'flows_approved',
           'in_progress',
+          'merged',
+          'merging',
           'paused',
           'pending',
           'review_design',
@@ -203,6 +205,56 @@ describe('questStatusMetadataStatics', () => {
         nextApprovalStatus: null,
         previousReviewStatus: null,
         displayHeader: 'EXECUTION COMPLETE',
+      });
+    });
+
+    it('VALID: merging => matches expected metadata', () => {
+      expect(questStatusMetadataStatics.statuses.merging).toStrictEqual({
+        isPreExecution: false,
+        isAnyAgentRunning: true,
+        isActivelyExecuting: false,
+        isUserPaused: false,
+        isQuestBlocked: false,
+        isTerminal: false,
+        isPauseable: true,
+        isResumable: false,
+        isStartable: false,
+        isRecoverable: true,
+        isAutoResumable: false,
+        isGateApproved: false,
+        isBeforeSpecApproved: false,
+        isDesignPhase: false,
+        isAbandonable: true,
+        isCompletedSuccessfully: false,
+        shouldRenderExecutionPanel: true,
+        nextApprovalStatus: null,
+        previousReviewStatus: null,
+        displayHeader: 'MERGING',
+      });
+    });
+
+    it('VALID: merged => matches expected metadata', () => {
+      expect(questStatusMetadataStatics.statuses.merged).toStrictEqual({
+        isPreExecution: false,
+        isAnyAgentRunning: false,
+        isActivelyExecuting: false,
+        isUserPaused: false,
+        isQuestBlocked: false,
+        isTerminal: true,
+        isPauseable: false,
+        isResumable: false,
+        isStartable: false,
+        isRecoverable: false,
+        isAutoResumable: false,
+        isGateApproved: false,
+        isBeforeSpecApproved: false,
+        isDesignPhase: false,
+        isAbandonable: false,
+        isCompletedSuccessfully: true,
+        shouldRenderExecutionPanel: true,
+        nextApprovalStatus: null,
+        previousReviewStatus: null,
+        displayHeader: 'MERGED',
       });
     });
 

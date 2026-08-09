@@ -85,6 +85,12 @@ export * from './src/contracts/network-port/network-port.stub';
 export * from './src/contracts/quest-status/quest-status-contract';
 export * from './src/contracts/quest-status/quest-status.stub';
 
+export * from './src/contracts/quest-branch-name/quest-branch-name-contract';
+export * from './src/contracts/quest-branch-name/quest-branch-name.stub';
+
+export * from './src/contracts/base-branch-name/base-branch-name-contract';
+export * from './src/contracts/base-branch-name/base-branch-name.stub';
+
 export * from './src/contracts/file-name/file-name-contract';
 export * from './src/contracts/file-name/file-name.stub';
 

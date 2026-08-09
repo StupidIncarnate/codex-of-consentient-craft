@@ -10,6 +10,7 @@ export const roleToModelStatics = {
   chaoswhisperer: 'opus',
   glyphsmith: 'opus',
   bughunt: 'opus',
+  tavernkeeper: 'opus',
   flowrider: 'opus',
   siegemaster: 'opus',
   codeweaver: 'opus',
@@ -18,4 +19,5 @@ export const roleToModelStatics = {
   'blightwarden-crosscut-minion': 'sonnet',
   blightwarden: 'sonnet',
   pesteater: 'opus',
+  warpgate: 'opus',
 } as const;

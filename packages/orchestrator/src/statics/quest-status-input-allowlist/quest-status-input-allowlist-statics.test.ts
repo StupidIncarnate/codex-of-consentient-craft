@@ -120,6 +120,16 @@ describe('questStatusInputAllowlistStatics', () => {
         flowsRule: 'forbidden',
         allowedPlanningNotesFields: [],
       },
+      merging: {
+        allowedFields: ['status'],
+        flowsRule: 'forbidden',
+        allowedPlanningNotesFields: [],
+      },
+      merged: {
+        allowedFields: [],
+        flowsRule: 'forbidden',
+        allowedPlanningNotesFields: [],
+      },
       complete: {
         allowedFields: [],
         flowsRule: 'forbidden',
@@ -149,6 +159,8 @@ describe('questStatusInputAllowlistStatics', () => {
         'explore_observables',
         'flows_approved',
         'in_progress',
+        'merged',
+        'merging',
         'paused',
         'pending',
         'review_design',

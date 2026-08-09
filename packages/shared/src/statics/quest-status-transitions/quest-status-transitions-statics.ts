@@ -33,9 +33,16 @@ export const questStatusTransitionsStatics = {
     'design_approved',
     'in_progress',
     'blocked',
+    'merging',
     'abandoned',
   ],
-  blocked: ['in_progress', 'abandoned', 'paused'],
-  complete: [],
+  blocked: ['in_progress', 'abandoned', 'paused', 'merging'],
+  // merging lists itself for the same reason in_progress does: status derivation rewrites
+  // the quest's status on every ledger write, including writes that leave it unchanged, and
+  // the transition guard rejects any status absent from the current status's list. Without
+  // the self-edge the first ledger write during a merge is rejected and the merge stalls.
+  merging: ['merging', 'merged', 'blocked', 'paused', 'abandoned'],
+  complete: ['merging'],
+  merged: [],
   abandoned: [],
 } as const;

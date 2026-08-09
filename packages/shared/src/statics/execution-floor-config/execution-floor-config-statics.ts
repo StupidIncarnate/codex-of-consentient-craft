@@ -21,5 +21,7 @@ export const executionFloorConfigStatics = {
     { name: 'QUARANTINE: WARDENS', role: 'blightwarden-crosscut-minion', type: 'floor' },
     { name: 'QUARANTINE', role: 'blightwarden', type: 'floor' },
     { name: 'FLOOR BOSS', role: 'ward', wardPosition: 'last', type: 'floor' },
+    { name: 'TAVERN', role: 'tavernkeeper', type: 'floor' },
+    { name: 'WARPGATE', role: 'warpgate', type: 'floor' },
   ],
 } as const;

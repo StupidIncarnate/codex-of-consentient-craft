@@ -6,7 +6,12 @@
  * // Returns: QuestStatus
  */
 
-import type { OperationItem, QuestStatus, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  OperationItem,
+  QuestStatus,
+  WorkItem,
+  WorkItemRole,
+} from '@dungeonmaster/shared/contracts';
 import {
   isAbandonedQuestStatusGuard,
   isActiveWorkItemStatusGuard,
@@ -17,6 +22,13 @@ import {
   isTerminalWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
+import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
+
+// Roles whose work items this transformer ignores when deriving quest status — see the filter
+// below for why each excluded role qualifies.
+const DERIVATION_EXCLUDED_ROLES: ReadonlySet<WorkItemRole> = new Set(
+  workItemRoleStatics.excludedFromStatusDerivation,
+);
 
 export const workItemsToQuestStatusTransformer = ({
   workItems,
@@ -28,23 +40,41 @@ export const workItemsToQuestStatusTransformer = ({
   currentStatus: QuestStatus;
 }): QuestStatus => {
   // Statuses owned by something other than work-item state are never derived over: the
-  // pre-execution spec lifecycle, an explicit user pause, a deliberate abandon, and a block
+  // pre-execution spec lifecycle, an explicit user pause, a deliberate abandon, a block
   // (blocked is set explicitly by questBlockOnFailureBroker and left explicitly by the user's
-  // resume transition — no write-side effect re-opens it). (`complete` is deliberately NOT
-  // here — appending live work must be able to re-open it.)
+  // resume transition — no write-side effect re-opens it), and a completed merge. (`complete`
+  // is deliberately NOT here — appending live work must be able to re-open it. `merged` differs:
+  // its work is already on the base branch, so there is nothing left to re-open it for, and
+  // deriving over it would flip it back to `complete`, erase the distinction the status exists
+  // to draw, and re-offer a merge that has already happened. There is no metadata flag that
+  // separates `merged` from `complete` — both are terminal AND completedSuccessfully — so this
+  // is a plain literal comparison rather than a guard.)
   if (
     isPreExecutionQuestStatusGuard({ status: currentStatus }) ||
     isUserPausedQuestStatusGuard({ status: currentStatus }) ||
     isAbandonedQuestStatusGuard({ status: currentStatus }) ||
-    isQuestBlockedQuestStatusGuard({ status: currentStatus })
+    isQuestBlockedQuestStatusGuard({ status: currentStatus }) ||
+    currentStatus === 'merged'
   ) {
     return currentStatus;
   }
 
+  // While the merge is still running the quest stays `merging` rather than falling through to
+  // `in_progress`; once its work items are terminal AND the ledger is drained it becomes
+  // `merged` rather than `complete`.
+  const runningStatus: QuestStatus = currentStatus === 'merging' ? 'merging' : 'in_progress';
+  const drainedStatus: QuestStatus = currentStatus === 'merging' ? 'merged' : 'complete';
+
+  // A follow-up chat item is created AFTER the quest terminated and is spawned directly by its
+  // own route rather than by the dispatcher, so counting it would make a finished quest read as
+  // running again. Scoped to that one role — a `warpgate` item SHOULD re-open the quest, because
+  // a merge is real dispatched work.
+  const derivationWorkItems = workItems.filter((item) => !DERIVATION_EXCLUDED_ROLES.has(item.role));
+
   // A failed item is resolved once a later retry was spliced for it — i.e. some work item carries
   // insertedBy === failedItem.id.
   const supersededIds = new Set(
-    workItems.map((item) => item.insertedBy).filter((id) => id !== undefined),
+    derivationWorkItems.map((item) => item.insertedBy).filter((id) => id !== undefined),
   );
   // Sink work items are the ones nothing else depends on (their id never appears in another
   // item's dependsOn). Completion keys on the sink: a failed item whose dependents all
@@ -52,8 +82,8 @@ export const workItemsToQuestStatusTransformer = ({
   // IS a sink — nothing overtook it and no retry was spliced for it — blocks. A failed ward
   // work item whose operation item chain continued (spiritmender + fresh ward appended on the
   // ledger) is resolved by the pendingOperations check below keeping the quest in_progress.
-  const dependedOnIds = new Set(workItems.flatMap((item) => item.dependsOn));
-  const hasUnresolvedSinkFailure = workItems.some(
+  const dependedOnIds = new Set(derivationWorkItems.flatMap((item) => item.dependsOn));
+  const hasUnresolvedSinkFailure = derivationWorkItems.some(
     (item) =>
       isFailureWorkItemStatusGuard({ status: item.status }) &&
       !supersededIds.has(item.id) &&
@@ -69,34 +99,34 @@ export const workItemsToQuestStatusTransformer = ({
   const hasPendingOperations = operations.some((operation) => operation.status !== 'complete');
 
   // Every item terminal => the quest is done ONLY when the ledger agrees: `blocked` when a sink
-  // failure was never recovered, `complete` when the ledger is drained, `in_progress` while
-  // operation items remain (advance creates the next work item).
-  if (workItems.every((item) => isTerminalWorkItemStatusGuard({ status: item.status }))) {
+  // failure was never recovered, `drainedStatus` when the ledger is drained, `runningStatus`
+  // while operation items remain (advance creates the next work item).
+  if (derivationWorkItems.every((item) => isTerminalWorkItemStatusGuard({ status: item.status }))) {
     if (hasUnresolvedSinkFailure && !hasPendingOperations) {
       return 'blocked';
     }
-    return hasPendingOperations ? 'in_progress' : 'complete';
+    return hasPendingOperations ? runningStatus : drainedStatus;
   }
 
-  // Something is still running => in_progress.
-  if (workItems.some((item) => isActiveWorkItemStatusGuard({ status: item.status }))) {
-    return 'in_progress';
+  // Something is still running => runningStatus.
+  if (derivationWorkItems.some((item) => isActiveWorkItemStatusGuard({ status: item.status }))) {
+    return runningStatus;
   }
 
   // Only pending items remain. They are `blocked` when every one is dead-ended on a failed dep
-  // AND the ledger has nothing left to advance to; otherwise the quest is `in_progress` (a
+  // AND the ledger has nothing left to advance to; otherwise the quest is `runningStatus` (a
   // dispatchable item exists, or advance will create one from the ledger).
   const failedIds = new Set(
-    workItems
+    derivationWorkItems
       .filter((item) => isFailureWorkItemStatusGuard({ status: item.status }))
       .map((item) => item.id),
   );
-  const pendingItems = workItems.filter((item) =>
+  const pendingItems = derivationWorkItems.filter((item) =>
     isPendingWorkItemStatusGuard({ status: item.status }),
   );
   const allPendingDeadEnded =
     pendingItems.length > 0 &&
     pendingItems.every((item) => item.dependsOn.some((depId) => failedIds.has(depId)));
 
-  return allPendingDeadEnded && !hasPendingOperations ? 'blocked' : 'in_progress';
+  return allPendingDeadEnded && !hasPendingOperations ? 'blocked' : runningStatus;
 };

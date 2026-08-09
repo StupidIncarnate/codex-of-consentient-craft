@@ -166,6 +166,16 @@ export const questStatusInputAllowlistStatics = {
     flowsRule: 'forbidden',
     allowedPlanningNotesFields: [],
   },
+  merging: {
+    allowedFields: ['status'],
+    flowsRule: 'forbidden',
+    allowedPlanningNotesFields: [],
+  },
+  merged: {
+    allowedFields: [],
+    flowsRule: 'forbidden',
+    allowedPlanningNotesFields: [],
+  },
   complete: {
     allowedFields: [],
     flowsRule: 'forbidden',

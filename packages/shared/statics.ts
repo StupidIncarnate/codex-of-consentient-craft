@@ -50,3 +50,7 @@ export * from './src/statics/quest-summary-limits/quest-summary-limits-statics';
 export * from './src/statics/execution-floor-config/execution-floor-config-statics';
 export * from './src/statics/ward-exit-code/ward-exit-code-statics';
 export * from './src/statics/quest-stage-mapping/quest-stage-mapping-statics';
+
+// Base branch candidates — the local branch names Start probes when resolving the base branch a
+// quest forks from, consumed by baseBranchNameContract to build its enum.
+export * from './src/statics/base-branch/base-branch-statics';

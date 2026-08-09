@@ -429,6 +429,85 @@ describe('questContract', () => {
       expect(result.baseRef).toBe(undefined);
     });
 
+    it('VALID: quest with branchName, baseBranch and worktreePath => parses successfully', () => {
+      const quest = QuestStub({
+        branchName: 'quest/add-auth-7bc217a1',
+        baseBranch: 'main',
+        worktreePath: '/repo/worktrees/add-auth-7bc217a1',
+      });
+
+      const result = questContract.parse(quest);
+
+      expect(result).toStrictEqual({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        questType: 'feature',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        designDecisions: [],
+        operations: [],
+        toolingRequirements: [],
+        packagesAffected: [],
+        contracts: [],
+        flows: [FlowStub()],
+        comments: [],
+        needsDesign: false,
+        userRequest: 'Add authentication to the application',
+        workItems: [],
+        wardResults: [],
+        planningNotes: { blightReports: [], qaLedger: [], blightLedger: [], questNotes: [] },
+        branchName: 'quest/add-auth-7bc217a1',
+        baseBranch: 'main',
+        worktreePath: '/repo/worktrees/add-auth-7bc217a1',
+      });
+    });
+
+    it('VALID: quest without branchName field => leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.branchName).toBe(undefined);
+    });
+
+    it('VALID: quest without baseBranch field => leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.baseBranch).toBe(undefined);
+    });
+
+    it('VALID: quest without worktreePath field => leaves it undefined', () => {
+      const result = questContract.parse({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        title: 'Add Authentication',
+        status: 'in_progress',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        userRequest: 'Add authentication to the application',
+        operations: [],
+        toolingRequirements: [],
+      });
+
+      expect(result.worktreePath).toBe(undefined);
+    });
+
     it('VALID: quest with pausedAtStatus => parses successfully', () => {
       const quest = QuestStub({
         status: 'paused',

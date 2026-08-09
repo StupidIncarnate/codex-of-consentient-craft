@@ -6,6 +6,7 @@ describe('roleToModelStatics', () => {
       chaoswhisperer: 'opus',
       glyphsmith: 'opus',
       bughunt: 'opus',
+      tavernkeeper: 'opus',
       flowrider: 'opus',
       siegemaster: 'opus',
       codeweaver: 'opus',
@@ -14,6 +15,7 @@ describe('roleToModelStatics', () => {
       'blightwarden-crosscut-minion': 'sonnet',
       blightwarden: 'sonnet',
       pesteater: 'opus',
+      warpgate: 'opus',
     });
   });
 });

@@ -260,4 +260,61 @@ describe('questBlockOnFailureBroker', () => {
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
+
+  describe('the status write is verified, not assumed', () => {
+    it('ERROR: {quest at complete, block requested} => returns blocked:false because the status write was rejected', async () => {
+      const proxy = questBlockOnFailureBrokerProxy();
+      proxy.setupPassthrough();
+
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+
+      // `complete`'s only legal status edge is `-> merging` (questStatusTransitionsStatics), and
+      // the real questModifyBroker rejects the write before that check even runs — a `complete`
+      // quest has an empty allowedFields set, so `status: 'blocked'` is refused outright. Either
+      // way `success: false` comes back, which is the natural repro for a merge running on a
+      // quest that started terminal: the write is rejected, not applied.
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        status: 'complete',
+        workItems: [WorkItemStub({ id: failedId, role: 'codeweaver', status: 'in_progress' })],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const result = await questBlockOnFailureBroker({
+        questId: QuestIdStub({ value: 'test-quest' }),
+        failedWorkItemId: failedId,
+      });
+
+      expect(result).toStrictEqual({ blocked: false });
+    });
+
+    it('VALID: {quest at merging, block requested} => returns blocked:true because merging -> blocked is a legal transition', async () => {
+      const proxy = questBlockOnFailureBrokerProxy();
+      proxy.setupPassthrough();
+
+      const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        status: 'merging',
+        workItems: [WorkItemStub({ id: failedId, role: 'warpgate', status: 'in_progress' })],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const result = await questBlockOnFailureBroker({
+        questId: QuestIdStub({ value: 'test-quest' }),
+        failedWorkItemId: failedId,
+      });
+
+      expect(result).toStrictEqual({ blocked: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(persisted.status).toBe('blocked');
+    });
+  });
 });

@@ -23,6 +23,8 @@ export const questGateSectionsStatics = {
     paused: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     blocked: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     complete: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+    merging: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
+    merged: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
     abandoned: ['flows', 'designDecisions', 'contracts', 'toolingRequirements'],
   },
 } as const;

@@ -1,7 +1,11 @@
 /**
  * PURPOSE: Halts a quest on a terminal failure — marks the failed work item `failed`, drains every
  *   still-pending work item to `skipped`, and sets the quest status to `blocked` so nothing further
- *   dispatches against the broken state.
+ *   dispatches against the broken state. The returned flag reports whether the block actually
+ *   landed, not just whether it was attempted — with merges now running on quests that started
+ *   terminal (`complete`), the status write can be rejected by the transition guard, and a caller
+ *   that trusted an unconditional `true` would leave a quest carrying a failed merge row while
+ *   still looking finished.
  *
  * USAGE:
  * await questBlockOnFailureBroker({ questId, failedWorkItemId });
@@ -68,7 +72,9 @@ export const questBlockOnFailureBroker = async ({
       status: workItem.id === failedWorkItemId ? ('failed' as const) : ('skipped' as const),
     }));
 
-  await questModifyBroker({
+  // A rejected status transition (e.g. the quest already moved to a status with no `-> blocked`
+  // edge) must not report success, or a quest carrying a failed merge would keep looking finished.
+  const result = await questModifyBroker({
     input: {
       questId,
       status: 'blocked',
@@ -76,5 +82,5 @@ export const questBlockOnFailureBroker = async ({
     } as ModifyQuestInput,
   });
 
-  return { blocked: true };
+  return { blocked: result.success };
 };

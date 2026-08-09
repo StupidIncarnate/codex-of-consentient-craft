@@ -297,7 +297,9 @@ export const QuestHandleSignalBackResponder = async ({
                 ? budgets.blightwarden.maxAttempts
                 : role === 'pesteater'
                   ? budgets.pesteater.maxAttempts
-                  : budgets.spiritmender.maxAttempts;
+                  : role === 'warpgate'
+                    ? budgets.warpgate.maxAttempts
+                    : budgets.spiritmender.maxAttempts;
       })();
       // The pt budget gates `partial` only. An environment wall always appends its continuation:
       // the quest blocks either way, and withholding the append would leave the operation with no

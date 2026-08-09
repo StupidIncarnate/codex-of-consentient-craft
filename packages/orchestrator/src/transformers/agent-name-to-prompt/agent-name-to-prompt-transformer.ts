@@ -23,6 +23,7 @@ import { siegemasterWalkerMinionStatics } from '../../statics/siegemaster-walker
 import { siegemasterTestAuditMinionStatics } from '../../statics/siegemaster-test-audit-minion/siegemaster-test-audit-minion-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
+import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 
 export const agentNameToPromptTransformer = ({
   agent,
@@ -101,6 +102,12 @@ export const agentNameToPromptTransformer = ({
         name: 'pesteater',
         model: 'opus',
         prompt: pesteaterPromptStatics.prompt.template,
+      });
+    case 'warpgate':
+      return agentPromptResultContract.parse({
+        name: 'warpgate',
+        model: 'opus',
+        prompt: warpgatePromptStatics.prompt.template,
       });
     case 'blightwarden-group-minion':
       return agentPromptResultContract.parse({
