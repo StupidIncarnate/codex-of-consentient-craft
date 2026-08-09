@@ -6,8 +6,24 @@ import {
   WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
+
+// The MAIN chat composer resumes the thread it owns — spec/design/bug intake — never the
+// post-quest follow-up thread. That subset is workItemRoleStatics.chat minus its one
+// postQuestChat member (tavernkeeper), derived here so a fourth chat role added to the tuple
+// joins this matrix automatically instead of silently escaping it.
+const MAIN_COMPOSER_CHAT_ROLES = workItemRoleStatics.chat.filter(
+  (role) => !workItemRoleStatics.postQuestChat.some((postQuestRole) => postQuestRole === role),
+);
+// Of those, glyphsmith resolves through its own dedicated design-phase branch (lines 51-68 of
+// the broker) that never reads `sessionId` at all — it cannot take the "no sessionId reaches
+// this call" path chaoswhisperer/bughunt do, so it gets its own dedicated case instead of
+// joining this subset.
+const MAIN_COMPOSER_INTAKE_RESUME_ROLES = MAIN_COMPOSER_CHAT_ROLES.filter(
+  (role) => role !== 'glyphsmith',
+);
 
 import { resolveChatQuestLayerBroker } from './resolve-chat-quest-layer-broker';
 import { resolveChatQuestLayerBrokerProxy } from './resolve-chat-quest-layer-broker.proxy';
@@ -245,6 +261,158 @@ describe('resolveChatQuestLayerBroker', () => {
         questId: expect.stringMatching(UUID_PATTERN),
         workItemId: expect.stringMatching(UUID_PATTERN),
         createdQuest: true,
+      });
+    });
+  });
+
+  // #main-composer-ignores-tavernkeeper-session: a message sent through the quest's MAIN chat
+  // composer (POST /api/quests/:questId/chat) resumes the chaoswhisperer / glyphsmith / bughunt
+  // session, never the tavernkeeper session — including when the tavernkeeper work item is
+  // listed FIRST in quest.workItems; when the tavernkeeper item is the only chat item carrying
+  // a sessionId, that route starts a fresh chat with no sessionId rather than joining the
+  // follow-up conversation.
+  //
+  // Regression coverage for a previous session's loosened line 99
+  // (`wi.role === role || wi.role === 'tavernkeeper'`): every fixture above seeds exactly one
+  // work item, so "the item with the matching role" and "the first item" were the same object
+  // and `.find()` could never tell them apart. These fixtures seed at least two, tavernkeeper
+  // always first.
+  describe('main-composer-ignores-tavernkeeper-session', () => {
+    const HOSTILE_LONG_SESSION_TOKEN = `sess-${'z'.repeat(400)}`;
+    const MARKUP_LIKE_TAVERNKEEPER_SESSION_ID = '<img src=x onerror=alert(1)>-tavern-session';
+
+    describe('case 1: tavernkeeper listed first, alongside a real chat item with a distinct sessionId', () => {
+      it.each(MAIN_COMPOSER_CHAT_ROLES)(
+        "VALID: {workItems: [tavernkeeper first, %s second], distinct sessionIds} => resolves that role's own work item, never the tavernkeeper's",
+        async (role) => {
+          const proxy = resolveChatQuestLayerBrokerProxy();
+          const roleIndex = MAIN_COMPOSER_CHAT_ROLES.indexOf(role);
+          const questId = QuestIdStub({ value: `main-composer-case1-${role}` });
+          const tavernkeeperItem = WorkItemStub({
+            id: `aaaaaaa${String(roleIndex)}-1111-4222-9333-444444444444`,
+            role: 'tavernkeeper',
+            status: 'complete',
+            sessionId: SessionIdStub({ value: MARKUP_LIKE_TAVERNKEEPER_SESSION_ID }),
+          });
+          const chatItem = WorkItemStub({
+            id: `bbbbbbb${String(roleIndex)}-1111-4222-9333-444444444444`,
+            role: WorkItemRoleStub({ value: role }),
+            status: 'in_progress',
+            sessionId: SessionIdStub({ value: HOSTILE_LONG_SESSION_TOKEN }),
+          });
+          proxy.setupQuestFound({
+            quest: QuestStub({
+              id: questId,
+              folder: questId,
+              // Harmless for chaoswhisperer/bughunt (their resolution branch never reads
+              // status); satisfies glyphsmith's design-phase gate so all three rows share one
+              // fixture shape.
+              status: 'explore_design',
+              workItems: [tavernkeeperItem, chatItem], // tavernkeeper FIRST
+            }),
+          });
+
+          const result = await resolveChatQuestLayerBroker({
+            role: WorkItemRoleStub({ value: role }),
+            guildId: GuildIdStub(),
+            questId,
+            sessionId: SessionIdStub({ value: HOSTILE_LONG_SESSION_TOKEN }),
+            message: 'still building on this',
+          });
+
+          expect(result).toStrictEqual({
+            questId,
+            workItemId: chatItem.id,
+            createdQuest: false,
+          });
+        },
+      );
+    });
+
+    describe('case 2: tavernkeeper is the only chat item carrying a sessionId', () => {
+      // chaoswhisperer + bughunt share the generic sessionId+questId resolution branch (lines
+      // 92-104 of the broker). When quest-chat-responder's own selector
+      // (isChatWorkItemRoleGuard && !isPostQuestChatWorkItemRoleGuard) finds no non-tavernkeeper
+      // chat item carrying a sessionId, no sessionId reaches this call at all — so the branch's
+      // `if (sessionId && questId)` guard is false and the broker mints a fresh quest rather
+      // than resuming anything. glyphsmith never takes this path (see its own case below).
+      it.each(MAIN_COMPOSER_INTAKE_RESUME_ROLES)(
+        'VALID: {only the tavernkeeper item carries a sessionId, %s call omits sessionId} => mints a fresh quest instead of joining the tavernkeeper conversation',
+        async (role) => {
+          const proxy = resolveChatQuestLayerBrokerProxy();
+          const roleIndex = MAIN_COMPOSER_INTAKE_RESUME_ROLES.indexOf(role);
+          const questId = QuestIdStub({ value: `main-composer-case2-${role}` });
+          const tavernkeeperItem = WorkItemStub({
+            id: `ccccccc${String(roleIndex)}-1111-4222-9333-444444444444`,
+            role: 'tavernkeeper',
+            status: 'complete',
+            sessionId: SessionIdStub({ value: MARKUP_LIKE_TAVERNKEEPER_SESSION_ID }),
+          });
+          const chatItemNoSession = WorkItemStub({
+            id: `ddddddd${String(roleIndex)}-1111-4222-9333-444444444444`,
+            role: WorkItemRoleStub({ value: role }),
+            status: 'pending',
+          });
+          proxy.setupQuestFound({
+            quest: QuestStub({
+              id: questId,
+              folder: questId,
+              status: 'in_progress',
+              workItems: [tavernkeeperItem, chatItemNoSession],
+            }),
+          });
+
+          const result = await resolveChatQuestLayerBroker({
+            role: WorkItemRoleStub({ value: role }),
+            guildId: GuildIdStub(),
+            questId,
+            message: 'anyone there?',
+          });
+
+          expect(result).toStrictEqual({
+            questId: expect.stringMatching(UUID_PATTERN),
+            workItemId: expect.stringMatching(UUID_PATTERN),
+            createdQuest: true,
+          });
+        },
+      );
+
+      it("VALID: {glyphsmith path, only tavernkeeper carries a sessionId, glyphsmith item has none yet} => resolves the glyphsmith work item, never the tavernkeeper's", async () => {
+        const proxy = resolveChatQuestLayerBrokerProxy();
+        const questId = QuestIdStub({ value: 'main-composer-case2-glyphsmith' });
+        const tavernkeeperItem = WorkItemStub({
+          id: 'eeeeeeee-1111-4222-9333-444444444444',
+          role: 'tavernkeeper',
+          status: 'complete',
+          sessionId: SessionIdStub({ value: MARKUP_LIKE_TAVERNKEEPER_SESSION_ID }),
+        });
+        const glyphsmithItemNoSession = WorkItemStub({
+          id: 'ffffffff-1111-4222-9333-444444444444',
+          role: 'glyphsmith',
+          status: 'pending',
+        });
+        proxy.setupQuestFound({
+          quest: QuestStub({
+            id: questId,
+            folder: questId,
+            status: 'explore_design',
+            // tavernkeeper carries the ONLY sessionId on this quest.
+            workItems: [tavernkeeperItem, glyphsmithItemNoSession],
+          }),
+        });
+
+        const result = await resolveChatQuestLayerBroker({
+          role: WorkItemRoleStub({ value: 'glyphsmith' }),
+          guildId: GuildIdStub(),
+          questId,
+          message: 'anyone there?',
+        });
+
+        expect(result).toStrictEqual({
+          questId,
+          workItemId: glyphsmithItemNoSession.id,
+          createdQuest: false,
+        });
       });
     });
   });
