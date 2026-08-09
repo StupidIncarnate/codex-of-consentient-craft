@@ -52,6 +52,7 @@ export const FollowupChatStartResponderProxy = (): {
   setupQuestNotFound: () => void;
   setupWorktreeMissing: (params: { quest: Quest }) => void;
   getSpawnedArgs: () => unknown;
+  getSpawnedCwd: () => unknown;
   getLastPersistedQuest: () => Parsed;
   captureEmits: (params: { type: OrchestrationEventType }) => readonly CapturedOrchestrationEmit[];
 } => {
@@ -206,6 +207,10 @@ export const FollowupChatStartResponderProxy = (): {
     },
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
+
+    // The cwd chatSpawnBroker actually launched the tavernkeeper process with — the sole
+    // evidence that separates "spawned in the quest's worktree" from "spawned at the repo root".
+    getSpawnedCwd: (): unknown => spawnProxy.getSpawnedCwd(),
 
     getLastPersistedQuest: (): Parsed => {
       const persisted = modifyProxy.getAllPersistedContents();

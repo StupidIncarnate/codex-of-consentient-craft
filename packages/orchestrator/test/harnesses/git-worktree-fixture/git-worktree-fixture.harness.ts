@@ -25,6 +25,7 @@ import {
   mkdirSync,
   readFileSync,
   readlinkSync,
+  realpathSync,
   symlinkSync,
   writeFileSync,
 } from 'fs';
@@ -32,6 +33,7 @@ import { join } from 'path';
 
 import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
 import {
+  absoluteFilePathContract,
   errorMessageContract,
   type AbsoluteFilePath,
   type ErrorMessage,
@@ -72,6 +74,12 @@ export const gitWorktreeFixtureHarness = (): {
     branchName: FileName;
     fromRef?: ErrorMessage;
   }) => Promise<void>;
+  commitFile: (params: {
+    repoPath: AbsoluteFilePath;
+    relativePath: RepoRelativePath;
+    content: FileContents;
+    message: ErrorMessage;
+  }) => Promise<{ sha: ErrorMessage }>;
   dirtyTrackedFile: (params: {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
@@ -80,18 +88,34 @@ export const gitWorktreeFixtureHarness = (): {
   readTextFile: (params: { absolutePath: AbsoluteFilePath }) => ErrorMessage | null;
   pathExists: (params: { absolutePath: AbsoluteFilePath }) => boolean;
   readSymlinkTarget: (params: { absolutePath: AbsoluteFilePath }) => ErrorMessage | null;
+  // Resolves a symlink chain all the way to its real, canonical target on disk (fs.realpathSync),
+  // unlike readSymlinkTarget which only reads the raw (often relative) stored target string. Use
+  // this whenever an observable asks whether a link RESOLVES inside a given directory rather than
+  // what string it stores — null for a dangling/broken link, matching the hostile fixture case.
+  realpathOf: (params: { absolutePath: AbsoluteFilePath }) => AbsoluteFilePath | null;
   isExecutableFile: (params: { absolutePath: AbsoluteFilePath }) => boolean;
   gitStatusPorcelain: (params: { repoPath: AbsoluteFilePath }) => Promise<ErrorMessage>;
   gitRevParseOrNull: (params: {
     repoPath: AbsoluteFilePath;
     ref: ErrorMessage;
   }) => Promise<ErrorMessage | null>;
+  // `git rev-parse --abbrev-ref HEAD` needs its own method (not gitRevParseOrNull) because that
+  // command takes TWO argv tokens after `rev-parse`, and gitRevParseOrNull's single `ref` param
+  // maps to exactly one spawn argument — passing '--abbrev-ref HEAD' as one string would hand git
+  // a single malformed ref instead of two flags.
+  gitCurrentBranchName: (params: { repoPath: AbsoluteFilePath }) => Promise<ErrorMessage | null>;
   gitWorktreeListOutput: (params: { repoPath: AbsoluteFilePath }) => Promise<ErrorMessage>;
   writeWorkspaceNodeModulesFixture: (params: {
     repoPath: AbsoluteFilePath;
     workspacePackages: readonly FileName[];
     hoistedDep: { packageName: FileName; depName: FileName };
   }) => void;
+  // Adds ONE additional @dungeonmaster scope entry whose stored target names a packages/ directory
+  // that was never created, alongside whatever writeWorkspaceNodeModulesFixture already wrote for
+  // the real workspacePackages — so a suite can prove one dangling workspace link doesn't stop the
+  // other, valid links from populating. Must run AFTER writeWorkspaceNodeModulesFixture, which is
+  // what creates the @dungeonmaster scope directory this reaches into.
+  writeBrokenWorkspaceLink: (params: { repoPath: AbsoluteFilePath; packageName: FileName }) => void;
   writeConvergingBuildScript: (params: { scriptDir: AbsoluteFilePath }) => {
     buildCommand: ErrorMessage;
   };
@@ -168,9 +192,41 @@ export const gitWorktreeFixtureHarness = (): {
     return exitCode === 0 ? errorMessageContract.parse(output.trim()) : null;
   };
 
+  const commitFile = async ({
+    repoPath,
+    relativePath,
+    content,
+    message,
+  }: {
+    repoPath: AbsoluteFilePath;
+    relativePath: RepoRelativePath;
+    content: FileContents;
+    message: ErrorMessage;
+  }): Promise<{ sha: ErrorMessage }> => {
+    writeFileSync(join(repoPath, relativePath), content);
+    await runGit({ repoPath, args: ['add', '-A'] });
+    await runGit({ repoPath, args: ['commit', '-m', message], env: GIT_COMMIT_ENV });
+    const { output } = await runGit({ repoPath, args: ['rev-parse', 'HEAD'] });
+    return { sha: errorMessageContract.parse(output.trim()) };
+  };
+
+  const gitCurrentBranchName = async ({
+    repoPath,
+  }: {
+    repoPath: AbsoluteFilePath;
+  }): Promise<ErrorMessage | null> => {
+    const { exitCode, output } = await runGit({
+      repoPath,
+      args: ['rev-parse', '--abbrev-ref', 'HEAD'],
+    });
+    return exitCode === 0 ? errorMessageContract.parse(output.trim()) : null;
+  };
+
   return {
     initRepoWithPackages,
     createBranchAt,
+    commitFile,
+    gitCurrentBranchName,
     dirtyTrackedFile: ({
       repoPath,
       relativePath,
@@ -195,6 +251,13 @@ export const gitWorktreeFixtureHarness = (): {
     }): ErrorMessage | null => {
       try {
         return errorMessageContract.parse(readlinkSync(absolutePath));
+      } catch {
+        return null;
+      }
+    },
+    realpathOf: ({ absolutePath }: { absolutePath: AbsoluteFilePath }): AbsoluteFilePath | null => {
+      try {
+        return absoluteFilePathContract.parse(realpathSync(absolutePath));
       } catch {
         return null;
       }
@@ -271,6 +334,16 @@ export const gitWorktreeFixtureHarness = (): {
         join(hoistedDepDir, 'package.json'),
         JSON.stringify({ name: hoistedDep.depName, version: '1.0.0' }),
       );
+    },
+    writeBrokenWorkspaceLink: ({
+      repoPath,
+      packageName,
+    }: {
+      repoPath: AbsoluteFilePath;
+      packageName: FileName;
+    }): void => {
+      const scopeDir = join(repoPath, 'node_modules', '@dungeonmaster');
+      symlinkSync(join('..', '..', 'packages', packageName), join(scopeDir, packageName));
     },
     writeConvergingBuildScript: ({
       scriptDir,

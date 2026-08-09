@@ -6,9 +6,18 @@ import {
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { FollowupChatStartResponderProxy } from './followup-chat-start-responder.proxy';
+
+type WorkItemStatusKey = keyof typeof workItemStatusMetadataStatics.statuses;
+
+// Every status a lingering tavernkeeper item can be left in — derived from the same static the
+// production status union is built from, so a status added there joins this matrix automatically.
+const WORK_ITEM_STATUSES = Object.keys(
+  workItemStatusMetadataStatics.statuses,
+) as readonly WorkItemStatusKey[];
 
 // Matches the crypto.randomUUID literal sticky-mocked by chatSpawnBrokerProxy (composed inside
 // FollowupChatStartResponderProxy) and the 'chat' processIdPrefix every non-glyphsmith chat role
@@ -68,31 +77,37 @@ describe('FollowupChatStartResponder', () => {
       });
     });
 
-    it('VALID: {quest with no tavernkeeper item} => the persisted payload adds no operations entry and leaves quest.status unchanged', async () => {
-      const proxy = FollowupChatStartResponderProxy();
-      const guildId = GuildIdStub();
-      const questId = QuestIdStub({ value: 'quest-2' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-2' });
-      const quest = QuestStub({
-        id: 'quest-2',
-        folder: 'quest-2',
-        status: 'complete',
-        workItems: [],
-        operations: [],
-        worktreePath,
-      });
+    // #followup-does-not-reopen-quest names three statuses explicitly — complete stays complete,
+    // blocked stays blocked, merged stays merged. A single-status fixture cannot tell "genuinely
+    // unchanged" from "hardcoded to complete", so all three are driven through the real responder.
+    it.each(['complete', 'blocked', 'merged'] as const)(
+      'VALID: {quest with no tavernkeeper item, status: %s} => the persisted payload adds no operations entry and leaves quest.status unchanged',
+      async (status) => {
+        const proxy = FollowupChatStartResponderProxy();
+        const guildId = GuildIdStub();
+        const questId = QuestIdStub({ value: `quest-2-${status}` });
+        const worktreePath = AbsoluteFilePathStub({ value: `/repo/worktrees/quest-2-${status}` });
+        const quest = QuestStub({
+          id: `quest-2-${status}`,
+          folder: `quest-2-${status}`,
+          status,
+          workItems: [],
+          operations: [],
+          worktreePath,
+        });
 
-      proxy.setupNewTavernkeeperItem({ quest });
+        proxy.setupNewTavernkeeperItem({ quest });
 
-      await proxy.callResponder({ guildId, questId, message: 'What did you decide on auth?' });
+        await proxy.callResponder({ guildId, questId, message: 'What did you decide on auth?' });
 
-      const persisted = proxy.getLastPersistedQuest();
+        const persisted = proxy.getLastPersistedQuest();
 
-      expect({ operations: persisted.operations, status: persisted.status }).toStrictEqual({
-        operations: quest.operations,
-        status: quest.status,
-      });
-    });
+        expect({ operations: persisted.operations, status: persisted.status }).toStrictEqual({
+          operations: quest.operations,
+          status: quest.status,
+        });
+      },
+    );
   });
 
   describe('resumes the existing tavernkeeper item', () => {
@@ -158,46 +173,60 @@ describe('FollowupChatStartResponder', () => {
       ]);
     });
 
-    it('VALID: {tavernkeeper item left in_progress with a sessionId} => still resumes that sessionId', async () => {
-      const proxy = FollowupChatStartResponderProxy();
-      const guildId = GuildIdStub();
-      const questId = QuestIdStub({ value: 'quest-4' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-4' });
-      const sessionId = SessionIdStub({ value: 'tavern-session-4' });
-      const existingItem = WorkItemStub({
-        id: 'bbbbbbbb-1111-4222-9333-444444444444',
-        role: 'tavernkeeper',
-        status: 'in_progress',
-        sessionId,
-      });
-      const quest = QuestStub({
-        id: 'quest-4',
-        folder: 'quest-4',
-        status: 'complete',
-        workItems: [existingItem],
-        worktreePath,
-      });
-      const message = 'Are you still there?';
+    // #next-message-resumes-regardless — "the next follow-up message resumes that sessionId
+    // whatever work-item status the item was left in, so a session interrupted by a crash or by
+    // a merge stop is still continuable". Driven across EVERY work-item status rather than the
+    // one interesting-looking case: a chat item is never driven to a terminal status the way a
+    // relay item is (dd-tavernkeeper-item-is-inert-when-idle), so any status is reachable here,
+    // and a gate that only resumed non-terminal items would still pass a single in_progress
+    // fixture. The list is derived from workItemStatusMetadataStatics, so a status added there
+    // joins this matrix instead of silently escaping it.
+    it.each(WORK_ITEM_STATUSES)(
+      'VALID: {tavernkeeper item left in status %s with a sessionId} => still resumes that sessionId',
+      async (status) => {
+        const proxy = FollowupChatStartResponderProxy();
+        const guildId = GuildIdStub();
+        const statusIndex = WORK_ITEM_STATUSES.indexOf(status);
+        const questId = QuestIdStub({ value: `quest-4-${status}` });
+        const worktreePath = AbsoluteFilePathStub({
+          value: `/repo/worktrees/quest-4-${status}`,
+        });
+        const sessionId = SessionIdStub({ value: `tavern-session-4-${status}` });
+        const existingItem = WorkItemStub({
+          id: `b${String(statusIndex)}bbbbbb-1111-4222-9333-444444444444`,
+          role: 'tavernkeeper',
+          status,
+          sessionId,
+        });
+        const quest = QuestStub({
+          id: `quest-4-${status}`,
+          folder: `quest-4-${status}`,
+          status: 'complete',
+          workItems: [existingItem],
+          worktreePath,
+        });
+        const message = 'Are you still there?';
 
-      proxy.setupExistingTavernkeeperItem({ quest });
+        proxy.setupExistingTavernkeeperItem({ quest });
 
-      await proxy.callResponder({ guildId, questId, message });
+        await proxy.callResponder({ guildId, questId, message });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
-        '-p',
-        message,
-        '--output-format',
-        'stream-json',
-        '--verbose',
-        '--model',
-        'opus',
-        '--chrome',
-        '--settings',
-        '{"hooks":{}}',
-        '--resume',
-        sessionId,
-      ]);
-    });
+        expect(proxy.getSpawnedArgs()).toStrictEqual([
+          '-p',
+          message,
+          '--output-format',
+          'stream-json',
+          '--verbose',
+          '--model',
+          'opus',
+          '--chrome',
+          '--settings',
+          '{"hooks":{}}',
+          '--resume',
+          sessionId,
+        ]);
+      },
+    );
 
     it('VALID: {tavernkeeper item exists with NO sessionId} => spawns with no sessionId argument', async () => {
       const proxy = FollowupChatStartResponderProxy();

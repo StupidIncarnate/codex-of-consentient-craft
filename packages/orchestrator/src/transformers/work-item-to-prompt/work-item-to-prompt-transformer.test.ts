@@ -1,4 +1,5 @@
 import {
+  BaseBranchNameStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
@@ -28,6 +29,7 @@ import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-r
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
+import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
 
 // Fixture scale for the MCP tool-result budget below, calibrated against a real dogfood quest
@@ -489,6 +491,151 @@ describe('workItemToPromptTransformer', () => {
           expect(result.prompt).toBe(statics.prompt.template.replace('$ARGUMENTS', expectedArgs));
         },
       );
+    });
+
+    describe('base branch pass-through is warpgate-only', () => {
+      // The warpgate prompt template promises "the baseBranch recorded ON THE QUEST in your
+      // Operation Context below" (warpgate-prompt-statics.ts) — this is the half of that promise
+      // that must actually render the value, or the agent has nothing to read without an extra
+      // get-quest call the prompt never tells it to make.
+      it('VALID: {role: warpgate, quest carries baseBranch} => appends a Base branch line naming it', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3131-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3131-4222-9333-444444444444' });
+        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'warpgate',
+          text: 'Warpgate: merge the quest branch home into the base branch',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'warpgate',
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({
+          id: questId,
+          operations: [operation],
+          workItems: [workItem],
+          baseBranch,
+        });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'warpgate' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [warpgate] Warpgate: merge the quest branch home into the base branch',
+          '',
+          'Operations ledger (in order):',
+          '1. [>] [warpgate] Warpgate: merge the quest branch home into the base branch  <-- YOUR OPERATION ITEM',
+          '',
+          'Base branch: main',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          warpgatePromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
+
+      it('EDGE: {role: warpgate, quest carries no baseBranch} => omits the Base branch line entirely rather than printing "undefined"', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-3131-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'dddddddd-3131-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'warpgate',
+          text: 'Warpgate: merge the quest branch home into the base branch',
+          status: 'in_progress',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'warpgate',
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'warpgate' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [warpgate] Warpgate: merge the quest branch home into the base branch',
+          '',
+          'Operations ledger (in order):',
+          '1. [>] [warpgate] Warpgate: merge the quest branch home into the base branch  <-- YOUR OPERATION ITEM',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          warpgatePromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
+
+      // Every other relay role must NOT get the base-branch line — proves the block is gated on
+      // the role, not simply on the presence of quest.baseBranch.
+      it('EDGE: {role: codeweaver, quest carries baseBranch} => omits the Base branch line (warpgate-only, not universal)', () => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-3131-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'ffffffff-3131-4222-9333-444444444444' });
+        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role: 'codeweaver',
+          text: 'core: config load+validate adapter',
+          status: 'pending',
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role: 'codeweaver',
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({
+          id: questId,
+          operations: [operation],
+          workItems: [workItem],
+          baseBranch,
+        });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: 'codeweaver' }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          'Your operation item: [codeweaver] core: config load+validate adapter',
+          '',
+          'Operations ledger (in order):',
+          '1. [ ] [codeweaver] core: config load+validate adapter  <-- YOUR OPERATION ITEM',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          codeweaverPromptStatics.prompt.template.replace('$ARGUMENTS', expectedArgs),
+        );
+      });
     });
 
     describe('dev-server pass-through is siegemaster-only', () => {

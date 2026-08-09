@@ -103,6 +103,8 @@ test.describe('Quest Begin Transition', () => {
 
     expect(startRequest.method()).toBe('POST');
     expect(startRequest.url()).toContain(`/api/quests/${questId}/start`);
+    // start-post-fired: BEGIN QUEST sends no request body — the questId travels in the URL only.
+    expect(startRequest.postData()).toBe(null);
 
     // Modal should close
     await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({

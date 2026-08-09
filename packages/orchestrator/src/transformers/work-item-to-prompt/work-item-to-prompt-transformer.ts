@@ -4,7 +4,7 @@
  * operation item and substitutes `$ARGUMENTS` in the role's prompt template with the operation
  * context: the item being worked, the operations ledger (the agent verifies it is the right
  * next step against git before trusting it), and role-specific extras (dev server for siegemaster,
- * the failed ward result for spiritmender).
+ * the failed ward result for spiritmender, the base branch for warpgate).
  *
  * The ledger render is bounded by `operationsLedgerRenderStatics` so the served MCP block stays
  * under `mcpToolResultStatics.maxVerbatimChars`. Oldest COMPLETED items are elided first and
@@ -209,6 +209,20 @@ export const workItemToPromptTransformer = ({
       contentTextContract.parse(''),
       contentTextContract.parse(`Dev Server Command: ${String(devServer.devCommand)}`),
       contentTextContract.parse(`Dev Server URL: ${String(devServer.devServerUrl)}`),
+    );
+  }
+
+  // Warpgate only. The prompt template tells the agent to resolve the base branch "recorded ON
+  // THE QUEST in your Operation Context below" and never re-probe it — this is the half of that
+  // promise that has to actually render the value, or the agent has nothing to read there and
+  // must fall back to a get-quest call the prompt never tells it to make. Guarded on baseBranch
+  // being set at all: a quest reaches `merging` only after Start Quest recorded its git context,
+  // but the field stays optional on the contract, so an unset value is omitted rather than
+  // rendered as the literal string "undefined".
+  if (workItem.role === 'warpgate' && quest.baseBranch !== undefined) {
+    parts.push(
+      contentTextContract.parse(''),
+      contentTextContract.parse(`Base branch: ${String(quest.baseBranch)}`),
     );
   }
 
