@@ -90,6 +90,17 @@ export const OrchestrationMergeResponder = async ({
   await questOperationsUpdateBroker({
     questId,
     update: ({ quest: current }) => {
+      // Double-submit guard. Two clicks on Teleport with Booty are two POSTs, and both read the
+      // quest and clear the mergeable-status gate before either one writes — so neither the route
+      // nor the check above can tell them apart. This callback is the only place that can: it runs
+      // inside questOperationsUpdateBroker's per-quest lock, against a quest re-read inside that
+      // lock, so the loser sees the winner's entry. Returning null skips the persist entirely.
+      // Without it a double-click mints N warpgate operations and N work items, and the quest can
+      // only reach `merged` after N separate merge agents have each run against the one worktree.
+      if (current.operations.some((operation) => operation.role === 'warpgate')) {
+        return null;
+      }
+
       // Merging is the deliberate END of the quest. A `blocked` quest arrives here with operation
       // items still `pending`/`in_progress` — the block drained the WORK items to `skipped`, but
       // an operation item has no skipped state. Leaving them non-complete would keep the quest

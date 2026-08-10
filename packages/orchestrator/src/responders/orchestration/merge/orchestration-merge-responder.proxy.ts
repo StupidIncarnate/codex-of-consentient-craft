@@ -37,6 +37,7 @@ export const OrchestrationMergeResponderProxy = (): {
   callResponder: typeof OrchestrationMergeResponder;
   setupQuestNotFound: () => void;
   setupMerge: (params: { quest: Quest }) => void;
+  setupWarpgateAlreadyAppended: (params: { quest: Quest }) => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
   setupTavernkeeperProcessRunning: (params: { workItemId: QuestWorkItemId }) => void;
   wasFollowupProcessKilled: () => boolean;
@@ -79,6 +80,16 @@ export const OrchestrationMergeResponderProxy = (): {
     // same sequencing a real filesystem provides for free (see the responder's own ordering
     // comment on why this matters for status derivation).
     setupMerge: ({ quest }: { quest: Quest }): void => {
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      opsProxy.setupQuestFound({ quest: questContract.parse({ ...quest, status: 'merging' }) });
+    },
+
+    // Every read sees a quest that ALREADY carries a warpgate operation — the state a second
+    // caller finds when it reaches the lock after a racing first caller has appended. Two clicks
+    // on the merge button are two POSTs that both pass the status gate before either writes, so
+    // this is the shape the append itself has to refuse.
+    setupWarpgateAlreadyAppended: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
       opsProxy.setupQuestFound({ quest: questContract.parse({ ...quest, status: 'merging' }) });

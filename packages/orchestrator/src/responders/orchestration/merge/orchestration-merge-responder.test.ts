@@ -274,6 +274,53 @@ describe('OrchestrationMergeResponder', () => {
     });
   });
 
+  describe('double-submit', () => {
+    it('VALID: {quest already carrying a pending warpgate operation} => appends no second one', async () => {
+      // Two clicks on Teleport with Booty are two POSTs. Both read the quest and pass the status
+      // gate before either writes, so the append is the only place left that can refuse the
+      // second one. questOperationsUpdateBroker re-reads the quest INSIDE its per-quest lock, so
+      // the loser genuinely sees the winner's entry — this is that read.
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const priorOperation = OperationItemStub({
+        id: 'aaaaaaaa-1111-4222-9333-444444444444',
+        role: 'warpgate',
+        text: warpgateOperationStatics.text,
+        status: 'pending',
+        locked: true,
+        flowIds: [],
+      });
+      const priorWorkItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
+        role: 'warpgate',
+        status: 'pending',
+        spawnerType: 'agent',
+        relatedDataItems: ['operations/aaaaaaaa-1111-4222-9333-444444444444'],
+        dependsOn: [],
+        maxAttempts: 1,
+        createdAt: FIXED_TIMESTAMP,
+      });
+      const quest = QuestStub({
+        id: questId,
+        status: 'complete',
+        operations: [priorOperation],
+        workItems: [priorWorkItem],
+      });
+      const proxy = OrchestrationMergeResponderProxy();
+      proxy.setupWarpgateAlreadyAppended({ quest });
+
+      await proxy.callResponder({ questId });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(
+        persisted.operations.filter((operation) => operation.role === 'warpgate'),
+      ).toStrictEqual([priorOperation]);
+      expect(persisted.workItems.filter((workItem) => workItem.role === 'warpgate')).toStrictEqual([
+        priorWorkItem,
+      ]);
+    });
+  });
+
   describe('status transition failure', () => {
     it('ERROR: {status modify rejected} => throws and appends no operation', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
