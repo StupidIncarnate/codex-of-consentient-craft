@@ -18,9 +18,18 @@
  *   triggered the watcher start, so the stamp that opened the door isn't immediately
  *   wiped by the reset that walks through it. Without the exclusion the reactor falls
  *   into a stamp → start → reset → stop oscillation.
+ *
+ * FRESHNESS: the guild/quest walk above is only a candidate filter. Which items are
+ *   actually orphaned — and therefore what gets written — is decided from the quest loaded
+ *   INSIDE its own modify lock, because the walk reads every quest.json under the
+ *   dungeonmaster home and on a home holding many quests it takes long enough that a work
+ *   item can be dispatched, stamped with its session and signalled complete while the walk
+ *   is still running. Deciding from the walk's snapshot and blind-writing the result puts a
+ *   `complete` item back to `pending` with its identity cleared, and the dispatcher then
+ *   re-runs a session that already signalled.
  */
 
-import { modifyQuestInputContract, type SessionId } from '@dungeonmaster/shared/contracts';
+import { workItemContract, type SessionId } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
@@ -34,7 +43,7 @@ import {
 } from '../../../contracts/orphan-reset-result/orphan-reset-result-contract';
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 import { questListBroker } from '../list/quest-list-broker';
-import { questModifyBroker } from '../modify/quest-modify-broker';
+import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
 export const questOrphanResetBroker = async ({
   excludeSessionId,
@@ -63,33 +72,66 @@ export const questOrphanResetBroker = async ({
   const registrableQuests = perGuildQuests.flat();
 
   const orphanedTotals = await Promise.all(
-    registrableQuests.map(async (quest) => {
-      const orphanedItems = quest.workItems.filter((wi) => {
-        if (!isActiveWorkItemStatusGuard({ status: wi.status })) return false;
-        if (excludeSessionId !== undefined && wi.sessionId === excludeSessionId) return false;
-        return true;
-      });
-      if (orphanedItems.length === 0) {
+    registrableQuests.map(async (candidate) => {
+      const hasCandidateOrphan = candidate.workItems.some(
+        (wi) =>
+          isActiveWorkItemStatusGuard({ status: wi.status }) &&
+          (excludeSessionId === undefined || wi.sessionId !== excludeSessionId),
+      );
+      if (!hasCandidateOrphan) {
         return 0;
       }
 
-      const resetInput = modifyQuestInputContract.parse({
-        questId: quest.id,
-        workItems: orphanedItems.map((wi) => ({
-          id: wi.id,
-          status: 'pending' as const,
-          // Clear per-run identity. Stale realAgentId/parentSessionId stamped from a
-          // prior /dumpster-launch attempt is misleading once the item is pending again;
-          // the next dispatch's get-agent-prompt call re-stamps fresh values. Null is the
-          // documented clear marker on workItemForUpsertContract.
-          sessionId: null,
-          agentId: null,
-          startedAt: null,
-        })),
-      });
+      // Assigned inside the update callback, which TypeScript's flow analysis cannot see —
+      // an object holder is what carries the count back out.
+      const resetCount = { value: 0 };
 
-      await questModifyBroker({ input: resetInput });
-      return orphanedItems.length;
+      try {
+        await questOperationsUpdateBroker({
+          questId: candidate.id,
+          update: ({ quest }) => {
+            const orphanedIds = new Set(
+              quest.workItems
+                .filter(
+                  (wi) =>
+                    isActiveWorkItemStatusGuard({ status: wi.status }) &&
+                    (excludeSessionId === undefined || wi.sessionId !== excludeSessionId),
+                )
+                .map((wi) => wi.id),
+            );
+            if (orphanedIds.size === 0) {
+              return null;
+            }
+            resetCount.value = orphanedIds.size;
+
+            return {
+              workItems: quest.workItems.map((wi) => {
+                if (!orphanedIds.has(wi.id)) {
+                  return wi;
+                }
+                // Clear per-run identity. Stale realAgentId/parentSessionId stamped from a
+                // prior /dumpster-launch attempt is misleading once the item is pending
+                // again; the next dispatch's get-agent-prompt call re-stamps fresh values.
+                const reset: Record<PropertyKey, unknown> = { ...wi, status: 'pending' };
+                Reflect.deleteProperty(reset, 'sessionId');
+                Reflect.deleteProperty(reset, 'agentId');
+                Reflect.deleteProperty(reset, 'startedAt');
+                return workItemContract.parse(reset);
+              }),
+            };
+          },
+        });
+      } catch (error: unknown) {
+        // One quest's reset must not abort the sweep across every other guild and quest —
+        // but a reset that keeps failing is why a crashed agent never comes back, so it is
+        // logged rather than swallowed.
+        process.stderr.write(
+          `[quest-orphan-reset] reset failed for quest ${candidate.id}: ${String(error)}\n`,
+        );
+        return 0;
+      }
+
+      return resetCount.value;
     }),
   );
 

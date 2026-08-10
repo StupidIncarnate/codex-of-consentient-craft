@@ -80,6 +80,7 @@ export const dispatchHarness = ({
   }) => Promise<{ questId: QuestId; questFolder: QuestId; questFilePath: FilePath }>;
   queueScript: (params: {
     script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
+    agentLineDelayMs?: number;
   }) => void;
   playAndDrive: (params: {
     questId: string;
@@ -108,8 +109,15 @@ export const dispatchHarness = ({
   // each outcome to the matching dispatch.
   const queueScript = ({
     script,
+    agentLineDelayMs,
   }: {
     script: { role: string; outcome: 'done' | 'partial' | 'green' | 'red' }[];
+    // Milliseconds the fake CLI waits between the stream lines it emits, which is what decides
+    // how long its work item reads `in_progress`. At the 10 ms default a whole dispatch —
+    // spawn, three lines, signal-back — lands inside ~30 ms, so a spec asserting that a row is
+    // RUNNING is asserting against a window narrower than one WS round trip and one React
+    // paint. A spec that asserts the running state buys a real one with this.
+    agentLineDelayMs?: number;
   }): void => {
     for (const step of script) {
       if (step.outcome === 'done' || step.outcome === 'partial') {
@@ -117,6 +125,7 @@ export const dispatchHarness = ({
           response: SimpleTextResponseStub({
             sessionId: `e2e-dispatch-session-${nextUnique()}`,
             signalBack: { operationStatus: step.outcome },
+            ...(agentLineDelayMs === undefined ? {} : { delayMs: agentLineDelayMs }),
           }),
         });
       } else {

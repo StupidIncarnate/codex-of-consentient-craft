@@ -9,6 +9,13 @@ const GUILD_PATH = '/tmp/dm-e2e-resume-execution-row-runs-again';
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 25_000;
 const HTTP_OK = 200;
+// Inter-line delay for the resumed agent's queued outcome, so the work item this spec watches
+// reads `in_progress` for roughly a second rather than the ~30 ms a default-speed fake CLI
+// takes to spawn, emit three lines and signal back. The RUNNING half of the transition below
+// is a state of the running agent, and at default speed that state exists for less time than
+// one WS round trip plus one React paint — the row would go PENDING straight to DONE and the
+// assertion would be racing a window the browser never had a chance to render.
+const RUNNING_WINDOW_LINE_DELAY_MS = 400;
 
 const DONE_OP_ID = '00000000-0000-4000-8000-0000000000d0';
 const RUNNING_OP_ID = '00000000-0000-4000-8000-0000000000d1';
@@ -102,7 +109,10 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     await request.patch(`/api/quests/${questId}`, { data: { pausedAtStatus: 'in_progress' } });
 
     // The agent RESUME is about to spawn needs a queued outcome, or it exits red-on-empty.
-    dispatch.queueScript({ script: [{ role: 'codeweaver', outcome: 'done' }] });
+    dispatch.queueScript({
+      script: [{ role: 'codeweaver', outcome: 'done' }],
+      agentLineDelayMs: RUNNING_WINDOW_LINE_DELAY_MS,
+    });
 
     await nav.navigateToQuest({ urlSlug, questId: String(questId) });
 
