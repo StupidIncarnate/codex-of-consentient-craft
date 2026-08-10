@@ -36,8 +36,13 @@ export const questStatusTransitionsStatics = {
     'merging',
     'abandoned',
   ],
-  blocked: ['in_progress', 'abandoned', 'paused', 'merging'],
-  // merging lists itself for the same reason in_progress does: status derivation rewrites
+  // blocked lists itself for the same reason merging does below: a quest already blocked can
+  // still take a ledger write that leaves it blocked — e.g. questBlockOnFailureBroker attaching a
+  // NEW failure reason to a carrier work item that was already terminal from an earlier block.
+  // Without the self-edge that write is rejected as an invalid blocked -> blocked transition and
+  // the new reason is silently dropped.
+  blocked: ['blocked', 'in_progress', 'abandoned', 'paused', 'merging'],
+  // merging lists itself for the same reason in_progress and blocked do: status derivation rewrites
   // the quest's status on every ledger write, including writes that leave it unchanged, and
   // the transition guard rejects any status absent from the current status's list. Without
   // the self-edge the first ledger write during a merge is rejected and the merge stalls.

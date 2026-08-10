@@ -12,9 +12,10 @@
  *
  * USAGE:
  * await questBlockOnFailureBroker({ questId, failedWorkItemId, reason });
- * // Loads the quest, marks the failed item `failed` (carrying `reason` as its `errorMessage` when
- * //   supplied) if not already terminal, skips every pending item, flips quest status to `blocked`,
- * //   and persists via questModifyBroker. Returns { blocked }.
+ * // Loads the quest, marks the failed item `failed` (carrying `reason` as its `errorMessage`)
+ * //   unless it is already terminal AND already carries that exact reason, skips every pending
+ * //   item, flips quest status to `blocked`, and persists via questModifyBroker. Returns
+ * //   { blocked }.
  *
  * WHEN-TO-USE: From the three bounded-loop-exhaustion paths that route to BLOCK —
  *   quest-run-ward-broker (ward retry budget spent), quest-handle-signal-back-responder (a
@@ -61,15 +62,28 @@ export const questBlockOnFailureBroker = async ({
   const { quest } = getResult;
   const failedItem = quest.workItems.find((workItem) => workItem.id === failedWorkItemId);
 
-  // IDEMPOTENCY: a double signal-back can't double-apply. If the failed item is already terminal
-  // AND the quest is already blocked, the block has already happened — no-op.
+  // IDEMPOTENCY: a double signal-back for the SAME failure can't double-apply. The guard compares
+  // `reason` too, not just quest+item status — a quest already blocked for one cause can still
+  // receive a genuinely NEW reason on the same already-terminal carrier (e.g. the missing-worktree
+  // halt routes re-blocking an already-blocked quest whose worktree also went missing). Treating
+  // that as an already-applied no-op would silently drop the new reason forever.
   if (
     isQuestBlockedQuestStatusGuard({ status: quest.status }) &&
     failedItem !== undefined &&
-    isTerminalWorkItemStatusGuard({ status: failedItem.status })
+    isTerminalWorkItemStatusGuard({ status: failedItem.status }) &&
+    failedItem.errorMessage === reason
   ) {
     return { blocked: true };
   }
+
+  // The failed item is included even when already terminal, as long as it still needs the new
+  // reason attached — a caller's chosen carrier can already be terminal (the "closest thing to
+  // what this quest was doing" fallback in the missing-worktree halt routes), and its
+  // status/errorMessage must still update to carry a reason it has never recorded.
+  const failedItemNeedsUpdate =
+    failedItem !== undefined &&
+    (!isTerminalWorkItemStatusGuard({ status: failedItem.status }) ||
+      failedItem.errorMessage !== reason);
 
   const updatedWorkItems: {
     id: QuestWorkItemId;
@@ -78,8 +92,7 @@ export const questBlockOnFailureBroker = async ({
   }[] = quest.workItems
     .filter(
       (workItem) =>
-        (workItem.id === failedWorkItemId &&
-          !isTerminalWorkItemStatusGuard({ status: workItem.status })) ||
+        (workItem.id === failedWorkItemId && failedItemNeedsUpdate) ||
         isPendingWorkItemStatusGuard({ status: workItem.status }),
     )
     .map((workItem) => ({

@@ -24,6 +24,10 @@ const QUEST_RESUME_REJECTED_STATUSES: readonly StatusKey[] = STATUSES.filter(
 const QUEST_RESUME_REJECTED_ERROR =
   'Quest must be in a resumable status (paused or blocked) to resume';
 
+const DISPATCHER_SCANNED_STATUSES: readonly StatusKey[] = STATUSES.filter(
+  (status) => questStatusMetadataStatics.statuses[status].isAnyAgentRunning,
+);
+
 describe('QuestResumeResponder', () => {
   describe('allowed statuses', () => {
     it.each(QUEST_RESUME_ALLOWED_STATUSES)(
@@ -229,6 +233,37 @@ describe('QuestResumeResponder', () => {
         playCalls: [],
       });
     });
+  });
+
+  // The dispatcher's own scan (scan-once-layer-broker) selects quests with isAnyAgentRunning,
+  // which is in_progress AND merging. Resume decides whether to start the queue with its own
+  // predicate, so the two have to agree on the same set: a narrower one here leaves a resumed
+  // merge sitting at `merging` with a re-armed warpgate item and nothing to pick it up, which is
+  // the exact "pressed resume and watched nothing happen" case this route exists to prevent.
+  describe('resume starts the queue for every status the dispatcher scans', () => {
+    it.each(DISPATCHER_SCANNED_STATUSES)(
+      'VALID: {restoredStatus: %s, incomplete work} => plays dispatch',
+      async (restoredStatus) => {
+        const proxy = QuestResumeResponderProxy();
+        const questId = QuestIdStub();
+        const quest = QuestStub({
+          id: questId,
+          status: 'paused' as never,
+          pausedAtStatus: restoredStatus as never,
+          workItems: [WorkItemStub({ status: 'pending' })],
+        });
+        proxy.setupQuest({ quest });
+        proxy.setupResumeQuest({ questId, resumed: true, restoredStatus: restoredStatus as never });
+        proxy.setupDispatchPlays();
+
+        const result = await proxy.callResponder({ params: { questId } });
+
+        expect(result).toStrictEqual({
+          status: 200,
+          data: { resumed: true, restoredStatus, dispatch: { started: true } },
+        });
+      },
+    );
   });
 
   describe('rejected statuses', () => {

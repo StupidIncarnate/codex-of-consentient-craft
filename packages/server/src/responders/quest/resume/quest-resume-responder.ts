@@ -13,7 +13,7 @@
  * pressed the button that says "resume" and watched nothing happen. So resume plays dispatch too.
  *
  * ONLY when THIS quest has work the dispatcher would actually pick up — the restored status is one
- * it scans (`isActivelyExecutingQuestStatusGuard`) AND the quest still has a non-terminal work item
+ * it scans (`isAnyAgentRunningQuestStatusGuard`, the dispatcher's own filter) AND the quest still has a non-terminal work item
  * or an undrained ledger. The dispatcher is global, so starting it for a quest it will skip anyway
  * (one resumed to `approved`, or one whose ledger is already drained) does nothing for that quest
  * while reaching across every other one. `dispatch.started: false` with a `no dispatchable work`
@@ -28,7 +28,7 @@
 
 import {
   hasIncompleteQuestWorkGuard,
-  isActivelyExecutingQuestStatusGuard,
+  isAnyAgentRunningQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
@@ -80,8 +80,14 @@ export const QuestResumeResponder = async ({
 
     const result = await orchestratorResumeQuestAdapter({ questId });
 
+    // The SAME predicate the dispatcher's own scan selects quests with
+    // (scan-once-layer-broker filters on isAnyAgentRunning), so the two cannot disagree about
+    // which quests the queue would run. They must stay in sync: a narrower test here declines to
+    // start the queue for a quest the dispatcher would happily pick up, which is the "pressed
+    // resume and watched nothing happen" failure this whole block exists to prevent — `merging`
+    // is the status where they differ, and a resumed merge has a re-armed warpgate item waiting.
     const isDispatchable =
-      isActivelyExecutingQuestStatusGuard({ status: result.restoredStatus }) &&
+      isAnyAgentRunningQuestStatusGuard({ status: result.restoredStatus }) &&
       hasIncompleteQuestWorkGuard({
         workItems: quest.workItems,
         operations: quest.operations,

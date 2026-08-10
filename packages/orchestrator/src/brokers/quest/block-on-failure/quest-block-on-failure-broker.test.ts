@@ -395,6 +395,48 @@ describe('questBlockOnFailureBroker', () => {
       expect(secondResult).toStrictEqual({ blocked: true });
       expect(proxy.getAllPersistedContents()).toStrictEqual(writesBeforeSecondCall);
     });
+
+    it('VALID: {quest already blocked, carrier already terminal, NEW reason} => the new reason is not silently dropped', async () => {
+      const proxy = questBlockOnFailureBrokerProxy();
+      proxy.setupPassthrough();
+
+      const carrierId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const reason = ErrorMessageStub({
+        value: 'Worktree not found: /home/user/.dungeonmaster/worktrees/quest-77',
+      });
+
+      // Mirrors a quest that blocked once for an unrelated reason (its only work item drained to
+      // `skipped`, so it is already terminal with no errorMessage), then loses its worktree AS
+      // WELL — the missing-worktree halt routes still pick this already-terminal item as the
+      // carrier (the "closest thing to what this quest was doing" fallback) and call this broker
+      // again with a brand-new reason naming the missing path.
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        status: 'blocked',
+        workItems: [WorkItemStub({ id: carrierId, role: 'blightwarden', status: 'skipped' })],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const result = await questBlockOnFailureBroker({
+        questId: QuestIdStub({ value: 'test-quest' }),
+        failedWorkItemId: carrierId,
+        reason,
+      });
+
+      expect(result).toStrictEqual({ blocked: true });
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect(
+        persisted.workItems.map((w) => ({
+          id: w.id,
+          status: w.status,
+          errorMessage: w.errorMessage,
+        })),
+      ).toStrictEqual([{ id: carrierId, status: 'failed', errorMessage: reason }]);
+    });
   });
 
   describe('quest not found', () => {
