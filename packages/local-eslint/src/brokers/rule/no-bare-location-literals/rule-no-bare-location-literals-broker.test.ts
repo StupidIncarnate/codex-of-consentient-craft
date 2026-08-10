@@ -51,6 +51,12 @@ ruleTester.run('no-bare-location-literals', ruleNoBareLocationLiteralsBroker(), 
       code: "const x = 'quests';",
       filename: productionFixture,
     },
+    // === PRODUCTION: 'node_modules' is excluded by value — it is also the
+    //     folderConfigStatics.allowedImports sentinel and a tsconfig/glob exclude entry ===
+    {
+      code: "const x = 'node_modules';",
+      filename: productionFixture,
+    },
     // === PRODUCTION: unrelated literal not in locationsStatics is not flagged ===
     {
       code: "const x = 'arbitrary-other-literal';",
@@ -106,6 +112,20 @@ ruleTester.run('no-bare-location-literals', ruleNoBareLocationLiteralsBroker(), 
         {
           messageId: 'bareLocationLiteral',
           data: { literal: 'subagents', keyPath: 'locationsStatics.userHome.claude.subagentsDir' },
+        },
+      ],
+    },
+    // === PRODUCTION: the exclusion is by exact value — 'node_modules/.bin' still fires ===
+    {
+      code: "const x = 'node_modules/.bin';",
+      filename: productionFixture,
+      errors: [
+        {
+          messageId: 'bareLocationLiteral',
+          data: {
+            literal: 'node_modules/.bin',
+            keyPath: 'locationsStatics.repoRoot.nodeModulesBin',
+          },
         },
       ],
     },

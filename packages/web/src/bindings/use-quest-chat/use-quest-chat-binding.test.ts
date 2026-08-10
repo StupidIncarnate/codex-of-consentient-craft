@@ -1103,6 +1103,167 @@ describe('useQuestChatBinding', () => {
       });
     });
 
+    it('VALID: {turn ended, then LATE chat-output for that same ended chatProcessId} => the entry renders but isStreaming stays false', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-late-output' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const entryUuid = '00000000-0000-4000-8000-0000000000e1';
+      const entryTs = '2026-08-09T00:00:05.000Z';
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-ended' }) });
+      proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000e0'] });
+      proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
+                exitCode: 0,
+                sessionId,
+              },
+              timestamp: '2026-08-09T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+      const afterTurnEnded = result.current.isStreaming;
+
+      // The agent's transcript keeps arriving AFTER its turn is over: the CLI writes its session
+      // JSONL at exit and the post-exit tail replays it. This output names the process that has
+      // already completed, so it is a transcript draining, not an agent working — and no second
+      // chat-complete is ever coming for it, so re-arming here pins the composer on STOP forever.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-late-output',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'late tail line',
+                    uuid: entryUuid,
+                    timestamp: entryTs,
+                  },
+                ],
+              },
+              timestamp: '2026-08-09T00:00:06.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({
+        afterTurnEnded,
+        afterLateOutput: result.current.isStreaming,
+        renderedLateEntry: result.current.entriesBySession.get(sessionId),
+      }).toStrictEqual({
+        afterTurnEnded: false,
+        afterLateOutput: false,
+        renderedLateEntry: [
+          {
+            role: 'assistant',
+            type: 'text',
+            content: 'late tail line',
+            uuid: entryUuid,
+            timestamp: entryTs,
+          },
+        ],
+      });
+    });
+
+    it('VALID: {turn ended, then chat-output for a NEW chatProcessId} => isStreaming arms again, so a genuinely new turn still shows STOP', async () => {
+      const proxy = useQuestChatBindingProxy();
+      proxy.setupConnectedChannel();
+      const questId = QuestIdStub({ value: 'quest-new-turn-output' });
+      const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-first' }) });
+      proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000e2'] });
+      proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
+
+      const { result } = testingLibraryRenderHookAdapter({
+        renderCallback: () => useQuestChatBinding({ questId }),
+      });
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
+          await new Promise((resolve) => {
+            globalThis.setTimeout(resolve, 0);
+          });
+        },
+      });
+
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-complete',
+              payload: {
+                chatProcessId: ProcessIdStub({ value: 'proc-first' }),
+                exitCode: 0,
+                sessionId,
+              },
+              timestamp: '2026-08-09T00:00:01.000Z',
+            }),
+          });
+        },
+      });
+      const afterTurnEnded = result.current.isStreaming;
+
+      // The non-vacuous partner of the case above: only the ENDED process is muted. A different
+      // process emitting is a real turn under way, and the composer must report it.
+      testingLibraryActAdapter({
+        callback: () => {
+          proxy.deliverWsMessage({
+            data: JSON.stringify({
+              type: 'chat-output',
+              payload: {
+                questId: 'quest-new-turn-output',
+                sessionId,
+                chatProcessId: ProcessIdStub({ value: 'proc-second' }),
+                entries: [
+                  {
+                    role: 'assistant',
+                    type: 'text',
+                    content: 'a new turn is emitting',
+                    uuid: '00000000-0000-4000-8000-0000000000e3',
+                    timestamp: '2026-08-09T00:00:07.000Z',
+                  },
+                ],
+              },
+              timestamp: '2026-08-09T00:00:07.000Z',
+            }),
+          });
+        },
+      });
+
+      expect({ afterTurnEnded, afterNewProcessOutput: result.current.isStreaming }).toStrictEqual({
+        afterTurnEnded: false,
+        afterNewProcessOutput: true,
+      });
+    });
+
     it('VALID: {armed turn, then bound to a DIFFERENT quest} => isStreaming clears, so an idle workspace never inherits it', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();

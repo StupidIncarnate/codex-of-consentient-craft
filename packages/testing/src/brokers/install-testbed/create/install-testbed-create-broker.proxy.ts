@@ -11,6 +11,7 @@ import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-f
 import { fsExistsAdapterProxy } from '../../../adapters/fs/exists/fs-exists-adapter.proxy';
 import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
+import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
@@ -23,6 +24,7 @@ export const installTestbedCreateBrokerProxy = (): Record<PropertyKey, never> =>
   fsExistsAdapterProxy();
   fsMkdirAdapterProxy();
   fsRmAdapterProxy();
+  fsReaddirAdapterProxy();
   pathJoinAdapterProxy();
   pathDirnameAdapterProxy();
   pathResolveAdapterProxy();

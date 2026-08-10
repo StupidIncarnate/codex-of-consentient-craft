@@ -170,6 +170,16 @@ export const followupHarness = ({
 
     await nav.navigateToQuest({ urlSlug: String(urlSlug), questId: String(questId) });
     await page.getByTestId('QUEST_CHAT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
+    // QUEST_CHAT going visible only proves the ROUTE mounted; the execution panel paints a frame
+    // later, once the seeded quest arrives. Every status this harness is called with is an
+    // execution-phase one, so the panel is always the landing surface — and the boolean reads
+    // below (postQuestBarVisible / actionBarVisible / followupButtonVisible / mergeButtonVisible)
+    // are Playwright's NON-retrying isVisible(), which answers `false` for a surface that simply
+    // has not painted yet. Settling here is what makes those reads a claim about gating rather
+    // than about arrival order.
+    await page
+      .getByTestId('execution-panel-widget')
+      .waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     return { questId, questFilePath, urlSlug };
   };

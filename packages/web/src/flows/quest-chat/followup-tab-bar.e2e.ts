@@ -11,6 +11,16 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 const GUILD_PATH = '/tmp/dm-e2e-followup-tab-bar';
 const PANEL_TIMEOUT = 10_000;
+// A tavernkeeper turn ends on the spawned child's exit, which is a process lifecycle rather than a
+// render — measured at up to ~20s here — so the composer's return to SEND gets its own budget
+// instead of the render-scale PANEL_TIMEOUT every DOM assertion in this file uses.
+const TURN_END_TIMEOUT = 40_000;
+// The tavernkeeper session's opening turn is the whole agent prompt, delivered as a user message,
+// and it quotes the user's own question back. So a bare `hasText` filter on any question this spec
+// types resolves to TWO CHAT_MESSAGE elements once that turn replays, and Playwright strict mode
+// fails the assertion. Every question filter here pairs with this exclusion to pin the user's own
+// turn — the prompt echo arrives asynchronously, so an unguarded filter passes or fails on timing.
+const TAVERNKEEPER_PROMPT_HEADING = '# Tavernkeeper - Follow-Up';
 
 const claudeMock = wireHarnessLifecycle({
   harness: claudeMockHarness({ guildPath: GUILD_PATH }),
@@ -19,6 +29,13 @@ const claudeMock = wireHarnessLifecycle({
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
 test.describe('FOLLOW-UP tab bar structure', () => {
+  // The config-wide 10s per-test budget is a render-scale number. Two of these cases send a real
+  // follow-up message and wait for the spawned tavernkeeper child to EXIT before sending the next
+  // one, which is process-scale — under the 10s default the whole test is killed mid-wait and the
+  // failure surfaces as whichever locator happened to be pending, which is what made this file read
+  // as a UI defect rather than a budget that was never big enough for what the case does.
+  test.describe.configure({ timeout: 90_000 });
+
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
   });
@@ -107,14 +124,31 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     await expect(
       page
         .getByTestId('CHAT_MESSAGE')
-        .filter({ hasText: 'What blocked this quest the first time?' }),
+        .filter({ hasText: 'What blocked this quest the first time?' })
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible({ timeout: PANEL_TIMEOUT });
 
-    await expect(page.getByTestId('SEND_BUTTON')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    // The first turn must END before the second is typed, and the composer is what says so.
+    // Waiting for SEND alone is not enough: SEND is still painted in the window between the
+    // click and useQuestChatBinding arming isStreaming, so that wait passes while the turn is
+    // in flight, the second send lands in a disabled composer, and its user entry never renders.
+    // So wait for STOP to APPEAR (the turn is genuinely armed) and only then for it to go —
+    // that pair is the transition. It is read off the composer rather than off the reply text
+    // because a turn ends whether or not its reply reached this transcript, and the tavernkeeper
+    // reply's arrival is not ordered against the turn ending.
+    await expect(page.getByTestId('STOP_BUTTON')).toBeVisible({ timeout: PANEL_TIMEOUT });
+    await expect(page.getByTestId('STOP_BUTTON')).not.toBeVisible({ timeout: TURN_END_TIMEOUT });
+    // STOP going is not on its own proof the composer came back: the control that replaces it is
+    // what the next message is typed into, and the failure this guards against left the panel
+    // mounted with NEITHER control while the agent's post-exit transcript drained.
+    await expect(page.getByTestId('SEND_BUTTON')).toBeVisible({ timeout: TURN_END_TIMEOUT });
     await page.getByTestId('CHAT_INPUT').fill('And what fixed it on retry?');
     await page.getByTestId('SEND_BUTTON').click();
     await expect(
-      page.getByTestId('CHAT_MESSAGE').filter({ hasText: 'And what fixed it on retry?' }),
+      page
+        .getByTestId('CHAT_MESSAGE')
+        .filter({ hasText: 'And what fixed it on retry?' })
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     await followup.switchToExecutionTab();
@@ -137,21 +171,17 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     expect(await followup.isTabActive({ testid: 'execution-panel-tab-followup' })).toBe(true);
 
     // second-press-keeps-transcript: BOTH prior messages are still rendered, not just the latest.
-    // Each filter also excludes the tavernkeeper PROMPT echo: the session's opening turn is the
-    // whole agent prompt, delivered as a user message, and it quotes the user's own question
-    // back — so a bare hasText filter resolves to two CHAT_MESSAGE elements and trips Playwright
-    // strict mode. hasNotText pins each assertion to the user's own turn.
     await expect(
       page
         .getByTestId('CHAT_MESSAGE')
         .filter({ hasText: 'What blocked this quest the first time?' })
-        .filter({ hasNotText: '# Tavernkeeper - Follow-Up' }),
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible();
     await expect(
       page
         .getByTestId('CHAT_MESSAGE')
         .filter({ hasText: 'And what fixed it on retry?' })
-        .filter({ hasNotText: '# Tavernkeeper - Follow-Up' }),
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible();
   });
 
@@ -217,7 +247,10 @@ test.describe('FOLLOW-UP tab bar structure', () => {
     await page.getByTestId('CHAT_INPUT').fill('Why did we block here?');
     await page.getByTestId('SEND_BUTTON').click();
     await expect(
-      page.getByTestId('CHAT_MESSAGE').filter({ hasText: 'Why did we block here?' }),
+      page
+        .getByTestId('CHAT_MESSAGE')
+        .filter({ hasText: 'Why did we block here?' })
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // The post-quest bar renders at the foot of the EXECUTION tab, and FOLLOW-UP is the active
@@ -245,7 +278,10 @@ test.describe('FOLLOW-UP tab bar structure', () => {
 
     expect(orderAfterStatusChange[0]).toBe('execution-panel-tab-followup');
     await expect(
-      page.getByTestId('CHAT_MESSAGE').filter({ hasText: 'Why did we block here?' }),
+      page
+        .getByTestId('CHAT_MESSAGE')
+        .filter({ hasText: 'Why did we block here?' })
+        .filter({ hasNotText: TAVERNKEEPER_PROMPT_HEADING }),
     ).toBeVisible();
   });
 });

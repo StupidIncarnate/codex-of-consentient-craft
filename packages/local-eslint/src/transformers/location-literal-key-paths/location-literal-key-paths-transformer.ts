@@ -21,17 +21,21 @@ export const locationLiteralKeyPathsTransformer = ({
   source,
   rootName,
   minRetainedLength,
+  excludedLiterals,
   accumulator,
 }: {
   source: unknown;
   rootName: string;
   minRetainedLength: number;
+  excludedLiterals?: readonly string[] | undefined;
   accumulator?: Map<PathSegment, Identifier>;
 }): ReadonlyMap<PathSegment, Identifier> => {
   const out = accumulator ?? new Map<PathSegment, Identifier>();
 
   if (typeof source === 'string') {
-    if (shouldRetainLocationLiteralGuard({ literal: source, minRetainedLength })) {
+    if (
+      shouldRetainLocationLiteralGuard({ literal: source, minRetainedLength, excludedLiterals })
+    ) {
       const keyParsed = pathSegmentContract.parse(source);
       if (!out.has(keyParsed)) {
         out.set(keyParsed, identifierContract.parse(rootName));
@@ -46,6 +50,7 @@ export const locationLiteralKeyPathsTransformer = ({
         source: item,
         rootName: `${rootName}[${String(index)}]`,
         minRetainedLength,
+        excludedLiterals,
         accumulator: out,
       });
     });
@@ -59,6 +64,7 @@ export const locationLiteralKeyPathsTransformer = ({
         source: childUnknown,
         rootName: `${rootName}.${key}`,
         minRetainedLength,
+        excludedLiterals,
         accumulator: out,
       });
     }

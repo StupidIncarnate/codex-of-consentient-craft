@@ -171,6 +171,16 @@ export const useQuestChatBinding = ({
   // sticking on STOP forever.
   const trackedChatProcessIdRef = useRef<ProcessId | null>(null);
 
+  // Every chatProcessId that has already reported `turn-ended`. A spawned agent's transcript keeps
+  // ARRIVING after its turn is over — the CLI writes its session JSONL at exit and the post-exit
+  // tail replays those lines — so chat-output naming one of these processes is a transcript
+  // draining, not an agent still emitting. Without this, that late output re-arms
+  // `streamingFromOutput` for a process whose completion frame has already been and gone, and
+  // nothing is left to clear it: the composer holds STOP forever and the user cannot send again.
+  // Held as a ref, not state, because it must not re-render and must be readable by the
+  // subscription closures below, which are set up once.
+  const endedChatProcessIdsRef = useRef<Set<ProcessId>>(new Set<ProcessId>());
+
   // A pending turn belongs to the quest it was armed for. Carrying it across a real quest→quest
   // switch would show STOP over an idle workspace. The null→id transition is deliberately NOT a
   // switch: that is the same turn, whose first message just created its own quest.
@@ -187,6 +197,7 @@ export const useQuestChatBinding = ({
     setStreamingFromOutput(false);
     setFollowupLocalEntries([]);
     trackedChatProcessIdRef.current = null;
+    endedChatProcessIdsRef.current = new Set<ProcessId>();
   }, [questId]);
 
   useEffect(() => {
@@ -266,6 +277,18 @@ export const useQuestChatBinding = ({
         );
       }
 
+      // Entries are upserted above whatever this decides — a drained transcript still has to
+      // RENDER; it just must not claim the agent is still working.
+      // Entries are upserted above whatever this decides — a drained transcript still has to
+      // RENDER; it just must not claim the agent is still working.
+      const outputChatProcessId = payload.chatProcessId;
+      if (
+        outputChatProcessId !== undefined &&
+        endedChatProcessIdsRef.current.has(outputChatProcessId)
+      ) {
+        return;
+      }
+
       setStreamingFromOutput(true);
     });
 
@@ -289,6 +312,9 @@ export const useQuestChatBinding = ({
       if (payload.reason === 'turn-ended') {
         setPendingTurn(false);
         trackedChatProcessIdRef.current = null;
+        if (payload.chatProcessId !== undefined) {
+          endedChatProcessIdsRef.current.add(payload.chatProcessId);
+        }
       }
     });
 
