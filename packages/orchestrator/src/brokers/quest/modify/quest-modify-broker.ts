@@ -12,9 +12,12 @@
  * - Items in quest but not in input => unchanged
  *
  * CONCURRENCY:
- * - The read-modify-write critical section is serialized per-questId via withQuestModifyLockLayerBroker.
- *   Parallel callers on the same questId observe serialized execution; different questIds run concurrently.
- *   File writes use atomic temp+rename via questPersistBroker.
+ * - The read-modify-write critical section is serialized per-questId via questWithModifyLockBroker —
+ *   the SAME mutex every other whole-file quest writer takes (questOperationsUpdateBroker,
+ *   questResetFlowSignoffsBroker, the smoketest writers). Parallel callers on the same questId
+ *   observe serialized execution; different questIds run concurrently. File writes use atomic
+ *   temp+rename via questPersistBroker, whose temp path is derived from the quest file path — so two
+ *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -48,7 +51,7 @@ import { questSaveInvariantsTransformer } from '../../../transformers/quest-save
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
-import { withQuestModifyLockLayerBroker } from './with-quest-modify-lock-layer-broker';
+import { questWithModifyLockBroker } from '../with-modify-lock/quest-with-modify-lock-broker';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -62,7 +65,7 @@ export const questModifyBroker = async ({
 
     // Serialize the read-modify-write critical section per questId to prevent lost writes
     // when multiple callers (e.g., parallel minion dispatch) target the same quest file.
-    return await withQuestModifyLockLayerBroker({
+    return await questWithModifyLockBroker({
       questId: validated.questId,
       run: async (): Promise<ModifyQuestResult> => {
         // Validate no duplicate IDs within incoming arrays

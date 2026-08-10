@@ -29,6 +29,7 @@ export const questListBrokerProxy = (): {
   setupQuestFilePath: (params: { result: FilePath }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
   setupDirectList: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
+  setupDirectListOnce: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
   setupDirectListFailure: (params: { error: Error }) => void;
   getSkipReports: () => readonly unknown[];
 } => {
@@ -97,6 +98,19 @@ export const questListBrokerProxy = (): {
       quests: readonly Quest[];
     }): void => {
       mocked.calledWith([{ guildId }]).resolves(quests as Quest[]);
+    },
+    // Same address as setupDirectList, but consumed by ONE call. Reach for this when a test
+    // stages two DIFFERENT listings for the SAME guildId across successive calls — the sticky
+    // form registers both at equal specificity, where the later one answers every call including
+    // the first, so listing #2 would silently replace listing #1 before it was ever read.
+    setupDirectListOnce: ({
+      guildId,
+      quests,
+    }: {
+      guildId: GuildId;
+      quests: readonly Quest[];
+    }): void => {
+      mocked.onceFor([{ guildId }]).resolves(quests as Quest[]);
     },
     // No caller currently exercises this path with a specific guildId, so there is nothing to
     // key on — `[]` describes that honestly.

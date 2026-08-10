@@ -41,6 +41,67 @@ describe('questWithModifyLockBroker', () => {
         QuestIdStub({ value: 'second-end' }),
       ]);
     });
+
+    it('VALID: {10 concurrent calls on same questId} => execute serially, counter increments deterministically', async () => {
+      const proxy = questWithModifyLockBrokerProxy();
+      proxy.setupEmpty();
+      const questId = QuestIdStub({ value: 'quest-counter' });
+      const history: ReturnType<typeof QuestIdStub>[] = [];
+      const observed: ReturnType<typeof QuestIdStub>[] = [];
+
+      const calls = Array.from({ length: 10 }, async (_, index) =>
+        questWithModifyLockBroker({
+          questId,
+          run: async () => {
+            const start = history.length;
+            await Promise.resolve();
+            const next = QuestIdStub({ value: String(start + 1) });
+            history.push(next);
+            observed.push(QuestIdStub({ value: String(index) }));
+            return next;
+          },
+        }),
+      );
+
+      const results = await Promise.all(calls);
+
+      expect(results).toStrictEqual([
+        QuestIdStub({ value: '1' }),
+        QuestIdStub({ value: '2' }),
+        QuestIdStub({ value: '3' }),
+        QuestIdStub({ value: '4' }),
+        QuestIdStub({ value: '5' }),
+        QuestIdStub({ value: '6' }),
+        QuestIdStub({ value: '7' }),
+        QuestIdStub({ value: '8' }),
+        QuestIdStub({ value: '9' }),
+        QuestIdStub({ value: '10' }),
+      ]);
+      expect(observed).toStrictEqual([
+        QuestIdStub({ value: '0' }),
+        QuestIdStub({ value: '1' }),
+        QuestIdStub({ value: '2' }),
+        QuestIdStub({ value: '3' }),
+        QuestIdStub({ value: '4' }),
+        QuestIdStub({ value: '5' }),
+        QuestIdStub({ value: '6' }),
+        QuestIdStub({ value: '7' }),
+        QuestIdStub({ value: '8' }),
+        QuestIdStub({ value: '9' }),
+      ]);
+      expect(history).toStrictEqual([
+        QuestIdStub({ value: '1' }),
+        QuestIdStub({ value: '2' }),
+        QuestIdStub({ value: '3' }),
+        QuestIdStub({ value: '4' }),
+        QuestIdStub({ value: '5' }),
+        QuestIdStub({ value: '6' }),
+        QuestIdStub({ value: '7' }),
+        QuestIdStub({ value: '8' }),
+        QuestIdStub({ value: '9' }),
+        QuestIdStub({ value: '10' }),
+      ]);
+    });
   });
 
   describe('concurrency across different questIds', () => {

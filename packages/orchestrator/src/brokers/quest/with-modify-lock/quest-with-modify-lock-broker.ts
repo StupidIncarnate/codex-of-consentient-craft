@@ -1,14 +1,19 @@
 /**
- * PURPOSE: Per-questId async mutex that serializes critical sections touching a quest file, permitting concurrent work across different quests
+ * PURPOSE: The one per-questId mutex every whole-file read-modify-write of quest.json queues behind.
+ * A second mutex is not a second lock, it is a lost update: two writers that do not queue behind
+ * THIS one both read the same bytes and both rename the same `quest.json.tmp`, so the later persist
+ * erases the earlier writer's fields and can ENOENT on the rename outright.
  *
  * USAGE:
  * await questWithModifyLockBroker({ questId, run: async (): Promise<MyResult> => { ... } });
  * // Chains run after any prior lock for the same questId; different questIds run concurrently
  *
- * WHEN-TO-USE: Any read-modify-write against quest.json that is NOT routed through `questModifyBroker`
- * (e.g., the smoketest scenario driver stamping `smoketestPromptOverride` on work items whose status
- * does not allow that field through the modify-quest allowlist).
- * WHEN-NOT-TO-USE: Inside `questModifyBroker` itself — it owns the lock internally via its colocated layer.
+ * WHEN-TO-USE: Any read-modify-write against quest.json that neither `questModifyBroker` nor
+ * `questOperationsUpdateBroker` can carry — a field outside the modify-quest allowlist (the
+ * smoketest driver's `smoketestPromptOverride`), or a whole-subtree rewrite rather than an upsert
+ * of a caller-supplied patch (`questResetFlowSignoffsBroker`).
+ * WHEN-NOT-TO-USE: Around a call to `questModifyBroker` or `questOperationsUpdateBroker`. Both take
+ * this lock themselves and it is deliberately non-reentrant, so wrapping one deadlocks that questId.
  */
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';

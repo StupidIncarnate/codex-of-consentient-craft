@@ -22,7 +22,11 @@ const RUNNING_OP_ID = '00000000-0000-4000-8000-0000000000d1';
 const DONE_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-0000000000b0';
 // The row this whole spec is about: `in_progress` before the pause reset it to `pending`, carrying
 // the dead/paused agent's sessionId — exactly the shape resume must pick back up, not re-spawn fresh.
-const RESUMED_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-0000000000b1';
+// Drawn from a block no other spec uses, deliberately: the server's workItemId -> questId map is
+// keyed for the whole process lifetime, so two specs sharing a work item id in one run get the
+// second quest's chat-output frames stamped with the FIRST quest's questId and the browser drops
+// them — a failure that only appears when the specs run in sequence.
+const RESUMED_WORK_ITEM_ID = 'e2e00000-0000-4000-8000-000000b10001';
 const RETAINED_SESSION_ID = 'c319be5c-ef0f-4987-abea-ed45fb509bcd';
 const DONE_SESSION_ID = 'a01be5c1-ef0f-4987-abea-ed45fb50aaaa';
 

@@ -79,10 +79,15 @@ evidence.
 - `packages/web/test/harnesses/followup/followup.harness.ts` gained 10 methods this session — `errorMessages()` returns
   the *exact* content string of each ERROR-labelled message inside the FOLLOW-UP tab, which is what settles
   exact-text claims that `transcriptHasText` (a substring filter) cannot.
-- **`questFindByWorkItemIdBroker` caches `workItemId -> questId` for the whole server process and never invalidates.**
-  Two e2e specs reusing a work item id get the second quest's `chat-output` frames tagged with the first quest's
-  `questId`; the browser drops every frame and the transcript stays silently empty. Symptom is "passes in isolation,
-  fails in sequence". Use per-spec unique ids.
+- **Two e2e specs reusing a hardcoded work item id get the second quest's `chat-output` frames tagged with the FIRST
+  quest's `questId`; the browser drops every frame and the transcript stays silently empty.** Symptom is "passes in
+  isolation, fails in sequence". Use per-spec unique ids — ~15 specs currently hardcode the same handful.
+  **CORRECTION to an earlier draft of this scroll, which named the wrong cache.** The map that actually answers is
+  `workItemQuestIdCache` in `packages/server/src/responders/server-init/server-init-responder.ts:516`, consulted at
+  ~:587. `questFindByWorkItemIdBroker` has a cache too, but the server only calls down to it on a miss and then caches
+  the result itself, so after the first walk both are warm and the broker's copy is read essentially never. Fixing the
+  broker would not have moved this symptom at all. Production is immune either way: work item ids are
+  `crypto.randomUUID()` with no clone path, so recurrence needs a hand-written fixture.
 - Sign-offs are written incrementally, one `modify-quest` per flow. A restatement of an observable and a sign-off on it
   **cannot ride in the same patch** — the allowlist refuses it, correctly. Send them as two calls.
 - `flows` is not writable at status `blocked`. If the quest is blocked, no sign-off can be written until the status is

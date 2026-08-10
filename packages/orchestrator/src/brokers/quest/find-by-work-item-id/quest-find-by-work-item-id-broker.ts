@@ -1,14 +1,14 @@
 /**
- * PURPOSE: Resolves a workItemId to the QuestId whose `workItems[].id` matches it by walking every guild's quests. Caches hit results in an in-memory Map keyed by workItemId for the server process lifetime so repeated broadcaster lookups don't re-walk on every chat-output frame
+ * PURPOSE: Owns the reverse lookup from a dispatched sub-agent's work item back to the quest that
+ * dispatched it, for callers holding an id an emit carried rather than a session the CLI opened.
+ * Reach for this over questFindBySessionIdBroker, which answers the same question from the other
+ * direction and matches ONLY chat-role work items — a Task-dispatched relay role has no chat
+ * sessionId to find it by. Every call re-walks the home, so a work item that has since left its
+ * quest stops resolving to it.
  *
  * USAGE:
  * const questId = await questFindByWorkItemIdBroker({ workItemId });
  * // Returns: QuestId of the owning quest, or null when no quest's workItems[] contains workItemId
- *
- * Cache invalidation: hits are cached forever (work items never change quests). Misses are
- * NOT cached — a work item that doesn't exist yet may exist on a future call when its quest's
- * workItems[] grows via questModifyBroker. Callers tolerate `null` returns by skipping questId
- * tagging on the outgoing WS payload.
  *
  * WHEN-TO-USE: From the server's chat-output broadcaster to stamp questId on each WS payload.
  * WHEN-NOT-TO-USE: Anywhere needing live workItem state — this only returns the questId.
@@ -19,18 +19,11 @@ import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 import { questListBroker } from '../list/quest-list-broker';
 
-const cache = new Map<QuestWorkItemId, QuestId>();
-
 export const questFindByWorkItemIdBroker = async ({
   workItemId,
 }: {
   workItemId: QuestWorkItemId;
 }): Promise<QuestId | null> => {
-  const cached = cache.get(workItemId);
-  if (cached !== undefined) {
-    return cached;
-  }
-
   const guilds = await guildListBroker();
   const validGuilds = guilds.filter((g) => g.valid);
 
@@ -55,7 +48,6 @@ export const questFindByWorkItemIdBroker = async ({
 
   for (const match of perGuildMatches) {
     if (match !== null) {
-      cache.set(workItemId, match);
       return match;
     }
   }

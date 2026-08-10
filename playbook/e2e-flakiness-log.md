@@ -70,16 +70,28 @@ the real window. The assertions are untouched — the fixture now makes the stat
 - **"The fake-Claude queue is a run-wide FIFO another spec drained."** No — it is scoped per spawn cwd
   (`claude-queue/__by_cwd__/<encoded guild path>`) and every spec has a distinct guild path. The invocation ledger
   proved this spec's own first spawn consumed its own entry; the later spawns were the ones that starved.
-- **`questFindByWorkItemIdBroker`'s process-lifetime `workItemId -> questId` cache.** Real, and still unfixed, but it
-  only tags outgoing chat-output WS frames — it cannot fail a work item. Ruled out by running the whole `quest-chat`
-  directory (which contains the other specs reusing `e2e00000-...-b1`) green.
+- **`questFindByWorkItemIdBroker`'s process-lifetime `workItemId -> questId` cache.** Correctly ruled out for THIS
+  failure — it only tags outgoing chat-output WS frames and cannot fail a work item (confirmed by running the whole
+  `quest-chat` directory green). **But the wider attribution here was wrong, and is corrected:** that broker is not the
+  map that answers. `packages/server/src/responders/server/init/server-init-responder.ts:519` holds its OWN
+  process-lifetime `workItemQuestIdCache`, consults it at :587, and only calls down to the broker on a miss, re-caching
+  the result itself at :591 — so after the first walk both are warm and the broker's copy is read essentially never.
+  The id-collision symptom (spec B's frames stamped with spec A's questId, browser drops them, transcript silently
+  empty) is produced by the SERVER's map; fixing the broker moves it not at all. The broker's cache has since been
+  DELETED as a redundant second cache behind a cache, which restores symmetry with `questFindBySessionIdBroker` — that
+  removal is a tidy-up, not a fix for this class of flake. Production is immune either way: work item ids are
+  `crypto.randomUUID()` with no clone path, so recurrence requires a hand-written fixture. The real hazard is fixture
+  hygiene, and it is broad — `e2e00000-0000-4000-8000-000000000001` is shared by 23 spec files,
+  `00000000-0000-4000-8000-0000000000c1` by 10, and `...0000000000b1` by 3 after one was moved off it.
 - **Leaked dispatch-state / a leftover playing dispatcher.** Ruled out: the quest is written `paused`, which the
   dispatch scan filters out, so nothing can touch it until this spec's own RESUME.
-- **A lost update between the two per-questId mutexes.** `questModifyBroker` and `questOperationsUpdateBroker` really
-  do hold SEPARATE `Map<QuestId, Promise<void>>` singletons (`brokers/quest/modify/quest-modify-locks-layer-broker.ts`
-  vs `brokers/quest/with-modify-lock/quest-modify-locks-layer-broker.ts`), so they do not serialize against each
-  other. That is a genuine latent hazard, but it does not explain this failure: the reverted item's field set matched
-  `questOrphanResetBroker`'s `sessionId`/`agentId`/`startedAt` clear exactly.
+- **A lost update between two per-questId mutexes.** A real defect at the time — `questModifyBroker` and
+  `questOperationsUpdateBroker` held SEPARATE `Map<QuestId, Promise<void>>` singletons and did not serialize against
+  each other — but not this failure: the reverted item's field set matched `questOrphanResetBroker`'s
+  `sessionId`/`agentId`/`startedAt` clear exactly. Both writers now queue behind the single
+  `brokers/quest/with-modify-lock/quest-with-modify-lock-broker.ts` mutex, pinned by
+  `quest-modify-broker.integration.test.ts` → "concurrent questModifyBroker planningNotes write and
+  questOperationsUpdateBroker branchName write".
 
 **Reproducer:** the accumulation is the whole trigger, so seed it rather than running the suite for four minutes.
 Create `<E2E_TEST_HOME>/guilds/<uuid>/quests/<uuid>/quest.json` (`{"id":"<same uuid>","folder":"<same uuid>",

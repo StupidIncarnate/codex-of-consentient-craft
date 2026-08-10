@@ -36,7 +36,7 @@ import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/f
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
-import { withQuestModifyLockLayerBrokerProxy } from './with-quest-modify-lock-layer-broker.proxy';
+import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-modify-lock-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 
@@ -63,8 +63,8 @@ export const questModifyBrokerProxy = (): {
   const pathJoinProxy = pathJoinAdapterProxy();
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
-  const lockLayerProxy = withQuestModifyLockLayerBrokerProxy();
-  lockLayerProxy.setupEmpty();
+  const lockProxy = questWithModifyLockBrokerProxy();
+  lockProxy.setupEmpty();
   // questModifyBroker calls fsIsAccessibleAdapter once per contract entry to resolve
   // source paths against disk. Default to "not found" so 'new' contracts (the common
   // test-stub default) pass the contract-source-resolution validator. Tests that need
