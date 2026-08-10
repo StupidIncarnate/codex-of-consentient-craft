@@ -310,6 +310,19 @@ describe('spawnBatchLayerBroker', () => {
       expect(proxy.getSpawnedCwd()).toBe(worktreePath);
     });
 
+    it("VALID: {warpgate instruction, quest records a worktreePath} => the warpgate child's cwd is that worktree path", async () => {
+      const proxy = spawnBatchLayerBrokerProxy();
+      const instruction = SpawnInstructionStub({ role: 'warpgate' });
+      const worktreePath = '/repo/worktrees/warpgate-merge-a1b2c3d4';
+      proxy.setupQuestWorktree({ questId: instruction.questId, worktreePath });
+      proxy.setupModifySucceeds({ times: 2 });
+      proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+
+      await spawnBatchLayerBroker({ agents: [instruction] });
+
+      expect(proxy.getSpawnedCwd()).toBe(worktreePath);
+    });
+
     it("VALID: {quest records no worktreePath} => the spawned child's cwd is the resolved repo root", async () => {
       const proxy = spawnBatchLayerBrokerProxy();
       const instruction = SpawnInstructionStub();

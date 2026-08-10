@@ -131,6 +131,34 @@ describe('questPauseBroker', () => {
       expect(processControls.kill.mock.calls).toStrictEqual([[{ processId: 'proc-match' }]]);
     });
 
+    it('VALID: {quest at merging with a registered child} => kill invoked once with that processId, and the same persist stamps paused/merging', async () => {
+      const proxy = questPauseBrokerProxy();
+      proxy.setupPassthrough();
+      const questId = QuestIdStub({ value: 'pause-merging-kill' });
+      const guildId = GuildIdStub();
+      const quest = QuestStub({ id: questId, status: 'merging' });
+      proxy.setupQuestFound({ quest });
+      const kill = jest.fn();
+      const processControls = buildProcessControls({ questIdMatch: questId, kill });
+
+      const result = await questPauseBroker({
+        questId,
+        guildId,
+        previousStatus: QuestStatusStub({ value: 'merging' }),
+        processControls,
+      });
+
+      expect(result).toStrictEqual({ paused: true });
+      expect(processControls.kill.mock.calls).toStrictEqual([[{ processId: 'proc-match' }]]);
+
+      const persisted = proxy.getLastPersistedQuest();
+
+      expect({ status: persisted.status, pausedAtStatus: persisted.pausedAtStatus }).toStrictEqual({
+        status: 'paused',
+        pausedAtStatus: 'merging',
+      });
+    });
+
     it('VALID: {no registered process} => kill never invoked, pause still succeeds', async () => {
       const proxy = questPauseBrokerProxy();
       proxy.setupPassthrough();

@@ -951,6 +951,8 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     });
 
     const afterQuest = await questHelper.reload({ questId });
+    const warpgateOperation = afterQuest.operations.find((op) => op.id === warpgateOpId);
+    const warpgateWorkItem = afterQuest.workItems.find((item) => item.id === warpgateWorkItemId);
     const worktreeExistsAfter = git.pathExists({ absolutePath: worktreePath });
     const branchShaAfter = await git.gitRevParseOrNull({
       repoPath,
@@ -968,6 +970,14 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     expect({
       responderResult: result,
       questStatus: afterQuest.status,
+      // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete',
+      // operationStatus:'done'} call a finished warpgate session sends marks ITS OWN operation
+      // item complete and terminalizes its work item. Read directly rather than inferred from
+      // `merged`: the derived status is what the ledger drained TO, so a responder that settled
+      // the quest without ever completing this item would have to be caught here.
+      warpgateOperationStatus: warpgateOperation?.status,
+      warpgateWorkItemStatus: warpgateWorkItem?.status,
+      warpgateWorkItemSignal: warpgateWorkItem?.actualSignal,
       worktreeExistedBefore,
       worktreeExistsAfter,
       branchResolvedBefore: branchShaBefore !== null,
@@ -976,6 +986,9 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     }).toStrictEqual({
       responderResult: { success: true },
       questStatus: 'merged',
+      warpgateOperationStatus: 'complete',
+      warpgateWorkItemStatus: 'complete',
+      warpgateWorkItemSignal: 'complete',
       worktreeExistedBefore: true,
       worktreeExistsAfter: true,
       branchResolvedBefore: true,

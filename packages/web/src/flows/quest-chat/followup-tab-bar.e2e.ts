@@ -78,9 +78,13 @@ test.describe('FOLLOW-UP tab bar structure', () => {
   });
 
   // second-press-switches-only + second-press-keeps-transcript + followup-tab-persists-on-execution
-  // + branch fc-tab-yes (tab-open -> "yes" -> switch-existing-tab). Two DISTINCT messages sent
-  // before switching away, so "the right one persisted" and "the first one persisted" are
-  // different claims a swap bug could fail independently.
+  // + composer-live-for-next-turn + edge fc-reply-next-turn (stream-reply -> "user replies" ->
+  // send-followup-message: the second message is only reachable once the first turn has ended, so
+  // the SEND_BUTTON wait below is the transition and the second message rendering is its landing).
+  // Two DISTINCT messages sent before switching away, so "the right one persisted" and "the first
+  // one persisted" are different claims a swap bug could fail independently. The tab-open decision
+  // itself is NOT driven here — this case returns to the tab by clicking the TAB, which is a
+  // different control; the FOLLOW-UP button's second press has its own case below.
   test('VALID: {send two messages, switch to EXECUTION, press FOLLOW-UP again} => exactly one FOLLOW-UP tab, still listed first, still active, both messages still rendered', async ({
     page,
     request,
@@ -149,6 +153,43 @@ test.describe('FOLLOW-UP tab bar structure', () => {
         .filter({ hasText: 'And what fixed it on retry?' })
         .filter({ hasNotText: '# Tavernkeeper - Follow-Up' }),
     ).toBeVisible();
+  });
+
+  // branch fc-tab-yes (tab-open -> "yes" -> switch-existing-tab), driven through the FOLLOW-UP
+  // BUTTON a second time rather than by clicking the tab. The button is the only entry into the
+  // tab-open decision at all, so a case that reaches the tab by clicking the tab exercises tab
+  // switching — a different control — and never puts the decision's "already open" side under
+  // test. Asserted as the complete three-element order plus a count of one, so a second press
+  // that appended another FOLLOW-UP tab fails here rather than passing an is-present check.
+  test('VALID: {press FOLLOW-UP, switch to EXECUTION, press the FOLLOW-UP button again} => still exactly one FOLLOW-UP tab, still listed first, and active again', async ({
+    page,
+    request,
+  }) => {
+    const followup = followupHarness({ page, request, guildPath: GUILD_PATH });
+    await followup.seedAndOpen({
+      guildName: 'Tab Bar Second Button Press Guild',
+      status: 'blocked',
+    });
+
+    await followup.pressFollowup();
+    await followup.switchToExecutionTab();
+
+    // The precondition the "yes" side needs: the tab EXISTS and is NOT the active one, so
+    // "switched to it" below is a real transition rather than a state that never changed.
+    expect(await followup.hasExactlyOneFollowupTab()).toBe(true);
+    expect(await followup.isTabActive({ testid: 'execution-panel-tab-execution' })).toBe(true);
+    expect(await followup.isTabActive({ testid: 'execution-panel-tab-followup' })).toBe(false);
+
+    await followup.pressFollowup();
+
+    expect(await followup.hasExactlyOneFollowupTab()).toBe(true);
+    expect(await followup.tabOrder()).toStrictEqual([
+      'execution-panel-tab-followup',
+      'execution-panel-tab-execution',
+      'execution-panel-tab-spec',
+    ]);
+    expect(await followup.isTabActive({ testid: 'execution-panel-tab-followup' })).toBe(true);
+    expect(await followup.isTabActive({ testid: 'execution-panel-tab-execution' })).toBe(false);
   });
 
   // followup-tab-survives-status-change: the tab is gated on HAVING BEEN OPENED, never on quest
