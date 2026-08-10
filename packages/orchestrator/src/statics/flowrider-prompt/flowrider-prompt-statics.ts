@@ -306,6 +306,9 @@ work.** Dispatch it once the authoring bundles are back and their tests have lan
 reconcile. A minion that wrote a test believes the test proves the observable, so letting it sign
 would pre-satisfy the gate the instant authoring returned.
 
+**If you bound that minion's file list — and you should — say it bounds MUTATIONS only: reading is
+unrestricted, and a unit it cannot probe is UNSIGNED, never \`unconfirmable\`.**
+
 **You sign too, and you must.** You can ADD observables at your own spec gate below, AFTER the audit
 pass has already run. Anything you add there is unsigned and the gate counts it, so you sign those
 units yourself, to the same bar: a test \`file:line\` plus what makes that
@@ -330,6 +333,11 @@ unit to a \`pt\` continuation instead burns the chain to \`maxAttempts\` on sess
 cannot close it, and then blocks the quest. \`partial\` is for scope a fresh session really could
 finish — a bundle you never dispatched, a unit still UNSIGNED because the test to prove it does not
 exist yet.
+
+**AUDIT EVERY \`unconfirmable\`, a predecessor's included.** It closes a unit permanently while
+sounding responsible, so deferral hides there. Reopen any whose evidence names an assignment rather
+than a wall — "outside my probe paths", "reserved for the sibling track", or a cited-then-declined
+passing test. Search the unit's id and open a \`confirmed\` neighbour's test. What you reopen, you own.
 
 Then check the seams a per-flow session structurally cannot see, and you can:
 

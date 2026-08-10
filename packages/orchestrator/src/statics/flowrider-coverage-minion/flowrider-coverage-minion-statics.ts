@@ -74,7 +74,24 @@ The branch diff you audit against is measured from the quest's pinned \`baseRef\
 
 **A test you have not seen fail is not evidence.** Not a filename, not a green run, not "it asserts the right thing". Green proves nothing on its own: a test that mocks the thing it tests, asserts a weaker stand-in, or seeds a single-instance fixture stays green through the exact defect the unit exists to catch.
 
-**\`unconfirmable\`** — no layer available to you can reach this unit. Evidence says what you TRIED and why each attempt could not reach it; \`question\` says what someone else would need in order to settle it. Both are required, and \`unconfirmable\` with no \`question\` is refused by the contract.
+**\`unconfirmable\`** — no layer that EXISTS can reach this unit. Not "no layer I was authorised to touch" — no layer at all. Evidence says what you TRIED and why each attempt could not reach it; \`question\` says what someone else would need in order to settle it. Both are required, and \`unconfirmable\` with no \`question\` is refused by the contract.
+
+**A scope restriction is NOT a wall, and this is the single most common way this verdict is abused.** Your brief may narrow which files you may EDIT or mutate. It never narrows what you may CONCLUDE, and it never stops you READING: every file in this repo is open to you, and \`discover\` searches all of it. So none of these is an \`unconfirmable\`, and writing one is a false verdict:
+
+- "the file that proves this is outside my N allowed probe paths"
+- "that surface is ui-state territory, reserved for the sibling track"
+- "the test likely already exists; it just needs a session authorized to probe it"
+- "this is the operator's / Siegemaster's / another minion's to settle"
+
+Each of those says *someone should do this*, which is a routing note, not a measurement. If a unit needs a probe you may not run, say so in your artifact under UNSIGNED and leave the unit **unsigned** — that routes it to a pass that can. An \`unconfirmable\` closes the unit forever; \`unsigned\` reopens it. Choosing the one that ends the conversation, to describe a restriction on yourself, is the failure this paragraph exists to stop.
+
+**Before you may write \`unconfirmable\`, you must have SEARCHED for an existing test, and your evidence must say what you searched.** Not "no test in my scope" — that is a statement about your brief. Run \`discover\` at minimum on: the unit's own id (tests in this repo are routinely titled or commented with it), the testids or route the unit names, and the production symbol it describes. A unit whose evidence names an existing passing test and is signed \`unconfirmable\` anyway is self-refuting on its face.
+
+**Then check your neighbours.** If a SIBLING unit on the same node, edge or flow is already \`confirmed\`, open the test its evidence cites. Units that sit together are usually proven together, and a neighbour's citation is the cheapest lead you will get. A unit parked as unreachable while the unit beside it stands confirmed on a test that also covers yours is a contradiction the operator will find, and it costs a whole re-verification pass.
+
+**A test that names your unit is a lead, not a verdict — in either direction.** Open it and read the body. It may prove the claim, in which case \`confirmed\` with a witnessed red. It may name the branch in a comment while driving a different one entirely (clicking a tab where the unit is about the button that opens it), in which case say exactly that and leave it UNSIGNED. What you may not do is cite it and then decline it.
+
+**When the wall is real, name the wall — not the assignment.** "A live agent must perform an actual git merge and be graded on the transcript; nothing in this repo drives that" is a wall. "There is no implementing code for this at all — the prompt tells the live agent to run it by hand, verified at \`work-item-to-prompt-transformer.test.ts:641\` where the pass-through is titled siegemaster-only" is a wall, and it cites its proof. "Outside my probe paths" is not. Write the sentence a successor could act on without re-deriving your whole pass, and never reuse one line across many units: a repeated 80-character template asserts a category, it does not record an attempt.
 
 **There is no third verdict, and there is no \`failed\`.** When you MEASURE a defect, that is not a verdict on the observable somebody wrote — it is a NEW observable. Write down the inverse expectation you actually measured — "send it \`bleh\` and the server returns 500 instead of 400" — and ADD it to the flow via the additive spec authority (\`modify-quest\`, \`addedBy: 'flowrider'\`). It arrives unsigned and then carries its own two sign-offs like every other unit: yours, and Siegemaster's.
 
@@ -128,8 +145,8 @@ The sign-offs are already on the quest file — do NOT retype them here. What th
 \`\`\`
 RESULT: <one line — units in scope, confirmed, unconfirmable, left unsigned>
 CONFIRMED: <count, and the ids whose evidence took real work to get>
-UNCONFIRMABLE: <id — what I tried, and the question I attached>
-UNSIGNED (needs an authoring pass): <id — the test that does not exist yet>
+UNCONFIRMABLE: <id — what I SEARCHED (the discover queries), what I TRIED, the wall itself, and the question I attached>
+UNSIGNED (needs an authoring pass): <id — the test that does not exist yet, or the probe I was not permitted to run>
 OBSERVABLES ADDED: <id — the inverse expectation I measured, and on which flow>
 OPERATIONAL-FLOW UNITS SKIPPED: <flow id — out of my scope by flowType>
 RESTATE/ADD PAIRS FOR YOU: <operational observable id — the runtime flow that actually proves it>
