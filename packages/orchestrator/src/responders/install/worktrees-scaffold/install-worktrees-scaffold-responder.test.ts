@@ -154,10 +154,58 @@ describe('InstallWorktreesScaffoldResponder', () => {
     });
   });
 
-  describe('entry with surrounding whitespace', () => {
-    it('EDGE: {.gitignore has "  worktrees/  " with surrounding whitespace} => treated as already ignoring, writes nothing', async () => {
+  describe('entry with leading whitespace', () => {
+    it('EDGE: {.gitignore has "  worktrees/  " with LEADING whitespace} => not already ignoring, appends a real entry', async () => {
       const proxy = InstallWorktreesScaffoldResponderProxy();
-      proxy.setupDirPresentAlreadyIgnored({ gitignoreContent: 'node_modules/\n  worktrees/  \n' });
+      proxy.setupDirPresentNoEntry({ gitignoreContent: 'node_modules/\n  worktrees/  \n' });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/orchestrator',
+        success: true,
+        action: 'created',
+        message: 'worktrees/ already present; Added worktrees/ to existing .gitignore',
+      });
+      expect(proxy.getWrittenGitignore()).toBe('node_modules/\n  worktrees/\nworktrees/\n');
+    });
+  });
+
+  describe('entry with trailing whitespace only', () => {
+    it('EDGE: {.gitignore has "worktrees/   " with TRAILING whitespace only} => treated as already ignoring, writes nothing', async () => {
+      const proxy = InstallWorktreesScaffoldResponderProxy();
+      proxy.setupDirPresentAlreadyIgnored({
+        gitignoreContent: 'node_modules/\nworktrees/   \ndist/\n',
+      });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/orchestrator',
+        success: true,
+        action: 'skipped',
+        message: 'worktrees/ already present; worktrees/ already in .gitignore',
+      });
+      expect(proxy.getAllWrittenFiles()).toStrictEqual([]);
+    });
+  });
+
+  describe('CRLF line endings', () => {
+    it('EDGE: {.gitignore is CRLF-terminated and carries worktrees/} => treated as already ignoring, writes nothing', async () => {
+      const proxy = InstallWorktreesScaffoldResponderProxy();
+      proxy.setupDirPresentAlreadyIgnored({
+        gitignoreContent: 'node_modules/\r\nworktrees/\r\ndist/\r\n',
+      });
 
       const result = await proxy.callResponder({
         context: {

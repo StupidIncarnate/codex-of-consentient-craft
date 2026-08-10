@@ -53,8 +53,13 @@ export const InstallWorktreesScaffoldResponder = async ({
     ? String(await fsReadFileAdapter({ filePath: gitignorePath }))
     : '';
 
+  // trimEnd, never trim: git strips TRAILING pattern whitespace but treats LEADING whitespace as
+  // part of the pattern, so `   worktrees/` ignores a directory literally named `   worktrees` and
+  // leaves the real one unignored. Stripping both ends would call that line a match, skip the
+  // append, and report success on a repo whose worktrees/ git still tracks. trimEnd also drops the
+  // \r of a CRLF file, which git honours.
   const alreadyIgnored = existingContent.split('\n').some((line) => {
-    const trimmed = line.trim();
+    const trimmed = line.trimEnd();
     return trimmed === WORKTREES_ENTRY || trimmed === locationsStatics.repoRoot.worktreesDir;
   });
 
