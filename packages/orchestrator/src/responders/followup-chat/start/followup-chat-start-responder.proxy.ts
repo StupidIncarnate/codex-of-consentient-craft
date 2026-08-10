@@ -54,6 +54,7 @@ export const FollowupChatStartResponderProxy = (): {
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
   getLastPersistedQuest: () => Parsed;
+  getModifyCallInputs: () => readonly unknown[];
   captureEmits: (params: { type: OrchestrationEventType }) => readonly CapturedOrchestrationEmit[];
 } => {
   // Guild default staging, the questModifyBroker auto-mock, and the launcher's crypto.randomUUID +
@@ -187,7 +188,10 @@ export const FollowupChatStartResponderProxy = (): {
 
     // `quest` already carries a tavernkeeper item and a worktreePath, but the worktree directory
     // itself is gone. Stages every read the same as setupExistingTavernkeeperItem; only the
-    // accessibility check fails, and no spawn is ever staged (the responder throws first).
+    // accessibility check fails, and no spawn is ever staged (the responder throws first). The
+    // responder catches that throw and issues a SECOND questModifyBroker call to mark the
+    // tavernkeeper item `failed` rather than leaving it stuck `in_progress` — that call needs its
+    // own staged read/write cycle, the same as the responder's initial persist above it.
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
       if (quest.worktreePath === undefined) {
         throw new Error(
@@ -204,6 +208,11 @@ export const FollowupChatStartResponderProxy = (): {
         sessionId: CWD_STAGING_SESSION_ID,
         worktreePath: quest.worktreePath,
       });
+      // The catch block's own failure-marking questModifyBroker call. Its actual outcome
+      // (whether the mocked internal find/load/persist chain resolves) is not what the
+      // covering test asserts on — getModifyCallInputs() below inspects the raw arguments
+      // questModifyBroker was invoked with, which the mock records unconditionally.
+      modifyProxy.setupQuestFound({ quest });
     },
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),
@@ -217,6 +226,11 @@ export const FollowupChatStartResponderProxy = (): {
       const lastWrite = persisted[persisted.length - 1];
       return questContract.parse(JSON.parse(String(lastWrite)));
     },
+
+    // Raw `input` argument of every questModifyBroker call this test made, in call order — the
+    // mock records these unconditionally, so this is provable even when a call's mocked internal
+    // find/load/persist chain does not fully resolve.
+    getModifyCallInputs: (): readonly unknown[] => modifyProxy.getCallInputs(),
 
     captureEmits: ({
       type,

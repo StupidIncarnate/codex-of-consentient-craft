@@ -417,5 +417,53 @@ describe('FollowupChatStartResponder', () => {
         proxy.callResponder({ guildId, questId, message: 'Still there?' }),
       ).rejects.toThrow(/\/repo\/worktrees\/quest-9-missing/u);
     });
+
+    // The tavernkeeper item is persisted `in_progress` BEFORE the spawn so chatSpawnBroker's own
+    // lookup can find it — but chatSpawnBroker throws before ever calling agentLaunchBroker for a
+    // missing worktree, so nothing will ever call onComplete to close the item out. Left
+    // unhandled, the item stays `in_progress` forever: a permanently-running spinner on a quest
+    // that already finished.
+    it('ERROR: {recorded worktree missing} => marks the tavernkeeper item failed rather than leaving it stuck in_progress', async () => {
+      const proxy = FollowupChatStartResponderProxy();
+      const guildId = GuildIdStub();
+      const questId = QuestIdStub({ value: 'quest-10' });
+      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-10-missing' });
+      const existingItem = WorkItemStub({
+        id: 'aaaaaaaa-2222-4222-9333-444444444444',
+        role: 'tavernkeeper',
+        status: 'complete',
+      });
+      const quest = QuestStub({
+        id: 'quest-10',
+        folder: 'quest-10',
+        status: 'complete',
+        workItems: [existingItem],
+        worktreePath,
+      });
+
+      proxy.setupWorktreeMissing({ quest });
+
+      await expect(
+        proxy.callResponder({ guildId, questId, message: 'Still there?' }),
+      ).rejects.toThrow(/\/repo\/worktrees\/quest-10-missing/u);
+
+      // getModifyCallInputs() records the raw arguments questModifyBroker was invoked with —
+      // provable regardless of whether the mocked internal find/load/persist chain for this
+      // SECOND call fully resolves, which is what a full persisted-quest round-trip would need.
+      const modifyInputs = proxy.getModifyCallInputs();
+
+      expect(modifyInputs[1]).toStrictEqual({
+        questId,
+        workItems: [
+          {
+            id: 'aaaaaaaa-2222-4222-9333-444444444444',
+            status: 'failed',
+            completedAt: FIXED_TIMESTAMP,
+            errorMessage:
+              'Cannot start chat for quest quest-10: worktree not found: /repo/worktrees/quest-10-missing',
+          },
+        ],
+      });
+    });
   });
 });

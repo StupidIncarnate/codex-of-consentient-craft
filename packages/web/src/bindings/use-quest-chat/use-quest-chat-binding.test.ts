@@ -1829,7 +1829,7 @@ describe('useQuestChatBinding', () => {
       expect(result.current.followupEntries).toStrictEqual([]);
     });
 
-    it('EMPTY: {tavernkeeper work item without sessionId} => followupEntries is empty', () => {
+    it('EMPTY: {tavernkeeper work item with no streamed entries yet} => followupEntries is empty', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-followup-no-session-1' });
@@ -1858,7 +1858,7 @@ describe('useQuestChatBinding', () => {
       expect(result.current.followupEntries).toStrictEqual([]);
     });
 
-    it('VALID: {chat-output tagged with the tavernkeeper sessionId} => streams into followupEntries while the turn runs', () => {
+    it('VALID: {chat-output tagged with the tavernkeeper workItemId, no sessionId} => streams into followupEntries while the turn runs', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-followup-stream-1' });
@@ -1886,12 +1886,16 @@ describe('useQuestChatBinding', () => {
               timestamp: '2026-08-09T00:00:00.000Z',
             }),
           });
+          // FollowupChatStartResponder's live chat-output payload carries workItemId but never
+          // sessionId (sessionId there is "informational only" — routing is by questId+workItemId,
+          // same convention chat-start-responder uses). Only chatHistoryReplayBroker's replay
+          // payload adds sessionId. This fixture matches the real live-turn wire shape.
           proxy.deliverWsMessage({
             data: JSON.stringify({
               type: 'chat-output',
               payload: {
                 questId: 'quest-followup-stream-1',
-                sessionId: tavernkeeperSessionId,
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-followup-stream' }),
                 entries: [
                   {
@@ -1957,7 +1961,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-followup-turn-end-1',
-                sessionId: tavernkeeperSessionId,
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
                 entries: [
                   {
@@ -2029,7 +2033,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-followup-complete-status-1',
-                sessionId: tavernkeeperSessionId,
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
                 entries: [
                   {
@@ -2101,7 +2105,7 @@ describe('useQuestChatBinding', () => {
               type: 'chat-output',
               payload: {
                 questId: 'quest-followup-merged-status-1',
-                sessionId: tavernkeeperSessionId,
+                workItemId: QuestWorkItemIdStub(),
                 chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
                 entries: [
                   {

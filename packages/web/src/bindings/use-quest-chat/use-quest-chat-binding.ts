@@ -134,26 +134,30 @@ export const useQuestChatBinding = ({
     [slotEntriesInternal],
   );
 
-  // The FOLLOW-UP tab's transcript. Resolved from the tavernkeeper work item's own sessionId
-  // rather than a synthetic bucket, because the tavernkeeper's session is minted by the server on
-  // first send — before that, there is no work item and this is correctly empty. Local entries
-  // that replay has not echoed yet are filtered against the session's own entries the same way
-  // QuestChatContentLayerWidget's flattenedEntries dedupes the create-surface composer.
+  // The FOLLOW-UP tab's transcript. Resolved from the tavernkeeper work item's own id via
+  // entriesByWorkItem, NOT entriesBySession: FollowupChatStartResponder's live chat-output
+  // payload carries workItemId but never sessionId (sessionId there is "informational only" —
+  // routing is by questId+workItemId, the same convention chat-start-responder uses for the
+  // create-surface composer). Only chatHistoryReplayBroker's replay payload adds sessionId, so
+  // keying on sessionId rendered a reload's replay fine but never a turn actually streaming.
+  // Local entries that replay has not echoed yet are filtered against the work item's own
+  // entries the same way QuestChatContentLayerWidget's flattenedEntries dedupes the
+  // create-surface composer.
   const followupEntries = useMemo<ChatEntry[]>(() => {
     const tavernkeeperWorkItem = quest?.workItems.find((workItem) =>
       isPostQuestChatWorkItemRoleGuard({ role: workItem.role }),
     );
-    const sessionEntries =
-      tavernkeeperWorkItem?.sessionId === undefined
+    const workItemEntries =
+      tavernkeeperWorkItem === undefined
         ? []
-        : (entriesBySession.get(tavernkeeperWorkItem.sessionId) ?? []);
+        : (entriesByWorkItem.get(tavernkeeperWorkItem.id) ?? []);
     const localFiltered = followupLocalEntries.filter(
-      (entry) => !hasEquivalentChatEntryGuard({ entry, among: sessionEntries }),
+      (entry) => !hasEquivalentChatEntryGuard({ entry, among: workItemEntries }),
     );
     return sortChatEntriesByTimestampTransformer({
-      entries: [...localFiltered, ...sessionEntries],
+      entries: [...localFiltered, ...workItemEntries],
     });
-  }, [quest, entriesBySession, followupLocalEntries]);
+  }, [quest, entriesByWorkItem, followupLocalEntries]);
 
   const questIdRef = useRef<QuestId | null>(questId);
   questIdRef.current = questId;

@@ -23,8 +23,14 @@ export const devLogChatOutputFormatTransformer = ({
 }): DevLogLine => {
   const procLabel = devLogProcLabelTransformer({ payload });
   const parsed = devLogEventPayloadContract.parse(payload);
-  const rolePart = parsed.role === undefined ? '' : `${parsed.role}  `;
-  const slotPart = parsed.slotIndex === undefined ? '' : `slot:${parsed.slotIndex}  `;
+
+  // `?? undefined` folds the explicit null an event uses for "never captured" into the same absent
+  // case as a missing key, so a null renders as an omitted part rather than the text "null".
+  const role = parsed.role ?? undefined;
+  const slotIndex = parsed.slotIndex ?? undefined;
+
+  const rolePart = role === undefined ? '' : `${role}  `;
+  const slotPart = slotIndex === undefined ? '' : `slot:${slotIndex}  `;
 
   const { entries } = parsed;
   if (!Array.isArray(entries) || entries.length === 0) {

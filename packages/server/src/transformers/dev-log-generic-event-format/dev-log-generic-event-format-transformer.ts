@@ -22,27 +22,30 @@ export const devLogGenericEventFormatTransformer = ({
   const procLabel = devLogProcLabelTransformer({ payload });
   const parsed = devLogEventPayloadContract.parse(payload);
 
+  // `?? undefined` folds the explicit null an event uses for "never captured" into the same absent
+  // case as a missing key, so a null renders as an omitted part rather than the text "null".
+  const questId = parsed.questId ?? undefined;
+  const sessionId = parsed.sessionId ?? undefined;
+  const chatProcessId = parsed.chatProcessId ?? undefined;
+  const phase = parsed.phase ?? undefined;
+  const slotIndex = parsed.slotIndex ?? undefined;
+  const role = parsed.role ?? undefined;
+
   const questPart =
-    parsed.questId === undefined
-      ? ''
-      : `  quest:${devLogShortIdTransformer({ id: parsed.questId })}`;
+    questId === undefined ? '' : `  quest:${devLogShortIdTransformer({ id: questId })}`;
 
   const sessionPart =
-    parsed.sessionId === undefined
-      ? ''
-      : `  session:${devLogShortIdTransformer({ id: parsed.sessionId })}`;
+    sessionId === undefined ? '' : `  session:${devLogShortIdTransformer({ id: sessionId })}`;
 
   const shortChat =
-    parsed.chatProcessId === undefined
-      ? ''
-      : devLogShortIdTransformer({ id: parsed.chatProcessId });
+    chatProcessId === undefined ? '' : devLogShortIdTransformer({ id: chatProcessId });
   const chatPart = shortChat && !procLabel.includes(shortChat) ? `  chat:${shortChat}` : '';
 
-  const phasePart = parsed.phase === undefined ? '' : `  phase:${parsed.phase}`;
+  const phasePart = phase === undefined ? '' : `  phase:${phase}`;
 
-  const slotPart = parsed.slotIndex === undefined ? '' : `  slot:${parsed.slotIndex}`;
+  const slotPart = slotIndex === undefined ? '' : `  slot:${slotIndex}`;
 
-  const rolePart = parsed.role === undefined ? '' : `  role:${parsed.role}`;
+  const rolePart = role === undefined ? '' : `  role:${role}`;
 
   const questionsPart = Array.isArray(parsed.questions)
     ? `  questions:${parsed.questions.length}`

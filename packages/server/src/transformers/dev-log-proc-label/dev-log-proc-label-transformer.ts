@@ -19,13 +19,18 @@ export const devLogProcLabelTransformer = ({
   payload: Record<PropertyKey, unknown>;
 }): DevLogLine => {
   const parsed = devLogEventPayloadContract.parse(payload);
-  if (parsed.chatProcessId !== undefined) {
-    return devLogLineContract.parse(
-      `proc:${devLogShortIdTransformer({ id: parsed.chatProcessId })}`,
-    );
+
+  // `?? undefined` folds the explicit null an event uses for "never captured" into the same
+  // absent case as a missing key, so a null id falls through to the next candidate rather than
+  // reaching devLogShortIdTransformer.
+  const chatProcessId = parsed.chatProcessId ?? undefined;
+  const processId = parsed.processId ?? undefined;
+
+  if (chatProcessId !== undefined) {
+    return devLogLineContract.parse(`proc:${devLogShortIdTransformer({ id: chatProcessId })}`);
   }
-  if (parsed.processId !== undefined) {
-    return devLogLineContract.parse(`proc:${devLogShortIdTransformer({ id: parsed.processId })}`);
+  if (processId !== undefined) {
+    return devLogLineContract.parse(`proc:${devLogShortIdTransformer({ id: processId })}`);
   }
   return devLogLineContract.parse('');
 };

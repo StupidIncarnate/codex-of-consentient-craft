@@ -33,4 +33,27 @@ describe('devLogProcLabelTransformer', () => {
 
     expect(result).toBe('');
   });
+
+  it('EDGE: {sessionId: null, exitCode: null} => returns proc label instead of throwing', () => {
+    const result = devLogProcLabelTransformer({
+      payload: {
+        chatProcessId: 'chat-22c37b1c-5c12-4fc1-82ae-52d3692ed58f',
+        exitCode: null,
+        sessionId: null,
+      },
+    });
+
+    expect(result).toBe('proc:22c37b1c');
+  });
+
+  it('EDGE: {chatProcessId: null, processId present} => falls through to processId', () => {
+    const result = devLogProcLabelTransformer({
+      payload: {
+        chatProcessId: null,
+        processId: 'proc-recovery-1925f6f6-e4b2-48fa-8b80-77e62301cc82',
+      },
+    });
+
+    expect(result).toBe('proc:1925f6f6');
+  });
 });

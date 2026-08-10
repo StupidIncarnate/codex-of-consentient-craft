@@ -29,6 +29,7 @@ import type { CompletedCount } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
+import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
@@ -61,6 +62,10 @@ const DUMPSTER_LAUNCH_BANNER_MESSAGE = displayLabelContract.parse(
   "Run this in your Claude session — it'll pick this quest up on its next pass.",
 );
 const DUMPSTER_LAUNCH_COMMAND = displayLabelContract.parse('/dumpster-launch');
+// The FOLLOW-UP tab's ChatPanelWidget always carries the tavernkeeper's own conversation — it is
+// the one role isPostQuestChatWorkItemRoleGuard admits — so the label is a constant, not derived
+// per-render from a work item.
+const FOLLOWUP_ROLE_LABEL = executionRoleContract.parse('tavernkeeper');
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
@@ -241,6 +246,7 @@ export const ExecutionPanelWidget = ({
             isStreaming={isFollowupStreaming ?? false}
             onSendMessage={onSendFollowupMessage ?? NOOP_FOLLOWUP_HANDLERS.sendMessage}
             onStopChat={onStopFollowup ?? NOOP_FOLLOWUP_HANDLERS.stopChat}
+            roleLabel={FOLLOWUP_ROLE_LABEL}
           />
         </Box>
       ) : (

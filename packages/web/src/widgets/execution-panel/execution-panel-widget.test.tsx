@@ -1312,6 +1312,34 @@ describe('ExecutionPanelWidget', () => {
       expect(proxy.hasFollowupChat()).toBe(true);
     });
 
+    it('VALID: {followupEntries with an assistant text entry} => renders it under the TAVERNKEEPER label', async () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({ status: 'blocked' });
+      const onSendFollowupMessage = jest.fn();
+      const entries = [
+        AssistantTextChatEntryStub({
+          uuid: '00000000-0000-4000-8000-0000000007b1',
+          content: 'The failing test is in the checkout flow.',
+        }),
+      ];
+
+      mantineRenderAdapter({
+        ui: (
+          <ExecutionPanelWidget
+            quest={quest}
+            onSendFollowupMessage={onSendFollowupMessage}
+            followupEntries={entries}
+          />
+        ),
+      });
+
+      await proxy.clickFollowupButton();
+
+      expect(proxy.getExecutionMessages().map((message) => message.textContent)).toStrictEqual([
+        'TAVERNKEEPERThe failing test is in the checkout flow.',
+      ]);
+    });
+
     it('VALID: {press FOLLOW-UP then click EXECUTION} => FOLLOW-UP tab stays listed first while EXECUTION is active', async () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });

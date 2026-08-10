@@ -140,9 +140,13 @@ export const QuestFlow = (): Hono => {
   });
 
   app.post(apiRoutesStatics.quests.followup, async (c) => {
+    // A body that is not JSON at all still has to reach the responder's own 400, so the parse
+    // failure degrades to an empty object rather than throwing out of the route handler (mirrors
+    // the comments route above and the signal-back route below).
+    const body: unknown = await c.req.json().catch(() => ({}));
     const result = await QuestFollowupResponder({
       params: { questId: c.req.param('questId') },
-      body: await c.req.json(),
+      body,
     });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });

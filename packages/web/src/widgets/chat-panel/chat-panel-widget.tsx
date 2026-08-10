@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
@@ -32,6 +33,10 @@ export interface ChatPanelWidgetProps {
   onSendMessage: (params: { message: UserInput }) => void;
   onStopChat: () => void;
   readOnly?: boolean;
+  // Overrides the assistant role label ChatMessageWidget defaults to ('chaoswhisperer'). Callers
+  // mounting this panel for a different agent's own conversation — the FOLLOW-UP tab's
+  // tavernkeeper thread — pass their role so the transcript names who is actually replying.
+  roleLabel?: ExecutionRole;
 }
 
 const RACCOON_SCALE = 8;
@@ -50,6 +55,7 @@ export const ChatPanelWidget = ({
   onSendMessage,
   onStopChat,
   readOnly = false,
+  roleLabel,
 }: ChatPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [raccoonFlip, setRaccoonFlip] = useState(false);
@@ -117,6 +123,7 @@ export const ChatPanelWidget = ({
           isStreaming={isStreaming}
           showContextDividers={true}
           showEndStreamingIndicator={true}
+          {...(roleLabel === undefined ? {} : { roleLabel })}
         />
       </AutoScrollContainerWidget>
 

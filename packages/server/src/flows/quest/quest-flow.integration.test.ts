@@ -369,6 +369,26 @@ describe('QuestFlow', () => {
         error: `Quest with id "${questId}" not found in any guild`,
       });
     });
+
+    // Mirrors the comments route's non-JSON-body test above and the signal-back route's below:
+    // quest-flow.ts degrades a body that is not JSON at all to an empty object
+    // (`.catch(() => ({}))`) so the responder's own validation produces the 400, rather than an
+    // unhandled parse error escaping the route handler as Hono's generic, non-JSON
+    // "Internal Server Error" 500.
+    it('INVALID: {non-JSON body} => reaches the responder 400 rather than throwing out of the route', async () => {
+      const app = QuestFlow();
+      const questId = QuestIdStub();
+
+      const response = await app.request(`/api/quests/${questId}/followup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'not json at all',
+      });
+      const body: unknown = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(harness.toPlain(body)).toStrictEqual({ error: 'message is required' });
+    });
   });
 
   describe('POST /api/quests/:questId/signal-back (env-gated)', () => {

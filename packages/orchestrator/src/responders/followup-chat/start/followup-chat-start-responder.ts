@@ -10,6 +10,7 @@
  */
 
 import {
+  errorMessageContract,
   getQuestInputContract,
   questWorkItemIdContract,
   workItemContract,
@@ -98,70 +99,98 @@ export const FollowupChatStartResponder = async ({
     orchestrationProcessesState.kill({ processId: runningProcess.processId });
   }
 
-  const spawnResult = await chatSpawnBroker({
-    role: workItemRoleContract.parse('tavernkeeper'),
-    guildId,
-    questId,
-    message,
-    ...(resumeSessionId === undefined ? {} : { sessionId: resumeSessionId }),
-    onEntries: ({ chatProcessId, entries }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-output',
-        processId: chatProcessId,
-        payload: { chatProcessId, entries, questId, workItemId: tavernkeeperWorkItemId },
-      });
-    },
-    onSessionIdExtracted: ({ chatProcessId, sessionId }) => {
-      orchestrationEventsState.emit({
-        type: 'chat-session-started',
-        processId: chatProcessId,
-        payload: { chatProcessId, sessionId, questId, workItemId: tavernkeeperWorkItemId },
-      });
-    },
-    onComplete: ({ chatProcessId, exitCode, sessionId }) => {
-      questModifyBroker({
-        input: {
-          questId,
-          workItems: [
-            {
-              id: tavernkeeperWorkItemId,
-              status: 'complete',
-              completedAt: new Date().toISOString(),
-            },
-          ],
-        } as ModifyQuestInput,
-      }).catch((error: unknown) => {
-        process.stderr.write(`[followup-chat] work-item update failed: ${String(error)}\n`);
-      });
+  try {
+    const spawnResult = await chatSpawnBroker({
+      role: workItemRoleContract.parse('tavernkeeper'),
+      guildId,
+      questId,
+      message,
+      ...(resumeSessionId === undefined ? {} : { sessionId: resumeSessionId }),
+      onEntries: ({ chatProcessId, entries }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-output',
+          processId: chatProcessId,
+          payload: { chatProcessId, entries, questId, workItemId: tavernkeeperWorkItemId },
+        });
+      },
+      onSessionIdExtracted: ({ chatProcessId, sessionId }) => {
+        orchestrationEventsState.emit({
+          type: 'chat-session-started',
+          processId: chatProcessId,
+          payload: { chatProcessId, sessionId, questId, workItemId: tavernkeeperWorkItemId },
+        });
+      },
+      onComplete: ({ chatProcessId, exitCode, sessionId }) => {
+        questModifyBroker({
+          input: {
+            questId,
+            workItems: [
+              {
+                id: tavernkeeperWorkItemId,
+                status: 'complete',
+                completedAt: new Date().toISOString(),
+              },
+            ],
+          } as ModifyQuestInput,
+        }).catch((error: unknown) => {
+          process.stderr.write(`[followup-chat] work-item update failed: ${String(error)}\n`);
+        });
 
-      orchestrationProcessesState.remove({ processId: chatProcessId });
-      orchestrationEventsState.emit({
-        type: 'chat-complete',
-        processId: chatProcessId,
-        payload: {
-          chatProcessId,
-          exitCode,
-          sessionId,
-          questId,
-          workItemId: tavernkeeperWorkItemId,
-        },
-      });
-    },
-    registerProcess: ({ processId, questWorkItemId, kill }) => {
-      orchestrationProcessesState.register({
-        orchestrationProcess: { processId, questId, questWorkItemId, kill },
-      });
-    },
-    recordActivity: ({ processId }) => {
-      orchestrationProcessesState.recordActivity({ processId });
-    },
-    setMetadata: ({ processId, osPid }) => {
-      orchestrationProcessesState.setMetadata({
-        processId,
-        ...(osPid === undefined ? {} : { osPid }),
-      });
-    },
-  });
+        orchestrationProcessesState.remove({ processId: chatProcessId });
+        orchestrationEventsState.emit({
+          type: 'chat-complete',
+          processId: chatProcessId,
+          payload: {
+            chatProcessId,
+            exitCode,
+            sessionId,
+            questId,
+            workItemId: tavernkeeperWorkItemId,
+          },
+        });
+      },
+      registerProcess: ({ processId, questWorkItemId, kill }) => {
+        orchestrationProcessesState.register({
+          orchestrationProcess: { processId, questId, questWorkItemId, kill },
+        });
+      },
+      recordActivity: ({ processId }) => {
+        orchestrationProcessesState.recordActivity({ processId });
+      },
+      setMetadata: ({ processId, osPid }) => {
+        orchestrationProcessesState.setMetadata({
+          processId,
+          ...(osPid === undefined ? {} : { osPid }),
+        });
+      },
+    });
 
-  return { chatProcessId: spawnResult.chatProcessId };
+    return { chatProcessId: spawnResult.chatProcessId };
+  } catch (error: unknown) {
+    // The work item was persisted `in_progress` above so chatSpawnBroker's own quest lookup
+    // could find it — but a spawn that throws before ever calling agentLaunchBroker (a missing
+    // worktree, or any other environment failure inside chatSpawnBroker) means nothing will ever
+    // call onComplete to close this item out. Mark it terminal here so a failed attempt reads
+    // the same way a failed relay item does, instead of rendering as a permanently running
+    // spinner on a quest that has already finished.
+    const failureMessage = error instanceof Error ? error.message : String(error);
+    await questModifyBroker({
+      input: {
+        questId,
+        workItems: [
+          {
+            id: tavernkeeperWorkItemId,
+            status: 'failed',
+            completedAt: new Date().toISOString(),
+            errorMessage: errorMessageContract.parse(failureMessage),
+          },
+        ],
+      } as ModifyQuestInput,
+    }).catch((modifyError: unknown) => {
+      process.stderr.write(
+        `[followup-chat] work-item failure update failed: ${String(modifyError)}\n`,
+      );
+    });
+    throw error;
+  }
 };
