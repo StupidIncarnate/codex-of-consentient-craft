@@ -263,6 +263,24 @@ describe('blightChecklistBuildTransformer', () => {
     });
   });
 
+  describe('pairing: bare dotfiles with no reviewable extension to strip', () => {
+    it('VALID: {.gitignore changed} => self-paired as its own unit, not stripped to an empty path', () => {
+      const dotfilePath = RepoRelativePathStub({ value: '.gitignore' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({ changedFiles: [dotfilePath], baseRef });
+
+      expect(result.items[0]).toStrictEqual({
+        id: '.gitignore:craft',
+        implPath: dotfilePath,
+        concern: 'craft',
+        pairedFiles: [],
+        label:
+          "craft — .gitignore's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
+      });
+    });
+  });
+
   describe('exclusion: non-reviewable source', () => {
     it.each([
       'package.json',
