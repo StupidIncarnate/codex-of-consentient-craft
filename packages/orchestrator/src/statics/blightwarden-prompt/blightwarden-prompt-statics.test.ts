@@ -149,13 +149,22 @@ describe('blightwardenPromptStatics', () => {
     }).toStrictEqual({ gate: true, toolCall: true, doNotRederive: true, realState: true });
   });
 
-  it('VALID: template => partitions remaining units into disjoint file groups and dispatches blightwarden-group-minion in parallel', () => {
+  it('VALID: template => cuts groups by package first and dispatches blightwarden-group-minion in parallel', () => {
     expect({
       gate: /^### Gate 3: Partition & Dispatch blightwarden-group-minion \(BLOCKING\)$/mu.test(
         blightwardenPromptStatics.prompt.template,
       ),
-      disjointRule: has('**Groups MUST be disjoint by file**'),
-      phantomFailures: has('typecheck failures that get misdiagnosed as stale dist.'),
+      packageFirst: has('**Groups are cut by PACKAGE first.**'),
+      neverSpans: has('**A group NEVER spans two sections.**'),
+      byConstruction: has(
+        'That is what makes the groups disjoint by construction rather\nthan by your care',
+      ),
+      phantomFailures: has(
+        'minions editing the same file produce phantom typecheck failures that get misdiagnosed as stale\ndist',
+      ),
+      colocatedTestFree: has(
+        'An implementation file and its colocated test land\nin the same group for free',
+      ),
       singleMessage: has(
         'Summon one `blightwarden-group-minion` per group, ALL in a SINGLE message with multiple `Agent` tool calls',
       ),
@@ -166,8 +175,11 @@ describe('blightwardenPromptStatics', () => {
       noStandardsDigest: has('**Do NOT paste a standards digest into its brief**'),
     }).toStrictEqual({
       gate: true,
-      disjointRule: true,
+      packageFirst: true,
+      neverSpans: true,
+      byConstruction: true,
       phantomFailures: true,
+      colocatedTestFree: true,
       singleMessage: true,
       minionFetch: true,
       mustNeverCall: true,
@@ -175,17 +187,33 @@ describe('blightwardenPromptStatics', () => {
     });
   });
 
+  it('VALID: template => gives the files under no declared package their own trailing section rather than a neighbour', () => {
+    expect({
+      section: has('**`NO DECLARED PACKAGE` is a real section, and it is the last one.**'),
+      ownGroups: has('they get\ntheir own groups, cut to the same size'),
+      notAdjacent: has(
+        'Do not fold\nthem into a neighbouring package because the path looks adjacent',
+      ),
+      pathIsNotEvidence: has('a path is not evidence of ownership.'),
+    }).toStrictEqual({
+      section: true,
+      ownGroups: true,
+      notAdjacent: true,
+      pathIsNotEvidence: true,
+    });
+  });
+
   it('VALID: template => sizes groups and caps the wave from blightPartitionStatics, not from prose', () => {
     expect({
       target: has(
-        `**Target ${blightPartitionStatics.targetFilesPerGroup} changed files per group** — roughly three impl+test pairs`,
+        `**at most ${blightPartitionStatics.targetFilesPerGroup} changed files per group**`,
       ),
       cap: has(
         `**never more than ${blightPartitionStatics.maxConcurrentMinions} minions in flight at once**`,
       ),
       nextWave: has('dispatch the cap, wait for that wave to return, then dispatch the next.'),
       rulesRecap: has(
-        `3. **Disjoint groups by file, ~${blightPartitionStatics.targetFilesPerGroup} files each, at most ${blightPartitionStatics.maxConcurrentMinions} in flight**`,
+        `3. **One package per group, at most ${blightPartitionStatics.targetFilesPerGroup} files each, at most ${blightPartitionStatics.maxConcurrentMinions} in flight**`,
       ),
     }).toStrictEqual({ target: true, cap: true, nextWave: true, rulesRecap: true });
   });

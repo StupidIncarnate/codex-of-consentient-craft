@@ -12,6 +12,10 @@
  *
  * A quest seeded before the review base was pinned has no `baseRef` and therefore no diff to
  * measure — that is a real state, not an error, so this returns null rather than throwing.
+ *
+ * The quest's own `packagesAffected` travels with the diff because a changed path only names a
+ * package relative to the declarations of the repo it came from; resolving it anywhere else would
+ * have to guess a layout.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -56,6 +60,8 @@ export const questGetBlightChecklistBroker = async ({
   return blightChecklistBuildTransformer({
     changedFiles,
     ledger: quest.planningNotes.blightLedger,
+    packagesAffected: quest.packagesAffected,
+    projectRoot: resolution.cwd,
     baseRef,
   });
 };

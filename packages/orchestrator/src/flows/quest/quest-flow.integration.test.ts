@@ -11,9 +11,11 @@ import {
   FlowStub,
   GuildNameStub,
   GuildPathStub,
+  ModifyQuestInputStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestNoteStub,
+  QuestPackageEntryStub,
   QuestWorkItemIdStub,
   RepoRelativePathStub,
   SignoffStub,
@@ -186,6 +188,868 @@ describe('QuestFlow', () => {
           },
           { id: 'out-of-scope', notes: [] },
           { id: 'walk-reset', notes: [] },
+        ],
+      });
+    }, 30_000);
+  });
+
+  // The four package-relational rules are proven as pure functions by their own transformer unit
+  // tests. What those cannot prove is that the modify-quest path actually REFUSES the transition
+  // and hands the agent the offender string back: that runs through questModifyBroker's tiering
+  // (input allowlist → gate content → re-parse → save invariants), and only the save-invariants
+  // tier returns named `failedChecks`, which `quest-handle-responder` renders as
+  // `- [FAIL] <check name>: <details>`. A rule whose message never reaches that surface is
+  // invisible to the agent that has to act on it, so these drive the real gate against a real
+  // quest.json and assert the check NAME and the whole remediation clause.
+  describe('package tags at the flows_approved gate', () => {
+    it("INVALID: {node tags a package absent from packagesAffected} => refused as 'Node Package Coverage' naming node, flow, package and the entry shape to add; the quest stays at review_flows", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-node-coverage' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_flows',
+        operations: [],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [FlowNodeStub({ id: 'press-warp', label: 'Press WARP', packages: ['cli'] })],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+      });
+
+      const afterRefusal = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        error: String(result.error),
+        failedChecks: result.failedChecks!.map((check) => ({
+          name: String(check.name),
+          passed: check.passed,
+          details: String(check.details),
+        })),
+        statusOnDisk: afterRefusal.status,
+      }).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Node Package Coverage',
+            passed: false,
+            details:
+              "Node 'press-warp' in flow 'warpgate-merge' tags package 'cli', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
+          },
+        ],
+        statusOnDisk: 'review_flows',
+      });
+    }, 30_000);
+
+    it("INVALID: {edge whose endpoints share no package} => refused as 'No Unglued Seam' naming the edge, both endpoints and their tags; the quest stays at review_flows", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-unglued-seam' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_flows',
+        operations: [],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            // Every tag is declared, so Node Package Coverage passes and the ONLY failure the
+            // gate can report is the boundary these two nodes cross with nothing spanning it.
+            nodes: [
+              FlowNodeStub({ id: 'press-warp', label: 'Press WARP', packages: ['web'] }),
+              FlowNodeStub({
+                id: 'merge-status-ok',
+                label: 'Merge status OK',
+                packages: ['server'],
+              }),
+            ],
+            edges: [
+              FlowEdgeStub({ id: 'press-to-status', from: 'press-warp', to: 'merge-status-ok' }),
+            ],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+      });
+
+      const afterRefusal = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        error: String(result.error),
+        failedChecks: result.failedChecks!.map((check) => ({
+          name: String(check.name),
+          passed: check.passed,
+          details: String(check.details),
+        })),
+        statusOnDisk: afterRefusal.status,
+      }).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'No Unglued Seam',
+            passed: false,
+            details:
+              "Edge 'press-to-status' in flow 'warpgate-merge' joins node 'press-warp' (packages: web) to node 'merge-status-ok' (packages: server), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.",
+          },
+        ],
+        statusOnDisk: 'review_flows',
+      });
+    }, 30_000);
+
+    // The untagged node never reaches the gate, and that is the design rather than a hole:
+    // `flowNodeContract.packages` is `.min(1)`, and questModifyBroker re-parses the whole mutated
+    // quest through `questContract` BEFORE the save-invariants tier runs. So the refusal lands one
+    // tier earlier, on the write that would have created the node — which is the only place it can
+    // land, because `review_flows` allows nothing but `comments`/`status` and every route into
+    // `flows_approved` therefore carries flows that are already on disk and already parsed. This
+    // asserts the refusal an agent actually gets, and that the untagged node never lands.
+    it('INVALID: {agent adds a node carrying no packages} => the write is refused before the gate and the flow on disk keeps only its tagged node', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-untagged-node' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'explore_flows',
+        operations: [],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [FlowNodeStub({ id: 'press-warp', label: 'Press WARP', packages: ['web'] })],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          // `modifyQuestInputContract`'s node union has a `.partial()` branch, so a node arriving
+          // without `packages` is shape-identical to a legitimate patch and passes INPUT
+          // validation — the merged node is what gets rejected.
+          flows: [
+            {
+              id: 'warpgate-merge',
+              nodes: [{ id: 'merge-status-ok', label: 'Merge status OK', type: 'state' }],
+            },
+          ] as never,
+        }),
+      });
+
+      const afterRefusal = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        nodeIdsOnDisk: afterRefusal.flows[0]!.nodes.map((node) => String(node.id)),
+      }).toStrictEqual({
+        success: false,
+        nodeIdsOnDisk: ['press-warp'],
+      });
+      expect(String(result.error)).toBe(
+        '[\n  {\n    "code": "invalid_type",\n    "expected": "array",\n    "received": "undefined",\n    "path": [\n      "flows",\n      0,\n      "nodes",\n      1,\n      "packages"\n    ],\n    "message": "Required"\n  }\n]',
+      );
+    }, 30_000);
+
+    // The positive case, driven through the REAL authoring path rather than a seeded fixture:
+    // `packagesAffected` and the node tags that draw on it land in ONE modify-quest write, which is
+    // also the only way to exercise the write-time existence check (each `location` resolves
+    // against the QUEST's own repo root, seeded here by `seedQuestRepoPackages`). A suite of
+    // refusals alone passes just as well against a gate that refuses everything.
+    it('VALID: {flows and packagesAffected authored in one write, every tag declared and the seam glued} => the gate admits it and the tags survive on disk', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-flows-approved-ok' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+      envHarness.seedQuestRepoPackages({
+        repoRoot: testbed.guildPath,
+        locations: ['./packages/web', './packages/server'],
+      });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      const toExploreFlows = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'explore_flows' }),
+      });
+
+      const authored = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          packagesAffected: [
+            QuestPackageEntryStub({
+              name: 'web',
+              location: './packages/web',
+              packageType: 'frontend-react',
+            }),
+            QuestPackageEntryStub({
+              name: 'server',
+              location: './packages/server',
+              packageType: 'http-backend',
+            }),
+          ],
+          flows: [
+            FlowStub({
+              id: 'warpgate-merge',
+              name: 'Warpgate merge',
+              entryPoint: '/quest/warp',
+              exitPoints: ['/quest/merged'],
+              // press-warp is widened to carry both packages, which is the remedy the seam
+              // rule's own message names — that endpoint IS the glue node.
+              nodes: [
+                FlowNodeStub({
+                  id: 'press-warp',
+                  label: 'Press WARP',
+                  packages: ['web', 'server'],
+                }),
+                FlowNodeStub({
+                  id: 'merge-status-ok',
+                  label: 'Merge status OK',
+                  packages: ['server'],
+                }),
+              ],
+              edges: [
+                FlowEdgeStub({ id: 'press-to-status', from: 'press-warp', to: 'merge-status-ok' }),
+              ],
+            }),
+          ],
+          status: 'review_flows',
+        }),
+      });
+
+      const gated = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'flows_approved' }),
+      });
+
+      const afterGate = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        toExploreFlows: toExploreFlows.success,
+        authored: authored.success,
+        gated: gated.success,
+        gatedFailedChecks: gated.failedChecks,
+        statusOnDisk: afterGate.status,
+        // The tag has to SURVIVE the write to be gate-able at all: only the top object of
+        // `modifyQuestInputContract` is `.strict()`, so a node key it did not declare would be
+        // silently stripped and the persisted quest would never see it.
+        nodeTagsOnDisk: afterGate.flows[0]!.nodes.map((node) => ({
+          id: String(node.id),
+          packages: node.packages.map((name) => String(name)),
+        })),
+        declaredPackages: afterGate.packagesAffected.map((entry) => ({
+          name: String(entry.name),
+          location: String(entry.location),
+          changeType: entry.changeType,
+        })),
+      }).toStrictEqual({
+        toExploreFlows: true,
+        authored: true,
+        gated: true,
+        gatedFailedChecks: undefined,
+        statusOnDisk: 'flows_approved',
+        nodeTagsOnDisk: [
+          { id: 'press-warp', packages: ['web', 'server'] },
+          { id: 'merge-status-ok', packages: ['server'] },
+        ],
+        declaredPackages: [
+          { name: 'web', location: './packages/web', changeType: 'edit' },
+          { name: 'server', location: './packages/server', changeType: 'edit' },
+        ],
+      });
+    }, 30_000);
+  });
+
+  describe('package tags at the approved gate', () => {
+    it("INVALID: {glue node whose observables cover only one of its two packages} => refused as 'Observable Package Attribution' naming the uncovered package; the quest stays at review_observables", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-attribution' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_observables',
+        // The ledger claims BOTH packages, so Codeweaver Package Coverage — the sibling rule that
+        // binds at this same gate — has nothing to report and the attribution failure stands alone.
+        operations: [
+          OperationItemStub({
+            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa1' }),
+            role: 'codeweaver',
+            text: 'Build the warpgate seam',
+            status: 'pending',
+            locked: false,
+            packageNames: ['web', 'server'],
+          }),
+        ],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            // No edges at all, so nothing is seam-forced: `server` is declared on the node and
+            // asserted by neither an observable nor the edge set.
+            nodes: [
+              FlowNodeStub({
+                id: 'landed-on-base',
+                label: 'Landed on base',
+                packages: ['web', 'server'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-banner-shown',
+                    type: 'ui-state',
+                    description: 'the merged banner replaces the WARP button',
+                    package: 'web',
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+
+      const afterRefusal = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        error: String(result.error),
+        failedChecks: result.failedChecks!.map((check) => ({
+          name: String(check.name),
+          passed: check.passed,
+          details: String(check.details),
+        })),
+        statusOnDisk: afterRefusal.status,
+      }).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Observable Package Attribution',
+            passed: false,
+            details:
+              "Node 'landed-on-base' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
+          },
+        ],
+        statusOnDisk: 'review_observables',
+      });
+    }, 30_000);
+
+    it("INVALID: {codeweaver ledger claiming only one of the two packages the spine lands in} => refused as 'Codeweaver Package Coverage' naming the package and a node that witnesses it", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-codeweaver-coverage' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_observables',
+        operations: [
+          OperationItemStub({
+            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa2' }),
+            role: 'codeweaver',
+            text: 'Build the WARP button',
+            status: 'pending',
+            locked: false,
+            packageNames: ['web'],
+          }),
+        ],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        // Every node is single-package and every observable names its own node's package, so
+        // Observable Package Attribution passes and the ledger gap stands alone.
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press WARP',
+                packages: ['web'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'warp-button-disables',
+                    type: 'ui-state',
+                    description: 'the WARP button goes disabled while the merge runs',
+                    package: 'web',
+                  }),
+                ],
+              }),
+              FlowNodeStub({
+                id: 'merge-status-ok',
+                label: 'Merge status OK',
+                packages: ['server'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-status-200',
+                    type: 'api-call',
+                    description: 'GET /api/quests/:id/merge-status returns 200',
+                    package: 'server',
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+
+      const afterRefusal = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        error: String(result.error),
+        failedChecks: result.failedChecks!.map((check) => ({
+          name: String(check.name),
+          passed: check.passed,
+          details: String(check.details),
+        })),
+        statusOnDisk: afterRefusal.status,
+      }).toStrictEqual({
+        success: false,
+        error: 'Save invariants failed',
+        failedChecks: [
+          {
+            name: 'Codeweaver Package Coverage',
+            passed: false,
+            details:
+              "Package 'server' is tagged on node 'merge-status-ok' in flow 'warpgate-merge' but no codeweaver operation item declares it in packageNames. Every package the spine lands in needs an implementation item that names it, or the dependency-ordered dispatch has nothing to schedule there — add 'server' to an existing codeweaver item's packageNames, or author an item for it.",
+          },
+        ],
+        statusOnDisk: 'review_observables',
+      });
+    }, 30_000);
+
+    // The same spine, the same ledger, the same declared packages as the refusal above — only
+    // `questType` differs. Codeweaver Package Coverage is scoped `questTypes: ['feature']` because
+    // a bug-hunt's implementation op is the orchestrator-seeded pesteater item, which does not
+    // exist until Start, so at this gate there is no ledger to measure.
+    it('VALID: {bug-hunt quest whose ledger claims only one of the two packages} => the codeweaver rule does not bind and the gate admits it', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-bug-hunt-exempt' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_observables',
+        questType: 'bug-hunt',
+        operations: [
+          OperationItemStub({
+            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa3' }),
+            role: 'codeweaver',
+            text: 'Build the WARP button',
+            status: 'pending',
+            locked: false,
+            packageNames: ['web'],
+          }),
+        ],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press WARP',
+                packages: ['web'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'warp-button-disables',
+                    type: 'ui-state',
+                    description: 'the WARP button goes disabled while the merge runs',
+                    package: 'web',
+                  }),
+                ],
+              }),
+              FlowNodeStub({
+                id: 'merge-status-ok',
+                label: 'Merge status OK',
+                packages: ['server'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-status-200',
+                    type: 'api-call',
+                    description: 'GET /api/quests/:id/merge-status returns 200',
+                    package: 'server',
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+
+      const afterGate = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        failedChecks: result.failedChecks,
+        questTypeOnDisk: afterGate.questType,
+        statusOnDisk: afterGate.status,
+      }).toStrictEqual({
+        success: true,
+        failedChecks: undefined,
+        questTypeOnDisk: 'bug-hunt',
+        statusOnDisk: 'approved',
+      });
+    }, 30_000);
+
+    // 22 of the 100 nodes on the measured quest carry no observables at all — decision nodes that
+    // are still branch units in the checklist denominator. Demanding coverage from them would
+    // reject a correct spec, so the attribution rule exempts them outright. This node carries two
+    // packages and NO edges, so no seam waiver is in play either: the exemption alone is what
+    // admits it, and without it both `web` and `server` would be named.
+    it('VALID: {multi-package decision node carrying no observables and no edges} => exempt from attribution, the gate admits it', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-zero-observable-node' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_observables',
+        operations: [
+          OperationItemStub({
+            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa4' }),
+            role: 'codeweaver',
+            text: 'Build the warpgate seam',
+            status: 'pending',
+            locked: false,
+            packageNames: ['web', 'server'],
+          }),
+        ],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [
+              FlowNodeStub({
+                id: 'can-resolve-intake',
+                label: 'Can resolve intake?',
+                type: 'decision',
+                packages: ['web', 'server'],
+                observables: [],
+              }),
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press WARP',
+                packages: ['web'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'warp-button-disables',
+                    type: 'ui-state',
+                    description: 'the WARP button goes disabled while the merge runs',
+                    package: 'web',
+                  }),
+                ],
+              }),
+              FlowNodeStub({
+                id: 'merge-status-ok',
+                label: 'Merge status OK',
+                packages: ['server'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-status-200',
+                    type: 'api-call',
+                    description: 'GET /api/quests/:id/merge-status returns 200',
+                    package: 'server',
+                  }),
+                ],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+
+      const afterGate = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        failedChecks: result.failedChecks,
+        statusOnDisk: afterGate.status,
+      }).toStrictEqual({
+        success: true,
+        failedChecks: undefined,
+        statusOnDisk: 'approved',
+      });
+    }, 30_000);
+
+    it('VALID: {glue node whose observables cover both sides and a ledger claiming both packages} => the gate admits it and the resolved observable packages survive on disk', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-gate-approved-ok' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'review_observables',
+        operations: [
+          OperationItemStub({
+            id: OperationItemIdStub({ value: '00000000-0000-4000-8000-000000000fa5' }),
+            role: 'codeweaver',
+            text: 'Build the warpgate seam',
+            status: 'pending',
+            locked: false,
+            packageNames: ['web', 'server'],
+          }),
+        ],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press WARP',
+                packages: ['web'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'warp-button-disables',
+                    type: 'ui-state',
+                    description: 'the WARP button goes disabled while the merge runs',
+                    package: 'web',
+                  }),
+                ],
+              }),
+              FlowNodeStub({
+                id: 'landed-on-base',
+                label: 'Landed on base',
+                packages: ['web', 'server'],
+                observables: [
+                  FlowObservableStub({
+                    id: 'merge-banner-shown',
+                    type: 'ui-state',
+                    description: 'the merged banner replaces the WARP button',
+                    package: 'web',
+                  }),
+                  FlowObservableStub({
+                    id: 'merge-status-200',
+                    type: 'api-call',
+                    description: 'GET /api/quests/:id/merge-status returns 200',
+                    package: 'server',
+                  }),
+                ],
+              }),
+            ],
+            edges: [
+              FlowEdgeStub({ id: 'press-to-landed', from: 'press-warp', to: 'landed-on-base' }),
+            ],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({ questId, status: 'approved' }),
+      });
+
+      const afterGate = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        failedChecks: result.failedChecks,
+        statusOnDisk: afterGate.status,
+        observablePackagesOnDisk: afterGate.flows[0]!.nodes.flatMap((node) =>
+          node.observables.map((observable) => ({
+            id: String(observable.id),
+            package: String(observable.package),
+          })),
+        ),
+      }).toStrictEqual({
+        success: true,
+        failedChecks: undefined,
+        statusOnDisk: 'approved',
+        observablePackagesOnDisk: [
+          { id: 'warp-button-disables', package: 'web' },
+          { id: 'merge-banner-shown', package: 'web' },
+          { id: 'merge-status-200', package: 'server' },
         ],
       });
     }, 30_000);

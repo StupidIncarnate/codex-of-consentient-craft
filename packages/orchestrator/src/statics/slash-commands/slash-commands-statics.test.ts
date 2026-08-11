@@ -210,7 +210,7 @@ describe('slashCommandsStatics', () => {
 
     it('VALID: dumpsterHunt.body => packagesAffected entries use the object shape with the ./ location prefix', () => {
       const needle =
-        "`location` written\nWITH the `./` prefix (`'./packages/web'`, never the bare `'packages/web'`)";
+        "`location` written\nWITH the `./` prefix (`'./packages/<name>'`, never the bare `'packages/<name>'`)";
       const { body } = slashCommandsStatics.dumpsterHunt;
       const foundIndex = body.indexOf(needle);
 

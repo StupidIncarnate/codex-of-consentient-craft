@@ -23,10 +23,11 @@
  *
  * HOW `packageNames` NARROWS is `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so the
  * seam rule is data rather than a role comparison here. Under `partition` a one-name item owns the
- * units whose node tags exactly that package and a many-name item owns the glue units — which is
- * what makes Flowrider's N per-package items plus one seam item a true partition, each with a pt
- * budget that means something. Under `intersection` an item owns every unit whose node tags any of
- * its names, glue included.
+ * units whose node tags exactly that package — measured over the packages the track's own KINDS
+ * cover, the same subset `relayTailFanOutTransformer` slices on — and a many-name item owns the
+ * glue units, which is what makes Flowrider's N per-package items plus one seam item a true
+ * partition, each with a pt budget that means something. Under `intersection` an item owns every
+ * unit whose node tags any of its names, glue included.
  *
  * NOTHING IS EXCLUDED ON DATA THAT CANNOT BE RESOLVED. A unit hanging off no node, a node the flow
  * does not carry, and a node tagged with a package absent from `packagesAffected` all stay in. A
@@ -102,9 +103,20 @@ export const qaUnitsInPackageScopeTransformer = ({
       // than one owns the glue. Reading a per-package item as "any node including my package"
       // instead would hand every glue unit to two items at once, and leave the seam item — the
       // honest replacement for the whole-quest reconcile — owning nothing of its own.
-      return owningPackages.length > 1
+      //
+      // ALONE is measured over the packages THIS TRACK OWNS, not over the raw tag list, because
+      // that is the set the slicer mints from. A node spanning a frontend and a backend package is
+      // glue on the graph but lands on ONE side of this track, so its units belong to that side's
+      // per-package item; reading its raw arity instead leaves them owned by no item at all, since
+      // the seam item narrows its own names the same way and would not be the one that owned them.
+      const owningInKind = owningPackages.filter((name) => {
+        const packageType = packageTypeByName.get(name);
+        return packageType === undefined || eligiblePackageTypes.has(packageType);
+      });
+
+      return owningInKind.length > 1
         ? declaredNames.size > 1
-        : declaredNames.size === 1 && owningPackages.every((name) => declaredNames.has(name));
+        : declaredNames.size === 1 && owningInKind.every((name) => declaredNames.has(name));
     }
 
     return owningPackages.some((name) => declaredNames.has(name));

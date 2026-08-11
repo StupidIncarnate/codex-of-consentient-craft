@@ -635,14 +635,17 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    describe('whole-quest flow scoping for the flowrider/siegemaster operators', () => {
+    // Both roles hold an item whose flow list IS its scope rather than a reading order — but neither
+    // is handed the seams here: a flowrider item is a package slice and the glue units belong to the
+    // seam item, so a caveat claiming them would contradict the prompt this block is substituted into.
+    describe('flow scoping for the flowrider/siegemaster operators', () => {
       const flowOperatorCases = [
         ['flowrider', flowriderPromptStatics] as const,
         ['siegemaster', siegemasterPromptStatics] as const,
       ];
 
       it.each(flowOperatorCases)(
-        'VALID: {role: %s, operation carrying every quest flowId} => names them ALL as the unit of accountability, not a starting point',
+        'VALID: {role: %s, operation carrying several flowIds} => names them as the unit of accountability, claiming no sibling item’s units',
         (role, statics) => {
           const questId = QuestIdStub({ value: 'my-quest' });
           const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-9999-4222-9333-444444444444' });
@@ -679,7 +682,7 @@ describe('workItemToPromptTransformer', () => {
             `1. [>] [${role}] verify every quest flow  <-- YOUR OPERATION ITEM`,
             '',
             'Your flows: #send-queued-comment-batch, #view-persisted-comments',
-            '(YOUR unit of accountability — ALL of them, plus the seams between them. One session owns every flow on this quest: bundle them, delegate each bundle to a minion, then verify what comes back.)',
+            '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where your role has minions.)',
             '',
             'Original user request (the intent behind the flows):',
             'Add authentication to the application',

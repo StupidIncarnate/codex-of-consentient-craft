@@ -7,6 +7,7 @@ import {
 import { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
 
 import { relayTailFanOutTransformer } from './relay-tail-fan-out-transformer';
+import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
 // Read off the registry rather than retyped, so a text edit there fails these by assertion instead
 // of leaving them asserting a string the relay no longer seeds. `as const` makes relayTail a
@@ -31,6 +32,18 @@ const SERVER_PACKAGE = QuestPackageEntryStub({
   location: './packages/server',
   changeType: 'edit',
   packageType: 'http-backend',
+});
+const CLI_PACKAGE = QuestPackageEntryStub({
+  name: 'cli',
+  location: './packages/cli',
+  changeType: 'edit',
+  packageType: 'cli-tool',
+});
+const SHARED_PACKAGE = QuestPackageEntryStub({
+  name: 'shared',
+  location: './packages/shared',
+  changeType: 'edit',
+  packageType: 'library',
 });
 
 describe('relayTailFanOutTransformer', () => {
@@ -79,7 +92,39 @@ describe('relayTailFanOutTransformer', () => {
   });
 
   describe("fanOutBy: 'package'", () => {
-    it('VALID: {runtime flow with two single-package nodes} => one slice per package, each carrying that package alone', () => {
+    it('VALID: {runtime flow with two single-package nodes of kinds this role owns} => one slice per package, each carrying that package alone', () => {
+      const quest = QuestStub({
+        packagesAffected: [CLI_PACKAGE, SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'invoke', label: 'Invoke', packages: ['cli'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: cli',
+          flowIds: ['send-comment'],
+          packageNames: ['cli'],
+        },
+        {
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
+          flowIds: ['send-comment'],
+          packageNames: ['server'],
+        },
+      ]);
+    });
+
+    it('EMPTY: {a runtime node tagging a frontend-react package} => NO slice is minted for it, because the completion gate narrows every unit it owns straight back out', () => {
       const quest = QuestStub({
         packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE],
         flows: [
@@ -99,11 +144,6 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Flowrider: author the flow-perspective test suites below the browser — package: web',
-          flowIds: ['send-comment'],
-          packageNames: ['web'],
-        },
-        {
           text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
           flowIds: ['send-comment'],
           packageNames: ['server'],
@@ -111,7 +151,7 @@ describe('relayTailFanOutTransformer', () => {
       ]);
     });
 
-    it('VALID: {a node tagged with two packages} => a seam slice is appended owning both sides', () => {
+    it('VALID: {a glue node spanning a frontend and a backend package} => the node is NOT dropped: its units go to the backend package alone, and no seam slice is minted', () => {
       const quest = QuestStub({
         packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE],
         flows: [
@@ -131,14 +171,116 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Flowrider: author the flow-perspective test suites below the browser — package: web',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
           flowIds: ['send-comment'],
-          packageNames: ['web'],
+          packageNames: ['server'],
+        },
+      ]);
+    });
+
+    it('VALID: {a glue node spanning two packages this role owns} => a seam slice is appended owning both sides', () => {
+      const quest = QuestStub({
+        packagesAffected: [SERVER_PACKAGE, CLI_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'invoke', label: 'Invoke', packages: ['cli'] }),
+              FlowNodeStub({ id: 'press-warp', label: 'Press warp', packages: ['cli', 'server'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: cli',
+          flowIds: ['send-comment'],
+          packageNames: ['cli'],
         },
         {
-          text: 'Flowrider: author the flow-perspective test suites below the browser — seam: web + server',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — seam: cli + server',
           flowIds: ['send-comment'],
-          packageNames: ['web', 'server'],
+          packageNames: ['cli', 'server'],
+        },
+      ]);
+    });
+
+    it('EMPTY: {a glue node spanning two FRONTEND packages} => no flowrider seam slice, because that node belongs wholly to the sibling browser track', () => {
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE, TUI_PACKAGE, SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'mirror', label: 'Mirror', packages: ['web', 'tui'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
+          flowIds: ['send-comment'],
+          packageNames: ['server'],
+        },
+      ]);
+    });
+
+    it('EMPTY: {every runtime node tagged with frontend packages only} => NO flowrider item at all, rather than a whole-quest item the gate would compute as empty', () => {
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE, TUI_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
+              FlowNodeStub({ id: 'mirror', label: 'Mirror', packages: ['web', 'tui'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {a node tagging a package absent from packagesAffected} => the package is KEPT and gets its own slice, because an unresolvable kind is the coverage rule’s failure case and dropping it hides the work', () => {
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
+              FlowNodeStub({ id: 'settle', label: 'Settle', packages: ['web', 'ghost'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: ghost',
+          flowIds: ['send-comment'],
+          packageNames: ['ghost'],
         },
       ]);
     });
@@ -177,22 +319,22 @@ describe('relayTailFanOutTransformer', () => {
 
     it('VALID: {one package tagged on nodes across two runtime flows} => ONE slice carrying both flow ids, never two slices', () => {
       const quest = QuestStub({
-        packagesAffected: [WEB_PACKAGE],
+        packagesAffected: [SERVER_PACKAGE],
         flows: [
           FlowStub({
             id: 'send-comment',
             name: 'Send comment',
             flowType: 'runtime',
             nodes: [
-              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
-              FlowNodeStub({ id: 'preview', label: 'Preview', packages: ['web'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+              FlowNodeStub({ id: 'notify', label: 'Notify', packages: ['server'] }),
             ],
           }),
           FlowStub({
             id: 'view-comments',
             name: 'View comments',
             flowType: 'runtime',
-            nodes: [FlowNodeStub({ id: 'list', label: 'List', packages: ['web'] })],
+            nodes: [FlowNodeStub({ id: 'list', label: 'List', packages: ['server'] })],
           }),
         ],
       });
@@ -201,23 +343,28 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Flowrider: author the flow-perspective test suites below the browser — package: web',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
           flowIds: ['send-comment', 'view-comments'],
-          packageNames: ['web'],
+          packageNames: ['server'],
         },
       ]);
     });
 
-    it('VALID: {glue nodes on two runtime flows} => ONE seam slice carrying both flow ids and the union of the spanned packages', () => {
+    it('VALID: {two glue nodes on one runtime flow and a third on another} => ONE seam slice carrying both flow ids once each and the union of the spanned packages', () => {
       const quest = QuestStub({
-        packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE, TUI_PACKAGE],
+        packagesAffected: [SHARED_PACKAGE, SERVER_PACKAGE, CLI_PACKAGE],
         flows: [
           FlowStub({
             id: 'send-comment',
             name: 'Send comment',
             flowType: 'runtime',
             nodes: [
-              FlowNodeStub({ id: 'press-warp', label: 'Press warp', packages: ['web', 'server'] }),
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press warp',
+                packages: ['shared', 'server'],
+              }),
+              FlowNodeStub({ id: 'settle', label: 'Settle', packages: ['shared', 'server'] }),
             ],
           }),
           FlowStub({
@@ -228,7 +375,7 @@ describe('relayTailFanOutTransformer', () => {
               FlowNodeStub({
                 id: 'stream-rows',
                 label: 'Stream rows',
-                packages: ['server', 'tui'],
+                packages: ['server', 'cli'],
               }),
             ],
           }),
@@ -239,11 +386,78 @@ describe('relayTailFanOutTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          text: 'Flowrider: author the flow-perspective test suites below the browser — seam: web + server + tui',
+          text: 'Flowrider: author the flow-perspective test suites below the browser — seam: shared + server + cli',
           flowIds: ['send-comment', 'view-comments'],
-          packageNames: ['web', 'server', 'tui'],
+          packageNames: ['shared', 'server', 'cli'],
         },
       ]);
+    });
+
+    it('VALID: {a quest spanning every package kind} => every name a flowrider slice declares resolves to a kind in flowrider.packageTypes', () => {
+      const quest = QuestStub({
+        packagesAffected: [WEB_PACKAGE, TUI_PACKAGE, SERVER_PACKAGE, CLI_PACKAGE, SHARED_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
+              FlowNodeStub({ id: 'mirror', label: 'Mirror', packages: ['web', 'tui'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+              FlowNodeStub({ id: 'press-warp', label: 'Press warp', packages: ['web', 'server'] }),
+              FlowNodeStub({ id: 'relay', label: 'Relay', packages: ['server', 'cli'] }),
+            ],
+          }),
+          FlowStub({
+            id: 'sweep-rows',
+            name: 'Sweep rows',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'batch', label: 'Batch', packages: ['cli'] }),
+              FlowNodeStub({ id: 'archive', label: 'Archive', packages: ['shared', 'cli'] }),
+            ],
+          }),
+        ],
+      });
+
+      const eligibleKinds = new Set(
+        signoffTrackEligibilityStatics.byTrack.flowrider.packageTypes.map(String),
+      );
+      const kindByName = new Map(
+        quest.packagesAffected.map((entry) => [String(entry.name), String(entry.packageType)]),
+      );
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+      const declaredKinds = result.flatMap((slice) =>
+        slice.packageNames.map((name) => String(kindByName.get(String(name)))),
+      );
+
+      expect({
+        slices: result,
+        declaredKinds,
+        outOfKind: declaredKinds.filter((kind) => !eligibleKinds.has(kind)),
+      }).toStrictEqual({
+        slices: [
+          {
+            text: 'Flowrider: author the flow-perspective test suites below the browser — package: server',
+            flowIds: ['send-comment'],
+            packageNames: ['server'],
+          },
+          {
+            text: 'Flowrider: author the flow-perspective test suites below the browser — package: cli',
+            flowIds: ['sweep-rows'],
+            packageNames: ['cli'],
+          },
+          {
+            text: 'Flowrider: author the flow-perspective test suites below the browser — seam: server + cli + shared',
+            flowIds: ['send-comment', 'sweep-rows'],
+            packageNames: ['server', 'cli', 'shared'],
+          },
+        ],
+        declaredKinds: ['http-backend', 'cli-tool', 'http-backend', 'cli-tool', 'library'],
+        outOfKind: [],
+      });
     });
 
     it('VALID: {tagged nodes on an OPERATIONAL flow only} => falls back to one whole-quest slice with no runtime flow to name', () => {

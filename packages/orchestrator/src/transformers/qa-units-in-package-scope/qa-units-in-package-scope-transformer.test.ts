@@ -203,6 +203,26 @@ describe('qaUnitsInPackageScopeTransformer', () => {
       ]);
     });
 
+    // The slicer mints no seam item for a glue node that lands on ONE side of this track, so the
+    // per-package item on that side has to own it. Reading the node's RAW arity instead leaves the
+    // glue units owned by no flowrider item at all — the hole the package narrowing exists to close.
+    it('VALID: {flowrider, packagesAffected, packageNames: [api-service]} => owns the glue node whose only in-kind package is that one', () => {
+      expect(
+        qaUnitsInPackageScopeTransformer({
+          flow: FLOW,
+          units: UNITS,
+          track: 'flowrider',
+          packagesAffected: PACKAGES_AFFECTED,
+          packageNames: [API_PACKAGE],
+        }).map((unit) => String(unit.id)),
+      ).toStrictEqual([
+        'login-flow:terminal:auth-error',
+        'login-flow:branch:submit-invalid',
+        'login-flow:branch:to-ghost',
+        ...UNROUTABLE_UNIT_IDS,
+      ]);
+    });
+
     it('VALID: {flowrider, packageNames naming a package no node tags alone} => owns nothing routable, rather than falling back to the whole flow', () => {
       expect(
         qaUnitsInPackageScopeTransformer({

@@ -127,7 +127,7 @@ separately, and a half-fixed bug still reads as satisfied. One outcome, one obse
 Be concrete: "the GET-QUEST tool result text renders in the row", not "it works". Declare any
 \`contracts\` you already know touch the bug, and a \`packagesAffected\` entry for every package a
 node is tagged with — \`{ name, location, changeType, packageType, usedBy? }\`, \`location\` written
-WITH the \`./\` prefix (\`'./packages/web'\`, never the bare \`'packages/web'\`), \`usedBy\` required only
+WITH the \`./\` prefix (\`'./packages/<name>'\`, never the bare \`'packages/<name>'\`), \`usedBy\` required only
 when \`changeType: 'new'\` (optional beyond that coverage — PestEater will discover the rest).
 Transition \`status: 'review_observables'\` and ask:
 "Do these expected-behavior observables look right for approval?"

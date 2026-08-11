@@ -185,10 +185,11 @@ export const workItemToPromptTransformer = ({
 
   // The flows this item lands on, with the caveat inline because the agent reads this block, not
   // the contract's describe(). What the pointer MEANS differs by role: flowrider and siegemaster
-  // are operators dispatched ONE item for the whole quest, so every flow listed is theirs to
-  // account for — they bundle them and delegate to minions; every other role gets a non-binding
-  // starting point, and treating it as a boundary is the failure mode to avoid (an item serving the
-  // whole spec carries no flows at all).
+  // are operators whose item IS its scope, so every flow listed is theirs to account for; every
+  // other role gets a non-binding starting point, and treating it as a boundary is the failure mode
+  // to avoid (an item serving the whole spec carries no flows at all). The caveat does NOT hand an
+  // operator the seams — a flowrider item is a package slice and the glue units belong to the seam
+  // item, so a line claiming them here would contradict the prompt it is interpolated into.
   const isFlowOperatorRole = workItem.role === 'flowrider' || workItem.role === 'siegemaster';
   if (linkedOperation.flowIds.length > 0) {
     parts.push(
@@ -198,7 +199,7 @@ export const workItemToPromptTransformer = ({
       ),
       contentTextContract.parse(
         isFlowOperatorRole
-          ? '(YOUR unit of accountability — ALL of them, plus the seams between them. One session owns every flow on this quest: bundle them, delegate each bundle to a minion, then verify what comes back.)'
+          ? '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where your role has minions.)'
           : '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
       ),
     );

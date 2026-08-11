@@ -414,7 +414,7 @@ describe('dumpsterCreatePromptStatics', () => {
 
     it('VALID: prompt template => location must be written with the ./ prefix, never bare', () => {
       const needle =
-        "`location`: the package's repo-relative root, written WITH the `./` prefix — `'./packages/web'`, never the bare `'packages/web'` (the path contract rejects a bare relative path with no leading `./` or `../`).";
+        "`location`: the package's repo-relative root, written WITH the `./` prefix — `'./packages/<name>'`, never the bare `'packages/<name>'` (the path contract rejects a bare relative path with no leading `./` or `../`).";
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);

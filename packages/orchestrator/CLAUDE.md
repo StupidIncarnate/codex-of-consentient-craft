@@ -439,9 +439,15 @@ one work item over its life.
   (from `questTypeRegistryStatics`) as pending locked operation items, force-completes any leftover
   chat-role intake items (`isChatWorkItemRoleGuard` — chaoswhisperer / glyphsmith / bughunt), and creates the first
   work item — all in one `questOperationsUpdateBroker`
-  persist. Most `relayTail` entries map 1:1 to an operation item. **`flowrider` gets ONE whole-quest item** carrying
-  every quest flow id in `flowIds` (empty on a flow-less quest) — authoring test suites is parallel-safe, so one
-  session fans out internally and holds one pt chain. **`siegemaster` fans out to ONE ITEM PER FLOW**, each carrying a
+  persist. Most `relayTail` entries map 1:1 to an operation item. **`flowrider` fans out BY PACKAGE**
+  (`relayTailFanOutTransformer`, `fanOutBy: 'package'`): one item per package its runtime nodes tag that resolves to a
+  kind in `signoffTrackEligibilityStatics.byTrack.flowrider.packageTypes`, plus ONE seam item for the glue nodes where
+  two such packages meet. A node landing only in a browser-reachable kind mints nothing here — those units are
+  Groundstomper's — so a quest whose every runtime node is frontend gets NO flowrider item at all, exactly as a quest
+  with no browser-reachable node gets no groundstomper item. A package absent from `packagesAffected` resolves to no
+  kind and is KEPT, matching what the completion gate does with it. A quest with no runtime node to slice on falls back
+  to one whole-quest item, so the role is never silently dropped. **`groundstomper` fans out to ONE ITEM PER RUNTIME
+  FLOW** reaching a browser-reachable package. **`siegemaster` fans out to ONE ITEM PER FLOW**, each carrying a
   single `flowId` and a text suffixed `— flow: <id>`. Its work is strictly serial (one dev server, one reset lever),
   so a whole-quest item put every flow behind one session's context AND one pt budget; per-flow items give each flow
   its own budget (the pt chain keys on role + base text, and the text carries the flow id) and its own completion
@@ -571,8 +577,9 @@ reads the registry entry for `quest.questType`:
 
 - **`feature`** (`/dumpster-create`): `initialWorkItemRole` = `chaoswhisperer`. `startImplementationOps` is empty —
   ChaosWhisperer authors the `codeweaver` operation items at spec time. `relayTail` = `ward(changed) → flowrider →
-  groundstomper → siegemaster → blightwarden → ward(full)` — four fixed items plus one `siegemaster` item per quest flow (or one, on
-  a flow-less quest); the `flowrider` item carries every quest flow id (see "Operations Ledger & Work Items" above).
+  groundstomper → siegemaster → blightwarden → ward(full)` — three fixed items plus one `siegemaster` item per quest flow (or one, on
+  a flow-less quest), one `groundstomper` item per e2e-eligible runtime flow, and the `flowrider` items its package
+  slicing mints (see "Operations Ledger & Work Items" above).
 - **`bug-hunt`** (`/dumpster-hunt`): `initialWorkItemRole` = `bughunt`, so `create-quest` seeds a `bughunt` intake
   operation item + work item exactly as `feature` seeds a `chaoswhisperer` one. That work item is where the intake
   session's `sessionId` lands, which is what gives the browser chat panel a session to hook onto during the hunt.
@@ -663,8 +670,9 @@ attempt.
 
 Each locked (verify-tail) role's pt chain is bounded by `slotManagerStatics.<role>.maxAttempts` (ward by
 `slotManagerStatics.ward.maxRetries`); a spent chain blocks the quest instead of looping. A chain is keyed on role +
-base text. `flowrider` and `blightwarden` each hold exactly one item and therefore one budget; `groundstomper` and
-`siegemaster` each hold one
+base text. `blightwarden` holds exactly one item and therefore one budget; `flowrider` holds one PER PACKAGE it owns
+plus one seam item, and because each carries its package (or the seam's package set) in its text, each slice gets its
+own budget; `groundstomper` and `siegemaster` each hold one
 item PER FLOW, and because each carries the flow id in its text, each flow gets its own budget. The continuation
 copies the item's `flowIds` AND its `packageNames` so the fresh session keeps that scope — a continuation that lost
 either would silently work the whole quest instead of the remainder. See "Signal System" + "Failure handling".
@@ -679,8 +687,12 @@ the Agent tool (the `blightwarden-group-minion`, `blightwarden-crosscut-minion`,
 `agentPromptClassificationStatics`).
 Minions are NOT work items and NOT operation items: they call `get-agent-prompt` with no `workItemId`, are briefed
 inline by their parent, and never signal back — that parallelism lives inside the parent's turn, observable under the
-parent's chain via wire-level toolUseId correlation. Blightwarden dispatches one `blightwarden-group-minion` per disjoint
-group of changed impl+test file pairs — each reviews all four concerns against its group, fixes violations in place,
+parent's chain via wire-level toolUseId correlation. Blightwarden dispatches one `blightwarden-group-minion` per group
+of changed impl+test file pairs, cut by PACKAGE first (`get-blight-checklist` sections the diff by the package each file
+resolves to, from the quest's own `packagesAffected` locations) and by `blightPartitionStatics.targetFilesPerGroup`
+second, within a package — so a group never spans two packages and two minions can never be handed one file. Files
+under no declared package form the trailing section and are grouped the same way. Each minion
+reviews all four concerns against its group, fixes violations in place,
 and writes a disposition per unit into `planningNotes.blightLedger` as it goes — then, once every group has returned,
 ONE `blightwarden-crosscut-minion` alone over the whole diff for cross-pair duplication and blast radius that no
 single group can see, and finally ONE `blightwarden-deadcode-minion` alone, last, because whether an export still has
@@ -925,10 +937,10 @@ sub-agents call in parallel against the same MCP stdio child.
 | chaoswhisperer-gap-minion      | ChaosWhisperer (inside `/dumpster-create`)  | Validate spec completeness before approval                                                                                                                                                                                                                      |
 | codeweaver-piece-minion              | Codeweaver via the Agent tool (per piece)   | Focused TDD worker: builds one isolated step/file-group, returns a distilled artifact. No work item                                                                                                                                                             |
 | flowrider-authoring-minion               | Flowrider via the Agent tool (per bundle)   | Authors the flow-perspective suite for one bundle of flows and closes the impl holes it exposes (red-first); PARALLEL siblings, so it never builds and never writes `git`. Returns the five-part evidence contract per observable. Signs NOTHING — the coverage minion grades its work                |
-| flowrider-coverage-minion      | Flowrider via the Agent tool (alone, after authoring) | The ONLY writer of the Flowrider track. Crosses the `baseRef` diff against every unit on the quest's RUNTIME flows and signs each `confirmed` (a test `file:line` plus the break that reds it, witnessed) or `unconfirmable` (with a required `question`). Writes sign-offs BATCHED, one call per flow. Authors no tests: a unit with no honest test stays UNSIGNED and routes back to an authoring pass |
+| flowrider-coverage-minion      | Flowrider via the Agent tool (alone, after authoring) | The ONLY writer of the Flowrider track. Crosses the `baseRef` diff against the units `get-qa-checklist` returns for `track: 'flowrider'` plus the dispatching item's `packageNames` — its slice of the quest's RUNTIME flows, with the browser-reachable package kinds already removed as Groundstomper's — and signs each `confirmed` (a `.test.ts` / `.integration.test.ts` `file:line` plus the break that reds it, witnessed; a Playwright spec is never evidence here) or `unconfirmable` (with a required `question`). Writes sign-offs BATCHED, one call per flow. Authors no tests: a unit with no honest test stays UNSIGNED and routes back to an authoring pass |
 | siegemaster-walker-minion             | Siegemaster via the Agent tool (per slice)  | Hand-walks ONE slice of one flow; always SERIAL. STOPS at the first defect, fixes it red-first (e2e or integration by layer), and reports — never continues past its own repair, because a FRESH walker re-walks the slice to verify it. Never runs `git` or ward |
-| siegemaster-test-audit-minion  | Siegemaster via the Agent tool (per flow)   | Runs LAST, after every slice is clean, so several may run in parallel. MUTATION-ONLY: breaks the production line, watches whether the test bites, reverts. Authors NO tests (that is Flowrider's lane) and never edits implementation — a behaviour change now would invalidate the clean walks. Coverage holes come back for the operator to file as `questNotes`; suspected defects are reported for re-walk |
-| blightwarden-group-minion            | Blightwarden via the Agent tool (per group) | Reviews and FIXES one disjoint group of changed impl+test file pairs against all four blight concerns (craft, perf, dedup, integrity); writes a disposition per unit into `planningNotes.blightLedger` as it goes. PARALLEL siblings, disjoint by file. No work item |
+| siegemaster-test-audit-minion  | Siegemaster via the Agent tool (per flow)   | Runs LAST, after every slice is clean, so several may run in parallel. MUTATION-ONLY: breaks the production line, watches whether the test bites, reverts. Authors NO tests (authoring is Flowrider's lane below the browser and Groundstomper's inside it) and never edits implementation — a behaviour change now would invalidate the clean walks. Coverage holes come back for the operator to file as `questNotes`; suspected defects are reported for re-walk |
+| blightwarden-group-minion            | Blightwarden via the Agent tool (per group) | Reviews and FIXES one group of changed impl+test file pairs against all four blight concerns (craft, perf, dedup, integrity); writes a disposition per unit into `planningNotes.blightLedger` as it goes. PARALLEL siblings, disjoint by construction because every group sits inside one package. No work item |
 | blightwarden-crosscut-minion   | Blightwarden via the Agent tool (alone, second) | Runs ONCE, after every `blightwarden-group-minion` has returned, over the WHOLE diff — catches cross-pair duplication and blast radius no single group can see. Fixes freely (no siblings running to collide with). Does NOT write `planningNotes.blightLedger` — reports its findings to the parent |
 | blightwarden-deadcode-minion   | Blightwarden via the Agent tool (alone, last) | Runs ONCE, THIRD, over the WHOLE diff, because every earlier fix can itself orphan something. Whether an export still has a consumer is a property of the whole import graph, which is why dead code is no per-file concern and owns no checklist unit. Must show the exact search behind every claimed orphan |
 

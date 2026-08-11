@@ -32,6 +32,15 @@
  * path into scope — a test-only diff still needs its implementation read to judge whether the test
  * asserts anything.
  *
+ * PACKAGE: each group's `implPath` is matched against the `location` of every entry in the quest's
+ * `packagesAffected`, longest prefix winning so a package nested inside another still resolves to
+ * itself. The declared locations are the ONLY source — no layout is assumed and no package name is
+ * read out of a path, because a quest may run in a repo that does not put its packages under
+ * `packages/` at all, and the same name may mean different directories in different repos. A path
+ * under none of the declared locations carries no package rather than the nearest one: the partition
+ * gives those files their own group, and inventing an owner for them would silently widen a real
+ * package's group with files nobody declared.
+ *
  * `.stub.ts` is the one marker whose base is NOT the bare stripped path: stripping alone yields
  * `<domain>`, but a stub's implementation is `<domain>-contract.ts`, so `-contract` is appended to
  * land it in the same group. `contracts` is the only folder type declaring `.stub.ts` in its
@@ -53,7 +62,9 @@ import type {
   BlightChecklist,
   Quest,
   QuestBlightLedgerEntry,
+  QuestPackageEntry,
   RepoRelativePath,
+  RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
 
 // The concern half of every unit's label, colocated here so the wording lives in one place. `{file}`
@@ -78,10 +89,14 @@ const blightConcernDescriptions = {
 export const blightChecklistBuildTransformer = ({
   changedFiles,
   ledger = [],
+  packagesAffected = [],
+  projectRoot,
   baseRef,
 }: {
   changedFiles: readonly RepoRelativePath[];
   ledger?: readonly QuestBlightLedgerEntry[];
+  packagesAffected?: readonly QuestPackageEntry[];
+  projectRoot?: RepoRootCwd;
   baseRef: NonNullable<Quest['baseRef']>;
 }): BlightChecklist => {
   const selfPairedFiles: RepoRelativePath[] = [];
@@ -168,13 +183,41 @@ export const blightChecklistBuildTransformer = ({
   ];
   resolvedGroups.sort((a, b) => (a.implPath < b.implPath ? -1 : a.implPath > b.implPath ? 1 : 0));
 
+  // A declared `location` is either absolute or `./`-prefixed against the quest's own project root,
+  // while a changed file is repo-relative — so both are reduced to the same repo-relative form
+  // before they are compared. An absolute location with no `projectRoot` to reduce it against keeps
+  // its leading slash and therefore matches nothing, which routes its files to the residual group
+  // rather than to a package this transformer cannot prove they belong to.
+  const projectRootPrefix =
+    projectRoot === undefined ? '' : `${String(projectRoot).replace(/\/+$/u, '')}/`;
+
+  // Longest prefix first, so a package declared inside another package's tree claims its own files
+  // instead of losing them to the enclosing declaration.
+  const declaredPackages = packagesAffected
+    .map((entry) => {
+      const declared = String(entry.location).replace(/\/+$/u, '');
+      const rooted =
+        projectRootPrefix.length > 0 && declared.startsWith(projectRootPrefix)
+          ? declared.slice(projectRootPrefix.length)
+          : declared;
+      return { name: entry.name, prefix: rooted.replace(/^\.\//u, '') };
+    })
+    .filter((declared) => declared.prefix.length > 0)
+    .sort((a, b) => b.prefix.length - a.prefix.length);
+
   const items = resolvedGroups.flatMap(({ implPath, pairedFiles }) => {
-    const basename = String(implPath).split('/').pop() ?? String(implPath);
+    const implPathText = String(implPath);
+    const basename = implPathText.split('/').pop() ?? implPathText;
+    const owningPackage = declaredPackages.find(
+      (declared) =>
+        implPathText === declared.prefix || implPathText.startsWith(`${declared.prefix}/`),
+    );
     return blightConcernContract.options.map((concern) =>
       blightChecklistItemContract.parse({
-        id: `${String(implPath)}:${concern}`,
+        id: `${implPathText}:${concern}`,
         implPath,
         concern,
+        ...(owningPackage === undefined ? {} : { packageName: owningPackage.name }),
         pairedFiles,
         label: `${concern} — ${blightConcernDescriptions[concern].replace('{file}', basename)}`,
       }),

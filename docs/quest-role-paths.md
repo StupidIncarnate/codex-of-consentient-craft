@@ -62,9 +62,11 @@ reached only when a bounded loop is spent.
 - **Fixpoint** — the `pt N` chain for `ward`. A red run completes its ward operation item and spawns a fresh `pt N+1`
   ward continuation (with a spiritmender spliced in ahead of it — see "The sad paths in detail" § (b)); a run that
   comes back green ends the chain. Convergence IS the verdict: a fresh run that came back green is acceptance.
-- **Operator convergence** — `flowrider`, `siegemaster`, and `blightwarden` do NOT use the fixpoint. They signal on
+- **Operator convergence** — `flowrider`, `groundstomper`, `siegemaster`, and `blightwarden` do NOT use the fixpoint.
+  They signal on
   remaining SCOPE, measured **per track**: `done` once every unit in scope is settled on that role's OWN track
-  (`flowriderSignoff` for flowrider, `siegemasterSignoff` for siegemaster, a `blightLedger` disposition for
+  (`flowriderSignoff` for flowrider and groundstomper over disjoint package kinds, `siegemasterSignoff` for
+  siegemaster, a `blightLedger` disposition for
   blightwarden), `partial` only when a named remainder is left. Verdicts are per role; **there is no aggregate
   status** and no unit-level "done" that both roles share. An operator delegates to minions and then re-reads the
   files they wrote, so it already IS the fresh pair of eyes a `pt N` session would supply — authoring a test, walking
@@ -91,7 +93,7 @@ operation items at Start Quest.
 
 | Type       | Intake                              | Implementation ops                                                        | Verify tail (appended at Start, all locked)                     |
 |------------|-------------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------------------|
-| `feature`  | `/dumpster-create` (ChaosWhisperer) | **Chaos-authored** `codeweaver` items (`startImplementationOps` is empty) | `ward(changed) → flowrider → siegemaster → blightwarden → ward(full)` |
+| `feature`  | `/dumpster-create` (ChaosWhisperer) | **Chaos-authored** `codeweaver` items (`startImplementationOps` is empty) | `ward(changed) → flowrider → groundstomper → siegemaster → blightwarden → ward(full)` |
 | `bug-hunt` | `/dumpster-hunt` (BugHunt intake)   | orchestrator-seeded `pesteater` (`initialWorkItemRole` is null)           | `ward(changed) → blightwarden → ward(full)`                     |
 
 So the full feature relay is:
@@ -99,7 +101,9 @@ So the full feature relay is:
 ```
 chaoswhisperer (plan item)   → codeweaver ×N (Chaos-authored)
   → ward(changed)
-  → flowrider (ALL flows, bundled to minions) → siegemaster (ALL flows, bundled to minions)
+  → flowrider ×N (one per package it owns + one seam item, bundled to minions)
+  → groundstomper ×N (one per runtime flow a browser can reach)
+  → siegemaster ×N (one per flow, bundled to minions)
   → blightwarden → ward(full)
 ```
 
@@ -110,11 +114,19 @@ pesteater
   → ward(changed) → blightwarden → ward(full)
 ```
 
-`flowrider` is an **operator** role: the registry declares one tail entry, and `questBuildRelayGraphBroker` seeds
-exactly ONE operation item carrying EVERY quest flow id in `flowIds` (a quest with no flows gets an empty list). One
-session owns all of a quest's flows and delegates across them internally, so it has exactly one pt-continuation chain.
-Its GATE, though, is narrower than its `flowIds`: the `flowrider` track counts RUNTIME flows only, because an
-operational flow is a one-time task sequence whose end state Siegemaster hand-checks and which no test can assert.
+`flowrider` is an **operator** role that owns test coverage BELOW the browser, and its one registry tail entry fans
+out BY PACKAGE (`relayTailFanOutTransformer`, `fanOutBy: 'package'`): one operation item per package the quest's
+runtime nodes tag whose kind is in `signoffTrackEligibilityStatics.byTrack.flowrider.packageTypes`, plus ONE seam item
+for the glue nodes where two such packages meet. Each item carries its own `packageNames` and therefore its own
+pt-continuation chain, and one session owns that slice across every runtime flow it touches. A node landing only in a
+browser-reachable kind mints no flowrider item — those units belong to `groundstomper` — so a quest whose every runtime
+node is frontend gets none at all; a quest with no runtime node to slice on falls back to a single whole-quest item.
+Its GATE is narrower than its `flowIds` in the other direction too: the `flowrider` track counts RUNTIME flows only,
+because an operational flow is a one-time task sequence whose end state Siegemaster hand-checks and which no test can
+assert.
+`groundstomper` is the **operator that owns Playwright**, and it is the only role that authors `.e2e.ts` files: it
+fans out to ONE OPERATION ITEM PER RUNTIME FLOW that reaches a browser-reachable package, runs with no minions, and
+writes `flowriderSignoff` over the package kinds Flowrider's list excludes.
 `siegemaster` is also an **operator**, but fans out to ONE OPERATION ITEM PER FLOW instead — each carries a single
 `flowId`, so each flow gets its own pt-continuation chain. Its track counts runtime and operational flows alike, plus
 the seven off-map probe families, which Flowrider's denominator excludes. A flow-less quest still gets exactly one
@@ -214,12 +226,15 @@ Trace one feature quest end to end.
 6. **Ward operation items** are dispatched as `run-ward` (`spawnerType: 'command'`) and handled by
    `quest-run-ward-broker` (see the ward path below).
 
-7. **Verify/review roles** run in tail order — `flowrider`, `siegemaster`, then `blightwarden`. All three are
-   **operators**: `flowrider` and `blightwarden` each run one session over the quest's runtime flows / the whole diff
-   and signal `done` once every unit in scope is settled on their own track; `siegemaster` runs one session PER flow,
-   each signalling on that flow's own scope and its own track. The two flow tracks are INDEPENDENT — Flowrider
-   signing a unit does nothing to Siegemaster's gate, and vice versa. Each role's chain is keyed on role + base
-   text — `flowrider` and `blightwarden` hold exactly one chain for the whole quest, `siegemaster` holds one PER flow.
+7. **Verify/review roles** run in tail order — `flowrider`, `groundstomper`, `siegemaster`, then `blightwarden`. All
+   four are
+   **operators**: `flowrider` runs one session per package slice below the browser, `groundstomper` one per
+   browser-reachable runtime flow, `blightwarden` one over the whole diff, each signalling `done` once every unit in
+   scope is settled on their own track; `siegemaster` runs one session PER flow,
+   each signalling on that flow's own scope and its own track. The two flow tracks are INDEPENDENT — an authoring
+   signature does nothing to Siegemaster's gate, and vice versa. Each role's chain is keyed on role + base
+   text — `blightwarden` holds exactly one chain for the whole quest, `flowrider` one per package slice,
+   `groundstomper` and `siegemaster` one PER flow.
    After `blightwarden` converges, `ward(full)` runs; on green, no `pending` operation item remains and the
    operation-aware status transformer derives `complete`.
 
@@ -297,22 +312,30 @@ once in § (d) rather than repeated per role: the operation item completes and g
 | **Codeweaver** | No (Chaos-authored) | operation `complete`, work item `complete`, advance → next operation | operation `complete` + a `pt N` continuation appended (unlocked → **unbounded** pt chain — codeweavers pivot in place freely); advance creates a fresh work item that continues from git |
 | **PestEater** (bug-hunt) | Yes | operation `complete`, advance → `ward(changed)`                | operation `complete` + `pt N` (locked → **bounded** by `slotManagerStatics.pesteater.maxAttempts`); spent chain → `blocked` |
 
-### Verify / review (feature tail; flowrider, siegemaster, blightwarden all operators)
+### Verify / review (feature tail; flowrider, groundstomper, siegemaster, blightwarden all operators)
 
 Each is a **locked** operation item, and `partial` always appends a `pt N` continuation for a fresh pass — **bounded**
 by `slotManagerStatics.<role>.maxAttempts`, with a spent chain blocking the quest via `quest-block-on-failure-broker`. A
-chain is keyed on role + base text. `flowrider` and `blightwarden` each hold exactly one tail item, so each gets
-exactly one budget for the whole quest; `siegemaster` holds one tail item PER FLOW (its text carries the flow id), so
-each flow gets its own budget. The continuation carries the same `flowIds`.
+chain is keyed on role + base text. `blightwarden` holds exactly one tail item, so it gets
+exactly one budget for the whole quest; `flowrider` holds one tail item PER PACKAGE SLICE (its text carries the package
+or the seam's package set); `groundstomper` and `siegemaster` each hold one tail item PER FLOW (its text carries the
+flow id), so each flow gets its own budget. The continuation carries the same `flowIds` AND the same `packageNames`.
 
-All three are **operators** and signal on remaining **scope**, never on whether a pass changed code. Each role asks ONE
+All four are **operators** and signal on remaining **scope**, never on whether a pass changed code. Each role asks ONE
 question and answers only its own:
 
-- **`flowrider` — is every observable proven by a test?** Its scope is the quest's RUNTIME flows. It signals `done`
-  once every unit there carries a `flowriderSignoff`. It delegates each bundle to a `flowrider-authoring-minion`, then dispatches
+- **`flowrider` — is every observable BELOW THE BROWSER proven by a test?** Its scope is the RUNTIME flows, narrowed to
+  the package kinds a browser cannot reach and then to its own item's `packageNames`. It authors Jest work only — no
+  Playwright, no dev server — and signals `done`
+  once every unit in that slice carries a `flowriderSignoff`. It delegates each bundle to a
+  `flowrider-authoring-minion`, then dispatches
   ONE `flowrider-coverage-minion` — the only writer of that track, because the minion that wrote a test cannot be the
   one that certifies it — and signs, itself, any observable it adds at its own final spec gate, which runs after the
   audit.
+- **`groundstomper` — does the flow hold when a browser walks it?** Its scope is the ONE runtime flow its item names,
+  narrowed to that flow's browser-reachable packages. It is the sole author of `.e2e.ts` Playwright specs, runs with
+  no minions, and writes `flowriderSignoff` over the package kinds Flowrider's list excludes. It inventories the
+  existing e2e suite for its flow first, so it extends a spec rather than adding a parallel one.
 - **`siegemaster` — does it hold when a human drives the real system, and can I break it?** Its scope is the ONE flow
   its item names, runtime or operational, plus the SEVEN off-map breakage families it owns: `re-entry`,
   `concurrency`, `interruption`, `staleness`, `configuration`, `hostile-input`, `perf`. `hostile-input` is where this
@@ -327,7 +350,8 @@ question and answers only its own:
 
 | Role             | Happy (`done`)                                                                                            | Sad (`partial`)                                                                       |
 |------------------|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| **Flowrider**    | advance → `siegemaster` (every runtime-flow unit carries a `flowriderSignoff`)                            | `pt N` continuation → fresh flowrider pass, named remainder (bounded)                    |
+| **Flowrider**    | advance → the next `flowrider` slice, or `groundstomper` on the last one (every unit in that package slice carries a `flowriderSignoff`) | `pt N` continuation → fresh flowrider pass for that slice, named remainder (bounded)     |
+| **Groundstomper**| advance → the next `groundstomper` item, or `siegemaster` on the last one (every browser-reachable unit on that flow carries a `flowriderSignoff`) | `pt N` continuation → fresh groundstomper pass for that flow, named remainder (bounded) |
 | **Siegemaster**  | advance → the next `siegemaster` item, or `blightwarden` on the last one (every unit on that flow carries a `siegemasterSignoff`) | `pt N` continuation → fresh siegemaster pass for that flow, named remainder (bounded)    |
 | **Blightwarden** | advance → `ward(full)` (every review unit dispositioned)                                                  | `pt N` continuation → fresh blightwarden pass, named remainder (bounded)                 |
 
@@ -348,7 +372,7 @@ Every verification unit — each terminal, each labelled branch, each observable
 
 | Field | Written by | Answers |
 |---|---|---|
-| `flowriderSignoff` | `flowrider-coverage-minion`, plus the Flowrider operator for units it adds at its own spec gate | is this proven by a test? |
+| `flowriderSignoff` | `flowrider-coverage-minion`, plus the Flowrider operator for units it adds at its own spec gate; and the Groundstomper session over the browser-reachable package kinds | is this proven by a test? |
 | `siegemasterSignoff` | the Siegemaster operator, per artifact its walkers return | does this hold when a human drives the real system? |
 
 Each is `{ verdict, evidence, question?, workItemId, at }` and each `verdict` is one of exactly TWO values:
@@ -601,7 +625,7 @@ dispatchable while the wreckage is still in place.
   yet run" window).
 - **REL-6 — Duplicate-on-partial.** `partial` → operation `complete` + a `pt N` continuation → a fresh work item. A
   locked role's chain is bounded. What earns `done` is role-dependent: for `ward` it is a fresh run that came back
-  green; for `flowrider` and `siegemaster` it is that role's OWN track carrying a sign-off on every unit in its own
+  green; for `flowrider`, `groundstomper` and `siegemaster` it is that role's OWN track carrying a sign-off on every unit in its own
   denominator; for `blightwarden` it is a blight checklist with no undispositioned unit left. Both verdicts
   (`confirmed`, `unconfirmable`) satisfy a track — the gate refuses ABSENCE, not honesty.
 - **REL-6a — The two flow tracks are independent.** `flowriderSignoff` and `siegemasterSignoff` gate different
@@ -680,8 +704,10 @@ dispatchable while the wreckage is still in place.
 [DISPATCHER] Node/UI play button (or /dumpster-launch)
    ▼ codeweaver ×N (one session each)   → done → advance
    ▼ ward (changed)   [run-ward]        → green → advance
-   ▼ flowrider (all quest flows)        → done → advance     (bundles flows to authoring minions, then
-                                                              one coverage minion signs the flowrider track)
+   ▼ flowrider (one per package slice)  → done → advance     (bundles flows to authoring minions, then
+                                                              one coverage minion signs its slice of the track)
+   ▼ groundstomper (one per e2e flow)   → done → advance     (sole author of .e2e.ts Playwright specs;
+                                                              no minions, one browser walk at a time)
    ▼ siegemaster (one session per flow) → done → advance     (repeats per flow; walks via minions,
                                                               resets its own track after each fix)
    ▼ blightwarden                       → done → advance     (operator: get-blight-checklist gate)

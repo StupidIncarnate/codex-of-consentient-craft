@@ -23,7 +23,7 @@ export const sessionSnippetStatics = {
 
 ### Output: glob (default)
 
-\`discover({ glob: "packages/web/src/widgets/quest-chat/**" })\` returns a folder tree:
+\`discover({ glob: "packages/<name>/src/widgets/quest-chat/**" })\` returns a folder tree:
 
 \`\`\`
 widgets/

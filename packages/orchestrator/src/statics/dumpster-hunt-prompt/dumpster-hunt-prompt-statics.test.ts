@@ -146,7 +146,7 @@ describe('dumpsterHuntPromptStatics', () => {
   describe('packagesAffected entry object shape', () => {
     it('VALID: template => packagesAffected entries use the object shape with the ./ location prefix', () => {
       const needle =
-        "a `packagesAffected` entry for every package a\nnode is tagged with — `{ name, location, changeType, packageType, usedBy? }`, `location` written\nWITH the `./` prefix (`'./packages/web'`, never the bare `'packages/web'`), `usedBy` required only\nwhen `changeType: 'new'`";
+        "a `packagesAffected` entry for every package a\nnode is tagged with — `{ name, location, changeType, packageType, usedBy? }`, `location` written\nWITH the `./` prefix (`'./packages/<name>'`, never the bare `'packages/<name>'`), `usedBy` required only\nwhen `changeType: 'new'`";
       const { template } = dumpsterHuntPromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
 
