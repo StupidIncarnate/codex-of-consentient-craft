@@ -84,6 +84,7 @@ module.exports = [
       'prefer-arrow-callback': 'error',
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
+      '@dungeonmaster-local/no-hardcoded-package-names': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
     },
@@ -126,6 +127,7 @@ module.exports = [
       'jest/unbound-method': 'off',
       '@dungeonmaster-local/ban-quest-status-literals': 'error',
       '@dungeonmaster-local/no-bare-location-literals': 'error',
+      '@dungeonmaster-local/no-hardcoded-package-names': 'error',
     },
   },
   // Test file-specific overrides (from dungeonmaster test config)

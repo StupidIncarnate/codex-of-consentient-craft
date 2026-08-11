@@ -17,19 +17,27 @@
  * `implPath` + `concern` (see blightChecklistItemIdContract), so re-deriving against the same
  * changed-file set reproduces byte-identical ids. `pairedFiles` carries every test/proxy/stub file
  * that collapsed onto this impl in the diff, so a reviewer sees the whole reviewable unit rather
- * than one file at a time.
+ * than one file at a time. `packageName` is the partition key the dispatch slicing reads: two
+ * groups drawn from two packages cannot share a file, which is what turns "keep the groups
+ * disjoint" from an instruction into a property of the data.
  */
 
 import { z } from 'zod';
 
 import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightConcernContract } from '../blight-concern/blight-concern-contract';
+import { packageNameContract } from '../package-name/package-name-contract';
 import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 
 export const blightChecklistItemContract = z.object({
   id: blightChecklistItemIdContract,
   implPath: repoRelativePathContract,
   concern: blightConcernContract,
+  packageName: packageNameContract
+    .optional()
+    .describe(
+      'The quest package entry whose `location` contains `implPath`, resolved by longest matching prefix. Absent when the path sits under none of them — a file outside every declared package, which is a real state and is owned by the residual partition group rather than assigned to a neighbour.',
+    ),
   pairedFiles: z
     .array(repoRelativePathContract)
     .default([])

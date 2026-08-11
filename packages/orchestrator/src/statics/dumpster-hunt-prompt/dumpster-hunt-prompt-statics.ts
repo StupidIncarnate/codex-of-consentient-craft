@@ -117,6 +117,12 @@ Each observable is ONE independently verifiable outcome:
 - \`when\`: the action that triggers the symptom.
 - \`then[]\`: the expected outcome, each clause typed (\`ui-state\`, \`api-call\`, \`file-exists\`,
   etc.). These are the assertions PestEater turns into failing tests.
+- \`package\`: the ONE package this outcome is read in, drawn from the owning node's \`packages\`.
+  **Omit it when that node tags exactly one package** — the save resolves it from the node, so
+  there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit
+  and an omission is refused: name the side of the seam this outcome sits on, and name one the node
+  already tags. A seam node's observables must between them cover every package it tags, unless the
+  edge set already forces one (dropping it would leave an incident edge with nothing spanning it).
 
 **Split, do not cram.** If an outcome has two parts, they are two observables — not one observable
 with a longer \`then[]\` and an "AND ..." sentence glued on. A single observable whose description
@@ -127,7 +133,7 @@ separately, and a half-fixed bug still reads as satisfied. One outcome, one obse
 Be concrete: "the GET-QUEST tool result text renders in the row", not "it works". Declare any
 \`contracts\` you already know touch the bug, and a \`packagesAffected\` entry for every package a
 node is tagged with — \`{ name, location, changeType, packageType, usedBy? }\`, \`location\` written
-WITH the \`./\` prefix (\`'./packages/web'\`, never the bare \`'packages/web'\`), \`usedBy\` required only
+WITH the \`./\` prefix (\`'./packages/<name>'\`, never the bare \`'packages/<name>'\`), \`usedBy\` required only
 when \`changeType: 'new'\` (optional beyond that coverage — PestEater will discover the rest).
 Transition \`status: 'review_observables'\` and ask:
 "Do these expected-behavior observables look right for approval?"

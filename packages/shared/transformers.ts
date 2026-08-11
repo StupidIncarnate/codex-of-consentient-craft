@@ -107,3 +107,7 @@ export * from './src/transformers/dependency-graph-find-cycle-path/dependency-gr
 export * from './src/transformers/dependency-graph-topological-order/dependency-graph-topological-order-transformer';
 export * from './src/transformers/package-json-dependency-names/package-json-dependency-names-transformer';
 export * from './src/transformers/dependency-graph-adjacency-build/dependency-graph-adjacency-build-transformer';
+
+// Package Kinds (the browser-reachability rules, and how a quest entry's stamped kind set is read)
+export * from './src/transformers/package-browser-type/package-browser-type-transformer';
+export * from './src/transformers/quest-package-entry-kinds/quest-package-entry-kinds-transformer';

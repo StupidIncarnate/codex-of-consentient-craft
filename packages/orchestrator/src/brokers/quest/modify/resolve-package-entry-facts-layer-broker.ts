@@ -1,9 +1,11 @@
 /**
  * PURPOSE: Reads the facts about a workspace that `questPackageEntryViolationsTransformer` needs
  * and cannot look up itself — which declared locations exist, who currently imports a package about
- * to be deleted — and re-stamps each existing entry's `packageType` from the on-disk detector, so an
- * author's guess never outranks the filesystem. It is a layer of the modify path rather than a
- * general broker because every answer is anchored on ONE quest's own repo and that quest's OWN
+ * to be deleted — and re-stamps each existing entry's `packageType` and `packageTypes` from the
+ * on-disk detector, so an author's guess never outranks the filesystem and the orchestrator, which
+ * holds no disk at dispatch time, can decide e2e eligibility off the entry. It is a layer of the
+ * modify path rather than a general broker because every answer is anchored on ONE quest's own repo
+ * and that quest's OWN
  * declared locations: the parent directory of each entry is taken as a workspace root, so a repo
  * whose packages do not live under `packages/` still resolves and no layout is assumed anywhere.
  *
@@ -82,7 +84,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
       try {
         return {
           location,
-          packageType: await architecturePackageTypeDetectBroker({ packageRoot }),
+          packageTypes: await architecturePackageTypeDetectBroker({ packageRoot }),
         };
       } catch {
         // A root that exists but whose own package.json is unparseable yields no detection, and the
@@ -93,21 +95,33 @@ export const resolvePackageEntryFactsLayerBroker = async ({
       }
     }),
   );
-  const detectedByLocation = new Map<unknown, PackageType>();
+  const detectedByLocation = new Map<unknown, [PackageType, ...PackageType[]]>();
   for (const detection of detections) {
     if (detection === undefined) {
       continue;
     }
-    detectedByLocation.set(detection.location, detection.packageType);
+    detectedByLocation.set(detection.location, detection.packageTypes);
   }
 
   const stampedEntries = entries.map((entry) => {
     // A 'new' package has nothing on disk to read, so its declared type is the only answer there is.
-    if (entry.changeType === 'new') {
-      return entry;
+    const detected =
+      entry.changeType === 'new' ? undefined : detectedByLocation.get(String(entry.location));
+
+    // BOTH axes come off the same read: `packageType` is the priority table's winner, which is what
+    // the diagram colours and every prompt line renders, and `packageTypes` is every kind the same
+    // signals support. They are stamped together because a decision made from the winner alone
+    // cannot see the kinds the table returned before reaching — a hono adapter shadowing a
+    // widgets+react folder is a package that loses its browser coverage without anything failing.
+    if (detected !== undefined) {
+      const [winner] = detected;
+      return { ...entry, packageType: winner, packageTypes: [...detected] };
     }
-    const detected = detectedByLocation.get(String(entry.location));
-    return detected === undefined ? entry : { ...entry, packageType: detected };
+
+    // Nothing on disk to read: a 'new' package, or a root whose manifest would not parse. The
+    // declared label is then the whole set — the same answer eligibility gave before the set
+    // existed — and a set already stamped by an earlier save is never narrowed back down.
+    return entry.packageTypes.length > 0 ? entry : { ...entry, packageTypes: [entry.packageType] };
   });
 
   const dependentsByPackage = new Map<unknown, unknown[]>();

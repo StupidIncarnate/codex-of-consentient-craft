@@ -25,6 +25,33 @@ describe('blightChecklistItemContract', () => {
       ).toStrictEqual([]);
     });
 
+    it('VALID: {packageName given} => carries the owning package alongside the path', () => {
+      expect(BlightChecklistItemStub({ packageName: 'web' }).packageName).toBe('web');
+    });
+
+    it('EMPTY: {no packageName key in payload} => the key is absent, marking a file under no declared package', () => {
+      expect(
+        blightChecklistItemContract.parse({
+          id: 'scripts/release.ts:dedup',
+          implPath: 'scripts/release.ts',
+          concern: 'dedup',
+          label: 'dedup — no duplicate release logic',
+        }),
+      ).toStrictEqual({
+        id: 'scripts/release.ts:dedup',
+        implPath: 'scripts/release.ts',
+        concern: 'dedup',
+        pairedFiles: [],
+        label: 'dedup — no duplicate release logic',
+      });
+    });
+
+    it('EMPTY: {packageName: ""} => throws, because an empty name names no package', () => {
+      expect(() => BlightChecklistItemStub({ packageName: '' as never })).toThrow(
+        /String must contain at least 1 character/u,
+      );
+    });
+
     it('VALID: {multiple paired files} => preserves every entry in order', () => {
       expect(
         BlightChecklistItemStub({

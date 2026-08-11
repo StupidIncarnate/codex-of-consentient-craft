@@ -117,16 +117,20 @@ The seed is idempotent — a re-Start detects the already-appended locked ward t
 The two quest types differ only in their ledger shape:
 
 - **feature** (`/dumpster-create`): `startImplementationOps` is empty (ChaosWhisperer authored the `codeweaver` items at
-  spec time). Verify tail = `ward(changed) → flowrider → siegemaster → blightwarden → ward(full)`.
+  spec time). Verify tail = `ward(changed) → flowrider → groundstomper → siegemaster → blightwarden → ward(full)`.
+  Flowrider authors the suites below the browser; `groundstomper` gets one item per runtime flow that reaches an
+  e2e-eligible package and owns the Playwright walk there.
 - **bug-hunt** (`/dumpster-hunt`): `startImplementationOps` = a single orchestrator-seeded `pesteater` item. Verify
-  tail = `ward(changed) → blightwarden → ward(full)` (no flowrider/siegemaster).
+  tail = `ward(changed) → blightwarden → ward(full)` (no flowrider/groundstomper/siegemaster — PestEater writes the
+  reproducing e2e itself).
 
 So the full feature relay is:
 
 ```
 codeweaver ×N (Chaos-authored)
   → ward(changed)
-  → flowrider(every quest flow) → siegemaster(one session per flow)
+  → flowrider(below the browser) → groundstomper(one session per e2e-eligible runtime flow)
+  → siegemaster(one session per flow)
   → blightwarden → ward(full)
 ```
 
@@ -225,8 +229,9 @@ halt is the bound, and dropping the append would make a resume skip the scope. A
 `flowrider` and `blightwarden` each hold exactly one tail item, so each gets exactly one budget; `siegemaster` holds
 one tail item PER FLOW, so each flow gets its own budget; the continuation copies its `flowIds`.
 
-Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → siegemaster ×2 →
-blightwarden → ward(full)` — the flowrider item carries both flow ids, and the two siegemaster items each carry one.
+Trace a two-flow feature quest end to end: `codeweaver ×N → ward(changed) → flowrider → groundstomper → siegemaster ×2 →
+blightwarden → ward(full)` — the two siegemaster items each carry one flow id, and groundstomper gets one item per
+runtime flow that reaches an e2e-eligible package.
 After `ward(full)` is green, no `pending`
 operation item remains and the operation-aware status transformer derives `complete`. The dispatcher's next
 `get-next-step` picks up the next FIFO quest.

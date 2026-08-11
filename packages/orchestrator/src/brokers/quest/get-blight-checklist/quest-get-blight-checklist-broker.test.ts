@@ -1,6 +1,7 @@
 import {
   QuestBlightLedgerEntryStub,
   QuestIdStub,
+  QuestPackageEntryStub,
   QuestStub,
   RepoRelativePathStub,
 } from '@dungeonmaster/shared/contracts';
@@ -73,6 +74,49 @@ describe('questGetBlightChecklistBroker', () => {
       await questGetBlightChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
 
       expect(proxy.getGitDiffArgs()).toStrictEqual(['diff', 'deadbeef...HEAD', '--name-only']);
+    });
+  });
+
+  describe("the quest's own package declarations reach the units", () => {
+    it('VALID: {packagesAffected declaring a location the changed file sits under} => the units carry that package', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({
+        baseRef: 'a1b2c3d4' as never,
+        packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: ['packages/web/src/widgets/foo/foo-widget.tsx'] });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+      });
+
+      expect([...new Set(result!.items.map((item) => String(item.packageName)))]).toStrictEqual([
+        'web',
+      ]);
+    });
+
+    it('VALID: {packagesAffected declaring an absolute location under the resolved cwd} => reduced against that cwd and still resolved', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({
+        baseRef: 'a1b2c3d4' as never,
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: '/home/testuser/my-guild/packages/web',
+          }),
+        ],
+      });
+      proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: ['packages/web/src/widgets/foo/foo-widget.tsx'] });
+
+      const result = await questGetBlightChecklistBroker({
+        questId: QuestIdStub({ value: quest.id }),
+      });
+
+      expect([...new Set(result!.items.map((item) => String(item.packageName)))]).toStrictEqual([
+        'web',
+      ]);
     });
   });
 

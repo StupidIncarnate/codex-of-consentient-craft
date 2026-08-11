@@ -14,6 +14,7 @@ describe('questPackageEntryContract', () => {
         location: './packages/auth-service',
         changeType: 'edit',
         packageType: 'library',
+        packageTypes: ['library'],
       });
     });
 
@@ -31,6 +32,7 @@ describe('questPackageEntryContract', () => {
         location: './packages/token-store',
         changeType: 'new',
         packageType: 'programmatic-service',
+        packageTypes: ['programmatic-service'],
         usedBy: ['auth-service', 'gateway'],
       });
     });
@@ -43,8 +45,37 @@ describe('questPackageEntryContract', () => {
         location: './packages/auth-service',
         changeType: 'new',
         packageType: 'library',
+        packageTypes: ['library'],
         usedBy: [],
       });
+    });
+
+    it('VALID: {packageTypes: two kinds} => a package carries every kind its signals support, with packageType still the single display label', () => {
+      const entry = QuestPackageEntryStub({
+        name: 'storefront',
+        location: './packages/storefront',
+        packageType: 'http-backend',
+        packageTypes: ['http-backend', 'frontend-react'],
+      });
+
+      expect(entry).toStrictEqual({
+        name: 'storefront',
+        location: './packages/storefront',
+        changeType: 'edit',
+        packageType: 'http-backend',
+        packageTypes: ['http-backend', 'frontend-react'],
+      });
+    });
+
+    it('EMPTY: {packageTypes omitted from raw input} => defaults to [], the marker that says this entry was never stamped', () => {
+      const entry = questPackageEntryContract.parse({
+        name: 'auth-service',
+        location: './packages/auth-service',
+        changeType: 'edit',
+        packageType: 'library',
+      });
+
+      expect(entry.packageTypes).toStrictEqual([]);
     });
 
     it('VALID: {location: absolute path} => parses, so a quest running outside a packages/<name> layout is representable', () => {
@@ -95,6 +126,12 @@ describe('questPackageEntryContract', () => {
 
     it('INVALID: {usedBy: [""]} => throws validation error', () => {
       expect(() => QuestPackageEntryStub({ usedBy: [''] })).toThrow(/too_small/u);
+    });
+
+    it('INVALID: {packageTypes: ["frontend-vue"]} => throws, the set is closed over the same kinds as the label', () => {
+      expect(() => QuestPackageEntryStub({ packageTypes: ['frontend-vue'] })).toThrow(
+        /Invalid enum value/u,
+      );
     });
 
     it('EMPTY: {} => throws validation error', () => {

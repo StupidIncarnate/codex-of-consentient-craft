@@ -3,7 +3,8 @@
  * detectPackageTypeLayerBroker's priority table lets an earlier rule (hono/express, MCP) return
  * before the widgets+react/ink rule is ever reached, so a package that is BOTH an http-backend
  * and a frontend would read as ineligible if eligibility were derived from the winning label
- * instead of the same underlying signals the detector itself consults.
+ * instead of the same underlying signals the detector itself consults. Reach for
+ * `packageBrowserTypeTransformer` instead when the caller has to name WHICH browser kind it is.
  *
  * USAGE:
  * isPackageE2eEligibleGuard({
@@ -14,9 +15,7 @@
  */
 
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';
-import { hasWidgetsFolderGuard } from '../has-widgets-folder/has-widgets-folder-guard';
-import { hasInkAdapterGuard } from '../has-ink-adapter/has-ink-adapter-guard';
-import { reactInDepsGuard } from '../react-in-deps/react-in-deps-guard';
+import { packageBrowserTypeTransformer } from '../../transformers/package-browser-type/package-browser-type-transformer';
 
 export const isPackageE2eEligibleGuard = ({
   adapterDirNames,
@@ -26,12 +25,9 @@ export const isPackageE2eEligibleGuard = ({
   adapterDirNames?: string[];
   srcDirNames?: string[];
   packageJson?: PackageJson;
-}): boolean => {
-  if (!hasWidgetsFolderGuard(srcDirNames === undefined ? {} : { srcDirNames })) {
-    return false;
-  }
-  return (
-    hasInkAdapterGuard(adapterDirNames === undefined ? {} : { adapterDirNames }) ||
-    reactInDepsGuard(packageJson === undefined ? {} : { packageJson })
-  );
-};
+}): boolean =>
+  packageBrowserTypeTransformer({
+    ...(adapterDirNames === undefined ? {} : { adapterDirNames }),
+    ...(srcDirNames === undefined ? {} : { srcDirNames }),
+    ...(packageJson === undefined ? {} : { packageJson }),
+  }) !== undefined;

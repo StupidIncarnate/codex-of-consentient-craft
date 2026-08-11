@@ -21,12 +21,17 @@
  * resolution at all, so an item still narrows correctly on a quest whose `packagesAffected` is
  * empty or lags its node tags.
  *
+ * A NAME RESOLVES TO A SET OF KINDS, not one. A package can be several — widgets+react behind a
+ * hono adapter is browser-reachable AND an http-backend — and each entry's stamped set is what says
+ * so, since the detector's priority table names a single winner and returns.
+ *
  * HOW `packageNames` NARROWS is `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so the
  * seam rule is data rather than a role comparison here. Under `partition` a one-name item owns the
- * units whose node tags exactly that package and a many-name item owns the glue units — which is
- * what makes Flowrider's N per-package items plus one seam item a true partition, each with a pt
- * budget that means something. Under `intersection` an item owns every unit whose node tags any of
- * its names, glue included.
+ * units whose node tags exactly that package — measured over the packages the track's own KINDS
+ * cover, the same subset `relayTailFanOutTransformer` slices on — and a many-name item owns the
+ * glue units, which is what makes Flowrider's N per-package items plus one seam item a true
+ * partition, each with a pt budget that means something. Under `intersection` an item owns every
+ * unit whose node tags any of its names, glue included.
  *
  * NOTHING IS EXCLUDED ON DATA THAT CANNOT BE RESOLVED. A unit hanging off no node, a node the flow
  * does not carry, and a node tagged with a package absent from `packagesAffected` all stay in. A
@@ -36,6 +41,7 @@
  */
 
 import type { Flow, PackageName, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { QaVerificationUnit } from '../../contracts/qa-verification-unit/qa-verification-unit-contract';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
@@ -56,8 +62,14 @@ export const qaUnitsInPackageScopeTransformer = ({
   const eligibility = signoffTrackEligibilityStatics.byTrack[track];
   const eligiblePackageTypes = new Set(eligibility.packageTypes.map(String));
   const declaredNames = new Set(packageNames.map(String));
-  const packageTypeByName = new Map(
-    packagesAffected.map((entry) => [String(entry.name), String(entry.packageType)]),
+  // The entry's KIND SET, never its single display label — a package can be more than one kind, and
+  // the detector's priority table reports only the first match, so a package that serves HTTP and
+  // also renders widgets would resolve wholly to one track and drop out of the other's denominator.
+  const packageKindsByName = new Map(
+    packagesAffected.map((entry) => [
+      String(entry.name),
+      questPackageEntryKindsTransformer({ entry }).map(String),
+    ]),
   );
 
   const nodePackagesById = new Map(
@@ -78,10 +90,7 @@ export const qaUnitsInPackageScopeTransformer = ({
       return true;
     }
 
-    const owningPackageTypes = owningPackages.flatMap((name) => {
-      const packageType = packageTypeByName.get(name);
-      return packageType === undefined ? [] : [packageType];
-    });
+    const owningPackageTypes = owningPackages.flatMap((name) => packageKindsByName.get(name) ?? []);
 
     const outOfKind =
       owningPackageTypes.length > 0 &&
@@ -102,9 +111,20 @@ export const qaUnitsInPackageScopeTransformer = ({
       // than one owns the glue. Reading a per-package item as "any node including my package"
       // instead would hand every glue unit to two items at once, and leave the seam item — the
       // honest replacement for the whole-quest reconcile — owning nothing of its own.
-      return owningPackages.length > 1
+      //
+      // ALONE is measured over the packages THIS TRACK OWNS, not over the raw tag list, because
+      // that is the set the slicer mints from. A node spanning a frontend and a backend package is
+      // glue on the graph but lands on ONE side of this track, so its units belong to that side's
+      // per-package item; reading its raw arity instead leaves them owned by no item at all, since
+      // the seam item narrows its own names the same way and would not be the one that owned them.
+      const owningInKind = owningPackages.filter((name) => {
+        const kinds = packageKindsByName.get(name);
+        return kinds === undefined || kinds.some((kind) => eligiblePackageTypes.has(kind));
+      });
+
+      return owningInKind.length > 1
         ? declaredNames.size > 1
-        : declaredNames.size === 1 && owningPackages.every((name) => declaredNames.has(name));
+        : declaredNames.size === 1 && owningInKind.every((name) => declaredNames.has(name));
     }
 
     return owningPackages.some((name) => declaredNames.has(name));

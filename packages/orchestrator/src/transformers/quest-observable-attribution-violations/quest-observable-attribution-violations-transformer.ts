@@ -100,8 +100,11 @@ export const questObservableAttributionViolationsTransformer = ({
         coveredPackages.add(observablePackage);
       }
 
-      // A single-package node has nothing to under-cover: the save resolves every observable's
-      // package from the node, so the union can only ever be that one package.
+      // A single-package node has nothing left for this branch to add. An observable that named
+      // nothing had that one package resolved onto it on save
+      // (`questResolvedObservablePackagesTransformer`), and one that named something else was just
+      // reported above as mis-attributed — restating it here as an uncovered package would bury
+      // the finding that already names it.
       if (node.packages.length === 1) {
         continue;
       }

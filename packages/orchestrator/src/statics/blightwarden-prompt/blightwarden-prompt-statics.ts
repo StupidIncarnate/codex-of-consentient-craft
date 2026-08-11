@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Defines the Blightwarden agent prompt — the operator that owns the cross-cutting audit
- * of the WHOLE quest diff, dispatching blightwarden-group-minions over disjoint file groups plus
- * two whole-diff minions (crosscut, then dead code), and fixing what they find inline
+ * of the WHOLE quest diff, dispatching blightwarden-group-minions over package-aligned file groups
+ * plus two whole-diff minions (crosscut, then dead code), and fixing what they find inline
  *
  * USAGE:
  * blightwardenPromptStatics.prompt.template;
@@ -11,9 +11,9 @@
  * 1. Loads standards, then calls `get-blight-checklist({ questId })` for the deterministic file ×
  *    concern review surface of this quest's diff, measured from the quest's pinned `baseRef` —
  *    never a hand-rolled `git diff` against the default branch
- * 2. Partitions the remaining (undispositioned) units' file-pairs into disjoint groups sized by
- *    `blightPartitionStatics` and dispatches one `blightwarden-group-minion` per group, in parallel
- *    waves
+ * 2. Cuts the checklist's package sections into groups sized by `blightPartitionStatics` — one
+ *    package per group, never two — and dispatches one `blightwarden-group-minion` per group, in
+ *    parallel waves
  * 3. Dispatches ONE `blightwarden-crosscut-minion` over the whole diff for cross-pair duplication
  *    and blast radius that no single group can see
  * 4. Dispatches ONE `blightwarden-deadcode-minion` over the whole diff for orphaned exports and
@@ -173,14 +173,26 @@ down.
 
 ### Gate 3: Partition & Dispatch blightwarden-group-minion (BLOCKING)
 
-Group the remaining units' file-pairs into disjoint groups.
-**Target ${blightPartitionStatics.targetFilesPerGroup} changed files per group** — roughly three impl+test pairs, which is what one
-minion can hold carefully enough to review rather than skim. A smaller group is fine when that is
-all that remains; a group of a dozen is not, and an implementation file and its colocated test
-always go to the SAME group.
+**Groups are cut by PACKAGE first.** The checklist sections every file under the package that owns
+it, and each section heading states how many groups its files become. Take the sections in the
+order they render and cut each one into groups yourself: **at most ${blightPartitionStatics.targetFilesPerGroup} changed files per group**
+— roughly three impl+test pairs, which is what one minion can hold carefully enough to review
+rather than skim. A package with more files than that becomes several groups; a package with fewer
+becomes one small group and stays its own, because packing two packages together to reach the
+target is the one thing a group may never do.
 
-**Groups MUST be disjoint by file** — parallel minions editing the same file produce phantom
-typecheck failures that get misdiagnosed as stale dist.
+**A group NEVER spans two sections.** That is what makes the groups disjoint by construction rather
+than by your care: two minions collide only by sharing a file, and a file belongs to exactly one
+package, so groups cut on the package boundary cannot overlap however the sizes fall. Parallel
+minions editing the same file produce phantom typecheck failures that get misdiagnosed as stale
+dist, and this is what removes that possibility. An implementation file and its colocated test land
+in the same group for free — they sit in one package, so no boundary runs between them.
+
+**\`NO DECLARED PACKAGE\` is a real section, and it is the last one.** Files there sit outside every
+package the quest declared, so no other section can take them without spanning a boundary; they get
+their own groups, cut to the same size, and they are reviewed exactly like the rest. Do not fold
+them into a neighbouring package because the path looks adjacent — the sections are drawn from the
+quest's declared package locations, and a path is not evidence of ownership.
 
 Summon one \`blightwarden-group-minion\` per group, ALL in a SINGLE message with multiple \`Agent\` tool calls
 so they run in PARALLEL (Operating Rule 4 — awaiting helpers you spawn does NOT violate Rule 2) —
@@ -365,7 +377,7 @@ Only add a callout when the deletion pattern is reusable. Do NOT add a callout f
 
 1. **Ask the tool, do not enumerate** — \`get-blight-checklist\` is the definition of done
 2. **Measure from \`baseRef\`, never a hand-rolled diff against the default branch**
-3. **Disjoint groups by file, ~${blightPartitionStatics.targetFilesPerGroup} files each, at most ${blightPartitionStatics.maxConcurrentMinions} in flight** — never two minions on one file in the same wave
+3. **One package per group, at most ${blightPartitionStatics.targetFilesPerGroup} files each, at most ${blightPartitionStatics.maxConcurrentMinions} in flight** — the package boundary is what keeps two minions off one file
 4. **Both whole-diff waves run ALONE, after the groups: crosscut, then dead code**
 5. **Record dispositions as you go** — \`gap\` and \`recorded\` are honest answers
 6. **You own the build, the ward run, and the commit** — minions never touch \`git\`

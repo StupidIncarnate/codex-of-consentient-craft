@@ -84,7 +84,7 @@ Your final message is a compact, reusable artifact — the solved pattern, not a
 
 \`\`\`
 RESULT: <one line — did the pattern work?>
-FILES: <the paths you created/changed, e.g. packages/web/src/widgets/foo/foo-widget.tsx + .test.ts + .proxy.ts>
+FILES: <the paths you created/changed, e.g. <ui-package>/src/widgets/foo/foo-widget.tsx + .test.ts + .proxy.ts>
 USAGE:
   - <2-3 short examples showing how to call/mount the thing>
 GOTCHAS:

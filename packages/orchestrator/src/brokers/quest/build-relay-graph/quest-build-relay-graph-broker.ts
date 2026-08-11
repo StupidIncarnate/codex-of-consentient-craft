@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Builds the Start-Quest relay seed for a quest: appends the quest type's implementation
- * operation items (bug-hunt's pesteater; feature quests already carry Chaos-authored codeweaver
+ * operation items (bug-hunt's pesteater, scoped to the union of the flow nodes' package tags since
+ * no author was there to declare it; feature quests already carry Chaos-authored codeweaver
  * items) plus the fixed verify tail to the operations ledger, creates ONE work item for the first
  * actionable (pending) operation item so the dispatch loop has something to pick up, and stamps
  * `baseRef` (the commit the quest's review diff is measured from) so review roles never lose track
@@ -33,6 +34,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type {
   OperationItem,
+  PackageName,
   Quest,
   QuestWorkItemId,
   WorkItem,
@@ -77,6 +79,20 @@ export const questBuildRelayGraphBroker = async ({
       : operation,
   );
 
+  // Every package the quest's spine is tagged with, first-tagged order, deduplicated. A feature
+  // quest's implementation items are authored by Chaos and carry their own declared scope; the
+  // orchestrator-seeded ones are minted here with no author to declare anything, so the node tags
+  // are the only statement of where the work lands — and an item seeded without them reaches its
+  // session declaring no packages at all, which is the whole-quest search this slicing removes.
+  const spinePackages = new Map<unknown, PackageName>();
+  for (const flow of quest.flows) {
+    for (const node of flow.nodes) {
+      for (const packageName of node.packages) {
+        spinePackages.set(String(packageName), packageName);
+      }
+    }
+  }
+
   const implementationOps = registry.startImplementationOps.map((seed) =>
     operationItemContract.parse({
       id: crypto.randomUUID(),
@@ -84,6 +100,7 @@ export const questBuildRelayGraphBroker = async ({
       text: seed.text,
       status: 'pending',
       locked: true,
+      packageNames: [...spinePackages.values()],
     }),
   );
 

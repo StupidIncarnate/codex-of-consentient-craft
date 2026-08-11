@@ -21,6 +21,7 @@ import type {
   FlowStub,
   OperationItemStub,
   QuestCommentStub,
+  QuestPackageEntryStub,
   QuestStub,
   RepoRelativePath,
   WorkItemStub,
@@ -65,10 +66,12 @@ type OperationItem = ReturnType<typeof OperationItemStub>;
 type WorkItem = ReturnType<typeof WorkItemStub>;
 type Flow = ReturnType<typeof FlowStub>;
 type QuestComment = ReturnType<typeof QuestCommentStub>;
+type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 type PlanningNotes = Quest['planningNotes'];
 type QuestStatus = Quest['status'];
+type QuestType = Quest['questType'];
 type WorktreePath = NonNullable<Quest['worktreePath']>;
 type BranchName = NonNullable<Quest['branchName']>;
 
@@ -97,8 +100,16 @@ export const orchestrationQuestHarness = (): {
     // recompute outstanding verification units from the flow graph and the sign-offs carried on
     // it — omitted, flows stay whatever create-quest seeded (empty).
     flows?: readonly Flow[];
+    // Present only for tests exercising the four package-relational save invariants, which read
+    // each node's `packages` tag against this declared list — omitted, packagesAffected stays
+    // whatever create-quest seeded (empty).
+    packagesAffected?: readonly QuestPackageEntry[];
+    // Present only for tests that need a `bug-hunt` spine: QuestUserAddResponder always creates a
+    // `feature` quest, and the codeweaver-coverage invariant is scoped to feature quests alone.
+    questType?: QuestType;
     // Overrides the hardcoded 'in_progress' — present for tests seeding a quest already at
-    // `merging` (the warpgate-merge completion path), omitted everywhere else.
+    // `merging` (the warpgate-merge completion path) or parked at a spec gate the transition under
+    // test moves off, omitted everywhere else.
     status?: QuestStatus;
     // Present only for tests exercising a quest's recorded git context (worktreePath/branchName)
     // against a REAL worktree + branch on disk — omitted, both fields stay whatever create-quest
@@ -166,6 +177,8 @@ export const orchestrationQuestHarness = (): {
     baseRef,
     planningNotes,
     flows,
+    packagesAffected,
+    questType,
     status = 'in_progress',
     worktreePath,
     branchName,
@@ -176,6 +189,8 @@ export const orchestrationQuestHarness = (): {
     baseRef?: GitBaseRef;
     planningNotes?: PlanningNotes;
     flows?: readonly Flow[];
+    packagesAffected?: readonly QuestPackageEntry[];
+    questType?: QuestType;
     status?: QuestStatus;
     worktreePath?: WorktreePath;
     branchName?: BranchName;
@@ -194,6 +209,8 @@ export const orchestrationQuestHarness = (): {
       ...(baseRef === undefined ? {} : { baseRef }),
       ...(planningNotes === undefined ? {} : { planningNotes }),
       ...(flows === undefined ? {} : { flows: [...flows] }),
+      ...(packagesAffected === undefined ? {} : { packagesAffected: [...packagesAffected] }),
+      ...(questType === undefined ? {} : { questType }),
       ...(worktreePath === undefined ? {} : { worktreePath }),
       ...(branchName === undefined ? {} : { branchName }),
       updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,

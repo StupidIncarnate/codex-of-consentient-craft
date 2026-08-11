@@ -190,6 +190,65 @@ describe('flowriderCoverageMinionStatics', () => {
     expect(found).toBe(needle);
   });
 
+  // The Flowrider track is narrowed twice before this pass sees a unit — by the package KINDS a
+  // browser can reach, which are Groundstomper's, and by the dispatching item's own package NAMES.
+  // A call missing either measures a set no operation item is gated on.
+  it('VALID: template => passes packageNames alongside track so its denominator is the item’s slice', () => {
+    const { template } = flowriderCoverageMinionStatics.prompt;
+
+    const slice =
+      '**Your scope is a SLICE, and the tool computes it — you never widen it by hand.**';
+
+    expect(template.slice(template.indexOf(slice), template.indexOf(slice) + slice.length)).toBe(
+      slice,
+    );
+
+    const pass = '**Pass `packageNames` too, exactly as your brief states them.**';
+
+    expect(template.slice(template.indexOf(pass), template.indexOf(pass) + pass.length)).toBe(pass);
+
+    const cost =
+      'Omit them and you measure the whole quest: you inherit units a sibling flowrider item owns';
+
+    expect(template.slice(template.indexOf(cost), template.indexOf(cost) + cost.length)).toBe(cost);
+  });
+
+  // A Playwright spec proves a claim read out of a browser, which is a Groundstomper unit and out of
+  // this track's denominator by package kind — so an e2e worked example taught this prompt's only
+  // sign-off writer that the sibling track's artifact settles its own units.
+  it('VALID: template => shows a Jest test as the confirmed evidence example and rules Playwright out', () => {
+    const { template } = flowriderCoverageMinionStatics.prompt;
+
+    const example =
+      '`<package>/src/brokers/comment/count/comment-count-broker.integration.test.ts:64 — asserts 2 against a two-comment fixture; returning a hardcoded 1 from commentCountTransformer turns it red`';
+
+    expect(
+      template.slice(template.indexOf(example), template.indexOf(example) + example.length),
+    ).toBe(example);
+
+    const ruledOut = '**A Playwright `.e2e.ts` is never evidence on this track.**';
+
+    expect(
+      template.slice(template.indexOf(ruledOut), template.indexOf(ruledOut) + ruledOut.length),
+    ).toBe(ruledOut);
+
+    const jestOnly = 'Your evidence is a `.test.ts` or a `.integration.test.ts`, run under Jest.';
+
+    expect(
+      template.slice(template.indexOf(jestOnly), template.indexOf(jestOnly) + jestOnly.length),
+    ).toBe(jestOnly);
+  });
+
+  it('VALID: template => names no package literally and cites no e2e file of its own', () => {
+    const { template } = flowriderCoverageMinionStatics.prompt;
+
+    expect({
+      hardcodedUiPackage: template.indexOf('packages/web'),
+      citedE2eFile: template.indexOf('.e2e.ts:'),
+      uiPackagePlaceholder: template.indexOf('<ui-package>'),
+    }).toStrictEqual({ hardcodedUiPackage: -1, citedE2eFile: -1, uiPackagePlaceholder: -1 });
+  });
+
   it('VALID: template => scopes itself to runtime flows and excludes operational ones', () => {
     const needle = '**Runtime flows only.** An operational flow is NOT your scope';
     const { template } = flowriderCoverageMinionStatics.prompt;

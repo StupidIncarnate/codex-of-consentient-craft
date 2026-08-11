@@ -183,22 +183,33 @@ export const workItemToPromptTransformer = ({
     ...ledgerLines,
   ];
 
+  // The ONE lookup both scope blocks below read. A role `signoffTrackEligibilityStatics.byTrack`
+  // defines a denominator for is an OPERATOR: the completion gate measures its item against a
+  // computed scope, so what the item declares is that scope rather than a reading order. Resolved
+  // from the statics rather than a hand-written role list, so a track added there cannot silently
+  // fall through to the advisory wording — which is exactly how groundstomper ended up being told
+  // its one flow was "a starting point, NOT a boundary" while its gate measured it on that flow.
+  const trackEligibility = new Map(Object.entries(signoffTrackEligibilityStatics.byTrack)).get(
+    workItem.role,
+  );
+  const isSignoffTrackRole = trackEligibility !== undefined;
+
   // The flows this item lands on, with the caveat inline because the agent reads this block, not
-  // the contract's describe(). What the pointer MEANS differs by role: flowrider and siegemaster
-  // are operators dispatched ONE item for the whole quest, so every flow listed is theirs to
-  // account for — they bundle them and delegate to minions; every other role gets a non-binding
+  // the contract's describe(). What the pointer MEANS differs by role: an operator's item IS its
+  // scope, so every flow listed is theirs to account for; every other role gets a non-binding
   // starting point, and treating it as a boundary is the failure mode to avoid (an item serving the
-  // whole spec carries no flows at all).
-  const isFlowOperatorRole = workItem.role === 'flowrider' || workItem.role === 'siegemaster';
+  // whole spec carries no flows at all). The caveat does NOT hand an operator the seams — a
+  // flowrider item is a package slice and the glue units belong to the seam item, so a line
+  // claiming them here would contradict the prompt it is interpolated into.
   if (linkedOperation.flowIds.length > 0) {
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
-        `${isFlowOperatorRole ? 'Your flows' : 'Flows your operation item lands on'}: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
+        `${isSignoffTrackRole ? 'Your flows' : 'Flows your operation item lands on'}: ${linkedOperation.flowIds.map((flowId) => `#${String(flowId)}`).join(', ')}`,
       ),
       contentTextContract.parse(
-        isFlowOperatorRole
-          ? '(YOUR unit of accountability — ALL of them, plus the seams between them. One session owns every flow on this quest: bundle them, delegate each bundle to a minion, then verify what comes back.)'
+        isSignoffTrackRole
+          ? '(YOUR unit of accountability — every flow listed here, and no unit a sibling item owns. Not a starting point: work them, delegating where your role has minions.)'
           : '(A starting point, NOT a boundary — read every flow, and build whatever the flows need.)',
       ),
     );
@@ -206,30 +217,32 @@ export const workItemToPromptTransformer = ({
 
   // The packages this item lands in. This block is the highest-leverage line in the whole
   // substitution: without it every session re-derives its own landing site with `discover` and
-  // `get-project-map` calls its siblings already made. It reads two ways, and the difference is why
-  // it is worth two lines. For a role `signoffTrackEligibilityStatics.byTrack` defines a denominator
-  // for, the list IS the coverage slice the completion gate measures — read from the statics rather
-  // than a hand-written role list so a track added there cannot silently fall through to the
-  // advisory wording. For every other role it is a pre-work reading order, binding nothing.
-  const isPackageCoverageRole = Object.keys(signoffTrackEligibilityStatics.byTrack).includes(
-    workItem.role,
-  );
+  // `get-project-map` calls its siblings already made. It reads three ways, and the difference is
+  // why each gets its own line. For an operator the list IS the coverage slice the completion gate
+  // measures, and HOW it narrows is that track's own `packageScope` — a `partition` track's items
+  // are the package dimension, so a glue unit belongs to the seam item; an `intersection` track's
+  // are not, and it has no seam item, so telling one to disown its glue units would tell it to skip
+  // exactly what its gate then refuses it for. For every other role the list is a pre-work reading
+  // order, binding nothing.
   if (linkedOperation.packageNames.length > 0) {
     parts.push(
       contentTextContract.parse(''),
       contentTextContract.parse(
-        `${isPackageCoverageRole ? 'Your packages' : 'Packages your operation item lands in'}: ${linkedOperation.packageNames.map((name) => String(name)).join(', ')}`,
+        `${isSignoffTrackRole ? 'Your packages' : 'Packages your operation item lands in'}: ${linkedOperation.packageNames.map((name) => String(name)).join(', ')}`,
       ),
       contentTextContract.parse(
-        isPackageCoverageRole
-          ? '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)'
-          : '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)',
+        trackEligibility === undefined
+          ? '(Read these packages BEFORE you search — point get-project-map and discover at them instead of guessing. NOT a boundary: touch another package if the work needs it.)'
+          : trackEligibility.packageScope === 'partition'
+            ? '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)'
+            : '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
       ),
     );
   }
 
-  // Siegemaster only. Flowrider never starts a server — Playwright's own `webServer` config owns
-  // the one its e2e run needs — so these lines would be dead context for it.
+  // Siegemaster only. Neither authoring role starts a server — Groundstomper's e2e run brings one
+  // up from Playwright's own `webServer` config and tears it down again, and Flowrider never touches
+  // a browser at all — so these lines would be dead context for both.
   if (workItem.role === 'siegemaster' && devServer !== undefined) {
     parts.push(
       contentTextContract.parse(''),

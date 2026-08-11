@@ -8,8 +8,18 @@
  * the four unit kinds is an observable — terminals and branches are properties of the graph, and a
  * decision node carrying no observables at all still emits branch units — so a slicer keyed on
  * `observable.package` drops every unit those nodes own into no slice, silently shrinking the
- * denominator the slicing exists to make honest. Hence: a node tagged with exactly one package
- * belongs to that package's slice, and a node tagged with more belongs to the seam slice.
+ * denominator the slicing exists to make honest.
+ *
+ * EVERY branch reads its role's own `signoffTrackEligibilityStatics` entry before it mints
+ * anything, so a slice can never declare a package kind the completion gate then narrows straight
+ * back out — which would seed a full session, work item and pt budget over an empty denominator.
+ * A node's contribution is therefore the subset of its `packages` whose KIND that role owns: none
+ * of them means no slice, one means that package's slice, and two or more means the seam slice.
+ *
+ * A package is ranked on its whole KIND SET, never on the single winning label. A package can be
+ * more than one kind, and the detector's priority table reports only its first match, so a package
+ * that serves HTTP and also renders widgets reads as backend-only from the label — and mints no
+ * groundstomper item at all, which is browser coverage lost with nothing failing to say so.
  *
  * USAGE:
  * relayTailFanOutTransformer({ entry: questTypeRegistryStatics.feature.relayTail[1], quest });
@@ -19,6 +29,7 @@
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { FlowId, OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
 import type { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
@@ -59,23 +70,64 @@ export const relayTailFanOutTransformer = ({
   if (fanOutBy === 'package') {
     const runtimeFlows = quest.flows.filter((flow) => flow.flowType === 'runtime');
 
+    // Eligibility is read from the SAME list the completion gate narrows this role's denominator
+    // with, so a seeded item can never own an empty denominator. Naming the package KINDS rather
+    // than any package name is what lets this run in a repo with several UI packages, or none.
+    const eligiblePackageTypes = new Set(
+      signoffTrackEligibilityStatics.byTrack.flowrider.packageTypes.map(String),
+    );
+    // The entry's KIND SET, never its single display label: a package that serves HTTP and also
+    // renders widgets is honestly both, and the detector's priority table can only report one
+    // winner. Ranking the winner alone would hand every such package wholly to one track.
+    const packageKindsByName = new Map(
+      quest.packagesAffected.map((affected) => [
+        String(affected.name),
+        questPackageEntryKindsTransformer({ entry: affected }).map(String),
+      ]),
+    );
+
     const sliceByPackage = new Map<unknown, RelayTailSlice>();
     const seamNames = new Map<unknown, PackageName>();
     const seamFlowIds: FlowId[] = [];
 
     for (const flow of runtimeFlows) {
       for (const node of flow.nodes) {
-        const isSeam = node.packages.length > 1;
+        // A package whose kind does NOT resolve is kept, which is what the completion gate does
+        // with it too: `packagesAffected` lagging a node tag is the coverage rule's own failure
+        // case, and dropping the package here would delete its units from every denominator
+        // instead of surfacing them.
+        const owned = node.packages.filter((name) => {
+          const kinds = packageKindsByName.get(String(name));
+          return kinds === undefined || kinds.some((kind) => eligiblePackageTypes.has(kind));
+        });
 
-        for (const name of node.packages) {
-          if (isSeam) {
+        // Every kind this node lands in belongs to the sibling authoring track — a node tagged
+        // only with frontend packages, a two-frontend glue node included. Its units are outside
+        // this role's denominator by KIND, so a slice minted for it would own nothing.
+        if (owned.length === 0) {
+          continue;
+        }
+
+        // A node is a SEAM for this role when more than one package THIS ROLE OWNS meets on it. A
+        // glue node spanning a frontend and a backend package meets that bar on one side only, so
+        // its units go to that one package's slice — the same arity the completion gate reads off
+        // the item, which is what keeps slicer and gate exactly dual.
+        if (owned.length > 1) {
+          for (const name of owned) {
             seamNames.set(String(name), name);
-            continue;
           }
-          const slice = sliceByPackage.get(String(name));
+          if (!seamFlowIds.some((flowId) => String(flowId) === String(flow.id))) {
+            seamFlowIds.push(flow.id);
+          }
+          continue;
+        }
+
+        for (const name of owned) {
+          const key = String(name);
+          const slice = sliceByPackage.get(key);
           if (slice === undefined) {
-            sliceByPackage.set(String(name), {
-              text: textContract.parse(`${entry.text} — package: ${String(name)}`),
+            sliceByPackage.set(key, {
+              text: textContract.parse(`${entry.text} — package: ${key}`),
               flowIds: [flow.id],
               packageNames: [name],
             });
@@ -84,10 +136,6 @@ export const relayTailFanOutTransformer = ({
           if (!slice.flowIds.some((flowId) => String(flowId) === String(flow.id))) {
             slice.flowIds.push(flow.id);
           }
-        }
-
-        if (isSeam && !seamFlowIds.some((flowId) => String(flowId) === String(flow.id))) {
-          seamFlowIds.push(flow.id);
         }
       }
     }
@@ -111,6 +159,13 @@ export const relayTailFanOutTransformer = ({
       return slices;
     }
 
+    // Runtime nodes exist and every one of them lands wholly in the sibling track's package kinds.
+    // NO item at all, rather than a whole-quest one: the gate computes that item's denominator as
+    // empty, and an item satisfied the instant it signals still costs a session and a pt budget.
+    if (runtimeFlows.some((flow) => flow.nodes.length > 0)) {
+      return [];
+    }
+
     // No runtime node carries a tag to slice on — a quest with no flows, none of runtime type, or
     // flows drawn without nodes. One whole-quest item keeps the role owned rather than dropping it.
     return [
@@ -129,10 +184,13 @@ export const relayTailFanOutTransformer = ({
     const eligiblePackageTypes = new Set(
       signoffTrackEligibilityStatics.byTrack.groundstomper.packageTypes.map(String),
     );
-    const packageTypeByName = new Map(
+    // The entry's KIND SET, never its single display label. This is the line the whole file exists
+    // for: a package whose hono adapter outranks its widgets folder classifies `http-backend`, and
+    // reading that winner alone mints NO item here — zero browser coverage on a green run.
+    const packageKindsByName = new Map(
       quest.packagesAffected.map((affected) => [
         String(affected.name),
-        String(affected.packageType),
+        questPackageEntryKindsTransformer({ entry: affected }).map(String),
       ]),
     );
 
@@ -146,8 +204,8 @@ export const relayTailFanOutTransformer = ({
       const reachable = new Map<unknown, PackageName>();
       for (const node of flow.nodes) {
         for (const name of node.packages) {
-          const packageType = packageTypeByName.get(String(name));
-          if (packageType !== undefined && eligiblePackageTypes.has(packageType)) {
+          const kinds = packageKindsByName.get(String(name));
+          if (kinds?.some((kind) => eligiblePackageTypes.has(kind)) === true) {
             reachable.set(String(name), name);
           }
         }

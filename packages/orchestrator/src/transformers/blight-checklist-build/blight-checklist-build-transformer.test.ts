@@ -1,7 +1,9 @@
 import {
   BlightChecklistStub,
   QuestBlightLedgerEntryStub,
+  QuestPackageEntryStub,
   RepoRelativePathStub,
+  RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { blightChecklistBuildTransformer } from './blight-checklist-build-transformer';
@@ -319,6 +321,278 @@ describe('blightChecklistBuildTransformer', () => {
       });
 
       expect(result.items).toStrictEqual([]);
+    });
+  });
+
+  describe('package resolution against the quest declarations', () => {
+    it("VALID: {file under a declared package's location} => every unit on it carries that package name", () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items.map((item) => item.packageName)).toStrictEqual([
+        'orchestrator',
+        'orchestrator',
+        'orchestrator',
+        'orchestrator',
+      ]);
+    });
+
+    it('VALID: {location declared with a trailing slash} => resolves the same as the bare form', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator/' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe('orchestrator');
+    });
+
+    it('VALID: {absolute location, projectRoot given} => reduced against the root and matched repo-relatively', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'orchestrator',
+            location: '/home/testuser/my-guild/packages/orchestrator',
+          }),
+        ],
+        projectRoot: RepoRootCwdStub({ value: '/home/testuser/my-guild/' }),
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe('orchestrator');
+    });
+
+    it('EMPTY: {absolute location, no projectRoot to reduce it against} => resolves nothing rather than guessing a root', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'orchestrator',
+            location: '/home/testuser/my-guild/packages/orchestrator',
+          }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe(undefined);
+    });
+
+    it('EMPTY: {absolute location outside the given projectRoot} => is left absolute and matches nothing', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'orchestrator',
+            location: '/somewhere/else/packages/orchestrator',
+          }),
+        ],
+        projectRoot: RepoRootCwdStub({ value: '/home/testuser/my-guild' }),
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe(undefined);
+    });
+
+    it('VALID: {two declared packages} => each file resolves to the package whose location contains it', () => {
+      const orchestratorFile = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const webFile = RepoRelativePathStub({
+        value: 'packages/web/src/widgets/bar/bar-widget.tsx',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [orchestratorFile, webFile],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+          QuestPackageEntryStub({ name: 'web', location: './packages/web' }),
+        ],
+        baseRef,
+      });
+
+      expect([
+        ...new Set(
+          result.items.map((item) => `${String(item.implPath)}=${String(item.packageName)}`),
+        ),
+      ]).toStrictEqual([
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts=orchestrator',
+        'packages/web/src/widgets/bar/bar-widget.tsx=web',
+      ]);
+    });
+
+    it('VALID: {a package declared inside another package tree} => the longest matching location wins', () => {
+      const nestedFile = RepoRelativePathStub({
+        value: 'apps/shell/plugins/editor/src/editor-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [nestedFile],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'shell', location: './apps/shell' }),
+          QuestPackageEntryStub({ name: 'editor', location: './apps/shell/plugins/editor' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe('editor');
+    });
+
+    it('VALID: {a repo that does not lay packages out under packages/} => resolution follows the declared location, not the path shape', () => {
+      const implPath = RepoRelativePathStub({ value: 'libs/core/lib/core-broker.ts' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [QuestPackageEntryStub({ name: 'core', location: './libs/core' })],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe('core');
+    });
+
+    it('EMPTY: {file under none of the declared locations} => the unit carries no package at all', () => {
+      const implPath = RepoRelativePathStub({ value: 'scripts/release.ts' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items[0]).toStrictEqual({
+        id: 'scripts/release.ts:craft',
+        implPath,
+        concern: 'craft',
+        pairedFiles: [],
+        label:
+          "craft — release.ts's logic matches its signature, its PURPOSE header is true of the body beneath it, and its error handling carries real context",
+      });
+    });
+
+    it("EMPTY: {a sibling directory sharing the declared package's name prefix} => does not resolve, because a prefix is only a match on a path boundary", () => {
+      const implPath = RepoRelativePathStub({ value: 'packages/orchestrator-legacy/src/a.ts' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe(undefined);
+    });
+
+    it('EMPTY: {packagesAffected omitted} => no unit carries a package', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({ changedFiles: [implPath], baseRef });
+
+      expect(result.items.map((item) => item.packageName)).toStrictEqual([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]);
+    });
+
+    it('EMPTY: {a declared entry whose location is just "./"} => contributes no prefix and matches nothing', () => {
+      const implPath = RepoRelativePathStub({ value: 'scripts/release.ts' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [QuestPackageEntryStub({ name: 'root', location: './' })],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe(undefined);
+    });
+
+    it("VALID: {a changed file that IS a declared package's location} => resolves to that package", () => {
+      const implPath = RepoRelativePathStub({ value: 'packages/tools/build.ts' });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'tools', location: './packages/tools/build.ts' }),
+        ],
+        baseRef,
+      });
+
+      expect(result.items[0]!.packageName).toBe('tools');
+    });
+
+    it('VALID: {an impl file and its colocated test} => both collapse to one unit group carrying the package, so a pair can never straddle a boundary', () => {
+      const implPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.ts',
+      });
+      const testPath = RepoRelativePathStub({
+        value: 'packages/orchestrator/src/brokers/foo/foo-broker.test.ts',
+      });
+      const { baseRef } = BlightChecklistStub();
+
+      const result = blightChecklistBuildTransformer({
+        changedFiles: [implPath, testPath],
+        packagesAffected: [
+          QuestPackageEntryStub({ name: 'orchestrator', location: './packages/orchestrator' }),
+        ],
+        baseRef,
+      });
+
+      expect([
+        ...new Set(
+          result.items.map(
+            (item) =>
+              `${String(item.implPath)}|${item.pairedFiles.map(String).join(',')}|${String(item.packageName)}`,
+          ),
+        ),
+      ]).toStrictEqual([
+        'packages/orchestrator/src/brokers/foo/foo-broker.ts|packages/orchestrator/src/brokers/foo/foo-broker.test.ts|orchestrator',
+      ]);
     });
   });
 

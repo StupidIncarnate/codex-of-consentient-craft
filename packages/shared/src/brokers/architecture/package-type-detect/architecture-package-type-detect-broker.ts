@@ -1,17 +1,24 @@
 /**
- * PURPOSE: Detects the architecture type of a package by inspecting its filesystem layout and package.json
+ * PURPOSE: Reads a package's filesystem layout and package.json once and reports EVERY kind its
+ * signals support, because the priority table can only ever name one winner and a package that
+ * serves HTTP while also rendering widgets is honestly both. The winner leads, so a caller wanting
+ * the single label for a headline or a colour takes the first element and a caller deciding what a
+ * package is ELIGIBLE for reads the whole list — deriving eligibility from the winner alone is what
+ * silently costs a hono-serving UI package its browser coverage.
  *
  * USAGE:
- * const type = await architecturePackageTypeDetectBroker({ packageRoot: absoluteFilePathContract.parse('/repo/packages/server') });
- * // Returns: 'http-backend' as PackageType
+ * const types = await architecturePackageTypeDetectBroker({ packageRoot: absoluteFilePathContract.parse('/repo/packages/server') });
+ * // Returns: ['http-backend'] — or ['http-backend', 'frontend-react'] when widgets+react sit behind the hono adapter
  *
- * WHEN-TO-USE: During project-map generation to determine which headline renderer to use for each package
+ * WHEN-TO-USE: During project-map generation to determine which headline renderer to use for each
+ *   package, and at quest-save time to stamp each declared package entry's kinds
  */
 
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
+import { packageBrowserTypeTransformer } from '../../../transformers/package-browser-type/package-browser-type-transformer';
 import { readFileOptionalLayerBroker } from './read-file-optional-layer-broker';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { readPackageCliContentLayerBroker } from './read-package-cli-content-layer-broker';
@@ -25,7 +32,7 @@ export const architecturePackageTypeDetectBroker = async ({
   packageRoot,
 }: {
   packageRoot: AbsoluteFilePath;
-}): Promise<PackageType> => {
+}): Promise<[PackageType, ...PackageType[]]> => {
   // Read and parse package.json
   const packageJsonPath = absoluteFilePathContract.parse(`${packageRoot}/package.json`);
   const packageJsonRaw = readFileOptionalLayerBroker({ filePath: packageJsonPath });
@@ -96,5 +103,18 @@ export const architecturePackageTypeDetectBroker = async ({
     binEntryCount,
   });
 
-  return Promise.resolve(packageType);
+  // The browser question is asked a second time on purpose: the table above returns on the FIRST
+  // rule that matches, so a package whose hono or MCP adapter outranks its widgets folder never
+  // reaches the rule that would have named it browser-reachable.
+  const browserPackageType = packageBrowserTypeTransformer({
+    adapterDirNames,
+    srcDirNames,
+    packageJson,
+  });
+
+  return Promise.resolve(
+    browserPackageType === undefined || browserPackageType === packageType
+      ? [packageType]
+      : [packageType, browserPackageType],
+  );
 };

@@ -13,9 +13,7 @@ import { packageTypeContract } from '../../../contracts/package-type/package-typ
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import { hasHonoOrExpressAdapterGuard } from '../../../guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
 import { hasModelcontextprotocolAdapterGuard } from '../../../guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';
-import { hasInkAdapterGuard } from '../../../guards/has-ink-adapter/has-ink-adapter-guard';
-import { hasWidgetsFolderGuard } from '../../../guards/has-widgets-folder/has-widgets-folder-guard';
-import { reactInDepsGuard } from '../../../guards/react-in-deps/react-in-deps-guard';
+import { packageBrowserTypeTransformer } from '../../../transformers/package-browser-type/package-browser-type-transformer';
 import { startupReferencesArgvGuard } from '../../../guards/startup-references-argv/startup-references-argv-guard';
 import { flowReturnsToolRegistrationGuard } from '../../../guards/flow-returns-tool-registration/flow-returns-tool-registration-guard';
 import { startupExportsAsyncNamespaceGuard } from '../../../guards/startup-exports-async-namespace/startup-exports-async-namespace-guard';
@@ -62,12 +60,17 @@ export const detectPackageTypeLayerBroker = ({
     return packageTypeContract.parse('mcp-server');
   }
 
-  if (hasWidgetsFolderGuard({ srcDirNames }) && hasInkAdapterGuard({ adapterDirNames })) {
-    return packageTypeContract.parse('frontend-ink');
-  }
-
-  if (hasWidgetsFolderGuard({ srcDirNames }) && reactInDepsGuard({ packageJson })) {
-    return packageTypeContract.parse('frontend-react');
+  // Third and fourth in the priority order, but the rules themselves live in
+  // `packageBrowserTypeTransformer` — the caller that stamps a package's FULL kind set has to ask
+  // the same question after this table has already returned something else, and two copies of
+  // "widgets plus ink, else widgets plus react" would be free to drift apart.
+  const browserPackageType = packageBrowserTypeTransformer({
+    adapterDirNames,
+    srcDirNames,
+    packageJson,
+  });
+  if (browserPackageType !== undefined) {
+    return browserPackageType;
   }
 
   if (hasResponderHook && binEntryCount >= projectMapStatics.hookHandlersMinBinCount) {

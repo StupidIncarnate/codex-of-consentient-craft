@@ -123,11 +123,14 @@ describe('dependencyGraphTopologicalOrderTransformer', () => {
     });
   });
 
-  describe('real repo package graph (13 workspaces)', () => {
-    it("VALID: {this repo's actual packages/* adjacency, dependencies-first insertion order} => returns the full 6-layer order with no cycle", () => {
-      // Every edge below is a real `@dungeonmaster/*` entry from the corresponding
-      // packages/<name>/package.json's dependencies + devDependencies + peerDependencies
-      // (external deps like zod/react/typescript are not part of this graph).
+  describe('repo-shaped graph (13 workspaces, 6 layers)', () => {
+    it('VALID: {a 13-node adjacency in dependencies-first insertion order} => returns the full 6-layer order with no cycle', () => {
+      // A repo-shaped fixture for Kahn's ordering — 13 nodes, 6 layers, several diamonds — NOT
+      // the guard on this repo's actual dependency graph. That guard is
+      // prepare-quest-package-graph-layer-responder.test.ts's "this workspace, derived from its
+      // own manifests" case, which reads every packages/*/package.json off disk and asserts the
+      // depth VALUES. Edit that one when a workspace dependency changes; this fixture is free to
+      // stay as it is, because what it proves is the algorithm.
       const testing = pkg('@dungeonmaster/testing');
       const shared = pkg('@dungeonmaster/shared');
       const config = pkg('@dungeonmaster/config');

@@ -36,6 +36,12 @@
  * The `[x]`/`[ ]` column is the resume property made visible: a later session sees at a glance
  * what a predecessor actually landed on this diff, rather than reconstructing it from prose in a
  * commit body.
+ *
+ * Files are sectioned by owning package, and each section states how many dispatch groups its files
+ * become, because the reader of this text is the operator deciding how many minions to summon. It
+ * costs one line per package — small enough to sit inside the same budget — and it is the only way
+ * the operator can honour the package boundary without reading a package name out of a path, which
+ * would assume a layout this tool has to work without.
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -47,6 +53,9 @@ import type {
 
 import { blightChecklistLimitsStatics } from '../../statics/blight-checklist-limits/blight-checklist-limits-statics';
 import { blightConcernLegendStatics } from '../../statics/blight-concern-legend/blight-concern-legend-statics';
+import { blightPartitionStatics } from '../../statics/blight-partition/blight-partition-statics';
+import { blightPartitionGroupsTransformer } from '../blight-partition-groups/blight-partition-groups-transformer';
+import type { BlightPartitionGroup } from '../blight-partition-groups/blight-partition-groups-transformer';
 
 export const blightChecklistToTextTransformer = ({
   checklist,
@@ -70,12 +79,20 @@ export const blightChecklistToTextTransformer = ({
 
   const groups = new Map<
     BlightChecklistItem['implPath'],
-    { pairedFiles: BlightChecklistItem['pairedFiles']; items: BlightChecklistItem[] }
+    {
+      packageName: BlightChecklistItem['packageName'];
+      pairedFiles: BlightChecklistItem['pairedFiles'];
+      items: BlightChecklistItem[];
+    }
   >();
   renderedItems.forEach((item) => {
     const group = groups.get(item.implPath);
     if (group === undefined) {
-      groups.set(item.implPath, { pairedFiles: item.pairedFiles, items: [item] });
+      groups.set(item.implPath, {
+        packageName: item.packageName,
+        pairedFiles: item.pairedFiles,
+        items: [item],
+      });
     } else {
       group.items.push(item);
     }
@@ -88,6 +105,7 @@ export const blightChecklistToTextTransformer = ({
     `REMAINING (no disposition in quest.planningNotes.blightLedger): ${checklist.remainingItemIds.length} of ${checklist.items.length}`,
     '',
     "A unit's itemId is <implPath>:<concern> — the file heading plus the concern name.",
+    'Files sit under the package that owns them, and one dispatch group never spans two sections.',
     '',
     'This list IS the definition of done for this diff — every file × concern crossing needs its',
     'own disposition, and the REMAINING count above decides the completion signal, not recollection.',
@@ -108,19 +126,42 @@ export const blightChecklistToTextTransformer = ({
     ? ` — TRUNCATED at the ${String(blightChecklistLimitsStatics.maxUnits)}-unit cap; showing REMAINING units first. This list is INCOMPLETE — call get-blight-checklist again after dispositioning these to see the rest.`
     : '';
 
-  const unitBlock = [...groups.entries()]
-    .map(([implPath, group]) => {
-      const dispositioned = group.items.filter((item) => !remaining.has(String(item.id)));
-      const stillRemaining = group.items.filter((item) => remaining.has(String(item.id)));
+  // The partition is what the section headings report, so the render states a group count it did
+  // not invent: the operator reads how many minions a package's files become from the same cut the
+  // checklist was sliced by, and never re-chunks a list the tool already chunked.
+  const sections = new Map<BlightChecklistItem['packageName'], BlightPartitionGroup[]>();
+  for (const partitionGroup of blightPartitionGroupsTransformer({ items: renderedItems })) {
+    const section = sections.get(partitionGroup.packageName) ?? [];
+    section.push(partitionGroup);
+    sections.set(partitionGroup.packageName, section);
+  }
+
+  const unitBlock = [...sections.entries()]
+    .map(([packageName, section]) => {
+      // Bounded by the package count (a handful) times the file count, and it keeps every file's
+      // paired-count and disposition lines reading from the one map that already holds them.
+      const fileEntries = [...groups.entries()].filter(
+        ([, group]) => group.packageName === packageName,
+      );
+      const ownerLabel =
+        packageName === undefined ? 'NO DECLARED PACKAGE' : `PACKAGE: ${String(packageName)}`;
       return [
         '',
-        `### ${String(implPath)}  (+${String(group.pairedFiles.length)} paired)`,
-        ...(dispositioned.length === 0
-          ? []
-          : [`    [x] ${dispositioned.map((item) => item.concern).join(' ')}`]),
-        ...(stillRemaining.length === 0
-          ? []
-          : [`    [ ] ${stillRemaining.map((item) => item.concern).join(' ')}`]),
+        `## ${ownerLabel} — ${String(fileEntries.length)} file(s), ${String(section.length)} group(s) of at most ${String(blightPartitionStatics.targetFilesPerGroup)}`,
+        ...fileEntries.map(([implPath, group]) => {
+          const dispositioned = group.items.filter((item) => !remaining.has(String(item.id)));
+          const stillRemaining = group.items.filter((item) => remaining.has(String(item.id)));
+          return [
+            '',
+            `### ${String(implPath)}  (+${String(group.pairedFiles.length)} paired)`,
+            ...(dispositioned.length === 0
+              ? []
+              : [`    [x] ${dispositioned.map((item) => item.concern).join(' ')}`]),
+            ...(stillRemaining.length === 0
+              ? []
+              : [`    [ ] ${stillRemaining.map((item) => item.concern).join(' ')}`]),
+          ].join('\n');
+        }),
       ].join('\n');
     })
     .join('\n');

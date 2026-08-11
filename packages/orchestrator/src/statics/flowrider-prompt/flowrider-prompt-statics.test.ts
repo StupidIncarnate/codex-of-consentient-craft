@@ -46,17 +46,62 @@ describe('flowriderPromptStatics', () => {
     expect(has(flowEvidenceContractStatics.authoringMarkdown)).toBe(false);
   });
 
-  it('VALID: template => frames the role as an operator accountable for EVERY flow on the quest', () => {
+  // The item is a SLICE `relayTailFanOutTransformer` minted — one per package the runtime nodes tag
+  // whose kind this track owns, plus one seam item — and `qaUnitsInPackageScopeTransformer` narrows
+  // each denominator the dual way. A session told it covers every flow measures itself against units
+  // a sibling item owns, so its remainder can never reach empty.
+  it('VALID: template => frames the item as ONE package or seam SLICE, never the whole quest', () => {
+    const { template } = flowriderPromptStatics.prompt;
+
     expect({
-      ownsOneItem: has("You own ONE operation item on the quest's operations ledger"),
-      coversEveryFlow: has('that item covers **EVERY flow on\nthis quest**'),
-      notAssignedOne: has('You are not assigned a flow'),
-      includingSeams: has('accountable for all of them, and for the seams\nbetween them'),
+      ownsOneItem: has('You own ONE operation item, and that item is a **SLICE, not the whole'),
+      slicedByPackage: has(
+        'Flowrider slices BY\nPACKAGE: one item per package whose kind this track owns, plus ONE seam item for the glue nodes\nwhere two of those meet.',
+      ),
+      itemTextNamesTheSlice: has(
+        "Your item's text says which you are — a `— package: <name>` or\n`— seam: <a> + <b>` suffix",
+      ),
+      operationContextCarriesTheNames: has(
+        'the `packageNames` in your Operation Context state that same set,\nwhich you pass to every checklist call below',
+      ),
+      fallbackItemDeclaresNoNames: has('an item declaring none is the whole-track fallback'),
+      notAssignedOne: has(
+        'You are not assigned a flow: your slice cuts ACROSS the runtime flows listed there.',
+      ),
+      noWholeQuestCoverageClaim: template.indexOf('that item covers **EVERY flow on'),
+      noAccountableForAllClaim: template.indexOf('accountable for all of them'),
     }).toStrictEqual({
       ownsOneItem: true,
-      coversEveryFlow: true,
+      slicedByPackage: true,
+      itemTextNamesTheSlice: true,
+      operationContextCarriesTheNames: true,
+      fallbackItemDeclaresNoNames: true,
       notAssignedOne: true,
-      includingSeams: true,
+      noWholeQuestCoverageClaim: -1,
+      noAccountableForAllClaim: -1,
+    });
+  });
+
+  // The seam item exists so the glue units have exactly ONE owner. Stated in one direction only, a
+  // seam session reads "the glue is mine" and sweeps the per-package units it can see as well, which
+  // is the double-ownership the partition was built to remove.
+  it('VALID: template => denies the seams to a package slice and the per-package units to the seam slice', () => {
+    expect({
+      bothDirections: has(
+        '**A package slice does NOT own the seams, and the seam slice does NOT own the per-package units.**',
+      ),
+      routesByOwningNode: has(
+        "A\nunit routes by its owning NODE — one of this track's packages on it means that package's slice, two\nmean the seam slice",
+      ),
+      oneItemPerUnit: has('so every unit lands in exactly ONE item'),
+      namesTheCost: has(
+        'reaching across that line spends\nyour pt budget on units a sibling item is gated on while your own denominator stays short of empty.',
+      ),
+    }).toStrictEqual({
+      bothDirections: true,
+      routesByOwningNode: true,
+      oneItemPerUnit: true,
+      namesTheCost: true,
     });
   });
 
@@ -140,13 +185,20 @@ describe('flowriderPromptStatics', () => {
   it('VALID: template => sources the inventory from get-qa-checklist rather than building it by hand', () => {
     expect({
       forbidsHandBuilding: has('**Do NOT hand-build the inventory from `get-quest`.**'),
-      wholeQuestCall: has("`get-qa-checklist({ questId, track: 'flowrider' })`"),
-      omitFlowIdIsRuntimeOnly: has(
-        'omit `flowId` and, on the `flowrider`\ntrack, it enumerates every RUNTIME flow on the quest, which is exactly your scope',
+      slicedCall: has("`get-qa-checklist({ questId, track: 'flowrider', packageNames: [...] })`"),
+      omitFlowIdPassNames: has("omit `flowId`, pass\nyour item's names verbatim."),
+      whatEachNarrowingDrops: has(
+        "The track drops the operational flows; the names drop a sibling item's\nunits.",
       ),
-      operationalIsNotMine: has('**Operational\nflows are not yours**'),
+      resultIsTheSlice: has(
+        'What comes back is YOUR SLICE across every RUNTIME flow it lands on, exactly your scope.',
+      ),
+      operationalIsNotMine: has('**Operational flows are not yours**'),
       namesWhatOperationalIsAndWhoOwnsIt: has(
-        'an operational flow is a one-time task sequence — a refactor sweep, an infra\nsetup, a lint-rule registration — whose final state Siegemaster hand-checks.',
+        'an operational flow is a one-time task sequence — a refactor\nsweep, an infra setup, a lint-rule registration — whose final state Siegemaster hand-checks.',
+      ),
+      itemsCarryLabelAndCheckSurface: has(
+        'each\n  `observable` with its **verbatim** `label` and `checkSurface`.',
       ),
       doesNotAddThemBack: has('The track filter drops them for you; do not add them back.'),
       noModelInTheLoop: has(
@@ -157,23 +209,23 @@ describe('flowriderPromptStatics', () => {
         'it is WIDER than the observables: your\n  minions owe a test per path to every terminal and every branch too',
       ),
       surfacesTruncation: has('path enumeration hit its cap and the list is INCOMPLETE'),
-      // MEASURED on quest e0210063 (7 flows, 144 observables): the whole-quest checklist is 66k
-      // chars against the 77k spec read. An earlier draft of this gate claimed it cost "a fraction"
-      // of the spec read — true per-flow, false for the whole-quest call this gate actually makes.
-      // A session that believes the call is cheap re-fetches it instead of keeping the counts.
-      honestAboutCost: has(
-        '**Budget for it honestly: at whole-quest scale this is not a cheap call.**',
-      ),
-      fidelityNotTokens: has('What you buy is fidelity, not tokens'),
-      savingIsPerFlow: has('The token saving is a PER-FLOW effect'),
-      fetchOnce: has('Fetch the whole-quest checklist ONCE and keep its counts'),
+      // MEASURED on quest e0210063 (7 flows, 144 observables): the unsliced checklist is 66k chars
+      // against the 77k spec read. "A fraction of the spec read" is true per-flow and false at the
+      // scale this gate fetches at, and a session that believes the call is cheap re-fetches it
+      // instead of keeping the counts.
+      honestAboutCost: has('**Budget for it honestly: even one slice is not a cheap call**'),
+      fidelityNotTokens: has('What you buy is fidelity,\nnot tokens.'),
+      fetchOnce: has("Fetch your slice's checklist ONCE and keep its counts"),
       noFalseFractionClaim: !has('costs a\nfraction of it'),
     }).toStrictEqual({
       forbidsHandBuilding: true,
-      wholeQuestCall: true,
-      omitFlowIdIsRuntimeOnly: true,
+      slicedCall: true,
+      omitFlowIdPassNames: true,
+      whatEachNarrowingDrops: true,
+      resultIsTheSlice: true,
       operationalIsNotMine: true,
       namesWhatOperationalIsAndWhoOwnsIt: true,
+      itemsCarryLabelAndCheckSurface: true,
       doesNotAddThemBack: true,
       noModelInTheLoop: true,
       itemsAreTheDenominator: true,
@@ -181,22 +233,68 @@ describe('flowriderPromptStatics', () => {
       surfacesTruncation: true,
       honestAboutCost: true,
       fidelityNotTokens: true,
-      savingIsPerFlow: true,
       fetchOnce: true,
       noFalseFractionClaim: true,
     });
   });
 
-  // With `track` threaded through, remainingItemIds is the per-track sign-off difference — the same
-  // set the completion gate recomputes from the quest file. A session told to ignore it walks into
-  // the exact recall failure the gate exists to close.
+  // Omitting `packageNames` is the failure that makes the gate unreachable rather than merely
+  // wasteful: the remainder then spans the whole track while the gate clears at zero over the
+  // slice, so the session works a sibling item's units forever and signals `partial` until the
+  // pt chain is spent.
+  it('VALID: template => names what omitting packageNames costs at the inventory call', () => {
+    expect({
+      omissionAtGate3: has(
+        '**Omit the names and you measure the whole track**, so your `remainingItemIds` can never reach\nempty: the gate recomputes that remainder over your slice.',
+      ),
+      omissionAtTheReconcile: has(
+        'Drop the names here and you gate yourself on the whole track, which no\namount of writing empties.',
+      ),
+    }).toStrictEqual({
+      omissionAtGate3: true,
+      omissionAtTheReconcile: true,
+    });
+  });
+
+  // The operator makes exactly TWO `get-qa-checklist` calls of its own — Gate 3's inventory and
+  // Gate 7's reconcile — and both are measured against the same slice its completion gate is. A
+  // bare track-only call at EITHER one silently restores the whole-quest denominator, so the
+  // absence of that form is asserted alongside the presence of the sliced one.
+  it('VALID: template => carries packageNames on both of its own get-qa-checklist calls and no track-only form', () => {
+    const { template } = flowriderPromptStatics.prompt;
+    const slicedCall = "get-qa-checklist({ questId, track: 'flowrider', packageNames: [...] })";
+
+    expect({
+      slicedCallCount: template.split(slicedCall).length - 1,
+      trackOnlyCall: template.indexOf("get-qa-checklist({ questId, track: 'flowrider' })"),
+      authoringBriefCarriesTheNames: has(
+        "YOUR CHECKLIST: call get-qa-checklist({ questId: 'QUEST_ID', flowId: '<id>', track: 'flowrider',\n  packageNames: <my item's names, verbatim> }) for EACH flow id above.",
+      ),
+      authoringBriefSaysTheOmittedUnitsAreNotHoles: has(
+        "already narrowed to my slice — what it omits is another item's, not a hole.",
+      ),
+      coverageMinionBriefCarriesTheNames: has(
+        "**Hand it your item's `packageNames` in the brief, verbatim from your Operation Context.**",
+      ),
+    }).toStrictEqual({
+      slicedCallCount: 2,
+      trackOnlyCall: -1,
+      authoringBriefCarriesTheNames: true,
+      authoringBriefSaysTheOmittedUnitsAreNotHoles: true,
+      coverageMinionBriefCarriesTheNames: true,
+    });
+  });
+
+  // With `track` AND the item's `packageNames` threaded through, remainingItemIds is the slice's
+  // sign-off difference — the same set the completion gate recomputes from the quest file. A session
+  // told to ignore it walks into the exact recall failure the gate exists to close.
   it('VALID: template => makes remainingItemIds flowrider’s own gate count rather than something to ignore', () => {
     expect({
       isTheGateCount: has(
         '`remainingItemIds` — **this is YOUR gate count, and you work it to zero.**',
       ),
       isThePerTrackDifference: has(
-        "With\n  `track: 'flowrider'` it is the per-track sign-off difference: every unit in scope carrying no\n  `flowriderSignoff` yet.",
+        "With\n  `track: 'flowrider'` AND your `packageNames` it is your SLICE's sign-off difference: every unit\n  your item owns carrying no `flowriderSignoff` yet.",
       ),
       gateRecomputesIt: has(
         'the completion\n  gate recomputes exactly this set from the quest file and refuses `done` while it is non-empty',
@@ -213,29 +311,27 @@ describe('flowriderPromptStatics', () => {
   // An all-operational quest HAS flows, so the "no flows at all" case never fires for it — the
   // flowrider-track checklist just returns none of them. Without its own sibling case a session
   // reads the empty result as a tooling failure and re-fetches untracked to find something to cover.
-  it('VALID: template => gives a quest with no RUNTIME flows its own real-state case', () => {
+  it('VALID: template => gives an empty checklist its own real-state case, flow-less or all-operational', () => {
     expect({
-      noFlowsAtAll: has('**A quest with no flows at all is a real state, not an error.**'),
-      noRuntimeFlows: has(
-        '**A quest with no RUNTIME flows is the same real state, reached a different way.**',
-      ),
-      theQuestStillHasFlows: has(
-        'An\nall-operational quest HAS flows — the checklist on the `flowrider` track just returns none of them',
+      emptyIsReal: has('**An EMPTY checklist is a real state, not an error.**'),
+      bothWaysToReachIt: has(
+        'A quest with no flows returns none, and so\ndoes an all-operational quest, which HAS flows the `flowrider` track simply does not measure.',
       ),
       gateStillBinds: has(
-        'Your gate still binds and it still\nrecomputes, it simply yields zero units, so `done` is honest the moment you say so.',
+        'Your\ngate still binds and it still recomputes, it simply yields zero units, so `done` is honest the\nmoment you say so.',
       ),
-      noUntrackedRefetch: has('Do NOT reach for\nthe untracked call to find something to cover'),
+      noWidening: has('do NOT widen the call to find something to cover'),
       noSigningOperationalUnits: has(
-        'do NOT sign units on an operational flow: they\nare outside your denominator, so a signature there proves nothing and clears nothing',
+        'do NOT sign units on an operational flow: they are outside your denominator,\nso a signature there proves nothing and clears nothing',
       ),
+      skipsTheMiddleGates: has('Say so plainly, skip Gates 4 through 7,\ncommit that finding'),
     }).toStrictEqual({
-      noFlowsAtAll: true,
-      noRuntimeFlows: true,
-      theQuestStillHasFlows: true,
+      emptyIsReal: true,
+      bothWaysToReachIt: true,
       gateStillBinds: true,
-      noUntrackedRefetch: true,
+      noWidening: true,
       noSigningOperationalUnits: true,
+      skipsTheMiddleGates: true,
     });
   });
 
@@ -410,20 +506,30 @@ describe('flowriderPromptStatics', () => {
     }).toStrictEqual({ pivot: true, onceThenInline: true, recoverNoArtifact: true });
   });
 
-  // Retyping a full quest's rows from memory is how a session drops the ones it forgot. A set
-  // difference over ids can actually be completed, and it is what catches an unbundled flow.
-  it('VALID: template => reconciles the flowrider track by set difference rather than from memory', () => {
+  // Retyping a full slice's rows from memory is how a session drops the ones it forgot. A set
+  // difference over ids can actually be completed, and it is what catches an unbundled flow. The
+  // second call must carry the SAME `packageNames` as Gate 3: gated on the whole track's remainder,
+  // a sliced item is still gated on the whole quest, which is the failure the slicing removes.
+  it('VALID: template => reconciles its own slice by set difference under the same packageNames', () => {
     expect({
-      gate: has('### Gate 7: The Whole-Quest Sign-Off Reconcile'),
+      gate: has('### Gate 7: The Sign-Off Reconcile For Your Slice'),
+      unitsAreTheSlices: has('Every unit YOUR SLICE owns carries a `flowriderSignoff`'),
       assembleNotRetype: has('**Assemble the reconcile; do not retype it.**'),
       reconcileById: has('reconcile **by checklist item id** against\nGate 3'),
+      recallCarriesTheNames: has(
+        "re-call `get-qa-checklist({ questId, track: 'flowrider', packageNames: [...] })` with the\nSAME names",
+      ),
       differenceMustBeEmpty: has('must be EMPTY'),
+      emptyForTheSlice: has('empty **for your slice**, the set your\ncompletion gate recomputes'),
+      droppingTheNamesGatesOnTheTrack: has(
+        'Drop the names here and you gate yourself on the whole track, which no\namount of writing empties.',
+      ),
       // Graph-derived ids reproduce byte-identically, so re-fetching diffs against the same list
       // rather than the session's recollection of it.
       refetchRatherThanRecall: has(
-        'a second call reproduces them byte-identically and\nyou diff against the same list rather than your memory of it',
+        'The ids derive from the graph, so the same call reproduces them\nbyte-identically and you diff against the same list rather than your memory of it',
       ),
-      catchesUnbundledFlow: has('the check that catches a flow\nnobody bundled'),
+      catchesUnbundledFlow: has('That is the check\nthat catches a flow nobody bundled.'),
       // Terminals and branches are exactly what a happy-path-only suite omits, and they are
       // invisible to an observable-only reconciliation.
       includesTerminalsAndBranches: has('**Terminals and branches are units too**'),
@@ -432,12 +538,18 @@ describe('flowriderPromptStatics', () => {
       ),
       offMapIsSiegemasters: has("Off-map families are Siegemaster's charter"),
       hostileInputStaysMine: has('`hostile-input` is\nalready your fixture rule'),
-      exitIsTheDifference: has('**Exit Criteria:** The set difference is empty.'),
+      exitIsTheDifference: has(
+        '**Exit Criteria:** The set difference is empty for your slice. Every seam it owns is checked.',
+      ),
     }).toStrictEqual({
       gate: true,
+      unitsAreTheSlices: true,
       assembleNotRetype: true,
       reconcileById: true,
+      recallCarriesTheNames: true,
       differenceMustBeEmpty: true,
+      emptyForTheSlice: true,
+      droppingTheNamesGatesOnTheTrack: true,
       refetchRatherThanRecall: true,
       catchesUnbundledFlow: true,
       includesTerminalsAndBranches: true,
@@ -474,6 +586,35 @@ describe('flowriderPromptStatics', () => {
       operatorSignsItsAdditions: true,
       addedAfterTheAudit: true,
       sameEvidenceBar: true,
+    });
+  });
+
+  // The operator holds ONE slice of the package dimension, so a coverage minion briefed without it
+  // measures the whole quest: it audits units a sibling flowrider item owns and leaves part of this
+  // item's own denominator unsigned, which is the gate refusal this brief line exists to prevent.
+  it('VALID: template => hands the coverage minion the item’s packageNames and rules Playwright out as evidence', () => {
+    expect({
+      handsOverTheSlice: has(
+        "**Hand it your item's `packageNames` in the brief, verbatim from your Operation Context.**",
+      ),
+      denominatorIsTheSlice: has('Its\ndenominator is your slice, not the whole quest'),
+      passedAlongsideTrack: has(
+        "it passes them to `get-qa-checklist` alongside\n`track: 'flowrider'`",
+      ),
+      namesTheCostOfOmitting: has(
+        'a brief that omits them sends it across units a sibling flowrider item\nowns while leaving part of yours unaudited',
+      ),
+      playwrightIsNotEvidence: has('a Playwright `.e2e.ts` is never\nevidence on this track'),
+      browserClaimIsGroundstompersUnit: has(
+        'a browser-read claim is a Groundstomper unit, outside this denominator by\npackage kind',
+      ),
+    }).toStrictEqual({
+      handsOverTheSlice: true,
+      denominatorIsTheSlice: true,
+      passedAlongsideTrack: true,
+      namesTheCostOfOmitting: true,
+      playwrightIsNotEvidence: true,
+      browserClaimIsGroundstompersUnit: true,
     });
   });
 
@@ -530,14 +671,26 @@ describe('flowriderPromptStatics', () => {
     });
   });
 
-  it('VALID: template => checks the cross-flow seams a per-flow session cannot see', () => {
+  it('VALID: template => checks the cross-flow seams its own slice owns, and leaves the rest', () => {
     expect({
+      onlyTheSeamsItOwns: has('Then check the seams **your slice owns**:'),
+      packageSliceLeavesTheGlue: has(
+        "on a package slice the glue units are the SEAM item's, not\nyours — name them and leave them",
+      ),
+      seamSliceOwnsTheGlue: has('on the seam item they ARE your denominator'),
+      sliceStillSpansFlows: has(
+        'Your slice spans\nseveral runtime flows either way, so run these across the ones it lands on',
+      ),
       bothClaim: has('**two flows both claim**'),
       mutualDeferral: has('did\n  both sides defer to each other so neither covered it?'),
       punctedToUnrunFlow: has('so neither covered it? That has happened here.'),
       noObservables: has('a node carrying **no observables at all**'),
       twinSurface: has('**twin surface**'),
     }).toStrictEqual({
+      onlyTheSeamsItOwns: true,
+      packageSliceLeavesTheGlue: true,
+      seamSliceOwnsTheGlue: true,
+      sliceStillSpansFlows: true,
       bothClaim: true,
       mutualDeferral: true,
       punctedToUnrunFlow: true,
@@ -704,8 +857,9 @@ describe('flowriderPromptStatics', () => {
       judgementContext: has('**Your spawn message is its only JUDGEMENT context.**'),
       forbidsTranscription: has('**Do NOT transcribe the observables into the brief.**'),
       minionFetchesPerFlow: has(
-        '`get-qa-checklist({ questId, flowId })` itself, once per flow in its bundle',
+        '`get-qa-checklist` itself, once per flow in its bundle, carrying your `track` and',
       ),
+      minionFetchIsSliced: has('`packageNames` so it gets your slice.'),
       namesTheTranscriptionRisk: has(
         'puts a\n   transcription error between the spec and the test',
       ),
@@ -718,6 +872,7 @@ describe('flowriderPromptStatics', () => {
       judgementContext: true,
       forbidsTranscription: true,
       minionFetchesPerFlow: true,
+      minionFetchIsSliced: true,
       namesTheTranscriptionRisk: true,
       briefCarriesWhatToolCannot: true,
       briefLine: true,
@@ -783,7 +938,7 @@ describe('flowriderPromptStatics', () => {
         "A claim you can only reach through a browser\nis Groundstomper's unit, not a hole in your suite",
       ),
       outputIsBelowTheBrowser: has(
-        'Your output is the flow-perspective suite for the whole quest at every layer BELOW the\nbrowser',
+        "Your output is your slice's flow-perspective suite at every layer BELOW the browser:",
       ),
       noWebServerToken: template.indexOf('webServer'),
       noDevServerToken: template.indexOf('dev server, and you are not given one'),
@@ -1073,17 +1228,21 @@ describe('flowriderPromptStatics', () => {
     expect({
       rules: /^## Rules$/mu.test(template),
       gitAndLedger: has('1. **Git is the state; the ledger is only whose turn it is**'),
-      everyFlow: has('2. **Every flow is your scope**'),
+      sliceIsTheScope: has('2. **Your SLICE is your scope**'),
+      sliceLeavesSiblingUnitsAlone: has(
+        'a package slice leaves the\n   seams, the seam item leaves the per-package units',
+      ),
       layerPerObservable: has('5. **Match the layer to each OBSERVABLE**'),
       browserClaimIsGroundstompers: has("a claim only a\n   browser can read is Groundstomper's"),
-      noSilentCaps: has('11. **No fabrication, no silent caps**'),
+      noSilentCaps: has('9. **No fabrication, no silent caps**'),
       trackMustBeWritten: has(
-        '13. **The track must be written** — the coverage audit signs the units it settles, you sign the ones\n    you add at your own spec gate, and the outcome rides on signal-back as done|partial',
+        '11. **The track must be written** — the coverage audit signs the units it settles, you sign the ones\n    you add at your own spec gate, and the outcome rides on signal-back as done|partial',
       ),
     }).toStrictEqual({
       rules: true,
       gitAndLedger: true,
-      everyFlow: true,
+      sliceIsTheScope: true,
+      sliceLeavesSiblingUnitsAlone: true,
       layerPerObservable: true,
       browserClaimIsGroundstompers: true,
       noSilentCaps: true,

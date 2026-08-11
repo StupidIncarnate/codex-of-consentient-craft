@@ -130,6 +130,34 @@ describe('slashCommandsStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
+    it('VALID: dumpsterCreate.body => carries the codeweaver packageNames instruction the approved gate measures', () => {
+      const needle =
+        '**Set `packageNames` on each item: the packages that item builds in.** Unlike `flowIds`, this one is GATED.';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => carries the observable package field with its resolve-on-save rule', () => {
+      const needle = '**Omit it when that node tags exactly one package**';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: dumpsterCreate.body => names groundstomper in the verify tail and never routes Playwright to Siegemaster', () => {
+      const needle = 'ward → flowrider → groundstomper → siegemaster → blightwarden → ward';
+      const { body } = slashCommandsStatics.dumpsterCreate;
+      const foundIndex = body.indexOf(needle);
+
+      expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+      expect(body.indexOf('Siegemaster Playwright')).toBe(-1);
+    });
+
     it('VALID: dumpsterCreate.body => no longer contains the three-step wrapper trailer line', () => {
       const removedNeedle = 'Continue the spec conversation per the chaoswhisperer prompt.';
       const { body } = slashCommandsStatics.dumpsterCreate;
@@ -208,9 +236,18 @@ describe('slashCommandsStatics', () => {
       expect(body.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
     });
 
+    it('VALID: dumpsterHunt.body => carries the observable package field with its resolve-on-save rule', () => {
+      const needle = '**Omit it when that node tags exactly one package**';
+      const { body } = slashCommandsStatics.dumpsterHunt;
+      const foundIndex = body.indexOf(needle);
+      const foundSlice = body.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
     it('VALID: dumpsterHunt.body => packagesAffected entries use the object shape with the ./ location prefix', () => {
       const needle =
-        "`location` written\nWITH the `./` prefix (`'./packages/web'`, never the bare `'packages/web'`)";
+        "`location` written\nWITH the `./` prefix (`'./packages/<name>'`, never the bare `'packages/<name>'`)";
       const { body } = slashCommandsStatics.dumpsterHunt;
       const foundIndex = body.indexOf(needle);
 
