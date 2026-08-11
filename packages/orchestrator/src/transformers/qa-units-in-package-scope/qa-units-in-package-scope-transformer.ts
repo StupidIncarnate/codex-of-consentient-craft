@@ -21,6 +21,10 @@
  * resolution at all, so an item still narrows correctly on a quest whose `packagesAffected` is
  * empty or lags its node tags.
  *
+ * A NAME RESOLVES TO A SET OF KINDS, not one. A package can be several — widgets+react behind a
+ * hono adapter is browser-reachable AND an http-backend — and each entry's stamped set is what says
+ * so, since the detector's priority table names a single winner and returns.
+ *
  * HOW `packageNames` NARROWS is `signoffTrackEligibilityStatics.byTrack[track].packageScope`, so the
  * seam rule is data rather than a role comparison here. Under `partition` a one-name item owns the
  * units whose node tags exactly that package — measured over the packages the track's own KINDS
@@ -37,6 +41,7 @@
  */
 
 import type { Flow, PackageName, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { QaVerificationUnit } from '../../contracts/qa-verification-unit/qa-verification-unit-contract';
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
@@ -57,8 +62,14 @@ export const qaUnitsInPackageScopeTransformer = ({
   const eligibility = signoffTrackEligibilityStatics.byTrack[track];
   const eligiblePackageTypes = new Set(eligibility.packageTypes.map(String));
   const declaredNames = new Set(packageNames.map(String));
-  const packageTypeByName = new Map(
-    packagesAffected.map((entry) => [String(entry.name), String(entry.packageType)]),
+  // The entry's KIND SET, never its single display label — a package can be more than one kind, and
+  // the detector's priority table reports only the first match, so a package that serves HTTP and
+  // also renders widgets would resolve wholly to one track and drop out of the other's denominator.
+  const packageKindsByName = new Map(
+    packagesAffected.map((entry) => [
+      String(entry.name),
+      questPackageEntryKindsTransformer({ entry }).map(String),
+    ]),
   );
 
   const nodePackagesById = new Map(
@@ -79,10 +90,7 @@ export const qaUnitsInPackageScopeTransformer = ({
       return true;
     }
 
-    const owningPackageTypes = owningPackages.flatMap((name) => {
-      const packageType = packageTypeByName.get(name);
-      return packageType === undefined ? [] : [packageType];
-    });
+    const owningPackageTypes = owningPackages.flatMap((name) => packageKindsByName.get(name) ?? []);
 
     const outOfKind =
       owningPackageTypes.length > 0 &&
@@ -110,8 +118,8 @@ export const qaUnitsInPackageScopeTransformer = ({
       // per-package item; reading its raw arity instead leaves them owned by no item at all, since
       // the seam item narrows its own names the same way and would not be the one that owned them.
       const owningInKind = owningPackages.filter((name) => {
-        const packageType = packageTypeByName.get(name);
-        return packageType === undefined || eligiblePackageTypes.has(packageType);
+        const kinds = packageKindsByName.get(name);
+        return kinds === undefined || kinds.some((kind) => eligiblePackageTypes.has(kind));
       });
 
       return owningInKind.length > 1

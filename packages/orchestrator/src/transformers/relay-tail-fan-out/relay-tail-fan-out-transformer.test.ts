@@ -45,6 +45,22 @@ const SHARED_PACKAGE = QuestPackageEntryStub({
   changeType: 'edit',
   packageType: 'library',
 });
+// widgets + react behind a hono adapter. The detector's rule 1 returns `http-backend` before its
+// widgets+react rule is ever reached, so the LABEL says backend while the package really renders a
+// browser surface — the stamped kind set is what carries both.
+const HYBRID_PACKAGE = QuestPackageEntryStub({
+  name: 'storefront',
+  location: './packages/storefront',
+  changeType: 'edit',
+  packageType: 'http-backend',
+  packageTypes: ['http-backend', 'frontend-react'],
+});
+const SECOND_UI_PACKAGE = QuestPackageEntryStub({
+  name: 'admin',
+  location: './packages/admin',
+  changeType: 'edit',
+  packageType: 'frontend-react',
+});
 
 describe('relayTailFanOutTransformer', () => {
   describe("fanOutBy: 'flow'", () => {
@@ -256,6 +272,33 @@ describe('relayTailFanOutTransformer', () => {
       const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
 
       expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {a node tagging a widgets+react package that ALSO serves HTTP} => it still gets a flowrider slice, because the below-browser half of it is nobody else’s', () => {
+      const quest = QuestStub({
+        packagesAffected: [HYBRID_PACKAGE, WEB_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'serve', label: 'Serve', packages: ['storefront'] }),
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: FLOWRIDER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Flowrider: author the flow-perspective test suites below the browser — package: storefront',
+          flowIds: ['send-comment'],
+          packageNames: ['storefront'],
+        },
+      ]);
     });
 
     it('VALID: {a node tagging a package absent from packagesAffected} => the package is KEPT and gets its own slice, because an unresolvable kind is the coverage rule’s failure case and dropping it hides the work', () => {
@@ -599,6 +642,106 @@ describe('relayTailFanOutTransformer', () => {
       const result = relayTailFanOutTransformer({ entry: GROUNDSTOMPER_ENTRY, quest });
 
       expect(result).toStrictEqual([]);
+    });
+
+    it('VALID: {runtime flow touching a widgets+react package that ALSO serves HTTP} => a groundstomper item IS minted, even though the package classifies http-backend for display', () => {
+      const quest = QuestStub({
+        packagesAffected: [HYBRID_PACKAGE, SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['storefront'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+            ],
+          }),
+        ],
+      });
+
+      expect({
+        slices: relayTailFanOutTransformer({ entry: GROUNDSTOMPER_ENTRY, quest }),
+        displayLabel: String(HYBRID_PACKAGE.packageType),
+      }).toStrictEqual({
+        slices: [
+          {
+            text: 'Groundstomper: author the browser walk for this flow — flow: send-comment',
+            flowIds: ['send-comment'],
+            packageNames: ['storefront'],
+          },
+        ],
+        displayLabel: 'http-backend',
+      });
+    });
+
+    it('VALID: {two UI packages on one flow, one of them also an http-backend} => one slice naming both, so neither UI loses its browser walk', () => {
+      const quest = QuestStub({
+        packagesAffected: [HYBRID_PACKAGE, SECOND_UI_PACKAGE, SERVER_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['storefront'] }),
+              FlowNodeStub({ id: 'moderate', label: 'Moderate', packages: ['admin'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['server'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: GROUNDSTOMPER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Groundstomper: author the browser walk for this flow — flow: send-comment',
+          flowIds: ['send-comment'],
+          packageNames: ['storefront', 'admin'],
+        },
+      ]);
+    });
+
+    it('VALID: {two packages whose NAMES read backend but whose kind sets differ} => only the browser-reachable one is named, so no decision here reads a package name', () => {
+      const browserReachable = QuestPackageEntryStub({
+        name: 'api-console',
+        location: './packages/api-console',
+        changeType: 'edit',
+        packageType: 'http-backend',
+        packageTypes: ['http-backend', 'frontend-react'],
+      });
+      const notReachable = QuestPackageEntryStub({
+        name: 'web',
+        location: './packages/web',
+        changeType: 'edit',
+        packageType: 'http-backend',
+        packageTypes: ['http-backend'],
+      });
+      const quest = QuestStub({
+        packagesAffected: [browserReachable, notReachable],
+        flows: [
+          FlowStub({
+            id: 'send-comment',
+            name: 'Send comment',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'render', label: 'Render', packages: ['api-console'] }),
+              FlowNodeStub({ id: 'serve', label: 'Serve', packages: ['web'] }),
+            ],
+          }),
+        ],
+      });
+
+      const result = relayTailFanOutTransformer({ entry: GROUNDSTOMPER_ENTRY, quest });
+
+      expect(result).toStrictEqual([
+        {
+          text: 'Groundstomper: author the browser walk for this flow — flow: send-comment',
+          flowIds: ['send-comment'],
+          packageNames: ['api-console'],
+        },
+      ]);
     });
 
     it('EMPTY: {node tagging a package absent from packagesAffected} => no slice, since no packageType resolves for it', () => {

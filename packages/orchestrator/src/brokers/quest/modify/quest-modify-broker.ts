@@ -48,7 +48,9 @@ import { questHasUniqueSiblingIdsGuard } from '../../../guards/quest-has-unique-
 import { questInputForbiddenFieldsTransformer } from '../../../transformers/quest-input-forbidden-fields/quest-input-forbidden-fields-transformer';
 import { questPackageEntryViolationsTransformer } from '../../../transformers/quest-package-entry-violations/quest-package-entry-violations-transformer';
 import { questResolvedCommentsTransformer } from '../../../transformers/quest-resolved-comments/quest-resolved-comments-transformer';
+import { questResolvedObservablePackagesTransformer } from '../../../transformers/quest-resolved-observable-packages/quest-resolved-observable-packages-transformer';
 import { questSaveInvariantsTransformer } from '../../../transformers/quest-save-invariants/quest-save-invariants-transformer';
+import { questUnresolvedObservablePackagesTransformer } from '../../../transformers/quest-unresolved-observable-packages/quest-unresolved-observable-packages-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -183,6 +185,36 @@ export const questModifyBroker = async ({
             existing: quest.flows,
             updates: validated.flows as typeof quest.flows,
           });
+
+          // `package` is optional on the modify-quest input and REQUIRED on the persisted
+          // observable, and this is where the two are reconciled. It has to sit between the upsert
+          // and the re-parse below: the owning node's tags are only known once the merge has run
+          // (a patch adding an observable need not restate them), and the re-parse is what would
+          // otherwise reject the omission as a raw ZodError carrying no failedChecks.
+          quest.flows = questResolvedObservablePackagesTransformer({ flows: quest.flows });
+
+          // What resolution could not settle is refused BY NAME. A node tagging two packages has
+          // nothing to hand down, and the author is the only one who knows which side of the seam
+          // an observable is read on — so the omission is reported with the node's tags rather
+          // than guessed at, and rather than surfacing as the opaque parse failure below.
+          const unresolvedObservableOffenders = questUnresolvedObservablePackagesTransformer({
+            flows: quest.flows,
+          });
+          if (unresolvedObservableOffenders.length > 0) {
+            const unresolvedObservableChecks: VerifyQuestCheck[] =
+              unresolvedObservableOffenders.map((message) =>
+                verifyQuestCheckContract.parse({
+                  name: 'Observable Package Resolution',
+                  passed: false,
+                  details: String(message),
+                }),
+              );
+            return modifyQuestResultContract.parse({
+              success: false,
+              error: 'Observable package resolution failed',
+              failedChecks: unresolvedObservableChecks,
+            });
+          }
         }
 
         // This is the comment-batch route's own server-side persist path — the MCP layer strips

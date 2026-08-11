@@ -1053,6 +1053,216 @@ describe('QuestFlow', () => {
         ],
       });
     }, 30_000);
+
+    // Every seeded fixture above states each observable's `package` outright. These two drive the
+    // path an author actually takes during the observables phase — writing through modify-quest
+    // with the key ABSENT, which `modifyQuestInputContract` permits and the persisted
+    // `flowObservableContract` requires — so what lands on disk is produced by the save, not by a
+    // stub default.
+    it('VALID: {observables written through modify-quest with no package onto single-package nodes} => the save resolves each from its owning node and the value lands on disk', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-observable-package-resolve' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'explore_observables',
+        operations: [],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [
+              FlowNodeStub({
+                id: 'press-warp',
+                label: 'Press WARP',
+                packages: ['web'],
+                observables: [],
+              }),
+              FlowNodeStub({
+                id: 'merge-status-ok',
+                label: 'Merge status OK',
+                packages: ['server'],
+                observables: [],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          flows: [
+            {
+              id: 'warpgate-merge',
+              nodes: [
+                {
+                  id: 'press-warp',
+                  observables: [
+                    {
+                      id: 'warp-button-disables',
+                      type: 'ui-state',
+                      description: 'the WARP button goes disabled while the merge runs',
+                    },
+                  ],
+                },
+                {
+                  id: 'merge-status-ok',
+                  observables: [
+                    {
+                      id: 'merge-status-200',
+                      type: 'api-call',
+                      description: 'GET /api/quests/:id/merge-status returns 200',
+                    },
+                  ],
+                },
+              ],
+            },
+          ] as never,
+        }),
+      });
+
+      const afterWrite = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        failedChecks: result.failedChecks,
+        observablePackagesOnDisk: afterWrite.flows[0]!.nodes.flatMap((node) =>
+          node.observables.map((observable) => ({
+            id: String(observable.id),
+            package: String(observable.package),
+          })),
+        ),
+      }).toStrictEqual({
+        success: true,
+        failedChecks: undefined,
+        observablePackagesOnDisk: [
+          { id: 'warp-button-disables', package: 'web' },
+          { id: 'merge-status-200', package: 'server' },
+        ],
+      });
+    }, 30_000);
+
+    it("INVALID: {observable written through modify-quest with no package onto a two-package node} => refused as 'Observable Package Resolution' naming both tags, and the observable never reaches disk", async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'qf-observable-package-unresolvable' }),
+      });
+      envHarness.setupHome({ tempDir: testbed.guildPath });
+
+      const { questId } = await questHelper.createGuildAndQuest({ testbed });
+
+      await questHelper.seedInProgressRelay({
+        questId,
+        status: 'explore_observables',
+        operations: [],
+        workItems: [],
+        packagesAffected: [
+          QuestPackageEntryStub({
+            name: 'web',
+            location: './packages/web',
+            packageType: 'frontend-react',
+          }),
+          QuestPackageEntryStub({
+            name: 'server',
+            location: './packages/server',
+            packageType: 'http-backend',
+          }),
+        ],
+        flows: [
+          FlowStub({
+            id: 'warpgate-merge',
+            name: 'Warpgate merge',
+            entryPoint: '/quest/warp',
+            exitPoints: ['/quest/merged'],
+            nodes: [
+              FlowNodeStub({
+                id: 'landed-on-base',
+                label: 'Landed on base',
+                packages: ['web', 'server'],
+                observables: [],
+              }),
+            ],
+            edges: [],
+          }),
+        ],
+      });
+
+      const result = await QuestFlow.modify({
+        questId,
+        input: ModifyQuestInputStub({
+          questId,
+          flows: [
+            {
+              id: 'warpgate-merge',
+              nodes: [
+                {
+                  id: 'landed-on-base',
+                  observables: [
+                    {
+                      id: 'merge-banner-shown',
+                      type: 'ui-state',
+                      description: 'the merged banner replaces the WARP button',
+                    },
+                  ],
+                },
+              ],
+            },
+          ] as never,
+        }),
+      });
+
+      const afterRefusal = await questHelper.reload({ questId });
+
+      testbed.cleanup();
+
+      expect({
+        success: result.success,
+        error: String(result.error),
+        failedChecks: result.failedChecks!.map((check) => ({
+          name: String(check.name),
+          passed: check.passed,
+          details: String(check.details),
+        })),
+        observableIdsOnDisk: afterRefusal.flows[0]!.nodes.flatMap((node) =>
+          node.observables.map((observable) => String(observable.id)),
+        ),
+      }).toStrictEqual({
+        success: false,
+        error: 'Observable package resolution failed',
+        failedChecks: [
+          {
+            name: 'Observable Package Resolution',
+            passed: false,
+            details:
+              "Observable 'merge-banner-shown' on node 'landed-on-base' in flow 'warpgate-merge' names no package, and its node tags web, server. An omitted package is filled in from the owning node only when that node tags exactly ONE — state the package this observable is read in, drawn from the ones its node already tags, or retag the node.",
+          },
+        ],
+        observableIdsOnDisk: [],
+      });
+    }, 30_000);
   });
 
   // The operations relay: an agent session ends with signal-back complete carrying an

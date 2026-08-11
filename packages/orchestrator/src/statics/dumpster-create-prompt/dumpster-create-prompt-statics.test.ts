@@ -380,9 +380,42 @@ describe('dumpsterCreatePromptStatics', () => {
       expect(foundSlice).toBe(needle);
     });
 
-    it('VALID: web login example flow => tags every node with packages and marks the two glue nodes with both web and server', () => {
+    it('VALID: web login example flow => tags every node with packages and marks the two glue nodes with both sides of the seam', () => {
       const needle =
-        '{ "id": "server-validates", "label": "Server validates?", "type": "decision", "packages": ["web", "server"] },\n    { "id": "set-cookie", "label": "Set auth cookie", "type": "action", "packages": ["web", "server"] },';
+        '{ "id": "server-validates", "label": "Server validates?", "type": "decision", "packages": ["<ui-package>", "<api-package>"] },\n    { "id": "set-cookie", "label": "Set auth cookie", "type": "action", "packages": ["<ui-package>", "<api-package>"] },';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: worked example flows => name packages with fill-in placeholders, never a real package of the repo the prompt was authored in', () => {
+      const { template } = dumpsterCreatePromptStatics.prompt;
+
+      // A concrete name in the example is a name an LLM copies into a quest for a repo that has no
+      // such package — which lands as a node tag absent from `packagesAffected`, the exact write
+      // `flows_approved` refuses. The slot spelling is what makes "substitute your own" unmissable.
+      expect({
+        authoringRepoUiName: template.indexOf('"packages": ["web"]'),
+        authoringRepoApiName: template.indexOf('"packages": ["server"]'),
+        authoringRepoSeamPair: template.indexOf('"packages": ["web", "server"]'),
+        authoringRepoCliName: template.indexOf('"packages": ["cli"]'),
+        uiSlotPresent: template.includes('"packages": ["<ui-package>"]'),
+        cliSlotPresent: template.includes('"packages": ["<cli-package>"]'),
+      }).toStrictEqual({
+        authoringRepoUiName: -1,
+        authoringRepoApiName: -1,
+        authoringRepoSeamPair: -1,
+        authoringRepoCliName: -1,
+        uiSlotPresent: true,
+        cliSlotPresent: true,
+      });
+    });
+
+    it('VALID: web login example flow => says the package names are slots filled from packagesAffected', () => {
+      const needle =
+        '**Example flow (web login):** every value below is real example data EXCEPT the package names — `<ui-package>` and `<api-package>` are slots, and you write the actual names from this quest';
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
@@ -435,6 +468,173 @@ describe('dumpsterCreatePromptStatics', () => {
     it('VALID: prompt template => packagesAffected can open as early as explore_flows', () => {
       const needle =
         'You can open `packagesAffected` as early as `explore_flows`, one gate before observables';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => the name example is a package-role name, not one of the repo the prompt was authored in', () => {
+      const needle =
+        "`name`: the package's directory name as it is spelled on disk under the workspace root — kebab-case, never the scoped npm name (`'auth-service'`, not `'@acme/auth-service'`).";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
+  // The `approved` gate refuses the transition unless the union of every codeweaver item's
+  // `packageNames` covers every node-tagged package. The ledger step is the only instruction the
+  // authoring agent ever reads, so a step that never names the field makes that gate unsatisfiable
+  // on a first attempt and leaves the rejection string as the author's only guidance.
+  describe('codeweaver item packageNames', () => {
+    it('VALID: prompt template => instructs setting packageNames on each ledger item and says the gate is on it', () => {
+      const needle =
+        '**Set `packageNames` on each item: the packages that item builds in.** Unlike `flowIds`, this one is GATED. At `approved` the union of `packageNames` across every codeweaver item must cover every package tagged on a flow node, and the transition is refused BY NAME for any package the ledger leaves unclaimed.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => draws packageNames from the same closed set the node tags draw from', () => {
+      const needle =
+        'Draw the names from `packagesAffected` — the same closed set every node tag draws from.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => permits overlapping packageNames and refuses only an unclaimed package', () => {
+      const needle =
+        'Overlap is fine and expected: a foundational item legitimately claims several packages, and two items may claim the same one. What the gate refuses is a package NO item claims.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => states packageNames is a pre-work declaration, not a boundary', () => {
+      const needle =
+        'Like `flowIds`, it is a pre-work declaration and not a boundary — a Codeweaver may touch another package once it is in the work.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => the modify-quest call shape shows packageNames alongside flowIds', () => {
+      const needle =
+        "`operations: [{ id: '<uuid>', role: 'codeweaver', text: '<scope>', status: 'pending', flowIds: [...], packageNames: [...] }, ...]`";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => the step-13 reconcile checklist asks whether packageNames still covers every node tag', () => {
+      const needle =
+        "**Does the union of every codeweaver item's `packageNames` still cover every package tagged on a node?** A node retagged, widened, or added since you authored the ledger can introduce a package no item claims, and `approved` refuses that by name. Walk the node tags, not the items, or you will only find the packages you already thought of.";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
+  describe('observable package attribution', () => {
+    it('VALID: prompt template => lists package among the observable fields with the resolve-on-save rule', () => {
+      const needle =
+        "- `package`: the ONE package this outcome is read in, drawn from the owning node's `packages`. **Omit it when that node tags exactly one package** — the save resolves it from the node, so there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit and an omission is refused: name the side of the seam this observable sits on, and name one the node already tags.";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => states the approved-gate attribution rule with its seam-forced waiver and zero-observable exemption', () => {
+      const needle =
+        "A seam node's observables must also cover the seam it declares. At `approved`, every package a multi-package node tags has to be either **observed** (some observable on that node names it) or **seam-forced** (dropping it would leave an incident edge with nothing spanning it — the edge set already asserts it, so it owes no observable of its own). A package that is neither is rejected by name. Nodes carrying zero observables are exempt entirely, so a decision node may carry any number of packages.";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: Observable Format => the single-package example omits package and says the save fills it in', () => {
+      const needle =
+        'On a node tagging exactly ONE package, leave `package` out — the save fills it in from the node:\n```json\n{\n  "id": "check-login-api-called",\n  "type": "api-call",\n  "description": "POST /api/auth/login called with credentials"\n}\n```';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: Observable Format => the seam-node example carries an explicit package on every observable', () => {
+      const needle =
+        '"observables": [\n  { "id": "check-login-api-called", "type": "api-call", "description": "POST /api/auth/login called with credentials", "package": "<api-package>" },\n  { "id": "check-redirect-dashboard", "type": "ui-state", "description": "redirected to /dashboard", "package": "<ui-package>" }\n]';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+  });
+
+  describe('e2e ownership in the type-tag routing', () => {
+    it('VALID: prompt template => routes ui-state to Groundstomper Playwright and to the Siegemaster hand-walk', () => {
+      const needle =
+        "- `ui-state` — Visual/DOM changes (→ widgets, → Groundstomper Playwright, → Siegemaster's hand-walk)";
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => routes api-call to the Flowrider integration harness or Groundstomper Playwright', () => {
+      const needle =
+        '- `api-call` — HTTP requests/responses (→ responders, adapters, → Flowrider integration harness, or Groundstomper Playwright when the call is observed through the browser)';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => splits the authoring roles on whether the outcome is visible through a browser', () => {
+      const needle =
+        '**The two authoring roles split on whether the outcome is visible through a browser.** Groundstomper owns Playwright and only Playwright; Flowrider owns the integration and unit suites below the browser.';
+      const { template } = dumpsterCreatePromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+      const foundSlice = template.slice(foundIndex, foundIndex + needle.length);
+
+      expect(foundSlice).toBe(needle);
+    });
+
+    it('VALID: prompt template => never routes Playwright to Siegemaster', () => {
+      const { template } = dumpsterCreatePromptStatics.prompt;
+
+      expect(template.indexOf('Siegemaster Playwright')).toBe(-1);
+      expect(template.indexOf('tells Siegemaster to run Playwright')).toBe(-1);
+    });
+
+    it('VALID: prompt template => names groundstomper in the verify tail the orchestrator appends', () => {
+      const needle =
+        'the orchestrator appends the verify tail (ward → flowrider → groundstomper → siegemaster → blightwarden → ward) itself at Start Quest';
       const { template } = dumpsterCreatePromptStatics.prompt;
       const foundIndex = template.indexOf(needle);
       const foundSlice = template.slice(foundIndex, foundIndex + needle.length);

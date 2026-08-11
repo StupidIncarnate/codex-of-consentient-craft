@@ -17,17 +17,22 @@
  * can be outstanding for one track and settled for the other. Every role other than those three
  * returns an empty array and is never gated here.
  *
- * SCOPE IS PER-ROLE, AND THE ROLE IS THE ONLY GATE CONDITION.
- * - `flowrider` and `groundstomper` are gated UNCONDITIONALLY on role. Their denominators are
- *   computed HERE, at gate time, as the quest's flows of the types `signoffTrackEligibilityStatics`
- *   gives that track — never from `operationItem.flowIds`. Reading `flowIds` would reopen the exact
- *   hole this closes: an item declaring none would be ungated, and a whole-quest flowrider item
- *   legitimately carries none. Zero eligible flows yields zero units for the right reason (there is
- *   nothing walkable to prove), not because the gate was skipped.
- * - `siegemaster` keeps `flowIds` as its COVERAGE SCOPE — one item per flow, of either flow type,
- *   because it verifies an operational flow's end state as well as a runtime flow's walk. An item
- *   declaring no flows matches nothing and is not gated, which is what keeps a flow-less quest and
- *   any pre-gate item completable.
+ * FLOW SCOPE IS DATA, NOT A ROLE BRANCH. Whether an item's own `flowIds` narrow its denominator is
+ * `signoffTrackEligibilityStatics.byTrack[track].flowScope`, which states the DIMENSION the relay
+ * sliced that track's items on rather than restating it as a role comparison here.
+ * - `every-eligible` (flowrider) — the denominator is computed HERE, at gate time, as the quest's
+ *   flows of the types the statics gives that track, and an item is gated whatever it declares. Its
+ *   items are sliced by PACKAGE, so their flow lists are a by-product of where a package lands and
+ *   the whole-quest fallback item legitimately carries none; reading `flowIds` would leave that item
+ *   ungated. Zero eligible flows yields zero units for the right reason (there is nothing walkable
+ *   to prove), not because the gate was skipped.
+ * - `declared` (groundstomper, siegemaster) — one item per flow, so the item's `flowIds` ARE its
+ *   COVERAGE SCOPE and the gate measures exactly the flow the session's own
+ *   `get-qa-checklist({ questId, flowId, track })` call answers for. Measuring a groundstomper item
+ *   over every runtime flow instead makes the FIRST of several sibling items unsignable: its
+ *   `packageScope` is `intersection`, so every sibling flow sharing one of its UI packages lands in
+ *   its denominator. An item declaring no flows matches nothing and is not gated, which is what
+ *   keeps a flow-less quest and any pre-gate item completable.
  *
  * THE PACKAGE NARROWING IS TWO SEPARATE QUESTIONS, and this file answers neither itself — it hands
  * the item's `packageNames` and the quest's `packagesAffected` to
@@ -74,19 +79,20 @@ export const signoffOutstandingTransformer = ({
 
   const track = operationItem.role;
 
-  // Which FLOW TYPES, UNIT KINDS, PACKAGE KINDS, package SLICE rule and observable origins a track
-  // measures is data in `signoffTrackEligibilityStatics` — one file answers "what is in this
-  // track's denominator" rather than that rule being half data and half a branch here.
+  // Which FLOW TYPES, flow SLICE rule, UNIT KINDS, PACKAGE KINDS, package SLICE rule and observable
+  // origins a track measures is data in `signoffTrackEligibilityStatics` — one file answers "what is
+  // in this track's denominator" rather than that rule being half data and half a branch here.
   const eligibility = signoffTrackEligibilityStatics.byTrack[track];
   const eligibleFlowTypes = new Set(eligibility.flowTypes.map(String));
   const typedFlows = quest.flows.filter((flow) => eligibleFlowTypes.has(flow.flowType));
 
-  // The authoring tracks' denominator is every flow of an eligible type, resolved now. Siegemaster's
-  // is the item's declared flows. An empty declared set matches no flow, which is how a siegemaster
-  // item carrying no flowIds stays ungated without a special case.
+  // A `declared` track's items were sliced BY FLOW, so the item's own list is its scope; an
+  // `every-eligible` track's were sliced by package, so its denominator is every flow of an eligible
+  // type. An empty declared set matches no flow, which is how a per-flow item carrying no flowIds
+  // stays ungated without a special case.
   const scopedFlowIds = new Set(operationItem.flowIds.map(String));
   const scopedFlows =
-    track === 'siegemaster'
+    eligibility.flowScope === 'declared'
       ? typedFlows.filter((flow) => scopedFlowIds.has(String(flow.id)))
       : typedFlows;
 

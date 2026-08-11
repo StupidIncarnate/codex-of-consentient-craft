@@ -29,6 +29,7 @@ import { flowriderPromptStatics } from '../../statics/flowrider-prompt/flowrider
 import { operationsLedgerRenderStatics } from '../../statics/operations-ledger-render/operations-ledger-render-statics';
 import { pesteaterPromptStatics } from '../../statics/pesteater-prompt/pesteater-prompt-statics';
 import { siegemasterPromptStatics } from '../../statics/siegemaster-prompt/siegemaster-prompt-statics';
+import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
 import { workItemToPromptTransformer } from './work-item-to-prompt-transformer';
@@ -79,6 +80,28 @@ const ELISION_NOTICE_SINGULAR =
 const SUMMONED_ONLY_MINION_NAMES = agentPromptClassificationStatics.promptNames.filter(
   (promptName) =>
     agentPromptClassificationStatics.roleNames.every((roleName) => roleName !== promptName),
+);
+
+type SignoffTrackRole = keyof typeof signoffTrackEligibilityStatics.byTrack;
+
+// Every role the eligibility statics defines a denominator for. Its item IS its scope — the
+// completion gate measures that item against a computed set — so both scope blocks read it as
+// accountability rather than as a reading order. Derived here, never listed, because a track added
+// to the statics and forgotten in a hand-written role list is exactly how groundstomper came to be
+// told its one flow was "a starting point, NOT a boundary" while its gate measured it on that flow.
+const SIGNOFF_TRACK_ROLES = Object.keys(
+  signoffTrackEligibilityStatics.byTrack,
+) as SignoffTrackRole[];
+
+// The two ways an operator's `packageNames` narrow its denominator. A `partition` track's items ARE
+// the package dimension, so its glue units belong to a seam item; an `intersection` track has no
+// seam item, so telling one to disown its glue units tells it to skip exactly what its gate then
+// refuses it for.
+const PARTITION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
+  (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'partition',
+);
+const INTERSECTION_TRACK_ROLES = SIGNOFF_TRACK_ROLES.filter(
+  (role) => signoffTrackEligibilityStatics.byTrack[role].packageScope === 'intersection',
 );
 
 describe('workItemToPromptTransformer', () => {
@@ -445,50 +468,110 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    it('VALID: {flowrider operation with packageNames} => renders the list as the coverage slice, not a reading order', () => {
-      const questId = QuestIdStub({ value: 'my-quest' });
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8883-4222-9333-444444444444' });
-      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8883-4222-9333-444444444444' });
-      const operation = OperationItemStub({
-        id: operationId,
-        role: 'flowrider',
-        text: 'author the suites',
-        status: 'pending',
-        packageNames: ['server'],
-      });
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'flowrider',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
-      });
-      const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+    it.each(PARTITION_TRACK_ROLES)(
+      'VALID: {role: %s, operation with packageNames} => renders the list as a PARTITION slice, handing the seams to the seam item',
+      (role) => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8883-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8883-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role,
+          text: 'author the suites',
+          status: 'pending',
+          packageNames: ['server'],
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
-      const result = workItemToPromptTransformer({
-        quest,
-        workItem,
-        agentName: AgentPromptNameStub({ value: 'flowrider' }),
-      });
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: role }),
+        });
 
-      const expectedArgs = [
-        `Quest ID: ${String(questId)}`,
-        `Work Item ID: ${String(workItemId)}`,
-        `Operation Item ID: ${String(operationId)}`,
-        'Your operation item: [flowrider] author the suites',
-        '',
-        'Operations ledger (in order):',
-        '1. [ ] [flowrider] author the suites  <-- YOUR OPERATION ITEM',
-        '',
-        'Your packages: server',
-        '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)',
-        '',
-        'Original user request (the intent behind the flows):',
-        'Add authentication to the application',
-      ].join('\n');
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          `Your operation item: [${role}] author the suites`,
+          '',
+          'Operations ledger (in order):',
+          `1. [ ] [${role}] author the suites  <-- YOUR OPERATION ITEM`,
+          '',
+          'Your packages: server',
+          '(YOUR coverage slice — you own every verification unit whose owning NODE tags one of these packages, and a unit spanning two of them belongs to the seam item, not to you. Read these packages first.)',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
 
-      expect(result.prompt).toBe(
-        flowriderPromptStatics.prompt.template.split('$ARGUMENTS').join(expectedArgs),
-      );
-    });
+        expect(result.prompt).toBe(
+          agentNameToPromptTransformer({ agent: AgentPromptNameStub({ value: role }) })
+            .prompt.split('$ARGUMENTS')
+            .join(expectedArgs),
+        );
+      },
+    );
+
+    // The partition wording tells a session that a unit spanning two of its packages is somebody
+    // else's. For an `intersection` track that sentence is false and expensive: there is no seam
+    // item on its track, `qaUnitsInPackageScopeTransformer` keeps every glue unit in its
+    // denominator, and the completion gate then refuses it for skipping exactly what this block
+    // told it to skip.
+    it.each(INTERSECTION_TRACK_ROLES)(
+      'VALID: {role: %s, operation with packageNames} => renders the list as an INTERSECTION slice, keeping the glue units rather than disowning them',
+      (role) => {
+        const questId = QuestIdStub({ value: 'my-quest' });
+        const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-8886-4222-9333-444444444444' });
+        const operationId = OperationItemIdStub({ value: 'bbbbbbbb-8886-4222-9333-444444444444' });
+        const operation = OperationItemStub({
+          id: operationId,
+          role,
+          text: 'walk the flow',
+          status: 'pending',
+          packageNames: ['web'],
+        });
+        const workItem = WorkItemStub({
+          id: workItemId,
+          role,
+          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        });
+        const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
+
+        const result = workItemToPromptTransformer({
+          quest,
+          workItem,
+          agentName: AgentPromptNameStub({ value: role }),
+        });
+
+        const expectedArgs = [
+          `Quest ID: ${String(questId)}`,
+          `Work Item ID: ${String(workItemId)}`,
+          `Operation Item ID: ${String(operationId)}`,
+          `Your operation item: [${role}] walk the flow`,
+          '',
+          'Operations ledger (in order):',
+          `1. [ ] [${role}] walk the flow  <-- YOUR OPERATION ITEM`,
+          '',
+          'Your packages: web',
+          '(YOUR coverage slice — you own every verification unit whose owning NODE tags ANY of these packages, a unit spanning two of them included: your track has no seam item, so a glue unit is yours and nobody else claims it. Read these packages first.)',
+          '',
+          'Original user request (the intent behind the flows):',
+          'Add authentication to the application',
+        ].join('\n');
+
+        expect(result.prompt).toBe(
+          agentNameToPromptTransformer({ agent: AgentPromptNameStub({ value: role }) })
+            .prompt.split('$ARGUMENTS')
+            .join(expectedArgs),
+        );
+      },
+    );
 
     it('EDGE: {operation with empty packageNames} => omits the packages block entirely', () => {
       const questId = QuestIdStub({ value: 'my-quest' });
@@ -635,18 +718,14 @@ describe('workItemToPromptTransformer', () => {
       );
     });
 
-    // Both roles hold an item whose flow list IS its scope rather than a reading order — but neither
-    // is handed the seams here: a flowrider item is a package slice and the glue units belong to the
-    // seam item, so a caveat claiming them would contradict the prompt this block is substituted into.
-    describe('flow scoping for the flowrider/siegemaster operators', () => {
-      const flowOperatorCases = [
-        ['flowrider', flowriderPromptStatics] as const,
-        ['siegemaster', siegemasterPromptStatics] as const,
-      ];
-
-      it.each(flowOperatorCases)(
+    // Every operator holds an item whose flow list IS its scope rather than a reading order — but
+    // none is handed the seams here: a flowrider item is a package slice and the glue units belong
+    // to the seam item, so a caveat claiming them would contradict the prompt this block is
+    // substituted into.
+    describe('flow scoping for the sign-off-track operators', () => {
+      it.each(SIGNOFF_TRACK_ROLES)(
         'VALID: {role: %s, operation carrying several flowIds} => names them as the unit of accountability, claiming no sibling item’s units',
-        (role, statics) => {
+        (role) => {
           const questId = QuestIdStub({ value: 'my-quest' });
           const workItemId = QuestWorkItemIdStub({ value: 'cccccccc-9999-4222-9333-444444444444' });
           const operationId = OperationItemIdStub({
@@ -688,7 +767,11 @@ describe('workItemToPromptTransformer', () => {
             'Add authentication to the application',
           ].join('\n');
 
-          expect(result.prompt).toBe(statics.prompt.template.replace('$ARGUMENTS', expectedArgs));
+          expect(result.prompt).toBe(
+            agentNameToPromptTransformer({
+              agent: AgentPromptNameStub({ value: role }),
+            }).prompt.replace('$ARGUMENTS', expectedArgs),
+          );
         },
       );
     });

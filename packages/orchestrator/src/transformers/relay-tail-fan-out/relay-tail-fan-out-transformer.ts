@@ -16,6 +16,11 @@
  * A node's contribution is therefore the subset of its `packages` whose KIND that role owns: none
  * of them means no slice, one means that package's slice, and two or more means the seam slice.
  *
+ * A package is ranked on its whole KIND SET, never on the single winning label. A package can be
+ * more than one kind, and the detector's priority table reports only its first match, so a package
+ * that serves HTTP and also renders widgets reads as backend-only from the label — and mints no
+ * groundstomper item at all, which is browser coverage lost with nothing failing to say so.
+ *
  * USAGE:
  * relayTailFanOutTransformer({ entry: questTypeRegistryStatics.feature.relayTail[1], quest });
  * // Returns one slice per package the quest's runtime nodes tag, plus the seam slice
@@ -24,6 +29,7 @@
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { FlowId, OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
 import type { questTypeRegistryStatics } from '@dungeonmaster/shared/statics';
+import { questPackageEntryKindsTransformer } from '@dungeonmaster/shared/transformers';
 
 import { signoffTrackEligibilityStatics } from '../../statics/signoff-track-eligibility/signoff-track-eligibility-statics';
 
@@ -70,10 +76,13 @@ export const relayTailFanOutTransformer = ({
     const eligiblePackageTypes = new Set(
       signoffTrackEligibilityStatics.byTrack.flowrider.packageTypes.map(String),
     );
-    const packageTypeByName = new Map(
+    // The entry's KIND SET, never its single display label: a package that serves HTTP and also
+    // renders widgets is honestly both, and the detector's priority table can only report one
+    // winner. Ranking the winner alone would hand every such package wholly to one track.
+    const packageKindsByName = new Map(
       quest.packagesAffected.map((affected) => [
         String(affected.name),
-        String(affected.packageType),
+        questPackageEntryKindsTransformer({ entry: affected }).map(String),
       ]),
     );
 
@@ -88,8 +97,8 @@ export const relayTailFanOutTransformer = ({
         // case, and dropping the package here would delete its units from every denominator
         // instead of surfacing them.
         const owned = node.packages.filter((name) => {
-          const packageType = packageTypeByName.get(String(name));
-          return packageType === undefined || eligiblePackageTypes.has(packageType);
+          const kinds = packageKindsByName.get(String(name));
+          return kinds === undefined || kinds.some((kind) => eligiblePackageTypes.has(kind));
         });
 
         // Every kind this node lands in belongs to the sibling authoring track — a node tagged
@@ -175,10 +184,13 @@ export const relayTailFanOutTransformer = ({
     const eligiblePackageTypes = new Set(
       signoffTrackEligibilityStatics.byTrack.groundstomper.packageTypes.map(String),
     );
-    const packageTypeByName = new Map(
+    // The entry's KIND SET, never its single display label. This is the line the whole file exists
+    // for: a package whose hono adapter outranks its widgets folder classifies `http-backend`, and
+    // reading that winner alone mints NO item here — zero browser coverage on a green run.
+    const packageKindsByName = new Map(
       quest.packagesAffected.map((affected) => [
         String(affected.name),
-        String(affected.packageType),
+        questPackageEntryKindsTransformer({ entry: affected }).map(String),
       ]),
     );
 
@@ -192,8 +204,8 @@ export const relayTailFanOutTransformer = ({
       const reachable = new Map<unknown, PackageName>();
       for (const node of flow.nodes) {
         for (const name of node.packages) {
-          const packageType = packageTypeByName.get(String(name));
-          if (packageType !== undefined && eligiblePackageTypes.has(packageType)) {
+          const kinds = packageKindsByName.get(String(name));
+          if (kinds?.some((kind) => eligiblePackageTypes.has(kind)) === true) {
             reachable.set(String(name), name);
           }
         }

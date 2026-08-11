@@ -1,10 +1,25 @@
-import { signoffTracksStatics } from '@dungeonmaster/shared/statics';
+import { questTypeRegistryStatics, signoffTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { signoffTrackEligibilityStatics } from './signoff-track-eligibility-statics';
 
 type SignoffTrack = keyof typeof signoffTrackEligibilityStatics.byTrack;
 
 const TRACKS = Object.keys(signoffTrackEligibilityStatics.byTrack) as SignoffTrack[];
+
+// How the relay slices each track's items, read off the seed that mints them. A track fanned out BY
+// FLOW gets one item per flow, so its `flowIds` are a slice of the flow dimension and the gate must
+// read them; a track fanned out by package gets flow lists that are a by-product of where its
+// package lands, so reading them would narrow on a dimension nobody sliced.
+const FAN_OUT_BY_TRACK = new Map(
+  questTypeRegistryStatics.feature.relayTail.flatMap((entry) =>
+    'fanOutBy' in entry ? [[entry.role, entry.fanOutBy] as const] : [],
+  ),
+);
+const FLOW_SCOPE_BY_FAN_OUT = new Map([
+  ['flow', 'declared'],
+  ['e2e-flow', 'declared'],
+  ['package', 'every-eligible'],
+]);
 
 // The two origins that name no relay role at all — the spec at approval, and a human writing an
 // observable in out of band. Neither can be "after" a track, so both count for every track.
@@ -93,6 +108,37 @@ describe('signoffTrackEligibilityStatics', () => {
       const { flowTypes } = signoffTrackEligibilityStatics.byTrack[track];
 
       expect(flowTypes.filter((flowType) => flowType === 'runtime')).toStrictEqual(['runtime']);
+    });
+  });
+
+  describe('flow-slice ownership', () => {
+    it('VALID: {flowrider} => measures every flow of an eligible type, because its items are sliced on the PACKAGE dimension', () => {
+      expect(signoffTrackEligibilityStatics.byTrack.flowrider.flowScope).toBe('every-eligible');
+    });
+
+    it('VALID: {groundstomper} => measures the flows its item declares, because it gets one item per e2e-eligible runtime flow', () => {
+      expect(signoffTrackEligibilityStatics.byTrack.groundstomper.flowScope).toBe('declared');
+    });
+
+    it('VALID: {siegemaster} => measures the flows its item declares, because it gets one item per flow', () => {
+      expect(signoffTrackEligibilityStatics.byTrack.siegemaster.flowScope).toBe('declared');
+    });
+
+    // The slicer and the gate must be duals: the gate reads an item's `flowIds` exactly when the
+    // relay cut that item out of the flow dimension. Reading them for a package-sliced track leaves
+    // its whole-quest fallback item ungated; NOT reading them for a flow-sliced track measures the
+    // first of several sibling items over every sibling's flow, which it can never sign off.
+    it('VALID: {every track} => its flow scope is the dual of the dimension the relay tail slices its items on', () => {
+      expect(
+        TRACKS.map(
+          (track) => `${track}: ${signoffTrackEligibilityStatics.byTrack[track].flowScope}`,
+        ),
+      ).toStrictEqual(
+        TRACKS.map(
+          (track) =>
+            `${track}: ${String(FLOW_SCOPE_BY_FAN_OUT.get(String(FAN_OUT_BY_TRACK.get(track))))}`,
+        ),
+      );
     });
   });
 
@@ -295,6 +341,7 @@ describe('signoffTrackEligibilityStatics', () => {
           flowrider: {
             signoffField: 'flowriderSignoff',
             flowTypes: ['runtime'],
+            flowScope: 'every-eligible',
             unitKinds: ['terminal', 'branch', 'observable'],
             packageTypes: [
               'http-backend',
@@ -311,6 +358,7 @@ describe('signoffTrackEligibilityStatics', () => {
           groundstomper: {
             signoffField: 'flowriderSignoff',
             flowTypes: ['runtime'],
+            flowScope: 'declared',
             unitKinds: ['terminal', 'branch', 'observable'],
             packageTypes: ['frontend-react', 'frontend-ink'],
             packageScope: 'intersection',
@@ -319,6 +367,7 @@ describe('signoffTrackEligibilityStatics', () => {
           siegemaster: {
             signoffField: 'siegemasterSignoff',
             flowTypes: ['runtime', 'operational'],
+            flowScope: 'declared',
             unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
             packageTypes: [
               'http-backend',

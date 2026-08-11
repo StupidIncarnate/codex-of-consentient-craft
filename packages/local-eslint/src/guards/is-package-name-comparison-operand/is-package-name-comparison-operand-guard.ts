@@ -1,11 +1,11 @@
 /**
- * PURPOSE: Separates a bare package name that DECIDES something from one that is merely data. The same literal `'web'` is a branch as an equality operand or a switch case, and is nothing at all as an enum option, an array member, or a display label — so the no-hardcoded-package-names rule consults this before reporting a name that carries no path around it.
+ * PURPOSE: Separates a bare package name that DECIDES something ON ITS OWN from one that is merely data. The same literal `'web'` is a branch as an equality operand or a switch case, and is nothing at all as an enum option or a display label — so the no-hardcoded-package-names rule consults this before reporting a name that carries no path around it.
  *
  * USAGE:
  * isPackageNameComparisonOperandGuard({ node });
  * // Returns true when node sits under `x === 'web'` or `case 'web':`
  *
- * WHEN-TO-USE: Only inside the no-hardcoded-package-names rule broker.
+ * WHEN-TO-USE: Only inside the no-hardcoded-package-names rule broker. Reach for `isMembershipTestUsageGuard` instead when the decision is made by the COLLECTION a name sits in rather than by the name itself — a bare name in an array literal decides nothing until something tests membership against that array.
  */
 import type { Tsestree } from '@dungeonmaster/eslint-plugin';
 import { packageNameLiteralStatics } from '../../statics/package-name-literal/package-name-literal-statics';

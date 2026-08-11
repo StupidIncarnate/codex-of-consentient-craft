@@ -73,12 +73,13 @@ export const architectureProjectMapBroker = async ({
     throw new Error(`Unknown package(s): ${unknown.join(', ')}. Valid: ${validList}`);
   }
 
+  // The headline renderer is a single choice, so it takes the winning kind alone — the detector's
+  // remaining kinds answer eligibility questions this map does not ask.
   const targetsWithType = await Promise.all(
-    scanTargets.map(async ({ packageName, packageRoot }) => ({
-      packageName,
-      packageRoot,
-      packageType: await architecturePackageTypeDetectBroker({ packageRoot }),
-    })),
+    scanTargets.map(async ({ packageName, packageRoot }) => {
+      const [packageType] = await architecturePackageTypeDetectBroker({ packageRoot });
+      return { packageName, packageRoot, packageType };
+    }),
   );
 
   // Library packages have no startup tree to walk — they belong to get-project-inventory.

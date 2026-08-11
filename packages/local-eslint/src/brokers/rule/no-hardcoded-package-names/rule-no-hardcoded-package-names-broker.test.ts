@@ -58,14 +58,36 @@ ruleTester.run('no-hardcoded-package-names', ruleNoHardcodedPackageNamesBroker()
       code: "import { thing } from '@dungeonmaster/web';\nexport const use = (): unknown => thing;",
       filename: sharedBrokerFixture,
     },
-    // === PRODUCTION: a bare role name as DATA (array member) decides nothing ===
+    // === PRODUCTION: a bare role name as DATA (array member nothing tests against) decides nothing ===
     {
       code: "const kinds = ['web', 'server'];",
       filename: sharedBrokerFixture,
     },
-    // === PRODUCTION: a bare role name as an object value decides nothing ===
+    // === PRODUCTION: an array of role names carried forward as data, never tested against ===
+    {
+      code: [
+        "const declared = ['web', 'server'];",
+        'export const render = (): string[] => declared.map((name) => name.toUpperCase());',
+      ].join('\n'),
+      filename: sharedBrokerFixture,
+    },
+    // === PRODUCTION: a role name as an object value is a label, not a branch ===
     {
       code: "const labels = { primary: 'web' };",
+      filename: sharedBrokerFixture,
+    },
+    // === PRODUCTION: a role-name key on a config namespace is not a dispatch table ===
+    {
+      code: "const config = { api: { basePath: '/api' } };",
+      filename: sharedBrokerFixture,
+    },
+    // === PRODUCTION: a prefix scan over unrelated tokens that happen to include a role word ===
+    {
+      code: [
+        "const skipPrefixes = [':', 'api'];",
+        'export const keep = ({ segment }: { segment: string }): boolean =>',
+        '  skipPrefixes.every((prefix) => !segment.startsWith(prefix));',
+      ].join('\n'),
       filename: sharedBrokerFixture,
     },
     // === ALLOWLIST: test files carry real repo paths as fixture data ===
@@ -165,6 +187,69 @@ ruleTester.run('no-hardcoded-package-names', ruleNoHardcodedPackageNamesBroker()
       ].join('\n'),
       filename: sharedBrokerFixture,
       errors: [{ messageId: 'packageNameDiscriminator', data: { packageName: 'server' } }],
+    },
+    // === BRANCH: the set-shaped spelling — a named array the code tests membership against ===
+    {
+      code: [
+        "const UI_PACKAGES = ['web', 'app'];",
+        'export const isUi = ({ name }: { name: string }): boolean => UI_PACKAGES.includes(name);',
+      ].join('\n'),
+      filename: sharedBrokerFixture,
+      errors: [
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'web' } },
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'app' } },
+      ],
+    },
+    // === BRANCH: the same set frozen with `as const`, which is how this repo writes them ===
+    {
+      code: [
+        "const UI_PACKAGES = ['web', 'desktop'] as const;",
+        'export const rank = ({ name }: { name: string }): number => UI_PACKAGES.indexOf(name);',
+      ].join('\n'),
+      filename: sharedBrokerFixture,
+      errors: [
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'web' } },
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'desktop' } },
+      ],
+    },
+    // === BRANCH: an inline set with no binding to trace ===
+    {
+      code: "export const isBackend = ({ name }: { name: string }): boolean => ['server', 'api'].includes(name);",
+      filename: sharedBrokerFixture,
+      errors: [
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'server' } },
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'api' } },
+      ],
+    },
+    // === BRANCH: a Set built out of role names is a membership set by construction ===
+    {
+      code: [
+        "const UI_PACKAGES = new Set(['web', 'client']);",
+        'export const isUi = ({ name }: { name: string }): boolean => UI_PACKAGES.has(name);',
+      ].join('\n'),
+      filename: sharedBrokerFixture,
+      errors: [
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'web' } },
+        { messageId: 'packageNameDiscriminator', data: { packageName: 'client' } },
+      ],
+    },
+    // === SCOPE: an `apps/` workspace layout is the same hardcode as `packages/` ===
+    {
+      code: "const uiRoot = 'apps/web/src/widgets';",
+      filename: sharedBrokerFixture,
+      errors: [{ messageId: 'hardcodedPackagePath', data: { packageName: 'web' } }],
+    },
+    // === SCOPE: a `libs/` workspace layout, likewise ===
+    {
+      code: "const apiRoot = 'libs/backend/src';",
+      filename: sharedBrokerFixture,
+      errors: [{ messageId: 'hardcodedPackagePath', data: { packageName: 'backend' } }],
+    },
+    // === SCOPE: `desktop` names a UI surface, so it is a role name like `web` ===
+    {
+      code: "const shellRoot = 'packages/desktop/src';",
+      filename: sharedBrokerFixture,
+      errors: [{ messageId: 'hardcodedPackagePath', data: { packageName: 'desktop' } }],
     },
   ],
 });

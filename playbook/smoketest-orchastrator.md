@@ -176,7 +176,7 @@ each run, in order:
    (prod) runs from `dist/` too, so this is mandatory before every server (re)start.
 5. **Start smoke-test server.** `npm run prod` (ports 4800/4801). Single process only. Leave it up for the whole run. Do
    NOT run `npm run dev` — that port range is reserved for the dev server Siegemaster stands up during verification (and
-   for the one Playwright's `webServer` starts inside a Flowrider e2e run).
+   for the one Playwright's `webServer` starts inside a Groundstomper e2e run).
 6. **Initialize the notes file.** `/tmp/validation-notes.md` (outside the repo so it never gets committed). Create on
    first run of a validation session; append to it on subsequent runs.
 7. **Start a new quest.** Web UI (http://dungeonmaster.localhost:4801/codex/session) → "New Chat" → describe the trivial
@@ -557,21 +557,20 @@ state swap → WS broadcast → execution panel render) has not been tested, so 
        Screenshot to confirm.
     2. **The operations ledger renders in the execution panel** (`data-testid="OPERATIONS_LEDGER"`, rows
        `OPERATIONS_LEDGER_ROW` — role badge + text + status; ward rows show a `(changed)`/`(full)` mode tag, and any row
-       whose item carries `flowIds` shows the flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS` — the flowrider row lists
-       EVERY flow on the quest, each siegemaster row lists its own single flow, the other tail rows list none). The
+       whose item carries `flowIds` shows the flow NAMES in `OPERATIONS_LEDGER_ROW_FLOWS` — each siegemaster row and
+       each groundstomper row lists its own single flow, and the ward and blightwarden rows list none). The
        status bar (`execution-status-bar-layer-widget`) reads `EXECUTION — 0/M OPERATIONS` once the relay is seeded (or
        `AWAITING PLAN` before Start Quest seeds it).
   3. Status → `in_progress`. `questBuildRelayGraphBroker` appended the verify tail as operation items
-     (`ward(changed) → flowrider → siegemaster → blightwarden → ward(full)`, all `locked`, `pending`) and
-     created ONE work item for the FIRST `codeweaver` operation item, marking that operation `in_progress`. **Assert the
-     tail is SIX items on a 2-flow quest** — four fixed items (`ward`, `flowrider`, `blightwarden`, `ward`) plus ONE
-     `siegemaster` item PER FLOW. `flowrider` and `blightwarden` are operator roles that hold exactly ONE item each
-     regardless of flow count; `siegemaster` is also an operator, but fans out to one item per flow. Read `quest.json`
-     and confirm the `flowrider` item carries EVERY
-     `quest.flows[].id` in `flowIds`, in declaration order, that it names no flow id in its `text`, and that each
-     `siegemaster` item carries a single-element `flowIds` naming its own flow with a `— flow: <id>` text suffix.
-     This is the invariant most likely to regress: a whole-quest siegemaster item or a truncated `flowIds` both show
-     up here first.
+     (`ward(changed) → flowrider → groundstomper → siegemaster → blightwarden → ward(full)`, all `locked`, `pending`)
+     and created ONE work item for the FIRST `codeweaver` operation item, marking that operation `in_progress`.
+     **Assert the tail's shape**: three fixed items (`ward(changed)`, `blightwarden`, `ward(full)`), ONE `siegemaster`
+     item PER FLOW, ONE `groundstomper` item per RUNTIME flow that reaches an e2e-eligible package (none at all when
+     the quest reaches no such package), plus the `flowrider` items its package slicing mints. `blightwarden` holds
+     exactly one item regardless of flow count and self-scopes over the diff. Read `quest.json` and confirm each
+     `siegemaster` item carries a single-element `flowIds` naming its own flow with a `— flow: <id>` text suffix, and
+     that each `groundstomper` item likewise names exactly one flow. This is the invariant most likely to regress: a
+     whole-quest siegemaster item or a truncated `flowIds` both show up here first.
     4. Once a dispatcher is running, the first codeweaver work item flips to `in_progress` (a flat
        `execution-row-layer-widget` row, `RUNNING` badge) and gets a `sessionId`.
 

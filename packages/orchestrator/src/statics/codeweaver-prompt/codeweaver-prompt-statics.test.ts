@@ -77,7 +77,7 @@ describe('codeweaverPromptStatics', () => {
     });
   });
 
-  it('VALID: prompt template => scopes tests by folder type, reserving only Playwright e2e for Flowrider', () => {
+  it('VALID: prompt template => scopes tests by folder type, reserving only Playwright e2e for Groundstomper', () => {
     const needle = '**You test what you build, at whatever level the folder type demands.**';
     const { template } = codeweaverPromptStatics.prompt;
     const found = template.slice(
@@ -88,12 +88,45 @@ describe('codeweaverPromptStatics', () => {
     expect(found).toBe(needle);
     expect(
       template.indexOf(
-        '**The one boundary: Playwright `.e2e.ts` suites belong to Flowrider, not you.**',
+        '**The one boundary: Playwright `.e2e.ts` suites belong to Groundstomper, not you.**',
       ),
     ).toBeGreaterThan(-1);
-    // Flowrider is a test writer only, so nobody downstream builds flow wiring — Codeweaver owns it.
+    // Flowrider and Groundstomper are test writers only, so nobody downstream builds flow wiring —
+    // Codeweaver owns it.
     expect(template.indexOf('**You own `flows/` and `startup/`.**')).toBeGreaterThan(-1);
     expect(template.indexOf('No later role writes implementation')).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => never hands e2e to Flowrider, which writes no Playwright', () => {
+    const { template } = codeweaverPromptStatics.prompt;
+
+    // A Codeweaver reading the old boundary skips an `.e2e.ts` expecting Flowrider to write it.
+    // Flowrider refuses Playwright, so the suite is one nobody downstream picks up.
+    expect(template.indexOf('`.e2e.ts` suites belong to Flowrider')).toBe(-1);
+    expect(template.indexOf('belongs to Flowrider')).toBe(-1);
+    expect(
+      template.indexOf(
+        'Flowrider takes\neverything below the browser and writes no Playwright either',
+      ),
+    ).toBeGreaterThan(-1);
+  });
+
+  it('VALID: prompt template => rule 9 sends Playwright e2e to Groundstomper', () => {
+    const needle =
+      '9. **Test what you build** — at the level the folder type demands; only Playwright `.e2e.ts`\n   belongs to Groundstomper';
+    const { template } = codeweaverPromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+
+    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+  });
+
+  it('VALID: prompt template => credits both authoring roles for turning an added observable into a test', () => {
+    const needle =
+      "- **Flowrider and Groundstomper write the test suites from the observables** — Flowrider below the\n  browser, Groundstomper's Playwright walk inside it.";
+    const { template } = codeweaverPromptStatics.prompt;
+    const foundIndex = template.indexOf(needle);
+
+    expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
   });
 
   it('VALID: prompt template => has the commit-before-signal section', () => {

@@ -9,6 +9,7 @@ describe('packageNameLiteralStatics', () => {
         'frontend',
         'client',
         'app',
+        'desktop',
         'server',
         'backend',
         'api',
@@ -17,14 +18,44 @@ describe('packageNameLiteralStatics', () => {
   });
 
   describe('workspaceDirNames', () => {
-    it('VALID: workspaceDirNames => equals the workspace root directory list', () => {
-      expect(packageNameLiteralStatics.workspaceDirNames).toStrictEqual(['packages']);
+    it('VALID: workspaceDirNames => equals every workspace root directory a monorepo layout uses', () => {
+      expect(packageNameLiteralStatics.workspaceDirNames).toStrictEqual([
+        'packages',
+        'apps',
+        'libs',
+      ]);
     });
   });
 
   describe('equalityOperators', () => {
     it('VALID: equalityOperators => equals the four JavaScript equality operators', () => {
       expect(packageNameLiteralStatics.equalityOperators).toStrictEqual(['===', '!==', '==', '!=']);
+    });
+  });
+
+  describe('membershipTestMethodNames', () => {
+    it('VALID: membershipTestMethodNames => equals the value-taking membership methods, with no predicate method among them', () => {
+      expect(packageNameLiteralStatics.membershipTestMethodNames).toStrictEqual([
+        'includes',
+        'indexOf',
+        'lastIndexOf',
+      ]);
+    });
+  });
+
+  describe('membershipSetConstructorNames', () => {
+    it('VALID: membershipSetConstructorNames => equals the constructors whose purpose is membership', () => {
+      expect(packageNameLiteralStatics.membershipSetConstructorNames).toStrictEqual(['Set']);
+    });
+  });
+
+  describe('transparentExpressionWrapperTypes', () => {
+    it("VALID: transparentExpressionWrapperTypes => equals the TypeScript wrappers that change a value's type but not its position", () => {
+      expect(packageNameLiteralStatics.transparentExpressionWrapperTypes).toStrictEqual([
+        'TSAsExpression',
+        'TSSatisfiesExpression',
+        'TSNonNullExpression',
+      ]);
     });
   });
 

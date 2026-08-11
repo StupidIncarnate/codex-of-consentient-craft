@@ -230,6 +230,40 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
     });
   });
 
+  describe('this workspace, derived from its own manifests', () => {
+    it("VALID: {every packages/* manifest on disk, read verbatim} => each package's depth is the layer its real dependencies put it in", async () => {
+      const proxy = PrepareQuestPackageGraphLayerResponderProxy();
+      const packagesAffected = proxy.setupRealWorkspaceManifests();
+      const quest = QuestStub({ packagesAffected });
+
+      const result = await PrepareQuestPackageGraphLayerResponder({ quest });
+
+      // Nothing below is transcribed: the adjacency comes from the manifests on disk, the depths
+      // from the same pass Start runs, and `depth` is the sole input to the codeweaver dispatch
+      // order — so a dependency added to any package.json moves a number here instead of passing
+      // unseen. The six layers it spells out, alphabetical by directory name:
+      //   L0 testing / L1 shared / L2 config, eslint-plugin, hooks, tooling, ward, web
+      //   L3 local-eslint, orchestrator / L4 mcp, server / L5 cli
+      // `shared` is L1 rather than a leaf because its `@dungeonmaster/testing` devDependency is a
+      // real edge — packageJsonDependencyNamesTransformer unions all three dependency fields.
+      expect(result?.map((entry) => `${String(entry.id)}=${String(entry.depth)}`)).toStrictEqual([
+        'cli=5',
+        'config=2',
+        'eslint-plugin=2',
+        'hooks=2',
+        'local-eslint=3',
+        'mcp=4',
+        'orchestrator=3',
+        'server=4',
+        'shared=1',
+        'testing=0',
+        'tooling=2',
+        'ward=2',
+        'web=2',
+      ]);
+    });
+  });
+
   describe('post-quest state', () => {
     it("VALID: {a 'new' package with usedBy} => the node is added and its consumer gains the reverse edge, without any manifest of its own", async () => {
       const proxy = PrepareQuestPackageGraphLayerResponderProxy();

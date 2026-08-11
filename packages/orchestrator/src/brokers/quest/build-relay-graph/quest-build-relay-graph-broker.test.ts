@@ -711,7 +711,7 @@ describe('questBuildRelayGraphBroker', () => {
   });
 
   describe('bug-hunt quest', () => {
-    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress + 3-item verify tail carrying NO groundstomper, first work item is pesteater', async () => {
+    it('VALID: {bug-hunt quest, empty operations} => pesteater implementation op in_progress carrying the node tags + 3-item verify tail carrying NO groundstomper, first work item is pesteater', async () => {
       const proxy = questBuildRelayGraphBrokerProxy();
       proxy.setupUuids({ ids: UUIDS });
 
@@ -743,6 +743,7 @@ describe('questBuildRelayGraphBroker', () => {
             text: 'PestEater: reproduce the bug with a failing test first, then fix it',
             status: 'in_progress',
             locked: true,
+            packageNames: ['web'],
           }),
           OperationItemStub({
             id: '00000000-0000-4000-8000-000000000002',
@@ -780,6 +781,80 @@ describe('questBuildRelayGraphBroker', () => {
           }),
         ],
       });
+    });
+
+    it('VALID: {node tags spread across two flows, one package repeated} => the seeded pesteater item carries the UNION of the node tags, first-tagged order, once each', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const quest = QuestStub({
+        questType: 'bug-hunt',
+        operations: [],
+        packagesAffected: [WEB_PACKAGE, SERVER_PACKAGE, CLI_PACKAGE],
+        flows: [
+          FlowStub({
+            id: 'repro-crash',
+            name: 'Repro crash',
+            flowType: 'runtime',
+            nodes: [
+              FlowNodeStub({ id: 'compose', label: 'Compose', packages: ['web'] }),
+              FlowNodeStub({ id: 'persist', label: 'Persist', packages: ['web', 'server'] }),
+            ],
+          }),
+          FlowStub({
+            id: 'expected-behaviour',
+            name: 'Expected behaviour',
+            flowType: 'runtime',
+            nodes: [FlowNodeStub({ id: 'invoke', label: 'Invoke', packages: ['cli', 'web'] })],
+          }),
+        ],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, packageNames }) => ({ role, packageNames })),
+      ).toStrictEqual([
+        { role: 'pesteater', packageNames: ['web', 'server', 'cli'] },
+        { role: 'ward', packageNames: [] },
+        { role: 'blightwarden', packageNames: [] },
+        { role: 'ward', packageNames: [] },
+      ]);
+    });
+
+    it('EMPTY: {bug-hunt quest with no flows to tag} => the pesteater item still seeds, declaring no packages', async () => {
+      const proxy = questBuildRelayGraphBrokerProxy();
+      proxy.setupUuids({ ids: UUIDS });
+
+      const quest = QuestStub({
+        questType: 'bug-hunt',
+        operations: [],
+        packagesAffected: [],
+        flows: [],
+      });
+
+      const result = await questBuildRelayGraphBroker({
+        quest,
+        priorWorkItemIds: [],
+        now: IsoTimestampStub(),
+      });
+
+      expect(
+        result.operations.map(({ role, status, packageNames }) => ({
+          role,
+          status,
+          packageNames,
+        })),
+      ).toStrictEqual([
+        { role: 'pesteater', status: 'in_progress', packageNames: [] },
+        { role: 'ward', status: 'pending', packageNames: [] },
+        { role: 'blightwarden', status: 'pending', packageNames: [] },
+        { role: 'ward', status: 'pending', packageNames: [] },
+      ]);
     });
   });
 

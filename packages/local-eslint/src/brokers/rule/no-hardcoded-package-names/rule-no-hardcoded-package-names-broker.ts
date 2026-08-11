@@ -3,17 +3,21 @@
  *
  * USAGE:
  * const rule = ruleNoHardcodedPackageNamesBroker();
- * // Returns ESLint rule that flags `const x = 'packages/web/src/brokers'` and `pkg === 'web'`,
- * // and stays silent on the same text inside a comment.
+ * // Returns ESLint rule that flags `const x = 'packages/web/src/brokers'`, `pkg === 'web'`, and
+ * // `UI_PACKAGES.includes(pkg)` over `['web', 'app']` — and stays silent on the same text inside
+ * // a comment, or on the same array nothing ever tests membership against.
  *
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint (this repo only, never shipped) to hold the standing "never hardcode on a package name" constraint — every such decision goes through `packageType`, resolved from the target repo's own disk, and every consumer handles a set.
  */
 import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { packageNameLiteralStatics } from '../../../statics/package-name-literal/package-name-literal-statics';
 import { bannedPackagePathNamesTransformer } from '../../../transformers/banned-package-path-names/banned-package-path-names-transformer';
+import { effectiveExpressionParentTransformer } from '../../../transformers/effective-expression-parent/effective-expression-parent-transformer';
 import { isPackageNameLiteralAllowlistedGuard } from '../../../guards/is-package-name-literal-allowlisted/is-package-name-literal-allowlisted-guard';
 import { isPackageNameComparisonOperandGuard } from '../../../guards/is-package-name-comparison-operand/is-package-name-comparison-operand-guard';
+import { isMembershipTestUsageGuard } from '../../../guards/is-membership-test-usage/is-membership-test-usage-guard';
 
 export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -39,6 +43,13 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
     if (isPackageNameLiteralAllowlistedGuard({ filename: String(filename) })) {
       return {};
     }
+
+    // A collection of bare role names is a list until something tests membership against it, and
+    // the test is usually written after the collection — `const UI = ['web'] … UI.includes(pkg)`.
+    // So the verdict is held open until the whole file has been walked.
+    const roleElementsByBindingName = new Map<Identifier, Tsestree[]>();
+    const membershipBindingNames = new Set<Identifier>();
+    const membershipTestedElements: Tsestree[] = [];
 
     return {
       // Both node kinds carry a string the parser produced from source. A comment produces neither,
@@ -71,6 +82,62 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
             node,
             messageId: 'packageNameDiscriminator',
             data: { packageName: value },
+          });
+        }
+      },
+
+      ArrayExpression: (node: Tsestree): void => {
+        const roleElements = (node.elements ?? []).filter((element): element is Tsestree => {
+          if (element === null || element.type !== 'Literal') {
+            return false;
+          }
+          const { value } = element;
+          if (typeof value !== 'string') {
+            return false;
+          }
+          return packageNameLiteralStatics.roleBearingPackageNames.some((name) => name === value);
+        });
+
+        if (roleElements.length === 0) {
+          return;
+        }
+
+        if (isMembershipTestUsageGuard({ node })) {
+          membershipTestedElements.push(...roleElements);
+          return;
+        }
+
+        const parent = effectiveExpressionParentTransformer({ node });
+        const bindingName = parent?.type === 'VariableDeclarator' ? parent.id?.name : undefined;
+        if (bindingName === undefined) {
+          return;
+        }
+
+        roleElementsByBindingName.set(bindingName, [
+          ...(roleElementsByBindingName.get(bindingName) ?? []),
+          ...roleElements,
+        ]);
+      },
+
+      Identifier: (node: Tsestree): void => {
+        if (node.name !== undefined && isMembershipTestUsageGuard({ node })) {
+          membershipBindingNames.add(node.name);
+        }
+      },
+
+      'Program:exit': (): void => {
+        const decidingElements = [
+          ...membershipTestedElements,
+          ...[...membershipBindingNames].flatMap(
+            (bindingName) => roleElementsByBindingName.get(bindingName) ?? [],
+          ),
+        ];
+
+        for (const element of decidingElements) {
+          ctx.report({
+            node: element,
+            messageId: 'packageNameDiscriminator',
+            data: { packageName: String(element.value) },
           });
         }
       },

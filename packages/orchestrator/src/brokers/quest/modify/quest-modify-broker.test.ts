@@ -3303,4 +3303,319 @@ describe('questModifyBroker', () => {
       ).toStrictEqual([expectedFlows]);
     });
   });
+
+  // `package` is `.optional()` on modifyQuestInputContract and REQUIRED on the persisted
+  // flowObservableContract. Every test below writes the observable the way the input contract
+  // invites — WITHOUT the key — rather than leaning on FlowObservableStub's default, because a stub
+  // that always supplies one proves nothing about a save that has to.
+  describe('observable package resolution on save', () => {
+    it('VALID: {new observable written with no package onto a node tagging exactly one} => the node tag is resolved onto it and lands on disk', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'press-warp', packages: ['web'], observables: [] });
+      const flow = FlowStub({ id: 'warpgate-merge', nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'press-warp',
+                observables: [
+                  {
+                    id: 'warp-button-disables',
+                    type: 'ui-state',
+                    description: 'the WARP button goes disabled while the merge runs',
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'warpgate-merge',
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'press-warp',
+              packages: ['web'],
+              observables: [
+                FlowObservableStub({
+                  id: 'warp-button-disables',
+                  type: 'ui-state',
+                  description: 'the WARP button goes disabled while the merge runs',
+                  package: 'web',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it('VALID: {observable naming its own package on a node tagging exactly one} => the authored package is persisted, not the node tag', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({ id: 'press-warp', packages: ['web'], observables: [] });
+      const flow = FlowStub({ id: 'warpgate-merge', nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'press-warp',
+                observables: [
+                  {
+                    id: 'merge-status-200',
+                    type: 'api-call',
+                    description: 'GET /api/quests/:id/merge-status returns 200',
+                    package: 'server',
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      // The write survives intact even though 'server' is not one of the node's tags: naming a
+      // mis-attributed observable is the approved gate's Observable Package Attribution check, and
+      // silently overwriting it here would erase the claim instead of reporting it.
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'warpgate-merge',
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'press-warp',
+              packages: ['web'],
+              observables: [
+                FlowObservableStub({
+                  id: 'merge-status-200',
+                  type: 'api-call',
+                  description: 'GET /api/quests/:id/merge-status returns 200',
+                  package: 'server',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it('INVALID: {new observable written with no package onto a node tagging two} => refused by name with both tags, and nothing is persisted', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({
+        id: 'landed-on-base',
+        packages: ['web', 'server'],
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'warpgate-merge', nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'landed-on-base',
+                observables: [
+                  {
+                    id: 'merge-banner-shown',
+                    type: 'ui-state',
+                    description: 'the merged banner replaces the WARP button',
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      // A NAMED check with actionable details, never the raw ZodError the persisted contract's
+      // required `package` would throw — that one arrives as `error` alone with no failedChecks at
+      // all, which is the opaque rejection this tier exists to prevent.
+      expect(result).toStrictEqual({
+        success: false,
+        error: 'Observable package resolution failed',
+        failedChecks: [
+          {
+            name: 'Observable Package Resolution',
+            passed: false,
+            details:
+              "Observable 'merge-banner-shown' on node 'landed-on-base' in flow 'warpgate-merge' names no package, and its node tags web, server. An omitted package is filled in from the owning node only when that node tags exactly ONE — state the package this observable is read in, drawn from the ones its node already tags, or retag the node.",
+          },
+        ],
+      });
+      expect(proxy.getAllPersistedContents()).toStrictEqual([]);
+    });
+
+    it('VALID: {observable naming one side of the seam on a node tagging two} => accepted and persisted with the side it named', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({
+        id: 'landed-on-base',
+        packages: ['web', 'server'],
+        observables: [],
+      });
+      const flow = FlowStub({ id: 'warpgate-merge', nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'explore_observables',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'landed-on-base',
+                observables: [
+                  {
+                    id: 'merge-banner-shown',
+                    type: 'ui-state',
+                    description: 'the merged banner replaces the WARP button',
+                    package: 'web',
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(persisted.flows).toStrictEqual([
+        FlowStub({
+          id: 'warpgate-merge',
+          edges: [],
+          nodes: [
+            FlowNodeStub({
+              id: 'landed-on-base',
+              packages: ['web', 'server'],
+              observables: [
+                FlowObservableStub({
+                  id: 'merge-banner-shown',
+                  type: 'ui-state',
+                  description: 'the merged banner replaces the WARP button',
+                  package: 'web',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it('VALID: {observable added at in_progress with no package onto a single-package node} => the tag is resolved on the additive-only path too', async () => {
+      const proxy = questModifyBrokerProxy();
+      const node = FlowNodeStub({
+        id: 'press-warp',
+        packages: ['web'],
+        observables: [FlowObservableStub({ id: 'warp-button-disables', package: 'web' })],
+      });
+      const flow = FlowStub({ id: 'warpgate-merge', nodes: [node], edges: [] });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: '001-add-auth',
+        status: 'in_progress',
+        flows: [flow],
+      });
+
+      proxy.setupQuestFound({ quest });
+
+      const input = ModifyQuestInputStub({
+        questId: 'add-auth',
+        flows: [
+          {
+            id: 'warpgate-merge',
+            nodes: [
+              {
+                id: 'press-warp',
+                observables: [
+                  {
+                    id: 'warp-button-reenables-on-failure',
+                    type: 'ui-state',
+                    description: 'the WARP button comes back when the merge fails',
+                    addedBy: 'siegemaster',
+                  },
+                ],
+              },
+            ],
+          },
+        ] as never,
+      });
+
+      const result = await questModifyBroker({ input });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const persisted = parseLatestPersisted(proxy.getAllPersistedContents());
+
+      expect(
+        persisted.flows[0]!.nodes[0]!.observables.map((observable) => ({
+          id: String(observable.id),
+          package: String(observable.package),
+        })),
+      ).toStrictEqual([
+        { id: 'warp-button-disables', package: 'web' },
+        { id: 'warp-button-reenables-on-failure', package: 'web' },
+      ]);
+    });
+  });
 });

@@ -385,6 +385,8 @@ describe('modifyQuestInputContract', () => {
       ],
     });
 
+    // `packageTypes` defaults empty on every entry an agent writes: the kind SET is resolved from
+    // disk on save, never declared, so an author cannot claim a package is browser-reachable.
     expect(result).toStrictEqual({
       questId: 'add-auth',
       packagesAffected: [
@@ -393,12 +395,14 @@ describe('modifyQuestInputContract', () => {
           location: './packages/auth-service',
           changeType: 'edit',
           packageType: 'library',
+          packageTypes: [],
         },
         {
           name: 'token-store',
           location: './packages/token-store',
           changeType: 'new',
           packageType: 'programmatic-service',
+          packageTypes: [],
           usedBy: ['auth-service'],
         },
       ],

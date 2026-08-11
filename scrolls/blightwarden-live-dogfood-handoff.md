@@ -42,7 +42,7 @@ Three causes, all supposedly fixed by `82d2bd77`:
   **absence**, not honesty.
 - Minions: `blightwarden-group-minion` (a disjoint group of file pairs, all 7 lenses, fixes in place) and
   `blightwarden-crosscut-minion` (whole diff, runs last and alone).
-- Feature tail: `ward(changed) → flowrider → siegemaster → blightwarden → ward(full)`.
+- Feature tail: `ward(changed) → flowrider → groundstomper → siegemaster → blightwarden → ward(full)`.
 
 ---
 

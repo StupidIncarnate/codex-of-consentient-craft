@@ -79,6 +79,43 @@ const FLOW = FlowStub({
 
 const UNITS = qaUnitEnumerateTransformer({ flow: FLOW });
 
+// A package whose hono adapter outranks its widgets folder in the detector's priority table: the
+// display LABEL is `http-backend` while the stamped kind set carries the browser surface as well.
+const HYBRID_PACKAGE = PackageNameStub({ value: 'storefront' });
+
+const HYBRID_PACKAGES_AFFECTED = [
+  QuestPackageEntryStub({
+    name: HYBRID_PACKAGE,
+    location: `./packages/${HYBRID_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'http-backend',
+    packageTypes: ['http-backend', 'frontend-react'],
+  }),
+  QuestPackageEntryStub({
+    name: API_PACKAGE,
+    location: `./packages/${API_PACKAGE}`,
+    changeType: 'edit',
+    packageType: 'http-backend',
+  }),
+];
+
+const HYBRID_FLOW = FlowStub({
+  id: 'checkout-flow',
+  flowType: 'runtime',
+  nodes: [
+    FlowNodeStub({
+      id: 'cart',
+      label: 'Cart',
+      packages: [HYBRID_PACKAGE],
+      observables: [FlowObservableStub({ id: 'shows-cart' })],
+    }),
+    FlowNodeStub({ id: 'charge', label: 'Charge', packages: [API_PACKAGE] }),
+  ],
+  edges: [],
+});
+
+const HYBRID_UNITS = qaUnitEnumerateTransformer({ flow: HYBRID_FLOW });
+
 // Everything that hangs off no resolvable node — the off-map families and the orphan branch. They
 // are over-included on purpose: excluding a unit whose owning node cannot be read would empty a
 // denominator on incomplete data, which is the one failure this narrowing must not cause.
@@ -278,6 +315,79 @@ describe('qaUnitsInPackageScopeTransformer', () => {
           packageNames: [UNUSED_PACKAGE],
         }).map((unit) => String(unit.id)),
       ).toStrictEqual(UNROUTABLE_UNIT_IDS);
+    });
+  });
+
+  describe('a package carrying more than one kind', () => {
+    it('VALID: {a node tagged with a package that is BOTH http-backend and browser-reachable} => its units stay on BOTH authoring tracks, so neither half of the package is lost', () => {
+      expect({
+        flowrider: qaUnitsInPackageScopeTransformer({
+          flow: HYBRID_FLOW,
+          units: HYBRID_UNITS,
+          track: 'flowrider',
+          packagesAffected: HYBRID_PACKAGES_AFFECTED,
+        })
+          .map((unit) => String(unit.id))
+          .filter((id) => id === 'checkout-flow:observable:shows-cart'),
+        groundstomper: qaUnitsInPackageScopeTransformer({
+          flow: HYBRID_FLOW,
+          units: HYBRID_UNITS,
+          track: 'groundstomper',
+          packagesAffected: HYBRID_PACKAGES_AFFECTED,
+        })
+          .map((unit) => String(unit.id))
+          .filter((id) => id === 'checkout-flow:observable:shows-cart'),
+      }).toStrictEqual({
+        flowrider: ['checkout-flow:observable:shows-cart'],
+        groundstomper: ['checkout-flow:observable:shows-cart'],
+      });
+    });
+
+    it('VALID: {a sibling node tagged with the single-kind backend package} => stays on Flowrider and is dropped by Groundstomper, so the hybrid case is not just a disabled narrowing', () => {
+      expect({
+        flowrider: qaUnitsInPackageScopeTransformer({
+          flow: HYBRID_FLOW,
+          units: HYBRID_UNITS,
+          track: 'flowrider',
+          packagesAffected: HYBRID_PACKAGES_AFFECTED,
+        })
+          .map((unit) => String(unit.id))
+          .filter((id) => id === 'checkout-flow:terminal:charge'),
+        groundstomper: qaUnitsInPackageScopeTransformer({
+          flow: HYBRID_FLOW,
+          units: HYBRID_UNITS,
+          track: 'groundstomper',
+          packagesAffected: HYBRID_PACKAGES_AFFECTED,
+        })
+          .map((unit) => String(unit.id))
+          .filter((id) => id === 'checkout-flow:terminal:charge'),
+      }).toStrictEqual({
+        flowrider: ['checkout-flow:terminal:charge'],
+        groundstomper: [],
+      });
+    });
+
+    it('EMPTY: {the same entry with its kind set cleared} => the declared label alone decides, and Groundstomper loses the unit — which is the state this set exists to fix', () => {
+      const unstamped = [
+        QuestPackageEntryStub({
+          name: HYBRID_PACKAGE,
+          location: `./packages/${HYBRID_PACKAGE}`,
+          changeType: 'edit',
+          packageType: 'http-backend',
+          packageTypes: [],
+        }),
+      ];
+
+      expect(
+        qaUnitsInPackageScopeTransformer({
+          flow: HYBRID_FLOW,
+          units: HYBRID_UNITS,
+          track: 'groundstomper',
+          packagesAffected: unstamped,
+        })
+          .map((unit) => String(unit.id))
+          .filter((id) => id === 'checkout-flow:observable:shows-cart'),
+      ).toStrictEqual([]);
     });
   });
 

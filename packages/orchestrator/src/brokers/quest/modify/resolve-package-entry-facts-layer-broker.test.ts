@@ -137,6 +137,42 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/web',
           changeType: 'edit',
           packageType: 'frontend-react',
+          packageTypes: ['frontend-react'],
+        },
+      ]);
+    });
+
+    it('VALID: {edit entry over a widgets+react root that ALSO carries a hono adapter} => the label is http-backend and the kind set still carries frontend-react, so the browser track keeps it', async () => {
+      const proxy = resolvePackageEntryFactsLayerBrokerProxy();
+      proxy.setupLocationExists({
+        packageRoot: '/home/testuser/projects/assayer/packages/storefront',
+      });
+      proxy.setupDetectedPackage({
+        packageRoot: '/home/testuser/projects/assayer/packages/storefront',
+        srcDirNames: ['widgets', 'adapters'],
+        adapterDirNames: ['hono'],
+        packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
+      });
+
+      const facts = await resolvePackageEntryFactsLayerBroker({
+        entries: [
+          QuestPackageEntryStub({
+            name: 'storefront',
+            location: './packages/storefront',
+            changeType: 'edit',
+            packageType: 'library',
+          }),
+        ],
+        projectRoot: PROJECT_ROOT,
+      });
+
+      expect(facts.stampedEntries).toStrictEqual([
+        {
+          name: 'storefront',
+          location: './packages/storefront',
+          changeType: 'edit',
+          packageType: 'http-backend',
+          packageTypes: ['http-backend', 'frontend-react'],
         },
       ]);
     });
@@ -170,6 +206,7 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/core',
           changeType: 'edit',
           packageType: 'http-backend',
+          packageTypes: ['http-backend'],
         },
       ]);
     });
@@ -201,6 +238,7 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/mcp',
           changeType: 'delete',
           packageType: 'mcp-server',
+          packageTypes: ['mcp-server'],
         },
       ]);
     });
@@ -231,7 +269,39 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/groundstomp',
           changeType: 'new',
           packageType: 'frontend-react',
+          packageTypes: ['frontend-react'],
           usedBy: ['orchestrator'],
+        },
+      ]);
+    });
+
+    it('EMPTY: {entry carrying no kind set at all} => the declared label becomes the whole set, so nothing downstream reads a package as having no kind', async () => {
+      const proxy = resolvePackageEntryFactsLayerBrokerProxy();
+      proxy.setupDetectedPackage({
+        packageRoot: '/home/testuser/projects/assayer/packages/legacy',
+        srcDirNames: ['brokers'],
+      });
+
+      const facts = await resolvePackageEntryFactsLayerBroker({
+        entries: [
+          QuestPackageEntryStub({
+            name: 'legacy',
+            location: './packages/legacy',
+            changeType: 'edit',
+            packageType: 'cli-tool',
+            packageTypes: [],
+          }),
+        ],
+        projectRoot: PROJECT_ROOT,
+      });
+
+      expect(facts.stampedEntries).toStrictEqual([
+        {
+          name: 'legacy',
+          location: './packages/legacy',
+          changeType: 'edit',
+          packageType: 'cli-tool',
+          packageTypes: ['cli-tool'],
         },
       ]);
     });
@@ -262,6 +332,7 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/gone',
           changeType: 'edit',
           packageType: 'cli-tool',
+          packageTypes: ['cli-tool'],
         },
       ]);
     });
@@ -291,6 +362,7 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/broken',
           changeType: 'edit',
           packageType: 'http-backend',
+          packageTypes: ['http-backend'],
         },
       ]);
     });
@@ -328,12 +400,14 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
           location: './packages/web',
           changeType: 'edit',
           packageType: 'frontend-react',
+          packageTypes: ['frontend-react'],
         },
         {
           name: 'web-alias',
           location: './packages/web',
           changeType: 'edit',
           packageType: 'frontend-react',
+          packageTypes: ['frontend-react'],
         },
       ]);
     });

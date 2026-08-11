@@ -1,7 +1,7 @@
 /**
  * PURPOSE: What each verification track's denominator INCLUDES — the flow types it measures, the
- * unit kinds it owns, the package kinds it can reach, how an item's own declared packages narrow it
- * further, and the observable provenances it could ever have signed
+ * unit kinds it owns, the package kinds it can reach, how an item's own declared flows and packages
+ * narrow it further, and the observable provenances it could ever have signed
  *
  * USAGE:
  * signoffTrackEligibilityStatics.byTrack.flowrider.unitKinds;
@@ -10,6 +10,8 @@
  * // Returns the origins Flowrider could have signed — `siegemaster` is absent
  * signoffTrackEligibilityStatics.byTrack.flowrider.flowTypes;
  * // Returns the flow types Flowrider is measured over — `operational` is absent
+ * signoffTrackEligibilityStatics.byTrack.groundstomper.flowScope;
+ * // Returns whether a Groundstomper item's own `flowIds` are its scope — `declared`
  * signoffTrackEligibilityStatics.byTrack.groundstomper.packageTypes;
  * // Returns the package kinds a browser can walk — Groundstomper is measured over those alone
  * signoffTrackEligibilityStatics.byTrack.flowrider.packageScope;
@@ -27,7 +29,7 @@
  * it makes a new `byTrack` key a COMPILE error at every measuring site, whereas the two-way ternary
  * it replaces silently routed every unnamed track to the field it does not write.
  *
- * FIVE SEPARATE EXCLUSIONS live here as DATA so the completion gate carries no role branches of
+ * SIX SEPARATE EXCLUSIONS live here as DATA so the completion gate carries no role branches of
  * its own.
  *
  * 0. FLOW TYPE. An operational flow is a one-time task sequence whose end state is hand-checked;
@@ -36,19 +38,38 @@
  *    both, which is why it carries the full list rather than an absent field: "measures every type"
  *    is a statement, not a default.
  *
- * 1. UNIT KIND. The off-map probe families are Siegemaster's charter: they are the breakage classes
+ * 1. FLOW SLICE. Rule 0 narrows by TYPE, which is a property of the track. This one says whether an
+ *    individual operation item's own `flowIds` narrow it further, which is a property of the
+ *    DIMENSION the relay sliced that track's items on (`questTypeRegistryStatics.feature.relayTail`
+ *    `fanOutBy`), and the tracks slice differently:
+ *
+ *    - `declared` — Groundstomper (`fanOutBy: 'e2e-flow'`) and Siegemaster (`fanOutBy: 'flow'`) get
+ *      ONE item per flow, each carrying that flow alone, so the item's `flowIds` ARE its coverage
+ *      scope and the gate measures exactly the flow `get-qa-checklist({ flowId, track })` answers
+ *      for. Measuring such an item over every flow of an eligible type instead makes the first of
+ *      several sibling items unable to signal `done` at all — every sibling flow sharing one of its
+ *      packages lands in its denominator — which is the spent-pt-chain failure the slicing exists
+ *      to remove. An item declaring NO flows matches nothing and is not gated, which is what keeps
+ *      a flow-less quest and any pre-gate item completable.
+ *    - `every-eligible` — Flowrider (`fanOutBy: 'package'`) is sliced on the PACKAGE dimension, so
+ *      an item's flow list is a by-product of where its package happens to land rather than a slice
+ *      of the flow dimension, and the whole-quest fallback item legitimately carries none. Reading
+ *      `flowIds` there would leave that item ungated; the narrowing that means something for it is
+ *      rule 4.
+ *
+ * 2. UNIT KIND. The off-map probe families are Siegemaster's charter: they are the breakage classes
  *    a flow graph structurally cannot draw, probed by hand against a running system, which is not
  *    what a Flowrider or Groundstomper test suite is for. Counting them against either would report
  *    a hole no session of that role could ever close.
  *
- * 2. PACKAGE KIND. A unit routes by the packages its owning NODE is tagged with. Groundstomper
+ * 3. PACKAGE KIND. A unit routes by the packages its owning NODE is tagged with. Groundstomper
  *    drives a browser, so it can only prove a unit landing in a package a browser can reach —
  *    `frontend-react` and `frontend-ink`. Flowrider owns everything else. The two lists are
  *    DISJOINT and their union is Siegemaster's, which is what stops one unit being counted against
  *    both authoring roles and stops a unit falling between them. Naming the KINDS rather than the
  *    packages is what lets this run in a repo with several UI packages, or none.
  *
- * 3. PACKAGE SLICE. Rule 2 narrows by KIND, which is a property of the track. This one narrows by
+ * 4. PACKAGE SLICE. Rule 3 narrows by KIND, which is a property of the track. This one narrows by
  *    the NAMES an individual operation item declares, which is a property of how that track's items
  *    were sliced at Start, and the two tracks slice differently:
  *
@@ -67,7 +88,7 @@
  *      names at all, so the value never binds — stated rather than omitted, because "this track
  *      does not partition" is a claim, not a default.
  *
- * 4. PROVENANCE. A role that runs strictly AFTER a track cannot produce work that track was able to
+ * 5. PROVENANCE. A role that runs strictly AFTER a track cannot produce work that track was able to
  *    sign. The relay order is derived from `questTypeRegistryStatics.feature`: the intake role is
  *    `chaoswhisperer`, which also authors the `codeweaver` operation items at spec time
  *    (`startImplementationOps` is empty for a feature quest), and `relayTail` runs
@@ -104,6 +125,7 @@ export const signoffTrackEligibilityStatics = {
     flowrider: {
       signoffField: 'flowriderSignoff',
       flowTypes: ['runtime'],
+      flowScope: 'every-eligible',
       unitKinds: ['terminal', 'branch', 'observable'],
       packageTypes: [
         'http-backend',
@@ -120,6 +142,7 @@ export const signoffTrackEligibilityStatics = {
     groundstomper: {
       signoffField: 'flowriderSignoff',
       flowTypes: ['runtime'],
+      flowScope: 'declared',
       unitKinds: ['terminal', 'branch', 'observable'],
       packageTypes: ['frontend-react', 'frontend-ink'],
       packageScope: 'intersection',
@@ -128,6 +151,7 @@ export const signoffTrackEligibilityStatics = {
     siegemaster: {
       signoffField: 'siegemasterSignoff',
       flowTypes: ['runtime', 'operational'],
+      flowScope: 'declared',
       unitKinds: ['terminal', 'branch', 'observable', 'off-map'],
       packageTypes: [
         'http-backend',

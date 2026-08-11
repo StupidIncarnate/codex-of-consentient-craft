@@ -143,6 +143,26 @@ describe('dumpsterHuntPromptStatics', () => {
     });
   });
 
+  describe('observable package attribution', () => {
+    it('VALID: template => lists package among the observable fields with the resolve-on-save rule', () => {
+      const needle =
+        "- `package`: the ONE package this outcome is read in, drawn from the owning node's `packages`.\n  **Omit it when that node tags exactly one package** — the save resolves it from the node, so\n  there is nothing for you to restate. On a node tagging MORE than one there is nothing to inherit\n  and an omission is refused: name the side of the seam this outcome sits on, and name one the node\n  already tags.";
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+
+    it('VALID: template => states the seam-coverage rule with its edge-forced waiver', () => {
+      const needle =
+        "A seam node's observables must between them cover every package it tags, unless the\n  edge set already forces one (dropping it would leave an incident edge with nothing spanning it).";
+      const { template } = dumpsterHuntPromptStatics.prompt;
+      const foundIndex = template.indexOf(needle);
+
+      expect(template.slice(foundIndex, foundIndex + needle.length)).toBe(needle);
+    });
+  });
+
   describe('packagesAffected entry object shape', () => {
     it('VALID: template => packagesAffected entries use the object shape with the ./ location prefix', () => {
       const needle =

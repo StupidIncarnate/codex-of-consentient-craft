@@ -93,8 +93,10 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
 ### The two ledger shapes
 
 - **feature** (`questType: feature`): ChaosWhisperer authors the `{ role: 'codeweaver', text }` implementation items at
-  spec time; Start Quest appends the verify tail `ward(changed) → flowrider → siegemaster → blightwarden →
-  ward(full)` (all `locked`) — four fixed items plus one `siegemaster` item per quest flow. `flowrider` and
+  spec time; Start Quest appends the verify tail `ward(changed) → flowrider → groundstomper → siegemaster →
+  blightwarden → ward(full)` (all `locked`) — the fixed ward/blightwarden items plus the per-role fan-outs below.
+  `groundstomper` owns Playwright and only Playwright, and fans out to ONE operation item PER runtime flow that
+  reaches an e2e-eligible package (a quest with no such flow gets none); it runs with no minions. `flowrider` and
   `blightwarden` are **operator** roles with exactly ONE operation item each for the whole quest — `flowrider` carries
   EVERY quest flow id in `flowIds` (a flow-less quest gets `[]`); `blightwarden` self-scopes over the whole diff via
   the quest's pinned `baseRef`, with no `flowIds` at all. `siegemaster` is also an **operator**, but fans out to ONE
@@ -104,7 +106,7 @@ HTTP refetch.** The **only** HTTP fetch in the execution view is the **ward-resu
   opening the files — `flowrider` and `blightwarden` each hold exactly ONE pt-continuation chain for the entire quest;
   `siegemaster` holds one chain PER FLOW.
 - **bug-hunt** (`questType: bug-hunt`): Start Quest seeds a single `pesteater` implementation item + the tail
-  `ward(changed) → blightwarden → ward(full)` (no flowrider/siegemaster).
+  `ward(changed) → blightwarden → ward(full)` (no flowrider/groundstomper/siegemaster).
 
 ---
 

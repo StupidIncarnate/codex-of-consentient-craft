@@ -49,7 +49,8 @@ export const agentPromptClassificationStatics = {
   roleNames: [
     'codeweaver',
     'spiritmender',
-    /** Flowrider — operator that authors the flow-perspective test suites (integration/e2e) for ALL
+    /** Flowrider — operator that authors the flow-perspective test suites BELOW the browser
+     * (integration and unit; Playwright is Groundstomper's) for ALL
      * quest flows in one session, delegating each bundle to a `flowrider-authoring-minion` and
      * verifying the result by reopening the files. Tests are its primary output; it and its minions
      * also close the implementation holes their testing exposes, red-first, handing on only the
